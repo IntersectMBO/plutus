@@ -45,11 +45,11 @@
 \usepackage{verbatim}
 \usepackage{todonotes}
 
+
 \newcommand{\todochak}[1]{\todo[inline,color=purple!40,author=chak]{#1}}
 \newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
 \newcommand{\todokwxm}[1]{\todo[inline,color=blue!20,author=kwxm]{#1}}
 \newcommand{\todojm}[1]{\todo[inline,color=purple!40,author=Jann]{#1}}
-
 
 %%% General Misc. Definitions
 
@@ -65,12 +65,18 @@
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
 
+\newcounter{note}
+\newcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{note}
+  \noindent\textbf{Note \thenote. #1}
+}
+
 \renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
 \renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
 \newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
 
-\theoremstyle{definition}  %% This applies to all following \newtheorem items
-\newtheorem{definition}{Definition}
+%\newtheorem{definition}{Definition}
 \newtheorem{example}{Example}
 
 \newenvironment{arraydefs}[1]{\setlength{\arraycolsep}{0pt}\begin{array}{#1}}{\end{array}}
@@ -203,6 +209,14 @@ conditions being met.  A smart contract may involve multiple
 transactions, and our aim is to define a transaction model which
 enables the implementation of highly expressive contracts.
 
+An important component of our UTXO models are \textit{scripts},
+programs which run on the blockchain to check the validity of
+transactions.  In Cardano, scripts will be programs in the Plutus Core
+language~\citep{Plutus-Core-spec}. The Extended UTXO models are largely
+agnostic as to the scripting language. \red{... and we should spell
+  out exactly what's required.}
+
+
 \subsection{Structure of the document}
 \label{sec:doc-structure}
 This document proposes two extensions of the basic UTXO model (EUTXO
@@ -240,13 +254,8 @@ text.  Further explanation and many examples are contained in the
 book~\citep{Plutus-book}.
 
 
-\bigskip
 
-\noindent Before presenting the extended models we will define some
-basic notation and give a little background on the standard UTXO
-model.
-
-
+\newpage
 \section{Notation}
 This section defines some basic notation.  We generally follow the
 notation established by \citep{Zahnentferner18-UTxO}.
@@ -371,57 +380,6 @@ hash of the transaction.
 
 
 
-\section{The Basic UTXO model: Outputs and scripts}
-\label{sec:utxo-intro}
-
-There is no well-defined notion of ownership for UTXOs.  In many
-transactions an output will accrue to a single user who is then
-entitled to spend it at a later date.  However, in general the notion
-of ownership is more complex: an output of a transaction might require
-the cooperation of several users before it could be spent, or it might
-not be spendable until some other condition has been met (for example
-a certain period of time may have to pass).  At the extremes, an
-output could be spendable by anyone, or by no-one.
-
-In order to deal with this complexity, an output can be locked by a
-\textit{script},%
-\footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec} (equivalently, expressions).  }
-requiring another script to unlock it.  In the basic model, each input
-to a transaction comes with a \i{validator} script which checks that
-the transaction is allowed to spend the output. In order to spend an
-output, the transaction supplies another script, called the
-\i{redeemer}, which provides evidence that the transaction has the
-authority to do so;\footnote{The validator plays a role similar to
-  that of BitCoin's \texttt{scriptPubKey} and the redeemer to
-  \texttt{scriptSig}.  } a process called \i{validation} is then
-performed which checks that the redeemer satisfies the conditions
-required by the redeemer. Before a transaction can proceed, all inputs
-must be successfully validated: if one or more inputs fails to
-validate then the transaction is rejected.
-
-A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer consists of a signature for the current transaction produced
-using a private key belonging to the owner of the output.  The
-validator (provided by the owner of the output) would check the
-signature using a known public key: if the public key corresponds to
-the private key then validation succeeds, otherwise it fails.  Thus
-the output can only be spent by the owner of the relevant private key
-
-\paragraph{Fees and Costs.}
-\label{sec:costs} Users may have to pay a fee in order to have a
-transaction executed.  In a public blockchain an important reason for
-this is to deter hostile agents from carrying out denial of service
-attacks by submitting transactions which take a long time or use
-excessive amounts of memory.  In Cardano we expect that the fee will
-include a component based on the size of the transaction (including
-its associated scripts), and also a so-called \textit{gas} charge to
-cover execution costs.  We will have a model specifying the costs of
-individual operations during script execution; costs will be monitored
-dynamically during execution, and if the gas consumed ever exceeds the
-amount covered by the fee then the transaction will fail.
-
-
 \section{EUTXO-1: Enhanced scripting}
 \label{sec:eutxo-1}
 The EUTXO-1 model adds the following new features to the model 
@@ -488,8 +446,6 @@ mentioned above: the validity interval and the $\ptx$ structure.
 
 Figure~\ref{fig:eutxo-1-types} lists the types which
 describe transactions in the basic EUTXO model.
-
-
 %%
 \begin{ruledfigure}{H}
   \[
@@ -532,36 +488,21 @@ output of the transaction is required.
 %  Also: we should check this is still how they do it in the new ledger
 %  specs.}
 
-\paragraph{Scripts.} The spendability of an output is determined by
-its validator script, and thus the validator for an output must be
-created at the same time as the output is.  Conceptually the validator
-is part of the output, so it may be rather unexpected that
-Figure~\ref{fig:eutxo-1-types} defines the validator to be part of an
-\textit{input}, with the output only containing the address of the
-validator.  The rationale for this is that a validator $V$ for an
-output $O$ is not required until $O$ is actually spent, which may be
-some time after $O$ was created.  Recall from~\ref{sec:costs} that the
-cost of executing a transaction depends on the size of transaction,
-including the associated scripts.  Thus the transaction that produces
-the validator only pays for the size of a hash (32 bytes) and the
-transaction that runs it pays for the full size of the script. This
-strategy also helps to reduce on-chain storage requirements, since
-validators can be stored off-chain until needed (and the presence of
-the hash in the output can be used to check that the correct validator
-is in fact being used when validation occurs), but unspent outputs
-persist on-chain in the UTXO set until they are eventually spent.
-
-This strategy is not applied to datascripts since, as the name would
-suggest, we expect them to be small pieces of data (public keys, for
-example) which would not incur large storage charges.
-\todokwxm{Exactly what is the rationale for making the datascript
-  part of the output and not just a hash?}
+\paragraph{Scripts.} Note that we model data scripts as being
+components of outputs, but redeemer scripts as components of inputs.
+The reasons for this are quite subtle, and are explained in more
+detail in Note~\ref{note:scripts}.
 
 \paragraph{Validity intervals.} We allow the second component of a
 validity interval to take the value $\infty$ to indicate that there is
 no upper bound on the validity of a transaction.  Slot numbers start
 at 0, so if the first component of the validity interval is 0
 then there is no lower bound on the transaction's validity.
+
+\paragraph{Fees.}  Users are charged a fee for the on-chain storage
+and execution costs of a transaction, and this is included in the
+EUTXO models.  The details are not important for the purposes of the
+models, but see Note~\ref{note:fees} for some more discussion.
 
 \paragraph{Special types of transaction.} In a practical
 implementation it might be useful to include special cases for common
@@ -644,31 +585,12 @@ function, it is straightforward to define $\tau$.  The function
 $\sigma$ is implementation-dependent and we will not discuss it
 further.
 
-\paragraph{Determinism.} The $\ptx$ type is the only information about
-the ``outside world'' available to a validator script at the time of
-validation.  Allowing the validator access to this information gives
-the EUTXO model a considerable amount of power.  \red{(like what?)}
-However, it is important not to make too much information available to
-the validator.  The choice of the $\ptx$ type above means that the
-information available to the validator is essentially independent of
-the state of the blockchain, and in particular, it is independent of
-time (note that the check that the current slot number is within a
-transaction's validity range takes place \textit{before} validation is
-initiated, and the slot number is not passed to the validator
-(although the validity range is)).  This implies that validation is
-\textit{determinisitic} and validators can be run off-chain in order
-to determine their execution cost before on-chain validation actually
-occurs.  This helps users to calculate transaction fees in advance and
-avoid the possibility of their transactions failing due to an
-insufficient fee having been paid (and also avoids overpayment due to
-overestimating the fees).
+\paragraph{Determinism.}  The information provided in the $\ptx$
+structure is sufficiently limited that the validation process
+becomes \textit{deterministic},  which has important implications
+for fee calculations.  See Note~\ref{note:validation-determinism}
+for further discussion.
 
-\todokwxm{This may be a little optimistic.  For example, in the
-  crowdfunding contract we don't know in advance how many
-  contributions will be made, or whether a campaign will succeed or
-  fail.  Thus we won't know how much the final transaction will cost
-  until just before it happens.}
-  
 
 \subsection{Validity of EUTXO-1 transactions}
 \label{sec:eutxo-1-validity}
@@ -792,16 +714,6 @@ allow, among other things, the implementation of new currencies and
 blockchain has a unique \textit{native currency} which is the
 fundamental currency used for paying fees, for example.  The native
 currency of the Cardano blockchain is Ada.
-
-\smallskip
-\todokwxm{Jann says ``Maybe we should mention the native currency
-  here, but not write it down in the spec - it's only needed for the
-  fee, we don't have a cost model for EUTXO yet, and by ignoring the
-  native currency in the definitions we could delete the forge, fee
-  and value fields''.  I'm in two minds about this.  Making Ada just the
-  same as custom currencies feels a little unnatural, but maybe that's
-  just me. Also, I don't think we have fees for custom currencies, so
-  that does differentiate the native currency from the others.}
 
 \paragraph{Custom currencies.} In addition to the native currency, the
 EUTXO-2 model allows an unlimited number of other \textit{custom
@@ -936,34 +848,15 @@ which can be used to produce an appropriate script from a transaction
 and the index of an input.
 
 \subsection{Validity of EUTXO-2 transactions}
+\label{sec:eutxo-2-validity}
 
 \bigskip
 \noindent The validity conditions from
 Figure~\ref{fig:eutxo-1-validity} must also be updated to take account
-of multiple currencies.  However, there is a subtlety which we must
-deal with first.
-
-\paragraph{Zero quantities.}  We require currency quantities to be
-non-negative, but we do not insist that they are strictly positive.
-Thus an output can contain 0 units of any (sub)currency, including the
-native currency.  With the introduction of custom currencies, this
-presents a problem: should we distinguish between a $\qtymap$ which
-explicitly has 0 units of some currency $C$ and one which does not
-mention $C$ at all?  The answer depends on the context: if we are
-adding together quantities of currencies then it is sensible to regard
-the two as being ``the same'', but we may wish to distinguish the two
-when talking about outputs for instance, since an output whose
-quantity map is
-$Q_1 = \{(A,{(t,0)}), (B,\{(u,0)\}), (C,\{(v,5), (w,0)\})\}$ will take
-up more space than one whose quantity map is $Q_2 = \{(C,\{(v,5)\})\}$.
-In Figure~\ref{fig:more-basic-types} we defined equality pointwise, so
-$Q_1$ and $Q_2$ are not equal even though they arguably represent the
-same amounts of currency.  To deal with this we can use an equivalence
-relation which considers two quantity maps to be equivalent if they
-differ only by zero values. Using this equivalence relation directly
-is somewhat tricky, but fortunately each equivalence class has a
-canonical representative, one which has no zero values at all. This
-motivates the following definitions:
+of multiple currencies.  For this we require operations which minimise
+a $\qtymap$ by discarding tokens which occur with value 0 and currencies
+which have no tokens.  See Note~\ref{note:zero-quantities} for an explanation
+of why this is needed.
 
 \begin{gather*}
   \mu_1: \Map{\token}{\qty} \rightarrow \Map{\token}{\qty} \\
@@ -975,23 +868,6 @@ motivates the following definitions:
 
 \newcommand{\mprime}{M^{\prime}}
 
-\noindent For each currency in a $\qtymap$ $Q$, the auxiliary
-operation $\mu_1$ firstly discards all tokens which occur with value
-0; the operation $\mu$ then discards all currencies which have no
-tokens left.  If we put $\mprime = \mu(M)$ then it is guaranteed that
-$\mprime[c] \ne \{\}$ for all $c \in \dom{\mprime}$ and that
-$M^{\prime}[c][t] \ne 0$ for all $c \in \dom{M^{\prime}}$ and
-$t \in \dom{M^{\prime}[c]}$,
-  
-
-\medskip
-\todokwxm{Maybe this is getting out of hand.  Another way to do this
-  would be to define a function $\kappa: K \times \Map{K}{V} \rightarrow V$ with
-  $\kappa(k,m) = m[k]$ if $k \in \dom m$ and $\kappa(k) = 0$
-  otherwise.  For validity we'd then have to assert that $\kappa(k)$
-  balances up for every $k$ in the union of the domains of the various
-  maps involved.  This could get typographically messy.}
-  
 We use the definitions of \unspent{}  and
 \getvalue{} from Section~\ref{sec:eutxo-1-validity} unchanged,
 but we also require a function to retrieve the values of
@@ -1079,9 +955,190 @@ rule~\ref{rule:custom-values-are-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
 
+\subsection{The EUTXO-2 model in practice.}
+See~\cite{Plutus-book} for examples of contracts which make use of the
+features of the EUTXO-2 model.  See also
+Notes~\ref{note:monetary-policies}, \ref{note:eutxo-2-implications},
+and \ref{note:eutxo-2-performance} for comments on some technical
+aspects of the model.
 
-\subsection{Monetary policies for custom currencies}
-\label{sec:monetary-policies}
+\section{What else do we need to worry about?}
+\begin{itemize}
+
+\item Sometimes I'm saying ``datascript'' and at other times ``data script''.
+  Maybe we should try to be consistent about this.
+  
+\item Do we need to worry about who signs the various scripts, or is that
+  something the wallet deals with?
+
+\item Who's responsible for looking after the scripts, and where are they kept?
+  Presumably scripts will be stored in the chain, but how do they get there?
+
+\item Maybe we should make this more consistent with the ledger specification.
+\end{itemize}
+  
+\appendix
+\section{Comments on the specification}
+\label{appendix:comments}
+
+\note{The Basic UTXO model: Outputs and scripts.}
+\label{note:basic-utxo}
+There is no well-defined notion of ownership for UTXOs.  In many
+transactions an output will accrue to a single user who is then
+entitled to spend it at a later date.  However, in general the notion
+of ownership is more complex: an output of a transaction might require
+the cooperation of several users before it could be spent, or it might
+not be spendable until some other condition has been met (for example
+a certain period of time may have to pass).  At the extremes, an
+output could be spendable by anyone, or by no-one.
+
+In order to deal with this complexity, an output can be locked by a
+\textit{script},%
+\footnote{In the Cardano setting, scripts are Plutus Core
+  programs~\citep{Plutus-Core-spec} (equivalently, expressions).  }
+requiring another script to unlock it.  In the basic model, each input
+to a transaction comes with a \i{validator} script which checks that
+the transaction is allowed to spend the output. In order to spend an
+output, the transaction supplies another script, called the
+\i{redeemer}, which provides evidence that the transaction has the
+authority to do so;\footnote{The validator plays a role similar to
+  that of BitCoin's \texttt{scriptPubKey} and the redeemer to
+  \texttt{scriptSig}.  } a process called \i{validation} is then
+performed which checks that the redeemer satisfies the conditions
+required by the redeemer. Before a transaction can proceed, all inputs
+must be successfully validated: if one or more inputs fails to
+validate then the transaction is rejected.
+
+A simple example of this is a \i{pay-to-pubkey} script, where the
+redeemer consists of a signature for the current transaction produced
+using a private key belonging to the owner of the output.  The
+validator (provided by the owner of the output) would check the
+signature using a known public key: if the public key corresponds to
+the private key then validation succeeds, otherwise it fails.  Thus
+the output can only be spent by the owner of the relevant private key
+
+
+\note{Fees and Costs.}
+\label{note:fees}
+Users may have to pay a fee in order to have a transaction executed.
+In a public blockchain an important reason for this is to deter
+hostile agents from carrying out denial of service attacks by
+submitting transactions which take a long time or use excessive
+amounts of memory.  The precise details of fees in Cardano are outwith
+the scope of this document, and indeed have not been fully decided at
+the time of writing. However, we expect that the fee will include a
+component based on the size of the transaction (including its
+associated scripts), and also a so-called \textit{gas} charge to cover
+execution costs.  We will have a model specifying the costs of
+individual operations during script execution; costs will be monitored
+dynamically during execution, and if the gas consumed ever exceeds the
+amount covered by the fee then the transaction will fail.
+
+\note{Scripts.}
+\label{note:scripts} The spendability of an output is determined by
+its validator script, and thus the validator for an output must be
+created at the same time as the output is.  Conceptually the validator
+is  part of the output, so it may be rather unexpected that
+Figure~\ref{fig:eutxo-1-types} defines the validator to be part of an
+\textit{input}, with the output only containing the address of the
+validator.  The rationale for this is that a validator $V$ for an
+output $O$ is not required until $O$ is actually spent, which may be
+some time after $O$ was created.  Recall from Note~\ref{note:fees} that the
+cost of executing a transaction depends on the size of transaction,
+including the associated scripts.  Thus the transaction that produces
+the validator only pays for the size of a hash (32 bytes) and the
+transaction that runs it pays for the full size of the script. This
+strategy also helps to reduce on-chain storage requirements, since
+validators can be stored off-chain until needed (and the presence of
+the hash in the output can be used to check that the correct validator
+is in fact being used when validation occurs), but unspent outputs
+persist on-chain in the UTXO set until they are eventually spent.
+
+This strategy is not applied to datascripts since, as the name would
+suggest, we expect them to be small pieces of data (public keys, for
+example) which would not incur large storage charges.
+\todokwxm{Exactly what is the rationale for making the datascript
+  part of the output and not just a hash?}
+
+\note{Determinism of the validation process.}
+\label{note:validation-determinism} The $\ptx$ type is the
+only information about the ``outside world'' available to a validator
+script at the time of validation.  Allowing the validator access to
+this information gives the EUTXO model a considerable amount of power.
+\red{(like what?)}  However, it is important not to make too much
+information available to the validator.  The choice of the $\ptx$ type
+above means that the information available to the validator is
+essentially independent of the state of the blockchain, and in
+particular, it is independent of time (note that the check that the
+current slot number is within a transaction's validity range takes
+place \textit{before} validation is initiated, and the slot number is
+not passed to the validator (although the validity range is)).  This
+implies that validation is \textit{determinisitic} and validators can
+be run off-chain in order to determine their execution cost before
+on-chain validation actually occurs.  This helps users to calculate
+transaction fees in advance and avoid the possibility of their
+transactions failing due to an insufficient fee having been paid (and
+also avoids overpayment due to overestimating the fees).
+
+\todokwxm{This may be a little optimistic.  For example, in the
+  crowdfunding contract we don't know in advance how many
+  contributions will be made, or whether a campaign will succeed or
+  fail.  Thus we won't know how much the final transaction will cost
+  until just before it happens.}
+  
+\note{Zero quantities.}
+\label{note:zero-quantities}
+We require currency quantities to be non-negative, but we do not
+insist that they are strictly positive.  Thus an output can contain 0
+units of any (sub)currency, including the native currency.  With the
+introduction of custom currencies, this presents a problem: should we
+distinguish between a $\qtymap$ which explicitly has 0 units of some
+currency $C$ and one which does not mention $C$ at all?  The answer
+depends on the context: if we are adding together quantities of
+currencies then it is sensible to regard the two as being ``the
+same'', but we may wish to distinguish the two when talking about
+outputs for instance, since an output whose quantity map is
+$Q_1 = \{(A,{(t,0)}), (B,\{(u,0)\}), (C,\{(v,5), (w,0)\})\}$ will take
+up more space than one whose quantity map is
+$Q_2 = \{(C,\{(v,5)\})\}$.  In Figure~\ref{fig:more-basic-types} we
+defined equality pointwise, so $Q_1$ and $Q_2$ are not equal even
+though they arguably represent the same amounts of currency.  To deal
+with this we can use an equivalence relation which considers two
+quantity maps to be equivalent if they differ only by zero
+values. Using this equivalence relation directly is somewhat tricky,
+but fortunately each equivalence class has a canonical representative,
+one which has no zero values at all. This motivates the minimisation
+operations which we introduced in Section~\ref{sec:eutxo-2-validity}:
+
+\begin{gather*}
+  \mu_1: \Map{\token}{\qty} \rightarrow \Map{\token}{\qty} \\
+  \mu_1(M) = \{(t,v) \in M: v \ne 0\}\\
+  \\
+  \mu: \qtymap  \rightarrow \qtymap\\
+  \mu(Q) = \{(c,\mu_1(M)): (c,M) \in Q \mbox{ and } \mu_1(M) \ne \{\}\}\\
+\end{gather*}
+
+\noindent For each currency in a $\qtymap$ $Q$, the auxiliary
+operation $\mu_1$ firstly discards all tokens which occur with value
+0; the operation $\mu$ then discards all currencies which have no
+tokens left.  If we put $\mprime = \mu(M)$ then it is guaranteed that
+$\mprime[c] \ne \{\}$ for all $c \in \dom{\mprime}$ and that
+$M^{\prime}[c][t] \ne 0$ for all $c \in \dom{M^{\prime}}$ and
+$t \in \dom{M^{\prime}[c]}$,
+  
+
+\medskip
+\todokwxm{Maybe this is getting out of hand.  Another way to do this
+  would be to define a function $\kappa: K \times \Map{K}{V} \rightarrow V$ with
+  $\kappa(k,m) = m[k]$ if $k \in \dom m$ and $\kappa(k) = 0$
+  otherwise.  For validity we'd then have to assert that $\kappa(k)$
+  balances up for every $k$ in the union of the domains of the various
+  maps involved.  This could get typographically messy.}
+  
+
+
+\note{Monetary policies for custom currencies.}
+\label{note:monetary-policies}
 The new \textbf{Forging} rule in
 Figure~\ref{fig:eutxo-2-validity} enables custom currencies to
 implement their own monetary policies: for example, one might wish to
@@ -1138,9 +1195,10 @@ output is spent at the same time, so it can only be forged once.
 % }
 
 
-\subsection{Implications of the EUTXO-2 model}
+\note{Implications of the EUTXO-2 model.}
+\label{note:eutxo-2-implications}
 The EUTXO-2 model and the techniques described in
-Section~\ref{sec:monetary-policies} allow us to implement fungible
+Note~\ref{note:monetary-policies} allow us to implement fungible
 (normal) and non-fungible token currencies, as well as ``mixed
 states'':
 \begin{itemize}
@@ -1158,11 +1216,9 @@ states'':
   those, for example share classes. \red{Eh?}
 \end{itemize}
 
-\paragraph{Performance.}
-\
-\medskip
-\todokwxm{Do we care about any of this?}
-The UTXO-2 model will lose some efficiency in comparison to the UTXO-1
+\note{Performance issues for EUTXO-2.}
+\label{note:eutxo-2-performance}
+The EUTXO-2 model will lose some efficiency in comparison to the EUTXO-1
 model, simply because the data structures are more complicated.  This
 would even apply to transactions which only involve to native
 currency, since it would be necessary to check whether the \qtymap{}
@@ -1183,44 +1239,6 @@ and the $\qtymap$ replaced with a map from currency ids to quantities.
 \verb|{-# UNPACK #-}| when our Quantity type stops being a simple
 combination of wrappers and products around primitives, but this is
 again an issue with any multi-currency proposal.
-
-\todojm{I wonder if the argument that most of the time it takes to
-  validate a transaction is spent doing cryptography things applies
-  here as well.}
-  
-  \section{Examples}
-  \todokwxm{Do we want some examples to illustrate how this stuff
-    works in practice?  It would be particularly useful to have an
-    example showing how the datascript allows you to propagate state
-  through the transactions comprising a contract.}
-
-  \todojm{Maybe the guessing game would be a good example
-    for EUTXO-1. Its data script is the hash of the secret, and the
-    redeemer is the guess in cleartext. It illustrates that data and
-    redeemer scripts are created at different points in time.}
-
-
-
-
-\section{What else do we need to worry about?}
-\begin{itemize}
-
-\item Sometimes I'm saying ``datascript'' and at other times ``data script''.
-  Maybe we should try to be consistent about this.
-  
-\item Do we need to worry about who signs the various scripts, or is that
-  something the wallet deals with?
-
-\item Who's responsible for looking after the scripts, and where are they kept?
-  Presumably scripts will be stored in the chain, but how do they get there?
-
-\item Maybe we should make this more consistent with the ledger specification.
-\end{itemize}
-  
-\appendix
-\section{Comments on the specification}
-\label{appendix:comments}
-
 
 \bibliographystyle{plainnat} %% ... or whatever
 \bibliography{extended-utxo-specification}
