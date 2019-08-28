@@ -15,11 +15,11 @@ import           Data.String
 import           Data.Text.Prettyprint.Doc
 
 import           Language.PlutusTx
+import qualified Language.PlutusTx.Prelude as P
 import           Ledger                    (ValidatorScript)
 import qualified Ledger
 import qualified Ledger.Ada                as Ada
 import           Ledger.Value              (Value)
-import qualified Ledger.Value              as Value
 
 -- | Assert that the size of a 'ValidatorScript' is below
 --   the maximum.
@@ -47,4 +47,4 @@ timesFeeAdjust multiplier change =
 --   the fee amount explicit in the test specification
 timesFeeAdjustV :: Integer -> Value -> Value
 timesFeeAdjustV multiplier change =
-    change `Value.minus` Ada.lovelaceValueOf (staticFee * multiplier)
+    change P.- Ada.lovelaceValueOf (staticFee * multiplier)

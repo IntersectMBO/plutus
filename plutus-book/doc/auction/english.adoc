@@ -94,10 +94,10 @@ validateNonFungible nf () name tx =
     && case (pendingTxInputs tx, pendingTxOutputs tx) of
         ([i], os@(o : _)) ->
             let inValue = pendingTxInValue i
-            in     foldl f V.zero os
-                    == (inValue `V.plus` v2)
+            in     foldMap pendingTxOutValue os
+                    == (inValue + v2)
                 && pendingTxOutValue o
-                    == (inValue `V.plus` v)
+                    == (inValue + v)
                 && V.valueOf inValue s name == 0
                 && V.valueOf
                     inValue
@@ -114,10 +114,7 @@ validateNonFungible nf () name tx =
 
     v, v2 :: Value
     v  = V.singleton s name 1
-    v2 = v `V.plus` v
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
+    v2 = v + v
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name =
@@ -286,7 +283,7 @@ minNewBid :: EnglishAuction -> EAState -> Ada
 minNewBid _  (_, True) = traceErrorH "bidding ended"
 minNewBid ea s         = case highestBid s of
     Nothing        -> eaMinBid ea
-    Just (_, ada') -> eaMinInc ea `A.plus` ada'
+    Just (_, ada') -> eaMinInc ea + ada'
 ----
 
 When we validate transactions for an auction, we will often have to check
@@ -408,7 +405,7 @@ eaCheck ea _ (EABid _ ada) tx
 
     bidPaid :: Bool
     bidPaid = valueCorrect tx (\iv ov ->                    -- <2>
-        ov == (iv `V.plus` A.toValue ada))
+        ov == (iv + A.toValue ada))
 ----
 
 <1> Has the bid been made before the deadline?
@@ -434,7 +431,7 @@ eaCheck ea s EAClaimBid tx = case highestBid s of
       where
         bidClaimed :: Bool
         bidClaimed = valueCorrect tx (\iv ov ->                     -- <1>
-            ov == (iv `V.minus` A.toValue ada))
+            ov == (iv - A.toValue ada))
 
         validClaimTime :: Bool                                      -- <2>
         validClaimTime =
@@ -464,7 +461,7 @@ eaCheck ea s EAClaimToken tx = case highestBid s of
       where
         tokenClaimed :: Bool
         tokenClaimed = valueCorrect tx (\iv ov ->                             -- <1>
-            ov == (iv `V.minus` tokenValue ea))
+            ov == (iv - tokenValue ea))
 
         validClaimTime :: Bool                                                -- <2>
         validClaimTime =
@@ -496,7 +493,7 @@ eaCheck _ _ (EAReclaimBid pk ada) tx
 
     correct :: Bool
     correct = valueCorrect tx (\iv ov ->                    -- <2>
-        ov == (iv `V.minus` A.toValue ada))
+        ov == (iv - A.toValue ada))
 ----
 
 <1> The reclaim must be authorized by the public key associated with the bid.
@@ -581,7 +578,7 @@ start = do
                 defaultSlotRange
                 Set.empty
                 [scriptTxOut
-                    V.zero
+                    zero
                     (mkAdminValidator admin)
                     unitData]
             go1 ref $ txOutValue o
@@ -612,12 +609,12 @@ start = do
                             (mkAdminValidator admin)
                             unitRedeemer
                     o  = pubKeyTxOut
-                            (v `V.plus` adminValue admin)
+                            (v + adminValue admin)
                             key
                 signTxAndSubmit_ Tx
                     { txInputs     = Set.fromList [i1, i2]
                     , txOutputs    = [o]
-                    , txFee        = A.zero
+                    , txFee        = zero
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
@@ -653,7 +650,7 @@ start = do
                             (mkNonFungibleValidator nf)
                             unitData
                     o2 = pubKeyTxOut
-                            (txOutValue o `V.minus` v)
+                            (txOutValue o - v)
                             key
                 void $ createTxAndSubmit
                     defaultSlotRange
@@ -678,9 +675,9 @@ forge s n = do
     case findOut s $ Map.toList outs of
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
-                v2   = v `V.plus` v
+                v2   = v + v
                 vIn  = txOutValue o
-                vOut = vIn `V.plus` v
+                vOut = vIn + v
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
@@ -689,7 +686,7 @@ forge s n = do
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v2
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
@@ -831,14 +828,14 @@ bid ea ada = do
             v   = mkEAValidator ea
             i   = scriptTxIn ref v $ mkEARedeemer a          -- <4>
             o'  = scriptTxOut                                -- <5>
-                    (txOutValue o `V.plus` A.toValue ada)
+                    (txOutValue o + A.toValue ada)
                     v
                     ds'
         signTxAndSubmit_ Tx
             { txInputs     = Set.insert i ins
             , txOutputs    = o' : maybeToList mo
-            , txForge      = V.zero
-            , txFee        = A.zero
+            , txForge      = zero
+            , txFee        = zero
             , txValidRange = intervalTo $ eaEndBid ea        -- <6>
             , txSignatures = Map.empty
             }
@@ -890,13 +887,13 @@ claimBid s n b inc e f ada = do
             i    = scriptTxIn ref v $ mkEARedeemer a
             ds'  = updateEAData ea a ds
             o1   = scriptTxOut
-                    (txOutValue o `V.minus` ada') v ds' -- <2>
+                    (txOutValue o - ada') v ds' -- <2>
             o2   = pubKeyTxOut ada' pk                  -- <3>
         signTxAndSubmit_ Tx
             { txInputs     = Set.singleton i
             , txOutputs    = [o1, o2]
-            , txForge      = V.zero
-            , txFee        = A.zero
+            , txForge      = zero
+            , txFee        = zero
             , txValidRange = intervalFrom $ eaEndBid ea -- <4>
             , txSignatures = Map.empty
             }
@@ -926,13 +923,13 @@ claimToken ea = do
             ds' = updateEAData ea a ds
             t   = tokenValue ea
             o1  = scriptTxOut
-                    (txOutValue o `V.minus` t) v ds'     -- <1>
+                    (txOutValue o - t) v ds'     -- <1>
             o2  = pubKeyTxOut t pk                       -- <2>
         signTxAndSubmit_ Tx
             { txInputs     = Set.singleton i
             , txOutputs    = [o1, o2]
-            , txForge      = V.zero
-            , txFee        = A.zero
+            , txForge      = zero
+            , txFee        = zero
             , txValidRange = intervalFrom $ eaFinish ea  -- <3>
             , txSignatures = Map.empty
             }
@@ -964,13 +961,13 @@ reclaimBid ea ada = do
             i    = scriptTxIn ref v $ mkEARedeemer a
             ds'  = updateEAData ea a ds
             o1   = scriptTxOut
-                    (txOutValue o `V.minus` ada') v ds'  -- <1>
+                    (txOutValue o - ada') v ds'  -- <1>
             o2   = pubKeyTxOut ada' pk                   -- <2>
         signTxAndSubmit_ Tx
             { txInputs     = Set.singleton i
             , txOutputs    = [o1, o2]
-            , txForge      = V.zero
-            , txFee        = A.zero
+            , txForge      = zero
+            , txFee        = zero
             , txValidRange = defaultSlotRange            -- <3>
             , txSignatures = Map.empty
             }
@@ -1014,13 +1011,13 @@ reclaimToken s n b inc e f = do
             v    = mkEAValidator ea
             i    = scriptTxIn ref v $ mkEARedeemer a
             ds'  = updateEAData ea a ds
-            o1   = scriptTxOut V.zero v ds'               -- <1>
+            o1   = scriptTxOut zero v ds'               -- <1>
             o2   = pubKeyTxOut (txOutValue o) pk          -- <2>
         signTxAndSubmit_ Tx
             { txInputs     = Set.singleton i
             , txOutputs    = [o1, o2]
-            , txForge      = V.zero
-            , txFee        = A.zero
+            , txForge      = zero
+            , txFee        = zero
             , txValidRange = intervalFrom $ eaEndBid ea   -- <3>
             , txSignatures = Map.empty
             }

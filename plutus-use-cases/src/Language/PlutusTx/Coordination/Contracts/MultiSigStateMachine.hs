@@ -107,7 +107,7 @@ step s i = case (s, i) of
     (CollectingSignatures vl _ _, Cancel) ->
         Just $ InitialState vl
     (CollectingSignatures vl (Payment vp _ _) _, Pay) ->
-        let vl' = Value.minus vl vp in
+        let vl' = vl - vp in
         Just $ InitialState vl'
     _ -> Nothing
 
@@ -127,7 +127,7 @@ check p s i ptx = case (s, i) of
     (CollectingSignatures vl pmt _, Cancel) ->
         proposalExpired ptx pmt && valuePreserved vl ptx
     (CollectingSignatures vl pmt@(Payment vp _ _) pks, Pay) ->
-        let vl' = Value.minus vl vp in
+        let vl' = vl - vp in
         not (proposalExpired ptx pmt) &&
             proposalAccepted p pks &&
             valuePreserved vl' ptx &&
@@ -212,7 +212,7 @@ makePayment prms currentState = do
     (currentValue, valuePaid', recipient) <- case currentState of
         CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
         _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
-    let valueLeft = currentValue `Value.minus` valuePaid'
+    let valueLeft = currentValue - valuePaid'
 
     (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState Pay (const valueLeft)
 

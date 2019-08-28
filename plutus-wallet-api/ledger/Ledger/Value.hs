@@ -8,6 +8,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -28,13 +29,7 @@ module Ledger.Value(
     , valueOf
     , scale
     , symbols
-      -- * Constants
-    , zero
-      -- * Num operations
-    , plus
-    , minus
-    , multiply
-    , negate
+      -- * Partial order operations
     , geq
     , gt
     , leq
@@ -58,8 +53,7 @@ import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (plus, minus, negate, multiply)
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
@@ -174,16 +168,30 @@ instance Eq Value where
 -- do the right thing in some cases.
 
 instance Haskell.Semigroup Value where
-    (<>) = plus
+    (<>) = unionWith (+)
 
 instance Semigroup Value where
-    (<>) = plus
+    {-# INLINABLE (<>) #-}
+    (<>) = unionWith (+)
 
 instance Haskell.Monoid Value where
-    mempty = zero
+    mempty = Value (Map.empty ())
 
 instance Monoid Value where
-    mempty = zero
+    {-# INLINABLE mempty #-}
+    mempty = Value (Map.empty ())
+
+instance Group Value where
+    {-# INLINABLE inv #-}
+    inv = scale @Integer @Value (-1)
+
+deriving via (Additive Value) instance AdditiveSemigroup Value
+deriving via (Additive Value) instance AdditiveMonoid Value
+deriving via (Additive Value) instance AdditiveGroup Value
+
+instance Module Integer Value where
+    {-# INLINABLE scale #-}
+    scale i (Value xs) = Value (fmap (fmap (\i' -> i * i')) xs)
 
 {- note [Currencies]
 
@@ -246,37 +254,7 @@ unionWith f ls rs =
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
 
-{-# INLINABLE scale #-}
--- | Multiply all the quantities in the 'Value' by the given scale factor.
-scale :: Integer -> Value -> Value
-scale i (Value xs) = Value (fmap (fmap (\i' -> P.multiply i i')) xs)
-
 -- Num operations
-
-{-# INLINABLE plus #-}
--- | Add two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-plus :: Value -> Value -> Value
-plus = unionWith P.plus
-
-{-# INLINABLE negate #-}
--- | Negate a 'Value's. See 'Value' for an explanation of how operations on 'Value's work.
-negate :: Value -> Value
-negate = scale (-1)
-
-{-# INLINABLE minus #-}
--- | Subtract one 'Value' from another. See 'Value' for an explanation of how operations on 'Value's work.
-minus :: Value -> Value -> Value
-minus = unionWith P.minus
-
-{-# INLINABLE multiply #-}
--- | Multiply two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-multiply :: Value -> Value -> Value
-multiply = unionWith P.multiply
-
-{-# INLINABLE zero #-}
--- | The empty 'Value'.
-zero :: Value
-zero = Value (Map.empty ())
 
 {-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.

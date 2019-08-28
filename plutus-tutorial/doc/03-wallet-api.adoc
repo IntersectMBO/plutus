@@ -246,8 +246,8 @@ Cardano chain, and that implementation has not happened yet.
         totalInputs =
             let addToTotal (PendingTxIn _ _ vl) total = -- <1>
                   let adaVl = Ada.fromValue vl
-                  in Ada.plus total adaVl
-            in foldr addToTotal Ada.zero ins -- <2>
+                  in total + adaVl
+            in foldr addToTotal zero ins -- <2>
 ----
 <1> Defines a function that adds the Ada
 value of a `PendingTxIn` to the total.
@@ -533,7 +533,7 @@ The condition for being able to claim a refund is:
 ----
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressGtT (campaignAddress c) Value.zero)
+    (W.fundsAtAddressGtT (campaignAddress c) zero)
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ----
 

@@ -22,9 +22,6 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
 
 import qualified Data.Map                     as Map
 import qualified Data.Set                     as Set
-import           Data.Foldable                (fold)
-import qualified Ledger.Ada                   as Ada
-import qualified Ledger.Value                 as Value
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
@@ -94,8 +91,8 @@ unlockTx ms = do
     let tx = Ledger.Tx
                 { txInputs = ins
                 , txOutputs = [ownOutput]
-                , txForge = Value.zero
-                , txFee   = Ada.zero
+                , txForge = zero
+                , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
                 }

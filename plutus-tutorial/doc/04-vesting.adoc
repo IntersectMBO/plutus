@@ -92,7 +92,7 @@ PlutusTx.makeLift ''Vesting
 -- | The total amount vested
 totalAmount :: Vesting -> Value
 totalAmount (Vesting tranche1 tranche2 _) =
-    vestingTrancheAmount tranche1 `Value.plus` vestingTrancheAmount tranche2
+    vestingTrancheAmount tranche1 + vestingTrancheAmount tranche2
 
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
@@ -102,7 +102,7 @@ availableFrom (VestingTranche d v) range =
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Interval.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else zero
 ----
 <1> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
 Most of the functions work very similarly, so there is usually little reason not
@@ -140,11 +140,11 @@ vestingValidator v@(Vesting {vestingTranche1, vestingTranche2, vestingOwner}) _ 
 
         -- Value that has been released so far under the scheme.
         released = availableFrom vestingTranche1 range
-            `Value.plus` availableFrom vestingTranche2 range
+            + availableFrom vestingTranche2 range
 
         -- Value that has not been released yet.
         unreleased :: Value
-        unreleased = totalAmount v `Value.minus` released
+        unreleased = totalAmount v - released
 ----
 
 To check whether the withdrawal is legitimate we need to:
@@ -252,10 +252,10 @@ that keeps the remaining value.
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr (\txo vl' -> vl' `Value.plus` L.txOutValue txo) Value.zero utxos
-        remaining = currentlyLocked `Value.minus` vl
+        currentlyLocked = Map.foldr (\txo vl' -> vl' + L.txOutValue txo) zero utxos
+        remaining = currentlyLocked - vl
 
-        otherOutputs = if Value.zero == remaining
+        otherOutputs = if Value.isZero remaining
                        then []
                        else [L.scriptTxOut remaining validator (DataScript (L.lifted ()))]
 

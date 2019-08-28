@@ -27,7 +27,6 @@ import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Prelude    hiding (check)
 import           Ledger                       hiding (to)
-import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
@@ -66,7 +65,7 @@ step state input = case (state, input) of
 check :: GameState -> GameInput -> PendingTx -> Bool
 check state input ptx = case (state, input) of
     (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
-    (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
+    (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge zero
     _ -> False
     where
         -- | Given a 'TokeName', get the value that contains
@@ -143,8 +142,8 @@ guess gss new keepVal restVal = do
     let tx = Ledger.Tx
                 { txInputs = Set.union i (Set.fromList $ fmap fst ins)
                 , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
-                , txForge = V.zero
-                , txFee   = Ada.zero
+                , txForge = zero
+                , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
                 }
@@ -165,7 +164,7 @@ lock initialWord vl = do
 
     -- 2. Define a trigger that fires when the first transaction (1.) is
     --    placed on the chain.
-    let trg1        = fundsAtAddressGtT addr V.zero
+    let trg1        = fundsAtAddressGtT addr zero
 
     -- 3. Define a forge_ action that creates the token by and puts the contract
     --    into its new state.
@@ -182,7 +181,7 @@ lock initialWord vl = do
                         { txInputs = Set.fromList (fmap fst ins)
                         , txOutputs = [ownOutput, scriptOut]
                         , txForge = gameTokenVal
-                        , txFee   = Ada.zero
+                        , txFee   = zero
                         , txValidRange = defaultSlotRange
                         , txSignatures = Map.empty
                         }

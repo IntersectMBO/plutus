@@ -10,7 +10,7 @@
 module NonFungible.NonFungible1 where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -48,16 +48,13 @@ type NonFungibleValidator =
 validateNonFungible :: NonFungible -> NonFungibleValidator
 validateNonFungible nf () name tx =
        txSignedBy tx (issuer nf)                 -- <1>
-    && foldl f V.zero (pendingTxOutputs tx) == v -- <2>
+    && foldMap pendingTxOutValue (pendingTxOutputs tx) == v -- <2>
   where
     v :: Value
     v = V.singleton
             (ownCurrencySymbol tx)               -- <3>
             name
             1
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
 ----
 
 <1> The transaction must be signed by us, so nobody else can forge new tokens.
@@ -101,7 +98,7 @@ nonFungibleValue nf name = V.singleton
 mkNonFungibleTxOut :: NonFungible -> TxOut
 mkNonFungibleTxOut nf =
     scriptTxOut
-        V.zero
+        zero
         (mkNonFungibleValidator nf)
         unitData                           -- <1>
 ----
@@ -163,7 +160,7 @@ forge n = do
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf        -- <5>
                                  , mkNonFungibleTxOut nf
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v                                  -- <6>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty

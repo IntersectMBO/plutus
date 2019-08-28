@@ -11,7 +11,7 @@
 module NonFungible.NonFungible8 where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -120,10 +120,10 @@ validateNonFungible nf () name tx =
     && case (pendingTxInputs tx, pendingTxOutputs tx) of
         ([i], os@(o : _)) ->
             let inValue = pendingTxInValue i
-            in     foldl f V.zero os
-                    == (inValue `V.plus` v2)               -- <1>
+            in     foldMap pendingTxOutValue os
+                    == (inValue + v2)               -- <1>
                 && pendingTxOutValue o
-                    == (inValue `V.plus` v)
+                    == (inValue + v)
                 && V.valueOf inValue s name == 0
                 && V.valueOf
                     inValue
@@ -140,10 +140,7 @@ validateNonFungible nf () name tx =
 
     v, v2 :: Value
     v  = V.singleton s name 1
-    v2 = v `V.plus` v
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
+    v2 = v + v
 ----
 
 <1> We only need to forge _two_ tokens, not _three_ anymore.
@@ -217,7 +214,7 @@ start = do
                 defaultSlotRange
                 Set.empty
                 [scriptTxOut
-                    V.zero
+                    zero
                     (mkAdminValidator admin)
                     unitData]
             go1 ref $ txOutValue o                         -- <3>
@@ -248,12 +245,12 @@ start = do
                             (mkAdminValidator admin)
                             unitRedeemer
                     o  = pubKeyTxOut                       -- <7>
-                            (v `V.plus` adminValue admin)
+                            (v + adminValue admin)
                             key
                 signTxAndSubmit_ Tx
                     { txInputs     = Set.fromList [i1, i2]
                     , txOutputs    = [o]
-                    , txFee        = A.zero
+                    , txFee        = zero
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
@@ -289,7 +286,7 @@ start = do
                             (mkNonFungibleValidator nf)
                             unitData
                     o2 = pubKeyTxOut                       -- <12>
-                            (txOutValue o `V.minus` v)
+                            (txOutValue o - v)
                             key
                 void $ createTxAndSubmit
                     defaultSlotRange
@@ -344,9 +341,9 @@ forge s n = do
     case findOut s $ Map.toList outs of
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
-                v2   = v `V.plus` v
+                v2   = v + v
                 vIn  = txOutValue o
-                vOut = vIn `V.plus` v
+                vOut = vIn + v
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
@@ -355,7 +352,7 @@ forge s n = do
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v2                               -- <1>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty

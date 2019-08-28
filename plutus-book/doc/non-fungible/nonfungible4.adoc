@@ -11,7 +11,7 @@
 module NonFungible.NonFungible4 where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -42,16 +42,13 @@ type NonFungibleValidator =
 validateNonFungible :: NonFungible -> NonFungibleValidator
 validateNonFungible nf () name tx =
        txSignedBy tx (issuer nf)
-    && foldl f V.zero (pendingTxOutputs tx) == v
+    && foldMap pendingTxOutValue (pendingTxOutputs tx) == v
   where
     v :: Value
     v = V.singleton
             (ownCurrencySymbol tx)
             name
             1
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name =
@@ -79,7 +76,7 @@ nonFungibleValue nf name = V.singleton
 mkNonFungibleTxOut :: NonFungible -> TxOut
 mkNonFungibleTxOut nf =
     scriptTxOut
-        V.zero
+        zero
         (mkNonFungibleValidator nf)
         unitData
 
@@ -124,7 +121,7 @@ forge n = do
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf
                                  , mkNonFungibleTxOut nf
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
@@ -151,7 +148,7 @@ prank w = do
         defaultSlotRange
         ins
         ( scriptTxOut
-            V.zero
+            zero
             (mkNonFungibleValidator nf)
             (DataScript $ lifted (42 :: Integer)) -- <1>
         : pubKeyTxOut v pk

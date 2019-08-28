@@ -16,9 +16,9 @@ import qualified Language.Plutus.Contract.Prompt.Event                 as Event
 import           Language.Plutus.Contract.Test
 import qualified Language.Plutus.Contract.Trace                        as Trace
 import qualified Language.PlutusTx                                     as PlutusTx
+import qualified Language.PlutusTx.Prelude                             as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import qualified Ledger.Ada                                            as Ada
-import qualified Ledger.Value                                          as Value
 
 w1, w2, w3, w4 :: Wallet
 w1 = Wallet 1
@@ -46,7 +46,7 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "cannot collect money too early"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 Value.zero)
+        (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
@@ -61,7 +61,7 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "cannot collect money too late"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 Value.zero)
+        (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
@@ -76,7 +76,7 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "cannot collect unless notified"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 Value.zero)
+        (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)

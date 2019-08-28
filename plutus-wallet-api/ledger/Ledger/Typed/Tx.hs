@@ -21,7 +21,6 @@
 -- type errors at validation time.
 module Ledger.Typed.Tx where
 
-import qualified Ledger.Ada                   as Ada
 import           Ledger.Crypto
 import qualified Ledger.Interval              as Interval
 import           Ledger.Scripts
@@ -40,6 +39,7 @@ import           Language.PlutusTx
 import qualified Language.PlutusTx.Builtins   as PlutusTx
 import           Language.PlutusTx.Lift       as Lift
 import           Language.PlutusTx.Lift.Class as Lift
+import           Language.PlutusTx.Numeric
 
 import qualified Language.PlutusIR.Compiler   as PIR
 
@@ -187,7 +187,7 @@ baseTx = TypedTx {
     tyTxPubKeyTxIns = [],
     tyTxTypedTxOuts = HNilF,
     tyTxPubKeyTxOuts = [],
-    tyTxForge = Value.zero,
+    tyTxForge = mempty,
     tyTxValidRange = Interval.always
     }
 
@@ -274,7 +274,7 @@ toUntypedTx TypedTx{
     txOutputs = hfOut coerce tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
     txInputs = Set.fromList (hfOut coerce tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
     txForge = tyTxForge,
-    txFee = Ada.zero,
+    txFee = zero,
     txValidRange = tyTxValidRange,
     txSignatures = mempty }
 

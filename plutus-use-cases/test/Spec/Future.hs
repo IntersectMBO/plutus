@@ -16,11 +16,11 @@ import qualified Test.Tasty.HUnit                                as HUnit
 
 import qualified Spec.Lib                                        as Lib
 
+import qualified Language.PlutusTx.Numeric                       as P
 import qualified Ledger
 import           Ledger.Ada                                      (Ada)
 import qualified Ledger.Ada                                      as Ada
 import           Ledger.Validation                               (OracleValue (..))
-import qualified Ledger.Value                                    as Value
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
@@ -74,8 +74,8 @@ initialiseFuture :: Property
 initialiseFuture = checkTrace $ do
     void initBoth
     traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, Value.minus startingBalance (Ada.toValue initMargin)),
-        (wallet2, Value.minus startingBalance (Ada.toValue initMargin))]
+        (wallet1, startingBalance P.- Ada.toValue initMargin),
+        (wallet2, startingBalance P.- Ada.toValue initMargin)]
 
 settle :: Property
 settle = checkTrace $ do
@@ -92,8 +92,8 @@ settle = checkTrace $ do
     void $ walletAction wallet2 (F.settle ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, Value.plus  startingBalance (Ada.toValue delta)),
-        (wallet2, Value.minus startingBalance (Ada.toValue delta))]
+        (wallet1, startingBalance P.+ Ada.toValue delta),
+        (wallet2, startingBalance P.- Ada.toValue delta)]
 
 settleEarly :: Property
 settleEarly = checkTrace $ do
@@ -116,8 +116,8 @@ settleEarly = checkTrace $ do
     void $ walletAction wallet1 (F.settleEarly ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, Value.plus  startingBalance (Ada.toValue initMargin)),
-        (wallet2, Value.minus startingBalance (Ada.toValue initMargin))]
+        (wallet1, startingBalance P.+ Ada.toValue initMargin),
+        (wallet2, startingBalance P.- Ada.toValue initMargin)]
 
 increaseMargin :: Property
 increaseMargin = checkTrace $ do
@@ -134,7 +134,7 @@ increaseMargin = checkTrace $ do
     ins' <- adjustMargin wallet2 ins cur increase
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (wallet2, Value.minus startingBalance (Ada.toValue (initMargin + increase)))]
+        (wallet2, startingBalance P.- Ada.toValue (initMargin + increase))]
     -- advance the clock to slot 10
     void $ addBlocks 2
 
@@ -161,8 +161,8 @@ increaseMargin = checkTrace $ do
     --       to see the contract through (via `settle`) than to
     --       simply ignore it and hence lose its entire margin im'.
     traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, Value.plus  startingBalance (Ada.toValue delta)),
-        (wallet2, Value.minus startingBalance (Ada.toValue delta))]
+        (wallet1, startingBalance P.+ Ada.toValue delta),
+        (wallet2, startingBalance P.- Ada.toValue delta)]
 
 -- | A futures contract over 187 units with a forward price of 1233, due at
 --   10 blocks.

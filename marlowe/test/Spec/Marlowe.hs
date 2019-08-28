@@ -161,7 +161,7 @@ checkMergeChoicesProperties = property $ do
     let choices = mergeChoices input2 []
     let r = mergeChoices input choices
     let keys = map fst r
-    Hedgehog.assert (length r <= (length input `plus` length choices))
+    Hedgehog.assert (length r <= (length input + length choices))
     when (length r >= 2) $ do
         -- check choices are partially ordered
         Hedgehog.assert $ all (\((lid, _), (rid, _)) -> lid <= rid) (slide keys)
