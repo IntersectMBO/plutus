@@ -385,7 +385,6 @@ ren-eval (con tcn)   p ρ = con≡Nf
 Subsitution lemma
 
 \begin{code}
-{-
 subst-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
@@ -393,16 +392,16 @@ subst-eval : ∀{Φ Ψ Θ K}
   (σ : Sub Θ Ψ) →
   CR K (eval (subst σ t) η) (eval t (λ x → eval (σ x) η'))
 subst-eval (` x)      p σ = idext p (σ x)
-subst-eval (Π x B)    p σ = cong (Π x) (trans
-  (subst-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR (refl {x = ` Z}))) (exts σ))
-  (idext (λ{ Z     → reflectCR (refl {x = ` Z})
+subst-eval (Π x B)    p σ = Π≡Nf (transNf
+  (subst-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR (var≡Ne refl))) (exts σ))
+  (idext (λ{ Z     → reflectCR (var≡Ne refl)
            ; (S x) → transCR
                 (ren-eval
                   (σ x)
-                  (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl)) S)
+                  (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR (var≡Ne refl))) S)
                 (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
-subst-eval (A ⇒ B)    p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
+subst-eval (A ⇒ B)    p σ = ⇒≡Nf (subst-eval A p σ) (subst-eval B p σ)
 subst-eval (ƛ _ B)      p σ =
   (λ ρ ρ' v v' q → transCR
      (renVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
@@ -417,8 +416,6 @@ subst-eval (ƛ _ B)      p σ =
                    (renVal-comp ρ ρ' (idext (reflCR ∘ symCR ∘ p) (σ x)))})
            B))
   ,
-  refl
-  ,
   λ ρ q → transCR (subst-eval B (CR,,⋆ (renCR ρ ∘ p) q) (exts σ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → transCR
@@ -429,13 +426,14 @@ subst-eval (ƛ _ B)      p σ =
                    (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
 subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
-subst-eval μ1          p ρ = refl                 
-subst-eval (con tcn) p ρ   = refl
+subst-eval μ1          p ρ = μ≡Ne
+subst-eval (con tcn) p ρ   = con≡Nf
 \end{code}
 
 Fundamental Theorem of logical relations for CR
 
 \begin{code}
+{-
 fund : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → {t t' : Φ ⊢⋆ K}
