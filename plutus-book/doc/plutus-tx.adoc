@@ -1,0 +1,1 @@
+../../plutus-tutorial/doc/plutus-tx.adoc

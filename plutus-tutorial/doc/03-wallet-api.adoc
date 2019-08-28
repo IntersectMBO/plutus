@@ -29,6 +29,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.WalletAPI where
 
@@ -202,7 +203,7 @@ to get the information we care about:
 [source,haskell]
 ----
 mkValidator
-    (Campaign target deadline collectionDeadline campaignOwner) -- <3>
+    Campaign {fundingTarget, endDate, collectionDeadline, campaignOwner} -- <3>
     con
     act
     p@(PendingTx ins outs _ _ _ txnValidRange _ _) = -- <1> <2>
@@ -316,8 +317,8 @@ has to be signed by the campaign owner.
 
 [source,haskell]
 ----
-            I.contains (I.interval deadline collectionDeadline) txnValidRange && -- <1>
-            totalInputs >= target &&
+            I.contains (I.interval endDate collectionDeadline) txnValidRange && -- <1>
+            totalInputs >= fundingTarget &&
             p `V.txSignedBy` campaignOwner
 ----
 <1> We use
