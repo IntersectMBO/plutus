@@ -80,6 +80,20 @@ SR,,⋆ p q Z     = q
 SR,,⋆ p q (S α) = p α
 \end{code}
 
+SR is closed under ≡β
+
+\begin{code}
+substSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
+  → A' ≡β A
+  → {v : Val Φ K}
+  → SR K A v
+    ---------------------------
+  → SR K A' v
+substSR {K = *}     p          q            = trans≡β p q
+substSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
+substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
+\end{code}
+
 renaming for SR
 
 \begin{code}
@@ -95,9 +109,10 @@ renSR ρ {K ⇒ J} {A} {inj₂ (x , f)} (A' , p , q) =
   ,
   ren≡β ρ p
   ,
-  {!!} {- λ ρ' {u}{v} r → substEq (λ A → SR J (ƛ x A · u) (f (ρ' ∘ ρ) v))
-                          (trans (ren-cong ext-comp A') (ren-comp A'))
-                          (q (ρ' ∘ ρ) r) -}
+  λ ρ' {u}{v} r → substSR
+    (α2β (·≡α (ƛ≡α (transα (symα (ren-comp A'))
+                           (ren-cong (sym ∘ ext-comp) reflα))) reflα))
+    (q (ρ' ∘ ρ) r)
 \end{code}
 
 Extending via exts is the same the same as weakening and cons on ` Z
@@ -136,20 +151,6 @@ SRweak p = substSREnv (sym ∘ exts-subst-cons _)
                       (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
 \end{code}
 
-SR is closed under ≡β
-
-\begin{code}
-substSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
-  → A' ≡β A
-  → {v : Val Φ K}
-  → SR K A v
-    ---------------------------
-  → SR K A' v
-substSR {K = *}     p          q            = trans≡β p q
-substSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
-substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
-\end{code}
-
 SR is closed under ·V
 
 \begin{code}
@@ -164,6 +165,7 @@ SRApp : ∀{Φ K J}
   → SR J (A · u) (f ·V v)
 SRApp {f = inj₁ n} p            q = reflectSR (·≡β (reflectSR p) (reifySR q))
 SRApp {f = inj₂ (x , f)} (A' , p , q) r = {!!}
+
 {-  substSR (·≡β (substEq
                  (λ B → _ ≡β ƛ x B)
                  (trans (sym (ren-id A')) (ren-cong (sym ∘ ext-id) A'))
@@ -186,7 +188,9 @@ evalSR (ƛ x B)   {σ}{η}          p =
   ,
   refl≡β _
   ,
-  {!!} {- λ ρ {u}{v} q → substSR
+  λ ρ {u}{v} q → {!!}
+
+{- λ ρ {u}{v} q → substSR
     (β≡β _ _)
     (substEq (λ A → SR _ A (eval B ((renVal ρ ∘ η) ,,⋆ v)))
              (trans (trans (subst-cong (λ
