@@ -83,29 +83,46 @@ transNe μ≡Ne       μ≡Ne         = μ≡Ne
 ```
 
 ```
+reflNf : ∀{Φ J}{A : Φ ⊢Nf⋆ J} → A ≡Nf A
+reflNe : ∀{Φ J}{A : Φ ⊢Ne⋆ J} → A ≡Ne A
+
+reflNf {A = Π x A} = Π≡Nf reflNf
+reflNf {A = A ⇒ B} = ⇒≡Nf reflNf reflNf
+reflNf {A = ƛ x A} = ƛ≡Nf reflNf
+reflNf {A = ne A}  = ne≡Nf reflNe
+reflNf {A = con c} = con≡Nf
+
+reflNe {A = ` α}   = var≡Ne refl
+reflNe {A = A · B} = ·≡Ne reflNe reflNf
+reflNe {A = μ1}    = μ≡Ne
+```
+
+```
 open import Type.RenamingSubstitution
 renNe-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{K}(A : Φ ⊢Ne⋆ K)
+  → ∀{K}{A A' : Φ ⊢Ne⋆ K}
+  → A ≡Ne A'
     -------------------------
-  → renNe f A ≡Ne renNe g A
+  → renNe f A ≡Ne renNe g A'
 
 renNf-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{K}(A : Φ ⊢Nf⋆ K)
+  → ∀{K}{A A' : Φ ⊢Nf⋆ K}
+  → A ≡Nf A'
     ---------------------------
-  → renNf f A ≡Nf renNf g A
-renNf-cong p (Π x A)     = Π≡Nf (renNf-cong (ext-cong p) A)
-renNf-cong p (A ⇒ B)     = ⇒≡Nf (renNf-cong p A) (renNf-cong p B)
-renNf-cong p (ƛ x A)     = ƛ≡Nf (renNf-cong (ext-cong p) A)
-renNf-cong p (ne A)      = ne≡Nf (renNe-cong p A)
-renNf-cong p (con tcn)   = con≡Nf
+  → renNf f A ≡Nf renNf g A'
+renNf-cong p (⇒≡Nf q r) = ⇒≡Nf (renNf-cong p q) (renNf-cong p r)
+renNf-cong p (Π≡Nf q)   = Π≡Nf (renNf-cong (ext-cong p) q)
+renNf-cong p (ƛ≡Nf q)   = ƛ≡Nf (renNf-cong (ext-cong p) q)
+renNf-cong p con≡Nf     = con≡Nf
+renNf-cong p (ne≡Nf q)  = ne≡Nf (renNe-cong p q)
 
-renNe-cong p (` x)   = var≡Ne (p x)
-renNe-cong p (A · B) = ·≡Ne (renNe-cong p A) (renNf-cong p B)
-renNe-cong p μ1      = μ≡Ne
+renNe-cong p (var≡Ne refl) = var≡Ne (p _)
+renNe-cong p (·≡Ne q r) = ·≡Ne (renNe-cong p q) (renNf-cong p r)
+renNe-cong p μ≡Ne = μ≡Ne
 ```
 
 ```
@@ -122,11 +139,11 @@ renNe-id : ∀ {Φ}
     ------------------
   → renNe id n ≡Ne n
 
-renNf-id (Π x A)     = Π≡Nf (transNf (renNf-cong ext-id A) (renNf-id A))
-renNf-id (A ⇒ A')    = ⇒≡Nf (renNf-id A) (renNf-id A')
-renNf-id (ƛ x A)     = ƛ≡Nf (transNf (renNf-cong ext-id A) (renNf-id A))
-renNf-id (ne A)      = ne≡Nf (renNe-id A)
-renNf-id (con tcn)   = con≡Nf
+renNf-id (Π x A)   = Π≡Nf (transNf (renNf-cong ext-id reflNf) (renNf-id A))
+renNf-id (A ⇒ A')  = ⇒≡Nf (renNf-id A) (renNf-id A')
+renNf-id (ƛ x A)   = ƛ≡Nf (transNf (renNf-cong ext-id reflNf) (renNf-id A))
+renNf-id (ne A)    = ne≡Nf (renNe-id A)
+renNf-id (con tcn) = con≡Nf
 
 renNe-id (` α)   = var≡Ne refl
 renNe-id (A · B) = ·≡Ne (renNe-id A) (renNf-id B)
@@ -148,9 +165,10 @@ renNe-comp : ∀{Φ Ψ Θ}
   → renNe (f ∘ g) A ≡Ne renNe f (renNe g A)
 
 renNf-comp (Π x B)     = 
-  Π≡Nf (transNf (renNf-cong ext-comp B) (renNf-comp B))
+  Π≡Nf (transNf (renNf-cong ext-comp reflNf) (renNf-comp B))
 renNf-comp (A ⇒ B)     = ⇒≡Nf (renNf-comp A) (renNf-comp B)
-renNf-comp (ƛ x A)     = ƛ≡Nf (transNf (renNf-cong ext-comp A) (renNf-comp A))
+renNf-comp (ƛ x A)     =
+  ƛ≡Nf (transNf (renNf-cong ext-comp reflNf) (renNf-comp A))
 renNf-comp (ne A)      = ne≡Nf (renNe-comp A)
 renNf-comp (con tcn)   = con≡Nf
 
