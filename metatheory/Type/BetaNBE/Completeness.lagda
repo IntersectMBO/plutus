@@ -433,7 +433,6 @@ subst-eval (con tcn) p ρ   = con≡Nf
 Fundamental Theorem of logical relations for CR
 
 \begin{code}
-{-
 fund : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → {t t' : Φ ⊢⋆ K}
@@ -441,9 +440,9 @@ fund : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
 fund p (refl≡β A)          = idext p A
 fund p (sym≡β q)           = symCR (fund (symCR ∘ p) q)
 fund p (trans≡β q r)       = transCR (fund (reflCR ∘ p) q) (fund p r)
-fund p (⇒≡β q r)           = cong₂ _⇒_ (fund p q) (fund p r)
+fund p (⇒≡β q r)           = ⇒≡Nf (fund p q) (fund p r)
 fund p (Π≡β q)             =
-  cong (Π _) (fund (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) q)
+  Π≡Nf (fund (CR,,⋆ (renCR S ∘ p) (reflectCR (var≡Ne refl))) q)
 fund p (ƛ≡β {B = B}{B'} q) =
   (λ ρ ρ' v v' r → transCR
     (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) r) ρ')
@@ -456,8 +455,6 @@ fund p (ƛ≡β {B = B}{B'} q) =
      (idext (λ { Z → renCR ρ' (reflCR (symCR r))
                ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (symCR (p x))))})
             B'))
-  ,
-  refl
   ,
   λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
@@ -472,11 +469,10 @@ constructing the identity CR
 
 \begin{code}
 idCR : ∀{Φ K} → (x : Φ ∋⋆ K) → CR K (idEnv Φ x) (idEnv Φ x)
-idCR x = reflectCR refl
+idCR x = reflectCR (var≡Ne refl)
 \end{code}
 
 \begin{code}
-completeness : ∀ {K Φ} {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
+completeness : ∀ {K Φ} {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡Nf nf t
 completeness p = reifyCR (fund idCR p)
--}
 \end{code}
