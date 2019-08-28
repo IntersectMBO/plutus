@@ -7,7 +7,7 @@ wallet), and on the chain (as part of transaction validation).
 The parts of the program that describe the on-chain code are still just Haskell,
 but they are compiled into Plutus Core (instead of into the normal compilation
 target language) and we refer to them as "Plutus Tx" ("Tx" since they usually
-go into transactions.
+go into transactions).
 
 WARNING: Strictly speaking, only a subset of Haskell is
 supported inside Plutus Tx blocks, but the majority of simple Haskell will work,
@@ -21,7 +21,7 @@ part of the main Haskell program we can share types and definitions between the 
 
 == Template Haskell preliminaries
 
-Plutus Tx makes use of Template Haskell, Haskell's built-in metaprogramming support.
+Plutus Tx makes use of Template Haskell, Haskell's metaprogramming support.
 There are a few reasons for this:
 
 . Template Haskell allows us to do work at compile time, which
@@ -237,13 +237,13 @@ to just write in place.
 So far we have used functions like `lessThanEqInteger` for comparing `Integer` s,
 which is much less convenient than `<` from the standard Haskell `Ord` typeclass.
 
-Fortunately, Plutus Tx does support typeclasses. Unfortunately, we need to
+Plutus Tx does support typeclasses, but we need to
 redefine the standard typeclasses do so, since we require the class methods to
 be `INLINABLE`, and the implementations for types such as `Integer` use the
 Plutus Tx builtins.
 
 Redefined versions of many standard typeclasses are available in the Plutus Tx
-Prelude. As such you should be able to use typeclass functions in your Plutus Tx
+Prelude. As such you should be able to use most typeclass functions in your Plutus Tx
 programs successfully.
 
 For example, here is a version of the `pastEnd` function using `<`. This will be
