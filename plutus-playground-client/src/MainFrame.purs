@@ -6,9 +6,10 @@ module MainFrame
   ) where
 
 import Types
+
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
-import Action (simulationPane)
+import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
@@ -61,7 +62,7 @@ import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
-import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
+import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
@@ -389,7 +390,10 @@ eval (EvaluateActions next) = do
           assign _evaluationResult Loading
           result <- lift $ postEvaluation evaluation
           assign _evaluationResult result
-          replaceViewOnSuccess result Simulations Transactions
+          -- If we got a successful result, switch tab.
+          case result of
+            Success (JsonEither (Left _)) -> pure unit
+            _ -> replaceViewOnSuccess result Simulations Transactions
           pure unit
   pure next
 
@@ -601,11 +605,17 @@ render state@(State { currentView }) =
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
                     Failure error -> ajaxErrorPane error
+                    Success (JsonEither (Left error)) -> actionsErrorPane error
                     _ -> empty
                 ]
         , viewContainer currentView Transactions
             $ case view _evaluationResult state of
-                Success evaluation -> [ evaluationPane evaluation ]
+                Success (JsonEither (Right evaluation)) -> [ evaluationPane evaluation ]
+                Success (JsonEither (Left error)) ->
+                  [ text "Your simulation has errors. Click the "
+                  , strong_ [ text "Simulation" ]
+                  , text " tab above to fix them and recompile."
+                  ]
                 Failure error ->
                   [ text "Your simulation has errors. Click the "
                   , strong_ [ text "Simulation" ]
