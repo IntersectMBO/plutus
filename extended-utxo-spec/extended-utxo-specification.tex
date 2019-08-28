@@ -712,7 +712,16 @@ $D$ belonging to one of $T$'s outputs; for example, $D$ may be being
 used to propagate some state through an ongoing contract and $V$ may
 need to check that the contents of $D$ are ``correct'' in some sense.
 
-This presents a problem.  
+This presents a problem.  During validation, the only information
+about the pending contract available to $V$ is that provided
+in the $\ptx$ structure, and this only contains the hash of $D$,
+not $D$ itself.
+
+\todokwxm{What's wrong with embedding $D$ in $\ptx$? Types, that's
+  what.  Why can't we deserialise?  Because that's expensive and would
+  require something like dynamic types.  Why can't we embed the scripts
+in the redeemer?  Apparently we could cheat.}
+
 
 
 \newpage
