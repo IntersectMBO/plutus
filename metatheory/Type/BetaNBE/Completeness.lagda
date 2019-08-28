@@ -189,16 +189,15 @@ ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = ƛ≡Nf
 first functor law for renVal
 
 \begin{code}
-{-
 renVal-id : ∀ {K Φ}{v v' : Val Φ K}
   → CR K v v'
     ------------------------
   → CR K (renVal id v) v'
-renVal-id {*}                            refl = renNf-id _
-renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = renNe-id _
+renVal-id {*}                            p = transNf (renNf-id _) p
+renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} p = transNe (renNe-id _) p
 renVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
-renVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
+renVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
 \end{code}
 
 second functor law for renVal
@@ -210,20 +209,18 @@ renVal-comp : ∀ {K Φ Ψ Θ}
   → {v v' : Val Φ K}
   → CR K v v'
   → CR K (renVal (ρ' ∘ ρ) v) (renVal ρ' (renVal ρ v'))
-renVal-comp {*}      ρ ρ'                    refl           =
-  renNf-comp _
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
-  renNe-comp _
+renVal-comp {*}      ρ ρ'                    p              =
+  transNf (renNf-cong (λ _ → refl) p) (renNf-comp _)
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} p              =
+    transNe (renNe-cong (λ _ → refl) p) (renNe-comp _)
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'' , p''') =
+renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
   (λ ρ'' ρ''' v → p (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
-  p''
-  ,
-  λ ρ'' q → p''' (ρ'' ∘ ρ' ∘ ρ) q
+  λ ρ'' q → p'' (ρ'' ∘ ρ' ∘ ρ) q
 \end{code}
 
 CR is closed under renaming
@@ -233,18 +230,18 @@ renCR : ∀{Φ Ψ K}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
   → CR K v v'
   → CR K (renVal ρ v) (renVal ρ v')
-renCR {K = *}                         ρ p              = cong (renNf ρ) p
-renCR {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
-renCR {K = K ⇒ K₁} {inj₁ n} {inj₂ f'} ρ ()
-renCR {K = K ⇒ K₁} {inj₂ f} {inj₁ n'} ρ ()
-renCR {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'' , p''') =
+renCR {K = *}                        ρ p              =
+  renNf-cong (λ _ → refl) p
+renCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} ρ p              =
+  renNe-cong (λ _ → refl) p
+renCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ρ ()
+renCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ρ ()
+renCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
   (λ ρ' ρ'' v → p (ρ' ∘ ρ) ρ'' v)
   ,
   (λ ρ' ρ'' v → p' (ρ' ∘ ρ) ρ'' v)
   ,
-  p''
-  ,
-  λ ρ' q → p''' (ρ' ∘ ρ) q
+  λ ρ' q → p'' (ρ' ∘ ρ) q
 \end{code}
 
 CR is closed under application
@@ -257,21 +254,21 @@ renVal·V : ∀{K J Φ Ψ}
   → CR K v v'
     --------------------------------------------------------------
   → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
-renVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'}  q =
-  cong (ne ∘ (renNe ρ n ·_))
-       (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
-renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl      q =
-  cong (renNe ρ n ·_)
-       (trans ( ren-reify (reflCR q) ρ ) (reifyCR (renCR ρ q)))
-renVal·V ρ {inj₁ n} {inj₂ f}  ()                    q
-renVal·V ρ {inj₂ f} {inj₁ n'} ()                    q
-renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q =
-  transCR (p id ρ _ _ q) (p''' ρ (renCR ρ (reflCR (symCR q))))
+renVal·V {J = *} ρ {inj₁ n} {inj₁ n'} p {v}{v'}  q = ne≡Nf
+  (·≡Ne (renNe-cong (λ _ → refl) p) (ren-reify q ρ))
+renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ n'} p      q = ·≡Ne
+  (renNe-cong (λ _ → refl) p)
+  (ren-reify q ρ)
+renVal·V ρ {inj₁ n} {inj₂ f}  ()             q
+renVal·V ρ {inj₂ f} {inj₁ n'} ()             q
+renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
+  transCR (p id ρ _ _ q) (p'' ρ (renCR ρ (reflCR (symCR q))))
 \end{code}
 
 identity extension lemma, (post) renaming commutes with eval, defined mutually
 
 \begin{code}
+{-
 idext : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → (t : Φ ⊢⋆ K)
