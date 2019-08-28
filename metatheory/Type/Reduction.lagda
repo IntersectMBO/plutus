@@ -20,7 +20,7 @@ open import Relation.Binary.PropositionalEquality
 data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
-  V-Π : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}{x}
+  V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}{x}
     → Value⋆ N
       ----------------------------
     → Value⋆ (Π x N)
@@ -127,11 +127,11 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 
 ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J}{x} → M —↠⋆ N → ƛ x M —↠⋆ ƛ x N
 ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
-ƛ—↠⋆ {x = x} (trans—↠⋆ p q) = trans—↠⋆ (ξ-ƛ {x = x} p) (ƛ—↠⋆ {x = x} q)
+ƛ—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-ƛ p) (ƛ—↠⋆ q)
 
 Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *}{x} → M —↠⋆ N → Π x M —↠⋆ Π x N
 Π—↠⋆ refl—↠⋆          = refl—↠⋆
-Π—↠⋆ {x = x} (trans—↠⋆ p q) = trans—↠⋆ (ξ-Π {x = x} p) (Π—↠⋆ {x = x} q)
+Π—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-Π p) (Π—↠⋆ q)
 
 ξ-·₁' : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
   → L —↠⋆ L′
@@ -183,27 +183,25 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
 \end{code}
 
 \begin{code}
-open import Scoped -- for irrAx
-
 progress⋆ : ∀ {Γ K} → (M : Γ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` α) = done (N- N-`)
 progress⋆ μ1      = done (N- N-μ1)
 progress⋆ (Π _ M)   with progress⋆ M
-progress⋆ (Π x M) | step p = step (ξ-Π {x = irrAx x} p)
-progress⋆ (Π x M) | done p = done (V-Π {x = irrAx x} p)
+progress⋆ (Π _ M) | step p = step (ξ-Π p)
+progress⋆ (Π _ M) | done p = done (V-Π p)
 progress⋆ (M ⇒ N) with progress⋆ M
 progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
 progress⋆ (M ⇒ N) | done VM with progress⋆ N
 progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
 progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
 progress⋆ (ƛ _ M)   with progress⋆ M
-progress⋆ (ƛ x M) | step p  = step (ξ-ƛ {x = irrAx x} p)
-progress⋆ (ƛ x M) | done VM = done (V-ƛ_ {x = irrAx x} VM)
+progress⋆ (ƛ _ M) | step p  = step (ξ-ƛ p)
+progress⋆ (ƛ _ M) | done VM = done (V-ƛ VM)
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ p)
-progress⋆ (.(ƛ _ _) · N) | done (V-ƛ_ {x = x} _) | done vN = step (β-ƛ {x = x})
+progress⋆ (.(ƛ _ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
 progress⋆ (con tcn) = done V-con
 
@@ -225,9 +223,9 @@ renValue⋆ : ∀ {Φ Ψ}
   → Value⋆ A
     -------------------
   → Value⋆ (ren ρ A)
-renValue⋆ ρ (V-Π {x = x} N)   = V-Π {x = x} (renValue⋆ (ext ρ) N)
+renValue⋆ ρ (V-Π N)   = V-Π renValue⋆ (ext ρ) N
 renValue⋆ ρ (M V-⇒ N) = renValue⋆ ρ M V-⇒ renValue⋆ ρ N
-renValue⋆ ρ (V-ƛ_ {x = x} N)   = V-ƛ_ {x = x} (renValue⋆ (ext ρ) N)
+renValue⋆ ρ (V-ƛ N)   = V-ƛ renValue⋆ (ext ρ) N
 renValue⋆ ρ (N- N)    = N- (renNeutral⋆ ρ N)
 renValue⋆ ρ V-con = V-con 
 
@@ -274,14 +272,14 @@ ren—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (ren—→⋆ ρ p)
 ren—→⋆ ρ (ξ-⇒₂ VM p)            = ξ-⇒₂ (renValue⋆ ρ VM) (ren—→⋆ ρ p)
 ren—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (ren—→⋆ ρ p)
 ren—→⋆ ρ (ξ-·₂ p)               = ξ-·₂ (ren—→⋆ ρ p)
-ren—→⋆ ρ (ξ-Π {x = x} p)                = ξ-Π {x = x} (ren—→⋆ (ext ρ) p)
-ren—→⋆ ρ (ξ-ƛ {x = x} p)                = ξ-ƛ {x = x} (ren—→⋆ (ext ρ) p)
-ren—→⋆ ρ (β-ƛ {N = M}{W = N}{x = x})   =
-  substEq (λ X → ren ρ ((ƛ x M) · N) —→⋆ X)
+ren—→⋆ ρ (ξ-Π p)                = ξ-Π (ren—→⋆ (ext ρ) p)
+ren—→⋆ ρ (ξ-ƛ p)                = ξ-ƛ (ren—→⋆ (ext ρ) p)
+ren—→⋆ ρ (β-ƛ {N = M}{W = N})   =
+  substEq (λ X → ren ρ ((ƛ _ M) · N) —→⋆ X)
           (trans (sym (subst-ren M))
                  (trans (subst-cong (ren-subst-cons ρ N) M)
                         (ren-subst M)))
-          (β-ƛ {N = ren (ext ρ) M}{W = ren ρ N}{x = x})
+          (β-ƛ {N = ren (ext ρ) M}{W = ren ρ N})
 \end{code}
 
 \begin{code}

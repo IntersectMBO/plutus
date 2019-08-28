@@ -15,25 +15,25 @@ const = Λ "α" (Λ "β" (ƛ "x" (ƛ "y" (` (S Z)))))
 
 μ0 : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
 μ0 = ƛ "x" (μ1 · ƛ "y" (ƛ "z" (` Z · (` (S Z) · ` Z))) · ` Z)
-{-
+
 wrap0 : ∀{Φ Γ}(pat : Φ ⊢⋆ * ⇒ *) → Γ ⊢ pat · (μ0 · pat) → Γ ⊢ μ0 · pat
 wrap0 {Γ} pat X = conv
-  (sym≡β (β≡β {!!} _ _))
+  (sym≡β (β≡β _ _))
   (wrap1
     (ƛ "y" (ƛ "z" (` Z · (` (S Z) · ` Z))))
     pat
     (conv
       (trans≡β
-        (trans≡β (·≡β (refl≡β _) (β≡β {!!} _ _)) (sym≡β (β≡β {!!} _ _)))
-        (·≡β (sym≡β (β≡β {!!} _ _)) (refl≡β _)))
+        (trans≡β (·≡β (refl≡β _) (β≡β _ _)) (sym≡β (β≡β _ _)))
+        (·≡β (sym≡β (β≡β _ _)) (refl≡β _)))
       X))
 
 unwrap0 : ∀{Φ Γ}(pat : Φ ⊢⋆ * ⇒ *) → Γ ⊢ μ0 · pat  → Γ ⊢ pat ·  (μ0 · pat)
 unwrap0 {Γ} pat X = conv
   (trans≡β
-    (·≡β (β≡β {!!} _ _) (refl≡β _))
-    (trans≡β (β≡β {!!} _ _) (·≡β (refl≡β _) (sym≡β (β≡β {!!} _ _)))))
-  (unwrap1 (conv (β≡β {!!} _ _) X))
+    (·≡β (β≡β _ _) (refl≡β _))
+    (trans≡β (β≡β _ _) (·≡β (refl≡β _) (sym≡β (β≡β _ _)))))
+  (unwrap1 (conv (β≡β _ _) X))
 
 
 {-
@@ -51,6 +51,5 @@ unwrap0 {Γ} pat X = conv
 
 Z-comb : ∀{Φ}{Γ : Ctx Φ} →
   Γ ⊢ Π "α" (Π "β" (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
-Z-comb = Λ "α" (Λ "β" (ƛ "f" (ƛ "r" (` (S Z) · ƛ "x" (conv (β≡β {!!} _ _) (unwrap0 (ƛ "x" (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)) · wrap0 _ (conv (sym≡β (β≡β {!!} _ _)) (ƛ "r" (` (S Z) · ƛ "y" (conv (β≡β {!!} _ _) (unwrap0 (ƛ "x" (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)))))))
--}
+Z-comb = Λ "α" (Λ "β" (ƛ "f" (ƛ "r" (` (S Z) · ƛ "x" (conv (β≡β _ _) (unwrap0 (ƛ "x" (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)) · wrap0 _ (conv (sym≡β (β≡β _ _)) (ƛ "r" (` (S Z) · ƛ "y" (conv (β≡β _ _) (unwrap0 (ƛ "x" (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)))))))
 \end{code}

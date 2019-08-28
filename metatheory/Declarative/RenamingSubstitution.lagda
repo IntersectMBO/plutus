@@ -87,12 +87,12 @@ ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ x N)  = ƛ x (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
 ren _ ρ (Λ x N)  = Λ x (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} _ ρ (_·⋆_ {B = B}{x = x} t A) =
+ren {Δ = Δ} _ ρ (_·⋆_ {B = B} t A) =
   substEq (λ A → Δ ⊢ A)
           (trans (sym (⋆.subst-ren B))
                  (trans (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
                         (⋆.ren-subst B) ) )
-          (_·⋆_ {x = x} (ren _ ρ t) (⋆.ren _ A))
+          (ren _ ρ t ·⋆ ⋆.ren _ A)
 ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
 ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)

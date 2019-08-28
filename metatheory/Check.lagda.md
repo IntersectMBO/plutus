@@ -131,7 +131,13 @@ inferVarType (Γ , A)  (S x)          =
 
 open import Data.String.Properties
 
+open import Relation.Binary hiding (_⇒_)
+dec2⊎Err : {a a' : String} → Dec (a ≡ a') → (a ≡ a') ⊎ Error
+dec2⊎Err (yes p) = inj₁ p
+dec2⊎Err {a}{a'}(no ¬p) = inj₂ (nameError a a')
+
 open import Type.BetaNormal
+
 
 meqTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → (α ≡ α') ⊎ Error
 meqTyVar Z     Z      = inj₁ refl
@@ -156,10 +162,12 @@ meqNfTy (A ⇒ B) (A' ⇒ B') = do
  refl ← meqNfTy B B'
  return refl
 meqNfTy (ƛ x A) (ƛ x' A') = do
+  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
   refl ← meqNfTy A A'
   return refl
 meqNfTy (Π {K = K} x A) (Π {K = K'} x' A') = do
   refl ← meqKind K K' 
+  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
   refl ← meqNfTy A A'
   return refl
 meqNfTy (con c) (con c')  = do
@@ -237,7 +245,7 @@ inferType Γ (L ·⋆ A)          = do
     where _ → inj₂ notPiError
   K' ,, A ← inferKind _ A
   refl ← meqKind K K'
-  return (B [ A ]Nf ,, (_·⋆_ {x = x} L A))
+  return (B [ A ]Nf ,, (L ·⋆ A))
 inferType Γ (ƛ x A L)         = do
   * ,, A ← inferKind _ A
     where _ → inj₂ notTypeError

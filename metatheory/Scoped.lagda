@@ -23,7 +23,7 @@ open import Type
 data ScopedTy (n : ℕ) : Set where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
-  Π    : .String → Kind → ScopedTy (suc n) → ScopedTy n
+  Π    : String → Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : String → Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
   con  : TyCon → ScopedTy n
@@ -371,15 +371,10 @@ unDeBruijnify i⋆ i (unwrap t) = unwrap (unDeBruijnify i⋆ i t)
 \end{code}
 
 \begin{code}
-postulate
-  irrAx : ∀ {A : Set} -> .A -> A
-
-{-# COMPILE GHC irrAx = \ _ x -> x #-}
-
 deDeBruijnify⋆ : ∀{n} → Vec String n → ScopedTy n → RawTy
 deDeBruijnify⋆ xs (` x) = ` (Data.Vec.lookup xs x)
 deDeBruijnify⋆ xs (t ⇒ u) = deDeBruijnify⋆ xs t ⇒ deDeBruijnify⋆ xs u
-deDeBruijnify⋆ xs (Π x K t) = Π (irrAx x) (unDeBruijnifyK K) (deDeBruijnify⋆ (irrAx x ∷ xs) t)
+deDeBruijnify⋆ xs (Π x K t) = Π x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
 deDeBruijnify⋆ xs (ƛ x K t) = ƛ x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
 deDeBruijnify⋆ xs (t · u) = deDeBruijnify⋆ xs t · deDeBruijnify⋆ xs u
 deDeBruijnify⋆ xs (con x) = con x

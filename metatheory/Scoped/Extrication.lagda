@@ -33,7 +33,7 @@ extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 
 extricateNf⋆ (Π {K = K} x A) = Π x K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
-extricateNf⋆ (ƛ {K = K} x A) = ƛ (irrAx x) K (extricateNf⋆ A)
+extricateNf⋆ (ƛ {K = K} x A) = ƛ x K (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
 extricateNf⋆ (con c) = con c
 

@@ -324,9 +324,9 @@ progress-· (error e)        u = error (E-·₁ e)
 
 progress-·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
-progress-·⋆ {x = x} (step p)       A = step (ξ-·⋆ {x = x} p)
+progress-·⋆ (step p)       A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ p)) A = step β-Λ
-progress-·⋆ {x = x} (error e)      A = error (E-·⋆ {x = x} e)
+progress-·⋆ (error e)      A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
@@ -400,13 +400,11 @@ progress-wrap n (step p)    = step (ξ-wrap p)
 progress-wrap n (done v)    = done (V-wrap v)
 progress-wrap n (error e)   = error (E-wrap e)
 
-open import Scoped -- for irrAx
-
 progress p (` x)                = ⊥-elim (noVar p x)
 progress p (ƛ x M)              = done V-ƛ
 progress p (M · N)              = progress-· (progress p M) N
 progress p (Λ _ M)              = progress-Λ p (progress p M)
-progress p (_·⋆_ {x = x} M A)   = progress-·⋆ {x = irrAx x} (progress p M) A
+progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
 progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
