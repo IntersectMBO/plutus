@@ -408,7 +408,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   means that the state can change without the transaction changing,
   which makes it easier to have an ``identity'' for an ongoing
   contract: we will return to this issue in
-  Section~\ref{sec:validating-next}.
+  Section~\ref{sec:validating-datascripts}.
   
 \item Validation is performed by running the validator script with the
   redeemer and data script as input; the validator is also provided
@@ -493,8 +493,7 @@ output of the transaction is required.
 
 \paragraph{Scripts.} Note that we model data scripts as being
 components of outputs, but redeemer scripts as components of inputs.
-The reasons for this are quite subtle, and are explained in more
-detail in Note~\ref{note:scripts}.
+The reasons for this are explained in Note~\ref{note:scripts}.
 
 \paragraph{Validity intervals.} We allow the second component of a
 validity interval to take the value $\infty$ to indicate that there is
@@ -704,9 +703,10 @@ $\datascript$ fields and the result of $\sigma$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
-\subsection{Validating the next data script}
-\label{sec:validating-next}
-\red{(To follow)}
+\subsection{Validating data scripts}
+\label{sec:validating-datascripts}
+
+
 
 \newpage
 \section{EUTXO-2: multicurrency support and non-fungible tokens}
