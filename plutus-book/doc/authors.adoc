@@ -25,7 +25,6 @@ with the focus of her thesis being the study of abstract computation using
 Category theory, in particular, Turing categories.
 --
 
-[#authors]
-= Contributing Authors
+== Contributing Authors
 Michael Peyton Jones holds a first-class degree in Mathematics and Philosophy from the University of Oxford. He joined IOHK in 2018 and cares deeply about making programming languages beautiful and mathematical, but also ergonomic and usable. He wrote 'Chapter 5: Plutus Tx' of this ebook. 
 
