@@ -100,24 +100,23 @@ using reflectCR to build identify environments will give us the
 completeness result.
 
 \begin{code}
-{-
 reflectCR : ∀{Φ K} → {n n' : Φ ⊢Ne⋆ K}
-  → n ≡ n'
+  → n ≡Ne n'
     -----------------------------
   → CR K (reflect n) (reflect n')
-reflectCR {K = *}     p = cong ne p
+reflectCR {K = *}     p = ne≡Nf p
 reflectCR {K = K ⇒ J} p = p
 
 reifyCR : ∀{Φ K} → {v v' : Val Φ K}
   → CR K v v'
     -------------------------------
-  → reify v ≡ reify v'
+  → reify v ≡Nf reify v'
 reifyCR {K = *    }                    p              = p
-reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
+reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = ne≡Nf p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
-reifyCR {K = K ⇒ J} {inj₂ (x , f)} {inj₂ (x' , f')} (p , p' , p'' , p''') =
-  cong₂ ƛ p'' (reifyCR (p''' S (reflectCR refl)))
+reifyCR {K = K ⇒ J} {inj₂ (x , f)} {inj₂ (x' , f')} (p , p' , p'') =
+  ƛ≡Nf (reifyCR (p'' S (reflectCR (var≡Ne refl))))
 \end{code}
 
 'equality' for environements/CR lifted from values to environements
@@ -149,16 +148,17 @@ AppCR : ∀{Φ K J}
   → {v v' : Val Φ K}
   → CR K v v'
   → CR J (f ·V v) (f' ·V v')
-AppCR {f = inj₁ n} {inj₁ .n} refl           q =
-  reflectCR (cong (n ·_) (reifyCR q))
+AppCR {f = inj₁ n} {inj₁ n'} p              q =
+  reflectCR (·≡Ne p (reifyCR q))
 AppCR {f = inj₁ n} {inj₂ f'} ()             q
 AppCR {f = inj₂ f} {inj₁ n}  ()             q
-AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') q = p''' id q
+AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 \end{code}
 
 renVal commutes with reflect
 
 \begin{code}
+{-
 renVal-reflect : ∀{Φ Ψ K}
   → (ρ : Ren Φ Ψ)
   → (n : Φ ⊢Ne⋆ K)
