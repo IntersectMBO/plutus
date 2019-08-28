@@ -344,7 +344,6 @@ renVal-eval (con tcn)   p ρ = con≡Nf
 (pre) renaming commutes with eval
 
 \begin{code}
-{-
 ren-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
@@ -353,13 +352,13 @@ ren-eval : ∀{Φ Ψ Θ K}
   CR K (eval (ren ρ t) η) (eval t (η' ∘ ρ))
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π x B) p ρ =
-  cong (Π x) (trans (ren-eval
+  Π≡Nf (transNf (ren-eval
                   B
                   (CR,,⋆ (renCR S ∘ p)
-                          (reflectCR (refl {x = ` Z}))) (ext ρ))
-       (idext (λ{ Z     → reflectCR refl
+                          (reflectCR (var≡Ne refl))) (ext ρ))
+       (idext (λ{ Z     → reflectCR (var≡Ne refl)
                 ; (S x) → (renCR S ∘ reflCR ∘ symCR ∘ p) (ρ x)}) B))
-ren-eval (A ⇒ B) p ρ = cong₂ _⇒_ (ren-eval A p ρ) (ren-eval B p ρ) 
+ren-eval (A ⇒ B) p ρ = ⇒≡Nf (ren-eval A p ρ) (ren-eval B p ρ) 
 ren-eval (ƛ _ B) p ρ =
   (λ ρ' ρ'' v v' q → transCR
      (renVal-eval (ren (ext ρ) B) (CR,,⋆ (renCR ρ' ∘ reflCR ∘ p) q) ρ'')
@@ -374,20 +373,19 @@ ren-eval (ƛ _ B) p ρ =
                    (renVal-comp ρ' ρ'' (reflCR (symCR (p (ρ x)))))})
            B))
   ,
-  refl
-  ,
   λ ρ' q → transCR
     (ren-eval B (CR,,⋆ (renCR ρ' ∘ p) q) (ext ρ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
 ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
-ren-eval μ1          p ρ = refl
-ren-eval (con tcn)   p ρ = refl
+ren-eval μ1          p ρ = μ≡Ne
+ren-eval (con tcn)   p ρ = con≡Nf
 \end{code}
 
 Subsitution lemma
 
 \begin{code}
+{-
 subst-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
