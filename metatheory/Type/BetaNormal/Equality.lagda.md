@@ -4,6 +4,7 @@ module Type.BetaNormal.Equality where
 
 ```
 open import Type
+open import Type.Equality
 open import Type.BetaNormal
 open import Relation.Binary.PropositionalEquality
 ```
@@ -175,4 +176,19 @@ renNf-comp (con tcn)   = con≡Nf
 renNe-comp (` x)   = var≡Ne refl
 renNe-comp (A · B) = ·≡Ne (renNe-comp A) (renNf-comp B)
 renNe-comp μ1      = μ≡Ne
+```
+
+```
+embNf-cong : ∀{Φ K}{A A' : Φ ⊢Nf⋆ K} → A ≡Nf A' → embNf A ≡α embNf A'
+embNe-cong : ∀{Φ K}{A A' : Φ ⊢Ne⋆ K} → A ≡Ne A' → embNe A ≡α embNe A'
+
+embNf-cong (⇒≡Nf p q) = ⇒≡α (embNf-cong p) (embNf-cong q)
+embNf-cong (Π≡Nf p)   = Π≡α (embNf-cong p)
+embNf-cong (ƛ≡Nf p)   = ƛ≡α (embNf-cong p)
+embNf-cong con≡Nf     = con≡α
+embNf-cong (ne≡Nf p)  = embNe-cong p
+
+embNe-cong (var≡Ne p) = var≡α p
+embNe-cong (·≡Ne p q) = ·≡α (embNe-cong p) (embNf-cong q)
+embNe-cong μ≡Ne       = μ≡α
 ```

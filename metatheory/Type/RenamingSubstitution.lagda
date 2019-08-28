@@ -94,17 +94,18 @@ Congruence lemma for renaming⋆
 \begin{code}
 ren-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{K}(A : Φ ⊢⋆ K)
+  → (∀ {J}(α : Φ ∋⋆ J) → f α ≡ g α)
+  → ∀{K}{A A' : Φ ⊢⋆ K}
+  → A ≡α A'
     -------------------------------
-  → ren f A ≡ ren g A
-ren-cong p (` x)       = cong ` (p x)
-ren-cong p (Π x A)     = cong (Π x) (ren-cong (ext-cong p) A)
-ren-cong p (A ⇒ B)     = cong₂ _⇒_ (ren-cong p A) (ren-cong p B)
-ren-cong p (ƛ x A)     = cong (ƛ x) (ren-cong (ext-cong p) A)
-ren-cong p (A · B)     = cong₂ _·_ (ren-cong p A) (ren-cong p B)
-ren-cong p μ1          = refl
-ren-cong p (con tcn)   = refl
+  → ren f A ≡α ren g A'
+ren-cong p (var≡α refl) = var≡α (p _)
+ren-cong p (⇒≡α q r)    = ⇒≡α (ren-cong p q) (ren-cong p r)
+ren-cong p (Π≡α q)      = Π≡α (ren-cong (ext-cong p) q)
+ren-cong p (ƛ≡α q)      = ƛ≡α (ren-cong (ext-cong p) q)
+ren-cong p (·≡α q r)    = ·≡α (ren-cong p q) (ren-cong p r)
+ren-cong p μ≡α          = μ≡α
+ren-cong p con≡α        = con≡α
 \end{code}
 
 First functor law for ren
@@ -113,14 +114,14 @@ First functor law for ren
 ren-id : ∀{Φ J}
  → (t : Φ ⊢⋆ J)
    ---------------
- → ren id t ≡ t
-ren-id (` x)       = refl
-ren-id (Π x t)     = cong (Π x) (trans (ren-cong ext-id t) (ren-id t))
-ren-id (t ⇒ u)     = cong₂ _⇒_ (ren-id t) (ren-id u)
-ren-id (ƛ x t)     = cong (ƛ x) (trans (ren-cong ext-id t) (ren-id t))
-ren-id (t · u)     = cong₂ _·_ (ren-id t) (ren-id u)
-ren-id μ1          = refl
-ren-id (con tcn)   = refl
+ → ren id t ≡α t
+ren-id (` α)       = var≡α refl
+ren-id (Π x A)     = Π≡α (transα (ren-cong ext-id reflα) (ren-id A))
+ren-id (A ⇒ B)     = ⇒≡α (ren-id A) (ren-id B)
+ren-id (ƛ x A)     = ƛ≡α (transα (ren-cong ext-id reflα) (ren-id A))
+ren-id (A · B)     = ·≡α (ren-id A) (ren-id B)
+ren-id μ1          = μ≡α
+ren-id (con tcn)   = con≡α
 \end{code}
 
 Second functor law for ext
@@ -144,16 +145,16 @@ ren-comp : ∀{Φ Ψ Θ}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     ----------------------------------------
-  → ren (f ∘ g) A ≡ ren f (ren g A)
-ren-comp (` x)       = refl
-ren-comp (Π x A)       =
-  cong (Π x) (trans (ren-cong ext-comp A) (ren-comp A))
-ren-comp (A ⇒ B)     = cong₂ _⇒_ (ren-comp A) (ren-comp B)
+  → ren (f ∘ g) A ≡α ren f (ren g A)
+ren-comp (` x)       = var≡α refl
+ren-comp (Π x A)     =
+  Π≡α (transα (ren-cong ext-comp reflα) (ren-comp A))
+ren-comp (A ⇒ B)     = ⇒≡α (ren-comp A) (ren-comp B)
 ren-comp (ƛ x A)     =
-  cong (ƛ x) (trans (ren-cong ext-comp A) (ren-comp A))
-ren-comp (A · B)     = cong₂ _·_ (ren-comp A) (ren-comp B)
-ren-comp μ1          = refl
-ren-comp (con tcn)   = refl
+  ƛ≡α (transα (ren-cong ext-comp reflα) (ren-comp A))
+ren-comp (A · B)     = ·≡α (ren-comp A) (ren-comp B)
+ren-comp μ1          = μ≡α
+ren-comp (con tcn)   = con≡α
 \end{code}
 
 ## Type substitution
@@ -226,9 +227,9 @@ Extending the identity substitution yields the identity substitution
 exts-id : ∀ {Φ J K}
   → (x : Φ ,⋆ K ∋⋆ J)
     -----------------
-  → exts ` x ≡ ` x 
-exts-id Z     = refl
-exts-id (S x) = refl
+  → exts ` x ≡α ` x 
+exts-id Z     = reflα
+exts-id (S x) = reflα
 \end{code}
 
 Congruence lemma for exts
@@ -236,12 +237,12 @@ Congruence lemma for exts
 \begin{code}
 exts-cong : ∀ {Φ Ψ}
   → {f g : Sub Φ Ψ}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
+  → (∀ {J}(α : Φ ∋⋆ J) → f α ≡α g α)
+  → ∀{J K}(α : Φ ,⋆ K ∋⋆ J)
     -------------------------------
-  → exts f x ≡ exts g x
-exts-cong p Z     = refl
-exts-cong p (S x) = cong weaken (p x)
+  → exts f α ≡α exts g α
+exts-cong p Z     = var≡α refl
+exts-cong p (S α) = ren-cong (λ _ → refl) (p α)
 \end{code}
 
 Congruence lemma for subst
@@ -249,17 +250,17 @@ Congruence lemma for subst
 \begin{code}
 subst-cong : ∀ {Φ Ψ}
   → {f g : Sub Φ Ψ}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
+  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡α g x)
   → ∀{K}(A : Φ ⊢⋆ K)
     -------------------------------
-  → subst f A ≡ subst g A
+  → subst f A ≡α subst g A
 subst-cong p (` x)       = p x
-subst-cong p (Π x A)     = cong (Π x) (subst-cong (exts-cong p) A)
-subst-cong p (A ⇒ B)     = cong₂ _⇒_ (subst-cong p A) (subst-cong p B)
-subst-cong p (ƛ x A)     = cong (ƛ x) (subst-cong (exts-cong p) A)
-subst-cong p (A · B)     = cong₂ _·_ (subst-cong p A) (subst-cong p B)
-subst-cong p μ1          = refl
-subst-cong p (con tcn)   = refl
+subst-cong p (Π x A)     = Π≡α (subst-cong (exts-cong p) A)
+subst-cong p (A ⇒ B)     = ⇒≡α (subst-cong p A) (subst-cong p B)
+subst-cong p (ƛ x A)     = ƛ≡α (subst-cong (exts-cong p) A)
+subst-cong p (A · B)     = ·≡α (subst-cong p A) (subst-cong p B)
+subst-cong p μ1          = μ≡α
+subst-cong p (con tcn)   = con≡α
 \end{code}
 
 First relative monad law for subst
@@ -268,14 +269,14 @@ First relative monad law for subst
 subst-id : ∀ {Φ J}
   → (t : Φ ⊢⋆ J)
     -------------
-  → subst ` t ≡ t
-subst-id (` x)      = refl
-subst-id (Π x A)    = cong (Π x) (trans (subst-cong exts-id A) (subst-id A))
-subst-id (A ⇒ B)    = cong₂ _⇒_ (subst-id A) (subst-id B)
-subst-id (ƛ x A)     = cong (ƛ x) (trans (subst-cong exts-id A) (subst-id A))
-subst-id (A · B)     = cong₂ _·_ (subst-id A) (subst-id B)
-subst-id μ1          = refl
-subst-id (con tcn)   = refl
+  → subst ` t ≡α t
+subst-id (` α)      = var≡α refl
+subst-id (Π x A)    = Π≡α (transα (subst-cong exts-id A) (subst-id A))
+subst-id (A ⇒ B)    = ⇒≡α (subst-id A) (subst-id B)
+subst-id (ƛ x A)    = ƛ≡α (transα (subst-cong exts-id A) (subst-id A))
+subst-id (A · B)    = ·≡α (subst-id A) (subst-id B)
+subst-id μ1         = μ≡α
+subst-id (con tcn)  = con≡α
 \end{code}
 
 Fusion of exts and ext
@@ -286,9 +287,9 @@ exts-ext : ∀{Φ Ψ Θ}
   → {f : Sub Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     ------------------------------------
-  → exts (f ∘ g) x ≡ exts f (ext g x)
-exts-ext Z     = refl
-exts-ext (S x) = refl
+  → exts (f ∘ g) x ≡α exts f (ext g x)
+exts-ext Z     = reflα
+exts-ext (S x) = reflα
 \end{code}
 
 Fusion for subst and ren
@@ -299,16 +300,16 @@ subst-ren : ∀{Φ Ψ Θ}
   → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     --------------------------------------
-  → subst (f ∘ g) A ≡ subst f (ren g A)
-subst-ren (` x)       = refl
+  → subst (f ∘ g) A ≡α subst f (ren g A)
+subst-ren (` α)       = reflα
 subst-ren (Π x A)     =
-  cong (Π x) (trans (subst-cong exts-ext A) (subst-ren A))
-subst-ren (A ⇒ B)     = cong₂ _⇒_ (subst-ren A) (subst-ren B)
+  Π≡α (transα (subst-cong exts-ext A) (subst-ren A))
+subst-ren (A ⇒ B)     = ⇒≡α (subst-ren A) (subst-ren B)
 subst-ren (ƛ x A)     =
-  cong (ƛ x) (trans (subst-cong exts-ext A) (subst-ren A))
-subst-ren (A · B)     = cong₂ _·_ (subst-ren A) (subst-ren B)
-subst-ren μ1           = refl
-subst-ren (con tcn)   = refl
+  ƛ≡α (transα (subst-cong exts-ext A) (subst-ren A))
+subst-ren (A · B)     = ·≡α (subst-ren A) (subst-ren B)
+subst-ren μ1          = μ≡α
+subst-ren (con tcn)   = con≡α
 \end{code}
 
 Fusion for exts and ext
@@ -319,9 +320,9 @@ ren-ext-exts : ∀{Φ Ψ Θ}
   → {f : Ren Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     -------------------------------------------------
-  → exts (ren f ∘ g) x ≡ ren (ext f) (exts g x)
-ren-ext-exts Z     = refl
-ren-ext-exts (S x) = trans (sym (ren-comp _)) (ren-comp _)
+  → exts (ren f ∘ g) x ≡α ren (ext f) (exts g x)
+ren-ext-exts Z     = var≡α refl
+ren-ext-exts (S x) = transα (symα (ren-comp _)) (ren-comp _)
 \end{code}
 
 Fusion for ren and subst
@@ -332,16 +333,16 @@ ren-subst : ∀{Φ Ψ Θ}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     ---------------------------------------------
-  → subst (ren f ∘ g) A ≡ ren f (subst g A)
-ren-subst (` x)       = refl
+  → subst (ren f ∘ g) A ≡α ren f (subst g A)
+ren-subst (` α)       = ren-cong (λ _ → refl) reflα
 ren-subst (Π x A)     =
-  cong (Π x) (trans (subst-cong ren-ext-exts A) (ren-subst A))
-ren-subst (A ⇒ B)     = cong₂ _⇒_ (ren-subst A) (ren-subst B)
+  Π≡α (transα (subst-cong ren-ext-exts  A) (ren-subst A))
+ren-subst (A ⇒ B)     = ⇒≡α (ren-subst A) (ren-subst B)
 ren-subst (ƛ x A)     =
-  cong (ƛ x) (trans (subst-cong ren-ext-exts A) (ren-subst A))
-ren-subst (A · B)     = cong₂ _·_ (ren-subst A) (ren-subst B)
-ren-subst μ1          = refl
-ren-subst (con tcn)   = refl
+  ƛ≡α (transα (subst-cong ren-ext-exts A) (ren-subst A))
+ren-subst (A · B)     = ·≡α (ren-subst A) (ren-subst B)
+ren-subst μ1          = μ≡α
+ren-subst (con tcn)   = con≡α
 \end{code}
 
 Fusion of two exts
@@ -352,9 +353,9 @@ extscomp : ∀{Φ Ψ Θ}
   → {f : Sub Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     ------------------------------------------------
-  → exts (subst f ∘ g) x ≡ subst (exts f) (exts g x)
-extscomp         Z     = refl
-extscomp {g = g} (S x) = trans (sym (ren-subst (g x))) (subst-ren (g x))
+  → exts (subst f ∘ g) x ≡α subst (exts f) (exts g x)
+extscomp         Z     = var≡α refl
+extscomp {g = g} (S x) = transα (symα (ren-subst (g x))) (subst-ren (g x))
 \end{code}
 
 Fusion of substitutions/third relative monad law for subst
@@ -365,14 +366,14 @@ subst-comp : ∀{Φ Ψ Θ}
   → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     -------------------------------------------
-  → subst (subst f ∘ g) A ≡ subst f (subst g A)
-subst-comp (` x)       = refl
-subst-comp (Π x A)     = cong (Π x) (trans (subst-cong extscomp A) (subst-comp A))
-subst-comp (A ⇒ B)     = cong₂ _⇒_ (subst-comp A) (subst-comp B)
-subst-comp (ƛ x A)     = cong (ƛ x) (trans (subst-cong extscomp A) (subst-comp A))
-subst-comp (A · B)     = cong₂ _·_ (subst-comp A) (subst-comp B)
-subst-comp μ1          = refl
-subst-comp (con tcn)   = refl
+  → subst (subst f ∘ g) A ≡α subst f (subst g A)
+subst-comp (` x)       = reflα
+subst-comp (Π x A)     = Π≡α (transα (subst-cong extscomp A) (subst-comp A))
+subst-comp (A ⇒ B)     = ⇒≡α (subst-comp A) (subst-comp B)
+subst-comp (ƛ x A)     = ƛ≡α (transα (subst-cong extscomp A) (subst-comp A))
+subst-comp (A · B)     = ·≡α (subst-comp A) (subst-comp B)
+subst-comp μ1          = μ≡α
+subst-comp (con tcn)   = con≡α
 \end{code}
 
 Commuting subst-cons and ren
@@ -396,7 +397,7 @@ subst-subst-cons : ∀{Γ Δ}{J K}
   → (M : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
     ------------------------------------------------------------------------
-  → subst (subst-cons ` (subst σ M)) (exts σ x) ≡ subst σ (subst-cons ` M x)
-subst-subst-cons σ M Z     = refl
-subst-subst-cons σ M (S x) = trans (sym (subst-ren (σ x))) (subst-id (σ x))
+  → subst (subst-cons ` (subst σ M)) (exts σ x) ≡α subst σ (subst-cons ` M x)
+subst-subst-cons σ M Z     = reflα
+subst-subst-cons σ M (S x) = transα (symα (subst-ren (σ x))) (subst-id (σ x))
 \end{code}

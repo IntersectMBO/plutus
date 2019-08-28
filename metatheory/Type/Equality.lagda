@@ -135,3 +135,17 @@ subst≡β σ (β≡β B A)     =
           (subst-comp B))
           (β≡β _ _)
 \end{code}
+
+\begin{code}  
+α2β : ∀{Φ K}{A A' : Φ ⊢⋆ K} → A ≡α A' → A ≡β A'
+α2β (var≡α refl) = refl≡β _
+α2β (⇒≡α p q)    = ⇒≡β (α2β p) (α2β q)
+α2β (Π≡α p)      = Π≡β (α2β p)
+α2β (ƛ≡α p)      = ƛ≡β (α2β p)
+α2β (·≡α p q)    = ·≡β (α2β p) (α2β q)
+α2β μ≡α          = refl≡β _
+α2β con≡α        = refl≡β _
+
+≡2β : ∀{Φ K}{A A' : Φ ⊢⋆ K} → A ≡ A' → A ≡β A'
+≡2β refl = refl≡β _
+\end{code}
