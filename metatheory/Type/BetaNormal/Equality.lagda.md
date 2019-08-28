@@ -5,7 +5,6 @@ module Type.BetaNormal.Equality where
 ```
 open import Type
 open import Type.BetaNormal
-
 open import Relation.Binary.PropositionalEquality
 ```
 
@@ -32,6 +31,8 @@ data _≡Nf_ {Φ} : ∀{J} → Φ ⊢Nf⋆ J → Φ ⊢Nf⋆ J → Set where
       ----------------
     → ƛ x B ≡Nf ƛ x' B'
 
+  con≡Nf : ∀ {tcn} → con tcn ≡Nf con tcn
+
   ne≡Nf : ∀{K}{A A' : Φ ⊢Ne⋆ K}
     → A ≡Ne A'
       --------------
@@ -40,14 +41,15 @@ data _≡Nf_ {Φ} : ∀{J} → Φ ⊢Nf⋆ J → Φ ⊢Nf⋆ J → Set where
 data _≡Ne_ {Φ} where
   var≡Ne : ∀{K}{α α' : Φ ∋⋆ K}
     → α ≡ α'
-      ------------
-    → ` α ≡Ne ` α' 
+    → ` α ≡Ne ` α'
 
   ·≡Ne : ∀{K J}{A A' : Φ ⊢Ne⋆ K ⇒ J}{B B' : Φ ⊢Nf⋆ K}
     → A ≡Ne A'
     → B ≡Nf B'
       ---------------------
     → (A · B) ≡Ne (A' · B')
+
+  μ≡Ne : ∀{K} → μ1 {K = K} ≡Ne μ1
 ```
 
 ```
@@ -58,9 +60,11 @@ symNf (⇒≡Nf p q) = ⇒≡Nf (symNf p) (symNf q)
 symNf (Π≡Nf p)   = Π≡Nf (symNf p)
 symNf (ƛ≡Nf p)   = ƛ≡Nf (symNf p)
 symNf (ne≡Nf p)  = ne≡Nf (symNe p)
+symNf con≡Nf     = con≡Nf
 
 symNe (var≡Ne p) = var≡Ne (sym p)
 symNe (·≡Ne p q) = ·≡Ne (symNe p) (symNf q)
+symNe μ≡Ne       = μ≡Ne
 ```
 
 ```
@@ -71,7 +75,86 @@ transNf (⇒≡Nf p q) (⇒≡Nf p' q') = ⇒≡Nf (transNf p p') (transNf q q')
 transNf (Π≡Nf p)   (Π≡Nf p')    = Π≡Nf (transNf p p')
 transNf (ƛ≡Nf p)   (ƛ≡Nf p')    = ƛ≡Nf (transNf p p')
 transNf (ne≡Nf p)  (ne≡Nf p')   = ne≡Nf (transNe p p')
+transNf con≡Nf     con≡Nf       = con≡Nf
 
 transNe (var≡Ne p) (var≡Ne p')  = var≡Ne (trans p p')
 transNe (·≡Ne p q) (·≡Ne p' q') = ·≡Ne (transNe p p') (transNf q q')
+transNe μ≡Ne       μ≡Ne         = μ≡Ne
+```
+
+```
+open import Type.RenamingSubstitution
+renNe-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
+  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
+  → ∀{K}(A : Φ ⊢Ne⋆ K)
+    -------------------------
+  → renNe f A ≡Ne renNe g A
+
+renNf-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
+  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
+  → ∀{K}(A : Φ ⊢Nf⋆ K)
+    ---------------------------
+  → renNf f A ≡Nf renNf g A
+renNf-cong p (Π x A)     = Π≡Nf (renNf-cong (ext-cong p) A)
+renNf-cong p (A ⇒ B)     = ⇒≡Nf (renNf-cong p A) (renNf-cong p B)
+renNf-cong p (ƛ x A)     = ƛ≡Nf (renNf-cong (ext-cong p) A)
+renNf-cong p (ne A)      = ne≡Nf (renNe-cong p A)
+renNf-cong p (con tcn)   = con≡Nf
+
+renNe-cong p (` x)   = var≡Ne (p x)
+renNe-cong p (A · B) = ·≡Ne (renNe-cong p A) (renNf-cong p B)
+renNe-cong p μ1      = μ≡Ne
+```
+
+```
+open import Function
+renNf-id : ∀ {Φ}
+  → ∀ {J}
+  → (n : Φ ⊢Nf⋆ J)
+    -----------------
+  → renNf id n ≡Nf n
+
+renNe-id : ∀ {Φ}
+  → ∀ {J}
+  → (n : Φ ⊢Ne⋆ J)
+    ------------------
+  → renNe id n ≡Ne n
+
+renNf-id (Π x A)     = Π≡Nf (transNf (renNf-cong ext-id A) (renNf-id A))
+renNf-id (A ⇒ A')    = ⇒≡Nf (renNf-id A) (renNf-id A')
+renNf-id (ƛ x A)     = ƛ≡Nf (transNf (renNf-cong ext-id A) (renNf-id A))
+renNf-id (ne A)      = ne≡Nf (renNe-id A)
+renNf-id (con tcn)   = con≡Nf
+
+renNe-id (` α)   = var≡Ne refl
+renNe-id (A · B) = ·≡Ne (renNe-id A) (renNf-id B)
+renNe-id μ1      = μ≡Ne
+```
+
+```
+renNf-comp : ∀{Φ Ψ Θ}
+  → {g : Ren Φ Ψ}
+  → {f : Ren Ψ Θ}
+  → ∀{J}(A : Φ ⊢Nf⋆ J)
+    -------------------------------------------
+  → renNf (f ∘ g) A ≡Nf renNf f (renNf g A)
+renNe-comp : ∀{Φ Ψ Θ}
+  → {g : Ren Φ Ψ}
+  → {f : Ren Ψ Θ}
+  → ∀{J}(A : Φ ⊢Ne⋆ J)
+    -------------------------------------------
+  → renNe (f ∘ g) A ≡Ne renNe f (renNe g A)
+
+renNf-comp (Π x B)     = 
+  Π≡Nf (transNf (renNf-cong ext-comp B) (renNf-comp B))
+renNf-comp (A ⇒ B)     = ⇒≡Nf (renNf-comp A) (renNf-comp B)
+renNf-comp (ƛ x A)     = ƛ≡Nf (transNf (renNf-cong ext-comp A) (renNf-comp A))
+renNf-comp (ne A)      = ne≡Nf (renNe-comp A)
+renNf-comp (con tcn)   = con≡Nf
+
+renNe-comp (` x)   = var≡Ne refl
+renNe-comp (A · B) = ·≡Ne (renNe-comp A) (renNf-comp B)
+renNe-comp μ1      = μ≡Ne
 ```

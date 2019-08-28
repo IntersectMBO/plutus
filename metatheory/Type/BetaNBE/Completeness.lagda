@@ -158,35 +158,37 @@ AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 renVal commutes with reflect
 
 \begin{code}
-{-
 renVal-reflect : ∀{Φ Ψ K}
   → (ρ : Ren Φ Ψ)
   → (n : Φ ⊢Ne⋆ K)
     --------------------------------------------------------
   → CR K (renVal ρ (reflect n)) (reflect (renNe ρ n))
-renVal-reflect {K = *}     ρ n = refl
-renVal-reflect {K = K ⇒ J} ρ n = refl 
+renVal-reflect {K = *}     ρ n = ne≡Nf (renNe-cong (λ _ → refl) n)
+renVal-reflect {K = K ⇒ J} ρ n = renNe-cong (λ _ → refl) n
 \end{code}
 
 renaming commutes with reify
 
 \begin{code}
+{-
 ren-reify : ∀{K Φ Ψ}{v v' : Val Φ K}
   → CR K v v'
   → (ρ : Ren Φ Ψ)
     ---------------------------------------------
-  → renNf ρ (reify v) ≡ reify (renVal ρ v')
-ren-reify {*}                            refl           ρ = refl
-ren-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
+  → renNf ρ (reify v) ≡Nf reify (renVal ρ v')
+ren-reify {*}                            p              ρ = {!!}
+ren-reify {K ⇒ J} {v = inj₁ n} {inj₁ n'} p              ρ = {!!}
 ren-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
 ren-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'' , p''') ρ =
+ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p''') ρ = {!!}
  cong₂ ƛ p'' (trans (ren-reify (p''' S (reflectCR (refl {x = ` Z}))) (ext ρ)) (reifyCR (transCR ( p' S (ext ρ) _ _ (reflectCR refl) ) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , refl , λ ρ' q → (proj₂ (proj₂ (proj₂ (reflCR (symCR (p , p' , p'' , p'''))))) (ρ' ∘ S ∘ ρ) q)) (renVal-reflect (ext ρ) (` Z))))))
+-}
 \end{code}
 
 first functor law for renVal
 
 \begin{code}
+{-
 renVal-id : ∀ {K Φ}{v v' : Val Φ K}
   → CR K v v'
     ------------------------
