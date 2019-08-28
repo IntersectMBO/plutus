@@ -55,7 +55,7 @@ data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
 data _⊢Nf⋆_ where
 
   Π : ∀ {Φ K}
-    → .String
+    → String
     → Φ ,⋆ K ⊢Nf⋆ *
       -----------
     → Φ ⊢Nf⋆ *
@@ -67,7 +67,7 @@ data _⊢Nf⋆_ where
     → Φ ⊢Nf⋆ *
 
   ƛ :  ∀ {Φ K J}
-    → .String
+    → String
     → Φ ,⋆ K ⊢Nf⋆ J
       -----------
     → Φ ⊢Nf⋆ (K ⇒ J)
