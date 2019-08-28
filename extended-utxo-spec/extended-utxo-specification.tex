@@ -706,7 +706,13 @@ of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
 \subsection{Validating data scripts}
 \label{sec:validating-datascripts}
+During the validation of a transaction $T$, it may be necessary for
+the validator $V$ of one of $T$'s inputs $I$ to examine a data script
+$D$ belonging to one of $T$'s outputs; for example, $D$ may be being
+used to propagate some state through an ongoing contract and $V$ may
+need to check that the contents of $D$ are ``correct'' in some sense.
 
+This presents a problem.  
 
 
 \newpage
