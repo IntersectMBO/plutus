@@ -8,6 +8,7 @@ open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
+open import Type.BetaNormal.Equality
 
 open import Relation.Binary.PropositionalEquality hiding (subst)
 open import Data.Sum
@@ -24,8 +25,8 @@ open import Function
 -- property on function spaces called Unif(ormity).
 
 CR : ∀{Φ} K → Val Φ K → Val Φ K → Set
-CR *       n        n'        = n ≡ n'
-CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (inj₁ n')
+CR *       n        n'        = n ≡Nf n'
+CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡Ne n' -- reify (inj₁ n) ≡ reify (inj₁ n')
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
 CR (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
 CR (K ⇒ J) (inj₂ (x , f)) (inj₂ (x' , f')) =
@@ -33,8 +34,6 @@ CR (K ⇒ J) (inj₂ (x , f)) (inj₂ (x' , f')) =
   ×
   Unif f'
   ×
-  x ≡ x'
-  × 
   ∀ {Ψ}
      → (ρ : Ren _ Ψ)
      → {v v' : Val Ψ K}
@@ -49,9 +48,8 @@ CR (K ⇒ J) (inj₂ (x , f)) (inj₂ (x' , f')) =
       → (ρ' : Ren Ψ Ψ')
       → (v v' : Val Ψ K)
       → CR K v v'
-        --------————————————————————————————————————————————————————————————————
-      → CR J (renVal ρ' (f ρ v))
-             (f (ρ' ∘ ρ) (renVal ρ' v'))
+        --------—————————————————————————————————————————————————
+      → CR J (renVal ρ' (f ρ v)) (f (ρ' ∘ ρ) (renVal ρ' v'))
 \end{code}
 
 CR is symmetric and transitive, it is not reflexive, but we if we
@@ -61,14 +59,14 @@ derive a reflexivity result for it.
 \begin{code}
 symCR : ∀{Φ K}{v v' : Val Φ K}
   → CR K v v'
-    ---------------------------
+    --------------------------
   → CR K v' v
-symCR {K = *}                        p              = sym p
-symCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = sym p
+symCR {K = *}                        p              = symNf p
+symCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = symNe p
 symCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
 symCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()
-symCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'' , p''') =
-  p' , p , sym p'' , λ ρ q → symCR (p''' ρ (symCR q))
+symCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
+  p' , p , λ ρ q → symCR (p'' ρ (symCR q))
 
 transCR : ∀{Φ K} {v v' v'' : Val Φ K}
   → CR K v v'
@@ -76,15 +74,15 @@ transCR : ∀{Φ K} {v v' v'' : Val Φ K}
     ----------------------------------
   → CR K v v''
 transCR {K = *}                                   p              q
-  = trans p q
+  = transNf p q
 transCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} {inj₁ n''} p              q
-  = trans p q
+  = transNe p q
 transCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} {inj₂ f''} p              ()
 transCR {K = K ⇒ J} {inj₁ n} {inj₂ f'}            ()             q
 transCR {K = K ⇒ J} {inj₂ f} {inj₁ n'}            ()             q
 transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₁ n}   p              ()
-transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'' , p''') (q , q' , q'' , q''')
- = p , q' , trans p'' q'' , λ ρ r → transCR (p''' ρ r) (q''' ρ (transCR (symCR r) r))
+transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'') (q , q' , q'')
+ = p , q' , λ ρ r → transCR (p'' ρ r) (q'' ρ (transCR (symCR r) r))
 
 reflCR : ∀{Φ K}{v v' : Val Φ K}
   → CR K v v'
@@ -102,6 +100,7 @@ using reflectCR to build identify environments will give us the
 completeness result.
 
 \begin{code}
+{-
 reflectCR : ∀{Φ K} → {n n' : Φ ⊢Ne⋆ K}
   → n ≡ n'
     -----------------------------
@@ -487,4 +486,5 @@ idCR x = reflectCR refl
 \begin{code}
 completeness : ∀ {K Φ} {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
 completeness p = reifyCR (fund idCR p)
+-}
 \end{code}
