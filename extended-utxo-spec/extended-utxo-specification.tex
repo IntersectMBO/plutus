@@ -5,7 +5,7 @@
   \red{\textsf{DRAFT}}}
 
 \pagestyle{plain}
-\date{26th June 2019}
+\date{28th August 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -186,7 +186,10 @@
   ``Here's how you can do \textsf{A},\textsf{B},\textsf{C}, and
   \textsf{D} in Plutus Core''.  This would make things modular, giving
   us a clear and well-defined interface between the EUTXO model and
-  Plutus Core, which would surely be a good thing.}  \bigskip
+  Plutus Core, which would surely be a good thing.  However, the business
+  abour validating data scripts messes this up.}
+
+\bigskip
 
 \section{Introduction: The Extended UTXO Model}
 \label{sec:intro}
@@ -608,8 +611,7 @@ $$
 $$
 \txunspent(t) = \{(id,1), \ldots, (\mathit{id},\left|t.outputs\right|)\}
 $$
-\noindent (where $\mathit{id}$ is the identifier of the current transaction), and
-\todokwxm{Where does the transaction id come from?}
+\noindent (where $\mathit{id}$ is $t$'s unique $\s{TxId}$), and
 %
 \[
   \unspent : \mathsf{Ledger} \rightarrow \FinSet{\s{OutputRef}}
@@ -645,7 +647,8 @@ This function simply returns the value of the input.
 
 \bigskip
 
-\noindent We can now define what it means for a transaction to be
+\noindent We can now define what it means for a transaction $t$ of type
+$\eutxotx$ to be
 valid for a ledger: see Figure~\ref{fig:eutxo-1-validity}.  Our
 definition combines Definitions 6 and 14 from
 \citep{Zahnentferner18-UTxO}, differing from the latter in condition
@@ -1061,11 +1064,12 @@ example) which would not incur large storage charges.
   part of the output and not just a hash?}
 
 \note{Determinism of the validation process.}
-\label{note:validation-determinism} The $\ptx$ type is the
-only information about the ``outside world'' available to a validator
+\label{note:validation-determinism} The $\ptx$ type is the only
+information about the ``outside world'' available to a validator
 script at the time of validation.  Allowing the validator access to
-this information gives the EUTXO model a considerable amount of power.
-\red{(like what?)}  However, it is important not to make too much
+this information gives the EUTXO models a considerable amount of
+power, as can be seen from the example contracts
+in~\cite{Plutus-book}.  However, it is important not to make too much
 information available to the validator.  The choice of the $\ptx$ type
 above means that the information available to the validator is
 essentially independent of the state of the blockchain, and in
