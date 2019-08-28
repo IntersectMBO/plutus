@@ -190,6 +190,7 @@ let
 
     papers = {
       unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { Agda = haskellPackages.Agda; };
+      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { Agda = haskellPackages.Agda; };
     };
 
     plutus-playground = rec {
