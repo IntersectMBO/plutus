@@ -189,8 +189,8 @@ let
     };
 
     papers = {
-      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { Agda = haskellPackages.Agda; };
-      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { Agda = haskellPackages.Agda; };
+      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; };
+      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; };
     };
 
     plutus-playground = rec {
@@ -331,9 +331,10 @@ let
     };
 
     agdaPackages = rec {
+      Agda = haskellPackages.Agda;
       # Override the agda builder code from nixpkgs to use our versions of Agda and Haskell.
       # The Agda version is from our package set, and is newer than the one in nixpkgs.
-      agda = pkgs.agda.override { Agda = haskellPackages.Agda; };
+      agda = pkgs.agda.override { inherit Agda; };
 
       # We also rely on a newer version of the stdlib
       AgdaStdlib = (pkgs.AgdaStdlib.override {
