@@ -491,9 +491,10 @@ output of the transaction is required.
 %  Also: we should check this is still how they do it in the new ledger
 %  specs.}
 
-\paragraph{Scripts.} Note that we model data scripts as being
-components of outputs, but redeemer scripts as components of inputs.
-The reasons for this are explained in Note~\ref{note:scripts}.
+\paragraph{Scripts.} Note that data scripts are modelled as components
+of outputs, but validator scripts as components of inputs, even though
+a validator is conceptually part of an output.  The reasons for this are
+explained in Note~\ref{note:scripts}.
 
 \paragraph{Validity intervals.} We allow the second component of a
 validity interval to take the value $\infty$ to indicate that there is
