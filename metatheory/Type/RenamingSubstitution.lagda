@@ -384,9 +384,9 @@ ren-subst-cons : ∀{Γ Δ}{J K}
   → (A : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
     -----------------------------------------------------------------
-  → subst-cons ` (ren ρ A) (ext ρ x) ≡ ren ρ (subst-cons ` A x)
-ren-subst-cons ρ A Z     = refl
-ren-subst-cons ρ A (S x) = refl
+  → subst-cons ` (ren ρ A) (ext ρ x) ≡α ren ρ (subst-cons ` A x)
+ren-subst-cons ρ A Z     = reflα
+ren-subst-cons ρ A (S x) = reflα
 \end{code}
 
 Commuting subst-cons and subst
