@@ -49,6 +49,7 @@ let
     marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
+    papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
     dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
     dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts; 
@@ -67,6 +68,7 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.metatheory)
       ++ (allJobs jobsets.tests)
       ++ (allJobs jobsets.docs) 
+      ++ (allJobs jobsets.papers) 
       ++ (allJobs jobsets.plutus-playground)
       ++ (allJobs jobsets.marlowe-playground)
       ++ (allJobs jobsets.dev.scripts);
