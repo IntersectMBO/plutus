@@ -12,10 +12,12 @@ class Semigroup a => Monoid a where
     -- mappend and mconcat deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
+{-# INLINABLE mappend #-}
 mappend :: Monoid a => a -> a -> a
 mappend = (<>)
 
 -- | Fold a list using the monoid.
+{-# INLINABLE mconcat #-}
 mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
 

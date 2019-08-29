@@ -19,6 +19,8 @@ import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
+import qualified Ledger                      as L
+import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
 import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
@@ -47,10 +49,10 @@ balanceWallet utx = do
 --
 --   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
-computeBalance :: WAPI.MonadWallet m => UnbalancedTx -> m Value
-computeBalance utx = Value.minus <$> left <*> pure right  where
-    right = foldMap (view Tx.outValue) (utx ^. T.outputs)
-    left = foldM go Value.zero (utx ^. T.inputs)
+computeBalance :: WAPI.MonadWallet m => Tx -> m Value
+computeBalance tx = Value.minus <$> left <*> pure right  where
+    right = Ada.toValue (L.txFee tx) `Value.plus` foldMap (view Tx.outValue) (tx ^. Tx.outputs)
+    left = foldM go Value.zero (tx ^. Tx.inputs)
     go cur inp = do
         am <- WAPI.watchedAddresses
         let txout = AM.outRefMap am ^. at (Tx.txInRef inp)
@@ -72,13 +74,16 @@ balanceTx
     -> UnbalancedTx
     -- ^ The unbalanced transaction
     -> m Tx
-balanceTx utxo pk tx = do
+balanceTx utxo pk utx = do
+    let tx = T.toLedgerTx utx
     (neg, pos) <- Value.split <$> computeBalance tx
-    tx' <-  if Value.isZero pos
-            then pure $ T.toLedgerTx tx
-            else do
-                    WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
-                    pure $ addOutputs pk pos (T.toLedgerTx tx)
+
+    tx' <- if Value.isZero pos
+           then pure tx
+           else do
+                   WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
+                   pure $ addOutputs pk pos tx
+
     if Value.isZero neg
     then pure tx'
     else do

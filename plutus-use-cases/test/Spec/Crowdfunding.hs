@@ -8,6 +8,7 @@ module Spec.Crowdfunding(tests) where
 
 import           Data.Foldable                                         (traverse_)
 import qualified Spec.Lib                                              as Lib
+import           Spec.Lib                                              (timesFeeAdjust)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                      as HUnit
 
@@ -34,13 +35,13 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "make contribution"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
+        (walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         $ let contribution = Ada.lovelaceValueOf 10
           in makeContribution w1 contribution
 
     , checkPredicate "make contributions and collect"
         (crowdfunding theCampaign)
-        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
+        (walletFundsChange w1 (1 `timesFeeAdjust` 21))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too early"
@@ -88,8 +89,8 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "can claim a refund"
         (crowdfunding theCampaign)
-        (walletFundsChange w2 Value.zero
-            <> walletFundsChange w3 Value.zero)
+        (walletFundsChange w2 (2 `timesFeeAdjust` 0)
+            <> walletFundsChange w3 (2 `timesFeeAdjust` 0))
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 5)
             >> makeContribution w3 (Ada.lovelaceValueOf 5)

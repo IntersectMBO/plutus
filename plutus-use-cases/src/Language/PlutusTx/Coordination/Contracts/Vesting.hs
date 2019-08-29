@@ -28,6 +28,7 @@ import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger                       as Ledger
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
 import           Ledger.Scripts               (ValidatorHash, HashedDataScript)
@@ -35,7 +36,7 @@ import qualified Ledger.Scripts               as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx (..))
+import           Ledger.Validation            (PendingTx (..), PendingTxIn(..), PendingTxOut(..), getContinuingOutputs)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 
@@ -58,11 +59,13 @@ data Vesting = Vesting {
 PlutusTx.makeLift ''Vesting
 
 -- | The total amount vested
+{-# INLINABLE totalAmount #-}
 totalAmount :: Vesting -> Value
 totalAmount Vesting{..} =
     vestingTrancheAmount vestingTranche1 `Value.plus` vestingTrancheAmount vestingTranche2
 
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
+{-# INLINABLE availableFrom #-}
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
     -- The valid range is an open-ended range starting from the tranche vesting date
@@ -84,6 +87,9 @@ instance Eq VestingData where
 
 PlutusTx.makeLift ''VestingData
 
+transactionFee :: Value
+transactionFee = Ada.lovelaceValueOf 0
+
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
 vestFunds :: (
@@ -94,7 +100,7 @@ vestFunds :: (
     -> m VestingData
 vestFunds vst value = do
     _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    (payment, change) <- createPaymentWithChange value
+    (payment, change) <- createPaymentWithChange (value `Value.plus` transactionFee)
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) Value.zero
@@ -108,6 +114,7 @@ redeemerScript = RedeemerScript $ $$(Ledger.compileScript [|| \(_ :: Sealed (Has
 retrieveFunds :: (
     Monad m,
     WalletAPI m)
+
     => Vesting
     -- ^ Definition of vesting scheme
     -> VestingData
@@ -126,7 +133,8 @@ retrieveFunds vs vd r vnow = do
         vd' = vd {vestingDataPaidOut = vnow `Value.plus` vestingDataPaidOut vd }
         inp = scriptTxIn r val redeemerScript
         range = W.intervalFrom currentSlot
-    _ <- createTxAndSubmit range (Set.singleton inp) [oo, o]
+    (fee, change) <- createPaymentWithChange transactionFee
+    _ <- createTxAndSubmit range (Set.insert inp fee) ([oo, o] ++ maybeToList change)
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
@@ -136,13 +144,21 @@ validatorScriptHash =
     . Ledger.scriptAddress
     . validatorScript
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool
-mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = range} =
+mkValidator d@Vesting{..} VestingData{..} () ptx@PendingTx{pendingTxValidRange = range} =
     let
-        -- We assume here that the txn outputs are always given in the same
-        -- order (1 PubKey output, followed by 0 or 1 script outputs)
+        -- The locked funds which are returned?
+        payBack :: Value
+        payBack = mconcat (map pendingTxOutValue (getContinuingOutputs ptx))
+
+        -- The funds available in the contract.
+        lockedValue :: Value
+        lockedValue = pendingTxInValue (pendingTxIn ptx)
+
+        -- The funds that are paid to the owner
         amountSpent :: Value
-        amountSpent = Validation.valuePaidTo p vestingOwner
+        amountSpent = lockedValue `Value.minus` payBack
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
@@ -159,7 +175,7 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
         -- Check that the remaining output is locked by the same validation
         -- script
         txnOutputsValid =
-            let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
+            let remaining = Validation.valueLockedBy ptx (Validation.ownHash ptx) in
             remaining == (totalAmount d `Value.minus` newAmount)
 
     in amountsValid && txnOutputsValid
