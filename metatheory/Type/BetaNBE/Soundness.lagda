@@ -164,14 +164,13 @@ SRApp : ∀{Φ K J}
     ---------------------
   → SR J (A · u) (f ·V v)
 SRApp {f = inj₁ n} p            q = reflectSR (·≡β (reflectSR p) (reifySR q))
-SRApp {f = inj₂ (x , f)} (A' , p , q) r = {!!}
-
-{-  substSR (·≡β (substEq
-                 (λ B → _ ≡β ƛ x B)
-                 (trans (sym (ren-id A')) (ren-cong (sym ∘ ext-id) A'))
-                 p)
-               (refl≡β _))
-          (q id r) -}
+SRApp {f = inj₂ (x , f)} (A' , p , q) r = substSR
+  (·≡β
+    (trans≡β
+      p
+      (α2β (ƛ≡α (transα (symα (ren-id A')) (ren-cong (sym ∘ ext-id) reflα)))))
+    (refl≡β _))
+  (q id r)
 \end{code}
 
 Fundamental Theorem of Logical Relations for SR
