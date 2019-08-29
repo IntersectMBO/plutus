@@ -263,6 +263,22 @@ subst-cong p μ1          = μ≡α
 subst-cong p (con tcn)   = con≡α
 \end{code}
 
+\begin{code}
+subst-cong' : ∀ {Φ Ψ}
+  → (f : Sub Φ Ψ)
+  → ∀{K}{A A' : Φ ⊢⋆ K}
+  → A ≡α A'
+    -------------------------------
+  → subst f A ≡α subst f A'
+subst-cong' f (var≡α refl) = reflα
+subst-cong' f (⇒≡α p q)    = ⇒≡α (subst-cong' f p) (subst-cong' f q)
+subst-cong' f (Π≡α p)      = Π≡α (subst-cong' (exts f) p)
+subst-cong' f (ƛ≡α p)      = ƛ≡α (subst-cong' (exts f) p)
+subst-cong' f (·≡α p q)    = ·≡α (subst-cong' f p) (subst-cong' f q)
+subst-cong' f μ≡α          = μ≡α
+subst-cong' f con≡α        = con≡α
+\end{code}
+
 First relative monad law for subst
 
 \begin{code}

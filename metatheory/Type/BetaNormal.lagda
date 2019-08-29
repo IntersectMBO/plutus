@@ -139,24 +139,24 @@ ren-embNf : ∀ {Φ Ψ}
   → ∀ {J}
   → (n : Φ ⊢Nf⋆ J)
     -----------------------------------------
-  → embNf (renNf ρ n) ≡ ren ρ (embNf n)
+  → embNf (renNf ρ n) ≡α ren ρ (embNf n)
 
 ren-embNe : ∀ {Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → ∀ {J}
   → (n : Φ ⊢Ne⋆ J)
     --------------------------------------------
-  → embNe (renNe ρ n) ≡ ren ρ (embNe n)
+  → embNe (renNe ρ n) ≡α ren ρ (embNe n)
 
-ren-embNf ρ (Π x B)     = cong (Π x) (ren-embNf (ext ρ) B)
-ren-embNf ρ (A ⇒ B)     = cong₂ _⇒_ (ren-embNf ρ A) (ren-embNf ρ B)
-ren-embNf ρ (ƛ x B)     = cong (ƛ x) (ren-embNf (ext ρ) B)
+ren-embNf ρ (Π x B)     = Π≡α (ren-embNf (ext ρ) B)
+ren-embNf ρ (A ⇒ B)     = ⇒≡α (ren-embNf ρ A) (ren-embNf ρ B)
+ren-embNf ρ (ƛ x B)     = ƛ≡α (ren-embNf (ext ρ) B)
 ren-embNf ρ (ne n)      = ren-embNe ρ n
-ren-embNf ρ (con tcn  ) = refl
+ren-embNf ρ (con tcn  ) = con≡α -- refl
 
-ren-embNe ρ (` x)    = refl
-ren-embNe ρ (n · n') = cong₂ _·_ (ren-embNe ρ n) (ren-embNf ρ n')
-ren-embNe ρ μ1       = refl
+ren-embNe ρ (` x)    = var≡α refl -- refl
+ren-embNe ρ (n · n') = ·≡α (ren-embNe ρ n) (ren-embNf ρ n')
+ren-embNe ρ μ1       = μ≡α -- refl
 \end{code}
 
 # Assemblies

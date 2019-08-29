@@ -101,9 +101,9 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     ---------------------------------
   → SR K (ren ρ A) (renVal ρ v)
-renSR ρ {*}{A}{n} p = 
-  substEq (ren ρ A ≡β_) (sym (ren-embNf ρ n)) (ren≡β ρ p)
-renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite ren-embNe ρ n = ren≡β ρ p  
+renSR ρ {*}{A}{n} p = trans≡β (ren≡β ρ p) (sym≡β (α2β (ren-embNf ρ n)))
+renSR ρ {K ⇒ J} {A} {inj₁ n} p =
+  trans≡β (ren≡β ρ p) (sym≡β (α2β (ren-embNe ρ n)))
 renSR ρ {K ⇒ J} {A} {inj₂ (x , f)} (A' , p , q) =
   ren (ext ρ) A'
   ,
