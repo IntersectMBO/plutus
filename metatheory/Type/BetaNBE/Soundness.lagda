@@ -187,19 +187,18 @@ evalSR (ƛ x B)   {σ}{η}          p =
   ,
   refl≡β _
   ,
-  λ ρ {u}{v} q → {!!}
-
-{- λ ρ {u}{v} q → substSR
-    (β≡β _ _)
-    (substEq (λ A → SR _ A (eval B ((renVal ρ ∘ η) ,,⋆ v)))
-             (trans (trans (subst-cong (λ
-               { Z → refl
-               ; (S x) → trans (trans (sym (subst-id (ren ρ (σ x))))
-                                      (sym (subst-ren (σ x))))
-                               (subst-ren (σ x))}) B)
-                           (subst-comp B))
-                    (subst-ren (subst (exts σ) B)))
-             (evalSR B (SR,,⋆ (renSR ρ ∘ p) q)) ) -}
+  λ ρ {u}{v} q → substSR
+    (trans≡β (β≡β _ _) (α2β (transα
+      (symα (subst-ren (subst (exts σ) B)))
+      (transα
+        (symα (subst-comp B))
+        (subst-cong (λ { Z → reflα
+                       ; (S α) → transα
+                            (symα (subst-ren (σ α)))
+                            (transα (subst-ren (σ α))
+                                    (subst-id (ren ρ (σ α))))})
+                    B)))))
+    (evalSR B (SR,,⋆ (renSR ρ ∘ p) q))
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR μ1          p = refl≡β _
 evalSR (con tcn)   p = refl≡β _
@@ -216,5 +215,5 @@ Soundness Result
 
 \begin{code}
 soundness : ∀ {Φ J} → (A : Φ ⊢⋆ J) → A ≡β embNf (nf A)
-soundness A = {!!} -- substEq (_≡β embNf (nf A)) (subst-id A) (reifySR (evalSR A idSR))
+soundness A = trans≡β (α2β (symα (subst-id A))) (reifySR (evalSR A idSR)) 
 \end{code}
