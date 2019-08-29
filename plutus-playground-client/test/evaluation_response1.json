@@ -1,509 +1,504 @@
 {
-  "emulatorLog": [
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 2
-      }
-    },
-    {
-      "tag": "TxnValidate",
-      "contents": {
-        "getTxId": "9f187e184d189118e10e18fc185b18cd18b1184d0a18d218c518b200188518200f1846189e1827186218491852187018dd18e718ad182d18b8187d1827ff"
-      }
-    },
-    {
-      "tag": "TxnSubmit",
-      "contents": {
-        "getTxId": "9f187e184d189118e10e18fc185b18cd18b1184d0a18d218c518b200188518200f1846189e1827186218491852187018dd18e718ad182d18b8187d1827ff"
-      }
-    },
-    {
-      "tag": "SlotAdd",
-      "contents": {
-        "getSlot": 1
-      }
-    },
-    {
-      "tag": "TxnValidate",
-      "contents": {
-        "getTxId": "9f189b187d18630918a90018c4185818ec18330018bd18df1826189d0b183218ed18a00c1846187d187d18e2183f14187718e30b185918e51825ff"
-      }
-    }
-  ],
-  "resultBlockchain": [
-    [
-      [
-        {
-          "getTxId": "9f187e184d189118e10e18fc185b18cd18b1184d0a18d218c518b200188518200f1846189e1827186218491852187018dd18e718ad182d18b8187d1827ff"
-        },
-        {
-          "txInputs": [
-            {
-              "txInType": {
-                "tag": "ConsumePublicKeyAddress",
-                "contents": {
-                  "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-                }
-              },
-              "txInRef": {
-                "txOutRefIdx": 0,
-                "txOutRefId": {
-                  "getTxId": "9f189b187d18630918a90018c4185818ec18330018bd18df1826189d0b183218ed18a00c1846187d187d18e2183f14187718e30b185918e51825ff"
-                }
-              }
-            }
-          ],
-          "txFee": {
-            "getLovelace": 0
-          },
-          "txValidRange": {
-            "ivTo": null,
-            "ivFrom": null
-          },
-          "txForge": {
-            "getValue": []
-          },
-          "txOutputs": [
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        5
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        0
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        0
-                      ]
-                    ]
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "9f0318d20018a8181e18e018fe18ac18e818fb1884185e185e18c9185018a618f918ad18d81837091824184f187b1881131846185413189f184118a4ff"
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-                }
-              }
-            },
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        5
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        10
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        10
-                      ]
-                    ]
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff"
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-                }
-              }
-            }
-          ],
-          "txSignatures": [
-            [
-              {
-                "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-              },
-              {
-                "getSignature": "4b9f566f5ec51c1179a91dbed919915fc8940e1581ef51411f6d5575dd6d625482e3f538728009d40df2c40846135f04e18011f0b1a21b542c9f7a6fcc5f5e03"
-              }
-            ]
-          ]
+  "Right": {
+    "emulatorLog": [
+      {
+        "tag": "SlotAdd",
+        "contents": {
+          "getSlot": 4
         }
-      ]
-    ],
-    [
-      [
-        {
-          "getTxId": "9f189b187d18630918a90018c4185818ec18330018bd18df1826189d0b183218ed18a00c1846187d187d18e2183f14187718e30b185918e51825ff"
-        },
-        {
-          "txInputs": [],
-          "txFee": {
-            "getLovelace": 0
-          },
-          "txValidRange": {
-            "ivTo": null,
-            "ivFrom": {
-              "getSlot": 0
-            }
-          },
-          "txForge": {
-            "getValue": [
-              [
-                {
-                  "unCurrencySymbol": ""
-                },
-                [
-                  [
-                    {
-                      "unTokenName": ""
-                    },
-                    20
-                  ]
-                ]
-              ],
-              [
-                {
-                  "unCurrencySymbol": "b0b0"
-                },
-                [
-                  [
-                    {
-                      "unTokenName": "EURToken"
-                    },
-                    20
-                  ],
-                  [
-                    {
-                      "unTokenName": "USDToken"
-                    },
-                    20
-                  ]
-                ]
-              ]
-            ]
-          },
-          "txOutputs": [
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        10
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        10
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        10
-                      ]
-                    ]
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff"
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-                }
-              }
-            },
-            {
-              "txOutValue": {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        10
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        10
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        10
-                      ]
-                    ]
-                  ]
-                ]
-              },
-              "txOutAddress": {
-                "getAddress": "9f0318d20018a8181e18e018fe18ac18e818fb1884185e185e18c9185018a618f918ad18d81837091824184f187b1881131846185413189f184118a4ff"
-              },
-              "txOutType": {
-                "tag": "PayToPubKey",
-                "contents": {
-                  "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-                }
-              }
-            }
-          ],
-          "txSignatures": []
+      },
+      {
+        "tag": "TxnValidate",
+        "contents": {
+          "getTxId": "9f18cb18ed18c5182a182a18991851185418bb18bc182f183c18c218cd187a18b8185a031843181e18a718bc0818fc18911890187418620b186218e104ff"
         }
-      ]
-    ]
-  ],
-  "resultGraph": {
-    "flowGraphNodes": [
-      "7e4d91e1",
-      "9b7d6309",
-      "utxo 7e4d91e1 0",
-      "utxo 7e4d91e1 1",
-      "utxo 9b7d6309 1"
-    ],
-    "flowGraphLinks": [
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-          }
-        },
-        "flowLinkValue": 5,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "7e4d91e1",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 7e4d91e1 0"
       },
       {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-          }
-        },
-        "flowLinkValue": 5,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "7e4d91e1",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 7e4d91e1 1"
+        "tag": "TxnSubmit",
+        "contents": {
+          "getTxId": "9f18cb18ed18c5182a182a18991851185418bb18bc182f183c18c218cd187a18b8185a031843181e18a718bc0818fc18911890187418620b186218e104ff"
+        }
       },
       {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-          }
-        },
-        "flowLinkValue": 10,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 1,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "9b7d6309",
-        "flowLinkTargetLoc": null,
-        "flowLinkTarget": "utxo 9b7d6309 1"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
-          }
-        },
-        "flowLinkValue": 10,
-        "flowLinkSourceLoc": {
-          "utxoLocBlock": 1,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkSource": "9b7d6309",
-        "flowLinkTargetLoc": {
-          "utxoLocBlock": 2,
-          "utxoLocBlockIdx": 1
-        },
-        "flowLinkTarget": "7e4d91e1"
-      }
-    ]
-  },
-  "fundsDistribution": [
-    {
-      "simulatorWalletBalance": {
-        "getValue": [
-          [
-            {
-              "unCurrencySymbol": ""
-            },
-            [
-              [
-                {
-                  "unTokenName": ""
-                },
-                5
-              ]
-            ]
-          ],
-          [
-            {
-              "unCurrencySymbol": "b0b0"
-            },
-            [
-              [
-                {
-                  "unTokenName": "EURToken"
-                },
-                10
-              ],
-              [
-                {
-                  "unTokenName": "USDToken"
-                },
-                10
-              ]
-            ]
-          ]
+        "tag": "WalletInfo",
+        "contents": [
+          {
+            "getWallet": 2
+          },
+          "Attempting to collect transaction outputs from 'AddressOf {getAddress = f3f39e503bd78a1f93cf4bf35b5fea7119c50d77964782c23c9986ebfc2b3ce6}', but there are no known outputs at that address. An empty transaction will be submitted."
         ]
       },
-      "simulatorWalletWallet": {
-        "getWallet": 1
+      {
+        "tag": "SlotAdd",
+        "contents": {
+          "getSlot": 3
+        }
+      },
+      {
+        "tag": "TxnValidate",
+        "contents": {
+          "getTxId": "9f18411861188e18df18b118a918db18bf18fb189218e41870185e1833187d18eb18581834186d18fb184b182f18e918ff18b3189b18f918a2185d18a0185c185bff"
+        }
+      },
+      {
+        "tag": "TxnSubmit",
+        "contents": {
+          "getTxId": "9f18411861188e18df18b118a918db18bf18fb189218e41870185e1833187d18eb18581834186d18fb184b182f18e918ff18b3189b18f918a2185d18a0185c185bff"
+        }
+      },
+      {
+        "tag": "SlotAdd",
+        "contents": {
+          "getSlot": 2
+        }
+      },
+      {
+        "tag": "SlotAdd",
+        "contents": {
+          "getSlot": 1
+        }
+      },
+      {
+        "tag": "TxnValidate",
+        "contents": {
+          "getTxId": "9f18b218b2189001187d189118b518a118dd1835188218d318cb184218ac18dc05185c18e518381875181818f518e018271834184b182718f810189f185dff"
+        }
       }
-    },
-    {
-      "simulatorWalletBalance": {
-        "getValue": [
-          [
-            {
-              "unCurrencySymbol": ""
+    ],
+    "resultBlockchain": [
+      [
+        [
+          {
+            "getTxId": "9f18cb18ed18c5182a182a18991851185418bb18bc182f183c18c218cd187a18b8185a031843181e18a718bc0818fc18911890187418620b186218e104ff"
+          },
+          {
+            "txInputs": [],
+            "txFee": {
+              "getLovelace": 0
             },
-            [
+            "txValidRange": {
+              "ivTo": [
+                {
+                  "tag": "PosInf"
+                },
+                true
+              ],
+              "ivFrom": [
+                {
+                  "tag": "NegInf"
+                },
+                true
+              ]
+            },
+            "txForge": {
+              "getValue": []
+            },
+            "txOutputs": [
+              {
+                "txOutValue": {
+                  "getValue": []
+                },
+                "txOutAddress": {
+                  "getAddress": "9f0318d20018a8181e18e018fe18ac18e818fb1884185e185e18c9185018a618f918ad18d81837091824184f187b1881131846185413189f184118a4ff"
+                },
+                "txOutType": {
+                  "tag": "PayToPubKey",
+                  "contents": {
+                    "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+                  }
+                }
+              }
+            ],
+            "txSignatures": [
               [
                 {
-                  "unTokenName": ""
+                  "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 },
-                15
+                {
+                  "getSignature": "5390d51b5f95150b586549bfff37864d122b212925549b6199e52a0b732f95cbc057a2659fe9bf930c23c7360c6a3a61e7b9edabebc3e455add734b5fa1e370d"
+                }
               ]
             ]
-          ],
-          [
-            {
-              "unCurrencySymbol": "b0b0"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "getTxId": "9f18411861188e18df18b118a918db18bf18fb189218e41870185e1833187d18eb18581834186d18fb184b182f18e918ff18b3189b18f918a2185d18a0185c185bff"
+          },
+          {
+            "txInputs": [
+              {
+                "txInType": {
+                  "tag": "ConsumePublicKeyAddress",
+                  "contents": {
+                    "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+                  }
+                },
+                "txInRef": {
+                  "txOutRefIdx": 0,
+                  "txOutRefId": {
+                    "getTxId": "9f18b218b2189001187d189118b518a118dd1835188218d318cb184218ac18dc05185c18e518381875181818f518e018271834184b182718f810189f185dff"
+                  }
+                }
+              }
+            ],
+            "txFee": {
+              "getLovelace": 0
             },
-            [
-              [
+            "txValidRange": {
+              "ivTo": [
                 {
-                  "unTokenName": "EURToken"
+                  "tag": "PosInf"
                 },
-                10
+                true
               ],
+              "ivFrom": [
+                {
+                  "tag": "NegInf"
+                },
+                true
+              ]
+            },
+            "txForge": {
+              "getValue": []
+            },
+            "txOutputs": [
+              {
+                "txOutValue": {
+                  "getValue": [
+                    [
+                      {
+                        "unCurrencySymbol": ""
+                      },
+                      [
+                        [
+                          {
+                            "unTokenName": ""
+                          },
+                          5
+                        ]
+                      ]
+                    ]
+                  ]
+                },
+                "txOutAddress": {
+                  "getAddress": "9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff"
+                },
+                "txOutType": {
+                  "tag": "PayToPubKey",
+                  "contents": {
+                    "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+                  }
+                }
+              },
+              {
+                "txOutValue": {
+                  "getValue": [
+                    [
+                      {
+                        "unCurrencySymbol": ""
+                      },
+                      [
+                        [
+                          {
+                            "unTokenName": ""
+                          },
+                          5
+                        ]
+                      ]
+                    ]
+                  ]
+                },
+                "txOutAddress": {
+                  "getAddress": "9f18f318f3189e1850183b18d7188a181f189318cf184b18f3185b185f18ea1871181918c50d187718961847188218c2183c1899188618eb18fc182b183c18e6ff"
+                },
+                "txOutType": {
+                  "tag": "PayToScript",
+                  "contents": {
+                    "getDataScript": "f6f6010000c3f6c3f6c5f6c1f6f6714d61696e5f486173686564537472696e670ac0f6c2f6f6714d61696e5f486173686564537472696e670bc1f6c4f6c0c0f6f6714d61696e5f486173686564537472696e670ac2f6f6776d617463685f4d61696e5f486173686564537472696e670cc1f6c0f6f6714d61696e5f486173686564537472696e670ac3f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6f6756f75745f4d61696e5f486173686564537472696e670dc3f6c0f6f6714d61696e5f486173686564537472696e670bc4f6c1f658202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824c3f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6f6756f75745f4d61696e5f486173686564537472696e670ec2f6f6656172675f300fc4f6c0c1f6f6756f75745f4d61696e5f486173686564537472696e6710c0f6c2f6f676636173655f4d61696e5f486173686564537472696e6711c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6710c3f6c0f6f676636173655f4d61696e5f486173686564537472696e6711c0f6f6656172675f300fc2f6f6617812c3f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6617812"
+                  }
+                }
+              }
+            ],
+            "txSignatures": [
               [
                 {
-                  "unTokenName": "USDToken"
+                  "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 },
-                10
+                {
+                  "getSignature": "7dc28b54f36519862ac418d08b6226521d491a217eccfa901afce45ded386269dc3fac33462d3cf915fab75b7ad01c0434ca01ed57b0e9d84d922ab5d12dca04"
+                }
+              ]
+            ]
+          }
+        ]
+      ],
+      [],
+      [
+        [
+          {
+            "getTxId": "9f18b218b2189001187d189118b518a118dd1835188218d318cb184218ac18dc05185c18e518381875181818f518e018271834184b182718f810189f185dff"
+          },
+          {
+            "txInputs": [],
+            "txFee": {
+              "getLovelace": 0
+            },
+            "txValidRange": {
+              "ivTo": [
+                {
+                  "tag": "PosInf"
+                },
+                true
+              ],
+              "ivFrom": [
+                {
+                  "tag": "Finite",
+                  "contents": {
+                    "getSlot": 0
+                  }
+                },
+                true
+              ]
+            },
+            "txForge": {
+              "getValue": [
+                [
+                  {
+                    "unCurrencySymbol": ""
+                  },
+                  [
+                    [
+                      {
+                        "unTokenName": ""
+                      },
+                      20
+                    ]
+                  ]
+                ]
+              ]
+            },
+            "txOutputs": [
+              {
+                "txOutValue": {
+                  "getValue": [
+                    [
+                      {
+                        "unCurrencySymbol": ""
+                      },
+                      [
+                        [
+                          {
+                            "unTokenName": ""
+                          },
+                          10
+                        ]
+                      ]
+                    ]
+                  ]
+                },
+                "txOutAddress": {
+                  "getAddress": "9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff"
+                },
+                "txOutType": {
+                  "tag": "PayToPubKey",
+                  "contents": {
+                    "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+                  }
+                }
+              },
+              {
+                "txOutValue": {
+                  "getValue": [
+                    [
+                      {
+                        "unCurrencySymbol": ""
+                      },
+                      [
+                        [
+                          {
+                            "unTokenName": ""
+                          },
+                          10
+                        ]
+                      ]
+                    ]
+                  ]
+                },
+                "txOutAddress": {
+                  "getAddress": "9f0318d20018a8181e18e018fe18ac18e818fb1884185e185e18c9185018a618f918ad18d81837091824184f187b1881131846185413189f184118a4ff"
+                },
+                "txOutType": {
+                  "tag": "PayToPubKey",
+                  "contents": {
+                    "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+                  }
+                }
+              }
+            ],
+            "txSignatures": []
+          }
+        ]
+      ]
+    ],
+    "resultGraph": {
+      "flowGraphNodes": [
+        "41618edf",
+        "b2b29001",
+        "cbedc52a",
+        "utxo 41618edf 0",
+        "utxo 41618edf 1",
+        "utxo b2b29001 1",
+        "utxo cbedc52a 0"
+      ],
+      "flowGraphLinks": [
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
+              "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+            }
+          },
+          "flowLinkValue": 5,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 3,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "41618edf",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo 41618edf 0"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "ScriptOwner"
+          },
+          "flowLinkValue": 5,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 3,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "41618edf",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo 41618edf 1"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
+              "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+            }
+          },
+          "flowLinkValue": 10,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 1,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "b2b29001",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo b2b29001 1"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
+              "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+            }
+          },
+          "flowLinkValue": 0,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 4,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "cbedc52a",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo cbedc52a 0"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
+              "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+            }
+          },
+          "flowLinkValue": 10,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 1,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "b2b29001",
+          "flowLinkTargetLoc": {
+            "utxoLocBlock": 3,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkTarget": "41618edf"
+        }
+      ]
+    },
+    "fundsDistribution": [
+      {
+        "simulatorWalletBalance": {
+          "getValue": [
+            [
+              {
+                "unCurrencySymbol": ""
+              },
+              [
+                [
+                  {
+                    "unTokenName": ""
+                  },
+                  5
+                ]
               ]
             ]
           ]
-        ]
-      },
-      "simulatorWalletWallet": {
-        "getWallet": 2
-      }
-    }
-  ],
-  "walletKeys": [
-    [
-      {
-        "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        "simulatorWalletWallet": {
+          "getWallet": 1
+        }
       },
       {
-        "getWallet": 1
+        "simulatorWalletBalance": {
+          "getValue": [
+            [
+              {
+                "unCurrencySymbol": ""
+              },
+              [
+                [
+                  {
+                    "unTokenName": ""
+                  },
+                  10
+                ]
+              ]
+            ]
+          ]
+        },
+        "simulatorWalletWallet": {
+          "getWallet": 2
+        }
       }
     ],
-    [
-      {
-        "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-      },
-      {
-        "getWallet": 2
-      }
+    "walletKeys": [
+      [
+        {
+          "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        {
+          "getWallet": 1
+        }
+      ],
+      [
+        {
+          "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+        },
+        {
+          "getWallet": 2
+        }
+      ]
     ]
-  ]
+  }
 }

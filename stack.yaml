@@ -49,7 +49,7 @@ extra-deps:
 - extensible-effects-5.0.0.1
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: 0d9389151062a94078caf6e66a9dd2cf012646cf
+  commit: fedae2c308fac73b129a684a7d10f547837470f4
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git

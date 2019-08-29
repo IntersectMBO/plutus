@@ -24,9 +24,10 @@ import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
-import Data.Array (concat, deleteAt, fromFoldable, snoc) as Array
+import Data.Array (deleteAt, snoc, fromFoldable) as Array
 import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
+import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
@@ -36,10 +37,10 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
+import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.RawJson (JsonEither(..))
 import Data.String as String
-import Data.Traversable (foldl)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (demoScriptsPane, editorPane)
@@ -60,7 +61,7 @@ import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
+import Ledger.Value (CurrencySymbol(..), Value(..))
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
@@ -84,17 +85,15 @@ mkInitialValue :: Array KnownCurrency -> Int -> Value
 mkInitialValue currencies initialBalance = Value { getValue: value }
   where
   value =
-    foldl
-      (AssocMap.unionWith (AssocMap.unionWith (+)))
-      (AssocMap.fromTuples [])
-      $ Array.concat
-      $ map
+    map (map unwrap)
+     $ fold
+     $ foldMap
           ( \(KnownCurrency { hash, knownTokens }) ->
               map
-                ( \(TokenName tokenId) ->
+                ( \tokenName ->
                     AssocMap.fromTuples
                       [ CurrencySymbol { unCurrencySymbol: hash }
-                          /\ AssocMap.fromTuples [ TokenName tokenId /\ initialBalance ]
+                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
                       ]
                 )
                 $ Array.fromFoldable knownTokens
@@ -521,6 +520,10 @@ evalForm initialValue = rec
 
   rec (SetSubField _ subEvent) arg@(FormValue _) = arg
 
+  rec (SetSlotRangeField newInterval _) arg@(FormSlotRange _) = FormSlotRange newInterval
+
+  rec (SetSlotRangeField _ _) arg = arg
+
   rec (AddSubField _) (FormArray schema fields) =
     -- As the code stands, this is the only guarantee we get that every
     -- value in the array will conform to the schema: the fact that we
@@ -541,6 +544,8 @@ evalForm initialValue = rec
   rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
   rec (SetSubField n subEvent) arg@(FormUnsupported _) = arg
+
+  rec (SetSubField n subEvent) arg@(FormSlotRange _) = arg
 
   rec (RemoveSubField n subEvent) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
 

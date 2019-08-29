@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
@@ -23,7 +24,8 @@ import           Data.Hashable             (Hashable)
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Prelude                   as Haskell
-import           Schema                    (ToSchema)
+import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
+
 
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
@@ -43,6 +45,9 @@ makeLift ''Slot
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
+
+instance ToSchema SlotRange where
+  toSchema = FormSchemaSlotRange
 
 {-# INLINABLE width #-}
 -- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.

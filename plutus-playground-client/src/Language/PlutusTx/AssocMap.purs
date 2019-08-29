@@ -23,6 +23,8 @@ import Foreign.Generic (aesonSumEncoding, defaultOptions, genericDecode, generic
 newtype Map a b
   = Map (Array (JsonTuple a b))
 
+derive instance functorMap :: Functor (Map a)
+
 instance encodeMap :: (Encode a, Encode b) => Encode (Map a b) where
   encode value =
     genericEncode
@@ -134,3 +136,9 @@ unionWith f a b =
     $ on (Map.unionWith f) (Map.fromFoldableWith f <<< toTuples)
         a
         b
+
+instance semigroupMap :: (Ord k, Semigroup v) => Semigroup (Map k v) where
+  append = unionWith append
+
+instance monoidMap :: (Ord k, Semigroup v) => Monoid (Map k v) where
+  mempty = Map mempty

@@ -13,7 +13,7 @@ import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens, Lens', Prism', over, prism', to, traversed, view)
+import Data.Lens (Lens, Lens', Prism', lens, prism', to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -36,6 +36,8 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, _PubKey)
+import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
+import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
@@ -133,6 +135,52 @@ _functionName = prop (SProxy :: SProxy "functionName")
 
 _blocks :: forall a b r. Lens { blocks :: a | r } { blocks :: b | r } a b
 _blocks = prop (SProxy :: SProxy "blocks")
+
+_ivFrom :: forall a r. Lens' { ivFrom :: a | r } a
+_ivFrom = prop (SProxy :: SProxy "ivFrom")
+
+_ivTo :: forall a r. Lens' { ivTo :: a | r } a
+_ivTo = prop (SProxy :: SProxy "ivTo")
+
+_LowerBoundExtended :: forall a. Lens' (LowerBound a) (Extended a)
+_LowerBoundExtended = lens get set
+  where
+    get (LowerBound e _) = e
+    set (LowerBound _ i) e = LowerBound e i
+
+_LowerBoundInclusive :: forall a. Lens' (LowerBound a) Boolean
+_LowerBoundInclusive = lens get set
+  where
+    get (LowerBound _ i) = i
+    set (LowerBound e _) i = LowerBound e i
+
+_UpperBoundExtended :: forall a. Lens' (UpperBound a) (Extended a)
+_UpperBoundExtended = lens get set
+  where
+    get (UpperBound e _) = e
+    set (UpperBound _ i) e = UpperBound e i
+
+_UpperBoundInclusive :: forall a. Lens' (UpperBound a) Boolean
+_UpperBoundInclusive = lens get set
+  where
+    get (UpperBound _ i) = i
+    set (UpperBound e _) i = UpperBound e i
+
+_a :: forall a r. Lens' { a :: a | r } a
+_a = prop (SProxy :: SProxy "a")
+
+-- | Any type that contains an `Extended a` value and an inclusive/exclusive flag.
+class HasBound a v | a -> v where
+  hasBound :: a -> Extended v
+  isInclusive :: a -> Boolean
+
+instance lowerBoundHasBound :: HasBound (LowerBound v) v where
+  hasBound (LowerBound x _) = x
+  isInclusive (LowerBound _ x) = x
+
+instance upperBoundHasBound :: HasBound (UpperBound v) v where
+  hasBound (UpperBound x _) = x
+  isInclusive (UpperBound _ x) = x
 
 instance actionValidation :: Validation Action where
   validate (Wait _) = []
@@ -238,6 +286,7 @@ data FormEvent a
   | SetHexField String a
   | SetRadioField String a
   | SetValueField ValueEvent a
+  | SetSlotRangeField (Interval Slot) a
   | AddSubField a
   | SetSubField Int (FormEvent a)
   | RemoveSubField Int a
@@ -251,6 +300,7 @@ instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetHexField s _) = SetHexField s $ f event
   extend f event@(SetRadioField s _) = SetRadioField s $ f event
   extend f event@(SetValueField e _) = SetValueField e $ f event
+  extend f event@(SetSlotRangeField e _) = SetSlotRangeField e $ f event
   extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
   extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
@@ -262,6 +312,7 @@ instance comonadFormEvent :: Comonad FormEvent where
   extract (SetHexField _ a) = a
   extract (SetRadioField _ a) = a
   extract (SetValueField _ a) = a
+  extract (SetSlotRangeField _ a) = a
   extract (AddSubField a) = a
   extract (SetSubField _ e) = extract e
   extract (RemoveSubField _ e) = e
@@ -403,6 +454,7 @@ data FormArgument
   | FormTuple (JsonTuple FormArgument FormArgument)
   | FormObject (Array (JsonTuple String FormArgument))
   | FormValue Value
+  | FormSlotRange (Interval Slot)
   | FormUnsupported { description :: String }
 
 derive instance genericFormArgument :: Generic FormArgument _
@@ -438,15 +490,20 @@ toArgument initialValue = ana algebra
 
   algebra FormSchemaValue = FormValueF initialValue
 
+  algebra FormSchemaSlotRange = FormSlotRangeF defaultSlotRange
+
   algebra (FormSchemaTuple a b) = FormTupleF (JsonTuple (Tuple a b))
 
   algebra (FormSchemaObject xs) = FormObjectF xs
 
   algebra (FormSchemaUnsupported x) = FormUnsupportedF x
 
--- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
-toFormArgumentLevel :: Value -> FunctionSchema FormSchema -> FunctionSchema FormArgument
-toFormArgumentLevel initialValue = over (_Newtype <<< _argumentSchema <<< traversed) (toArgument initialValue)
+defaultSlotRange :: Interval Slot
+defaultSlotRange =
+  Interval
+    { ivFrom: LowerBound NegInf true
+    , ivTo: UpperBound PosInf true
+    }
 
 ------------------------------------------------------------
 -- | This type serves as a functorised version of `FormArgument` so
@@ -463,6 +520,7 @@ data FormArgumentF a
   | FormMaybeF FormSchema (Maybe a)
   | FormObjectF (Array (JsonTuple String a))
   | FormValueF Value
+  | FormSlotRangeF (Interval Slot)
   | FormUnsupportedF { description :: String }
 
 instance functorFormArgumentF :: Functor FormArgumentF where
@@ -475,6 +533,7 @@ instance functorFormArgumentF :: Functor FormArgumentF where
   map f (FormArrayF schema xs) = FormArrayF schema (map f xs)
   map f (FormMaybeF schema x) = FormMaybeF schema (map f x)
   map f (FormObjectF xs) = FormObjectF (map (map f) xs)
+  map f (FormSlotRangeF x) = FormSlotRangeF x
   map f (FormValueF x) = FormValueF x
   map f (FormUnsupportedF x) = FormUnsupportedF x
 
@@ -491,6 +550,7 @@ instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
   project (FormMaybe schema x) = FormMaybeF schema x
   project (FormObject xs) = FormObjectF xs
   project (FormValue x) = FormValueF x
+  project (FormSlotRange x) = FormSlotRangeF x
   project (FormUnsupported x) = FormUnsupportedF x
 
 instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
@@ -504,6 +564,7 @@ instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
   embed (FormMaybeF schema x) = FormMaybe schema x
   embed (FormObjectF xs) = FormObject xs
   embed (FormValueF x) = FormValue x
+  embed (FormSlotRangeF x) = FormSlotRange x
   embed (FormUnsupportedF x) = FormUnsupported x
 
 ------------------------------------------------------------
@@ -549,6 +610,8 @@ instance validationFormArgument :: Validation FormArgument where
 
     algebra (FormValueF x) = []
 
+    algebra (FormSlotRangeF _) = []
+
     algebra (FormUnsupportedF _) = [ noPath Unsupported ]
 
 formArgumentToJson :: FormArgument -> Maybe Foreign
@@ -593,6 +656,8 @@ formArgumentToJson arg = cata algebra arg
     processTuples = unwrap >>> sequence
 
   algebra (FormValueF x) = Just $ encode x
+
+  algebra (FormSlotRangeF x) = Just $ encode x
 
   algebra (FormUnsupportedF _) = Nothing
 

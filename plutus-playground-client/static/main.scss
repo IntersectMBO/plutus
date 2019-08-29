@@ -153,6 +153,15 @@ table.balance-map {
             }
         }
     }
+
+    .extent-field {
+        button {
+            width: 2rem;
+        }
+        input {
+            text-align: center;
+        }
+    }
 }
 
 .logs {

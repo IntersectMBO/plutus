@@ -48,7 +48,7 @@ import           Language.PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
