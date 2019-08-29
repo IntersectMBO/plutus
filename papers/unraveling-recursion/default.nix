@@ -39,7 +39,7 @@ stdenv.mkDerivation {
   installPhase = ''
     install -Dt $out *.pdf
     cp ${artifacts}/* $out
-    zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl copyright-form.pdf
+    zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';
 }
 
