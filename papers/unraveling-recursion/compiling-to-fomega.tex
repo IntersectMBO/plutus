@@ -75,6 +75,8 @@
 
 \newcommand{\inputlagda}[1]{\iftoggle{lagda}{\input{#1.tex}}{\input{#1.lagda}}}
 
+\newcommand{\sourceUrl}{https://github.com/input-output-hk/plutus/tree/3008f78ed7f75cdd98da7fb06f06345fc52c2e31/papers/unraveling-recursion}
+
 % TODO: non-awful names
 \newcommand{\SF}{\ensuremath{\textrm{System}\ F}}
 \newcommand{\FOM}{\ensuremath{\textrm{System}\ F_\omega}}
@@ -256,7 +258,7 @@ Encoding recursive terms has traditionally been done with fixpoint combinators.
 However, the textbook accounts typically do not cover mutual recursion, and
 where it \emph{is} handled it is often assumed that the calculus is non-strict. We
 construct a generalized, polyvariadic fixpoint combinator that works in both strict
-and non-strict base calculi, which we use to compile recursive terms. 
+and non-strict base calculi, which we use to compile recursive terms.
 
 In order to compile datatypes, we need to encode them and their
 accompanying constructors and destructors using the limited
@@ -264,10 +266,10 @@ set of types and terms we have available in our base calculus.
 The Church encoding (\cite[Chapter 5.2, Chapter 23.4]{pierce2002types})
 is a well-known method of doing this in plain \SF{}.
 With it, we can encode even recursive datatypes, so long as the
-recursion occurs only in positive positions. 
+recursion occurs only in positive positions.
 
 However, some aspects of the Church encoding are not ideal, for example, it requires time
-proportional to the size of a list to extract its tail. 
+proportional to the size of a list to extract its tail.
 We use a different encoding, the Scott encoding \cite{plotkin}, which can encode any
 recursive datatype, but requires adding a fixpoint operator to \SF{} in order to
 handle arbitrary type-level recursion.
@@ -334,8 +336,8 @@ uses Set. To avoid confusion we have aliased Set to $\Type$ in our Agda code.
 Readers should recall that Agda uses $\rightarrow$ following binders rather than
 a $.$ character.
 
-The Agda code in this paper is available as a literate Agda file, and the Agda
-compiler code is available as a separate artifact.
+The Agda code in this paper and the Agda compiler code are available in
+\href{\sourceUrl}{the Plutus repository}.
 
 \paragraph{Notational conventions.}
 
@@ -362,7 +364,7 @@ particular:
 \section{Datatype encodings}
 \label{sec:data-encoding}
 
-The Scott encoding represents a datatype as the type of the pattern-matching 
+The Scott encoding represents a datatype as the type of the pattern-matching
 functions on it. For example, the type of booleans, $\Bool$, is encoded as
 \begin{displaymath}
   \forall R . R \rightarrow R \rightarrow R
@@ -389,20 +391,20 @@ encoding of $\NNat$ is:
   \forall R . R \rightarrow (R \rightarrow R) \rightarrow R
 \end{displaymath}
 Here the recursive occurrence of $\NNat$ has disappeared, replaced by
-an $R$. This is because while the Scott encoding corresponds to a pattern-match on a type, 
+an $R$. This is because while the Scott encoding corresponds to a pattern-match on a type,
 the Church encoding corresponds to a \emph{fold}, so recursive occurrences have
-already been folded into the output type. 
+already been folded into the output type.
 
 This highlights the tradeoffs between the two encodings (see \cite{scott} for
 further discussion):
 \begin{itemize}
   \item To operate on a Church encoded value we must perform a fold on the
     entire structure, which is frequently inefficient. For a Scott encoded value,
-    we only have to inspect the surface level of the term, which is inexpensive. 
+    we only have to inspect the surface level of the term, which is inexpensive.
   \item Since recursive occurrences of the type are already ``folded'' in the
     Church encoding, there is no need for a type-level recursion operator. Contrast
     this with the situation with the Scott encoding, in which additional type-level machinery
-    (fixed points) is needed to define type-level recursion. 
+    (fixed points) is needed to define type-level recursion.
 \end{itemize}
 
 In this paper we will use the Scott encoding to encode datatypes.
@@ -461,7 +463,7 @@ pattern matcher. We will see the full details in
 defined in \cref{fig:compile-datatypes}.
 
 Since \FIR{} includes recursive datatypes, we could have removed $\ifix$,
-$\wrap$ and $\unwrap$ from \FIR{}. However, in practice it is useful for the 
+$\wrap$ and $\unwrap$ from \FIR{}. However, in practice it is useful for the
 target language (\FOMF{}) to be a true subset of the source language (\FIR{}),
 as this allows us to implement compilation as a series of \FIR{}-to-\FIR{} passes.
 
@@ -564,8 +566,9 @@ recursive types or dependent types.
 \label{sec:compiler}
 
 As a supplement to the presentation in this paper, we have written a
-formalisation of a \FIR{} compiler in Agda (the complete source is included as an
-artifact of this paper). The compiler includes the syntax, the type
+formalisation of a \FIR{} compiler in Agda.\footnote{The complete source can be found
+  in \href{\sourceUrl}{the Plutus repository}.}
+The compiler includes the syntax, the type
 system (the syntax is intrinsically typed, so there is no need for a
 typechecker), and implementations of several of the passes. In particular, we
 have implemented:
@@ -597,7 +600,7 @@ bindings in let terms which are unused can be removed. A dead binding in a
 constructing a dependency graph over the variables in the term, and eliminating
 any bindings for unreachable variables.
 
-We can certainly do something with the compiled form of simple, non-recursive let bindings 
+We can certainly do something with the compiled form of simple, non-recursive let bindings
 in \FOMF{}. These are compiled to immediately-applied
 lambda abstractions, which is an easy pattern to identify, and it is also
 easy to work out whether the bound variable is used.
@@ -615,7 +618,7 @@ original form.
 
 The case-of-known-constructor optimization is very important for functional
 programming languages with datatypes (see e.g. \cite[section
-5]{jones1998transformation}). 
+5]{jones1998transformation}).
 When we perform a pattern-match on a term which we know is precisely a constructor
 invocation, we can collapse the immediate construction and deconstruction.
 
@@ -723,7 +726,7 @@ We could also remove some of the restrictions present in this paper: in
 particular the lack of mutually recursive type bindings, and the
 requirement that recursive let terms be homogeneous.
 
-\paragraph{Acknowledgments.} 
+\paragraph{Acknowledgments.}
 The authors would like to thank Mario Alvarez-Picallo and Manuel Chakravarty
 for their comments on the manuscript, as well as IOHK for funding the research.
 
