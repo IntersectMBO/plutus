@@ -5,6 +5,7 @@ module Type.BetaNBE.Stability where
 \begin{code}
 open import Type
 open import Type.BetaNormal
+open import Type.BetaNormal.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
 
@@ -19,27 +20,25 @@ variables otherwise substituting in by the identity substitution can
 perturb the expression.
 
 \begin{code}
-stability : ∀{Φ K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡ n
-stabilityNe : ∀{Φ K}(n : Φ ⊢Ne⋆ K) → eval (embNe n) (idEnv _)  ≡ reflect n
+stability : ∀{Φ K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡Nf n
+stabilityNe : ∀{Φ K}(n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 
 stability (Π x B) =
-  cong (Π x) (trans (idext (λ { Z → reflectCR refl
+  Π≡Nf (transNf (idext (λ { Z → reflectCR (var≡Ne refl)
                           ; (S α) → renVal-reflect S (` α)})
                        (embNf B))
                 (stability B))
-stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
+stability (A ⇒ B) = ⇒≡Nf (stability A) (stability B)
 stability (ƛ x B)    =
-  cong (ƛ x) (trans (reifyCR (idext (λ { Z → reflectCR refl
+  ƛ≡Nf (transNf (reifyCR (idext (λ { Z → reflectCR (var≡Ne refl)
                                       ; (S α) → renVal-reflect S (` α)})
                                    (embNf B)))
                 (stability B))
-stability (con tcn)   = refl
+stability (con tcn)   = con≡Nf
 stability {K = *}     (ne n) = stabilityNe n
-stability {K = K ⇒ J} (ne n) = cong (λ v → reify v) (stabilityNe n)
+stability {K = K ⇒ J} (ne n) = reifyCR (stabilityNe n)
 
-stabilityNe (` α)    = refl
-stabilityNe (n · n') =
-  trans (cong (_·V (eval (embNf n') (idEnv _))) (stabilityNe n))
-        (cong (λ n'' → reflect (n · n'')) (stability n'))
-stabilityNe μ1      = refl
+stabilityNe (` α)    = reflectCR (var≡Ne refl)
+stabilityNe (n · n') = transCR (AppCR (stabilityNe n) (idext idCR (embNf n'))) (reflectCR (·≡Ne reflNe (stability n')))
+stabilityNe μ1      = μ≡Ne
 \end{code}

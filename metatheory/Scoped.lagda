@@ -17,18 +17,14 @@ open import Raw
 \end{code}
 
 \begin{code}
-data ScopedKind : Set where
-  *   : ScopedKind
-  _⇒_ : ScopedKind → ScopedKind → ScopedKind
 
-{-# FOREIGN GHC import Scoped #-}
-{-# COMPILE GHC ScopedKind = data ScKind (ScKiStar | ScKiFun) #-}
+open import Type
 
 data ScopedTy (n : ℕ) : Set where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
-  Π    : String → ScopedKind → ScopedTy (suc n) → ScopedTy n
-  ƛ    : String → ScopedKind → ScopedTy (suc n) → ScopedTy n
+  Π    : String → Kind → ScopedTy (suc n) → ScopedTy n
+  ƛ    : String → Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
   con  : TyCon → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
@@ -37,13 +33,13 @@ data ScopedTy (n : ℕ) : Set where
 
 -- type synonyms
 
-boolean : ∀{Γ} → ScopedTy Γ
-boolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+ScopedBoolean : ∀{Γ} → ScopedTy Γ
+ScopedBoolean = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
-unit : ∀{Γ} → ScopedTy Γ
-unit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
+ScopedUnit : ∀{Γ} → ScopedTy Γ
+ScopedUnit = Π "α" * (` zero ⇒ (` zero ⇒ ` zero))
 
-open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con boolean
+open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con ScopedBoolean
 
 -- variables
 
@@ -76,7 +72,7 @@ data TermCon : Set where
 
 data ScopedTm {n}(w : Weirdℕ n) : Set where
   `    :    WeirdFin w → ScopedTm w
-  Λ    :    String → ScopedKind → ScopedTm (T w) → ScopedTm w
+  Λ    :    String → Kind → ScopedTm (T w) → ScopedTm w
   _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
   ƛ    :    String → ScopedTy n → ScopedTm (S w) → ScopedTm w
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
@@ -102,7 +98,7 @@ false = Λ "α" * (ƛ "t" (` zero) (ƛ "f" (` zero) (` Z)))
 
 -- should just use ordinary kind for everything
 
-deBruijnifyK : RawKind → ScopedKind
+deBruijnifyK : RawKind → Kind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 
@@ -232,7 +228,10 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 
+-- is this currently redundant due to the removal of sizes?
 arity⋆ : Builtin → ℕ
+arity⋆ _ = 0
+{-
 arity⋆ addInteger = 1
 arity⋆ subtractInteger = 1
 arity⋆ multiplyInteger = 1
@@ -252,7 +251,7 @@ arity⋆ sha2-256 = 1
 arity⋆ sha3-256 = 1
 arity⋆ verifySignature = 3
 arity⋆ equalsByteString = 1
-
+-}
 open import Relation.Nullary
 
 builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
@@ -313,7 +312,7 @@ unsaturate (unwrap t)   = unwrap (unsaturate t)
 \end{code}
 
 \begin{code}
-unDeBruijnifyK : ScopedKind → RawKind
+unDeBruijnifyK : Kind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
 \end{code}

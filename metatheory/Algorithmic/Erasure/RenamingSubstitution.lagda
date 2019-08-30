@@ -115,6 +115,7 @@ renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
 renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
 renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
+renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : Fin (len Γ))
@@ -223,7 +224,7 @@ subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → eraseTC {Γ = Δ} (A.substTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
 subTermCon-erase σ⋆ σ (AB.integer i)    = refl
 subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
-
+subTermCon-erase σ⋆ σ (AB.string s)     = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

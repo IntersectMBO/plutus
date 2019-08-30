@@ -108,6 +108,7 @@ embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
   → STermCon.TermCon (embNf A)
 embTC (NTermCon.integer i)    = STermCon.integer i
 embTC (NTermCon.bytestring b) = STermCon.bytestring b
+embTC (NTermCon.string s)     = STermCon.string s
 \end{code}
 
 \begin{code}

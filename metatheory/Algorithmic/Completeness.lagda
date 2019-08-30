@@ -67,6 +67,7 @@ import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
 nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
+nfTypeTC (STermCon.string s)     = NTermCon.string s
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List

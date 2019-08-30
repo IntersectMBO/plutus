@@ -12,6 +12,7 @@ module Builtin.Constant.Term
   where
 
 open import Data.Integer
+open import Data.String
 \end{code}
 
 ## Term Constants
@@ -24,4 +25,7 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
   bytestring :
       (b : ByteString)
     → TermCon (con bytestring)
+  string     :
+      (s : String)
+    → TermCon (con string) 
 \end{code}

@@ -50,7 +50,7 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   → ∀ {K}
     --------------------------------
   → Ren (⋆.ext ρ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
-ext⋆ ρ⋆ ρ (T x) = conv∋ (weakenNf-renNf ρ⋆ _) (T (ρ x))
+ext⋆ ρ⋆ ρ (T x) = {!weaken-renNf ρ⋆ _!} -- conv∋ (weakenNf-renNf ρ⋆ _) (T (ρ x))
 \end{code}
 
 \begin{code}
@@ -60,9 +60,11 @@ renTermCon : ∀ {Φ Ψ}
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
+renTermCon ρ⋆ (string s)     = string s
 \end{code}
 
 \begin{code}
+{-
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
@@ -106,7 +108,7 @@ weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken x = conv⊢ (renNf-id _) (ren id (conv∋ (sym (renNf-id _)) ∘ S) x)
+weaken x = ? -- conv⊢ (renNf-id _) (ren id (conv∋ (sym (renNf-id _)) ∘ S) x)
 \end{code}
 
 \begin{code}
@@ -150,6 +152,7 @@ substTermCon : ∀ {Φ Ψ}
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (substNf σ⋆ A ))
 substTermCon σ⋆ (integer i)    = integer i
 substTermCon σ⋆ (bytestring b) = bytestring b
+substTermCon σ⋆ (string s)     = string s
 \end{code}
 
 \begin{code}
@@ -231,4 +234,5 @@ _[_]⋆ b A = subst
   (substNf-cons (ne ∘ `) A)
   lem
   b
+-}
 \end{code}
