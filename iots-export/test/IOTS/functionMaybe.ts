@@ -1,6 +1,6 @@
 // IOTSSpec.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 const MaybeFunctionArgA = t.union([

@@ -1,15 +1,15 @@
 // IOTSSpec.Response
 const ResponseString = t.union([
     t.type({"UnknownError": t.tuple([
-        t.Int,
+        t.number,
         t.string
     ])}),
     t.type({"StatusError": t.type({
-        code: t.Int,
+        code: t.number,
         message: t.string,
         headers: t.record(
             t.string,
-            t.Int
+            t.number
         )
     })}),
     t.literal('EmptyResponse'),

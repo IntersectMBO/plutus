@@ -253,14 +253,14 @@ instance IotsType Integer where
     where
       iotsRep = someTypeRep (Proxy @Integer)
       iotsOutput = False
-      iotsRef = "t.Int"
+      iotsRef = "t.number"
 
 instance IotsType Int where
   iotsDefinition = pure [Node (IotsDef {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Int)
       iotsOutput = False
-      iotsRef = "t.Int"
+      iotsRef = "t.number"
 
 instance IotsType a => IotsType (Proxy a) where
   iotsDefinition = iotsDefinition @a

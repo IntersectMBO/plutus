@@ -5,7 +5,7 @@ const CurrencySymbol = t.type({
 
 // Ledger.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 // Ledger.Crypto
@@ -24,7 +24,7 @@ const Value = t.type({
         CurrencySymbol,
         t.record(
             TokenName,
-            t.Int
+            t.number
         )
     )
 });

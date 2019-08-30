@@ -13,7 +13,7 @@ const AssocMapTokenNameInteger = t.type({
     unMap: t.array(
         t.tuple([
             TokenName,
-            t.Int
+            t.number
         ])
     )
 });
@@ -35,7 +35,7 @@ const Value = t.type({
 
 // IOTSSpec.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 // IOTSSpec.Interval
