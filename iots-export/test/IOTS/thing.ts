@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // Ledger.Slot.Slot
 const Slot = t.type({
     getSlot: t.Int

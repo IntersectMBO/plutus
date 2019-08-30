@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // IOTSSpec.Response
 const ResponseString = t.union([
     t.type({"UnknownError": t.tuple([

@@ -28,7 +28,7 @@ import           Data.Foldable                (fold, toList)
 import           Data.Kind                    (Type)
 import           Data.Map                     (Map)
 import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Sequence                (Seq, (<|), (|>))
+import           Data.Sequence                (Seq, (|>))
 import           Data.Set                     (Set)
 import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
@@ -92,9 +92,6 @@ toRef :: Tree IotsDef -> Doc
 toRef = iotsRef . rootLabel
 
 ------------------------------------------------------------
-preamble :: Doc
-preamble = "import * as t from 'io-ts';"
-
 -- | Render out a type, function or 'HList' of functions as an IOTS-compatible definition file.
 --
 -- All the subtypes needed for compilation will also be exported, as long as they are all 'IotsExportable'.
@@ -118,7 +115,7 @@ export ::
   => a
   -> Text
 export _ =
-  render . vsep . punctuate linebreak . toList $ preamble <| definitions
+  render . vsep . punctuate linebreak . toList $ definitions
   where
     definitions :: Seq Doc
     definitions =

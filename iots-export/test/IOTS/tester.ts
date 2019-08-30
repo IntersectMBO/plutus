@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // Ledger.Value
 const CurrencySymbol = t.type({
     unCurrencySymbol: t.string

@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // IOTSSpec.CurrencySymbol
 const CurrencySymbol = t.type({
     unCurrencySymbol: t.string

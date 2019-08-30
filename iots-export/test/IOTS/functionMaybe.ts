@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // IOTSSpec.Slot
 const Slot = t.type({
     getSlot: t.Int
