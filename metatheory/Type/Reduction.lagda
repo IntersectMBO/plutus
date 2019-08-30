@@ -263,6 +263,7 @@ substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}
 
 \begin{code}
+{-
 ren—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : Ren Φ Ψ)
   → A —→⋆ B
@@ -279,7 +280,7 @@ ren—→⋆ ρ (β-ƛ {N = M}{W = N})   =
           (trans (sym (subst-ren M))
                  (trans (subst-cong (ren-subst-cons ρ N) M)
                         (ren-subst M)))
-          (β-ƛ {N = ren (ext ρ) M}{W = ren ρ N})
+          (β-ƛ {N = ren (ext ρ) M}{W = ren ρ N}) -}
 \end{code}
 
 \begin{code}
@@ -306,6 +307,7 @@ subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
 \end{code}
 
 \begin{code}
+{-
 ren—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : Ren Φ Ψ)
   → A —↠⋆ B
@@ -313,7 +315,7 @@ ren—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → ren ρ A —↠⋆ ren ρ B
 ren—↠⋆ ρ refl—↠⋆          = refl—↠⋆
 ren—↠⋆ ρ (trans—↠⋆ p q) =
-  trans—↠⋆ (ren—→⋆ ρ p) (ren—↠⋆ ρ q)
+  trans—↠⋆ (ren—→⋆ ρ p) (ren—↠⋆ ρ q) -}
 \end{code}
 
 \begin{code}

@@ -67,21 +67,24 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
+open import Type.BetaNormal.Equality
 data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  Z : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
+  Z : ∀ {Φ Γ} {A B : Φ ⊢Nf⋆ *}
+    → A ≡Nf B
       ----------
-    → Γ , A ∋ A
+    → Γ , A ∋ B
 
   S : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Φ Γ K} {A : Φ ⊢Nf⋆ *}
+  T : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ *}{B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ∋ A
+    → weakenNf A ≡Nf B
       -------------------
-    → Γ ,⋆ K ∋ weakenNf A
+    → Γ ,⋆ K ∋ B
 \end{code}
 Let `x`, `y` range over variables.
 
@@ -121,12 +124,14 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       ----------
     → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {Φ Γ K x}
+  ·⋆ : ∀ {Φ Γ K x}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
+    → {C : Φ ⊢Nf⋆ *}
     → Γ ⊢ Π x B
     → (A : Φ ⊢Nf⋆ K)
+    → (B [ A ]) ≡Nf C
       ---------------
-    → Γ ⊢ B [ A ]
+    → Γ ⊢ C
 
   wrap1 : ∀{Φ Γ K}
    → (pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
@@ -138,7 +143,9 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → (term : Γ ⊢ ne (μ1 · pat · arg))
-    → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
+    → {B : Φ ⊢Nf⋆ *}
+    → nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf B
+    → Γ ⊢ B 
 
   con : ∀{Φ}{Γ : Ctx Φ}{tcn}
     → TermCon {Φ} (con tcn)
@@ -150,8 +157,10 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
     → Tel Γ Δ σ As
+    → {B : Φ ⊢Nf⋆ *}
+    → substNf σ C ≡Nf B
       ----------------------------------
-    → Γ ⊢ substNf σ C
+    → Γ ⊢ B
 
   error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
@@ -166,22 +175,64 @@ Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 --void = Λ (ƛ (` Z))
 
 true : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-true = Λ "α" (ƛ "t" (ƛ "f" (` (S Z))))
+true = Λ "α" (ƛ "t" (ƛ "f" (` (S (Z reflNf)))))
 
 false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-false = Λ "α" (ƛ "t" (ƛ "f" (` Z)))
+false = Λ "α" (ƛ "t" (ƛ "f" (` (Z reflNf))))
 \end{code}
 
 Utility functions
 
 \begin{code}
-conv∋ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
- → A ≡ A' →
- (Γ ∋ A) → Γ ∋ A'
-conv∋ refl α = α
+open import Type.BetaNormal.Equality
 
-conv⊢ : ∀ {Φ Γ}{A A' : Φ ⊢Nf⋆ *}
- → A ≡ A' →
- (Γ ⊢ A) → Γ ⊢ A'
-conv⊢ refl α = α
+
+data _≡Ctx_ : ∀{Φ} → Ctx Φ → Ctx Φ → Set where
+  ∅ : ∅ ≡Ctx ∅
+  _,⋆_ : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → ∀ K → (Γ ,⋆ K) ≡Ctx (Γ' ,⋆ K)
+  _,_  : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → {A A' : Φ ⊢Nf⋆ *} → A ≡Nf A'
+    → (Γ , A) ≡Ctx (Γ' , A')
+
+conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
+ → Γ ≡Ctx Γ'
+ → A ≡Nf A'
+ →  (Γ ∋ A)
+ → Γ' ∋ A'
+conv∋ (p , q) r (Z s) = Z (transNf (symNf q) (transNf s r))
+conv∋ (p , q) r (S α) = S (conv∋ p r α)
+conv∋ (p  ,⋆ K) q (T α r) = T (conv∋ p reflNf α) (transNf r q)
+
+open import Type.BetaNBE.Completeness
+open import Type.Equality
+open import Type.BetaNBE.RenamingSubstitution
+
+conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
+ → Γ ≡Ctx Γ'
+ → A ≡Nf A'
+ → (Γ ⊢ A) → Γ' ⊢ A'
+
+convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
+  → (As : List (Ψ ⊢Nf⋆ *))
+  → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
+convTel p σ []       tt        = tt
+convTel p σ (A ∷ As) (t ,, ts) = conv⊢ p reflNf t ,, convTel p σ As ts
+
+conv⊢ p q          (` x)             = ` (conv∋ p q x)
+conv⊢ p (⇒≡Nf q r) (ƛ x t)           = ƛ x (conv⊢ (p , q) r t)
+conv⊢ p q          (t · u)           =
+  conv⊢ p (⇒≡Nf reflNf q) t · conv⊢ p reflNf u
+conv⊢ p (Π≡Nf q)   (Λ x t)           = Λ _ (conv⊢ (p ,⋆ _) q t)
+conv⊢ p q          (·⋆ t A r)        = ·⋆ (conv⊢ p reflNf t) A (transNf r q) 
+conv⊢ p (ne≡Nf (·≡Ne {B' = arg'} (·≡Ne {B' = pat'} μ≡Ne q) r)) (wrap1 pat arg t)
+  =
+  wrap1 _ _ (conv⊢ p (completeness
+    {s = embNf pat · (μ1 · embNf pat) · embNf arg}
+    {t = embNf pat'  · (μ1 · embNf pat') · embNf arg'}
+    (α2β (·≡α (·≡α (embNf-cong q) (·≡α μ≡α (embNf-cong q))) (embNf-cong r)))) t)
+conv⊢ p q          (unwrap1 t r)       =
+  unwrap1 (conv⊢ p reflNf t) (transNf r q)
+conv⊢ p con≡Nf     (con c)           = con c
+conv⊢ p q          (builtin bn σ ts r) =
+  builtin bn σ (convTel p σ _ ts) (transNf r q)
+conv⊢ p q          (error A)         = error _
 \end{code}
