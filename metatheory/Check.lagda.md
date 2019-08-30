@@ -164,39 +164,37 @@ meqNfTy (A ⇒ B) (A' ⇒ B') = do
 meqNfTy (ƛ x A) (ƛ x' A') = do
   --refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
   p ← meqNfTy A A'
-  return ?
-{-
+  return (ƛ≡Nf p)
 meqNfTy (Π {K = K} x A) (Π {K = K'} x' A') = do
   refl ← meqKind K K' 
-  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
-  refl ← meqNfTy A A'
-  return refl
+--  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
+  p ← meqNfTy A A'
+  return (Π≡Nf p)
 meqNfTy (con c) (con c')  = do
   refl ← meqTyCon c c'
-  return refl
+  return con≡Nf
 meqNfTy (ne n)  (ne n')   = do
-  refl ← meqNeTy n n'
-  return refl
+  p ← meqNeTy n n'
+  return (ne≡Nf p)
 meqNfTy n      n'          = inj₂ (typeEqError n n')
 
 meqNeTy (` α) (` α')      = do
   refl ← meqTyVar α α'
-  return refl
+  return (var≡Ne refl)
 meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   refl ← meqKind K K'
-  refl ← meqNeTy A A'
-  refl ← meqNfTy B B'
-  return refl
-meqNeTy μ1 μ1 = return refl
--}
+  p ← meqNeTy A A'
+  q ← meqNfTy B B'
+  return (·≡Ne p q)
+meqNeTy μ1 μ1 = return μ≡Ne
 meqNeTy n  n'  = inj₂ (typeEqError (ne n) (ne n'))
 
-{-
-inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
+open import Type.BetaNormal.Equality
+
+inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡Nf nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')
-  (trans≡β (subst (λ A → embNf (nf A') ≡β A) (cong embNf (sym p)) (refl≡β (embNf (nf A'))))
-           (sym≡β (soundness A)))
+  (trans≡β (α2β (symα (embNf-cong p))) (sym≡β (soundness A)))
 
 open import Function
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
@@ -257,8 +255,8 @@ inferType Γ (L · M)           = do
   A ⇒ B ,, L ← inferType Γ L
     where _ → inj₂ notFunction
   A' ,, M ← inferType Γ M
-  refl ← meqNfTy A A'
-  return (B ,, (L · M))
+  p ← meqNfTy A A'
+  return (B ,, (L · conv⊢ reflCtx (symNf p) M))
 inferType {Φ} Γ (con c)           = let
   tc ,, c = inferTypeCon {Φ} c in return (con tc ,, con c)
 inferType Γ (error A)         = do
@@ -274,15 +272,14 @@ inferType Γ (wrap pat arg L)  = do
   refl ← meqKind K' K''
   X ,, L ← inferType Γ L
   --v why is this eta expanded in the spec?
-  refl ← meqNfTy (nf (embNf pat · (μ1 · embNf pat) · embNf arg)) X
+  p ← meqNfTy (nf (embNf pat · (μ1 · embNf pat) · embNf arg)) X
   return
     (ne (μ1 · pat · arg)
     ,,
-    wrap1 pat arg L)
+    wrap1 pat arg (conv⊢ reflCtx (symNf p) L))
 inferType Γ (unwrap L)        = do
   ne (μ1 · pat · arg) ,, L ← inferType Γ L
     where _ → inj₂ unwrapError
   --v why is this eta expanded in the spec?
   return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L reflNf)
--}
 ```

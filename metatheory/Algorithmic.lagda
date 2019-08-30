@@ -193,6 +193,11 @@ data _≡Ctx_ : ∀{Φ} → Ctx Φ → Ctx Φ → Set where
   _,_  : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → {A A' : Φ ⊢Nf⋆ *} → A ≡Nf A'
     → (Γ , A) ≡Ctx (Γ' , A')
 
+reflCtx : ∀{Φ}{Γ : Ctx Φ} → Γ ≡Ctx Γ
+reflCtx {Γ = ∅} = ∅
+reflCtx {Γ = Γ ,⋆ J} = reflCtx ,⋆ J
+reflCtx {Γ = Γ , A} = reflCtx , reflNf
+
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡Ctx Γ'
  → A ≡Nf A'
