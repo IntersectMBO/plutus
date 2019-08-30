@@ -386,14 +386,14 @@ actionArgumentField ancestors isNested (FormValue value) =
 
 actionArgumentField _ _ (FormMaybe dataType child) =
   div_
-    [ text $ "Unsupported Maybe"
+    [ text "Unsupported Maybe"
     , code_ [ text $ show dataType ]
     , code_ [ text $ show child ]
     ]
 
 actionArgumentField _ _ (FormUnsupported { description }) =
   div_
-    [ text $ "Unsupported"
+    [ text "Unsupported"
     , code_ [ text description ]
     ]
 

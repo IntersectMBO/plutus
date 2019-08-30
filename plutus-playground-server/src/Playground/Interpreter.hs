@@ -139,7 +139,7 @@ compile timeout source
             case eSchema of
                 Left err ->
                     throwError . CompilationErrors . pure . RawError $
-                    "unable to decode compilation result" <> Text.pack err
+                    "unable to decode compilation result: " <> Text.pack err <> "\n" <> Text.pack result
                 Right ([schema], currencies, iots) -> do
                     let warnings' =
                             Warning
@@ -178,7 +178,7 @@ runFunction timeout evaluation = do
             case decodeResult of
                 Left err ->
                     throwError . OtherError $
-                    "unable to decode compilation result" <> err
+                    "unable to decode compilation result: " <> err
                 Right eResult ->
                     case eResult of
                         Left err -> throwError err
