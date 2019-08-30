@@ -5,6 +5,7 @@ import           Utils
 import qualified OffChain.PayToWallet       as P1
 import qualified OffChain.PayToWalletSimple as P2
 
+import qualified Language.PlutusTx.Numeric  as P
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
@@ -31,4 +32,4 @@ mkSpec payToWallet =
         updateWallets
         void $ walletAction w1 $ payToWallet w2 ada
         updateWallets
-        assertFunds2 (initialAda `minus` ada) (initialAda `plus` ada)
+        assertFunds2 (initialAda P.- ada) (initialAda P.+ ada)

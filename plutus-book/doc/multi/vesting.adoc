@@ -10,7 +10,7 @@
 module Multi.Vesting where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import           Ledger.Ada
 import           Playground.Contract
@@ -46,13 +46,13 @@ vesting schemes:
 ----
 -- The total amount locked in the scheme.
 totalAmount :: Vesting -> Ada
-totalAmount v = amount (tranche1 v) `plus` amount (tranche2 v)
+totalAmount v = amount (tranche1 v) + amount (tranche2 v)
 
 -- Funds guaranteed to be available in that range.
 availableFrom:: Vesting -> SlotRange -> Ada
 availableFrom v r =
            availableFromTranche (tranche1 v)
-    `plus` availableFromTranche (tranche2 v)
+    + availableFromTranche (tranche2 v)
   where
     availableFromTranche :: Tranche -> Ada
     availableFromTranche t =
@@ -102,7 +102,7 @@ validate :: Vesting -> VestingValidator
 validate v () () tx =
     let hash       = ownHash tx                                      -- <1>
         available  = availableFrom v (pendingTxValidRange tx)        -- <2>
-        unreleased = totalAmount v `minus` available                 -- <3>
+        unreleased = totalAmount v - available                 -- <3>
         remaining  = adaLockedBy tx hash                             -- <4>
     in     (remaining >= unreleased)
         && (tx `txSignedBy` owner v)
@@ -186,7 +186,7 @@ withdraw t1 t2 ada = do
 
     let o = pubKeyTxOut (toValue ada) key
 
-    let change = locked utxos `minus` ada         -- <2>
+    let change = locked utxos - ada         -- <2>
         fundsRemaining = change > 0
         outs = if fundsRemaining
             then [ o
@@ -219,7 +219,7 @@ withdraw t1 t2 ada = do
     locked = Map.foldl' f zero
       where
         f :: Ada -> TxOut -> Ada
-        f a o = a `plus` fromValue (txOutValue o)
+        f a o = a + fromValue (txOutValue o)
 
 $(mkFunctions ['registerScheme, 'vest, 'withdraw])
 ----

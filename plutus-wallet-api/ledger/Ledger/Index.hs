@@ -24,33 +24,34 @@ module Ledger.Index(
     validateTransaction
     ) where
 
-import           Prelude              hiding (lookup)
+import           Prelude                   hiding (lookup)
 
 
-import           Control.Lens         (at, (^.))
+import           Control.Lens              (at, (^.))
 import           Control.Monad
-import           Control.Monad.Except (MonadError (..), runExcept)
-import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
-import           Crypto.Hash          (Digest, SHA256)
-import           Data.Aeson           (FromJSON, ToJSON)
-import           Data.Foldable        (fold, foldl', traverse_)
-import qualified Data.Map             as Map
-import           Data.Maybe           (mapMaybe)
-import           Data.Semigroup       (Semigroup)
-import qualified Data.Set             as Set
-import           GHC.Generics         (Generic)
-import qualified Ledger.Ada           as Ada
+import           Control.Monad.Except      (MonadError (..), runExcept)
+import           Control.Monad.Reader      (MonadReader (..), ReaderT (..), ask)
+import           Crypto.Hash               (Digest, SHA256)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Foldable             (fold, foldl', traverse_)
+import qualified Data.Map                  as Map
+import           Data.Maybe                (mapMaybe)
+import           Data.Semigroup            (Semigroup)
+import qualified Data.Set                  as Set
+import           GHC.Generics              (Generic)
+import qualified Language.PlutusTx.Numeric as P
+import qualified Ledger.Ada                as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
-import qualified Ledger.Interval      as Interval
+import qualified Ledger.Interval           as Interval
 import           Ledger.Scripts
-import qualified Ledger.Scripts       as Scripts
-import qualified Ledger.Slot          as Slot
+import qualified Ledger.Scripts            as Scripts
+import qualified Ledger.Slot               as Slot
 import           Ledger.Tx
 import           Ledger.TxId
-import           Ledger.Validation    (PendingTx (..))
-import qualified Ledger.Validation    as Validation
-import qualified Ledger.Value         as V
+import           Ledger.Validation         (PendingTx (..))
+import qualified Ledger.Validation         as Validation
+import qualified Ledger.Value              as V
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
@@ -255,8 +256,8 @@ checkMatch (pendingTx, dataScripts) = \case
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- V.plus (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
-    let outVal = V.plus (Ada.toValue $ txFee t) (fold (map txOutValue (txOutputs t)))
+    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
+    let outVal = Ada.toValue (txFee t) P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
     else throwError $ ValueNotPreserved inVal outVal

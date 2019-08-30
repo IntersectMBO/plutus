@@ -819,7 +819,7 @@ validatorScript
 
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> Ada.zero
+            SpendDeposit _ -> zero
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.

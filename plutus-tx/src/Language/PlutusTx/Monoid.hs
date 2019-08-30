@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Monoid (Monoid(..), mappend, mconcat) where
+module Language.PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
 
 import qualified Language.PlutusTx.Builtins  as Builtins
 import           Language.PlutusTx.Semigroup
@@ -16,16 +16,26 @@ class Semigroup a => Monoid a where
 mappend :: Monoid a => a -> a -> a
 mappend = (<>)
 
--- | Fold a list using the monoid.
 {-# INLINABLE mconcat #-}
+-- | Fold a list using the monoid.
 mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
 
 instance Monoid Builtins.ByteString where
+    {-# INLINABLE mempty #-}
     mempty = Builtins.emptyByteString
 
 instance Monoid [a] where
+    {-# INLINABLE mempty #-}
     mempty = []
 
 instance Semigroup a => Monoid (Maybe a) where
+    {-# INLINABLE mempty #-}
     mempty = Nothing
+
+class Monoid a => Group a where
+    inv :: a -> a
+
+{-# INLINABLE gsub #-}
+gsub :: Group a => a -> a -> a
+gsub x y = x <> inv y

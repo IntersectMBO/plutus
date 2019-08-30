@@ -10,7 +10,7 @@
 module Parameters.Crowd where
 
 import Language.PlutusTx
-import Language.PlutusTx.Prelude hiding (plus)
+import Language.PlutusTx.Prelude
 import Ledger
 import Ledger.Ada
 import Playground.Contract
@@ -132,7 +132,7 @@ inRefundRange campaign tx =
 
 In order to check whether the funding target has been reached,
 we must calculate the total amount of Ada contained in all inputs of a pending
-transaction that belong to our script, 
+transaction that belong to our script,
 so we write a helper function `totalInput` to do just that:
 
 [source,haskell]
@@ -142,7 +142,7 @@ totalInput tx = foldl f zero (pendingTxInputs tx)
   where
     f :: Ada -> PendingTxIn -> Ada
     f ada i
-        | fromScript i = ada `plus` fromValue (pendingTxInValue i)
+        | fromScript i = ada + fromValue (pendingTxInValue i)
         | otherwise    = ada
 
     fromScript :: PendingTxIn -> Bool                              -- <1>

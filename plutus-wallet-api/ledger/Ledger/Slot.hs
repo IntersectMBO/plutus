@@ -38,7 +38,7 @@ import           Ledger.Interval
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
-    deriving newtype (Num, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
+    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
 
 makeLift ''Slot
 
@@ -47,7 +47,7 @@ type SlotRange = Interval Slot
 
 -- | A 'SlotRange' that covers only a single slot.
 singleton :: Slot -> SlotRange
-singleton (Slot s) = Interval (Just (Slot s)) (Just (Slot (plus s 1)))
+singleton (Slot s) = Interval (Just (Slot s)) (Just (Slot (s + 1)))
 
 -- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@.
 width :: SlotRange -> Maybe Integer
@@ -55,4 +55,4 @@ width (Interval f t) = case f of
     Nothing -> Nothing
     Just (Slot f') -> case t of
         Nothing        -> Nothing
-        Just (Slot t') -> Just (minus t' f')
+        Just (Slot t') -> Just (t' - f')

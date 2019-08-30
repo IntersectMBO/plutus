@@ -5,20 +5,21 @@ import           Utils
 
 import           Multi.Vesting
 
+import qualified Language.PlutusTx.Numeric as P
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
 
-import           Control.Monad   (replicateM_, void)
-import           Data.Either     (isRight)
-import           Data.Text       (Text)
+import           Control.Monad             (replicateM_, void)
+import           Data.Either               (isRight)
+import           Data.Text                 (Text)
 import           Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec
 spec = describe "vesting" $ do
     it "works for legal withdrawels" $
-        fst (getResult $ tr 8 9 $ ada1 `plus` ada2) `shouldSatisfy` isRight
+        fst (getResult $ tr 8 9 $ ada1 P.+ ada2) `shouldSatisfy` isRight
     it "works for too early withdrawels" $
         fst (getResult $ tr 8 7 ada1) `shouldSatisfy` isRight
   where
@@ -63,5 +64,5 @@ spec = describe "vesting" $ do
         void $ walletAction w2 $ withdraw t1 t2 $ lovelaceOf 1000
         updateWallets
         assertFunds2
-            (initialAda `minus` (ada1 `plus` ada2))
-            (initialAda `plus` ada)
+            (initialAda P.- (ada1 P.+ ada2))
+            (initialAda P.+ ada)

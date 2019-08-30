@@ -52,7 +52,7 @@ currencyValue :: CurrencySymbol -> Currency -> Value
 currencyValue s Currency{curAmounts = amts} =
     let
         values = map (\(tn, i) -> (Value.singleton s tn i)) (AssocMap.toList amts)
-    in foldr Value.plus Value.zero values
+    in fold values
 
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRefOf h i) amts =
@@ -134,11 +134,11 @@ forge amounts = do
         forgedVal   = forgedValue theCurrency
 
         -- trg1 fires when 'refTxIn' can be spent by our forging transaction
-        trg1 = fundsAtAddressGtT refAddr Value.zero
+        trg1 = fundsAtAddressGtT refAddr zero
 
         -- trg2 fires when the pay-to-script output locked by 'curValidator'
         -- is ready to be spent.
-        trg2 = fundsAtAddressGtT curAddr Value.zero
+        trg2 = fundsAtAddressGtT curAddr zero
 
         -- The 'forge_' action creates a transaction that spends the contract
         -- output, forging the currency in the process.
@@ -155,7 +155,7 @@ forge amounts = do
                         { txInputs = Set.fromList (refTxIn:ins)
                         , txOutputs = [ownOutput]
                         , txForge = forgedVal
-                        , txFee   = Ada.zero
+                        , txFee   = zero
                         , txValidRange = defaultSlotRange
                         , txSignatures = Map.empty
                         }

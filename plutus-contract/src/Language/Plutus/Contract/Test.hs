@@ -36,6 +36,8 @@ import qualified Data.Set                              as Set
 import qualified Test.Tasty.HUnit                      as HUnit
 import           Test.Tasty.Providers                  (TestTree)
 
+import qualified Language.PlutusTx.Prelude             as P
+
 import           Language.Plutus.Contract              (Contract, convertContract)
 import           Language.Plutus.Contract.Effects      (ContractEffects)
 import           Language.Plutus.Contract.Prompt.Event (Event)
@@ -51,7 +53,6 @@ import qualified Ledger.AddressMap                     as AM
 import           Ledger.Slot                           (Slot)
 import           Ledger.Tx                             (Address)
 import           Ledger.Value                          (Value)
-import qualified Ledger.Value                          as V
 import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                       as EM
 
@@ -234,10 +235,10 @@ walletFundsChange :: Wallet -> Value -> TracePredicate a
 walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulatorState = st}) ->
         let initialValue = foldMap Ada.toValue (Map.fromList initialDist ^. at w)
             finalValue   = fromMaybe mempty (EM.fundsDistribution st ^. at w)
-        in if initialValue `V.plus` dlt == finalValue
+        in if initialValue P.+ dlt == finalValue
         then pure True
         else do
-            tellSeq ["Expected funds to change by", show dlt, "but they changed by", show (finalValue `V.minus` initialValue)]
+            tellSeq ["Expected funds to change by", show dlt, "but they changed by", show (finalValue P.- initialValue)]
             pure False
 
 tellSeq :: MonadWriter (Seq a) m => [a] -> m ()

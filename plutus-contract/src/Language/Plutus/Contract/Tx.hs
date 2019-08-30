@@ -100,7 +100,7 @@ mergeWith
 mergeWith f l r = UnbalancedTx
         { _inputs = _inputs l <> _inputs r
         , _outputs = _outputs l <> _outputs r
-        , _forge = _forge l `V.plus` _forge r
+        , _forge = _forge l <> _forge r
         , _requiredSignatures = _requiredSignatures l <> _requiredSignatures r
         , _validityRange = f (_validityRange l) (_validityRange r)
         }
@@ -108,7 +108,7 @@ mergeWith f l r = UnbalancedTx
 -- | Make an unbalanced transaction that does not forge any value. Note that duplicate inputs
 --   will be ignored.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs V.zero mempty I.always
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty I.always
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataScript -> UnbalancedTx

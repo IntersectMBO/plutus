@@ -205,10 +205,10 @@ annTruthValue h mp = cata f where
         TNever -> embedC (False, TNever)
         TSlotRange r -> embedC (h `member` r, TSlotRange r)
         TFundsAtAddressGeq a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.geq` r, TFundsAtAddressGeq a r)
         TFundsAtAddressGt a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.gt` r, TFundsAtAddressGt a r)
 
 -- | The addresses that an 'EventTrigger' refers to.
@@ -472,7 +472,7 @@ createTxAndSubmit range ins outs = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
-            , txForge = Value.zero
+            , txForge = mempty
             , txFee = 0
             , txValidRange = range
             , txSignatures = Map.empty

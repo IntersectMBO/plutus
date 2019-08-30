@@ -5,6 +5,7 @@ import           Utils
 
 import           Token.Fungible
 
+import qualified Language.PlutusTx.Numeric  as P
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -64,10 +65,10 @@ spec = do
         updateWallets
         assertOwnFundsEq w1 $
             (A.toValue initialAda <> plutusValue p1 <> price)
-                `V.minus` plutusValue p2
+                P.- plutusValue p2
         assertOwnFundsEq w2 $
             (A.toValue initialAda <> plutusValue p2)
-                `V.minus` price
+                P.- price
     tr3 = void $ do
         updateWallets
         void $ walletAction w1 $ forge plutus p1

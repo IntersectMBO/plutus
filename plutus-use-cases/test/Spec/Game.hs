@@ -5,10 +5,10 @@ module Spec.Game(tests) where
 import qualified Language.Plutus.Contract.Prompt.Event         as Event
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                             as PlutusTx
+import qualified Language.PlutusTx.Prelude                     as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.Game (LockParams (..), game, gameAddress,
                                                                 gameValidator, guessTrace, guessWrongTrace, lockTrace,
                                                                 validateGuess)
-import qualified Ledger.Value                                  as Value
 import qualified Spec.Lib                                      as Lib
 import           Spec.Lib                                      (timesFeeAdjust)
 import           Test.Tasty
@@ -43,7 +43,7 @@ tests = testGroup "game"
 
     , checkPredicate "guess wrong"
         game
-        (walletFundsChange w2 Value.zero
+        (walletFundsChange w2 PlutusTx.zero
             <> walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])

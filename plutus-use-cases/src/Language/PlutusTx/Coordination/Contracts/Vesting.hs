@@ -58,14 +58,14 @@ data Vesting = Vesting {
 
 PlutusTx.makeLift ''Vesting
 
--- | The total amount vested
 {-# INLINABLE totalAmount #-}
+-- | The total amount vested
 totalAmount :: Vesting -> Value
 totalAmount Vesting{..} =
-    vestingTrancheAmount vestingTranche1 `Value.plus` vestingTrancheAmount vestingTranche2
+    vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
 
--- | The amount guaranteed to be available from a given tranche in a given slot range.
 {-# INLINABLE availableFrom #-}
+-- | The amount guaranteed to be available from a given tranche in a given slot range.
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
     -- The valid range is an open-ended range starting from the tranche vesting date
@@ -73,7 +73,7 @@ availableFrom (VestingTranche d v) range =
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Interval.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else zero
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
@@ -100,10 +100,10 @@ vestFunds :: (
     -> m VestingData
 vestFunds vst value = do
     _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    (payment, change) <- createPaymentWithChange (value `Value.plus` transactionFee)
+    (payment, change) <- createPaymentWithChange (value + transactionFee)
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
-        vd =  VestingData (validatorScriptHash vst) Value.zero
+        vd =  VestingData (validatorScriptHash vst) zero
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
@@ -129,8 +129,8 @@ retrieveFunds vs vd r vnow = do
     currentSlot <- slot
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
-        remaining = totalAmount vs `Value.minus` vnow
-        vd' = vd {vestingDataPaidOut = vnow `Value.plus` vestingDataPaidOut vd }
+        remaining = totalAmount vs - vnow
+        vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val redeemerScript
         range = W.intervalFrom currentSlot
     (fee, change) <- createPaymentWithChange transactionFee
@@ -158,14 +158,14 @@ mkValidator d@Vesting{..} VestingData{..} () ptx@PendingTx{pendingTxValidRange =
 
         -- The funds that are paid to the owner
         amountSpent :: Value
-        amountSpent = lockedValue `Value.minus` payBack
+        amountSpent = lockedValue - payBack
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
-            `Value.plus` availableFrom vestingTranche2 range
+            + availableFrom vestingTranche2 range
 
         paidOut = vestingDataPaidOut
-        newAmount = paidOut `Value.plus` amountSpent
+        newAmount = paidOut + amountSpent
 
         -- Verify that the amount taken out, plus the amount already taken
         -- out before, does not exceed the threshold that is currently
@@ -176,7 +176,7 @@ mkValidator d@Vesting{..} VestingData{..} () ptx@PendingTx{pendingTxValidRange =
         -- script
         txnOutputsValid =
             let remaining = Validation.valueLockedBy ptx (Validation.ownHash ptx) in
-            remaining == (totalAmount d `Value.minus` newAmount)
+            remaining == (totalAmount d - newAmount)
 
     in amountsValid && txnOutputsValid
 
