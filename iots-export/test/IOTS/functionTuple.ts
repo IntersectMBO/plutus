@@ -8,13 +8,17 @@ const TokenName = t.type({
     unTokenName: t.string
 });
 
-const TupleFunctionArgA = t.tuple([
-    CurrencySymbol,
-    TokenName
-]);
+const TupleFunctionArgs = t.type({
+    a: t.tuple([
+        CurrencySymbol,
+        TokenName
+    ])
+});
 
-const TupleFunctionArgReturn = t.string;
+const TupleFunctionReturn = t.string;
 
-type TupleFunction = (
-    a: t.TypeOf<typeof TupleFunctionArgA>
-) => t.TypeOf<typeof TupleFunctionArgReturn>;
+export const TupleFunction = createEndpoint<typeof TupleFunctionArgs, typeof TupleFunctionReturn, t.NullC>(
+    'TupleFunction',
+    TupleFunctionArgs,
+    TupleFunctionReturn
+);

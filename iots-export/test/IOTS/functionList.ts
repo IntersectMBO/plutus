@@ -4,12 +4,16 @@ const User = t.type({
     name: t.string
 });
 
-const ListFunctionArgA = t.array(
-    User
+const ListFunctionArgs = t.type({
+    a: t.array(
+        User
+    )
+});
+
+const ListFunctionReturn = t.string;
+
+export const ListFunction = createEndpoint<typeof ListFunctionArgs, typeof ListFunctionReturn, t.NullC>(
+    'ListFunction',
+    ListFunctionArgs,
+    ListFunctionReturn
 );
-
-const ListFunctionArgReturn = t.string;
-
-type ListFunction = (
-    a: t.TypeOf<typeof ListFunctionArgA>
-) => t.TypeOf<typeof ListFunctionArgReturn>;

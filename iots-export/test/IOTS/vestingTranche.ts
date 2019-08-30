@@ -57,27 +57,25 @@ const VestingTranche = t.type({
     validity: IntervalSlot
 });
 
-const FunctionAArgA = t.tuple([
-    CurrencySymbol,
-    TokenName
-]);
+const FunctionAArgs = t.type({
+    a: t.tuple([
+        CurrencySymbol,
+        TokenName
+    ]),
+    b: t.union([
+        Value,
+        t.null
+    ]),
+    c: IntervalSlot,
+    d: t.array(
+        VestingTranche
+    )
+});
 
-const FunctionAArgB = t.union([
-    Value,
-    t.null
-]);
+const FunctionAReturn = t.string;
 
-const FunctionAArgC = IntervalSlot;
-
-const FunctionAArgD = t.array(
-    VestingTranche
+export const FunctionA = createEndpoint<typeof FunctionAArgs, typeof FunctionAReturn, t.NullC>(
+    'FunctionA',
+    FunctionAArgs,
+    FunctionAReturn
 );
-
-const FunctionAArgReturn = t.string;
-
-type FunctionA = (
-    a: t.TypeOf<typeof FunctionAArgA>,
-    b: t.TypeOf<typeof FunctionAArgB>,
-    c: t.TypeOf<typeof FunctionAArgC>,
-    d: t.TypeOf<typeof FunctionAArgD>
-) => t.TypeOf<typeof FunctionAArgReturn>;
