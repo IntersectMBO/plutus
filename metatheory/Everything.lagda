@@ -47,20 +47,20 @@ import Main
 -- types
 
 import Algorithmic
-import Algorithmic.RenamingSubstitution
-import Algorithmic.Reduction
-import Algorithmic.Evaluation
-import Algorithmic.Examples
-import Algorithmic.Main
+--import Algorithmic.RenamingSubstitution
+--import Algorithmic.Reduction
+--import Algorithmic.Evaluation
+--import Algorithmic.Examples
+--import Algorithmic.Main
 --import Algorithmic.Soundness
 --import Algorithmic.Completeness
-import Algorithmic.Erasure
-import Algorithmic.Erasure.Reduction
-import Algorithmic.CK
+--import Algorithmic.Erasure
+--import Algorithmic.Erasure.Reduction
+--import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
-import AlgorithmicRed.Term
-import AlgorithmicRed.Term.RenamingSubstitution
+--import AlgorithmicRed.Term
+--import AlgorithmicRed.Term.RenamingSubstitution
 
 -- Untyped terms, reduction and evaluation
 
@@ -74,7 +74,7 @@ import Scoped
 import Scoped.RenamingSubstitution
 import Scoped.Reduction
 import Scoped.Extrication
-import Scoped.Extrication.RenamingSubstitution
+--import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
