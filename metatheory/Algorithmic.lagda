@@ -211,7 +211,9 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → A ≡Nf A'
  → (Γ ⊢ A) → Γ' ⊢ A'
 
-convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
+convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
+  → Γ ≡Ctx Γ'
+  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
   → (As : List (Ψ ⊢Nf⋆ *))
   → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
 convTel p σ []       tt        = tt

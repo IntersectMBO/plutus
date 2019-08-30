@@ -121,11 +121,11 @@ len (Γ , A)  = Weirdℕ.S (len Γ)
 
 open import Type.BetaNBE.RenamingSubstitution
 open import Function hiding (_∋_)
-
+open import Type.BetaNormal.Equality
 inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) 
   → (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A) ⊎ Error
-inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Data.Sum.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x}) id (inferVarType Γ x)
-inferVarType (Γ , A)  Z              = inj₁ (A ,, Z)
+inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Data.Sum.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x reflNf}) id (inferVarType Γ x)
+inferVarType (Γ , A)  Z              = inj₁ (A ,, Z reflNf)
 inferVarType (Γ , A)  (S x)          =
   Data.Sum.map (λ {(A ,, x) → A ,, S x}) id (inferVarType Γ x)
 
@@ -154,17 +154,18 @@ meqTyCon bytestring bytestring = return refl
 meqTyCon string     string     = return refl
 meqTyCon _          _          = inj₂ tyConError
 
-meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → (A ≡ A') ⊎ Error
-meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → (A ≡ A') ⊎ Error
+meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → (A ≡Nf A') ⊎ Error
+meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → (A ≡Ne A') ⊎ Error
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
- refl ← meqNfTy A A'
- refl ← meqNfTy B B'
- return refl
+ p ← meqNfTy A A'
+ q ← meqNfTy B B'
+ return (⇒≡Nf p q)
 meqNfTy (ƛ x A) (ƛ x' A') = do
-  refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
-  refl ← meqNfTy A A'
-  return refl
+  --refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
+  p ← meqNfTy A A'
+  return ?
+{-
 meqNfTy (Π {K = K} x A) (Π {K = K'} x' A') = do
   refl ← meqKind K K' 
   refl ← dec2⊎Err (x Data.String.Properties.≟ x') 
@@ -187,9 +188,10 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   refl ← meqNfTy B B'
   return refl
 meqNeTy μ1 μ1 = return refl
+-}
 meqNeTy n  n'  = inj₂ (typeEqError (ne n) (ne n'))
 
-
+{-
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')
@@ -212,21 +214,21 @@ inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
 inferTypeBuiltin : ∀{Φ}{Γ : Ctx Φ}(bn : Builtin)
   → List (ScopedTy (len⋆ Φ)) → List (ScopedTm (len Γ))
   → (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)) ⊎ Error
-inferTypeBuiltin addInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin addInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin subtractInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin subtractInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin multiplyInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin multiplyInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin divideInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin divideInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin quotientInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin quotientInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin remainderInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin remainderInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin modInteger [] []  = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin modInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin lessThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin lessThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin greaterThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin greaterThanEqualsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin equalsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin concatenate [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin takeByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S Z) ,, ` Z ,, _))))
-inferTypeBuiltin dropByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S Z) ,, ` Z ,, _))))
+inferTypeBuiltin addInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin addInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin subtractInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin subtractInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin multiplyInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin multiplyInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin divideInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin divideInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin quotientInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin quotientInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin remainderInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin remainderInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin modInteger [] []  = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ "" (ƛ "" (builtin modInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin lessThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin lessThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin greaterThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin greaterThanEqualsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin equalsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin concatenate [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin takeByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin dropByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 {-
 inferTypeBuiltin sha2-256 As ts = {!!}
 inferTypeBuiltin sha3-256 As ts = {!!}
@@ -245,7 +247,7 @@ inferType Γ (L ·⋆ A)          = do
     where _ → inj₂ notPiError
   K' ,, A ← inferKind _ A
   refl ← meqKind K K'
-  return (B [ A ]Nf ,, (L ·⋆ A))
+  return (B [ A ]Nf ,, (·⋆ L A reflNf))
 inferType Γ (ƛ x A L)         = do
   * ,, A ← inferKind _ A
     where _ → inj₂ notTypeError
@@ -281,5 +283,6 @@ inferType Γ (unwrap L)        = do
   ne (μ1 · pat · arg) ,, L ← inferType Γ L
     where _ → inj₂ unwrapError
   --v why is this eta expanded in the spec?
-  return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L)
+  return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L reflNf)
+-}
 ```

@@ -55,9 +55,9 @@ len (Γ , A) = S (len Γ)
 open import Relation.Binary.PropositionalEquality as Eq
 
 extricateVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → WeirdFin (len Γ)
-extricateVar Z = Z
+extricateVar (Z _) = Z
 extricateVar (S x) = S (extricateVar x)
-extricateVar (T x) = T (extricateVar x)
+extricateVar (T x _) = T (extricateVar x)
 
 extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
 extricateC (integer i)    = integer i
@@ -89,12 +89,12 @@ extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ x (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
 extricate (Λ {K = K} x t) = Λ x K (extricate t)
-extricate {Φ}{Γ} (t ·⋆ A) = extricate t ·⋆ extricateNf⋆ A
+extricate {Φ}{Γ} (·⋆ t A _) = extricate t ScopedTm.·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
-extricate (unwrap1 t) = unwrap (extricate t)
+extricate (unwrap1 t _) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate {Φ}{Γ} (builtin b σ ts) =
+extricate {Φ}{Γ} (builtin b σ ts _) =
   builtin b (extricateSub σ) (extricateTel σ _ ts)
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}
