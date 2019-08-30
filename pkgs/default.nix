@@ -54336,8 +54336,8 @@ pname = "plutus-tutorial";
 version = "0.1.0.0";
 src = .././plutus-tutorial;
 isLibrary = false;
-isExecutable = false;
-testHaskellDepends = [
+isExecutable = true;
+executableHaskellDepends = [
 base
 bytestring
 containers
@@ -54348,7 +54348,7 @@ plutus-wallet-api
 prettyprinter
 template-haskell
 ];
-testToolDepends = [
+executableToolDepends = [
 doctest
 unlit
 ];
@@ -57120,8 +57120,8 @@ version = "0.13.0.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0maa7fqf75nw1cv5ls6j4wa2mipbw5760134brlw1k2h8sc1mdv6";
-rev = "0d9389151062a94078caf6e66a9dd2cf012646cf";
+sha256 = "0bbsy2x1yn63zc26q6xib1c489b50akjm8l6kb1a8zmpy1pi5d7l";
+rev = "fedae2c308fac73b129a684a7d10f547837470f4";
 fetchSubmodules = true;
 
 };
