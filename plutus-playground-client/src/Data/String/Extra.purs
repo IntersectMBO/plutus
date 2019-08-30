@@ -12,14 +12,14 @@ import Data.Int as Int
 import Data.Monoid (class Monoid, mempty)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
-import Prelude (map, max, (-), (<=), (<>), (>>>))
+import Prelude (map, max, (-), (<>), (==), (>>>))
 
 abbreviate :: String -> String
 abbreviate str =
-  if String.length str <= 7 then
-    str
-  else
-    String.take 7 str <> "..."
+  let prefix = String.take 7 str
+  in if str == prefix
+     then str
+     else prefix <> "..."
 
 toHex :: String -> String
 toHex =
