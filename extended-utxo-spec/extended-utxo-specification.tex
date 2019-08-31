@@ -172,7 +172,8 @@
 
 \begin{document}
 \maketitle
-
+\todokwxm{We don't say anything about serialisation, and this is important in $\ptx$,
+  where we have hashes of serialised versions of scripts, not in-memory versions.}
 \todokwxm{Michael suggests (and I agree) that we should try to make
   clear the difference between the ledger layer and the script layer.
   It would be good if we could make the EUTXO model independent of the
@@ -704,7 +705,7 @@ $\datascript$ fields and the result of $\sigma$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
-\subsection{Validating data scripts}
+\subsection{Validating pending data scripts}
 \label{sec:validating-datascripts}
 During the validation of a transaction $T$, it may be necessary for
 the validator $V$ of one of $T$'s inputs $I$ to examine a data script
@@ -716,7 +717,7 @@ This presents a problem.  During validation, the only information
 about the pending contract available to $V$ is that provided
 in the $\ptx$ structure, and this only contains the hash of $D$,
 not $D$ itself.
-
+\bigskip
 \todokwxm{What's wrong with embedding $D$ in $\ptx$? Types, that's
   what.  Why can't we deserialise?  Because that's expensive and would
   require something like dynamic types.  Why can't we embed the scripts
@@ -724,7 +725,7 @@ in the redeemer?  Apparently we could cheat.}
 
 
 
-\newpage
+%%\newpage
 \section{EUTXO-2: multicurrency support and non-fungible tokens}
 \label{sec:eutxo-2}
 We now extend the EUTXO-1 model further by introducing features which
