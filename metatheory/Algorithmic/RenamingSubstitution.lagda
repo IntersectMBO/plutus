@@ -110,12 +110,14 @@ renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
 \end{code}
 
 \begin{code}
-{-
 weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken x = ? -- conv⊢ (renNf-id _) (ren id (conv∋ (sym (renNf-id _)) ∘ S) x)
+weaken α = conv⊢
+  reflCtx
+  (renNf-id _)
+  (ren id (conv∋ reflCtx (symNf (renNf-id _)) ∘ S) α)
 \end{code}
 
 \begin{code}
@@ -123,12 +125,13 @@ weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}
   → Γ ⊢ A
     ------------------
   → Γ ,⋆ K ⊢ weakenNf A
-weaken⋆ x = ren _∋⋆_.S _∋_.T x
+weaken⋆ α = ren S (λ α → _∋_.T α reflNf) α
 \end{code}
 
 ## Substitution
 
 \begin{code}
+{-
 Sub : ∀{Φ Ψ} → SubNf Φ Ψ → Ctx Φ → Ctx Ψ → Set
 Sub σ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
 
