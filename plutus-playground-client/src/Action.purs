@@ -9,7 +9,6 @@ import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (Lens', over, preview, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
