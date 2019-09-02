@@ -18,7 +18,7 @@
 @import './node_modules/bootstrap/scss/transitions';
 @import './node_modules/bootstrap/scss/dropdown';
 @import './node_modules/bootstrap/scss/button-group';
-//  @import './node_modules/bootstrap/scss/input-group';
+@import './node_modules/bootstrap/scss/input-group';
 //  @import './node_modules/bootstrap/scss/custom-forms';
 @import './node_modules/bootstrap/scss/nav';
 @import './node_modules/bootstrap/scss/navbar';
@@ -199,7 +199,7 @@ h2 {
             margin-left: 1rem;
         }
     }
-    div:not(:last-child) {
+    .form-row {
         margin-bottom: 0.5rem;
     }
 }
@@ -261,4 +261,22 @@ h2 {
     letter-spacing: 0.08rem;
     text-transform: uppercase;
     text-align: center;
+}
+
+.input-group-prepend,
+.input-group-append {
+    button,
+    .input-group-text {
+        padding: 0.375rem;
+    }
+}
+
+.input-group-prepend button {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+
+.input-group-append button {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
 }

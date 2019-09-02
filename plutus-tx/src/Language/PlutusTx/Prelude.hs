@@ -10,6 +10,7 @@ module Language.PlutusTx.Prelude (
     module Monoid,
     module Numeric,
     module Functor,
+    module Lattice,
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -58,6 +59,7 @@ import           Language.PlutusTx.Builtins  (ByteString, Sealed, concatenate, d
 import qualified Language.PlutusTx.Builtins  as Builtins
 import           Language.PlutusTx.Eq        as Eq
 import           Language.PlutusTx.Functor   as Functor
+import           Language.PlutusTx.Lattice   as Lattice
 import           Language.PlutusTx.List      as List
 import           Language.PlutusTx.Maybe     as Maybe
 import           Language.PlutusTx.Monoid    as Monoid

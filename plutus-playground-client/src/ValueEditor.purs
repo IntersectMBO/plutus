@@ -1,6 +1,7 @@
 module ValueEditor where
 
-import Prelude hiding (div)
+import Prelude hiding (div, min)
+
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -12,7 +13,7 @@ import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), div, input, label, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onValueInput)
-import Halogen.HTML.Properties (InputType(InputNumber), classes, placeholder, required, type_, value)
+import Halogen.HTML.Properties (InputType(InputNumber), classes, min, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
@@ -63,6 +64,7 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
                       , value $ show amount
                       , required true
                       , placeholder "Amount"
+                      , min zero
                       , onValueInput
                           $ \str -> do
                               newAmount <- Int.fromString str

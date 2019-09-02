@@ -47,6 +47,7 @@ import           Language.Plutus.Contract.Record       (Record)
 import           Language.Plutus.Contract.Resumable    (ResumableError)
 import qualified Language.Plutus.Contract.Resumable    as State
 import           Language.Plutus.Contract.Tx           (UnbalancedTx)
+import           Language.PlutusTx.Lattice
 
 import qualified Ledger.Ada                            as Ada
 import qualified Ledger.AddressMap                     as AM
@@ -61,12 +62,16 @@ import           Language.Plutus.Contract.Trace        as X
 newtype PredF f a = PredF { unPredF :: a -> f Bool }
     deriving Contravariant via (Op (f Bool))
 
-instance Applicative f => Semigroup (PredF f a) where
-    l <> r = PredF $ \a -> (&&) <$> unPredF l a <*> unPredF r a
+instance Applicative f => JoinSemiLattice (PredF f a) where
+    l \/ r = PredF $ \a -> (\/) <$> unPredF l a <*> unPredF r a
+instance Applicative f => MeetSemiLattice (PredF f a) where
+    l /\ r = PredF $ \a -> (/\) <$> unPredF l a <*> unPredF r a
 
-instance Applicative f => Monoid (PredF f a) where
-    mappend = (<>)
-    mempty = PredF $ const (pure True)
+instance Applicative f => BoundedJoinSemiLattice (PredF f a) where
+    bottom = PredF $ const (pure bottom)
+
+instance Applicative f => BoundedMeetSemiLattice (PredF f a) where
+    top = PredF $ const (pure top)
 
 type TracePredicate a = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult a)
 

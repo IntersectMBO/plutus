@@ -3,6 +3,7 @@ module Chain.BlockchainExploration
   ) where
 
 import Prelude hiding (div)
+
 import Array.Extra (collapse)
 import Bootstrap (nbsp)
 import Data.Array (mapWithIndex)
@@ -13,6 +14,7 @@ import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just), fromJust, maybe)
+import Data.Monoid.Additive (Additive(..))
 import Data.RawJson (JsonTuple(..))
 import Data.Set (Set)
 import Data.Set as Set
@@ -164,13 +166,13 @@ blockchainExploration addressTargets blockchain =
   rows = Set.map snd $ Map.keys $ balanceMap
 
 data Balance
-  = CurrencyBalance (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
+  = CurrencyBalance (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName (Additive Int)))
   | Remainder
 
 merge :: Balance -> Balance -> Maybe Balance
 merge Remainder Remainder = Just Remainder
 
-merge (CurrencyBalance x) (CurrencyBalance y) = Just $ CurrencyBalance (AssocMap.unionWith (AssocMap.unionWith (+)) x y)
+merge (CurrencyBalance x) (CurrencyBalance y) = Just $ CurrencyBalance $ x <> y
 
 merge _ _ = Nothing
 
@@ -195,10 +197,10 @@ toBalanceMap =
         )
   where
   forgeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-  forgeTransactions row (JsonTuple (Tuple _ (Tx { txForge: (Value { getValue: balances }) }))) = Tuple (Tuple ForgeIx row) (CurrencyBalance balances)
+  forgeTransactions row (JsonTuple (Tuple _ (Tx { txForge: (Value { getValue: balances }) }))) = Tuple (Tuple ForgeIx row) (CurrencyBalance (map Additive <$> balances))
 
   feeTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Tuple (Tuple Column Row) Balance
-  feeTransactions row (JsonTuple (Tuple _ (Tx { txFee: (Lovelace { getLovelace: adaBalance }) }))) = Tuple (Tuple FeeIx row) (CurrencyBalance $ AssocMap.fromTuples [ Tuple adaCurrencySymbol (AssocMap.fromTuples [ Tuple adaTokenName adaBalance ]) ])
+  feeTransactions row (JsonTuple (Tuple _ (Tx { txFee: (Lovelace { getLovelace: adaBalance }) }))) = Tuple (Tuple FeeIx row) (CurrencyBalance $ AssocMap.fromTuples [ Tuple adaCurrencySymbol (AssocMap.fromTuples [ Tuple adaTokenName (Additive adaBalance) ]) ])
 
   inputTransactions :: Row -> JsonTuple (TxIdOf String) Tx -> Array (Tuple (Tuple Column Row) Balance)
   inputTransactions row (JsonTuple (Tuple _ (Tx { txInputs }))) = fromTxIn <$> txInputs
@@ -222,15 +224,15 @@ toBalanceMap =
     fromTxOut :: TxOutOf String -> Tuple (Tuple Column Row) Balance
     fromTxOut ( TxOutOf
         { txOutType: (PayToPubKey (PubKey { getPubKey: owner }))
-      , txOutValue: (Value ({ getValue: currencyBalances }))
+      , txOutValue: (Value { getValue: currencyBalances })
       }
-    ) = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance currencyBalances)
+    ) = Tuple (Tuple (OwnerIx owner hash) row) (CurrencyBalance (map Additive <$> currencyBalances))
 
     fromTxOut ( TxOutOf
         { txOutType: (PayToScript (DataScript { getDataScript: owner }))
-      , txOutValue: (Value ({ getValue: currencyBalances }))
+      , txOutValue: (Value { getValue: currencyBalances })
       }
-    ) = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance currencyBalances)
+    ) = Tuple (Tuple (ScriptIx owner hash) row) (CurrencyBalance (map Additive <$> currencyBalances))
 
 adaCurrencySymbol :: CurrencySymbol
 adaCurrencySymbol = CurrencySymbol { unCurrencySymbol: "" }
@@ -263,12 +265,12 @@ balanceView Remainder =
     ]
     []
 
-valueView :: forall p i. CurrencySymbol /\ TokenName /\ Int -> HTML p i
+valueView :: forall p i. CurrencySymbol /\ TokenName /\ Additive Int -> HTML p i
 valueView ( currencySymbol@(CurrencySymbol { unCurrencySymbol: symbol })
     /\
     tokenName@(TokenName { unTokenName: token })
     /\
-    balance
+    Additive balance
 )
   | currencySymbol == adaCurrencySymbol && tokenName == adaTokenName = amountView "Ada" balance
   | otherwise = amountView token balance

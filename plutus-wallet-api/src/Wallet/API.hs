@@ -41,7 +41,9 @@ module Wallet.API(
     register,
     -- * Slot ranges
     Interval(..),
+    Slot,
     SlotRange,
+    width,
     defaultSlotRange,
     interval,
     intervalFrom,
@@ -50,7 +52,6 @@ module Wallet.API(
     isEmpty,
     always,
     member,
-    width,
     before,
     after,
     contains,
@@ -104,12 +105,12 @@ import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
-                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, txOutRefId)
+                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId,
+                                            width)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
-import           Ledger.Slot               (singleton, width)
 import qualified Ledger.Value              as Value
 import           Text.Show.Deriving        (deriveShow1)
 

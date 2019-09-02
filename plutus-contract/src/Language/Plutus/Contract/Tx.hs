@@ -10,13 +10,11 @@
 {-# LANGUAGE TypeApplications       #-}
 module Language.Plutus.Contract.Tx(
       UnbalancedTx
-    , emptyTx
     , inputs
     , outputs
     , forge
     , requiredSignatures
     , validityRange
-    , mergeWith
     , toLedgerTx
     , fromLedgerTx
     -- * Constructing transactions
@@ -26,23 +24,26 @@ module Language.Plutus.Contract.Tx(
     , collectFromScriptFilter
     ) where
 
-import           Control.Lens      (at, (^.))
-import qualified Control.Lens.TH   as Lens.TH
-import qualified Data.Aeson        as Aeson
-import qualified Data.Map          as Map
-import           Data.Maybe        (fromMaybe)
-import           Data.Set          (Set)
-import qualified Data.Set          as Set
-import           GHC.Generics      (Generic)
+import           Control.Lens              (at, (^.))
+import qualified Control.Lens.TH           as Lens.TH
+import qualified Data.Aeson                as Aeson
+import qualified Data.Map                  as Map
+import           Data.Maybe                (fromMaybe)
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           GHC.Generics              (Generic)
 
-import           Ledger            (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef, ValidatorScript)
-import qualified Ledger            as L
-import           Ledger.AddressMap (AddressMap)
-import           Ledger.Index      (minFee)
-import qualified Ledger.Interval   as I
-import           Ledger.Slot       (SlotRange)
-import qualified Ledger.Tx         as Tx
-import           Ledger.Value      as V
+import           Language.PlutusTx.Lattice
+
+import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef,
+                                            ValidatorScript)
+import qualified Ledger                    as L
+import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Index              (minFee)
+import qualified Ledger.Interval           as I
+import           Ledger.Slot               (SlotRange)
+import qualified Ledger.Tx                 as Tx
+import           Ledger.Value              as V
 
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].
@@ -68,11 +69,17 @@ fromLedgerTx tx = UnbalancedTx
             , _requiredSignatures = Map.keys $ L.txSignatures tx
             }
 
--- | An unbalanced transaction wiht no inputs and outputs, and an unbounded
---   validity range.
---
-emptyTx :: UnbalancedTx
-emptyTx = UnbalancedTx mempty mempty mempty mempty I.always
+instance Semigroup UnbalancedTx where
+    tx1 <> tx2 = UnbalancedTx {
+        _inputs = _inputs tx1 <> _inputs tx2,
+        _outputs = _outputs tx1 <> _outputs tx2,
+        _forge = _forge tx1 <> _forge tx2,
+        _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
+        _validityRange = _validityRange tx1 /\ _validityRange tx2
+        }
+
+instance Monoid UnbalancedTx where
+    mempty = UnbalancedTx mempty mempty mempty mempty top
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
@@ -88,22 +95,6 @@ toLedgerTx utx =
             , L.txSignatures = Map.empty
             }
      in tx { L.txFee = minFee tx }
-
--- | Combine two unbalanced transactions by appending their respective inputs,
---   outputs, and signatures, adding their forged values, and applying the
---   given function to their two validity ranges.
-mergeWith
-    :: (SlotRange -> SlotRange -> SlotRange)
-    -> UnbalancedTx
-    -> UnbalancedTx
-    -> UnbalancedTx
-mergeWith f l r = UnbalancedTx
-        { _inputs = _inputs l <> _inputs r
-        , _outputs = _outputs l <> _outputs r
-        , _forge = _forge l <> _forge r
-        , _requiredSignatures = _requiredSignatures l <> _requiredSignatures r
-        , _validityRange = f (_validityRange l) (_validityRange r)
-        }
 
 -- | Make an unbalanced transaction that does not forge any value. Note that duplicate inputs
 --   will be ignored.
