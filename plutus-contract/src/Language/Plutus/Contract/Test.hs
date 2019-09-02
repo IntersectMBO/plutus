@@ -11,6 +11,7 @@
 module Language.Plutus.Contract.Test(
       module X
     , TracePredicate
+    , PredF(..)
     , Language.Plutus.Contract.Test.not
     , endpointAvailable
     , interestingAddress
@@ -30,6 +31,7 @@ module Language.Plutus.Contract.Test(
     , walletState
     , walletWatchingAddress
     , emulatorLog
+    , fundsAtAddress
     -- * Checking predicates
     , checkPredicate
     , renderTraceContext
@@ -304,6 +306,24 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
                     , "Fails" <+> squotes (fromString nm)
                     ]
                 pure False
+
+-- | Check that the funds at an address meet some condition.
+fundsAtAddress
+    :: forall s e a.
+       Address
+    -> (Value -> Bool)
+    -> TracePredicate s e a
+fundsAtAddress address check = PredF $ \(_, r) -> do
+    let funds = 
+            Map.findWithDefault mempty address 
+            $ AM.values
+            $ AM.fromChain
+            $ view EM.chainOldestFirst
+            $ _ctrEmulatorState r
+        passes = check funds
+    unless passes
+        $ tell ("Funds at address" <+> pretty address <+> "were" <> pretty funds)
+    pure passes
 
 waitingForSlot
     :: forall s e a.

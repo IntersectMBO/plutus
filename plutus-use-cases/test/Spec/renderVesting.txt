@@ -1,7 +1,7 @@
 ==== Slot #0, Tx #0 ====
-TxId:       f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f
+TxId:       b4ffb5ccc0d6555f58f04d99941429f83746a2b3a35178cf597787d7e1f994b4
 Fee:        -
-Forge:      Ada:      Lovelace:  1000
+Forge:      Ada:      Lovelace:  100000
 Signatures  -
 Inputs:
   
@@ -11,108 +11,108 @@ Outputs:
   ---- Output 0 ----
   Destination:  PubKey: 34e5a8508c4743746962c066e4badea2201b8ab4... (Wallet 9)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 1 ----
   Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 2 ----
   Destination:  PubKey: 44b57ee30cdb55829d0a5d4f046baef078f1e97a... (Wallet 6)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 3 ----
   Destination:  PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 4 ----
   Destination:  PubKey: c1a49c66e617f9ef5ec66bc4c6564ca33de2a5fb... (Wallet 5)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 5 ----
   Destination:  PubKey: cf3af898467a5b7a52d33d53bc037e2642a8da99... (Wallet 7)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 6 ----
   Destination:  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3... (Wallet 10)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 7 ----
   Destination:  PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 8 ----
   Destination:  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   ---- Output 9 ----
   Destination:  PubKey: fd2a565723163e29f53c9de3d5e8fbe36a7ab66e... (Wallet 8)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
 
 
 Balances Carried Forward:
   PubKey: 34e5a8508c4743746962c066e4badea2201b8ab4... (Wallet 9)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 44b57ee30cdb55829d0a5d4f046baef078f1e97a... (Wallet 6)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: c1a49c66e617f9ef5ec66bc4c6564ca33de2a5fb... (Wallet 5)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: cf3af898467a5b7a52d33d53bc037e2642a8da99... (Wallet 7)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3... (Wallet 10)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: fd2a565723163e29f53c9de3d5e8fbe36a7ab66e... (Wallet 8)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
 
 ==== Slot #1, Tx #0 ====
-TxId:       0989a36ab2cb5f2a6fa851d4fc340fbe1b56f4276bbf6e04da0660111e236cb1
+TxId:       bcd5b915429aa0c03912b2b837b6d12001e1ecbd2fa0a47fcd62f7d5eb14f3d4
 Fee:        -
 Forge:      -
 Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
-              Signature: 5f5820d84569c69be8f524bf1043d0ae10018da9...
+              Signature: 5f5820bd58f028291fa385283043960b0c71afc7...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   Source:
-    Tx:     f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f
+    Tx:     b4ffb5ccc0d6555f58f04d99941429f83746a2b3a35178cf597787d7e1f994b4
     Output #8
     PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
 
@@ -121,7 +121,7 @@ Outputs:
   ---- Output 0 ----
   Destination:  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  40
+    Ada:      Lovelace:  9940
   
   ---- Output 1 ----
   Destination:  Script: edbf01817333aec76eafa39794bf6fc49ea3520ba4e5e2126c72a1e4a4775562
@@ -132,61 +132,61 @@ Outputs:
 Balances Carried Forward:
   PubKey: 34e5a8508c4743746962c066e4badea2201b8ab4... (Wallet 9)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 44b57ee30cdb55829d0a5d4f046baef078f1e97a... (Wallet 6)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: c1a49c66e617f9ef5ec66bc4c6564ca33de2a5fb... (Wallet 5)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: cf3af898467a5b7a52d33d53bc037e2642a8da99... (Wallet 7)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3... (Wallet 10)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  40
+    Ada:      Lovelace:  9940
   
   PubKey: fd2a565723163e29f53c9de3d5e8fbe36a7ab66e... (Wallet 8)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   Script: edbf01817333aec76eafa39794bf6fc49ea3520ba4e5e2126c72a1e4a4775562
   Value:
     Ada:      Lovelace:  60
 
 ==== Slot #13, Tx #0 ====
-TxId:       f7185d433ff7e0565725db431c14adae8329e458d0e0f1766d66f8e417b1e290
+TxId:       b3a76d37425f66db0521fb4be3b6c484fdd9637720e3752f1994b313d0cbadfd
 Fee:        -
 Forge:      -
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-              Signature: 5f5820424e7db2175dffaafd5b09f3323274f2c1...
+              Signature: 5f582016dc92f57029cd1766ae83d63194c95297...
 Inputs:
   ---- Input 0 ----
   Destination:  Script: edbf01817333aec76eafa39794bf6fc49ea3520ba4e5e2126c72a1e4a4775562
   Value:
     Ada:      Lovelace:  60
   Source:
-    Tx:     0989a36ab2cb5f2a6fa851d4fc340fbe1b56f4276bbf6e04da0660111e236cb1
+    Tx:     bcd5b915429aa0c03912b2b837b6d12001e1ecbd2fa0a47fcd62f7d5eb14f3d4
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
 
@@ -206,43 +206,43 @@ Outputs:
 Balances Carried Forward:
   PubKey: 34e5a8508c4743746962c066e4badea2201b8ab4... (Wallet 9)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
-    Ada:      Lovelace:  110
+    Ada:      Lovelace:  10010
   
   PubKey: 44b57ee30cdb55829d0a5d4f046baef078f1e97a... (Wallet 6)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: c1a49c66e617f9ef5ec66bc4c6564ca33de2a5fb... (Wallet 5)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: cf3af898467a5b7a52d33d53bc037e2642a8da99... (Wallet 7)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3... (Wallet 10)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
   Value:
-    Ada:      Lovelace:  40
+    Ada:      Lovelace:  9940
   
   PubKey: fd2a565723163e29f53c9de3d5e8fbe36a7ab66e... (Wallet 8)
   Value:
-    Ada:      Lovelace:  100
+    Ada:      Lovelace:  10000
   
   Script: edbf01817333aec76eafa39794bf6fc49ea3520ba4e5e2126c72a1e4a4775562
   Value:

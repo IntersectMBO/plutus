@@ -14,6 +14,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     -- * Actions etc
     , forgeContract
     , forgedValue
+    , currencySymbol
     ) where
 
 import           Control.Lens               ((&), (.~), (%~))
@@ -108,12 +109,10 @@ is why we use 'V.ownCurrencySymbol', which obtains the hash from the
 
 -- | The 'Value' forged by the 'curValidator' contract
 forgedValue :: Currency -> Value
-forgedValue cur =
-    let
-        -- see note [Obtaining the currency symbol]
-        a = scriptCurrencySymbol (curValidator cur)
-    in
-        currencyValue a cur
+forgedValue cur = currencyValue (currencySymbol cur) cur        
+
+currencySymbol :: Currency -> CurrencySymbol
+currencySymbol = scriptCurrencySymbol . curValidator
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
