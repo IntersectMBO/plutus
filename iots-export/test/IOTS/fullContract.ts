@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // IOTSSpec.CurrencySymbol
 const CurrencySymbol = t.type({
     unCurrencySymbol: t.string
@@ -15,7 +13,7 @@ const AssocMapTokenNameInteger = t.type({
     unMap: t.array(
         t.tuple([
             TokenName,
-            t.Int
+            t.number
         ])
     )
 });
@@ -37,7 +35,7 @@ const Value = t.type({
 
 // IOTSSpec.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 // IOTSSpec.Interval
@@ -59,40 +57,40 @@ const VestingTranche = t.type({
     validity: IntervalSlot
 });
 
-const FunctionAArgA = t.tuple([
-    CurrencySymbol,
-    TokenName
-]);
+const FunctionAArgs = t.type({
+    a: t.tuple([
+        CurrencySymbol,
+        TokenName
+    ]),
+    b: t.union([
+        Value,
+        t.null
+    ]),
+    c: IntervalSlot,
+    d: t.array(
+        VestingTranche
+    )
+});
 
-const FunctionAArgB = t.union([
-    Value,
-    t.null
-]);
+const FunctionAReturn = t.string;
 
-const FunctionAArgC = IntervalSlot;
-
-const FunctionAArgD = t.array(
-    VestingTranche
+export const FunctionA = createEndpoint<typeof FunctionAArgs, typeof FunctionAReturn, t.NullC>(
+    'FunctionA',
+    FunctionAArgs,
+    FunctionAReturn
 );
 
-const FunctionAArgReturn = t.string;
+const FunctionBArgs = t.type({
+    a: IntervalSlot,
+    b: t.array(
+        CurrencySymbol
+    )
+});
 
-type FunctionA = (
-    a: t.TypeOf<typeof FunctionAArgA>,
-    b: t.TypeOf<typeof FunctionAArgB>,
-    c: t.TypeOf<typeof FunctionAArgC>,
-    d: t.TypeOf<typeof FunctionAArgD>
-) => t.TypeOf<typeof FunctionAArgReturn>;
+const FunctionBReturn = t.string;
 
-const FunctionBArgA = IntervalSlot;
-
-const FunctionBArgB = t.array(
-    CurrencySymbol
+export const FunctionB = createEndpoint<typeof FunctionBArgs, typeof FunctionBReturn, t.NullC>(
+    'FunctionB',
+    FunctionBArgs,
+    FunctionBReturn
 );
-
-const FunctionBArgReturn = t.string;
-
-type FunctionB = (
-    a: t.TypeOf<typeof FunctionBArgA>,
-    b: t.TypeOf<typeof FunctionBArgB>
-) => t.TypeOf<typeof FunctionBArgReturn>;

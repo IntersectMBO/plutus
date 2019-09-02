@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
-{-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE RankNTypes           #-}
@@ -28,7 +27,7 @@ import           Data.Foldable                (fold, toList)
 import           Data.Kind                    (Type)
 import           Data.Map                     (Map)
 import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Sequence                (Seq, (<|), (|>))
+import           Data.Sequence                (Seq, (|>))
 import           Data.Set                     (Set)
 import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
@@ -38,11 +37,10 @@ import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1, Constru
                                                Rec0, Rep, S1, Selector, U1, conIsRecord, conName, selName)
 import qualified GHC.Generics                 as Generics
 import           GHC.TypeLits                 (KnownSymbol, symbolVal)
-import           IOTS.Leijen                  (jsArray, jsObject, jsParams, lowerFirst, render, stringDoc, symbol,
-                                               upperFirst)
+import           IOTS.Leijen                  (jsArray, jsObject, jsParams, render, stringDoc, symbol, upperFirst)
 import           IOTS.Tree                    (depthfirstM)
-import           Text.PrettyPrint.Leijen.Text (Doc, angles, braces, dquotes, linebreak, parens, punctuate, space,
-                                               squotes, textStrict, vsep, (<+>))
+import           Text.PrettyPrint.Leijen.Text (Doc, angles, braces, comma, dquotes, hsep, linebreak, parens, punctuate,
+                                               semi, squotes, textStrict, vsep, (<+>))
 import           Type.Reflection              (SomeTypeRep (SomeTypeRep), Typeable, someTypeRep)
 import qualified Type.Reflection              as R
 
@@ -92,9 +90,6 @@ toRef :: Tree IotsDef -> Doc
 toRef = iotsRef . rootLabel
 
 ------------------------------------------------------------
-preamble :: Doc
-preamble = "import * as t from 'io-ts';"
-
 -- | Render out a type, function or 'HList' of functions as an IOTS-compatible definition file.
 --
 -- All the subtypes needed for compilation will also be exported, as long as they are all 'IotsExportable'.
@@ -118,7 +113,7 @@ export ::
   => a
   -> Text
 export _ =
-  render . vsep . punctuate linebreak . toList $ preamble <| definitions
+  render . vsep . punctuate linebreak . toList $ definitions
   where
     definitions :: Seq Doc
     definitions =
@@ -146,37 +141,43 @@ gatherDefinitions (Group x xs) =
 gatherDefinitions (Fun from to) =
   mappend <$> gatherDefinitions from <*> gatherDefinitions to
 gatherDefinitions (NamedFun functionName fun) = do
-  children <- gatherDefinitions fun
-  let inputArguments = init children
-      outputArgument = last children
-      functionBinding = textStrict (upperFirst functionName)
-      declareTypeof argName =
-        "t.TypeOf" <> angles ("typeof" <+> toBinding argName)
-      boundParameter name r =
-        "const" <+> toBinding name <+> "=" <+> toRef r <> ";"
-      labelledParameter argName _ =
-        textStrict (lowerFirst argName) <> ":" <+> declareTypeof argName
-      toBinding argName = functionBinding <> "Arg" <> textStrict argName
-      typeSignature =
-        (if null inputArguments
-           then mempty
-           else jsParams (withParameterLabels labelledParameter inputArguments) <>
-                space) <>
-        "=>" <+>
-        declareTypeof "Return"
-      iotsRep = someTypeRep (Proxy @a)
-      iotsOutput = True
-      iotsRef =
-        vsep . punctuate linebreak $
-        fold
-          [ withParameterLabels boundParameter inputArguments
-          , [boundParameter "Return" outputArgument]
-          , ["type" <+> functionBinding <+> "=" <+> typeSignature <> ";"]
-          ]
-  pure [Node (IotsDef {..}) children]
+    children <- gatherDefinitions fun
+    let inputArguments = init children
+        outputArgument = last children
+        labelledParameter :: Text -> Tree IotsDef -> Doc
+        labelledParameter argName def =
+            textStrict argName <> ":" <+> toRef def
+        functionBinding = textStrict (upperFirst functionName)
+        toBinding argName = functionBinding <> textStrict argName
+        argsBinding = toBinding "Args"
+        returnBinding = toBinding "Return"
+        typeSignature = "t.type" <> parens (jsObject (withParameterLabels labelledParameter inputArguments))
 
-withParameterLabels :: (Text -> Tree IotsDef -> Doc) -> [Tree IotsDef] -> [Doc]
-withParameterLabels f = zipWith f (Text.singleton <$> ['A' .. 'Z'])
+        iotsRep = someTypeRep (Proxy @a)
+        iotsOutput = True
+        iotsRef =
+            vsep . punctuate linebreak $
+            [ "const" <+> argsBinding <+> "=" <+> typeSignature <> semi
+            , "const" <+> returnBinding <+> "=" <+> toRef outputArgument <> semi
+            , "export" <+> "const" <+>
+              functionBinding <+>
+              "=" <+>
+              "createEndpoint" <>
+              angles
+                  (hsep
+                       (punctuate
+                            comma
+                            [ "typeof" <+> argsBinding
+                            , "typeof" <+> returnBinding
+                            , "t.NullC"
+                            ])) <>
+              jsParams [squotes functionBinding, argsBinding, returnBinding] <>
+              semi
+            ]
+    pure [Node (IotsDef {..}) children]
+
+withParameterLabels :: (Text -> Tree IotsDef -> Doc) -> Forest IotsDef -> [Doc]
+withParameterLabels f = zipWith f (Text.singleton <$> ['a' .. 'z'])
 
 ------------------------------------------------------------
 -- | A type-level list.
@@ -257,14 +258,14 @@ instance IotsType Integer where
     where
       iotsRep = someTypeRep (Proxy @Integer)
       iotsOutput = False
-      iotsRef = "t.Int"
+      iotsRef = "t.number"
 
 instance IotsType Int where
   iotsDefinition = pure [Node (IotsDef {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Int)
       iotsOutput = False
-      iotsRef = "t.Int"
+      iotsRef = "t.number"
 
 instance IotsType a => IotsType (Proxy a) where
   iotsDefinition = iotsDefinition @a
