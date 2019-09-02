@@ -10,12 +10,11 @@
 
 \documentclass[a4paper]{article}
 
-\usepackage{natbib}
+% correct bad hyphenation here
+\hyphenation{}
 
-\usepackage{blindtext, graphicx}
+\usepackage{natbib}
 \usepackage{url}
-%\usepackage{cleveref}
-%\usepackage{hyperref}
 
 % *** MATHS PACKAGES ***
 %
@@ -31,13 +30,6 @@
 \usepackage{subcaption}
 \usepackage{caption}
 
-% Stuff for splitting figures over page breaks
-%\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
-%\captionsetup[ContinuedFloat]{labelformat=continued}
-
-% correct bad hyphenation here
-\hyphenation{}
-
 \usepackage{subfiles}
 \usepackage{geometry}
 \usepackage{listings}
@@ -45,13 +37,33 @@
 \usepackage{verbatim}
 \usepackage{todonotes}
 
+\usepackage{hyperref}  % This has to go at the end of the pacakges.
+
+
+% Stuff for splitting figures over page breaks
+%\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
+%\captionsetup[ContinuedFloat]{labelformat=continued}
+
+% *** MACROS ***
+
+% A command for making notes with bold titles and an independent
+% numbering system.  This is used for a list of notes in the appendix.
+\newcounter{note}
+\newcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{note}
+  \noindent\textbf{Note \thenote. #1}
+}
 
 \newcommand{\todochak}[1]{\todo[inline,color=purple!40,author=chak]{#1}}
 \newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
 \newcommand{\todokwxm}[1]{\todo[inline,color=blue!20,author=kwxm]{#1}}
 \newcommand{\todojm}[1]{\todo[inline,color=purple!40,author=Jann]{#1}}
 
-%%% General Misc. Definitions
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
 
 %% A version of ^{\prime} for use in text mode
 \makeatletter
@@ -60,24 +72,9 @@
 }
 \makeatother
 
-\newcommand{\red}[1]{\textcolor{red}{#1}}
-\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
-\newcommand{\blue}[1]{\textcolor{blue}{#1}}
-\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
-
-\newcounter{note}
-\newcommand{\note}[1]{
-  \bigskip
-  \refstepcounter{note}
-  \noindent\textbf{Note \thenote. #1}
-}
-
 \renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
 \renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
 \newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
-
-%\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
 
 \newenvironment{arraydefs}[1]{\setlength{\arraycolsep}{0pt}\begin{array}{#1}}{\end{array}}
 %
@@ -99,12 +96,14 @@
 % but the spacing is arguably worse.
 
 
+%% A figure with rules above and below.
 \newcommand\rfskip{7pt}
 \newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
 
+
+%% Various text macros
 \newcommand{\true}{\textsf{true}}
 \newcommand{\false}{\textsf{false}}
-
 
 \newcommand{\List}[1]{\ensuremath{\s{List}[#1]}}
 \newcommand{\Set}[1]{\ensuremath{\s{Set}[#1]}}
@@ -115,7 +114,7 @@
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
 
-%Macros for eutxo things.
+% Macros for eutxo things.
 \newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
 \newcommand{\txid}{\mi{txid}}
 \newcommand{\idx}{\mi{index}}
@@ -159,14 +158,6 @@
 
 \newcommand{\emptymap}{\ensuremath{\{\}}}
 
-\usepackage{listings}
-\lstset{
-  basicstyle=\ttfamily,
-  columns=fullflexible,
-  mathescape=true,
-  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
-}
-
 
 %% ------------- Start of document ------------- %%
 
@@ -206,19 +197,19 @@ owned by the user.  Every core node on the blockchain maintains a
 record of all of the currently unspent outputs, the \textit{UTXO set};
 when outputs are spent, they are removed from the UTXO set.
 
-Our main concern here is to facilitate the implementation of
-\textit{smart contracts}: programs which perform automated and
-irrevocable transfer of funds on the blockchain, subject to certain
-conditions being met.  A smart contract may involve multiple
-transactions, and our aim is to define a transaction model which
-enables the implementation of highly expressive contracts.
+This document contains a specification of some extesnsions of the
+UTXO model: the main aim of these extensions is to facilitate the
+implementation of \textit{smart contracts}, programs which perform
+automated and irrevocable transfer of funds on the blockchain, subject
+to certain conditions being met.  A smart contract may involve
+multiple transactions, and our aim is to define a transaction model
+which enables the implementation of highly expressive contracts.
 
 An important component of our UTXO models are \textit{scripts},
 programs which run on the blockchain to check the validity of
 transactions.  In Cardano, scripts will be programs in the Plutus Core
 language~\citep{Plutus-Core-spec}. The Extended UTXO models are largely
-agnostic as to the scripting language. \red{... and we should spell
-  out exactly what's required.}
+agnostic as to the scripting language.
 
 
 \subsection{Structure of the document}
@@ -367,7 +358,10 @@ natural numbers and non-negative integers.
 collision-resistant hash of some object (so the address of an object
 $X$ is $X^{\#}$ in the notation of Figure~\ref{fig:basic-notation}),
 and the blockchain will provide an efficient way to retrieve the
-original object given its hash.
+original object given its hash.  Compiled Plutus Core scripts are
+stored and transmitted in a serialised form, and when we talk about
+the hash of a Plutus Core script we mean the hash of the serialsed
+version.
 
 % Accessing objects indirectly via addresses is helpful because it can
 % help to reduce memory and disk usage: for example, there may be
