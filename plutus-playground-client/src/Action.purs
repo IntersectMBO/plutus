@@ -9,7 +9,6 @@ import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (Lens', over, preview, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
@@ -34,7 +33,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
 import Prelude (Unit, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (class HasBound, Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), ChildQuery, ChildSlot, DragAndDropEventType(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _argumentSchema, _functionName, _ivFrom, _ivTo, _simulatorWallet, _simulatorWalletWallet, _walletId, hasBound, isInclusive)
+import Types (class HasBound, Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), ChildQuery, ChildSlot, DragAndDropEventType(..), FieldEvent(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _argumentSchema, _functionName, _ivFrom, _ivTo, _simulatorWallet, _simulatorWalletWallet, _walletId, hasBound, isInclusive)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -258,7 +257,7 @@ actionArgumentField ancestors _ arg@(FormInt n) =
         , value $ maybe "" show n
         , required true
         , placeholder "Int"
-        , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+        , onValueInput $ HE.input (SetField <<< SetIntField <<< Int.fromString)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -270,7 +269,7 @@ actionArgumentField ancestors _ arg@(FormBool b) =
         , id_ elementId
         , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
         , checked b
-        , onChecked (Just <<< HQ.action <<< SetBoolField)
+        , onChecked $ HE.input (SetField <<< SetBoolField)
         ]
     , label
         [ class_ formCheckLabel
@@ -290,7 +289,7 @@ actionArgumentField ancestors _ arg@(FormString s) =
         , value $ fromMaybe "" s
         , required true
         , placeholder "String"
-        , onValueInput $ HE.input SetStringField
+        , onValueInput $ HE.input (SetField <<< SetStringField)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -314,7 +313,7 @@ actionArgumentField ancestors _ arg@(FormRadio options s) =
             , name option
             , value option
             , required (s == Nothing)
-            , onValueInput $ HE.input $ SetRadioField
+            , onValueInput $ HE.input (SetField <<< SetRadioField)
             , checked (Just option == s)
             ]
         , label
@@ -332,7 +331,7 @@ actionArgumentField ancestors _ arg@(FormHex s) =
         , value $ fromMaybe "" s
         , required true
         , placeholder "String"
-        , onValueInput $ HE.input SetHexField
+        , onValueInput $ HE.input (SetField <<< SetHexField)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -438,7 +437,7 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
   extentFieldInclusionButton inclusionLens inclusionIcon exclusionIcon =
     button
       [ classes [ btn, btnSmall, btnPrimary ]
-      , onClick $ input_ $ SetSlotRangeField $ over inclusionLens not interval
+      , onClick $ HE.input_ $ SetField $ SetSlotRangeField $ over inclusionLens not interval
       ]
       [ icon
           $ if view inclusionLens interval then
@@ -458,7 +457,7 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
             else
               btnInfo
           ]
-      , onClick $ input_ $ SetSlotRangeField $ set extensionLens value interval
+      , onClick $ HE.input_ $ SetField $ SetSlotRangeField $ set extensionLens value interval
       ]
       [ icon Infinity ]
 
@@ -472,7 +471,7 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
           $ case view extensionLens interval of
               Finite (Slot slot) -> show slot.getSlot
               _ -> mempty
-      , onValueInput $ map (\n -> HQ.action (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval))) <<< Int.fromString
+      , onValueInput $ map (\n -> HQ.action (SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval)))) <<< Int.fromString
       ]
 
   humanise :: forall a. HasBound a Slot => a -> String
@@ -490,7 +489,7 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
 actionArgumentField ancestors isNested (FormValue value) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
-    , valueForm SetValueField value
+    , valueForm (SetField <<< SetValueField) value
     ]
 
 actionArgumentField _ _ (FormMaybe dataType child) =
@@ -609,7 +608,7 @@ dragTargetProperties index =
   ]
 
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
-dragAndDropAction index eventType = Just <<< HQ.action <<< ActionDragAndDrop index eventType
+dragAndDropAction index eventType = HE.input (ActionDragAndDrop index eventType)
 
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
 actionsErrorPane error =
@@ -626,5 +625,7 @@ actionsErrorPane error =
 -- | not deal with them.
 showPlaygroundError :: PlaygroundError -> String
 showPlaygroundError PlaygroundTimeout = "Evaluation timed out"
+
 showPlaygroundError (OtherError error) = error
+
 showPlaygroundError _ = "Unexpected interpreter error"
