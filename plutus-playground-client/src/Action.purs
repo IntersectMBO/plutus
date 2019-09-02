@@ -608,7 +608,7 @@ dragTargetProperties index =
   ]
 
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
-dragAndDropAction index eventType = Just <<< HQ.action <<< ActionDragAndDrop index eventType
+dragAndDropAction index eventType = HE.input (ActionDragAndDrop index eventType)
 
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
 actionsErrorPane error =
