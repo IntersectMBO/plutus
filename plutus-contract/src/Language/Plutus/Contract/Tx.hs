@@ -24,25 +24,26 @@ module Language.Plutus.Contract.Tx(
     , collectFromScriptFilter
     ) where
 
-import           Control.Lens      (at, (^.))
-import qualified Control.Lens.TH   as Lens.TH
-import qualified Data.Aeson        as Aeson
-import qualified Data.Map          as Map
-import           Data.Maybe        (fromMaybe)
-import           Data.Set          (Set)
-import qualified Data.Set          as Set
-import           GHC.Generics      (Generic)
+import           Control.Lens              (at, (^.))
+import qualified Control.Lens.TH           as Lens.TH
+import qualified Data.Aeson                as Aeson
+import qualified Data.Map                  as Map
+import           Data.Maybe                (fromMaybe)
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           GHC.Generics              (Generic)
 
 import           Language.PlutusTx.Lattice
 
-import           Ledger            (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef, ValidatorScript)
-import qualified Ledger            as L
-import           Ledger.AddressMap (AddressMap)
-import           Ledger.Index      (minFee)
-import qualified Ledger.Interval   as I
-import           Ledger.Slot       (SlotRange)
-import qualified Ledger.Tx         as Tx
-import           Ledger.Value      as V
+import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef,
+                                            ValidatorScript)
+import qualified Ledger                    as L
+import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Index              (minFee)
+import qualified Ledger.Interval           as I
+import           Ledger.Slot               (SlotRange)
+import qualified Ledger.Tx                 as Tx
+import           Ledger.Value              as V
 
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].

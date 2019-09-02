@@ -105,7 +105,8 @@ import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
-                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId, width)
+                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId,
+                                            width)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
