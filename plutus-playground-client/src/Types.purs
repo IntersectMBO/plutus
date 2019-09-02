@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
@@ -279,43 +278,34 @@ instance showDragAndDropEventType :: Show DragAndDropEventType where
   show DragLeave = "DragLeave"
   show Drop = "Drop"
 
+data FieldEvent
+  = SetIntField (Maybe Int)
+  | SetBoolField Boolean
+  | SetStringField String
+  | SetHexField String
+  | SetRadioField String
+  | SetValueField ValueEvent
+  | SetSlotRangeField (Interval Slot)
+
 data FormEvent a
-  = SetIntField (Maybe Int) a
-  | SetBoolField Boolean a
-  | SetStringField String a
-  | SetHexField String a
-  | SetRadioField String a
-  | SetValueField ValueEvent a
-  | SetSlotRangeField (Interval Slot) a
-  | AddSubField a
+  = SetField FieldEvent a
   | SetSubField Int (FormEvent a)
+  | AddSubField a
   | RemoveSubField Int a
 
 derive instance functorFormEvent :: Functor FormEvent
 
 instance extendFormEvent :: Extend FormEvent where
-  extend f event@(SetIntField n _) = SetIntField n $ f event
-  extend f event@(SetBoolField n _) = SetBoolField n $ f event
-  extend f event@(SetStringField s _) = SetStringField s $ f event
-  extend f event@(SetHexField s _) = SetHexField s $ f event
-  extend f event@(SetRadioField s _) = SetRadioField s $ f event
-  extend f event@(SetValueField e _) = SetValueField e $ f event
-  extend f event@(SetSlotRangeField e _) = SetSlotRangeField e $ f event
-  extend f event@(AddSubField _) = AddSubField $ f event
+  extend f event@(SetField fieldEvent a) = SetField fieldEvent (f event)
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
+  extend f event@(AddSubField _) = AddSubField $ f event
   extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
 
 instance comonadFormEvent :: Comonad FormEvent where
-  extract (SetIntField _ a) = a
-  extract (SetBoolField _ a) = a
-  extract (SetStringField _ a) = a
-  extract (SetHexField _ a) = a
-  extract (SetRadioField _ a) = a
-  extract (SetValueField _ a) = a
-  extract (SetSlotRangeField _ a) = a
+  extract (SetField _ a) = a
+  extract (SetSubField _ subEvent) = extract subEvent
   extract (AddSubField a) = a
-  extract (SetSubField _ e) = extract e
-  extract (RemoveSubField _ e) = e
+  extract (RemoveSubField _ a) = a
 
 ------------------------------------------------------------
 type ChildQuery

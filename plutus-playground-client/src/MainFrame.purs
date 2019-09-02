@@ -6,7 +6,6 @@ module MainFrame
   ) where
 
 import Types
-
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
 import Action (actionsErrorPane, simulationPane)
@@ -68,7 +67,6 @@ import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _Com
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
-import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
@@ -471,61 +469,41 @@ evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) 
 
 evalForm ::
   forall a.
-  Warn (Text "I wonder if this code would be simpler if we just abandoned FormArgument and used the Functor version everywhere.") =>
   Value ->
   FormEvent a ->
   FormArgument ->
   FormArgument
 evalForm initialValue = rec
   where
-  rec (SetIntField n next) (FormInt _) = FormInt n
+  evalField (SetIntField n) (FormInt _) = FormInt n
 
-  rec (SetIntField _ _) arg = arg
+  evalField (SetBoolField n) (FormBool _) = FormBool n
 
-  rec (SetBoolField n next) (FormBool _) = FormBool n
+  evalField (SetStringField s) (FormString _) = FormString (Just s)
 
-  rec (SetBoolField _ _) arg = arg
+  evalField (SetHexField s) (FormHex _) = FormHex (Just s)
 
-  rec (SetStringField s next) (FormString _) = FormString (Just s)
+  evalField (SetRadioField s) (FormRadio options _) = FormRadio options (Just s)
 
-  rec (SetStringField _ _) arg = arg
+  evalField (SetValueField valueEvent) (FormValue value) = FormValue $ evalValueEvent valueEvent value
 
-  rec (SetHexField s next) (FormHex _) = FormHex (Just s)
+  evalField (SetSlotRangeField newInterval) arg@(FormSlotRange _) = FormSlotRange newInterval
 
-  rec (SetHexField _ _) arg = arg
+  evalField _ arg = arg
 
-  rec (SetRadioField s next) (FormRadio options _) = FormRadio options (Just s)
-
-  rec (SetRadioField _ _) arg = arg
-
-  rec (SetValueField valueEvent _) (FormValue value) = FormValue $ evalValueEvent valueEvent value
-
-  rec (SetValueField _ _) arg = arg
+  rec (SetField field subEvent) arg = evalField field arg
 
   rec (SetSubField 1 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _1) (rec subEvent) fields
 
   rec (SetSubField 2 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _2) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormTuple _) = arg
+  rec (SetSubField 0 subEvent) (FormMaybe schema field) = FormMaybe schema $ over _Just (rec subEvent) field
 
-  rec (SetSubField _ subEvent) arg@(FormString _) = arg
+  rec (SetSubField n subEvent) (FormArray schema fields) = FormArray schema $ over (ix n) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormInt _) = arg
+  rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormBool _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormHex _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormRadio _ _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormValue _) = arg
-
-  rec (SetSlotRangeField newInterval _) arg@(FormSlotRange _) = FormSlotRange newInterval
-
-  rec (SetSlotRangeField _ _) arg = arg
-
-  rec (AddSubField _) (FormArray schema fields) =
-    -- As the code stands, this is the only guarantee we get that every
+  rec (AddSubField _) (FormArray schema fields) = -- As the code stands, this is the only guarantee we get that every
     -- value in the array will conform to the schema: the fact that we
     -- create the 'empty' version from the same schema template.
     --
@@ -535,21 +513,9 @@ evalForm initialValue = rec
 
   rec (AddSubField _) arg = arg
 
-  rec (SetSubField 0 subEvent) (FormMaybe schema field) = FormMaybe schema $ over _Just (rec subEvent) field
-
-  rec (SetSubField _ subEvent) arg@(FormMaybe schema field) = arg
-
-  rec (SetSubField n subEvent) (FormArray schema fields) = FormArray schema $ over (ix n) (rec subEvent) fields
-
-  rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
-
-  rec (SetSubField n subEvent) arg@(FormUnsupported _) = arg
-
-  rec (SetSubField n subEvent) arg@(FormSlotRange _) = arg
-
   rec (RemoveSubField n subEvent) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
 
-  rec (RemoveSubField n subEvent) arg = arg
+  rec _ arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
