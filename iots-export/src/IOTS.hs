@@ -52,8 +52,7 @@ data IotsTypeRep a where
   Group
     :: IotsTypeRep a -> IotsTypeRep (HList bs) -> IotsTypeRep (HList (a ': bs))
   Fun
-    :: Typeable (a -> b)
-    => IotsTypeRep a
+    :: IotsTypeRep a
     -> IotsTypeRep b
     -> IotsTypeRep (a -> b)
   NamedFun :: Typeable f => Text -> IotsTypeRep (a -> b) -> IotsTypeRep f
@@ -217,7 +216,7 @@ instance (IotsExportable t, IotsExportable (HList ts)) =>
          IotsExportable (HList (t ': ts)) where
   iotsTypeRep = Group iotsTypeRep iotsTypeRep
 
-instance (IotsExportable a, IotsExportable b, Typeable (a -> b)) =>
+instance (IotsExportable a, IotsExportable b) =>
          IotsExportable ((->) a b) where
   iotsTypeRep = Fun iotsTypeRep iotsTypeRep
 
