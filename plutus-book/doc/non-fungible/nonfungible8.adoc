@@ -193,12 +193,18 @@ hasAdminToken s (_, o) =
 ----
 
 Now we can write our endpoints. The biggest change is in `start`, where
-we now first have to forge the admin token before we can start our policy:
+we now first have to forge the admin token before we can start our policy.
+
+We also rename `start` to `start'`, because for later use we want a version 
+of `start` that _returns_ the symbol of our policy
+.
+It is not allowed to have wallet endpoints in the Playground return types other than `()`, though, 
+so afterwards we will define `start` in terms of `start'`.
 
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m CurrencySymbol
-start = do
+start' :: forall m. MonadWallet m => m CurrencySymbol
+start' = do
 
     key  <- ownPubKey
     outs <- outputsAt $ pubKeyAddress key
@@ -292,6 +298,9 @@ start = do
                     defaultSlotRange
                     (Set.singleton i)
                     [o1, o2]
+
+start :: MonadWallet m => m ()
+start = void start'
 ----
 
 <1> We pick one of our outputs as the unique output used by the admin token
@@ -321,7 +330,7 @@ token.
 
 <12> The second output gets the excess value contained in the input.
 
-[source,haskell,highlight='31-31,41-41']
+[source,haskell,highlight='33-33,43-43']
 ----
 forge :: forall m. MonadWallet m
       => CurrencySymbol -- admin token symbol
@@ -335,7 +344,9 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ " of " ++ show nf
+        "forging " ++ n ++ 
+        " (symbol " ++ show (nonFungibleSymbol nf) ++
+        ") of " ++ show nf
 
     outs <- outputsAt $ nonFungibleAddress nf
     case findOut s $ Map.toList outs of

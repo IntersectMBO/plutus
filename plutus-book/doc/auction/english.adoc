@@ -561,8 +561,8 @@ mkEARedeemer a = RedeemerScript $
 ////
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m CurrencySymbol
-start = do
+start' :: forall m. MonadWallet m => m CurrencySymbol
+start' = do
 
     key  <- ownPubKey
     outs <- outputsAt $ pubKeyAddress key
@@ -657,6 +657,9 @@ start = do
                     (Set.singleton i)
                     [o1, o2]
 
+start :: MonadWallet m => m ()
+start = void start'
+
 forge :: forall m. MonadWallet m
       => CurrencySymbol -- admin token symbol
       -> String         -- token name
@@ -669,7 +672,9 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ " of " ++ show nf
+        "forging " ++ n ++ 
+        " (symbol " ++ show (nonFungibleSymbol nf) ++
+        ") of " ++ show nf
 
     outs <- outputsAt $ nonFungibleAddress nf
     case findOut s $ Map.toList outs of
