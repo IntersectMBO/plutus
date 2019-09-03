@@ -7,8 +7,6 @@ module Algorithmic where
 \begin{code}
 open import Function hiding (_∋_)
 
-
-
 open import Type
 open import Type.BetaNormal
 
