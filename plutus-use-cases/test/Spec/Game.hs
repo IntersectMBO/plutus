@@ -1,9 +1,10 @@
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Spec.Game(tests) where
 
-import qualified Language.Plutus.Contract.Prompt.Event         as Event
 import           Language.Plutus.Contract.Test
+import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import qualified Language.PlutusTx                             as PlutusTx
 import qualified Language.PlutusTx.Prelude                     as PlutusTx
 import           Language.PlutusTx.Lattice
@@ -23,17 +24,17 @@ tests :: TestTree
 tests = testGroup "game"
     [ checkPredicate "Expose 'lock' endpoint and watch game address"
         game
-        (endpointAvailable w1 "lock" /\ interestingAddress w1 gameAddress)
+        (endpointAvailable @"lock" w1 /\ interestingAddress w1 gameAddress)
         $ pure ()
 
     , checkPredicate "'lock' endpoint submits a transaction"
         game
         (anyTx w1)
-        $ addEvent w1 (Event.endpointJson "lock" (LockParams "secret" 10))
+        $ addEvent w1 (Endpoint.event @"lock" (LockParams "secret" 10))
 
     , checkPredicate "'guess' endpoint is available after locking funds"
         game
-        (endpointAvailable w2 "guess")
+        (endpointAvailable @"guess" w2)
         lockTrace
 
     , checkPredicate "guess right (unlock funds)"

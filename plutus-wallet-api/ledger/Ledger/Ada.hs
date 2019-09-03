@@ -32,6 +32,7 @@ import           Data.Fixed
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (divide)
 import qualified Language.PlutusTx.Prelude as P
@@ -56,7 +57,7 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Lovelace { getLovelace :: Integer }
     deriving (Enum)
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
     deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise)
 
 instance Haskell.Semigroup Ada where

@@ -1,42 +1,101 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
--- | Watch an address on the blockchain and receive notifications when it
---   is changed.
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.WatchAddress where
 
-import           Control.Eff
-import           Control.Eff.Exception
-import           Control.Eff.Extend
-import           Control.Eff.Reader.Lazy
-import           Data.Function                         (fix)
+import           Control.Lens                               (at, (^.))
+import           Data.Aeson                                 (FromJSON, ToJSON)
+import           Data.Map                                   (Map)
+import qualified Data.Map                                   as Map
+import           Data.Maybe                                 (fromMaybe)
+import           Data.Row
+import           Data.Set                                   (Set)
+import qualified Data.Set                                   as Set
+import           GHC.Generics                               (Generic)
+import           Ledger                                     (Address, Slot, Value)
+import           Ledger.AddressMap                          (AddressMap)
+import qualified Ledger.AddressMap                          as AM
+import           Ledger.Tx                                  (Tx)
+import qualified Ledger.Value                               as V
 
-import           Language.Plutus.Contract.Prompt.Event as Event
-import           Language.Plutus.Contract.Prompt.Hooks as Hooks
-import           Ledger.Tx                             (Address, Tx)
+import           Language.Plutus.Contract.Effects.AwaitSlot
+import           Language.Plutus.Contract.Request           (Contract, ContractRow, requestMaybe)
+import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Util              (loopM)
 
-data WatchAddress v where
-  WatchAddress :: Address -> WatchAddress Tx
+type HasWatchAddress s =
+    ( HasType "address" (Address, Tx) (Input s)
+    , HasType "address" (Set Address) (Output s)
+    , ContractRow s)
 
-nextTransactionAt :: Member WatchAddress r => Address -> Eff r Tx
-nextTransactionAt = send . WatchAddress
+type WatchAddress = "address" .== ((Address, Tx), Set Address)
 
-instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Handle WatchAddress r a k where
-  handle step cor req = case req of
-    WatchAddress addr -> step (comp (singleK promptAddress) cor ^$ addr)
+newtype InterestingAddresses =
+    InterestingAddresses  { unInterestingAddresses :: Set Address }
+        deriving stock (Eq, Ord, Generic, Show)
+        deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
-runWatchAddress :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Eff (WatchAddress ': r) a -> Eff r a
-runWatchAddress = fix (handle_relay pure)
+-- | Wait for the next transaction that changes an address.
+nextTransactionAt :: forall s. HasWatchAddress s => Address -> Contract s Tx
+nextTransactionAt addr =
+    let s = Set.singleton addr
+        check :: (Address, Tx) -> Maybe Tx
+        check (addr', tx) = if addr == addr' then Just tx else Nothing
+    in
+    requestMaybe @"address" @_ @_ @s s check
 
-promptAddress :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Address -> Eff r Tx
-promptAddress addr = do
-  sl <- reader (>>= Event.ledgerUpdate)
-  case sl of
-    Just (addr', tx)
-      | addr' == addr -> pure tx
-    _ -> throwError @(Hook ()) (Hooks.addrHook addr)
+-- | Watch an address until the given slot, then return all known outputs
+--   at the address.
+watchAddressUntil
+    :: forall s.
+       ( HasAwaitSlot s
+       , HasWatchAddress s
+       )
+    => Address
+    -> Slot
+    -> Contract s AddressMap
+watchAddressUntil a = collectUntil @s AM.updateAddresses (AM.addAddress a mempty) (nextTransactionAt @s a)
+
+-- | Watch an address for changes, and return the outputs
+--   at that address when the total value at the address
+--   has surpassed the given value.
+fundsAtAddressGt
+    :: forall s.
+       HasWatchAddress s
+    => Address
+    -> Value
+    -> Contract s AddressMap
+fundsAtAddressGt addr' vl = loopM go mempty where
+    go cur = do
+        delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr'
+        let cur' = cur <> delta
+            presentVal = fromMaybe mempty (AM.values cur' ^. at addr')
+        if presentVal `V.gt` vl
+        then pure (Right cur') else pure (Left cur')
+
+events
+    :: forall s.
+       ( HasType "address" (Address, Tx) (Input s)
+       , AllUniqueLabels (Input s)
+       )
+    => AddressMap
+    -> Tx
+    -> Map Address (Event s)
+events utxo tx =
+    Map.fromSet
+        (\addr -> Event $ IsJust (Label @"address") (addr, tx))
+        (AM.addressesTouched utxo tx)
+
+addresses
+    :: forall s.
+    ( HasType "address" (Set Address) (Output s))
+    => Handlers s
+    -> Set Address
+addresses (Handlers r) = r .! Label @"address"

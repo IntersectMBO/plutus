@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
@@ -12,7 +13,7 @@ import           Spec.Lib                                              (timesFee
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                      as HUnit
 
-import qualified Language.Plutus.Contract.Prompt.Event                 as Event
+import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 import           Language.Plutus.Contract.Test
 import qualified Language.Plutus.Contract.Trace                        as Trace
 import qualified Language.PlutusTx                                     as PlutusTx
@@ -31,7 +32,7 @@ tests :: TestTree
 tests = testGroup "crowdfunding"
     [ checkPredicate "Expose 'contribute' and 'scheduleCollection' endpoints"
         (crowdfunding theCampaign)
-        (endpointAvailable w1 "contribute" /\ endpointAvailable w1 "schedule collection")
+        (endpointAvailable @"contribute" w1 /\ endpointAvailable @"schedule collection" w1)
         $ pure ()
 
     , checkPredicate "make contribution"
@@ -53,7 +54,7 @@ tests = testGroup "crowdfunding"
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Tell the contract we're at slot 21, causing the transaction to be submitted
-            >> Trace.addEvent w1 (Event.changeSlot 21)
+            >> Trace.addEvent w1 (AwaitSlot.event 21) 
             -- This submits the transaction to the blockchain. Normally, the transaction would
             -- be validated right away and the funds of wallet 1 would increase. In this case
             -- the transaction is not validated because it has a validity interval that begins
