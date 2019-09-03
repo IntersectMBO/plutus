@@ -330,7 +330,7 @@ token.
 
 <12> The second output gets the excess value contained in the input.
 
-[source,haskell,highlight='31-31,41-41']
+[source,haskell,highlight='33-33,43-43']
 ----
 forge :: forall m. MonadWallet m
       => CurrencySymbol -- admin token symbol
@@ -344,7 +344,9 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ " of " ++ show nf
+        "forging " ++ n ++ 
+        " (symbol " ++ show (nonFungibleSymbol nf) ++
+        ") of " ++ show nf
 
     outs <- outputsAt $ nonFungibleAddress nf
     case findOut s $ Map.toList outs of

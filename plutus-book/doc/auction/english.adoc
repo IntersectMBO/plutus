@@ -672,7 +672,9 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ " of " ++ show nf
+        "forging " ++ n ++ 
+        " (symbol " ++ show (nonFungibleSymbol nf) ++
+        ") of " ++ show nf
 
     outs <- outputsAt $ nonFungibleAddress nf
     case findOut s $ Map.toList outs of
