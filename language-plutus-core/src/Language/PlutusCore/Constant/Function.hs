@@ -23,7 +23,7 @@ import           GHC.TypeLits
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme uni a r -> Type TyName uni ()
-typeSchemeToType = runQuote . go 0 where
+typeSchemeToType = undefined {- runQuote . go 0 where
     go :: Int -> TypeScheme uni a r -> Quote (Type TyName uni ())
     go _ (TypeSchemeResult pR)          = pure $ toTypeAst pR
     go i (TypeSchemeArrow pA schB)    =
@@ -33,7 +33,7 @@ typeSchemeToType = runQuote . go 0 where
             let text = Text.pack $ symbolVal @text Proxy
                 uniq = fromIntegral $ natVal @uniq Proxy
                 a    = TyName $ Name () text $ Unique uniq
-            TyForall () a (Type ()) <$> go i (schK Proxy)
+            TyForall () a (Type ()) <$> go i (schK Proxy) -}
 
 -- | Extract the 'TypeScheme' from a 'NameMeaning' and
 -- convert it to the corresponding 'Type'.
