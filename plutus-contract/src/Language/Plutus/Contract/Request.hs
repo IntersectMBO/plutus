@@ -18,23 +18,23 @@ import qualified Data.Aeson                         as Aeson
 import           Data.Row
 
 import           Language.Plutus.Contract.Resumable
-import           Language.Plutus.Contract.Schema    (Event (..), First, Hooks (..), Second)
+import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
 import qualified Language.Plutus.Contract.Schema    as Events
 
 -- | @Contract s a@ is a contract with schema 's', producing a value of
 --  type 'a'. See note [Contract Schema].
 --
-type Contract s a = Resumable (Step (Maybe (Event s)) (Hooks s)) a
+type Contract s a = Resumable (Step (Maybe (Event s)) (Handlers s)) a
 
 -- | Constraints on the contract schema, ensuring that the requests produced
 --   by the contracts are 'Monoid's (so that we can produce a record with
 --   requests from different branches) and that the labels of the schema are
 --   unique.
 type ContractRow s =
-  ( Forall (Second s) Monoid
-  , Forall (Second s) Semigroup
-  , AllUniqueLabels (First s)
-  , AllUniqueLabels (Second s)
+  ( Forall (Output s) Monoid
+  , Forall (Output s) Semigroup
+  , AllUniqueLabels (Input s)
+  , AllUniqueLabels (Output s)
   )
 
 -- | Given a schema @s@ with an entry @l .== (resp, req)@, @request r@
@@ -43,8 +43,8 @@ type ContractRow s =
 request
   :: forall l req resp s.
     ( KnownSymbol l
-    , HasType l resp (First s)
-    , HasType l req (Second s)
+    , HasType l resp (Input s)
+    , HasType l req (Output s)
     , ContractRow s
     )
     => req
@@ -60,8 +60,8 @@ request out = CStep (Step go) where
 requestMaybe
   :: forall l req resp s a.
      ( KnownSymbol l
-     , HasType l resp (First s)
-     , HasType l req (Second s)
+     , HasType l resp (Input s)
+     , HasType l req (Output s)
      , ContractRow s
      )
     => req

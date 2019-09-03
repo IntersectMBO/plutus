@@ -58,7 +58,7 @@ import qualified Data.Set                                        as Set
 import           Language.Plutus.Contract                        (Contract, HasWatchAddress, HasWriteTx)
 import           Language.Plutus.Contract.Resumable              (ResumableError)
 import qualified Language.Plutus.Contract.Resumable              as State
-import           Language.Plutus.Contract.Schema                 (Event, First, Hooks, Second)
+import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
 import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
 import qualified Language.Plutus.Contract.Wallet                 as Wallet
 
@@ -109,11 +109,11 @@ addEvent w e = ctsEvents %= Map.alter go w where
 getHooks
     :: forall s m a.
        ( Monad m
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , AllUniqueLabels (Second s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , AllUniqueLabels (Output s)
        )
-    => Wallet -> ContractTrace s m a (Either ResumableError (Hooks s))
+    => Wallet -> ContractTrace s m a (Either ResumableError (Handlers s))
 getHooks w = do
     contract <- use ctsContract
     evts <- gets (foldMap toList . view (at w) . _ctsEvents)
@@ -187,8 +187,8 @@ callEndpoint
     :: forall l a b s m.
        ( MonadEmulator m
        , KnownSymbol l
-       , HasType l a (First s)
-       , AllUniqueLabels (First s))
+       , HasType l a (Input s)
+       , AllUniqueLabels (Input s))
     => Wallet
     -> a
     -> ContractTrace s m b ()
@@ -199,8 +199,8 @@ callEndpoint w = addEvent w . Endpoint.event @l @_ @s
 submitUnbalancedTx
     :: forall a s m.
       ( MonadEmulator m
-      , HasType "tx" () (First s)
-      , AllUniqueLabels (First s)
+      , HasType "tx" () (Input s)
+      , AllUniqueLabels (Input s)
       )
     => Wallet
     -> UnbalancedTx
@@ -226,10 +226,10 @@ addTxEvent tx = do
 unbalancedTransactions
     :: forall s m a.
        ( MonadEmulator m
-       , HasType "tx" WriteTx.PendingTransactions (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , AllUniqueLabels (Second s)
+       , HasType "tx" WriteTx.PendingTransactions (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , AllUniqueLabels (Output s)
        )
     => Wallet
     -> ContractTrace s m a [UnbalancedTx]
@@ -250,8 +250,8 @@ interestingAddresses =
 notifySlot
     :: forall s m a.
        ( MonadEmulator m
-       , HasType "slot" Slot (First s)
-       , AllUniqueLabels (First s)
+       , HasType "slot" Slot (Input s)
+       , AllUniqueLabels (Input s)
        )
     => Wallet
     -> ContractTrace s m a ()

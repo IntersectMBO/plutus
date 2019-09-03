@@ -27,12 +27,12 @@ import qualified Ledger.Value                               as V
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
 import           Language.Plutus.Contract.Request           (Contract, ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema            (Event (..), First, Hooks (..), Second)
+import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Util              (loopM)
 
 type HasWatchAddress s =
-    ( HasType "address" (Address, Tx) (First s)
-    , HasType "address" (Set Address) (Second s)
+    ( HasType "address" (Address, Tx) (Input s)
+    , HasType "address" (Set Address) (Output s)
     , ContractRow s)
 
 type WatchAddress = "address" .== ((Address, Tx), Set Address)
@@ -82,8 +82,8 @@ fundsAtAddressGt addr' vl = loopM go mempty where
 
 events
     :: forall s.
-       ( HasType "address" (Address, Tx) (First s)
-       , AllUniqueLabels (First s)
+       ( HasType "address" (Address, Tx) (Input s)
+       , AllUniqueLabels (Input s)
        )
     => AddressMap
     -> Tx
@@ -95,7 +95,7 @@ events utxo tx =
 
 addresses
     :: forall s.
-    ( HasType "address" (Set Address) (Second s))
-    => Hooks s
+    ( HasType "address" (Set Address) (Output s))
+    => Handlers s
     -> Set Address
-addresses (Hooks r) = r .! Label @"address"
+addresses (Handlers r) = r .! Label @"address"

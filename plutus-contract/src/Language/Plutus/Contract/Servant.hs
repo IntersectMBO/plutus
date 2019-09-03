@@ -33,7 +33,7 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Record
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import qualified Language.Plutus.Contract.Resumable as Resumable
-import           Language.Plutus.Contract.Schema    (Event, First, Hooks, Second)
+import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
 
 newtype State e = State { record :: Record e }
     deriving stock (Generic, Eq)
@@ -45,17 +45,17 @@ data Request s = Request
     }
     deriving stock (Generic)
 
-instance (AllUniqueLabels (First s), Forall (First s) FromJSON) => FromJSON (Request s)
-instance (Forall (First s) ToJSON) => ToJSON (Request s)
+instance (AllUniqueLabels (Input s), Forall (Input s) FromJSON) => FromJSON (Request s)
+instance (Forall (Input s) ToJSON) => ToJSON (Request s)
 
 data Response s = Response
     { newState :: State (Event s)
-    , hooks    :: Hooks s
+    , hooks    :: Handlers s
     }
     deriving stock (Generic)
 
-instance (AllUniqueLabels (First s), AllUniqueLabels (Second s), Forall (First s) FromJSON, Forall (Second s) FromJSON) => FromJSON (Response s)
-instance (Forall (First s) ToJSON, Forall (Second s) ToJSON) => ToJSON (Response s)
+instance (AllUniqueLabels (Input s), AllUniqueLabels (Output s), Forall (Input s) FromJSON, Forall (Output s) FromJSON) => FromJSON (Response s)
+instance (Forall (Input s) ToJSON, Forall (Output s) ToJSON) => ToJSON (Response s)
 
 type ContractAPI s =
        "initialise" :> Get '[JSON] (Response s)
@@ -64,9 +64,9 @@ type ContractAPI s =
 -- | Serve a 'PlutusContract' via the contract API.
 contractServer
     :: forall s.
-       ( AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       ( AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Contract s ()
     -> Server (ContractAPI s)
@@ -84,21 +84,21 @@ servantResp = \case
 -- | A servant 'Application' that serves a Plutus contract
 contractApp
     :: forall s.
-       ( AllUniqueLabels (Second s)
-       , AllUniqueLabels (First s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , Forall (First s) FromJSON
-       , Forall (First s) ToJSON
-       , Forall (Second s) ToJSON )
+       ( AllUniqueLabels (Output s)
+       , AllUniqueLabels (Input s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , Forall (Input s) FromJSON
+       , Forall (Input s) ToJSON
+       , Forall (Output s) ToJSON )
     => Contract s () -> Application
 contractApp = serve (Proxy @(ContractAPI s)) . contractServer @s
 
 runUpdate
     :: forall s.
-       (AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       (AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Contract s () -> Request s -> Either ResumableError (Response s)
 runUpdate con (Request o e) =
@@ -107,9 +107,9 @@ runUpdate con (Request o e) =
 
 initialResponse
     :: forall s.
-       ( AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       ( AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Contract s ()
     -> Either ResumableError (Response s)

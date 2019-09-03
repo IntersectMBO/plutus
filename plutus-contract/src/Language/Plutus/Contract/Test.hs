@@ -65,7 +65,7 @@ import           Ledger.Value                          (Value)
 import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                       as EM
 
-import           Language.Plutus.Contract.Schema       (Event(..), Hooks(..), First, Second)
+import           Language.Plutus.Contract.Schema       (Event(..), Handlers(..), Input, Output)
 import           Language.Plutus.Contract.Trace        as X
 
 newtype PredF f a = PredF { unPredF :: a -> f Bool }
@@ -86,13 +86,13 @@ type TracePredicate s a = PredF (Writer (Seq String)) (InitialDistribution, Cont
 
 hooks
     :: forall s a.
-       ( Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , AllUniqueLabels (Second s)
+       ( Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , AllUniqueLabels (Output s)
        )
     => Wallet
     -> ContractTraceResult s a
-    -> Hooks s
+    -> Handlers s
 hooks w rs =
     let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
         con  = rs ^. ctrTraceState . ctsContract
@@ -100,9 +100,9 @@ hooks w rs =
 
 record 
     :: forall s a.
-       ( AllUniqueLabels (Second s)
-       , Forall (Second s) Semigroup
-       , Forall (Second s) Monoid
+       ( AllUniqueLabels (Output s)
+       , Forall (Output s) Semigroup
+       , Forall (Output s) Monoid
        )
     => Wallet 
     -> ContractTraceResult s a
@@ -135,11 +135,11 @@ checkPredicate nm con predicate action =
 
 endpointAvailable
     :: forall (l :: Symbol) s a.
-       ( HasType l Endpoints.ActiveEndpoints (Second s)
+       ( HasType l Endpoints.ActiveEndpoints (Output s)
        , KnownSymbol l
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Wallet
     -> TracePredicate s a
@@ -166,10 +166,10 @@ interestingAddress w addr = PredF $ \(_, r) -> do
 
 tx
     :: forall s a.
-       ( HasType "tx" WriteTx.PendingTransactions (Second s)
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup)
+       ( HasType "tx" WriteTx.PendingTransactions (Output s)
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup)
     => Wallet
     -> (UnbalancedTx -> Bool)
     -> String
@@ -212,7 +212,7 @@ walletWatchingAddress w addr =
 
 assertEvents 
     :: forall s a.
-       (Forall (First s) Show)
+       (Forall (Input s) Show)
     => Wallet
     -> ([Event s] -> Bool)
     -> String
@@ -232,10 +232,10 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
 
 waitingForSlot
     :: forall s a.
-       ( HasType "slot" AwaitSlot.WaitingForSlot (Second s)
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       ( HasType "slot" AwaitSlot.WaitingForSlot (Output s)
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Wallet
     -> Slot
@@ -268,10 +268,10 @@ emulatorLog f nm = PredF $ \(_, r) ->
 
 anyTx
     :: forall s a. 
-       ( HasType "tx" WriteTx.PendingTransactions (Second s)
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
+       ( HasType "tx" WriteTx.PendingTransactions (Output s)
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
        )
     => Wallet
     -> TracePredicate s a
@@ -279,13 +279,13 @@ anyTx w = tx w (const True) "anyTx"
 
 assertHooks 
     :: forall s a. 
-       ( AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , Forall (Second s) Show
+       ( AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , Forall (Output s) Show
        )
     => Wallet
-    -> (Hooks s -> Bool)
+    -> (Handlers s -> Bool)
     -> String
     -> TracePredicate s a
 assertHooks w p nm = PredF $ \(_, rs) ->
@@ -293,15 +293,15 @@ assertHooks w p nm = PredF $ \(_, rs) ->
     if p hks
     then pure True
     else do
-        tellSeq ["Hooks:", show hks, "Failed '" <> nm <> "'"]
+        tellSeq ["Handlers:", show hks, "Failed '" <> nm <> "'"]
         pure False
 
 assertRecord 
     :: forall s a. 
-       ( Forall (First s) Show
-       , Forall (Second s) Semigroup
-       , Forall (Second s) Monoid
-       , AllUniqueLabels (Second s)
+       ( Forall (Input s) Show
+       , Forall (Output s) Semigroup
+       , Forall (Output s) Monoid
+       , AllUniqueLabels (Output s)
        )
     => Wallet 
     -> (Record (Event s) -> Bool)
@@ -320,10 +320,10 @@ assertRecord w p nm = PredF $ \(_, rs) ->
 
 assertResult
     :: forall s a. 
-       ( Forall (First s) Show
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Semigroup
-       , Forall (Second s) Monoid
+       ( Forall (Input s) Show
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Semigroup
+       , Forall (Output s) Monoid
        )
     => Wallet
     -> (Maybe a -> Bool)

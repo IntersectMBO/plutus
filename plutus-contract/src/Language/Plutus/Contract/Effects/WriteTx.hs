@@ -14,12 +14,12 @@ import           Data.Row
 import           GHC.Generics                     (Generic)
 
 import           Language.Plutus.Contract.Request as Req
-import           Language.Plutus.Contract.Schema  (Event (..), First, Hooks (..), Second)
+import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Tx      (UnbalancedTx)
 
 type HasWriteTx s =
-    ( HasType "tx" () (First s)
-    , HasType "tx" PendingTransactions (Second s)
+    ( HasType "tx" () (Input s)
+    , HasType "tx" PendingTransactions (Output s)
     , ContractRow s)
 
 type WriteTx = "tx" .== ((), PendingTransactions)
@@ -34,12 +34,12 @@ writeTx :: forall s. HasWriteTx s => UnbalancedTx -> Contract s ()
 writeTx t = request @"tx" @_ @_ @s (PendingTransactions [t])
 
 event
-  :: forall s. (HasType "tx" () (First s), AllUniqueLabels (First s))
+  :: forall s. (HasType "tx" () (Input s), AllUniqueLabels (Input s))
   => Event s
 event = Event (IsJust #tx ())
 
 transactions
-  :: forall s. ( HasType "tx" PendingTransactions (Second s) )
-   => Hooks s
+  :: forall s. ( HasType "tx" PendingTransactions (Output s) )
+   => Handlers s
    -> [UnbalancedTx]
-transactions (Hooks r) = unPendingTransactions $ r .! #tx
+transactions (Handlers r) = unPendingTransactions $ r .! #tx

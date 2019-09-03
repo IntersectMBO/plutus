@@ -1,13 +1,9 @@
 {-# LANGUAGE AllowAmbiguousTypes     #-}
-{-# LANGUAGE ConstraintKinds         #-}
 {-# LANGUAGE DataKinds               #-}
 {-# LANGUAGE DerivingVia             #-}
 {-# LANGUAGE FlexibleContexts        #-}
-{-# LANGUAGE FlexibleInstances       #-}
 {-# LANGUAGE GADTs                   #-}
-{-# LANGUAGE MultiParamTypeClasses   #-}
 {-# LANGUAGE OverloadedLabels        #-}
-{-# LANGUAGE OverloadedStrings       #-}
 {-# LANGUAGE PolyKinds               #-}
 {-# LANGUAGE RankNTypes              #-}
 {-# LANGUAGE TypeApplications        #-}
@@ -17,26 +13,20 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 {-# OPTIONS_GHC -fno-warn-unticked-promoted-constructors #-}
 module Language.Plutus.Contract.Schema(
-      Hooks(..)
+      Handlers(..)
     , Event(..)
     , generalise
     , initialise
-    , First
-    , Second
+    , Input
+    , Output
     ) where
 
-import           Data.Aeson            (FromJSON, ToJSON, (.:))
-import qualified Data.Aeson            as Aeson
-import qualified Data.Aeson.Types      as Aeson
-import           Data.Functor.Identity
-import           Data.Functor.Product
-import           Data.Proxy            (Proxy (..))
+import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Row.Internal
 import qualified Data.Row.Records      as Records
-import qualified Data.Row.Variants     as Variants
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
+
+import           Data.Row.Extras
 
 import           GHC.TypeLits
 
@@ -60,69 +50,57 @@ In practice the schema is a type of the 'Data.Row.Row' kind.
 
 -}
 
-newtype Event s = Event { unEvent :: Var (First s) }
+newtype Event s = Event { unEvent :: Var (Input s) }
 
-deriving instance Forall (First s) Show => Show (Event s)
-deriving instance Forall (First s) Eq => Eq (Event s)
+deriving newtype instance Forall (Input s) Show => Show (Event s)
+deriving newtype instance Forall (Input s) Eq => Eq (Event s)
 
-newtype Hooks s = Hooks { unHooks :: Rec (Second s) }
+deriving via JsonVar (Input s) instance (AllUniqueLabels (Input s), Forall (Input s) FromJSON) => FromJSON (Event s)
 
-deriving instance Forall (Second s) Show => Show (Hooks s)
+deriving via JsonVar (Input s) instance (Forall (Input s) ToJSON) => ToJSON (Event s)
 
-instance Forall (Second s) ToJSON => ToJSON (Hooks s) where
-  toJSON = Aeson.object . Records.eraseWithLabels @ToJSON @(Second s) @Text @Aeson.Value Aeson.toJSON . unHooks
+newtype Handlers s = Handlers { unHandlers :: Rec (Output s) }
 
-instance (AllUniqueLabels (Second s), Forall (Second s) FromJSON) => FromJSON (Hooks s) where
-  parseJSON vl = Hooks <$> Records.fromLabelsA @FromJSON @Aeson.Parser @(Second s)  (\lbl -> Aeson.withObject "Rec" (\obj -> obj .: (Text.pack $ show lbl) >>= Aeson.parseJSON) vl)
+deriving via (JsonRec (Output s)) instance Forall (Output s) ToJSON => ToJSON (Handlers s)
+deriving via (JsonRec (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)
 
-instance Forall (Second s) Semigroup => Semigroup (Hooks s) where
-  (<>) = merge @s
+deriving newtype instance Forall (Output s) Show => Show (Handlers s)
 
-instance (AllUniqueLabels (Second s), Forall (Second s) Semigroup, Forall (Second s) Monoid) => Monoid (Hooks s) where
-  mempty = Hooks (Records.default' @Monoid @(Second s) mempty)
-  mappend = (<>)
+deriving via (MonoidRec (Output s)) instance (Forall (Output s) Semigroup) => Semigroup (Handlers s)
 
-initialise :: forall (s :: Row *) l a. (AllUniqueLabels (Second s), Forall (Second s) Semigroup, Forall (Second s) Monoid, KnownSymbol l, HasType l a (Second s)) => a -> Hooks s
+deriving via (MonoidRec (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) Semigroup, Forall (Output s) Monoid) => Monoid (Handlers s)
+
+initialise :: forall (s :: Row *) l a. (AllUniqueLabels (Output s), Forall (Output s) Semigroup, Forall (Output s) Monoid, KnownSymbol l, HasType l a (Output s)) => a -> Handlers s
 initialise a =
-  let Hooks h = mempty @(Hooks s)
-  in Hooks (Records.update (Label @l) a h)
+  let Handlers h = mempty @(Handlers s)
+  in Handlers (Records.update (Label @l) a h)
 
-generalise :: forall s s'. (AllUniqueLabels (Second s'), Forall (Second s') Monoid, (Second s .// Second s') ~ (Second s')) => Hooks s -> Hooks s'
-generalise (Hooks l) = Hooks $ l .// Records.default' @Monoid @(Second s') mempty
+generalise :: forall s s'. (AllUniqueLabels (Output s'), Forall (Output s') Monoid, (Output s .// Output s') ~ (Output s')) => Handlers s -> Handlers s'
+generalise (Handlers l) = Handlers $ l .// Records.default' @Monoid @(Output s') mempty
 
-merge :: forall s. Forall (Second s) Semigroup => Hooks s -> Hooks s -> Hooks s
-merge (Hooks rec1) (Hooks rec2) = Hooks $ metamorph @_ @(Second s) @Semigroup @(Product Rec Rec) @Rec @Identity Proxy doNil doUncons doCons (Pair rec1 rec2)
-  where
-    doNil _ = empty
-    doUncons l (Pair r1 r2) = (Identity $ r1 .! l <> r2 .! l, Pair (Records.unsafeRemove l r1) (Records.unsafeRemove l r2))
-    doCons l (Identity v) = Records.unsafeInjectFront l v
+--  | Given a schema 's', 'Input s' is the 'Row' type of the inputs that 
+--    contracts with this schema accept. See [Contract Schema]
+type family Input (r :: Row *) where
+  Input ('R r) = 'R (InputR r)
 
+type family InputR (r :: [LT *]) where
+  InputR '[] = '[]
+  InputR (l ':-> (t1, _) ': r) =
+    l ':-> t1 ': InputR r
+  InputR (l ':-> t ': _) =
+    TypeError ('Text "Input requires all types to be tuples."
+                :$$: 'Text "For one, the field labelled " :<>: ShowType l :<>: 'Text " has type " :<>: ShowType t)
 
-instance (AllUniqueLabels (First s), Forall (First s) FromJSON) => FromJSON (Event s) where
-  parseJSON vl = Event <$> Variants.fromLabels @FromJSON @(First s) @Aeson.Parser (\lbl -> Aeson.withObject "Var" (\obj -> do { tg <- obj .: "tag"; if tg == show lbl then (obj .: "value") >>= Aeson.parseJSON else fail "Wrong label" }) vl)
+--  | Given a schema 's', 'Output s' is the 'Row' type of the outputs that 
+--    contracts with this schema produce. See [Contract Schema]
+type family Output (r :: Row *) where
+  Output ('R r) = 'R (OutputR r)
 
-instance Forall (First s) ToJSON => ToJSON (Event s) where
-  toJSON (Event v) = Aeson.object [Variants.eraseWithLabels @ToJSON @(First s)  @Text @Aeson.Value Aeson.toJSON v]
-
-type family First (r :: Row *) where
-  First ('R r) = 'R (FirstR r)
-
-type family FirstR (r :: [LT *]) where
-  FirstR '[] = '[]
-  FirstR (l ':-> (t1, _) ': r) =
-    l ':-> t1 ': FirstR r
-  FirstR (l ':-> t ': _) =
-    TypeError ('Text "First requires all types to be tuples."
-                :$$: 'Text "For one, the label " :<>: ShowType l :<>: 'Text " has type " :<>: ShowType t)
-
-type family Second (r :: Row *) where
-  Second ('R r) = 'R (SecondR r)
-
-type family SecondR (r :: [LT *]) where
-  SecondR '[] = '[]
-  SecondR (l ':-> (_, t2) ': r) =
-    l ':-> t2 ': SecondR r
-  SecondR (l ':-> t ': _) =
-    TypeError ('Text "Second requires all types to be tuples."
-                :$$: 'Text "For one, the label " :<>: ShowType l :<>: 'Text " has type " :<>: ShowType t)
+type family OutputR (r :: [LT *]) where
+  OutputR '[] = '[]
+  OutputR (l ':-> (_, t2) ': r) =
+    l ':-> t2 ': OutputR r
+  OutputR (l ':-> t ': _) =
+    TypeError ('Text "Output requires all types to be tuples."
+                :$$: 'Text "For one, the field labelled " :<>: ShowType l :<>: 'Text " has type " :<>: ShowType t)
 

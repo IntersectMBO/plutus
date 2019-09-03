@@ -19,14 +19,14 @@ import           GHC.Generics                     (Generic)
 import           Prelude                          hiding (until)
 
 import           Language.Plutus.Contract.Request as Req
-import           Language.Plutus.Contract.Schema  (Event (..), First, Hooks (..), Second)
+import           Language.Plutus.Contract.Schema  (Event (..), Input, Handlers (..), Output)
 import           Language.Plutus.Contract.Util    (foldMaybe, selectEither)
 
 import           Ledger.Slot                      (Slot)
 
 type HasAwaitSlot s =
-  ( HasType "slot" Slot (First s)
-  , HasType "slot" WaitingForSlot (Second s)
+  ( HasType "slot" Slot (Input s)
+  , HasType "slot" WaitingForSlot (Output s)
   , ContractRow s
   )
 
@@ -54,18 +54,18 @@ awaitSlot sl =
 
 event
     :: forall s.
-    ( HasType "slot" Slot (First s)
-    , AllUniqueLabels (First s))
+    ( HasType "slot" Slot (Input s)
+    , AllUniqueLabels (Input s))
     => Slot
     -> Event s
 event = Event . IsJust #slot
 
 nextSlot
     :: forall s.
-    ( HasType "slot" WaitingForSlot (Second s))
-    => Hooks s
+    ( HasType "slot" WaitingForSlot (Output s))
+    => Handlers s
     -> Maybe Slot
-nextSlot (Hooks r) = unWaitingForSlot (r .! #slot)
+nextSlot (Handlers r) = unWaitingForSlot (r .! #slot)
 
 
 -- | Run a contract until the given slot has been reached.
@@ -107,8 +107,6 @@ between
   -> Contract s a
   -> Contract s (Maybe a)
 between a b = timeout @s b . when @s a
-
--- The constraints are a bit annoying :(
 
 -- | Repeatedly run a contract until the slot is reached, then
 --   return the last result.

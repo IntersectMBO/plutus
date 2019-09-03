@@ -41,6 +41,7 @@ flag development
 library
     import: lang
     exposed-modules:
+        Data.Row.Extras
         Language.Plutus.Contract
         Language.Plutus.Contract.App
         Language.Plutus.Contract.Effects.AwaitSlot

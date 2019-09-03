@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -23,7 +24,7 @@ import           Data.Sequence                    (Seq)
 import           Data.Text                        (Text)
 import qualified Data.Text.IO                     as Text
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Schema  (First, Second)
+import           Language.Plutus.Contract.Schema  (Input, Output)
 import           Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
 import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, execTrace)
 import qualified Network.Wai.Handler.Warp         as Warp
@@ -32,19 +33,25 @@ import           Wallet.Emulator                  (Wallet (..))
 
 import           Language.Plutus.Contract.IOTS    (IotsType, schemaMap)
 
+-- | A number of constraints to ensure that 's' is the schema
+--   of a contract whose inputs and outputs can be serialised to
+--   JSON, and whose user-facing endpoints have 'IotsType' instances
+type AppSchema s =
+    ( AllUniqueLabels (Input s)
+    , AllUniqueLabels (Output s)
+    , Forall (Output s) Monoid
+    , Forall (Output s) Semigroup
+    , Forall (Output s) ToJSON
+    , Forall (Input (s .\\ BlockchainActions)) IotsType
+    , AllUniqueLabels (Input (s .\\ BlockchainActions))
+    , Forall (Input (s .\\ BlockchainActions)) Unconstrained1
+    , Forall (Input s) FromJSON
+    , Forall (Input s) ToJSON )
+
 -- | Run the contract as an HTTP server with servant/warp
 run
     :: forall s.
-       ( AllUniqueLabels (First s)
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , Forall (Second s) ToJSON
-       , Forall (First (s .\\ BlockchainActions)) IotsType
-       , AllUniqueLabels (First (s .\\ BlockchainActions))
-       , Forall (First (s .\\ BlockchainActions)) Unconstrained1
-       , Forall (First s) FromJSON
-       , Forall (First s) ToJSON )
+       ( AppSchema s )
     => Contract s () -> IO ()
 run st = runWithTraces @s st []
 
@@ -52,16 +59,7 @@ run st = runWithTraces @s st []
 --   print the 'Request' values for the given traces.
 runWithTraces
     :: forall s.
-       ( AllUniqueLabels (First s)
-       , AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , Forall (Second s) ToJSON
-       , Forall (First (s .\\ BlockchainActions)) IotsType
-       , AllUniqueLabels (First (s .\\ BlockchainActions))
-       , Forall (First (s .\\ BlockchainActions)) Unconstrained1
-       , Forall (First s) FromJSON
-       , Forall (First s) ToJSON)
+       ( AppSchema s )
     => Contract s ()
     -> [(String, (Wallet, ContractTrace s EmulatorAction () ()))]
     -> IO ()
@@ -88,7 +86,7 @@ runWithTraces con traces = do
             --    include them then the app platform needs to filter them out
             --    so that they're not displayed in the UI.
             --    TODO: Decide whether 'BlockchainActions' should be included.
-            printSchemaAndExit (getConst $ schemaMap @(First (s .\\ BlockchainActions)))
+            printSchemaAndExit (getConst $ schemaMap @(Input (s .\\ BlockchainActions)))
         ["trace", t] -> maybe (printTracesAndExit mp) (uncurry (printTrace con)) (Map.lookup t mp)
         _ -> printTracesAndExit mp
 
@@ -107,10 +105,10 @@ printTracesAndExit mp = do
 --   for each intermediate state to stdout.
 printTrace
     :: forall s.
-       ( AllUniqueLabels (Second s)
-       , Forall (Second s) Monoid
-       , Forall (Second s) Semigroup
-       , Forall (First s) ToJSON )
+       ( AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       , Forall (Input s) ToJSON )
     => Contract s ()
     -> Wallet
     -> ContractTrace s EmulatorAction () ()
