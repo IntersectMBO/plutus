@@ -113,7 +113,6 @@ data PendingTxIn = PendingTxIn
 data PendingTx = PendingTx
     { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
     , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
-    , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
     , pendingTxIn         :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
     , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
@@ -258,9 +257,8 @@ pubKeyOutput o = case pendingTxOutData o of
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
-ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
-    PendingTxIn _ (Just h) _ -> h
-    _                        -> error ()
+ownHashes (PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness= Just h}}) = h
+ownHashes _ = error ()
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.

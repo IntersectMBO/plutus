@@ -271,7 +271,6 @@ mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
     { pendingTxInputs = []
     , pendingTxOutputs = []
-    , pendingTxFee = PlutusTx.zero
     , pendingTxForge = PlutusTx.zero
     , pendingTxIn = PendingTxIn
         { pendingTxInRef = PendingTxOutRef

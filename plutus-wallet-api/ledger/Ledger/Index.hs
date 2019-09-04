@@ -289,7 +289,6 @@ validationData tx = do
             { pendingTxInputs = txins
             , pendingTxOutputs = mkOut <$> txOutputs tx
             , pendingTxForge = txForge tx
-            , pendingTxFee = txFee tx
             , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
             , pendingTxValidRange = txValidRange tx
             , pendingTxSignatures = Map.toList (tx ^. signatures)

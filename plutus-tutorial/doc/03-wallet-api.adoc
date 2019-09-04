@@ -206,7 +206,7 @@ mkValidator
     Campaign {fundingTarget, endDate, collectionDeadline, campaignOwner} -- <3>
     con
     act
-    p@(PendingTx ins outs _ _ _ txnValidRange _ _) = -- <1> <2>
+    p@(PendingTx{pendingTxOutputs=outs, pendingTxInputs=ins,pendingTxValidRange=txnValidRange}) = -- <1> <2>
 ----
 <1> This binds `ins` to the list of all inputs of the current transaction,
 `outs` to the list of all its outputs, and `txnValidRange` to the

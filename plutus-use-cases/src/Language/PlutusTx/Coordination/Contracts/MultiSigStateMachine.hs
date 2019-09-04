@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A multisig contract written as a state machine.
 --   $multisig
@@ -70,7 +71,8 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: PendingTx -> Payment -> Bool
-proposalExpired (PendingTx _ _ _ _ _ rng _ _) (Payment _ _ ddl) = Interval.before ddl rng
+proposalExpired PendingTx{pendingTxValidRange} Payment{paymentDeadline} =
+    paymentDeadline `Interval.before` pendingTxValidRange
 
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.
