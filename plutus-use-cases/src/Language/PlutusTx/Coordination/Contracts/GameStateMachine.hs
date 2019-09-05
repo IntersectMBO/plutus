@@ -38,7 +38,29 @@ import qualified Data.ByteString.Lazy.Char8   as C
 import qualified Language.PlutusTx.StateMachine as SM
 import           Language.PlutusTx.StateMachine ()
 
-import           Language.PlutusTx.Coordination.Contracts.GameStateMachine.Types
+newtype HashedString = HashedString ByteString
+
+PlutusTx.makeLift ''HashedString
+
+newtype ClearString = ClearString ByteString
+
+PlutusTx.makeLift ''ClearString
+
+-- | State of the guessing game
+data GameState =
+    Initialised HashedString
+    -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
+    | Locked TokenName HashedString
+    -- ^ Funds have been locked. In this state only the 'Guess' action is
+    --   allowed.
+
+instance Eq GameState where
+    {-# INLINABLE (==) #-}
+    (Initialised (HashedString s)) == (Initialised (HashedString s')) = s == s'
+    (Locked (V.TokenName n) (HashedString s)) == (Locked (V.TokenName n') (HashedString s')) = s == s' && n == n'
+    _ == _ = traceIfFalseH "states not equal" False
+
+PlutusTx.makeLift ''GameState
 
 -- | Check whether a 'ClearString' is the preimage of a
 --   'HashedString'
@@ -88,14 +110,14 @@ check state input ptx = case (state, input) of
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: SM.StateMachineValidator GameState GameInput
-mkValidator = SM.mkValidator (SM.StateMachine step check)
+mkValidator = SM.mkValidator (SM.StateMachine step check (const False))
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
 
 mkRedeemer :: GameInput -> RedeemerScript
 mkRedeemer i = RedeemerScript $
-    $$(Ledger.compileScript [|| SM.mkRedeemer @GameState @GameInput ||])
+    $$(Ledger.compileScript [|| SM.mkStepRedeemer @GameState @GameInput ||])
         `Ledger.applyScript`
             (Ledger.lifted i)
 
