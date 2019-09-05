@@ -10,7 +10,8 @@ open import Algorithmic
 ```
 
 ```
-data VarEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}→ ∀{Γ Γ'} → Γ ≡Ctx Γ' → A ≡Nf A'  → Γ ∋ A → Γ' ∋ A' → Set
+data VarEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}
+  → Γ ≡Ctx Γ' → A ≡Nf A'  → Γ ∋ A → Γ' ∋ A' → Set
   where
     ZEq : ∀ {Φ}{Γ Γ' : Ctx Φ}
       → {A B : Φ ⊢Nf⋆ *}(p : A ≡Nf B)
@@ -40,9 +41,18 @@ data VarEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}→ ∀{Γ Γ'} → Γ ≡Ctx Γ' → 
       
 data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
   → A ≡Nf A' → Γ ⊢ A → Γ' ⊢ A' → Set where
+  
   varEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')
     → {x : Γ ∋ A}{x'  : Γ' ∋ A'}
-    → VarEq p q x x' → Eq p q (` x) (` x')  
+    → VarEq p q x x' → Eq p q (` x) (` x')
+  ƛEq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){A B A' B' : Φ ⊢Nf⋆ *}
+    → (q : A ≡Nf A')
+    → (r : B ≡Nf B')
+    → {t : Γ , A ⊢ B}
+    → {t' : Γ' , A' ⊢ B'}
+    → ∀{x x'}
+    → Eq (p , q) r t t'
+    → Eq p (⇒≡Nf q r) (ƛ x t) (ƛ x' t')
 ```
 
 ```
