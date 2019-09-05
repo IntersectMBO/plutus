@@ -163,8 +163,6 @@
 
 \begin{document}
 \maketitle
-\todokwxm{We don't say anything about serialisation, and this is important in $\ptx$,
-  where we have hashes of serialised versions of scripts, not in-memory versions.}
 \todokwxm{Michael suggests (and I agree) that we should try to make
   clear the difference between the ledger layer and the script layer.
   It would be good if we could make the EUTXO model independent of the
@@ -174,12 +172,12 @@
   the EUTXO model work'' (where
   \textsf{A},\textsf{B},\textsf{C},\textsf{D} are things like encoding
   the \textsf{PendingTx} data, performing validation, verifying the
-  content of the output datascripts, ...).  Then we can say separately
+  content of the output data scripts, ...).  Then we can say separately
   ``Here's how you can do \textsf{A},\textsf{B},\textsf{C}, and
   \textsf{D} in Plutus Core''.  This would make things modular, giving
   us a clear and well-defined interface between the EUTXO model and
   Plutus Core, which would surely be a good thing.  However, the business
-  abour validating data scripts messes this up.}
+  abour validating data scripts \textit{really} messes this up.}
 
 \bigskip
 
@@ -266,7 +264,6 @@ notation established by \citep{Zahnentferner18-UTxO}.
   which is denoted by $\llbracket \cdots \rrbracket :
   \mathsf{Script} \rightarrow \mathsf{Script} \times \mathsf{Script}
     \times \mathsf{Script} \rightarrow \B$.
-
 \item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
   \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
 
@@ -396,10 +393,10 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 \item We introduce a new script called a \i{data script}, and each
   unspent output has a (possibly empty) data script associated with
   it.  The introduction of the data script increases the expressivity
-  of the model considerably. For example, one can use the datascript
+  of the model considerably. For example, one can use the data script
   to propagate state between transactions, and this can be used to
   give a contract the structure of a finite state machine; the fact
-  that the datascript is part of the output and not the transaction
+  that the data script is part of the output and not the transaction
   means that the state can change without the transaction changing,
   which makes it easier to have an ``identity'' for an ongoing
   contract: we will return to this issue in
@@ -423,7 +420,7 @@ $$
 \script \times \script \times \script \rightarrow \B
 $$
 At the Plutus level in Cardano, the validator is a program which
-consumes the redeemer, the datascript, and the Plutus Core encoding of
+consumes the redeemer, the data script, and the Plutus Core encoding of
 the $\ptx$ structure as agruments: each script will have a Plutus type
 and the types will have to fit the types expected by the validator.
 
@@ -699,26 +696,157 @@ $\datascript$ fields and the result of $\sigma$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
+\todokwxm{We should probably point out somewhere that the validating node
+  typehecks scripts during validation.}
+
 \subsection{Validating pending data scripts}
 \label{sec:validating-datascripts}
-During the validation of a transaction $T$, it may be necessary for
-the validator $V$ of one of $T$'s inputs $I$ to examine a data script
-$D$ belonging to one of $T$'s outputs; for example, $D$ may be being
-used to propagate some state through an ongoing contract and $V$ may
-need to check that the contents of $D$ are ``correct'' in some sense.
+Suppose that a transaction $T$ is undergoing validation, and that $T$
+has outputs $O_1, \ldots, O_n$, with each $O_i$ having a data script
+$D_i$.  As part of the validation process we have to validate each
+input to $T$.  Consider a specific input $I$ with validator $V$.
+During the validation of $I$ it may be necessary for $V$ to check that
+some of $T$'s output data scripts, $D_1,\ldots,D_k$ are ``correct'' in
+some way (for example, the $D_i$ could be being used to propagate some
+state through an ongoing contract, and $V$ might need to check that
+the state has some expected form in order to be sure that the creator
+of $T$ is not attempting to cheat in some way).
 
-This presents a problem.  During validation, the only information
-about the pending contract available to $V$ is that provided
-in the $\ptx$ structure, and this only contains the hash of $D$,
-not $D$ itself.
-\bigskip
-\todokwxm{What's wrong with embedding $D$ in $\ptx$? Types, that's
-  what.  Why can't we deserialise?  Because that's expensive and would
-  require something like dynamic types.  Why can't we embed the scripts
-in the redeemer?  Apparently we could cheat.}
+\noindent These considerations lead us to the following requirements:
+
+\begin{itemize}
+  \item During validation of a contract $T$, a validator $V$ of an input
+  must be able to inspect the contents of the data script of each of
+  $T$'s outputs.
+ \item Furthermore, the contents of the data scripts must be obtained
+   in such a way that $V$ can be certain that they are genuine (if not,
+   it might be possible for some participant in the transaction to
+   lie about the contents and thus subvert the transaction).
+\end{itemize}
+
+\noindent Exactly how this is done will depend on the properties of the
+scripting language.
+
+\paragraph{Pending data script validation in Plutus.} The above
+requirement presents a problem for Plutus Core because Plutus Core is
+strongly typed and the $D_i$ are not required to have any fixed type.
+Furthermore, $V$ must exist when the input $I$ is created, but the
+$D_i$ need not be created until $T$ is prepared for submission to the
+blockchain, which may be long after $I$ is created; this means that
+the types of the $D_i$ are not even necessarily known when $V$ is
+created.  This prevents the $D_i$ from being supplied to $V$ as
+runtime arguments or included in the $\ptx$ structure, which has the
+fixed type described in Figure~\ref{fig:ptx-1-types}.
+
+There is a mechanism for solving this problem.  This depends on the
+fact that $I$'s redeemer, $R$, say, does not need to be
+created until $T$ is ready for submission to the chain, and the $D_i$
+are known at this point.
+
+As an initial attempt to deal with the problem, we could construct a
+redeemer $R$ containing the actual (deserialised) contents of
+the $D_1,\ldots,D_k$ together with their hashes; during validation,
+$R$ could forward the contents of the $D_i$ to $V$ for examination.
+However, \textbf{this does not work}: the redeemer is constructed
+off-chain, probably in the wallet of the creator of the transaction
+$T$, and there is no reason for $V$ to trust the creator of $T$,
+who could lie about what is actually contained in $D$.
+
+However, this scheme can be modified to provide the contents of the
+data scripts in a trustworthy way.  The basic idea is to use a
+redeemer $R$ which takes the (contents of the) $D_i$ as arguments and
+forwards them to $V$, and for $R$ to be supplied with the true
+contents of the $D_i$ during validation; this is done by the
+validating node ($N$, say), and basic blockchain mechanisms mean that
+$V$ \textit{can} trust $N$.
+
+Some further refinements are required to ensure trustworthiness,
+because it is conceivable that $R$ might still be able to fake the
+contents of a data script.  The basic idea is for $N$ to wrap the data
+script contents in a special type \verb|Sealed| which can only be
+produced using an operation called \verb|Seal|, and then during
+validation is is checked that $R$ does not use the \verb|Seal|
+operation: it follows that any values of type \verb|Sealed| which
+$V$ receives can only have been provided by $N$, so $V$ can accept
+that these values are correct.
 
 
+\paragraph{The details} We will now describe this process in more
+detail.  We define the following types (somewhat simplified and
+presented in Haskell syntax, but easily translatable to Plutus Core
+thanks to the latter's expressivity):
 
+\begin{verbatim}
+  type DataScriptHash = ByteString
+
+  type HashedDataScript a = a * DataScriptHash
+
+  data Sealed a = Seal a
+
+  newtype Sealer = 
+          Sealer (forall a . a -> DataScriptHash -> Sealed (HashedDataScript a))
+\end{verbatim}
+
+\noindent The type \verb|HashedDataScript a| represents a value of
+type \verb|a| together with a hash: in practice \verb|a| will be the
+Plutus Core type of the contents of a data script $D$ and the hash
+will be the hash of the serialised version of $D$ (ie, the version of
+$D$ stored on the blockchain).  The type \verb|Sealed a| simply wraps
+a value of type \verb|a|, and \verb|Sealer| gives a way to build a
+\verb|Sealed| value containing a value of type \verb|a| together with
+the hash of its serialised version.
+
+We assume that the validator $V$ for an input $I$ needs to inspect the
+contents of data scripts $D_1, \ldots, D_k$ of the outputs
+$O_1, \ldots O_k$ of $T$ , and that the $D_i$ have (Plutus Core) types
+$\tau_1, \ldots \tau_k$ respectively.  Recall also that $V$ takes as
+arguments (i) the data script for $I$, (ii) the redeemer for $I$, and
+the $\ptx$ structure of $T$.  Assume that these have the Plutus Core
+types $\delta, \rho$ and $\pi$ respectively, so that the Plutus Core
+type of $V$ is
+$\delta \rightarrow \rho \rightarrow \pi \rightarrow \textsf{Bool}$.
+The creator of the validator $V$ will know in advance that $V$
+requires access to objects of type $\tau_1, \ldots \tau_k$, so
+the type $\rho$ will describe an object which provides a means
+to access things of these types (for example, $\rho$ may be a tuple
+type involving the $\tau_i$, in addition to types of any other
+values which $V$ exepcts the redeemer to provide).
+
+\newcommand{\sealed}{\mathsf{Sealed}}
+\newcommand{\sealer}{\mathsf{Sealer}}
+
+\noindent We now proceed as follows:
+\begin{itemize}
+\item A ``pre-redeemer'' $R_0$ for $O$ is constructed (off-chain) with
+  the type
+  $\sealed\, \tau_1 \rightarrow \sealed\, \tau_2 \rightarrow \cdots
+  \rightarrow \sealed\, \tau_k \rightarrow \rho$
+\item On-chain, the validating node $N$ typechecks $R_0$ and
+  makes sure that it contains nothing of type \verb|Sealed ...|;
+  if it does, then valuation fails.
+\item  $N$ applies $R_0$ to the actual
+  data scripts and their hashes to obtain a real redeemer
+  \[
+    R = R_0\, (\sealer\, D_1\, D_1^{\#}) \cdots (\sealer\, D_k\, D_k^{\#})
+    \]
+  \item Validation is performed as usual to obtain a boolean value
+    $\llbracket V (D, R, P) \rrbracket$, where $D$ is the data script
+    for $P$ is the $\ptx$ object for the current transaction
+  \item During validation, $V$ can access the $D_i$ and check the hash
+    from the corresponsing \verb|Sealed| object against the hash from
+    $P$ to make sure that $R_0$ has not permuted its arguments or
+    duplicated any of them,.
+  \end{itemize}
+  \todokwxm{We don't really need the hashes now: we could just use the
+    index of the output.}  \todokwxm{Damn. Now we need to apply
+    pre-redeemers to things as well in
+    Figure~\ref{fig:basic-notation}.}  \todokwxm{Also, this
+    Figure~\ref{fig:eutxo-1-validity} is now misleading because it
+    only gives the basic definition of validity and doesn't talk about
+    all these pending datascripts.  However, it would be intolerable
+    if we had to include all this stuff in something that's basically
+    pretty simple.}
+  
 %%\newpage
 \section{EUTXO-2: multicurrency support and non-fungible tokens}
 \label{sec:eutxo-2}
@@ -734,6 +862,13 @@ EUTXO-2 model allows an unlimited number of other \textit{custom
   currencies}, possibly user-defined.  Each custom currency has a
 unique identifier; the native currency is handled separately and has
 no identifier.
+
+\todokwxm{We may wish to implement a DEX to enable exchange of custom
+  currencies.  This is a little problematic in Ethereum because the
+  Ether currency itself does not conform to ERC-20 and so has to be
+  wrapped in another currency before it can participate in DEX trades.
+  Will the fact that Ada is treated differently from custom currencies
+  in EUTXO cause us difficulties here?}
 
 \paragraph{NFTs.}
 A non-fungible token (NFT) is a unique object which can be transferred
@@ -976,21 +1111,6 @@ Notes~\ref{note:monetary-policies}, \ref{note:eutxo-2-implications},
 and \ref{note:eutxo-2-performance} for comments on some technical
 aspects of the model.
 
-\section{What else do we need to worry about?}
-\begin{itemize}
-
-\item Sometimes I'm saying ``datascript'' and at other times ``data script''.
-  Maybe we should try to be consistent about this.
-  
-\item Do we need to worry about who signs the various scripts, or is that
-  something the wallet deals with?
-
-\item Who's responsible for looking after the scripts, and where are they kept?
-  Presumably scripts will be stored in the chain, but how do they get there?
-
-\item Maybe we should make this more consistent with the ledger specification.
-\end{itemize}
-  
 \appendix
 \section{Comments on the specification}
 \label{appendix:comments}
@@ -1068,10 +1188,10 @@ the hash in the output can be used to check that the correct validator
 is in fact being used when validation occurs), but unspent outputs
 persist on-chain in the UTXO set until they are eventually spent.
 
-This strategy is not applied to datascripts since, as the name would
+This strategy is not applied to data scripts since, as the name would
 suggest, we expect them to be small pieces of data (public keys, for
 example) which would not incur large storage charges.
-\todokwxm{Exactly what is the rationale for making the datascript
+\todokwxm{Exactly what is the rationale for making the data script
   part of the output and not just a hash?}
 
 \note{Determinism of the validation process.}
