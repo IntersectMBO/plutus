@@ -706,7 +706,7 @@ has outputs $O_1, \ldots, O_n$, with each $O_i$ having a data script
 $D_i$.  As part of the validation process we have to validate each
 input to $T$.  Consider a specific input $I$ with validator $V$.
 During the validation of $I$ it may be necessary for $V$ to check that
-some of $T$'s output data scripts, $D_1,\ldots,D_k$ are ``correct'' in
+some of $T$'s output data scripts $D_1,\ldots,D_k$ are ``correct'' in
 some way (for example, the $D_i$ could be being used to propagate some
 state through an ongoing contract, and $V$ might need to check that
 the state has some expected form in order to be sure that the creator
@@ -718,10 +718,10 @@ of $T$ is not attempting to cheat in some way).
   \item During validation of a contract $T$, a validator $V$ of an input
   must be able to inspect the contents of the data script of each of
   $T$'s outputs.
- \item Furthermore, the contents of the data scripts must be obtained
-   in such a way that $V$ can be certain that they are genuine (if not,
-   it might be possible for some participant in the transaction to
-   lie about the contents and thus subvert the transaction).
+\item The contents of the data scripts must be obtained in such a way
+  that $V$ can be certain that they are genuine (if not, it might be
+  possible for some participant to lie about the contents and thus
+  subvert the transaction).
 \end{itemize}
 
 \noindent Exactly how this is done will depend on the properties of the
@@ -771,7 +771,7 @@ $V$ receives can only have been provided by $N$, so $V$ can accept
 that these values are correct.
 
 
-\paragraph{The details} We will now describe this process in more
+\paragraph{The details.} We will now describe this process in more
 detail.  We define the following types (somewhat simplified and
 presented in Haskell syntax, but easily translatable to Plutus Core
 thanks to the latter's expressivity):
@@ -799,14 +799,14 @@ the hash of its serialised version.
 We assume that the validator $V$ for an input $I$ needs to inspect the
 contents of data scripts $D_1, \ldots, D_k$ of the outputs
 $O_1, \ldots O_k$ of $T$ , and that the $D_i$ have (Plutus Core) types
-$\tau_1, \ldots \tau_k$ respectively.  Recall also that $V$ takes as
-arguments (i) the data script for $I$, (ii) the redeemer for $I$, and
+$\tau_1, \ldots, \tau_k$ respectively.  Recall also that $V$ takes as
+arguments (i) the data script for $I$, (ii) the redeemer for $I$, and (iii)
 the $\ptx$ structure of $T$.  Assume that these have the Plutus Core
 types $\delta, \rho$ and $\pi$ respectively, so that the Plutus Core
 type of $V$ is
 $\delta \rightarrow \rho \rightarrow \pi \rightarrow \textsf{Bool}$.
 The creator of the validator $V$ will know in advance that $V$
-requires access to objects of type $\tau_1, \ldots \tau_k$, so
+requires access to objects of type $\tau_1, \ldots, \tau_k$, so
 the type $\rho$ will describe an object which provides a means
 to access things of these types (for example, $\rho$ may be a tuple
 type involving the $\tau_i$, in addition to types of any other
@@ -825,17 +825,18 @@ values which $V$ exepcts the redeemer to provide).
   makes sure that it contains nothing of type \verb|Sealed ...|;
   if it does, then valuation fails.
 \item  $N$ applies $R_0$ to the actual
-  data scripts and their hashes to obtain a real redeemer
+  data scripts and their hashes to obtain a full redeemer of type $\rho$:
   \[
     R = R_0\, (\sealer\, D_1\, D_1^{\#}) \cdots (\sealer\, D_k\, D_k^{\#})
     \]
   \item Validation is performed as usual to obtain a boolean value
-    $\llbracket V (D, R, P) \rrbracket$, where $D$ is the data script
-    for $P$ is the $\ptx$ object for the current transaction
+    $\llbracket V (D_I, R, P) \rrbracket$, where $D_I$ is the data script
+    for $I$ and $P$ is the $\ptx$ object for the current transaction
   \item During validation, $V$ can access the $D_i$ and check the hash
     from the corresponsing \verb|Sealed| object against the hash from
-    $P$ to make sure that $R_0$ has not permuted its arguments or
-    duplicated any of them,.
+    $P$ to make sure that $R_0$ has not replaced the expected $D_i$
+    with some other $D_j$ which happens to have the same type.
+    
   \end{itemize}
   \todokwxm{We don't really need the hashes now: we could just use the
     index of the output.}  \todokwxm{Damn. Now we need to apply
