@@ -796,22 +796,22 @@ a value of type \verb|a|, and \verb|Sealer| gives a way to build a
 \verb|Sealed| value containing a value of type \verb|a| together with
 the hash of its serialised version.
 
-We assume that the validator $V$ for an input $I$ needs to inspect the
-contents of data scripts $D_{i_1}, \ldots, D_{i_k}$ of the outputs
-$O_{i_1}, \ldots, O_{i_k}$ of $T$, and that the (Plutus Core) type of
-$D_{i_j}$ is $\tau_{i_j}$ ($1\le j \le k$).  Recall from
-Section~\ref{sec:eutxo-1} that $V$ takes as arguments (i) the data
-script for $I$, (ii) the redeemer for $I$, and (iii) the $\ptx$
-structure of $T$.  Assume that these have the Plutus Core types
-$\delta, \rho$ and $\pi$ respectively, so that the Plutus Core type of
-$V$ is
-$\delta \rightarrow \rho \rightarrow \pi \rightarrow \B$.
-The creator of the validator $V$ will know in advance that $V$
-requires access to objects of type $\tau_{i_1}, \ldots, \tau_{i_k}$,
-so the type $\rho$ will describe an object which provides a means to
-access things of these types (for example, $\rho$ may be a tuple type
-involving the $\tau_{i_j}$, in addition to types of any other values
-which $V$ expects the redeemer to provide).
+We assume during validation of the transacrion $T$, the validator $V$
+for an input $I$ of $T$ needs to inspect the contents of data scripts
+$D_{i_1}, \ldots, D_{i_k}$ of the outputs $O_{i_1}, \ldots, O_{i_k}$
+of $T$, and that the (Plutus Core) type of $D_{i_j}$ is $\tau_{i_j}$
+($1\le j \le k$).  Recall from Section~\ref{sec:eutxo-1} that $V$
+takes as arguments (i) the data script for $I$, (ii) the redeemer for
+$I$, and (iii) a $\ptx$ structure for $I$ and $T$.  Assume that these
+have the Plutus Core types $\delta, \rho$ and $\pi$ respectively, so
+that the Plutus Core type of $V$ is
+$\delta \rightarrow \rho \rightarrow \pi \rightarrow \B$.  The creator
+of the validator $V$ will know in advance that $V$ requires access to
+objects of type $\tau_{i_1}, \ldots, \tau_{i_k}$, so the type $\rho$
+will describe an object which provides a means to access things of
+these types (for example, $\rho$ may be a tuple type involving the
+$\tau_{i_j}$, in addition to types of any other values which $V$
+expects the redeemer to provide).
 
 \newcommand{\sealed}{\mathsf{Sealed}}
 \newcommand{\sealer}{\mathsf{Sealer}}
@@ -822,23 +822,26 @@ which $V$ expects the redeemer to provide).
   the type
   $\sealed\, \tau_{i_1} \rightarrow \sealed\, \tau_{i_2} \rightarrow \cdots
   \rightarrow \sealed\, \tau_{i_k} \rightarrow \rho$
-\item On-chain, the validating node $N$ typechecks $R_0$ and
-  makes sure that it contains nothing of type \verb|Sealed ...|;
-  if it does, then valuation fails.
+\item On-chain, the validating node $N$ typechecks $R_0$ and makes
+  sure that it contains nothing of type \verb|Sealed ...| and no uses
+  of \verb|Seal| or \verb|Sealer|; if it does, then validation fails.
 \item  $N$ applies $R_0$ to the actual
-  data scripts and their hashes to obtain a full redeemer of type $\rho$:
+  data scripts and their hashes to obtain a full redeemer $R$ of type $\rho$:
   \[
     R = R_0\, (\sealer\, D_{i_1}\, D_{i_1}^{\#}) \cdots (\sealer\, D_{i_k}\, D_{i_k}^{\#})
     \]
   \item Validation is performed as usual to obtain a boolean value
-    $\llbracket V (D_I, R, P) \rrbracket$, where $D_I$ is the data script
-    for $I$ and $P$ is the $\ptx$ object for the current transaction
+    $\llbracket V (D_I, R, P) \rrbracket$, where $D_I$ is $I$'s data script
+    and $P$ is the $\ptx$ object for $T$ and $I$.
   \item During validation, $V$ can access the $D_{i_j}$ and check the hash
     from the corresponding \verb|Sealed| object against the hash from
     $P$ to make sure that $R_0$ has not replaced the expected $D_{i_j}$
     with some other $D_{i_{j^{\prime}}}$ which happens to have the same type.
     
   \end{itemize}
+
+  \noindent This process has to be followed for every validator which needs to
+  inspect the contents of one or more pending data scripts.
   \todokwxm{We don't really need the hashes now: we could just use the
     index of the output.}  \todokwxm{Damn. Now we need to apply
     pre-redeemers to things as well in
