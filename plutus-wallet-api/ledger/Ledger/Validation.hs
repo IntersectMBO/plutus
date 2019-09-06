@@ -1,6 +1,8 @@
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
@@ -15,10 +17,14 @@
 module Ledger.Validation
     (
     -- * Pending transactions and related types
-      PendingTx(..)
+      PendingTx'(..)
+    , PendingTx
     , PendingTxOut(..)
     , PendingTxOutRef(..)
-    , PendingTxIn(..)
+    , toLedgerTxIn
+    , PendingTxIn'(..)
+    , PendingTxIn
+    , PendingTxInScript
     , PendingTxOutType(..)
     , findDataScriptOutputs
     , findContinuingOutputs
@@ -101,27 +107,41 @@ data PendingTxOutRef = PendingTxOutRef
     , pendingTxOutRefIdx :: Integer -- ^ Index into the referenced transaction's list of outputs.
     } deriving (Generic)
 
--- | An input of a pending transaction.
-data PendingTxIn = PendingTxIn
+-- | An input of a pending transaction, parameterised by its witness.
+data PendingTxIn' w = PendingTxIn
     { pendingTxInRef     :: PendingTxOutRef
-    , pendingTxInWitness :: Maybe (ValidatorHash, RedeemerHash)
+    , pendingTxInWitness :: w
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue   :: Value -- ^ Value consumed by this txn input
-    } deriving (Generic)
+    } deriving (Generic, Haskell.Functor)
+
+instance Functor PendingTxIn' where
+    fmap f p = p{pendingTxInWitness = f (pendingTxInWitness p) }
+
+type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash))
+type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash)
+
+toLedgerTxIn :: PendingTxInScript -> PendingTxIn
+toLedgerTxIn = fmap Just
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
-data PendingTx = PendingTx
-    { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
+data PendingTx' i = PendingTx
+    { pendingTxInputs     :: [PendingTxIn' (Maybe (ValidatorHash, RedeemerHash))] -- ^ Transaction inputs
     , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
     , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
-    , pendingTxIn         :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
+    , pendingTxIn         :: i -- ^ The 'PendingTxIn' being validated against currently.
     , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
     , pendingTxSignatures :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
     , pendingTxHash       :: TxHash
     -- ^ Hash of the pending transaction (excluding witnesses)
-    } deriving (Generic)
+    } deriving (Generic, Haskell.Functor)
+
+instance Functor PendingTx' where
+    fmap f p = p { pendingTxIn = f (pendingTxIn p) }
+
+type PendingTx = PendingTx' (PendingTxIn' (ValidatorHash, RedeemerHash))
 
 {-# INLINABLE findDataScriptOutputs #-}
 -- | Look up a 'DataScriptHash' in the transaction outputs, returning the indexs of the outputs that have
@@ -135,23 +155,17 @@ findDataScriptOutputs hsh PendingTx{pendingTxOutputs=outs} = findIndices f outs
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: PendingTx -> [Integer]
-findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
+findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
     where
         f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
         f _ = False
--- Not spending a script output
-findContinuingOutputs _ = []
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: PendingTx -> [PendingTxOut]
-getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
+getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
     where
         f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
         f _ = False
--- Not spending a script output
-getContinuingOutputs _ = []
-
-
 
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this
@@ -258,9 +272,7 @@ pubKeyOutput o = case pendingTxOutData o of
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
-ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
-    PendingTxIn _ (Just h) _ -> h
-    _                        -> error ()
+ownHashes PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=h}} = h
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
@@ -363,9 +375,9 @@ makeLift ''PendingTxOut
 
 makeLift ''PendingTxOutRef
 
-makeLift ''PendingTxIn
+makeLift ''PendingTxIn'
 
-makeLift ''PendingTx
+makeLift ''PendingTx'
 
 makeLift ''OracleValue
 

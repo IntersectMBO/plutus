@@ -45,7 +45,7 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import qualified Ledger.Value                 as Value
 import           Ledger.Value                 (Value)
-import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
+import           Ledger.Validation            (PendingTx, PendingTx'(..), PendingTxIn'(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
                                                EventHandler(..), EventTrigger)
@@ -206,7 +206,7 @@ mkValidator
     Campaign {fundingTarget, endDate, collectionDeadline, campaignOwner} -- <3>
     con
     act
-    p@(PendingTx ins outs _ _ _ txnValidRange _ _) = -- <1> <2>
+    p@PendingTx{pendingTxInputs=ins, pendingTxOutputs=outs,pendingTxValidRange=txnValidRange} = -- <1> <2>
 ----
 <1> This binds `ins` to the list of all inputs of the current transaction,
 `outs` to the list of all its outputs, and `txnValidRange` to the
@@ -244,7 +244,7 @@ Cardano chain, and that implementation has not happened yet.
     let
         totalInputs :: Ada
         totalInputs =
-            let addToTotal (PendingTxIn _ _ vl) total = -- <1>
+            let addToTotal PendingTxIn{pendingTxInValue=vl} total = -- <1>
                   let adaVl = Ada.fromValue vl
                   in total + adaVl
             in foldr addToTotal zero ins -- <2>

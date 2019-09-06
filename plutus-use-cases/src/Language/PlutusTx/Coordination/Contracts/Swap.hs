@@ -15,7 +15,7 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
-import           Ledger.Validation         (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
+import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
@@ -146,12 +146,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: PendingTxIn -> Bool
-        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && adaValueIn v == margin
+        iP1 PendingTxIn{pendingTxInValue=v} = Validation.txSignedBy p swapOwnersFixedLeg && adaValueIn v == margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: PendingTxIn -> Bool
-        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && adaValueIn v == margin
+        iP2 PendingTxIn{pendingTxInValue=v} = Validation.txSignedBy p swapOwnersFloating && adaValueIn v == margin
 
         inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 

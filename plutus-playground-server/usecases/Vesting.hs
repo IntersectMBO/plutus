@@ -28,7 +28,7 @@ import qualified Ledger.Value              as Value
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
-import           Ledger.Validation         (PendingTx(..))
+import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import           Wallet                    (WalletAPI(..),
                                             PubKey)
 import qualified Wallet                    as W
