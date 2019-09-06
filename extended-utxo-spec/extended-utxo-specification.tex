@@ -706,7 +706,7 @@ has outputs $O_1, \ldots, O_n$, with each $O_i$ having a data script
 $D_i$.  As part of the validation process we have to validate each
 input to $T$.  Consider a specific input $I$ with validator $V$.
 During the validation of $I$ it may be necessary for $V$ to check that
-some of $T$'s output data scripts $D_1,\ldots,D_k$ are ``correct'' in
+some of $T$'s output data scripts $D_{i_1},\ldots,D_{i_k}$ are ``correct'' in
 some way (for example, the $D_i$ could be being used to propagate some
 state through an ongoing contract, and $V$ might need to check that
 the state has some expected form in order to be sure that the creator
@@ -715,9 +715,9 @@ of $T$ is not attempting to cheat in some way).
 \noindent These considerations lead us to the following requirements:
 
 \begin{itemize}
-  \item During validation of a contract $T$, a validator $V$ of an input
-  must be able to inspect the contents of the data script of each of
-  $T$'s outputs.
+\item During validation of a contract $T$, a validator $V$ of an input
+  must be able to inspect the contents of the data scripts of some
+  selected subset of $T$'s outputs; this subset may vary with $V$.
 \item The contents of the data scripts must be obtained in such a way
   that $V$ can be certain that they are genuine (if not, it might be
   possible for some participant to lie about the contents and thus
@@ -727,8 +727,8 @@ of $T$ is not attempting to cheat in some way).
 \noindent Exactly how this is done will depend on the properties of the
 scripting language.
 
-\paragraph{Pending data script validation in Plutus.} The above
-requirement presents a problem for Plutus Core because Plutus Core is
+\paragraph{Pending data script validation in Plutus Core.} The above
+requirements present a problem for Plutus Core because Plutus Core is
 strongly typed and the $D_i$ are not required to have any fixed type.
 Furthermore, $V$ must exist when the input $I$ is created, but the
 $D_i$ need not be created until $T$ is prepared for submission to the
@@ -745,18 +745,18 @@ are known at this point.
 
 As an initial attempt to deal with the problem, we could construct a
 redeemer $R$ containing the actual (deserialised) contents of
-the $D_1,\ldots,D_k$ together with their hashes; during validation,
-$R$ could forward the contents of the $D_i$ to $V$ for examination.
+the $D_{i_1},\ldots,D_{i_k}$ together with their hashes; during validation,
+$R$ could forward the contents of the $D_{i_j}$ to $V$ for examination.
 However, \textbf{this does not work}: the redeemer is constructed
 off-chain, probably in the wallet of the creator of the transaction
 $T$, and there is no reason for $V$ to trust the creator of $T$,
-who could lie about what is actually contained in $D$.
+who could lie about what is actually contained in $D_{i_j}$.
 
 However, this scheme can be modified to provide the contents of the
 data scripts in a trustworthy way.  The basic idea is to use a
-redeemer $R$ which takes the (contents of the) $D_i$ as arguments and
+redeemer $R$ which takes the (contents of the) $D_{i_j}$ as arguments and
 forwards them to $V$, and for $R$ to be supplied with the true
-contents of the $D_i$ during validation; this is done by the
+contents of the $D_{i_j}$ during validation; this is done by the
 validating node ($N$, say), and basic blockchain mechanisms mean that
 $V$ \textit{can} trust $N$.
 
@@ -797,20 +797,21 @@ a value of type \verb|a|, and \verb|Sealer| gives a way to build a
 the hash of its serialised version.
 
 We assume that the validator $V$ for an input $I$ needs to inspect the
-contents of data scripts $D_1, \ldots, D_k$ of the outputs
-$O_1, \ldots O_k$ of $T$ , and that the $D_i$ have (Plutus Core) types
-$\tau_1, \ldots, \tau_k$ respectively.  Recall also that $V$ takes as
-arguments (i) the data script for $I$, (ii) the redeemer for $I$, and (iii)
-the $\ptx$ structure of $T$.  Assume that these have the Plutus Core
-types $\delta, \rho$ and $\pi$ respectively, so that the Plutus Core
-type of $V$ is
-$\delta \rightarrow \rho \rightarrow \pi \rightarrow \textsf{Bool}$.
+contents of data scripts $D_{i_1}, \ldots, D_{i_k}$ of the outputs
+$O_{i_1}, \ldots, O_{i_k}$ of $T$, and that the (Plutus Core) type of
+$D_{i_j}$ is $\tau_{i_j}$ ($1\le j \le k$).  Recall from
+Section~\ref{sec:eutxo-1} that $V$ takes as arguments (i) the data
+script for $I$, (ii) the redeemer for $I$, and (iii) the $\ptx$
+structure of $T$.  Assume that these have the Plutus Core types
+$\delta, \rho$ and $\pi$ respectively, so that the Plutus Core type of
+$V$ is
+$\delta \rightarrow \rho \rightarrow \pi \rightarrow \B$.
 The creator of the validator $V$ will know in advance that $V$
-requires access to objects of type $\tau_1, \ldots, \tau_k$, so
-the type $\rho$ will describe an object which provides a means
-to access things of these types (for example, $\rho$ may be a tuple
-type involving the $\tau_i$, in addition to types of any other
-values which $V$ exepcts the redeemer to provide).
+requires access to objects of type $\tau_{i_1}, \ldots, \tau_{i_k}$,
+so the type $\rho$ will describe an object which provides a means to
+access things of these types (for example, $\rho$ may be a tuple type
+involving the $\tau_{i_j}$, in addition to types of any other values
+which $V$ exepcts the redeemer to provide).
 
 \newcommand{\sealed}{\mathsf{Sealed}}
 \newcommand{\sealer}{\mathsf{Sealer}}
@@ -819,23 +820,23 @@ values which $V$ exepcts the redeemer to provide).
 \begin{itemize}
 \item A ``pre-redeemer'' $R_0$ for $O$ is constructed (off-chain) with
   the type
-  $\sealed\, \tau_1 \rightarrow \sealed\, \tau_2 \rightarrow \cdots
-  \rightarrow \sealed\, \tau_k \rightarrow \rho$
+  $\sealed\, \tau_{i_1} \rightarrow \sealed\, \tau_{i_2} \rightarrow \cdots
+  \rightarrow \sealed\, \tau_{i_k} \rightarrow \rho$
 \item On-chain, the validating node $N$ typechecks $R_0$ and
   makes sure that it contains nothing of type \verb|Sealed ...|;
   if it does, then valuation fails.
 \item  $N$ applies $R_0$ to the actual
   data scripts and their hashes to obtain a full redeemer of type $\rho$:
   \[
-    R = R_0\, (\sealer\, D_1\, D_1^{\#}) \cdots (\sealer\, D_k\, D_k^{\#})
+    R = R_0\, (\sealer\, D_{i_1}\, D_{i_1}^{\#}) \cdots (\sealer\, D_{i_k}\, D_{i_k}^{\#})
     \]
   \item Validation is performed as usual to obtain a boolean value
     $\llbracket V (D_I, R, P) \rrbracket$, where $D_I$ is the data script
     for $I$ and $P$ is the $\ptx$ object for the current transaction
-  \item During validation, $V$ can access the $D_i$ and check the hash
+  \item During validation, $V$ can access the $D_{i_j}$ and check the hash
     from the corresponsing \verb|Sealed| object against the hash from
-    $P$ to make sure that $R_0$ has not replaced the expected $D_i$
-    with some other $D_j$ which happens to have the same type.
+    $P$ to make sure that $R_0$ has not replaced the expected $D_{i_j}$
+    with some other $D_{i_{j^{\prime}}}$ which happens to have the same type.
     
   \end{itemize}
   \todokwxm{We don't really need the hashes now: we could just use the
