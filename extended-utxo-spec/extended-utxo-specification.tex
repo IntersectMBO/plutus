@@ -843,7 +843,14 @@ expects the redeemer to provide).
   \noindent This process has to be followed for every validator which needs to
   inspect the contents of one or more pending data scripts.
   \todokwxm{We don't really need the hashes now: we could just use the
-    index of the output.}  \todokwxm{Damn. Now we need to apply
+    index of the output.
+    
+    \medskip
+    [Later] Maybe having the hashes is good from the point of generality:
+    if your scripting language was Java bytecode or something you might be able to
+    load scripts/compute hashes dynamically and then the hash would be enough.}
+
+  \todokwxm{Damn. Now we need to apply
     pre-redeemers to things as well in
     Figure~\ref{fig:basic-notation}.}  \todokwxm{Also, this
     Figure~\ref{fig:eutxo-1-validity} is now misleading because it
