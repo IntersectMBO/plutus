@@ -1,5 +1,3 @@
-### Test
-
 ERC 20: Tokens / custom currencies
 https://eips.ethereum.org/EIPS/eip-20
 
