@@ -16,12 +16,9 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as Aeson
 import qualified Data.ByteString.Lazy.Char8       as BSL
 import           Data.Foldable                    (traverse_)
-import           Data.Functor.Const               (Const (..))
 import qualified Data.Map                         as Map
 import           Data.Row
 import           Data.Row.Internal                (Unconstrained1)
-import           Data.Sequence                    (Seq)
-import           Data.Text                        (Text)
 import qualified Data.Text.IO                     as Text
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Schema  (Input, Output)
@@ -31,7 +28,7 @@ import qualified Network.Wai.Handler.Warp         as Warp
 import           System.Environment               (getArgs)
 import           Wallet.Emulator                  (Wallet (..))
 
-import           Language.Plutus.Contract.IOTS    (IotsType, schemaMap)
+import           Language.Plutus.Contract.IOTS    (IotsRow, IotsType, rowSchema)
 
 -- | A number of constraints to ensure that 's' is the schema
 --   of a contract whose inputs and outputs can be serialised to
@@ -44,6 +41,7 @@ type AppSchema s =
     , Forall (Output s) ToJSON
     , Forall (Input (s .\\ BlockchainActions)) IotsType
     , AllUniqueLabels (Input (s .\\ BlockchainActions))
+    , IotsRow (Input (s .\\ BlockchainActions))
     , Forall (Input (s .\\ BlockchainActions)) Unconstrained1
     , Forall (Input s) FromJSON
     , Forall (Input s) ToJSON )
@@ -74,26 +72,9 @@ runWithTraces con traces = do
         ["schema"] ->
             -- prints the schema for user-defined endpoints (ie. after
             -- removing the 'BlockchainActions' from the row)
-            -- This has two reasons.
-            -- 1. Many of the ledger-specific types used in 'BlockchainActions'
-            --    don't have 'IotsType' instances yet
-            --    TODO: Add 'IotsType' instances for 'Ledger.Tx.Tx' and related
-            --          types
-            -- 2. It's not clear whether the app platform expects the
-            --    'BlockchainActions' to be included in the schema. (Including
-            --    them would make sense from our perspective since they work
-            --    exactly the same as user-defined endpoints, but if we do
-            --    include them then the app platform needs to filter them out
-            --    so that they're not displayed in the UI.
-            --    TODO: Decide whether 'BlockchainActions' should be included.
-            printSchemaAndExit (getConst $ schemaMap @(Input (s .\\ BlockchainActions)))
+            Text.putStrLn (rowSchema @(Input (s .\\ BlockchainActions)))
         ["trace", t] -> maybe (printTracesAndExit mp) (uncurry (printTrace con)) (Map.lookup t mp)
         _ -> printTracesAndExit mp
-
--- | Print the schema and exit
-printSchemaAndExit :: Seq Text -> IO ()
-printSchemaAndExit = traverse_ printSchema where
-    printSchema = Text.putStrLn
 
 -- | Print a list of available traces
 printTracesAndExit :: Map.Map String a -> IO ()
