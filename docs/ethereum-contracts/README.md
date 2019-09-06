@@ -1,3 +1,79 @@
+# Ethereum Smart Contracts in the Wild
+
+This document looks at Ethereum smart contracts which were actually
+running on the Ethereum blockchain in August 2019.
+
+## Resources
+There are a number of websites and articles which were helpful.
+
+Firstly, http://etherscan.io lets you examine the Ethereum blockchain
+in detail, including details of smart contracts ("Etherscan is the
+leading Ethereum Blockchain Explorer. The core of Etherscan involves
+extracting data from the Ethereum distributed ledger, indexing and
+displaying the processed data in a concise and readable manner for the
+masses and layperson."  ).
+
+Users can upload smart contract source code to the website and
+Etherscan will certify that they compile to particular bytecode
+contracts, allowing you to examine the source code of at least some
+contracts which you may find on the chain.
+
+If you know the address of a smart contract then you can paste it into
+the search bar at the top of the page and etherscan will give you lots
+of information.
+
+For example, the CryptoKitties contract has address 0x06012c8cf97bead5deae237070f9587f8e7a266d
+and you can see information about it at https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d
+
+![1](./CryptoKittiesInfo.png)
+
+Note the link "Contract" near the centre of the image.  In this case it
+has a green tick attached which means that the Solidity source of the contract is available,
+and clicking on the link will show it to you:
+
+![eh](./CryptoKittiesSource.png)
+
+
+You can also go to https://etherscan.io/contractsVerified to see the last 500 contracts verified by Etherscan.
+
+Etherscan also has a blog at https://medium.com/etherscan-blog/ which has some interesting articles.
+
+----------------------------
+
+There's an article talking about the usage of Ethereum smart contracts at
+https://medium.com/@vikati/ranking-ethereum-smart-contracts-a27e6f622ac6
+
+This contains links to pages showing the top 50 contracts by
+[transactions](https://blockspur.com/ethereum_contracts/transactions),
+["uniques"](https://blockspur.com/ethereum_contracts/uniques),
+and [revenues](https://blockspur.com/ethereum_contracts/values).
+Statistics are available for the most recent calendar month.
+
+Unfortunately these pages are slightly broken:  the addresses of the
+contracts are clickable and look as if they should show you more information
+on the contract, but this doesn't work.  Instead I had to copy the URLs,
+extract the contract addresses, and paste them into Etherscan to find out about the contracts.
+
+There's a more detailed look at the most popular contracts for August 2019 [later](#popular-contracts-in-august-2019).
+
+-----------------------
+
+There's some more analysis of popularity of Ethereum contracts 
+[here](https://blog.sfox.com/what-29-985-328-transactions-say-about-the-state-of-smart-contracts-on-ethereum-2ebdba4bea1c).
+
+... and a site which tells you which contracts are currently using the most gas at https://ethgasstation.info/gasguzzlers.php.
+
+Also, Google has large public databases of both
+[Ethereum](https://cloud.google.com/blog/products/data-analytics/ethereum-bigquery-public-dataset-smart-contract-analytics
+) and [Bitcoin](https://cloud.google.com/blog/products/gcp/bitcoin-in-bigquery-blockchain-analytics-on-public-data
+) transactions which you can query yourself (although it might take some time to construct appropriate queries).
+
+Rankings of Ethereum Dapps: https://www.stateofthedapps.com/rankings
+
+-----------------------------
+
+### Some Ethereum background
+
 ERC 20: Tokens / custom currencies
 https://eips.ethereum.org/EIPS/eip-20
 
@@ -5,51 +81,8 @@ ERC721: NFTs -> unique ownernship
 https://eips.ethereum.org/EIPS/eip-721
 
 
-During last Tuesday's call, Lars asked (about 36 minutes in) if we had
-a list of popular Ethereum contracts.  Google quickly turned up a
-number of relevant things.  For example,
+### Popular contracts in August 2019
 
-https://medium.com/@vikati/ranking-ethereum-smart-contracts-a27e6f622ac6
-
-discusses some statistics on Ethereum contracts, and contains links to
-public statistics on Ethereum transactions.  Here's a table of the
-currently most popular contracts by number of transactions:
-
-https://blockspur.com/ethereum_contracts/transactions
-
-With a bit of digging you can find the source code for most of the
-contracts, for example by searching for the hash at
-https://etherscan.io/
-
-
-There's some more analysis of popularity of Ethereum contracts here:
-
-https://blog.sfox.com/what-29-985-328-transactions-say-about-the-state-of-smart-contracts-on-ethereum-2ebdba4bea1c
-
-
-Also, Google has large public databases of both Ethereum and Bitcoin
-transactions which you can query yourself (although it might take some
-time to construct appropriate queries).
-
-Ethereum:
-https://cloud.google.com/blog/products/data-analytics/ethereum-bigquery-public-dataset-smart-contract-analytics
-
-Bitcoin:
-https://cloud.google.com/blog/products/gcp/bitcoin-in-bigquery-blockchain-analytics-on-public-data
-
-
-Which contracts are using a lot of gas? https://ethgasstation.info/gasguzzlers.php
-
-Dapps: https://www.stateofthedapps.com/rankings
-
-https://etherscan.io/contractsVerified shows the last 500 verified contracts.
-
-"Etherscan is the leading Ethereum Blockchain Explorer. The core of
-Etherscan involves extracting data from the Ethereum distributed
-ledger, indexing and displaying the processed data in a concise and
-readable manner for the masses and layperson."
-
-Blog at https://medium.com/etherscan-blog/
 
 ================================================================
 Top 50 contracts August 2019 by number of transactions
