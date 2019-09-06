@@ -37,7 +37,7 @@
 \usepackage{verbatim}
 \usepackage{todonotes}
 
-\usepackage{hyperref}  % This has to go at the end of the pacakges.
+\usepackage{hyperref}  % This has to go at the end of the packages.
 
 
 % Stuff for splitting figures over page breaks
@@ -177,7 +177,7 @@
   \textsf{D} in Plutus Core''.  This would make things modular, giving
   us a clear and well-defined interface between the EUTXO model and
   Plutus Core, which would surely be a good thing.  However, the business
-  abour validating data scripts \textit{really} messes this up.}
+  about validating data scripts \textit{really} messes this up.}
 
 \bigskip
 
@@ -195,7 +195,7 @@ owned by the user.  Every core node on the blockchain maintains a
 record of all of the currently unspent outputs, the \textit{UTXO set};
 when outputs are spent, they are removed from the UTXO set.
 
-This document contains a specification of some extesnsions of the
+This document contains a specification of some extensions of the
 UTXO model: the main aim of these extensions is to facilitate the
 implementation of \textit{smart contracts}, programs which perform
 automated and irrevocable transfer of funds on the blockchain, subject
@@ -357,7 +357,7 @@ $X$ is $X^{\#}$ in the notation of Figure~\ref{fig:basic-notation}),
 and the blockchain will provide an efficient way to retrieve the
 original object given its hash.  Compiled Plutus Core scripts are
 stored and transmitted in a serialised form, and when we talk about
-the hash of a Plutus Core script we mean the hash of the serialsed
+the hash of a Plutus Core script we mean the hash of the serialised
 version.
 
 % Accessing objects indirectly via addresses is helpful because it can
@@ -421,7 +421,7 @@ $$
 $$
 At the Plutus level in Cardano, the validator is a program which
 consumes the redeemer, the data script, and the Plutus Core encoding of
-the $\ptx$ structure as agruments: each script will have a Plutus type
+the $\ptx$ structure as arguments: each script will have a Plutus type
 and the types will have to fit the types expected by the validator.
 
 \subsection{A Formal Description of the EUTXO-1 Model}
@@ -697,7 +697,7 @@ single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 
 \todokwxm{We should probably point out somewhere that the validating node
-  typehecks scripts during validation.}
+  typechecks scripts during validation.}
 
 \subsection{Validating pending data scripts}
 \label{sec:validating-datascripts}
@@ -811,7 +811,7 @@ requires access to objects of type $\tau_{i_1}, \ldots, \tau_{i_k}$,
 so the type $\rho$ will describe an object which provides a means to
 access things of these types (for example, $\rho$ may be a tuple type
 involving the $\tau_{i_j}$, in addition to types of any other values
-which $V$ exepcts the redeemer to provide).
+which $V$ expects the redeemer to provide).
 
 \newcommand{\sealed}{\mathsf{Sealed}}
 \newcommand{\sealer}{\mathsf{Sealer}}
@@ -834,7 +834,7 @@ which $V$ exepcts the redeemer to provide).
     $\llbracket V (D_I, R, P) \rrbracket$, where $D_I$ is the data script
     for $I$ and $P$ is the $\ptx$ object for the current transaction
   \item During validation, $V$ can access the $D_{i_j}$ and check the hash
-    from the corresponsing \verb|Sealed| object against the hash from
+    from the corresponding \verb|Sealed| object against the hash from
     $P$ to make sure that $R_0$ has not replaced the expected $D_{i_j}$
     with some other $D_{i_{j^{\prime}}}$ which happens to have the same type.
     
