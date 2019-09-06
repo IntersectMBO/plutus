@@ -53,6 +53,17 @@ data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
     → ∀{x x'}
     → Eq (p , q) r t t'
     → Eq p (⇒≡Nf q r) (ƛ x t) (ƛ x' t')
+
+  ·Eq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){A B A' B' : Φ ⊢Nf⋆ *}
+    → (q : A ≡Nf A')
+    → (r : B ≡Nf B')
+    → {t : Γ ⊢ A ⇒ B}
+    → {t' : Γ' ⊢ A' ⇒ B'}
+    → Eq p (⇒≡Nf q r) t t'
+    → {u : Γ ⊢ A}
+    → {u' : Γ' ⊢ A'}
+    → Eq p q u u'
+    → Eq p r (t · u) (t' · u')
 ```
 
 ```
