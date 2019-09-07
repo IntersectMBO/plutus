@@ -74,11 +74,21 @@ Rankings of Ethereum Dapps: https://www.stateofthedapps.com/rankings
 
 ### Some Ethereum background
 
-ERC 20: Tokens / custom currencies
-https://eips.ethereum.org/EIPS/eip-20
+There are two Ethereum standards which are important for smart
+contracts: [ERC-20](https://eips.ethereum.org/EIPS/eip-20) and
+[ERC-721](https://eips.ethereum.org/EIPS/eip-721).  ERC-20 allows the
+implementation of user-defined _token currencies_ on the Ethereum
+chain and ERC-721 introduces non-fungible tokens which can be used to
+represent ownership of some digital or physical asset.  To use either
+of these you implement a smart contract which conforms to a specified
+API which acts as the monetary policy.  For example in the case of
+ERC-20 you implement a contract with functions which return the total
+supply or the number of tokens owned by a specified individual, or
+allow a user to transfer funds to another user, and so on.
 
-ERC721: NFTs -> unique ownernship
-https://eips.ethereum.org/EIPS/eip-721
+Users may wish to trade one ERC-20 for another, and this can be done
+using a _decentralised exchange_ (or _DEX_): these are generally
+implemented as smart contracts.  
 
 
 ### Popular contracts in August 2019
