@@ -7,6 +7,7 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Algorithmic
+open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 ```
 
@@ -87,7 +88,37 @@ data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
     → (s' : (A' [ B' ]) ≡Nf C')
     → (s'' : C ≡Nf C') -- derivable
     → Eq p s'' (·⋆ L B s) (·⋆ L' B' s')
- 
+
+  wrap1Eq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){K}
+    → {pat pat' : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg arg' : Φ ⊢Nf⋆ K}
+    → (q : pat ≡Nf pat')
+    → (q' : arg ≡Nf arg')
+    → {term : Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → {term' : Γ' ⊢ nf (embNf pat' · (μ1 · embNf pat') · embNf arg')}
+    → (r : nf (embNf pat · (μ1 · embNf pat) · embNf arg)
+           ≡Nf
+           nf (embNf pat' · (μ1 · embNf pat') · embNf arg'))
+    → Eq p r term term'
+    → Eq p
+         (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q'))
+         (wrap1 pat arg term)
+         (wrap1 pat' arg' term')
+
+  unwrap1Eq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){K}
+    → {pat pat' : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg arg' : Φ ⊢Nf⋆ K}
+    → (q : pat ≡Nf pat')
+    → (q' : arg ≡Nf arg')
+    → {term : Γ ⊢ ne (μ1 · pat · arg)}
+    → {term' : Γ' ⊢ ne (μ1 · pat' · arg')}
+    → Eq p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) term term'
+    → {B : Φ ⊢Nf⋆ *}
+    → (r : nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf B)
+    → {B' : Φ ⊢Nf⋆ *}
+    → (r' : nf (embNf pat' · (μ1 · embNf pat') · embNf arg') ≡Nf B')
+    → (r'' : B ≡Nf B')
+    → Eq p r'' (unwrap1 term r) (unwrap1 term' r')
 ```
 
 ```
