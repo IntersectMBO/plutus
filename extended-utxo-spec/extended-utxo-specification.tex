@@ -72,6 +72,9 @@
 }
 \makeatother
 
+\DeclareMathOperator{\sealed}{\mathsf{Sealed}}
+\DeclareMathOperator{\sealer}{\mathsf{Sealer}}
+
 \renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
 \renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
 \newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
@@ -809,12 +812,9 @@ $\delta \rightarrow \rho \rightarrow \pi \rightarrow \B$.  The creator
 of the validator $V$ will know in advance that $V$ requires access to
 objects of type $\tau_{i_1}, \ldots, \tau_{i_k}$, so the type $\rho$
 will describe an object which provides a means to access things of
-these types (for example, $\rho$ may be a tuple type involving the
-$\tau_{i_j}$, in addition to types of any other values which $V$
-expects the redeemer to provide).
-
-\newcommand{\sealed}{\mathsf{Sealed}}
-\newcommand{\sealer}{\mathsf{Sealer}}
+these types (for example, $\rho$ may be a tuple type involving
+(\textsf{Sealed} versions of) the $\tau_{i_j}$, in addition to types
+of any other values which $V$ expects the redeemer to provide).
 
 \noindent We now proceed as follows:
 \begin{itemize}
