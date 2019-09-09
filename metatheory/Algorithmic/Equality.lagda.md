@@ -9,6 +9,7 @@ open import Type.BetaNormal.Equality
 open import Algorithmic
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 ```
 
 ```
@@ -118,7 +119,14 @@ data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
     → {B' : Φ ⊢Nf⋆ *}
     → (r' : nf (embNf pat' · (μ1 · embNf pat') · embNf arg') ≡Nf B')
     → (r'' : B ≡Nf B')
-    → Eq p r'' (unwrap1 term r) (unwrap1 term' r')
+      → Eq p r'' (unwrap1 term r) (unwrap1 term' r')
+
+  conEq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){tcn}
+    → (t : TermCon {Φ} (con tcn))
+    → (q : con {Φ} tcn ≡Nf con tcn) -- could be reflNf
+    → Eq p q (con {Γ = Γ} t) (con {Γ = Γ'} t)
+
+
 ```
 
 ```
