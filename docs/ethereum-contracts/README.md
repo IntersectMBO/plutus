@@ -228,7 +228,7 @@ This is a DEX: https://idex.market/eth/idex
 There are some interesting comments at https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208#comments.
 
 3: [0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405](https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405).
-This belongs to https://dice2.win/ and implements a number of very simple games, like
+This belongs to Dice2Win (https://dice2.win/) and implements a number of very simple games, like
 rolling a die, flipping a coin etc.  The house takes 1%.
 The games are advertised as being "provably fair", and examining the
 contract source [here](https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405#code) 
@@ -309,6 +309,8 @@ though.
 
 49: [0x0777f76d195795268388789343068e4fcd286919](https://etherscan.io/address/0x0777f76d195795268388789343068e4fcd2869190x0777f6).
 This seems to be related to [Gods Unchained](https://godsunchained.com/), "A competitive trading card game powered by the Ethereum Blockchain".
+
+
 -------------
 
 
@@ -370,25 +372,136 @@ This seems to be related to [Gods Unchained](https://godsunchained.com/), "A com
 It's immediately noticeable that only 3 out of the 50 contracts with the largest revenue are ERC-20 tokens.
 Many of the others seem to be used for infrastructure purposes.
 
+The three ERC-20 contracts are as follows:
+
+ * [0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6](https://etherscan.io/address/0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6): 
+   Coinage.  This appears to be a currency associated with something
+   called [Faythe](https/::www.faythe.io).  "Faythe is a decentralised
+   AI, blockchain and cryptocurrency project. The Faythe Protocol
+   delivers massive advantages compared to the initial and current
+   iterations of the blockchain. The Faythe Protocol is managed by a
+   network based AI that is able to compute on encrypted information
+   greatly improving speed, resource use and security over the
+   network."  Hmmm...  The most recent transaction was 115 days ago.
+
+ * [0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2):
+   Wrapped Ether.  The Ether currency is not itself an ERC-20
+   currency, so it's not immediately tradeable on DEXs for example.
+   This currency wraps standard Ether into an ERC-20 currency.
+
+ * [0x1fe1751d26fda707ad29894a866f7aa3e1ffe628](https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628): Reversible
+   Ether.  This gives you a way of making Ether payments which can be
+   revoked within 15 minutes (the receiver has to accept the currency
+   in order for you to do this, so you can't just pay for something
+   and then get your money back).  The most recent transaction was 214 days ago.
+
+
+Apart from these we have the following.
+
+3: [0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8](https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8).  Don't know what this is
+
+5: [0x07c62a47ebe0fa853bb83375e488896ce71266df](https://etherscan.io/address/0x07c62a47ebe0fa853bb83375e488896ce71266df).
+This is called MultiSigWalletWithDailyLimit, which should explain itself.
+
+
+6:[0x7b45a572ea991887a01fd919c05edf1cac79c311](https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311).
+This is the same contract as R1Exchange, a DEX.
+
+7:[0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208](https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208).  This is IDEX again:  https://idex.market/eth/idex.
+
+8:[0xabbb6bebfa05aa13e908eaa492bd7a8343760477](https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477).  ReplaySafeSplit again.
+
+9:[0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27](https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27).
+Seems to be associated with a curreny called [Nexo](https://nexo.io) ("Better than any bank account").
+
+10:[0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55](https://etherscan.io/address/0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55). No idea, but > $5M "revenue".
+
+11:[0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405](https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405) Dice2Win again.
+
+12:[0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73](https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73)
+
+13:[0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef](https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef)
+
+14:[0xd64979357160e8146f6e1d805cf20437397bf1ba](https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba)
+
+15:[0x8d12a197cb00d4747a1fe03395095ce2a5cc6819](https://etherscan.io/address/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819)
+
+16:[0x0b65c5f6f3a05d6be5588a72b603360773b3fe04](https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04)
+
+17:[0x94e17901b6dfae329c63edd59447e2882e55aca6](https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6)
+
+18:[0x9554efa1669014c25070bc23c2df262825704228](https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228)
+
+19:[0x1fe1751d26fda707ad29894a866f7aa3e1ffe628](https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628)
+
+20:[0xfe3c50207b9e4f6008f94a6d11956a853f09e173](https://etherscan.io/address/0xfe3c50207b9e4f6008f94a6d11956a853f09e173)
+
+21:[0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd](https://etherscan.io/address/0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd)
+
+22:[0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4](https://etherscan.io/address/0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4)
+
+23:[0xe8ed915e208b28c617d20f3f8ca8e11455933adf](https://etherscan.io/address/0xe8ed915e208b28c617d20f3f8ca8e11455933adf)
+
+24:[0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d](https://etherscan.io/address/0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d)
+
+25:[0x352e504813b9e0b30f9ca70efc27a52d298f6697](https://etherscan.io/address/0x352e504813b9e0b30f9ca70efc27a52d298f6697)
+
+26:[0xd48165de9d697ae724e93a7fb2f44caa77610fa6](https://etherscan.io/address/0xd48165de9d697ae724e93a7fb2f44caa77610fa6)
+
+27:[0xb5e17df16932c451998d46a544580e321c91cd98](https://etherscan.io/address/0xb5e17df16932c451998d46a544580e321c91cd98)
+
+28:[0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c](https://etherscan.io/address/0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c)
+
+29:[0xe94b04a0fed112f3664e45adb2b8915693dd5ff3](https://etherscan.io/address/0xe94b04a0fed112f3664e45adb2b8915693dd5ff3)
+
+30:[0x494152d5f50f91aa3e74e0d48c3291c19854e4c4](https://etherscan.io/address/0x494152d5f50f91aa3e74e0d48c3291c19854e4c4)
+
+31:[0x818e6fecd516ecc3849daf6845e3ec868087b755](https://etherscan.io/address/0x818e6fecd516ecc3849daf6845e3ec868087b755)
+
+32:[0x867ffb5a3871b500f65bdfafe0136f9667deae06](https://etherscan.io/address/0x867ffb5a3871b500f65bdfafe0136f9667deae06)
+
+33:[0x094614f22c71c830ffd1be8ac1fb62381dbebcab](https://etherscan.io/address/0x094614f22c71c830ffd1be8ac1fb62381dbebcab)
+
+34:[0x121effb8160f7206444f5a57d13c7a4424a237a4](https://etherscan.io/address/0x121effb8160f7206444f5a57d13c7a4424a237a4)
+
+35:[0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be](https://etherscan.io/address/0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be)
+
+36:[0x0ff27d0fda162617203e6acc91bc6de9bf782e1a](https://etherscan.io/address/0x0ff27d0fda162617203e6acc91bc6de9bf782e1a)
+
+37:[0x0be3e6e3d9e99036ccce4fd0b692016de860aa62](https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62)
+
+38:[0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7](https://etherscan.io/address/0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7)
+
+39:[0x793ebbe21607e4f04788f89c7a9b97320773ec59](https://etherscan.io/address/0x793ebbe21607e4f04788f89c7a9b97320773ec59)
+
+40:[0xb7c2e4047fb76508d4137be787daf28b013f00e6](https://etherscan.io/address/0xb7c2e4047fb76508d4137be787daf28b013f00e6)
+
+41:[0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d](https://etherscan.io/address/0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d)
+
+42:[0xd4a0972123ee41e8304ae3cbcc85420e02015ff4](https://etherscan.io/address/0xd4a0972123ee41e8304ae3cbcc85420e02015ff4)
+
+43:[0xfe4478dcd52d8c1308de1960463417bd74425a24](https://etherscan.io/address/0xfe4478dcd52d8c1308de1960463417bd74425a24)
+
+44:[0x690858a9ab0d9afa707f1438fc175cca6be1a1db](https://etherscan.io/address/0x690858a9ab0d9afa707f1438fc175cca6be1a1db)
+
+45:[0x3ac44081afbfcf47916f66dc73cb23f94d8f7329](https://etherscan.io/address/0x3ac44081afbfcf47916f66dc73cb23f94d8f7329)
+
+46:[0x61d62ebfcf133ba8f9e3d04756eca226b2619d04](https://etherscan.io/address/0x61d62ebfcf133ba8f9e3d04756eca226b2619d04)
+
+47:[0x7f27b0598949dbf9e539bbd217f15bf3f5e97999](https://etherscan.io/address/0x7f27b0598949dbf9e539bbd217f15bf3f5e97999)
+
+48:[0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011](https://etherscan.io/address/0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011)
+
+49:[0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7](https://etherscan.io/address/0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7)
+
+50:[0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4)
+
+
 Splitter again.
 
 
-----------------
-https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8
-Fiat gateway (-> cash)
-No source
 
 
-----------------
-Wrapped Ether
-https://blockspur.com/ethereum_contracts/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-
-----------------
-https://etherscan.io/address/0x07c62a47ebe0fa853bb83375e488896ce71266df#code
-
-MultiSigContractWithDailyLimit
-
-----------------
 https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
 
 R1Exchange
@@ -652,25 +765,8 @@ ReplaySafeSplit
 ----------------
 https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27
 
-AllBit DEX
 
 ----------------
-https://etherscan.io/address/0xd9b20CFED69e76acAE3FA1C2Ee1faAFAfcb41f55
-
-No idea, but > $5M "revenue"
-
-
-----------------
-https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405
-
-Dice2Win again
-
-----------------
-https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73#code
-
-DistributeETH
-
-
 ----------------
 https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef
 
