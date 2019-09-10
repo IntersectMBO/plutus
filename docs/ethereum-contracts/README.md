@@ -5,10 +5,11 @@ running on the Ethereum blockchain in August 2019.
 
 ## Some Ethereum background 
 
-This section mentions a few things which it'll be useful to know about later.
-For detailed information on Ethereum, look at the [Ethereum wiki](https://github.com/ethereum/wiki/wiki/)
-and especially the [Ethereum white
-paper](https://github.com/ethereum/wiki/wiki/White-Paper).
+This section mentions a few things which it'll be useful to know about
+later.  For detailed information on Ethereum, look at the [Ethereum
+wiki](https://github.com/ethereum/wiki/wiki/) and especially the
+[Ethereum white paper](https://github.com/ethereum/wiki/wiki/White-Paper).
+Note that the blockchain is Ethereum and the currency is Ether.
 
 
 There are two Ethereum standards which are important for smart
@@ -25,7 +26,6 @@ allow a user to transfer funds to another user, and so on.
 
 There's a list of ERC-20 tokens at https://bloxy.info/list_tokens/ERC20
 
-
 Users may wish to trade one ERC-20 for another, and this can be done
 using a _decentralised exchange_ (or _DEX_): these are generally
 implemented as smart contracts.  
@@ -35,6 +35,7 @@ There are also things called
 which are used to anonymise transactions to make it difficult to work
 out who's been spending how much and what they're been spending it on;
 these are needed because Ethereum is account-based.
+
 ## Resources
 There are a number of websites and articles which were helpful.
 
@@ -71,6 +72,18 @@ You can also go to https://etherscan.io/contractsVerified to see the last 500 co
 
 Etherscan also has a blog at https://medium.com/etherscan-blog/ which has some interesting articles.
 
+---------------
+
+There are a number of other Etheruem blockchain explorers, for example:
+
+* https://bloxy.info/
+
+* https://www.etherchain.org/
+
+* https://ethplorer.io/
+
+* https://enjinx.io/  (multiple blockchains, not just Ethereum).
+
 ----------------------------
 
 There's an article talking about the usage of Ethereum smart contracts at
@@ -78,16 +91,19 @@ https://medium.com/@vikati/ranking-ethereum-smart-contracts-a27e6f622ac6
 
 This contains links to pages showing the top 50 contracts by
 [transactions](https://blockspur.com/ethereum_contracts/transactions),
-["uniques"](https://blockspur.com/ethereum_contracts/uniques),
-and [revenues](https://blockspur.com/ethereum_contracts/values).
-Statistics are available for the most recent calendar month.
+["uniques"](https://blockspur.com/ethereum_contracts/uniques) (the
+number of unique addresses interacting with the contract), and
+[revenues](https://blockspur.com/ethereum_contracts/values) (the
+amount of Ether passing through the contract).  Statistics are
+available for the most recent calendar month.
 
 Unfortunately these pages are slightly broken:  the addresses of the
 contracts are clickable and look as if they should show you more information
 on the contract, but this doesn't work.  Instead I had to copy the URLs,
 extract the contract addresses, and paste them into Etherscan to find out about the contracts.
 
-There's a more detailed look at the most popular contracts for August 2019 [later](#popular-contracts-in-august-2019).
+There's a more detailed look at the most popular contracts for August 2019 
+[later](#popular-contracts-by-number-of-transactions-in-august-2019).
 
 -----------------------
 
@@ -101,11 +117,11 @@ The Ethereum wiki has descriptions of many dapps at  https://github.com/ethereum
 
 Another site with real-time statistics for Ethereum is
 https://bloxy.info. In particular, they have a page of
-[anlytics](https://bloxy.info/analytics) which contains links to lots
+[analytics](https://bloxy.info/analytics) which contains links to lots
 of interesting information, including some [analysis of ERC-20
 tokens](https://stat.bloxy.info/superset/dashboard/tokens/) and
 [ERC-721 tokens](https://stat.bloxy.info/superset/dashboard/erc721/)
-(ie, NFTs).  There's also a page with the [most popular methods and events in smar contracts](https://stat.bloxy.info/superset/dashboard/smart_contracts/).
+(ie, NFTs).  There's also a page with the [most popular methods and events in smart contracts](https://stat.bloxy.info/superset/dashboard/smart_contracts/).
 
 Also, Google has large public databases of both
 [Ethereum](https://cloud.google.com/blog/products/data-analytics/ethereum-bigquery-public-dataset-smart-contract-analytics
@@ -186,7 +202,7 @@ Of the top 50, 24 involve ERC-20.    Many of these seem to be currencies for spe
 For example:
   
 * CPCtoken: (CPC Chain: Distributed Internet of Things.  https://cpchain.io/ unrelated?)  
-* TuzyCoin: just a coin  
+
 * VRT chain token: Virtual reality platform. See https://icobench.com/ico/vrt
   
 * E2C: Green energy platform. https://electronicenergycoin.com/  
@@ -207,15 +223,16 @@ It's quite difficult to find information about some of these, despite the fact t
 they all have significant numbers of transactions.
 
 
-#### ERC-721 contracts.  The two most popular ERC-721 contracts are
+#### ERC-721 contracts.  
+The two most popular ERC-721 contracts are
 [CryptoKitties](https://www.cryptokitties.co/) and
 [BlockChainCuties](https://blockchaincuties.com/), both of which allow
-you to cokllect virtual creatures, trade them, get them to take part
+you to collect virtual creatures, trade them, get them to take part
 in puzzles and adventures, and so on.
 
 
 #### Non-ERC-20 contracts
-Here's a discussion of the non-erc-20 contracts, which are probably of more
+Here's a discussion of the non-ERC-20 contracts, which are probably of more
 interest from the point of view of smart contracts.  Even though all of these have
 large transaction numbers, it's very difficult to find out what some of them are for.
 The identifiable ones mostly seem to be for DEXs and simple gambling games.
@@ -250,8 +267,8 @@ about for an attack on this through the browser.
 The appears to be called "coToken affiliate", but I don't know what it does.
 It has 62,401 transactions.
 
-16: [0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8](https://etherscan.io/address/0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8).  
-this is another DEX, TokenStore: https://token.store/.
+16: [0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8](https://etherscan.io/address/0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8).
+This is another DEX, TokenStore: https://token.store/.
 
 20: [0x1f772db718238d8413bad9b309950a9c5286fd71](https://etherscan.io/address/0x1f772db718238d8413bad9b309950a9c5286fd71).
 No contract, don't know what it is.
@@ -374,7 +391,7 @@ Many of the others seem to be used for infrastructure purposes.
 
 The three ERC-20 contracts are as follows:
 
- * [0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6](https://etherscan.io/address/0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6): 
+ * 2: [0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6](https://etherscan.io/address/0x7415c7bf3e2415fa9a55f1fd8b6fccf2914c39a6): 
    Coinage.  This appears to be a currency associated with something
    called [Faythe](https/::www.faythe.io).  "Faythe is a decentralised
    AI, blockchain and cryptocurrency project. The Faythe Protocol
@@ -384,12 +401,12 @@ The three ERC-20 contracts are as follows:
    greatly improving speed, resource use and security over the
    network."  Hmmm...  The most recent transaction was 115 days ago.
 
- * [0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2):
+ * 4: [0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2):
    Wrapped Ether.  The Ether currency is not itself an ERC-20
    currency, so it's not immediately tradeable on DEXs for example.
    This currency wraps standard Ether into an ERC-20 currency.
 
- * [0x1fe1751d26fda707ad29894a866f7aa3e1ffe628](https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628): Reversible
+ * 19: [0x1fe1751d26fda707ad29894a866f7aa3e1ffe628](https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628): Reversible
    Ether.  This gives you a way of making Ether payments which can be
    revoked within 15 minutes (the receiver has to accept the currency
    in order for you to do this, so you can't just pay for something
@@ -403,7 +420,7 @@ these are associated with ICOs.  There are also quite a lot of contracts
 that it's hard to find anything out about at all.
 
 1: [0xfa52274dd61e1643d2205169732f29114bc240b3](https://etherscan.io/address/0xfa52274dd61e1643d2205169732f29114bc240b3).
-This appears to be relatedforwarding things to a DEX called [Kraken](https://www.kraken.com/en-gb/).  See some Reddit speculation 
+This appears to be forwarding things to a DEX called [Kraken](https://www.kraken.com/en-gb/).  See some Reddit speculation 
 [here](https://www.reddit.com/r/ethereum/comments/60mmb8/anybody_know_what_contract_this_is_my_friends/).
 
 3: [0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8](https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8).  Don't know what this is
@@ -464,7 +481,9 @@ future events.
 This is something called "Sovereign Wallet: Token Sale".  It looks as
 if this is involved in sales of a token called MUI to finance the Sovereign Wallet project: https://sovereignwallet.network/
 
-27: [0xb5e17df16932c451998d46a544580e321c91cd98](https://etherscan.io/address/0xb5e17df16932c451998d46a544580e321c91cd98). This belongs to https://ico.kuende.com/, maybe used for an ICO.  " Kuende is the first blockchain fueled social network that uses gamified challenges to reward real-life social interaction"
+27: [0xb5e17df16932c451998d46a544580e321c91cd98](https://etherscan.io/address/0xb5e17df16932c451998d46a544580e321c91cd98).
+This belongs to https://ico.kuende.com/, maybe used for an ICO.  
+"Kuende is the first blockchain fueled social network that uses gamified challenges to reward real-life social interaction"
 
 28: [0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c](https://etherscan.io/address/0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c).  Don't know.  Last used over 200 days ago.
 
@@ -500,8 +519,7 @@ Don't know.  Not used for 289 days.
 36: [0x0ff27d0fda162617203e6acc91bc6de9bf782e1a](https://etherscan.io/address/0x0ff27d0fda162617203e6acc91bc6de9bf782e1a).
 Don't know.
 
-37: [0x0be3e6e3d9e99036ccce4fd0b692016de860aa62](https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62).  
-FCK Dice again.
+37: [0x0be3e6e3d9e99036ccce4fd0b692016de860aa62](https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62).  FCK Dice again.
 
 38: [0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7](https://etherscan.io/address/0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7). 
 This seems to be a DEX, [DUBIex](https://dubiex.com).
@@ -516,7 +534,7 @@ is on GitHub at
 https://github.com/makerdao/oasis-direct-proxy/tree/master/src.
 
 40: [0xb7c2e4047fb76508d4137be787daf28b013f00e6](https://etherscan.io/address/0xb7c2e4047fb76508d4137be787daf28b013f00e6).
-Not sure. Has soemthing to do with something called Escape Plan.
+Not sure. Has something to do with something called Escape Plan.
 
 41: [0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d](https://etherscan.io/address/0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d).
 This is called NectarController.  It appears to belong to an organisation called [ETHFINEX](https://www.ethfinex.com/) and
@@ -555,5 +573,5 @@ This is called "WrapperLockEth".  I think it's related to Wrapped Ether.
 49: [0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7](https://etherscan.io/address/0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7).
 Don't know.
 
-50: [0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4)
+50: [0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4).
 Don't know.
