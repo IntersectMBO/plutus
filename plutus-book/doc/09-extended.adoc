@@ -464,6 +464,15 @@ data of `t`. So, the validator
 can check (by comparing hashes) that it is being passed the sealed values that do indeed correspond
 to the data scripts in the outputs of `t`, and the redeemer did not swap them.
 
+The data script is a piece of ledger data that will frequently need to be examined in order 
+for a contract participant to make informed decisions on what action to take 
+next. For example, they will need to know the highest auction bid currently 
+made in order to make their own bid. Thus, data script data needs to be easily 
+inspectable, which is a major consideration going into the design of a 
+validator-redeemer-data script model where it is possible to write a validator 
+that depends on the data scripts of the contract outputs to which a transaction 
+is transferring funds. 
+
 ====
 
 The reader will also note later on, as we discuss writing a complete Plutus contract,
