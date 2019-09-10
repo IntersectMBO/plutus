@@ -34,7 +34,7 @@ There's a list of current ERC-20 tokens at
 https://bloxy.info/list_tokens/ERC20 (this is just the top 2500:
 there are lots more).
 
-Users may wish to trade one ERC-20 for another, and this can be done
+Users may wish to trade one ERC-20 currency for another, and this can be done
 using a _decentralised exchange_ (or _DEX_): these are generally
 implemented as smart contracts.  
 
@@ -54,7 +54,7 @@ in detail, including details of smart contracts ("Etherscan is the
 leading Ethereum Blockchain Explorer. The core of Etherscan involves
 extracting data from the Ethereum distributed ledger, indexing and
 displaying the processed data in a concise and readable manner for the
-masses and layperson."  ).
+masses and layperson.").
 
 Users can upload smart contract source code to the website and
 Etherscan will certify that they compile to particular bytecode
@@ -342,6 +342,10 @@ This seems to be related to [Gods Unchained](https://godsunchained.com/), "A com
 
 
 ### Popular contracts by revenue in August 2019
+
+Despite the title, I think these are actually the cumulative revenues
+up to August 2019, not just the revenue in the last month.  Many 
+of the contracts in the table haven't been accessed for months.
 
 |Rank|Change            | Address     |Name             |Symbol         |ERC20|Transactions |Uniques|"Revenues" in Ether|"Revenues" in USD|
 |----|------------------|-------------|-----------------|---------------|-----|-------------|-------|-------------------|-----------------|
