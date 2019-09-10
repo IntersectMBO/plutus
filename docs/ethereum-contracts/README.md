@@ -434,7 +434,10 @@ that it's hard to find anything out about at all.
 This appears to be forwarding things to a DEX called [Kraken](https://www.kraken.com/en-gb/).  See some Reddit speculation 
 [here](https://www.reddit.com/r/ethereum/comments/60mmb8/anybody_know_what_contract_this_is_my_friends/).
 
-3: [0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8](https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8).  Don't know what this is
+3: [0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8](https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8).
+I'm not sure what this is, but all of the payments are to something
+called "Gemini 2".  This belongs to https://gemini.com/. It may be a _fiat gateway_, allowing 
+the excahnge of Ether for real currency.
 
 5: [0x07c62a47ebe0fa853bb83375e488896ce71266df](https://etherscan.io/address/0x07c62a47ebe0fa853bb83375e488896ce71266df).
 This is called MultiSigWalletWithDailyLimit, which should explain itself.
