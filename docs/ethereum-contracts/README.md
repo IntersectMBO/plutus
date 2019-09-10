@@ -95,8 +95,8 @@ This contains links to pages showing the top 50 contracts by
 [transactions](https://blockspur.com/ethereum_contracts/transactions),
 ["uniques"](https://blockspur.com/ethereum_contracts/uniques) (the
 number of unique addresses interacting with the contract), and
-[revenues](https://blockspur.com/ethereum_contracts/values) (the
-amount of Ether passing through the contract).  Statistics are
+[revenues](https://blockspur.com/ethereum_contracts/values) (this 
+is just throughput, not necessarily profit).  Statistics are
 available for the most recent calendar month.
 
 Unfortunately these pages are slightly broken:  the addresses of the
@@ -389,7 +389,7 @@ This seems to be related to [Gods Unchained](https://godsunchained.com/), "A com
 | 50 |	+103		|[0x38ff96...](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4)|			|		|No   |1,062	    |548    |1,567.34 ETH	| $227,264	  |
 
 It's immediately noticeable that only 3 out of the 50 contracts with the largest revenue are ERC-20 tokens.
-Many of the others seem to be used for infrastructure purposes.
+Several of the most popular non-ERC-20 contracts seem to be used for infrastructure purposes.
 
 The three ERC-20 contracts are as follows:
 
@@ -401,7 +401,8 @@ The three ERC-20 contracts are as follows:
    iterations of the blockchain. The Faythe Protocol is managed by a
    network based AI that is able to compute on encrypted information
    greatly improving speed, resource use and security over the
-   network."  Hmmm...  The most recent transaction was 115 days ago.
+   network."  Hmmm...  The most recent transaction was 115 days ago, 
+   so this is probably some sort of ICO/fundraising thing.
 
  * 4: [0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2):
    Wrapped Ether.  The Ether currency is not itself an ERC-20
