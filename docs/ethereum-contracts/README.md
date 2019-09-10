@@ -449,7 +449,7 @@ This is the same contract as R1Exchange, a DEX.
 Something called DistributeETH which looks like a contract that distributes a list quantities of Ether to a list of accounts.
 
 13: [0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef](https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef).
-Poloniex Exchange, a DEX (see https://poloniex.com/)
+Poloniex Exchange, a centralised exchange (see https://poloniex.com/)
 
 14: [0xd64979357160e8146f6e1d805cf20437397bf1ba](https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba). SaiProxyCreateAndExecute
 ([Reddit](https://www.reddit.com/r/ethereum/comments/6feib0/introducing_sai_makerdais_first_generation/): "Introducing Sai, MakerDai's first generation stablecoin")
