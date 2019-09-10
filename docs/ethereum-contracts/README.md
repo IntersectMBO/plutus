@@ -396,7 +396,15 @@ The three ERC-20 contracts are as follows:
    and then get your money back).  The most recent transaction was 214 days ago.
 
 
-Apart from these we have the following.
+Apart from these we have the following.  Many are DEXs, there are a
+few gambling contacts, and quite a lot of contracts that have seen a
+lot of revenue some time ago and then become inactive: I think many of
+these are associated with ICOs.  There are also quite a lot of contracts
+that it's hard to find anything out about at all.
+
+1: [0xfa52274dd61e1643d2205169732f29114bc240b3](https://etherscan.io/address/0xfa52274dd61e1643d2205169732f29114bc240b3).
+This appears to be relatedforwarding things to a DEX called [Kraken](https://www.kraken.com/en-gb/).  See some Reddit speculation 
+[here](https://www.reddit.com/r/ethereum/comments/60mmb8/anybody_know_what_contract_this_is_my_friends/).
 
 3: [0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8](https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8).  Don't know what this is
 
@@ -404,687 +412,148 @@ Apart from these we have the following.
 This is called MultiSigWalletWithDailyLimit, which should explain itself.
 
 
-6:[0x7b45a572ea991887a01fd919c05edf1cac79c311](https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311).
+6: [0x7b45a572ea991887a01fd919c05edf1cac79c311](https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311).
 This is the same contract as R1Exchange, a DEX.
 
-7:[0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208](https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208).  This is IDEX again:  https://idex.market/eth/idex.
+7: [0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208](https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208).  This is IDEX again:  https://idex.market/eth/idex.
 
-8:[0xabbb6bebfa05aa13e908eaa492bd7a8343760477](https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477).  ReplaySafeSplit again.
+8: [0xabbb6bebfa05aa13e908eaa492bd7a8343760477](https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477).  ReplaySafeSplit again.
 
-9:[0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27](https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27).
-Seems to be associated with a curreny called [Nexo](https://nexo.io) ("Better than any bank account").
+9: [0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27](https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27).  This is a DEX operated by a company called [AllBit](https://allbit.com/). Seems to be associated with a currency called [Nexo](https://nexo.io) ("Better than any bank account").
 
-10:[0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55](https://etherscan.io/address/0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55). No idea, but > $5M "revenue".
+10: [0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55](https://etherscan.io/address/0xd9b20cfed69e76acae3fa1c2ee1faafafcb41f55). No idea, but > $5M "revenue".
 
-11:[0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405](https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405) Dice2Win again.
+11: [0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405](https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405). Dice2Win again.
 
-12:[0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73](https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73)
+12: [0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73](https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73).
+Something called DistributeETH which looks like a contract that distributes a list quantities of Ether to a list of accounts.
 
-13:[0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef](https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef)
+13: [0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef](https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef).
+Poloniex Exchange, a DEX (see https://poloniex.com/)
 
-14:[0xd64979357160e8146f6e1d805cf20437397bf1ba](https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba)
+14: [0xd64979357160e8146f6e1d805cf20437397bf1ba](https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba). SaiProxyCreateAndExecute
+([Reddit](https://www.reddit.com/r/ethereum/comments/6feib0/introducing_sai_makerdais_first_generation/): "Introducing Sai, MakerDai's first generation stablecoin")
 
-15:[0x8d12a197cb00d4747a1fe03395095ce2a5cc6819](https://etherscan.io/address/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819)
+15: [0x8d12a197cb00d4747a1fe03395095ce2a5cc6819](https://etherscan.io/address/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819).  The EtherDelta DEX again.
 
-16:[0x0b65c5f6f3a05d6be5588a72b603360773b3fe04](https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04)
+16: [0x0b65c5f6f3a05d6be5588a72b603360773b3fe04](https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04).  No idea.
 
-17:[0x94e17901b6dfae329c63edd59447e2882e55aca6](https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6)
+17: [0x94e17901b6dfae329c63edd59447e2882e55aca6](https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6).  No idea.
 
-18:[0x9554efa1669014c25070bc23c2df262825704228](https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228)
+18: [0x9554efa1669014c25070bc23c2df262825704228](https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228).  ReplaySafeSplit again.
 
-19:[0x1fe1751d26fda707ad29894a866f7aa3e1ffe628](https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628)
+19: (Reversible Ether)
 
-20:[0xfe3c50207b9e4f6008f94a6d11956a853f09e173](https://etherscan.io/address/0xfe3c50207b9e4f6008f94a6d11956a853f09e173)
+20: [0xfe3c50207b9e4f6008f94a6d11956a853f09e173](https://etherscan.io/address/0xfe3c50207b9e4f6008f94a6d11956a853f09e173).  Don't know: last used 300 days ago.
 
-21:[0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd](https://etherscan.io/address/0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd)
+21: [0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd](https://etherscan.io/address/0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd).
+This looks like it has to do with Augur (https://www.augur.net/),
+"Augur is a decentralized oracle and peer to peer protocol for
+prediction markets."  I think this is people betting on the outcome of
+future events.
 
-22:[0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4](https://etherscan.io/address/0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4)
+22: [0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4](https://etherscan.io/address/0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4).  Don't know.
 
-23:[0xe8ed915e208b28c617d20f3f8ca8e11455933adf](https://etherscan.io/address/0xe8ed915e208b28c617d20f3f8ca8e11455933adf)
+23: [0xe8ed915e208b28c617d20f3f8ca8e11455933adf](https://etherscan.io/address/0xe8ed915e208b28c617d20f3f8ca8e11455933adf). "ShapeShift's Poloniex deposit address"
 
-24:[0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d](https://etherscan.io/address/0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d)
+24: [0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d](https://etherscan.io/address/0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d).  Etheroll again (gambling games).
 
-25:[0x352e504813b9e0b30f9ca70efc27a52d298f6697](https://etherscan.io/address/0x352e504813b9e0b30f9ca70efc27a52d298f6697)
+25: [0x352e504813b9e0b30f9ca70efc27a52d298f6697](https://etherscan.io/address/0x352e504813b9e0b30f9ca70efc27a52d298f6697).  Don't know.
 
-26:[0xd48165de9d697ae724e93a7fb2f44caa77610fa6](https://etherscan.io/address/0xd48165de9d697ae724e93a7fb2f44caa77610fa6)
+26: [0xd48165de9d697ae724e93a7fb2f44caa77610fa6](https://etherscan.io/address/0xd48165de9d697ae724e93a7fb2f44caa77610fa6).
+This is something called "Sovereign Wallet: Token Sale".  It looks as
+if this is involved in sales of a token called MUI to finance the Sovereign Wallet project: https://sovereignwallet.network/
 
-27:[0xb5e17df16932c451998d46a544580e321c91cd98](https://etherscan.io/address/0xb5e17df16932c451998d46a544580e321c91cd98)
+27: [0xb5e17df16932c451998d46a544580e321c91cd98](https://etherscan.io/address/0xb5e17df16932c451998d46a544580e321c91cd98). This belongs to https://ico.kuende.com/, maybe used for an ICO.  " Kuende is the first blockchain fueled social network that uses gamified challenges to reward real-life social interaction"
 
-28:[0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c](https://etherscan.io/address/0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c)
+28: [0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c](https://etherscan.io/address/0x0dc96e8356d7fb4dc03c0fa5392a5b1028e7fc5c).  Don't know.  Last used over 200 days ago.
 
-29:[0xe94b04a0fed112f3664e45adb2b8915693dd5ff3](https://etherscan.io/address/0xe94b04a0fed112f3664e45adb2b8915693dd5ff3)
+29: [0xe94b04a0fed112f3664e45adb2b8915693dd5ff3](https://etherscan.io/address/0xe94b04a0fed112f3664e45adb2b8915693dd5ff3). ReplaySafeSplit.
 
-30:[0x494152d5f50f91aa3e74e0d48c3291c19854e4c4](https://etherscan.io/address/0x494152d5f50f91aa3e74e0d48c3291c19854e4c4)
+30: [0x494152d5f50f91aa3e74e0d48c3291c19854e4c4](https://etherscan.io/address/0x494152d5f50f91aa3e74e0d48c3291c19854e4c4).  Don't know.  Last used over 200 days ago.
 
-31:[0x818e6fecd516ecc3849daf6845e3ec868087b755](https://etherscan.io/address/0x818e6fecd516ecc3849daf6845e3ec868087b755)
+31: [0x818e6fecd516ecc3849daf6845e3ec868087b755](https://etherscan.io/address/0x818e6fecd516ecc3849daf6845e3ec868087b755).
+This is called "Kyber Network: Proxy".  See https://kyber.network/ : "Kyber is an on-chain liquidity protocol that aggregates liquidity from a wide range of reserves, powering instant and secure token exchange in any decentralized application."
 
-32:[0x867ffb5a3871b500f65bdfafe0136f9667deae06](https://etherscan.io/address/0x867ffb5a3871b500f65bdfafe0136f9667deae06)
+32:
+[0x867ffb5a3871b500f65bdfafe0136f9667deae06](https://etherscan.io/address/0x867ffb5a3871b500f65bdfafe0136f9667deae06).
+This is called "LocalEthereumEscrows".  [LocalEthereum](https://localethereum.com/): "LocalEthereum is how people exchange ETH peer-to-peer".
+There's a blog post explaining their escrow contracts [here](https://blog.localethereum.com/how-our-escrow-smart-contract-works/).
 
-33:[0x094614f22c71c830ffd1be8ac1fb62381dbebcab](https://etherscan.io/address/0x094614f22c71c830ffd1be8ac1fb62381dbebcab)
+33: [0x094614f22c71c830ffd1be8ac1fb62381dbebcab](https://etherscan.io/address/0x094614f22c71c830ffd1be8ac1fb62381dbebcab).
+This is a contract called "CryptojoyToken" and the contract source
+suggests that it's a token currency that doesn't quite conform to
+ERC-20.
 
-34:[0x121effb8160f7206444f5a57d13c7a4424a237a4](https://etherscan.io/address/0x121effb8160f7206444f5a57d13c7a4424a237a4)
+34:
+[0x121effb8160f7206444f5a57d13c7a4424a237a4](https://etherscan.io/address/0x121effb8160f7206444f5a57d13c7a4424a237a4).
+This is a tiny contract with over 22,000 identical contracts on the
+Etheruem blockchain.  It just seems to delegate whatever you're doing
+to [0x5b9e8728e316bbeb692d22daaab74f6cbf2c4691](https://etherscan.io/address/0x5b9e8728e316bbeb692d22daaab74f6cbf2c4691#code)
+which is a contract called "WalletSimple". This says it's a "Basic
+multi-signer wallet designed for use in a co-signing environment where
+2 signatures are required to move funds."
 
-35:[0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be](https://etherscan.io/address/0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be)
+35: [0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be](https://etherscan.io/address/0xcd43a19ea5e4f9fcf229df53f86747ad2c5613be).
+Don't know.  Not used for 289 days.
 
-36:[0x0ff27d0fda162617203e6acc91bc6de9bf782e1a](https://etherscan.io/address/0x0ff27d0fda162617203e6acc91bc6de9bf782e1a)
+36: [0x0ff27d0fda162617203e6acc91bc6de9bf782e1a](https://etherscan.io/address/0x0ff27d0fda162617203e6acc91bc6de9bf782e1a).
+Don't know.
 
-37:[0x0be3e6e3d9e99036ccce4fd0b692016de860aa62](https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62)
+37: [0x0be3e6e3d9e99036ccce4fd0b692016de860aa62](https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62).  
+FCK Dice again.
 
-38:[0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7](https://etherscan.io/address/0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7)
+38: [0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7](https://etherscan.io/address/0x7c21d723af0f4594d4f8821aa16bc27c8ea6cec7). 
+This seems to be a DEX, [DUBIex](https://dubiex.com).
 
-39:[0x793ebbe21607e4f04788f89c7a9b97320773ec59](https://etherscan.io/address/0x793ebbe21607e4f04788f89c7a9b97320773ec59)
 
-40:[0xb7c2e4047fb76508d4137be787daf28b013f00e6](https://etherscan.io/address/0xb7c2e4047fb76508d4137be787daf28b013f00e6)
+39: [0x793ebbe21607e4f04788f89c7a9b97320773ec59](https://etherscan.io/address/0x793ebbe21607e4f04788f89c7a9b97320773ec59).
+This is called "ProxyCreationAndExecute" and belongs to
+[MakerDAO](https://makerdao.com/en/): "Maker is comprised of a
+decentralized stablecoin, collateral loans, and community
+governance.".  They have a currency called DAI.  The contract source
+is on GitHub at
+https://github.com/makerdao/oasis-direct-proxy/tree/master/src.
 
-41:[0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d](https://etherscan.io/address/0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d)
-
-42:[0xd4a0972123ee41e8304ae3cbcc85420e02015ff4](https://etherscan.io/address/0xd4a0972123ee41e8304ae3cbcc85420e02015ff4)
-
-43:[0xfe4478dcd52d8c1308de1960463417bd74425a24](https://etherscan.io/address/0xfe4478dcd52d8c1308de1960463417bd74425a24)
-
-44:[0x690858a9ab0d9afa707f1438fc175cca6be1a1db](https://etherscan.io/address/0x690858a9ab0d9afa707f1438fc175cca6be1a1db)
-
-45:[0x3ac44081afbfcf47916f66dc73cb23f94d8f7329](https://etherscan.io/address/0x3ac44081afbfcf47916f66dc73cb23f94d8f7329)
-
-46:[0x61d62ebfcf133ba8f9e3d04756eca226b2619d04](https://etherscan.io/address/0x61d62ebfcf133ba8f9e3d04756eca226b2619d04)
-
-47:[0x7f27b0598949dbf9e539bbd217f15bf3f5e97999](https://etherscan.io/address/0x7f27b0598949dbf9e539bbd217f15bf3f5e97999)
-
-48:[0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011](https://etherscan.io/address/0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011)
-
-49:[0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7](https://etherscan.io/address/0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7)
-
-50:[0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4)
-
-
-Splitter again.
-
-
-
-
-https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
-
-R1Exchange
-
-----------------
-https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208
-
-IDEX1
-
-
-----------------
-https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477
-
-ReplaySafeSplit
-
-
-----------------
-https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27
-
-AllBit DEX
-
-----------------
-https://etherscan.io/address/0xd9b20CFED69e76acAE3FA1C2Ee1faAFAfcb41f55
-
-No idea, but > $5M "revenue"
-
-
-----------------
-https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405
-
-Dice2Win again
-
-----------------
-https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73#code
-
-DistributeETH
-
-
-----------------
-https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef
-
-Poloniex Exchange.  No source.
-
-----------------
-https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba
-
-SaiProxyCreateAndExecute
-
-https://www.reddit.com/r/ethereum/comments/6feib0/introducing_sai_makerdais_first_generation/
-"Introducing Sai, MakerDai's first generation stablecoin"
-
-----------------
-https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04
-No idea
-
-----------------
-https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6
-No idea
-
-----------------
-https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228#code
-ReplaySafeSplit again.
-
-
-----------------
-https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628
-Reversible Ether
-
-https://programtheblockchain.com/posts/2018/06/09/reversible-ether/
-
-"Someone should come along and issue an ERC20 called "Reversible Ether"
-that is 1:1 backed by ether but has a DAO that can revert transfers
-within N days."
-
-----------------
-
-----------
-
-
------------
-
-EtherDelta: decentralized trading platform for Ether and Ethereum-based tokens, single smart contract.
-Contract at https://etherscan.io/address/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819
-Re,uires trust, could steal private key from browser session.
-
-https://hackernoon.com/how-one-hacker-stole-thousands-of-dollars-worth-of-cryptocurrency-with-a-classic-code-injection-a3aba5d2bff0
-
-
-
--------------
-
-MatchingMarket: 0x39755357759ce0d7f32dc8dc45414cca409ae24e
-eth2dai
-
-
-OasisDex: dsitributed exchange, closing down.
-New contract at 
-
-See also https://etherscan.io/accounts/label/maker 
-
-Maker is a decentralized autonomous organization on the Ethereum
-blockchain seeking to minimize the price volatility of its own stable
-token — the Dai — against the U.S. Dollar.  
-
----------------
-
-Registrar: 0x6090a6e47849629b7245dfa1ca21d94cd15878ef
-
-Ethereum name service. Contract available
-
----------------
-
-https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62
-
-FCK Dice: https://www.stateofthedapps.com/dapps/fck
-Contract available.
-
-
-----------------
-
-
-
-----------------
-
-TokenStore
-
-https://etherscan.io/address/0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8
-DEX
-
-https://token.store/
-
-----------------
-
-https://etherscan.io/address/0x1f772db718238d8413bad9b309950a9c5286fd71
-No contract, don't know.
-
-----------------
-
-https://etherscan.io/address/0x9af285f84645892dd57ae135af6e97f952a5922c
-No contract, don't know.
-
-----------------
-https://etherscan.io/address/0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d
-
-https://etherscan.io/accounts/label/etheroll
-
-Dice roll
-
-----------------
-https://etherscan.io/address/0x827727b4c3f75ea6eb6bd2cc256de40db2b13665
-No contract, don't know.
-
-----------------
-https://blockspur.com/ethereum_contracts/	
-
-https://0x.org/
-3800 lines of solidity.
-
-Another DEX I think.
-
-----------------
-
-https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
-R1Exchange
-
-See https://blog.smartdec.net/oneroot-smart-contracts-security-analysis-3958263fbe67
-
-https://www.oneroot.io/
-
-
-
-----------------
-https://etherscan.io/address/0xfa52274dd61e1643d2205169732f29114bc240b3
-
-No source, but see
-https://www.reddit.com/r/ethereum/comments/60mmb8/anybody_know_what_contract_this_is_my_friends/
-
-
-"contract 0xFa52274DD61E1643d2205169732f29114BC240b3 seems to be an
- ETH/ETC splitter contract, created on July 28.
- 0x267be1c1d684f78cb4f6a176c4911b741e4ffdc0 is the ETH forward-to
- address, 0xb68884048cdd9f3d67a94c9586068c024d8679ca - ETC forward-to
- address.  Kraken announced their ETH/ETC automated splitter on the
- same day.  Anyway, this first contract you linked is not a
- mixer. It's Kraken's internal implementation of a splitter, provided
- for people who didn't want to fiddle themselves with AmIOnTheFork or
- ReplaySafeSplit by Timon Rapp (/u/_tr).  level 2"
-
-----------------
-0x0b95993A39A363d99280Ac950f5E4536Ab5C5566
-Possibly another exchange.
-
-
-----------------
-https://etherscan.io/address/
+40: [0xb7c2e4047fb76508d4137be787daf28b013f00e6](https://etherscan.io/address/0xb7c2e4047fb76508d4137be787daf28b013f00e6).
+Not sure. Has soemthing to do with something called Escape Plan.
+
+41: [0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d](https://etherscan.io/address/0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d).
+This is called NectarController.  It appears to belong to an organisation called [ETHFINEX](https://www.ethfinex.com/) and
+th Nectar token looks like shares in the organisation.  The controller is the thing that implements the monetary policy.
+The full source is [here](https://github.com/ethfinex/nectar/blob/master/contracts/NectarController.sol).
+
+42: [0xd4a0972123ee41e8304ae3cbcc85420e02015ff4](https://etherscan.io/address/0xd4a0972123ee41e8304ae3cbcc85420e02015ff4).
 No idea.
 
-----------------
-https://etherscan.io/address/0x896b516eb300e61cfc96ee1de4b297374e7b70ed
-Not sure:  see https://etherscan.io/token/0x98976a6dfaaf97b16a4bb06035cc84be12e79110?a=0x896b516eb300e61cfc96ee1de4b297374e7b70ed
-Has to do with MYOUToken
-
-
-----------------
-https://etherscan.io/address/0x13552c7cc9ce39af665955412faa08f0e6555a29
-
-Token tracker -> NineGods.  
-https://etherscan.io/token/0x13552c7cc9ce39af665955412faa08f0e6555a29
-
-----------------
-0xa3C1E324CA1ce40db73eD6026c4A177F099B5770
-
-"Controller".  No idea what it does, but 20M calls from 700,000 callers.
-Source is visible.
-
-----------------
-
-https://etherscan.io/address/0x798abda6cc246d0edba912092a2a3dbd3d11191b
-
-Name: ConversionRates
-
-================================================================
-
-Top by revenues.  
-
-Splitter again.
-
-
-----------------
-https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8
-Fiat gateway (-> cash)
-No source
-
-
-----------------
-Wrapped Ether
-https://blockspur.com/ethereum_contracts/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-
-----------------
-https://etherscan.io/address/0x07c62a47ebe0fa853bb83375e488896ce71266df#code
-
-MultiSigContractWithDailyLimit
-
-----------------
-https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
-
-R1Exchange
-
-----------------
-https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208
-
-IDEX1
-
-
-----------------
-https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477
-
-ReplaySafeSplit
-
-
-----------------
-https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27
-
-
-----------------
-----------------
-https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef
-
-Poloniex Exchange.  No source.
-
-----------------
-https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba
-
-SaiProxyCreateAndExecute
-
-https://www.reddit.com/r/ethereum/comments/6feib0/introducing_sai_makerdais_first_generation/
-"Introducing Sai, MakerDai's first generation stablecoin"
-
-----------------
-https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04
-No idea
-
-----------------
-https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6
-No idea
-
-----------------
-https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228#code
-ReplaySafeSplit again.
-
-
-----------------
-https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628
-Reversible Ether
-
-https://programtheblockchain.com/posts/2018/06/09/reversible-ether/
-
-"Someone should come along and issue an ERC20 called "Reversible Ether"
-that is 1:1 backed by ether but has a DAO that can revert transfers
-within N days."
-
-----------------
-https://etherscan.io/address/0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4
-
-HLHTTOKEN?
-
-
-Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA35Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-This belongs to 2,122.231567773606290509 Ether .  The contract source isn't available.  Google takes us to
-[reddit](o/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208#comments)
-which suggests that IDEX: distributed exchange for trading between different token currencies..
-
-Contracts are available.
-
-[-----------](https://etherscan.io/address/-----------)
-This belongs to EtherDelta: decentralized trading platform for Ether and Ethereum-based tokens, single smart contract..  The contract source isn't available.  Google takes us to
-[reddit](com/how-one-hacker-stole-thousands-of-dollars-worth-of-cryptocurrency-with-a-classic-code-injection-a3aba5d2bff0)
-which suggests that .3F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-This belongs to 2,122.231567773606290509 Ether .  The contract source isn't available.  Google takes us to
-[reddit](o/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208#comments)
-which suggests that IDEX: distributed exchange for trading between different token currencies..
-
-Contracts are available.
-
-[-----------](https://etherscan.io/address/-----------)
-This belongs to EtherDelta: decentralized trading platform for Ether and Ethereum-based tokens, single smart contract..  The contract source isn't available.  Google takes us to
-[reddit](com/how-one-hacker-stole-thousands-of-dollars-worth-of-cryptocurrency-with-a-classic-code-injection-a3aba5d2bff0)
-which suggests that .
-
-
--------------
-
-MatchingMarket: 0x39755357759ce0d7f32dc8dc45414cca409ae24e
-eth2dai
-
-
-OasisDex: dsitributed exchange, closing down.
-New contract at 
-
-See also https://etherscan.io/accounts/label/maker 
-
-Maker is a decentralized autonomous organization on the Ethereum
-blockchain seeking to minimize the price volatility of its own stable
-token — the Dai — against the U.S. Dollar.  
-
----------------
-
-Registrar: 0x6090a6e47849629b7245dfa1ca21d94cd15878ef
-
-Ethereum name service. Contract available
-
----------------
-
-https://etherscan.io/address/0x0be3e6e3d9e99036ccce4fd0b692016de860aa62
-
-FCK Dice: https://www.stateofthedapps.com/dapps/fck
-Contract available.
-
-
-----------------
-
-https://etherscan.io/address/0x62a364f7cba3be8fc9dcfdde12cabec8244af381
-Don't know, no contract source.  
-
-62,401 transactions
-
-
-----------------
-
-TokenStore
-
-https://etherscan.io/address/0x1ce7ae555139c5ef5a57cc8d814a867ee6ee33d8
-DEX
-
-https://token.store/
-
-----------------
-
-https://etherscan.io/address/0x1f772db718238d8413bad9b309950a9c5286fd71
-No contract, don't know.
-
-----------------
-
-https://etherscan.io/address/0x9af285f84645892dd57ae135af6e97f952a5922c
-No contract, don't know.
-
-----------------
-https://etherscan.io/address/0xa52e014b3f5cc48287c2d483a3e026c32cc76e6d
-
-https://etherscan.io/accounts/label/etheroll
-
-Dice roll
-
-----------------
-https://etherscan.io/address/0x827727b4c3f75ea6eb6bd2cc256de40db2b13665
-No contract, don't know.
-
-----------------
-https://blockspur.com/ethereum_contracts/0x4f833a24e1f95d70f028921e27040ca56e09ab0b
-
-https://0x.org/
-3800 lines of solidity.
-
-Another DEX I think.
-
-----------------
-
-https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
-R1Exchange
-
-See https://blog.smartdec.net/oneroot-smart-contracts-security-analysis-3958263fbe67
-
-https://www.oneroot.io/
-
-
-
-----------------
-https://etherscan.io/address/0xfa52274dd61e1643d2205169732f29114bc240b3
-
-No source, but see
-https://www.reddit.com/r/ethereum/comments/60mmb8/anybody_know_what_contract_this_is_my_friends/
-
-
-"contract 0xFa52274DD61E1643d2205169732f29114BC240b3 seems to be an
- ETH/ETC splitter contract, created on July 28.
- 0x267be1c1d684f78cb4f6a176c4911b741e4ffdc0 is the ETH forward-to
- address, 0xb68884048cdd9f3d67a94c9586068c024d8679ca - ETC forward-to
- address.  Kraken announced their ETH/ETC automated splitter on the
- same day.  Anyway, this first contract you linked is not a
- mixer. It's Kraken's internal implementation of a splitter, provided
- for people who didn't want to fiddle themselves with AmIOnTheFork or
- ReplaySafeSplit by Timon Rapp (/u/_tr).  level 2"
-----------------
-0x0b95993A39A363d99280Ac950f5E4536Ab5C5566
-Possibly another exchange.
-
-
-----------------
-https://etherscan.io/address/0x105631c6cddba84d12fa916f0045b1f97ec9c268
-No idea.
-
-----------------
-https://etherscan.io/address/0x896b516eb300e61cfc96ee1de4b297374e7b70ed
-Not sure:  see https://etherscan.io/token/0x98976a6dfaaf97b16a4bb06035cc84be12e79110?a=0x896b516eb300e61cfc96ee1de4b297374e7b70ed
-Has to do with MYOUToken
-
-
-----------------
-https://etherscan.io/address/0x13552c7cc9ce39af665955412faa08f0e6555a29
-
-Token tracker -> NineGods.  
-https://etherscan.io/token/0x13552c7cc9ce39af665955412faa08f0e6555a29
-
-----------------
-0xa3C1E324CA1ce40db73eD6026c4A177F099B5770
-
-"Controller".  No idea what it does, but 20M calls from 700,000 callers.
-Source is visible.
-
-----------------
-
-https://etherscan.io/address/0x798abda6cc246d0edba912092a2a3dbd3d11191b
-
-Name: ConversionRates
-
-================================================================
-
-Top by revenues.  
-
-Splitter again.
-
-
-----------------
-https://etherscan.io/address/0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8
-Fiat gateway (-> cash)
-No source
-
-
-----------------
-Wrapped Ether
-https://blockspur.com/ethereum_contracts/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-
-----------------
-https://etherscan.io/address/0x07c62a47ebe0fa853bb83375e488896ce71266df#code
-
-MultiSigContractWithDailyLimit
-
-----------------
-https://etherscan.io/address/0x7b45a572ea991887a01fd919c05edf1cac79c311
-
-R1Exchange
-
-----------------
-https://etherscan.io/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208
-
-IDEX1
-
-
-----------------
-https://etherscan.io/address/0xabbb6bebfa05aa13e908eaa492bd7a8343760477
-
-ReplaySafeSplit
-
-
-----------------
-https://etherscan.io/address/0xff6b1cdfd2d3e37977d7938aa06b6d89d6675e27
-
-AllBit DEX
-
-----------------
-https://etherscan.io/address/0xd9b20CFED69e76acAE3FA1C2Ee1faAFAfcb41f55
-
-No idea, but > $5M "revenue"
-
-
-----------------
-https://etherscan.io/address/0xd1ceeeeee83f8bcf3bedad437202b6154e9f5405
-
-Dice2Win again
-
-----------------
-https://etherscan.io/address/0x02caceb4bfc2669156b2eb3b4d590e7ac10a4e73#code
-
-DistributeETH
-
-
-----------------
-https://etherscan.io/address/0x209c4784ab1e8183cf58ca33cb740efbf3fc18ef
-
-Poloniex Exchange.  No source.
-
-----------------
-https://etherscan.io/address/0xd64979357160e8146f6e1d805cf20437397bf1ba
-
-SaiProxyCreateAndExecute
-
-https://www.reddit.com/r/ethereum/comments/6feib0/introducing_sai_makerdais_first_generation/
-"Introducing Sai, MakerDai's first generation stablecoin"
-
-----------------
-https://etherscan.io/address/0x0b65c5f6f3a05d6be5588a72b603360773b3fe04
-No idea
-
-----------------
-https://etherscan.io/address/0x94e17901b6dfae329c63edd59447e2882e55aca6
-No idea
-
-----------------
-https://etherscan.io/address/0x9554efa1669014c25070bc23c2df262825704228#code
-ReplaySafeSplit again.
-
-
-----------------
-https://etherscan.io/address/0x1fe1751d26fda707ad29894a866f7aa3e1ffe628
-Reversible Ether
-
-https://programtheblockchain.com/posts/2018/06/09/reversible-ether/
-
-"Someone should come along and issue an ERC20 called "Reversible Ether"
-that is 1:1 backed by ether but has a DAO that can revert transfers
-within N days."
-
-----------------
-https://etherscan.io/address/0x7bd0ce1c4c0bb344bbc71e8364845eeb211b99c4
-
-HLHTTOKEN?
-Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-Exchange:
-Contract [0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208](https://etherscan.io/address/0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208)
-This belongs to 2,122.231567773606290509 Ether .  The contract source isn't available.  Google takes us to
-[reddit](o/address/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208#comments)
-which suggests that IDEX: distributed exchange for trading between different token currencies..
-
-Contracts are available.
-
-[-----------](https://etherscan.io/address/-----------)
-This belongs to EtherDelta: decentralized trading platform for Ether and Ethereum-based tokens, single smart contract..  The contract source isn't available.  Google takes us to
-[reddit](com/how-one-hacker-stole-thousands-of-dollars-worth-of-cryptocurrency-with-a-classic-code-injection-a3aba5d2bff0)
-which suggests that .
+43: [0xfe4478dcd52d8c1308de1960463417bd74425a24](https://etherscan.io/address/0xfe4478dcd52d8c1308de1960463417bd74425a24).
+This is called "QuinadsCrowdsale".  This looks like an ICO for
+[Quinads](https://quinads.com/): " Quinads is an advertisement
+platform with blockchain based consists with contents of video,
+picture, and text. Quinads wants to be the pioneer of Indonesia’s advertising by
+utilizing blockchain technology and the development of cryptocurrency
+which is getting so much better in the world and Indonesia for
+specific".  OK....
+
+44: [0x690858a9ab0d9afa707f1438fc175cca6be1a1db](https://etherscan.io/address/0x690858a9ab0d9afa707f1438fc175cca6be1a1db).
+This is called "EbcFund". See https://ebcfund.io/.  "This is a community of ordinary people for voluntarily mutual
+financial support. It is established based on the Blockchain
+technology and Smartcontract. "
+
+45: [0x3ac44081afbfcf47916f66dc73cb23f94d8f7329](https://etherscan.io/address/0x3ac44081afbfcf47916f66dc73cb23f94d8f7329).
+No idea. Not used for over 280 days.
+
+46: [0x61d62ebfcf133ba8f9e3d04756eca226b2619d04](https://etherscan.io/address/0x61d62ebfcf133ba8f9e3d04756eca226b2619d04).
+Don't know.
+
+47: [0x7f27b0598949dbf9e539bbd217f15bf3f5e97999](https://etherscan.io/address/0x7f27b0598949dbf9e539bbd217f15bf3f5e97999).
+I think this is another Augur thing. The contract looks as if it's issuing shares/tokens.
+
+48: [0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011](https://etherscan.io/address/0xaa7427d8f17d87a28f5e1ba3adbb270badbe1011).
+This is called "WrapperLockEth".  I think it's related to Wrapped Ether.
+
+49: [0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7](https://etherscan.io/address/0xcfdd01ba346153f4992cad0fb55fdfd3c151fbd7).
+Don't know.
+
+50: [0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4](https://etherscan.io/address/0x38ff96eec0a5d05fcfcb646f4019fb093d0831b4)
+Don't know.
