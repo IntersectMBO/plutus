@@ -603,7 +603,7 @@ start' = do
             []         -> go1 ref v
             (ref' : _) -> do
                 key <- ownPubKey
-                let i1 = pubKeyTxIn ref key
+                let i1 = pubKeyTxIn key ref
                     i2 = scriptTxIn
                             ref'
                             (mkAdminValidator admin)
@@ -644,7 +644,7 @@ start' = do
                 logMsg $ T.pack $
                     "starting tokens " ++ show nf
                 let v  = V.singleton s adminTokenName 1
-                    i  = pubKeyTxIn ref key
+                    i  = pubKeyTxIn key ref
                     o1 = scriptTxOut
                             v
                             (mkNonFungibleValidator nf)

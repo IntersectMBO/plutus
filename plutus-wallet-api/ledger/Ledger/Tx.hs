@@ -289,8 +289,8 @@ inAddress TxInOf{ txInType = t } = case t of
         LB.bytes (getPubKey pk)
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
-pubKeyTxIn :: TxOutRefOf h -> PubKey -> TxInOf h
-pubKeyTxIn r = TxInOf r . ConsumePublicKeyAddress
+pubKeyTxIn :: PubKey -> TxOutRefOf h -> TxInOf h
+pubKeyTxIn pubK r = TxInOf r (ConsumePublicKeyAddress pubK)
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
 scriptTxIn :: TxOutRefOf h -> ValidatorScript -> RedeemerScript -> TxInOf h

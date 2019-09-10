@@ -22,6 +22,7 @@ module Wallet.API(
     MonadWallet,
     EventHandler(..),
     PubKey(..),
+    createPaymentWithChange,
     signTxn,
     signTxnWithKey,
     createTxAndSubmit,
@@ -287,8 +288,12 @@ class WalletAPI m where
     {- |
     Select enough inputs from the user's UTxOs to make a payment of the given value.
     Includes an output for any leftover funds, if there are any. Fails if we don't have enough funds.
+
+    This can also be used iteratively, by passing the outputs from this function as its inputs, and
+    a new value we want to spend. New inputs will be added to the input set to cover the new values,
+    as required.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
+    updatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
     Register a 'EventHandler' in @m ()@ to be run a single time when the
@@ -328,6 +333,9 @@ class WalletAPI m where
     The current slot.
     -}
     slot :: m Slot
+
+createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
+createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
 
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds

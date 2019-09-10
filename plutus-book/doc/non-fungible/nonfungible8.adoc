@@ -195,10 +195,10 @@ hasAdminToken s (_, o) =
 Now we can write our endpoints. The biggest change is in `start`, where
 we now first have to forge the admin token before we can start our policy.
 
-We also rename `start` to `start'`, because for later use we want a version 
+We also rename `start` to `start'`, because for later use we want a version
 of `start` that _returns_ the symbol of our policy
 .
-It is not allowed to have wallet endpoints in the Playground return types other than `()`, though, 
+It is not allowed to have wallet endpoints in the Playground return types other than `()`, though,
 so afterwards we will define `start` in terms of `start'`.
 
 [source,haskell]
@@ -245,7 +245,7 @@ start' = do
             []         -> go1 ref v                        -- <4>
             (ref' : _) -> do
                 key <- ownPubKey
-                let i1 = pubKeyTxIn ref key                -- <5>
+                let i1 = pubKeyTxIn key ref                -- <5>
                     i2 = scriptTxIn                        -- <6>
                             ref'
                             (mkAdminValidator admin)
@@ -286,7 +286,7 @@ start' = do
                 logMsg $ T.pack $
                     "starting tokens " ++ show nf
                 let v  = V.singleton s adminTokenName 1
-                    i  = pubKeyTxIn ref key                -- <10>
+                    i  = pubKeyTxIn key ref                -- <10>
                     o1 = scriptTxOut                       -- <11>
                             v
                             (mkNonFungibleValidator nf)
@@ -344,7 +344,7 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ 
+        "forging " ++ n ++
         " (symbol " ++ show (nonFungibleSymbol nf) ++
         ") of " ++ show nf
 
