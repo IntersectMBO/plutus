@@ -11,6 +11,12 @@ wiki](https://github.com/ethereum/wiki/wiki/) and especially the
 [Ethereum white paper](https://github.com/ethereum/wiki/wiki/White-Paper).
 Note that the blockchain is Ethereum and the currency is Ether.
 
+The term **dapp** turns up quite a lot.  A dapp (the Ethereum people
+seem to like spelling it "ÐApp") is a _decentralised application_: I
+think this is essentially one or more smart contracts running on the
+blockchain, with users interacting with the contracts via a
+dedicated front end which they install on a phone/browser.  See
+https://www.stateofthedapps.com/whats-a-dapp.
 
 There are two Ethereum standards which are important for smart
 contracts: [ERC-20](https://eips.ethereum.org/EIPS/eip-20) and
@@ -37,6 +43,8 @@ There are also things called
 which are used to anonymise transactions to make it difficult to work
 out who's been spending how much and what they're been spending it on;
 these are needed because Ethereum is account-based.
+
+
 
 ## Resources
 There are a number of websites and articles which were helpful.
