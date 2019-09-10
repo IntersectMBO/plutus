@@ -1,13 +1,14 @@
 module Data.RawJson where
 
 import Prelude
+
 import Control.Alt ((<|>))
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldMap, foldlDefault, foldrDefault)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Iso')
+import Data.Lens (Iso', Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NEL
@@ -28,6 +29,8 @@ derive instance newtypeRawJson :: Newtype RawJson _
 
 _RawJson :: Iso' RawJson String
 _RawJson = _Newtype
+
+instance showRawJson :: Show RawJson where show = genericShow
 
 instance encodeRawJson :: Encode RawJson where
   encode (RawJson string) = unsafeToForeign string
@@ -63,6 +66,9 @@ instance decodeJsonTuple :: (Decode a, Decode b) => Decode (JsonTuple a b) where
         pure $ JsonTuple (Tuple a b)
       _ -> fail $ ForeignError "Decoding a JsonTuple, expected to see an array with exactly 2 elements."
 
+_JsonTuple :: forall k v. Iso' (JsonTuple k v) (Tuple k v)
+_JsonTuple = _Newtype
+
 ------------------------------------------------------------
 newtype JsonEither a b
   = JsonEither (Either a b)
@@ -86,6 +92,9 @@ instance decodeJsonEither :: (Decode a, Decode b) => Decode (JsonEither a b) whe
       <$> ( (readProp "Left" value >>= (map Left <<< decode))
             <|> (readProp "Right" value >>= (map Right <<< decode))
         )
+
+_JsonEither :: forall a b. Iso' (JsonEither a b) (Either a b)
+_JsonEither = _Newtype
 
 ------------------------------------------------------------
 newtype JsonNonEmptyList a
