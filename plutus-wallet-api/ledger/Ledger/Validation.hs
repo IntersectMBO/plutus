@@ -126,7 +126,7 @@ toLedgerTxIn = fmap Just
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data PendingTx' i = PendingTx
-    { pendingTxInputs     :: [PendingTxIn' (Maybe (ValidatorHash, RedeemerHash))] -- ^ Transaction inputs
+    { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
     , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
     , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
@@ -141,7 +141,7 @@ data PendingTx' i = PendingTx
 instance Functor PendingTx' where
     fmap f p = p { pendingTxIn = f (pendingTxIn p) }
 
-type PendingTx = PendingTx' (PendingTxIn' (ValidatorHash, RedeemerHash))
+type PendingTx = PendingTx' PendingTxInScript
 
 {-# INLINABLE findDataScriptOutputs #-}
 -- | Look up a 'DataScriptHash' in the transaction outputs, returning the indexs of the outputs that have
