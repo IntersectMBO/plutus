@@ -1,6 +1,15 @@
 /*eslint-env node*/
 'use strict';
 
+exports.nextBlock_ = function (just, nothing, block) {
+    var mBlock = block.getNextBlock();
+    if (mBlock == null) {
+        return nothing;
+    } else {
+        return just(mBlock);
+    }
+}
+
 exports.getFieldValue_ = function (left, right, block, key) {
     var result = block.getFieldValue(key);
     if (result) {
@@ -46,6 +55,7 @@ exports.workspaceToCode_ = function (left, right, blocklyState, generator) {
     try {
         return right(generator.workspaceToCode(blocklyState.workspace));
     } catch(err) {
+        console.log(err.message);
         return left(err.message);
     }
 }
@@ -56,21 +66,36 @@ exports.inputList_ = function (block) {
 
 exports.connectToPrevious_ = function (blockRef, input) {
     return function () {
-        var block = blockRef.value;
-        block.previousConnection.connect(input.connection);
+        blockRef.value.previousConnection.connect(input.connection);
     };
+}
+
+exports.previousConnection_ = function(blockRef) {
+    return function() {
+        return blockRef.value.previousConnection;
+    }
+}
+
+exports.nextConnection_ = function(blockRef) {
+    return function() {
+        return blockRef.value.nextConnection;
+    }
+}
+
+exports.connect_ = function(from, to) {
+    return function () {
+        from.connect(to);
+    }
 }
 
 exports.connectToOutput_ = function (blockRef, input) {
     return function () {
-        var block = blockRef.value;
-        block.outputConnection.connect(input.connection);
+        blockRef.value.outputConnection.connect(input.connection);
     };
 }
 
 exports.newBlock_ = function (mkRef, workspaceRef, name) {
-    var workspace = workspaceRef.value;
-    var block = workspace.newBlock(name);
+    var block = workspaceRef.value.newBlock(name);
     block.initSvg();
     return mkRef(block);
 }
@@ -79,10 +104,13 @@ exports.inputName_ = function (input) {
     return input.name;
 }
 
+exports.inputType_ = function (input) {
+    return input.type;
+}
+
 exports.clearWorkspace_ = function (workspaceRef) {
     return function () {
-        var workspace = workspaceRef.value;
-        workspace.clear()
+        workspaceRef.value.clear()
     };
 }
 
@@ -92,8 +120,7 @@ exports.fieldRow_ = function (input) {
 
 exports.setFieldText_ = function (fieldRef, text) {
     return function () {
-        var field = fieldRef.value;
-        field.setText(text);
+        fieldRef.value.setText(text);
     };
 }
 
@@ -103,4 +130,17 @@ exports.fieldName_ = function (field) {
 
 exports.unsafeThrowError_ = function (s) {
     throw new Error(s);
+}
+
+exports.getBlockInputConnectedTo_ = function (left, right, input) {
+    try {
+        var mBlock = input.connection.targetConnection.getSourceBlock();
+        if (mBlock == null) {
+            return left("no block found");
+        } else {
+            return right(mBlock);
+        }
+    } catch (err) {
+        return left(err.message);
+    }
 }

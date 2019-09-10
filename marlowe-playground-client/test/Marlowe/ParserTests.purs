@@ -1,15 +1,16 @@
 module Marlowe.ParserTests where
 
 import Prelude
+
 import Control.Alternative ((<|>))
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen)
 import Control.Monad.Rec.Class (class MonadRec)
 import Data.Either (Either(..))
-import Marlowe.Gen (genContract, genObservation, genValue)
-import Marlowe.Parser (contract, observation, value)
+import Marlowe.Gen (genAction, genContract, genObservation, genValue)
+import Marlowe.Parser (action, contract, observation, value)
 import Marlowe.Pretty (pretty)
-import Marlowe.Types (Contract, Observation, Value)
+import Marlowe.Semantics (Contract, Observation, Value)
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.QuickCheck.Gen (Gen)
 import Test.Unit (TestSuite, Test, suite, test)
@@ -25,6 +26,8 @@ all =
     test "Pretty Value Parser" $ quickCheckGen prettyValueParser
     test "Observation Parser" $ quickCheckGen observationParser
     test "Pretty Observation Parser" $ quickCheckGen prettyObservationParser
+    test "Action Parser" $ quickCheckGen actionParser
+    test "Pretty Action Parser" $ quickCheckGen prettyActionParser
     test "Contract Parser" $ quickCheckGen contractParser
     test "Pretty Contract Parser" $ quickCheckGen prettyContractParser
 
@@ -50,6 +53,16 @@ prettyObservationParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) 
 prettyObservationParser = do
   v <- genObservation
   pure (runParser (show $ flatten $ pretty v) (parens observation <|> observation) === Right v)
+
+actionParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => m Result
+actionParser = do
+  v <- genAction 5
+  pure (runParser (show v) (parens action <|> action) === Right v)
+
+prettyActionParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => m Result
+prettyActionParser = do
+  v <- genAction 5
+  pure (runParser (show $ flatten $ pretty v) (parens action <|> action) === Right v)
 
 contractParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => Lazy (m Contract) => m Result
 contractParser = do

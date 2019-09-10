@@ -33,7 +33,6 @@ library
   build-depends:
     base -any,
     containers -any,
-    mtl -any,
     template-haskell -any,
     plutus-tx -any,
     text,
@@ -42,17 +41,14 @@ library
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
-                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveFunctor DeriveFoldable
                       DeriveTraversable
   exposed-modules:
     Language.Marlowe
-    Language.Marlowe.Client
-    Language.Marlowe.Escrow
-    Language.Marlowe.Actus
+    Language.Marlowe.Semantics
+    Language.Marlowe.Util
     Language.Marlowe.Pretty
-    Marlowe
   other-modules:
-    Language.Marlowe.Common
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -62,32 +58,3 @@ library
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
   build-tool-depends: unlit:unlit -any
-
-test-suite marlowe-test
-    default-language: Haskell2010
-    hs-source-dirs: test
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    other-modules:
-      Spec.Common
-      Spec.Marlowe
-      Spec.Actus
-    build-depends:
-        base >=4.9 && <5,
-        containers -any,
-        hedgehog -any,
-        memory -any,
-        bytestring -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-hedgehog >=0.2.0.0,
-        text -any,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
-        marlowe,
-        plutus-tx -any,
-        template-haskell -any
-  ghc-options:
-    -Wall -Wnoncanonical-monad-instances
-    -Wincomplete-uni-patterns -Wincomplete-record-updates
-    -Wredundant-constraints -Widentities

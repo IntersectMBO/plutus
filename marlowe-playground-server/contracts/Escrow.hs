@@ -1,69 +1,111 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Escrow where
 
-import           Marlowe
-
-{-# ANN module "HLint: ignore" #-}
+import           Language.Marlowe
 
 main :: IO ()
-main = putStrLn $ prettyPrint contract
+main = print . pretty $ contract
 
--------------------------------------
--- Write your code below this line --
--------------------------------------
 
--- Escrow example using embedding
+{- What does the vanilla contract look like?
+  - if Alice and Bob choose
+      - and agree: do it
+      - and disagree: Carol decides
+  - Carol also decides if timeout after one choice has been made;
+  - refund if no choices are made.
+-}
 
 contract :: Contract
-contract = Commit 1 iCC1 alice
-                  (Constant 450)
-                  10 100
-                  (When (OrObs (majority_chose refund)
-                               (majority_chose pay))
-                        90
-                        (Choice (majority_chose pay)
-                                (Pay 2 iCC1 bob
-                                     (Committed iCC1)
-                                     100
-                                     Null
-                                     Null)
-                                (redeem_original 3))
-                       (redeem_original 4))
-                  Null
-    where majority_chose = two_chose alice bob carol
 
--- Participants
+contract = When [Case (Deposit "alice" "alice" price) inner]
+                10
+                Refund
 
-alice, bob, carol :: Person
-alice = 1
-bob = 2
-carol = 3
+inner :: Contract
 
--- Possible votes
+inner =
+  When [ Case aliceChoice
+              (When [ Case bobChoice
+                          (If (aliceChosen `ValueEQ` bobChosen)
+                             agreement
+                             arbitrate) ]
+                    60
+                    arbitrate),
+        Case bobChoice
+              (When [ Case aliceChoice
+                          (If (aliceChosen `ValueEQ` bobChosen)
+                              agreement
+                              arbitrate) ]
+                    60
+                    arbitrate)
+        ]
+        40
+        Refund
 
-refund, pay :: Choice
-refund = 0
-pay = 1
+-- The contract to follow when Alice and Bob have made the same choice.
 
--- Vote counting
+agreement :: Contract
+agreement =
+  If
+    (aliceChosen `ValueEQ` Constant 0)
+    (Pay "alice" (Party "bob") price Refund)
+    Refund
 
-chose :: Integer -> Choice -> Observation
-chose per c = ChoseThis (1, per) c
+-- The contract to follow when Alice and Bob disagree, or if
+-- Carol has to intervene after a single choice from Alice or Bob.
 
-one_chose :: Person -> Person -> Choice -> Observation
-one_chose per per' val = (OrObs (chose per val) (chose per' val))
+arbitrate :: Contract
 
-two_chose :: Person -> Person -> Person -> Choice -> Observation
-two_chose p1 p2 p3 c = OrObs (AndObs (chose p1 c) (one_chose p2 p3 c))
-                             (AndObs (chose p2 c) (chose p3 c))
+arbitrate =
+  When  [ Case carolRefund Refund,
+          Case carolPay (Pay "alice" (Party "bob") price Refund) ]
+        100
+        Refund
 
--- Redeem alias
+-- Names for choices
 
-redeem_original :: Integer -> Contract
-redeem_original x = Pay x iCC1 alice (Committed iCC1) 100 Null Null
+pay,refund,both :: [Bound]
 
--- Commit identifier
+pay    = [Bound 0 0]
+refund = [Bound 1 1]
+both   = [Bound 0 1]
 
-iCC1 :: IdCommit
-iCC1 = 1
+-- helper function to build Actions
 
+choiceName :: ChoiceName
+choiceName = "choice"
 
+choice :: Party -> [Bound] -> Action
+
+choice party = Choice (ChoiceId choiceName party)
+
+-- Name choices according to person making choice and choice made
+
+alicePay, aliceRefund, aliceChoice, bobPay, bobRefund, bobChoice, carolPay, carolRefund, carolChoice :: Action
+
+alicePay    = choice "alice" pay
+aliceRefund = choice "alice" refund
+aliceChoice = choice "alice" both
+
+bobPay    = choice "bob" pay
+bobRefund = choice "bob" refund
+bobChoice = choice "bob" both
+
+carolPay    = choice "carol" pay
+carolRefund = choice "carol" refund
+carolChoice = choice "carol" both
+
+-- the values chosen in choices
+
+aliceChosen, bobChosen :: Value
+
+aliceChosen = ChoiceValue (ChoiceId choiceName "alice") defValue
+bobChosen   = ChoiceValue (ChoiceId choiceName "bob") defValue
+
+defValue :: Value
+defValue = Constant 42
+
+-- Value under escrow
+
+price :: Value
+price = Constant 450

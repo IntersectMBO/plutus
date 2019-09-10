@@ -4,6 +4,8 @@
 {-# LANGUAGE TypeOperators     #-}
 module Language.Marlowe.Pretty (pretty, Pretty, prettyFragment) where
 
+import           Data.Text               (Text)
+import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
 import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
@@ -70,6 +72,9 @@ instance (Pretty1 a, Pretty1 b) => Pretty1 (a :*: b) where
 
 instance Pretty String where
   prettyFragment = text
+
+instance Pretty Text where
+  prettyFragment = text . show . Text.unpack
 
 instance Pretty Int where
   prettyFragment = text . show
