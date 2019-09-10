@@ -3,11 +3,11 @@ module Language.PlutusTx.AssocMapTests
   ) where
 
 import Prelude
-import Data.Tuple.Nested
+
+import Data.Tuple.Nested ((/\))
 import Language.PlutusTx.AssocMap (fromTuples, unionWith)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import Test.Unit.QuickCheck (quickCheck)
 
 all :: TestSuite
 all =
