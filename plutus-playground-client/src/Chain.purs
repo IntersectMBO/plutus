@@ -6,7 +6,8 @@ module Chain
 
 import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
-import Chain.BlockchainExploration (blockchainExploration)
+import Chain.Types (BlockchainVisualisationState)
+import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
 import Data.Array as Array
@@ -15,13 +16,10 @@ import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
-import Data.Map as Map
 import Data.Maybe (Maybe, fromMaybe)
-import Data.RawJson (JsonTuple(..))
 import Data.Semiring (zero)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (foldMap)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
@@ -35,31 +33,23 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value (CurrencySymbol, TokenName)
-import Playground.API (EvaluationResult(EvaluationResult), SimulatorWallet)
+import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, ($), (<$>), (<<<), (<>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _pubKey, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 
 evaluationPane ::
   forall m.
   MonadAff m =>
+  BlockchainVisualisationState ->
   EvaluationResult ->
   ParentHTML Query ChildQuery ChildSlot m
-evaluationPane e@(EvaluationResult { emulatorLog, resultBlockchain, fundsDistribution, walletKeys }) =
+evaluationPane blockchainVisualisationState evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ blockchainExploration
-        (foldMap (\(JsonTuple (Tuple key wallet)) -> Map.singleton (view _pubKey key) wallet) walletKeys)
-        resultBlockchain
-    , br_
-    , div_
-        [ h2_ [ text "Final Balances" ]
-        , slot'
-            cpBalancesChart
-            BalancesChartSlot
-            (chartist balancesChartOptions)
-            (balancesToChartistData fundsDistribution)
-            (input HandleBalancesChartMessage)
-        ]
+    [ chainView
+        blockchainVisualisationState
+        (AssocMap.toDataMap (AssocMap.Map walletKeys))
+        resultRollup
     , br_
     , div_
         [ h2_ [ text "Logs" ]
@@ -69,6 +59,16 @@ evaluationPane e@(EvaluationResult { emulatorLog, resultBlockchain, fundsDistrib
               div
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
+        ]
+    , br_
+    , div_
+        [ h2_ [ text "Final Balances" ]
+        , slot'
+            cpBalancesChart
+            BalancesChartSlot
+            (chartist balancesChartOptions)
+            (balancesToChartistData fundsDistribution)
+            (input HandleBalancesChartMessage)
         ]
     ]
 

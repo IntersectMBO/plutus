@@ -8,7 +8,7 @@ import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldMap, foldlDefault, foldrDefault)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Iso', Lens')
+import Data.Lens (Iso')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NEL

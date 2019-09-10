@@ -41,7 +41,7 @@ import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
-import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
+import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Playground.Server (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
@@ -111,6 +111,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorSetAnnotations annotations = pure unit
   editorGotoLine row column = pure unit
   --
+  delay time = pure unit
   saveBuffer contents =
     MockApp
       $ assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)

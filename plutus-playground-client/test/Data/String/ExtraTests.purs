@@ -21,11 +21,11 @@ abbreviateTests :: TestSuite
 abbreviateTests = do
   suite "abbreviate" do
     test "Always limits the string length" do
-      quickCheck \str -> String.length (abbreviate str) <= 10
+      quickCheck \str -> String.length (abbreviate 7 str) <= 10
     test "Never affects the start of the string" do
       quickCheck \str ->
         String.take 5 str
-          == String.take 5 (abbreviate str)
+          == String.take 5 (abbreviate 10 str)
 
 toHexTests :: TestSuite
 toHexTests = do

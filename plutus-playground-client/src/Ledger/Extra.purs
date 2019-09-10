@@ -1,118 +1,89 @@
 module Ledger.Extra where
 
 import Prelude
-import Data.Array as Array
-import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex)
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', lens, wander)
-import Data.Lens.At (class At)
-import Data.Lens.Index (class Index)
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Map as Map
-import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, unwrap)
-import Data.RawJson (JsonTuple(..))
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..), fst, snd, uncurry)
-import Foreign.Class (class Decode, class Encode, decode, encode)
 
-newtype LedgerMap k v
-  = LedgerMap (Array (Tuple k v))
+import Data.Lens (Lens', lens, view)
+import Data.Lens.Record (prop)
+import Data.Symbol (SProxy(..))
+import Language.PlutusTx.AssocMap (unionWith)
+import Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
+import Ledger.Slot (Slot(..))
+import Ledger.Value (Value(..))
 
-derive instance genericLedgerMap :: Generic (LedgerMap k v) _
+humaniseInterval :: Interval Slot -> String
+humaniseInterval interval =
+  case from, to of
+    LowerBound NegInf true, UpperBound PosInf true -> "All time."
+    _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to <> "."
+  where
+    from = view (_Interval <<< _ivFrom) interval
+    to = view (_Interval <<< _ivTo) interval
 
-derive instance newtypeLedgerMap :: Newtype (LedgerMap k v) _
+humaniseSlot :: forall a. HasBound a Slot => a -> String
+humaniseSlot bound = start <> " " <> end
+  where
+  start = case hasBound bound of
+    NegInf -> "the start of time"
+    Finite (Slot slot) -> "Slot " <> show slot.getSlot
+    PosInf -> "the end of time"
 
-instance eqLedgerMap :: (Ord k, Eq v) => Eq (LedgerMap k v) where
-  eq (LedgerMap xs) (LedgerMap ys) = Array.sortWith fst xs == Array.sortWith fst ys
+  end = case isInclusive bound of
+    true -> "(inclusive)"
+    false -> "(exclusive)"
 
-instance showValue :: (Show k, Show v) => Show (LedgerMap k v) where
-  show = genericShow
+-- | Any type that contains an `Extended a` value and an inclusive/exclusive flag.
+class HasBound a v | a -> v where
+  hasBound :: a -> Extended v
+  isInclusive :: a -> Boolean
 
-_LedgerMap :: forall k v. Lens' (LedgerMap k v) (Array (Tuple k v))
-_LedgerMap = _Newtype
+instance lowerBoundHasBound :: HasBound (LowerBound v) v where
+  hasBound (LowerBound x _) = x
+  isInclusive (LowerBound _ x) = x
 
--- | Compute the union of two `LedgerMap`s, using the specified function to combine values for duplicate keys.
--- Notes:
---   This function does not offer any guarantees about ordering.
---   `LedgerMap`s may themselves contain duplicate keys, and they too will be combined with the specified function.
-unionWith :: forall k v. Ord k => (v -> v -> v) -> LedgerMap k v -> LedgerMap k v -> LedgerMap k v
-unionWith f (LedgerMap a) (LedgerMap b) =
-  LedgerMap
-    $ Map.toUnfoldable
-    $ Map.unionWith f
-        (Map.fromFoldableWith f a)
-        (Map.fromFoldableWith f b)
+instance upperBoundHasBound :: HasBound (UpperBound v) v where
+  hasBound (UpperBound x _) = x
+  isInclusive (UpperBound _ x) = x
 
-instance semigroupLedgerMap :: (Ord k, Semigroup v) => Semigroup (LedgerMap k v) where
-  append = unionWith append
+------------------------------------------------------------
 
-instance monoidLedgerMap :: (Ord k, Semigroup v) => Monoid (LedgerMap k v) where
-  mempty = LedgerMap []
+_ivFrom :: forall a r. Lens' { ivFrom :: a | r } a
+_ivFrom = prop (SProxy :: SProxy "ivFrom")
 
-null :: forall k v. LedgerMap k v -> Boolean
-null = unwrap >>> Array.null
+_ivTo :: forall a r. Lens' { ivTo :: a | r } a
+_ivTo = prop (SProxy :: SProxy "ivTo")
 
-instance foldableLedgerMap :: Foldable (LedgerMap k) where
-  foldMap f = foldMap (f <<< snd) <<< unwrap
-  foldl f z = foldl (\b -> f b <<< snd) z <<< unwrap
-  foldr f z = foldr (\x b -> f (snd x) b) z <<< unwrap
+_LowerBoundExtended :: forall a. Lens' (LowerBound a) (Extended a)
+_LowerBoundExtended = lens get set
+  where
+  get (LowerBound e _) = e
 
-instance foldableWithIndexLedgerMap :: FoldableWithIndex k (LedgerMap k) where
-  foldMapWithIndex f = foldMap (uncurry f) <<< unwrap
-  foldlWithIndex f z = foldl (\acc (Tuple k v) -> f k acc v) z <<< unwrap
-  foldrWithIndex f z = foldr (\(Tuple k v) acc -> f k v acc) z <<< unwrap
+  set (LowerBound _ i) e = LowerBound e i
 
-instance indexLedgerMap :: Eq k => Index (LedgerMap k a) k a where
-  ix key =
-    wander \f (LedgerMap values) ->
-      map LedgerMap
-        $ sequence
-        $ map
-            ( \(Tuple k v) ->
-                Tuple k
-                  <$> ( if k == key then
-                        f
-                      else
-                        pure
-                    )
-                      v
-            )
-            values
+_LowerBoundInclusive :: forall a. Lens' (LowerBound a) Boolean
+_LowerBoundInclusive = lens get set
+  where
+  get (LowerBound _ i) = i
 
-instance atLedgerMap :: Eq k => At (LedgerMap k a) k a where
-  at key = lens get set
-    where
-    matching tuple = fst tuple == key
+  set (LowerBound e _) i = LowerBound e i
 
-    get (LedgerMap xs) = map snd $ Array.find matching xs
+_UpperBoundExtended :: forall a. Lens' (UpperBound a) (Extended a)
+_UpperBoundExtended = lens get set
+  where
+  get (UpperBound e _) = e
 
-    set (LedgerMap xs) Nothing = LedgerMap $ Array.filter (not matching) xs
+  set (UpperBound _ i) e = UpperBound e i
 
-    set (LedgerMap xs) (Just new) =
-      LedgerMap
-        $ case Array.findIndex matching xs of
-            Nothing -> Array.snoc xs (Tuple key new)
-            _ ->
-              map
-                ( \(Tuple k v) ->
-                    Tuple k
-                      ( if k == key then
-                          new
-                        else
-                          v
-                      )
-                )
-                xs
+_UpperBoundInclusive :: forall a. Lens' (UpperBound a) Boolean
+_UpperBoundInclusive = lens get set
+  where
+  get (UpperBound _ i) = i
 
-instance encodeLedgerMap :: (Encode k, Encode v) => Encode (LedgerMap k v) where
-  encode value = encode (map JsonTuple (unwrap value))
+  set (UpperBound e _) i = UpperBound e i
 
-instance decodeLedgerMap :: (Decode k, Decode v) => Decode (LedgerMap k v) where
-  decode value = LedgerMap <<< map f <$> decode value
-    where
-    -- Type hint me Obi-Wan, it's my only hope.
-    f :: forall a b. JsonTuple a b -> Tuple a b
-    f = unwrap
+_a :: forall a r. Lens' { a :: a | r } a
+_a = prop (SProxy :: SProxy "a")
+
+------------------------------------------------------------
+sum :: Value -> Value -> Value
+sum (Value {getValue: x}) (Value {getValue: y}) =
+  Value {getValue: unionWith (unionWith (+)) x y}

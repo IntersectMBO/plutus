@@ -19,13 +19,13 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
 import           Ledger.Value                 (TokenName (TokenName), Value)
-import           Playground.API               (CompilationResult (CompilationResult), Evaluation (Evaluation),
+import qualified Playground.Interpreter       as PI
+import           Playground.Interpreter.Util  (TraceResult)
+import           Playground.Types             (CompilationResult (CompilationResult), Evaluation (Evaluation),
                                                Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
                                                KnownCurrency (KnownCurrency), PlaygroundError,
                                                SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
                                                functionName, simulatorWalletBalance, simulatorWalletWallet)
-import qualified Playground.Interpreter       as PI
-import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
 import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
@@ -330,7 +330,7 @@ knownCurrencySpec =
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
             , "import Ledger.Value (TokenName(TokenName))"
             , "import Ledger.Scripts (ValidatorHash (..))"
-            , "import Playground.API (KnownCurrency (..))"
+            , "import Playground.Types (KnownCurrency (..))"
             , "import Language.PlutusTx.Prelude"
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"

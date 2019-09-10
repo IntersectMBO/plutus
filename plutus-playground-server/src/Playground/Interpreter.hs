@@ -22,12 +22,11 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                               Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, OtherError), program,
-                                               simulatorWalletWallet, wallets)
-import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
+import           Playground.Types             (CompilationResult (CompilationResult), Evaluation (sourceCode),
+                                               Expression (Action, Wait), Fn (Fn),
+                                               PlaygroundError (DecodeJsonTypeError, InterpreterError, OtherError),
+                                               program, simulatorWalletWallet, wallets)
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
 import           System.IO.Extras             (withFile)
@@ -163,13 +162,13 @@ runFunction ::
     -> m (InterpreterResult TraceResult)
 runFunction timeout evaluation = do
     let source = sourceCode evaluation
-    mapError API.InterpreterError $ avoidUnsafe source
+    mapError InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
     withSystemTempDirectory "playgroundrun" $ \dir -> do
         let file = dir </> "Main.hs"
         withFile file ReadWriteMode $ \handle -> do
             (InterpreterResult warnings result) <-
-                mapError API.InterpreterError . runscript handle file timeout $
+                mapError InterpreterError . runscript handle file timeout $
                 mkRunScript
                     (Newtype.unpack source)
                     (Text.pack . BS8.unpack $ expr)

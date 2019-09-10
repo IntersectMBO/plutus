@@ -54063,6 +54063,7 @@ license = stdenv.lib.licenses.asl20;
 , base
 , bytestring
 , containers
+, cryptonite
 , hedgehog
 , hspec
 , hspec-discover
@@ -54076,7 +54077,9 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
+, prettyprinter
 , QuickCheck
+, serialise
 , servant
 , stdenv
 , tasty
@@ -54096,6 +54099,7 @@ aeson
 base
 bytestring
 containers
+cryptonite
 insert-ordered-containers
 iots-export
 lens
@@ -54106,6 +54110,8 @@ playground-common
 plutus-emulator
 plutus-tx
 plutus-wallet-api
+prettyprinter
+serialise
 servant
 template-haskell
 text
@@ -54145,7 +54151,9 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , cookie
+, cryptonite
 , data-default-class
+, Diff
 , exceptions
 , file-embed
 , filepath
@@ -54155,6 +54163,7 @@ license = stdenv.lib.licenses.asl20;
 , http-client-tls
 , http-conduit
 , http-types
+, HUnit
 , insert-ordered-containers
 , iots-export
 , jwt
@@ -54172,6 +54181,7 @@ license = stdenv.lib.licenses.asl20;
 , prometheus
 , purescript-bridge
 , regex-compat
+, serialise
 , servant
 , servant-client
 , servant-client-core
@@ -54205,15 +54215,14 @@ base
 bytestring
 containers
 cookie
+cryptonite
 exceptions
 file-embed
 filepath
-hspec
 http-client
 http-client-tls
 http-conduit
 http-types
-insert-ordered-containers
 iots-export
 jwt
 lens
@@ -54227,6 +54236,7 @@ plutus-tx
 plutus-wallet-api
 process
 regex-compat
+serialise
 servant
 servant-client
 servant-client-core
@@ -54274,7 +54284,9 @@ testHaskellDepends = [
 aeson
 base
 bytestring
+Diff
 hspec
+HUnit
 insert-ordered-containers
 iots-export
 mtl

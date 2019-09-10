@@ -6,6 +6,7 @@ module MainFrame
   ) where
 
 import Types
+
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
 import Action (actionsErrorPane, simulationPane)
@@ -13,6 +14,7 @@ import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
+import Chain.Types (_FocusTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
@@ -37,7 +39,8 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Monoid.Additive (Additive(..))
-import Data.Newtype (unwrap)
+import Data.Newtype (unwrap, wrap)
+import Data.Ord (Ordering(..), compare)
 import Data.RawJson (JsonEither(..))
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
@@ -60,12 +63,12 @@ import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(..), Value(..))
-import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import Ledger.Value (CurrencySymbol(CurrencySymbol), Value(Value))
+import MonadApp (class MonadApp, delay, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
-import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
+import Playground.Types (KnownCurrency(..), SequenceId(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
@@ -84,8 +87,8 @@ mkInitialValue currencies initialBalance = Value { getValue: value }
   where
   value =
     map (map unwrap)
-     $ fold
-     $ foldMap
+      $ fold
+      $ foldMap
           ( \(KnownCurrency { hash, knownTokens }) ->
               map
                 ( \tokenName ->
@@ -118,6 +121,11 @@ initialState =
     , authStatus: NotAsked
     , createGistResult: NotAsked
     , gistUrl: Nothing
+    , blockchainVisualisationState:
+      { chainFocus: Nothing
+      , chainFocusAppearing: false
+      , chainFocusAge: EQ
+      }
     }
 
 ------------------------------------------------------------
@@ -204,6 +212,8 @@ toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime"
 toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+
+toEvent (SetChainFocus _ _) = Nothing
 
 eval ::
   forall m.
@@ -433,6 +443,27 @@ eval (PopulateAction n l event) = do
     (evalForm initialValue event)
   pure $ extract event
 
+eval (SetChainFocus newFocus next) = do
+  oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
+
+  let
+    oldSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) oldFocus
+    newSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) newFocus
+    relativeAge = fromMaybe EQ $ compareSequenceIds <$> oldSequenceId <*> newSequenceId
+  assign (_blockchainVisualisationState <<< _chainFocus) newFocus
+  assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
+
+  assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
+  delay $ wrap 10.0
+  assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
+
+  pure next
+  where
+    compareSequenceIds (SequenceId old) (SequenceId new) =
+         compare old.slotIndex new.slotIndex
+         <>
+         compare old.txIndex new.txIndex
+
 getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
 getKnownCurrencies = do
   knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _knownCurrencies)
@@ -503,7 +534,8 @@ evalForm initialValue = rec
 
   rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  rec (AddSubField _) (FormArray schema fields) = -- As the code stands, this is the only guarantee we get that every
+  rec (AddSubField _) (FormArray schema fields) =
+    -- As the code stands, this is the only guarantee we get that every
     -- value in the array will conform to the schema: the fact that we
     -- create the 'empty' version from the same schema template.
     --
@@ -544,7 +576,7 @@ render ::
   forall m.
   MonadAff m =>
   State -> ParentHTML Query ChildQuery ChildSlot m
-render state@(State { currentView }) =
+render state@(State { currentView, blockchainVisualisationState }) =
   div_
     [ bannerMessage
     , div
@@ -557,12 +589,12 @@ render state@(State { currentView }) =
                 ]
             ]
         , viewContainer currentView Editor
-            $ [ demoScriptsPane
-              , editorPane defaultContents (map unwrap (view _compilationResult state))
-              , case view _compilationResult state of
-                  Failure error -> ajaxErrorPane error
-                  _ -> empty
-              ]
+            [ demoScriptsPane
+            , editorPane defaultContents (map unwrap (view _compilationResult state))
+            , case view _compilationResult state of
+                Failure error -> ajaxErrorPane error
+                _ -> empty
+            ]
         , viewContainer currentView Simulations
             $ let
                 knownCurrencies = evalState getKnownCurrencies state
@@ -581,7 +613,7 @@ render state@(State { currentView }) =
                 ]
         , viewContainer currentView Transactions
             $ case view _evaluationResult state of
-                Success (JsonEither (Right evaluation)) -> [ evaluationPane evaluation ]
+                Success (JsonEither (Right evaluation)) -> [ evaluationPane blockchainVisualisationState evaluation ]
                 Success (JsonEither (Left error)) ->
                   [ text "Your simulation has errors. Click the "
                   , strong_ [ text "Simulation" ]
