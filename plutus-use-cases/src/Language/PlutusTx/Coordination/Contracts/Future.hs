@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -37,7 +38,7 @@ import           Ledger                       (DataScript (..), Slot(..), PubKey
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
 import           Ledger.Scripts               (HashedDataScript)
-import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
+import           Ledger.Validation            (OracleValue (..), PendingTx, PendingTx' (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)

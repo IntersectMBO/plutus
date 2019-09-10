@@ -2083,13 +2083,14 @@
                                                     (datatypebind
                                                       (datatype
                                                         (tyvardecl
-                                                          PendingTxIn (type)
+                                                          PendingTxIn
+                                                          (fun (type) (type))
                                                         )
-                                                        
+                                                        (tyvardecl w (type))
                                                         PendingTxIn_match
                                                         (vardecl
                                                           PendingTxIn
-                                                          (fun PendingTxOutRef (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] PendingTxIn)))
+                                                          (fun PendingTxOutRef (fun w (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [PendingTxIn w])))
                                                         )
                                                       )
                                                     )
@@ -2732,33 +2733,40 @@
                                                                       (strict)
                                                                       (vardecl
                                                                         pendingTxInValue
-                                                                        (fun PendingTxIn [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                                                        (all w (type) (fun [PendingTxIn w] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
                                                                       )
-                                                                      (lam
-                                                                        ds
-                                                                        PendingTxIn
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              PendingTxIn_match
-                                                                              ds
-                                                                            ]
-                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                          }
-                                                                          (lam
-                                                                            ds
-                                                                            PendingTxOutRef
+                                                                      (abs
+                                                                        w
+                                                                        (type)
+                                                                        (lam
+                                                                          ds
+                                                                          [PendingTxIn w]
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  PendingTxIn_match
+                                                                                  w
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                            }
                                                                             (lam
                                                                               ds
-                                                                              [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                              PendingTxOutRef
                                                                               (lam
                                                                                 ds
-                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                ds
+                                                                                w
+                                                                                (lam
+                                                                                  ds
+                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                  ds
+                                                                                )
                                                                               )
                                                                             )
-                                                                          )
-                                                                        ]
+                                                                          ]
+                                                                        )
                                                                       )
                                                                     )
                                                                     (let
@@ -2767,14 +2775,14 @@
                                                                         (strict)
                                                                         (vardecl
                                                                           wvalidCollection
-                                                                          (fun Campaign (fun [List PendingTxIn] (fun [Extended (con integer)] (fun Bool (fun [UpperBound (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) Bool)))))))
+                                                                          (fun Campaign (fun [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]] (fun [Extended (con integer)] (fun Bool (fun [UpperBound (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) Bool)))))))
                                                                         )
                                                                         (lam
                                                                           w
                                                                           Campaign
                                                                           (lam
                                                                             ww
-                                                                            [List PendingTxIn]
+                                                                            [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]]
                                                                             (lam
                                                                               ww
                                                                               [Extended (con integer)]
@@ -2908,11 +2916,14 @@
                                                                                                                   {
                                                                                                                     {
                                                                                                                       map
-                                                                                                                      PendingTxIn
+                                                                                                                      [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]
                                                                                                                     }
                                                                                                                     [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                   }
-                                                                                                                  pendingTxInValue
+                                                                                                                  {
+                                                                                                                    pendingTxInValue
+                                                                                                                    [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                  }
                                                                                                                 ]
                                                                                                                 ww
                                                                                                               ]
@@ -3708,13 +3719,16 @@
                                                                                       (datatype
                                                                                         (tyvardecl
                                                                                           PendingTx
+                                                                                          (fun (type) (type))
+                                                                                        )
+                                                                                        (tyvardecl
+                                                                                          i
                                                                                           (type)
                                                                                         )
-                                                                                        
                                                                                         PendingTx_match
                                                                                         (vardecl
                                                                                           PendingTx
-                                                                                          (fun [List PendingTxIn] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxIn (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) PendingTx))))))))
+                                                                                          (fun [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]] (fun [List PendingTxOut] (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun (con bytestring) [PendingTx i]))))))))
                                                                                         )
                                                                                       )
                                                                                     )
@@ -3726,25 +3740,28 @@
                                                                                         )
                                                                                         (vardecl
                                                                                           validCollection
-                                                                                          (fun Campaign (fun PendingTx Bool))
+                                                                                          (fun Campaign (fun [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]] Bool))
                                                                                         )
                                                                                         (lam
                                                                                           w
                                                                                           Campaign
                                                                                           (lam
                                                                                             w
-                                                                                            PendingTx
+                                                                                            [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]
                                                                                             [
                                                                                               {
                                                                                                 [
-                                                                                                  PendingTx_match
+                                                                                                  {
+                                                                                                    PendingTx_match
+                                                                                                    [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                  }
                                                                                                   w
                                                                                                 ]
                                                                                                 Bool
                                                                                               }
                                                                                               (lam
                                                                                                 ww
-                                                                                                [List PendingTxIn]
+                                                                                                [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]]
                                                                                                 (lam
                                                                                                   ww
                                                                                                   [List PendingTxOut]
@@ -3756,7 +3773,7 @@
                                                                                                       [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                       (lam
                                                                                                         ww
-                                                                                                        PendingTxIn
+                                                                                                        [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                                         (lam
                                                                                                           ww
                                                                                                           [Interval (con integer)]
@@ -3848,7 +3865,7 @@
                                                                                           )
                                                                                           (vardecl
                                                                                             validRefund
-                                                                                            (fun Campaign (fun (con bytestring) (fun PendingTx Bool)))
+                                                                                            (fun Campaign (fun (con bytestring) (fun [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]] Bool)))
                                                                                           )
                                                                                           (lam
                                                                                             w
@@ -3858,18 +3875,21 @@
                                                                                               (con bytestring)
                                                                                               (lam
                                                                                                 w
-                                                                                                PendingTx
+                                                                                                [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]
                                                                                                 [
                                                                                                   {
                                                                                                     [
-                                                                                                      PendingTx_match
+                                                                                                      {
+                                                                                                        PendingTx_match
+                                                                                                        [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                      }
                                                                                                       w
                                                                                                     ]
                                                                                                     Bool
                                                                                                   }
                                                                                                   (lam
                                                                                                     ww
-                                                                                                    [List PendingTxIn]
+                                                                                                    [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]]
                                                                                                     (lam
                                                                                                       ww
                                                                                                       [List PendingTxOut]
@@ -3881,7 +3901,7 @@
                                                                                                           [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                           (lam
                                                                                                             ww
-                                                                                                            PendingTxIn
+                                                                                                            [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                                             (lam
                                                                                                               ww
                                                                                                               [Interval (con integer)]
@@ -3974,7 +3994,7 @@
                                                                                             )
                                                                                             (vardecl
                                                                                               mkValidator
-                                                                                              (fun Campaign (fun (con bytestring) (fun CampaignAction (fun PendingTx Bool))))
+                                                                                              (fun Campaign (fun (con bytestring) (fun CampaignAction (fun [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]] Bool))))
                                                                                             )
                                                                                             (lam
                                                                                               c
@@ -3987,7 +4007,7 @@
                                                                                                   CampaignAction
                                                                                                   (lam
                                                                                                     p
-                                                                                                    PendingTx
+                                                                                                    [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]
                                                                                                     [
                                                                                                       [
                                                                                                         [

@@ -44,8 +44,7 @@ import           Ledger                       (Address, DataScript(..), PubKey(.
 import qualified Ledger                       as L -- <7>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
-import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
-import qualified Ledger.Validation            as V -- <8>
+import           Ledger.Validation            as V -- <8>
 
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
                                                EventHandler(..), EventTrigger)

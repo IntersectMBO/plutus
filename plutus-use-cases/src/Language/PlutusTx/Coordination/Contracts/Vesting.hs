@@ -36,7 +36,7 @@ import qualified Ledger.Scripts               as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx (..), PendingTxIn(..), PendingTxOut(..), getContinuingOutputs)
+import           Ledger.Validation            (PendingTx, PendingTx' (..), PendingTxIn'(..), PendingTxOut(..), getContinuingOutputs)
 import qualified Wallet                       as W
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 

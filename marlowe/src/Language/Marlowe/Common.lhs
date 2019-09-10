@@ -812,8 +812,7 @@ validatorScript
 
         -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
-            PendingTxIn _ (Just (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
-            _                                                      -> Builtins.error ()
+            PendingTxIn{pendingTxInWitness=(vHash, RedeemerHash rHash), pendingTxInValue} -> (vHash, rHash, pendingTxInValue)
 
         scriptInAdaValue = Ada.fromValue scriptInValue
 

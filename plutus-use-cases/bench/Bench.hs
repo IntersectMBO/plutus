@@ -278,7 +278,7 @@ mockPendingTx = PendingTx
             { pendingTxOutRefId = TxHash P.emptyByteString
             , pendingTxOutRefIdx = 0
             }
-        , pendingTxInWitness = Nothing
+        , pendingTxInWitness = ("", "")
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange

@@ -35,7 +35,7 @@ import qualified Ledger.Ada                as Ada
 import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
-import           Ledger.Validation         (PendingTx(..))
+import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
