@@ -3,6 +3,15 @@
   packages = [
 
     {
+      name = "_fortawesome_fontawesome_free___fontawesome_free_5.10.2.tgz";
+      path = fetchurl {
+        name = "_fortawesome_fontawesome_free___fontawesome_free_5.10.2.tgz";
+        url  = "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.10.2.tgz";
+        sha1 = "27e02da1e34b50c9869179d364fb46627b521130";
+      };
+    }
+
+    {
       name = "_webassemblyjs_ast___ast_1.8.5.tgz";
       path = fetchurl {
         name = "_webassemblyjs_ast___ast_1.8.5.tgz";
@@ -2780,15 +2789,6 @@
         name = "follow_redirects___follow_redirects_1.7.0.tgz";
         url  = "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.7.0.tgz";
         sha1 = "489ebc198dc0e7f64167bd23b03c4c19b5784c76";
-      };
-    }
-
-    {
-      name = "font_awesome___font_awesome_4.7.0.tgz";
-      path = fetchurl {
-        name = "font_awesome___font_awesome_4.7.0.tgz";
-        url  = "https://registry.yarnpkg.com/font-awesome/-/font-awesome-4.7.0.tgz";
-        sha1 = "8fa8cf0411a1a31afd07b06d2902bb9fc815a133";
       };
     }
 
