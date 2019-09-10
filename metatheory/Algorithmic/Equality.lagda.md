@@ -3,6 +3,9 @@ module Algorithmic.Equality where
 ```
 
 ```
+open import Function hiding (_∋_)
+open import Data.Product renaming (_,_ to _,,_)
+
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
@@ -10,6 +13,9 @@ open import Algorithmic
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
+
 ```
 
 ```
@@ -41,7 +47,17 @@ data VarEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}
       → {x : Γ ∋ A}{x' : Γ' ∋ A'}
       → VarEq q  r x x'
       → VarEq (q ,⋆ K) s (T x p) (T x' p')
-      
+
+-- all we can change here is the context I think
+open import Data.List hiding ([_])
+open import Data.Unit
+TelEq : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → 
+  ∀ {Δ} As
+  (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
+  → (ts : Tel Γ Δ σ As)
+  → (ts' : Tel Γ' Δ σ As)
+  → Set
+     
 data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
   → A ≡Nf A' → Γ ⊢ A → Γ' ⊢ A' → Set where
   
@@ -126,6 +142,21 @@ data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
     → (q : con {Φ} tcn ≡Nf con tcn) -- could be reflNf
     → Eq p q (con {Γ = Γ} t) (con {Γ = Γ'} t)
 
+
+  builtinEq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){bn} →
+     let Δ ,, As ,, C = SIG bn in 
+       (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
+     → {ts : Tel Γ Δ σ As}
+     → {ts' : Tel Γ' Δ σ As}
+     → TelEq p As σ ts ts'
+     → {B : Φ ⊢Nf⋆ *}
+     → (q : substNf σ C ≡Nf B)
+     → (r : B ≡Nf B)
+     → Eq p r (builtin bn σ ts q) (builtin bn σ ts' q)
+
+TelEq p []       σ _ _ = ⊤
+TelEq p (A ∷ As) σ (t ,, ts) (t' ,, ts') =
+  Eq p reflNf t t' × TelEq p As σ ts ts'
 
 ```
 
