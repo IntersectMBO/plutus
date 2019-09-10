@@ -14,7 +14,7 @@ Note that the blockchain is Ethereum and the currency is Ether.
 The term **dapp** turns up quite a lot.  A dapp (the Ethereum people
 seem to like spelling it "ÐApp") is a _decentralised application_: I
 think this is essentially one or more smart contracts running on the
-blockchain, with users interacting with the contracts via a
+blockchain, generally with users interacting with the contracts via a
 dedicated front end which they install on a phone/browser.  See
 https://www.stateofthedapps.com/whats-a-dapp.
 
