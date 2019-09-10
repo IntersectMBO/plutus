@@ -1,4 +1,4 @@
-# Ethereum Smart Contracts in the Wild
+# Ethereum smart contracts in the wild
 
 This document looks at Ethereum smart contracts which were actually
 running on the Ethereum blockchain in August 2019.
@@ -24,7 +24,9 @@ ERC-20 you implement a contract with functions which return the total
 supply or the number of tokens owned by a specified individual, or
 allow a user to transfer funds to another user, and so on.
 
-There's a list of ERC-20 tokens at https://bloxy.info/list_tokens/ERC20
+There's a list of current ERC-20 tokens at
+https://bloxy.info/list_tokens/ERC20 (this is just the top 2500:
+there are lots more).
 
 Users may wish to trade one ERC-20 for another, and this can be done
 using a _decentralised exchange_ (or _DEX_): these are generally
