@@ -62,7 +62,7 @@ bigInteger = do
     Nothing -> fail "not a valid BigInt"
 
 valueId :: Parser String ValueId
-valueId = ValueId <$> bigInteger
+valueId = ValueId <$> text
 
 slot :: Parser String Slot
 slot = Slot <$> bigInteger

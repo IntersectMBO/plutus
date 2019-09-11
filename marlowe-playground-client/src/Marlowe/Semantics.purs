@@ -134,7 +134,7 @@ choiceOwner :: ChoiceId -> PubKey
 choiceOwner (ChoiceId _ owner) = owner
 
 newtype ValueId
-  = ValueId BigInteger
+  = ValueId String
 
 derive instance genericValueId :: Generic ValueId _
 
