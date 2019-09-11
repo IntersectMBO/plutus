@@ -306,6 +306,33 @@ let
           Cmd = ["${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
+
+      development = pkgs.dockerTools.buildImage {
+        name = "plutus-development";
+        contents =         
+          let runtimeGhc = 
+                haskellPackages.ghcWithPackages (ps: [
+                  haskellPackages.language-plutus-core
+                  haskellPackages.plutus-core-interpreter
+                  haskellPackages.plutus-emulator
+                  haskellPackages.plutus-wallet-api
+                  haskellPackages.plutus-tx
+                  haskellPackages.plutus-use-cases
+                  haskellPackages.plutus-ir
+                  haskellPackages.plutus-contract
+                ]);
+          in  [ 
+                runtimeGhc
+                pkgs.binutils-unwrapped
+                pkgs.coreutils
+                pkgs.bash
+                pkgs.git # needed by cabal-install
+                haskellPackages.cabal-install 
+              ];
+        config = {
+          Cmd = ["bash"];
+        };
+      };
     };
 
     plutus-contract = rec {
