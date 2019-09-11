@@ -172,6 +172,13 @@ cohVar (p , p') q (Z r)   = ZEq r (transNf (symNf p') (transNf r q)) p' p q
 cohVar (p , p') q (S x)   = SEq p p' q (cohVar p q x)
 cohVar (p ,⋆ K) q (T x r) = TEq r (transNf r q) p reflNf q (cohVar p reflNf x)
 
+cohTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
+  → (p : Γ ≡Ctx Γ')
+  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
+  → (As : List (Ψ ⊢Nf⋆ *))
+  → (tel : Tel Γ Ψ σ As)
+  → TelEq p As σ tel (convTel p σ As tel)
+
 coh : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(t : Γ ⊢ A)
   → Eq p q t (conv⊢ p q t)
 coh p q (` x)               = varEq p q (cohVar p q x)
@@ -185,6 +192,10 @@ coh p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) (wrap1 pat arg t) =
   wrap1Eq p q q' _ (coh p _ t)
 coh p q (unwrap1 t r) = unwrap1Eq p reflNf reflNf (coh p _ t) r (transNf r q) q
 coh p con≡Nf (con c) = conEq p c con≡Nf
-coh p q (builtin bn σ tel r) = builtinEq p σ {!!} r (transNf r q) q
+coh p q (builtin bn σ tel r) =
+  builtinEq p σ (cohTel p σ _ tel) r (transNf r q) q
 coh p q (error A) = errorEq p q
+
+cohTel p σ []       _          = tt
+cohTel p σ (A ∷ As) (t ,, tel) = coh p reflNf t ,, cohTel p σ As tel
 ```
