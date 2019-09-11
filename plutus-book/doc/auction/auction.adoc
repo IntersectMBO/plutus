@@ -15,7 +15,7 @@ reached, the token owner receives the highest bid, and the highest bidder gets t
 token.
 
 Of course we want to enforce all auction rules automatically with Plutus.
-We want to make sure that each bid is guaranteed (so that the highest bidder will
+We want to make sure that each bid is guaranteed, so that the highest bidder will
 have to pay, and that the owner of the token will have to transfer ownership of
 the token to the highest bidder once the auction has ended.
 
