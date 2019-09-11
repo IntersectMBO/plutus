@@ -144,15 +144,20 @@ data Eq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'} → Γ ≡Ctx Γ'
 
 
   builtinEq : ∀{Φ Γ Γ'}(p : Γ ≡Ctx Γ'){bn} →
-     let Δ ,, As ,, C = SIG bn in 
-       (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-     → {ts : Tel Γ Δ σ As}
-     → {ts' : Tel Γ' Δ σ As}
-     → TelEq p As σ ts ts'
-     → {B : Φ ⊢Nf⋆ *}
-     → (q : substNf σ C ≡Nf B)
-     → (r : B ≡Nf B)
-     → Eq p r (builtin bn σ ts q) (builtin bn σ ts' q)
+    let Δ ,, As ,, C = SIG bn in 
+      (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
+    → {ts : Tel Γ Δ σ As}
+    → {ts' : Tel Γ' Δ σ As}
+    → TelEq p As σ ts ts'
+    → {B B' : Φ ⊢Nf⋆ *}
+    → (q : substNf σ C ≡Nf B)
+    → (q' : substNf σ C ≡Nf B')
+    → (r : B ≡Nf B')
+    → Eq p r (builtin bn σ ts q) (builtin bn σ ts' q')
+
+  errorEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')
+    → Eq p q (error A) (error A')
+
 
 TelEq p []       σ _ _ = ⊤
 TelEq p (A ∷ As) σ (t ,, ts) (t' ,, ts') =
@@ -167,6 +172,19 @@ cohVar (p , p') q (Z r)   = ZEq r (transNf (symNf p') (transNf r q)) p' p q
 cohVar (p , p') q (S x)   = SEq p p' q (cohVar p q x)
 cohVar (p ,⋆ K) q (T x r) = TEq r (transNf r q) p reflNf q (cohVar p reflNf x)
 
-postulate coh : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(t : Γ ⊢ A) → Eq p q t (conv⊢ p q t)
-
+coh : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(t : Γ ⊢ A)
+  → Eq p q t (conv⊢ p q t)
+coh p q (` x)               = varEq p q (cohVar p q x)
+coh p (⇒≡Nf q q')   (ƛ x t) = ƛEq p q q' (coh (p , q) q' t)
+coh p q (t · u)             =
+ ·Eq p reflNf q (coh p (⇒≡Nf reflNf q) t) (coh p reflNf u)
+coh p (Π≡Nf q)      (Λ x t) = ΛEq p q (coh (p ,⋆ _) q t)
+coh p q (·⋆ t A r)          =
+  ·⋆Eq p reflNf reflNf (coh p (Π≡Nf reflNf) t) r (transNf r q) q
+coh p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) (wrap1 pat arg t) =
+  wrap1Eq p q q' _ (coh p _ t)
+coh p q (unwrap1 t r) = unwrap1Eq p reflNf reflNf (coh p _ t) r (transNf r q) q
+coh p con≡Nf (con c) = conEq p c con≡Nf
+coh p q (builtin bn σ tel r) = builtinEq p σ {!!} r (transNf r q) q
+coh p q (error A) = errorEq p q
 ```
