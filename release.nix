@@ -47,6 +47,8 @@ let
     plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
     # At least the client is broken on darwin for some yarn reason
     marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
+    # The lambda is specifically built for linux only using musl
+    marlowe-symbolic-lambda = linux;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
     papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
@@ -71,6 +73,7 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.papers) 
       ++ (allJobs jobsets.plutus-playground)
       ++ (allJobs jobsets.marlowe-playground)
+      ++ (allJobs jobsets.marlowe-symbolic-lambda)
       ++ (allJobs jobsets.dev.scripts);
   });
 })

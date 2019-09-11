@@ -25,7 +25,10 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }  # The nixpkgs configuration file
+ # The nixpkgs configuration file
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; 
+             packageOverrides = (import ./lib.nix {}).packageOverrides; 
+           }
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
@@ -372,6 +375,14 @@ let
       });
     };
 
+    marlowe-symbolic-lambda =
+      let
+        # We must use musl because glibc can't do static linking properly
+        muslHaskellPackages = (haskellPackages.override (old: {
+          pkgsGenerated = pkgs.pkgsMusl.callPackage ./pkgs {};
+        }));
+      in pkgs.pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = muslHaskellPackages; };
+
     metatheory = import ./metatheory {
       inherit (agdaPackages) agda AgdaStdlib;
       inherit (localLib.iohkNix) cleanSourceHaskell;
@@ -430,7 +441,7 @@ let
         updateClientDeps = pkgs.writeScript "update-client-deps" ''
           #!${pkgs.runtimeShell}
 
-          export PATH=${pkgs.stdenv.lib.makeBinPath [ pkgs.nodejs-10_x ]}
+          export PATH=''$PATH:${pkgs.stdenv.lib.makeBinPath [ pkgs.nodejs-10_x ]}
 
           set -e
 

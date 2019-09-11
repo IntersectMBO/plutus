@@ -33,11 +33,8 @@ library
   build-depends:
     base -any,
     containers -any,
-    template-haskell -any,
-    plutus-tx -any,
     text,
-    wl-pprint -any,
-    plutus-wallet-api -any
+    wl-pprint -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift

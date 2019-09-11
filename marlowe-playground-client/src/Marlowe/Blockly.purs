@@ -27,7 +27,7 @@ import Data.Traversable (traverse, traverse_)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Parser as Parser
-import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Value(..))
+import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Value(..), ValueId(..))
 import Record (merge)
 import Text.Parsing.Parser (Parser, runParser)
 import Text.Parsing.Parser.Basic (parens)
@@ -460,7 +460,7 @@ toDefinition (ContractType LetContractType) =
         { type: show LetContractType
         , message0: "Let %1 be %2 continue as %3"
         , args0:
-          [ Number { name: "value_id", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
+          [ Input { name: "value_id", text: "value", spellcheck: false }
           , Value { name: "value", check: "value", align: Right }
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
@@ -753,7 +753,7 @@ toDefinition (ValueType UseValueValueType) =
         { type: show UseValueValueType
         , message0: "Use Value with ID %1"
         , args0:
-          [ Number { name: "value_id", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+          [ Input { name: "value_id", text: "value", spellcheck: false }
           ]
         , colour: "135"
         , output: Just "value"
@@ -898,10 +898,10 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract 
     contract <- parse Parser.contract =<< statementToCode g block "contract"
     pure (When cases timeout contract)
   blockDefinition LetContractType g block = do
-    valueId <- parse Parser.valueId =<< getFieldValue block "value_id"
+    valueId <- getFieldValue block "value_id"
     value <- parse Parser.value =<< statementToCode g block "value"
     contract <- parse Parser.contract =<< statementToCode g block "contract"
-    pure (Let valueId value contract)
+    pure (Let (ValueId valueId) value contract)
 
 instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType Observation where
   blockDefinition AndObservationType g block = do
@@ -975,8 +975,8 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
   blockDefinition SlotIntervalStartValueType g block = pure SlotIntervalStart
   blockDefinition SlotIntervalEndValueType g block = pure SlotIntervalEnd
   blockDefinition UseValueValueType g block = do
-    valueId <- parse Parser.valueId =<< getFieldValue block "value_id"
-    pure (UseValue valueId)
+    valueId <- getFieldValue block "value_id"
+    pure (UseValue (ValueId valueId))
 
 buildBlocks :: forall r. NewBlockFunction r -> BlocklyState -> Contract -> ST r Unit
 buildBlocks newBlock bs contract = do
@@ -1133,10 +1133,10 @@ instance toBlocklyContract :: ToBlockly Contract where
     inputToBlockly newBlock workspace block "case" cases
     setField block "timeout" (show timeout)
     inputToBlockly newBlock workspace block "contract" contract
-  toBlockly newBlock workspace input (Let valueId value contract) = do
+  toBlockly newBlock workspace input (Let (ValueId valueId) value contract) = do
     block <- newBlock workspace (show LetContractType)
     connectToPrevious block input
-    setField block "value_id" (show valueId)
+    setField block "value_id" valueId
     inputToBlockly newBlock workspace block "value" value
     inputToBlockly newBlock workspace block "contract" contract
 
@@ -1228,7 +1228,7 @@ instance toBlocklyValue :: ToBlockly Value where
   toBlockly newBlock workspace input SlotIntervalEnd = do
     block <- newBlock workspace (show SlotIntervalEndValueType)
     connectToOutput block input
-  toBlockly newBlock workspace input (UseValue valueId) = do
+  toBlockly newBlock workspace input (UseValue (ValueId valueId)) = do
     block <- newBlock workspace (show UseValueValueType)
     connectToOutput block input
-    setField block "value_id" (show (unwrap valueId))
+    setField block "value_id" valueId

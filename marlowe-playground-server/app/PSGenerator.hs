@@ -44,6 +44,8 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import qualified Marlowe.Symbolic.Types.Request             as MSReq
+import qualified Marlowe.Symbolic.Types.Response            as MSRes
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -51,6 +53,7 @@ import           Servant.PureScript                         (HasBridge, Settings
 import qualified Swap
 import           System.Directory                           (createDirectoryIfMissing)
 import           System.FilePath                            ((</>))
+import           WebSocket                                  (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
@@ -152,6 +155,11 @@ myTypes =
     , mkSumType (Proxy @Owner)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
+    , mkSumType (Proxy @MSRes.Response)
+    , mkSumType (Proxy @MSRes.Result)
+    , mkSumType (Proxy @MSReq.Request)
+    , mkSumType (Proxy @WebSocketRequestMessage)
+    , mkSumType (Proxy @WebSocketResponseMessage)
     ]
 
 mySettings :: Settings

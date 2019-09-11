@@ -125,6 +125,30 @@
             proxyPass = "http://${serviceName}/";
             proxyWebsockets = true;
           };
+          # we have the ability in the load balancer to specify which machine you want a request to go to
+          # TODO: I can't work out quite how to get regex working here
+          "/machine-a" = {
+            proxyPass = "http://${serviceName}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+            rewrite /machine-a/(.*) /$1  break;
+            # we want to rate limit the API however the webpage loading downloads a few files so we allow a small burst
+            limit_req zone=plutuslimit burst=10;
+            add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            expires off;
+            '';
+          };
+          "/machine-b" = {
+            proxyPass = "http://${serviceName}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+            rewrite /machine-b/(.*) /$1  break;
+            # we want to rate limit the API however the webpage loading downloads a few files so we allow a small burst
+            limit_req zone=plutuslimit burst=10;
+            add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            expires off;
+            '';
+          };
         };
       };
     };

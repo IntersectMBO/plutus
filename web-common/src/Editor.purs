@@ -154,13 +154,13 @@ compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" 
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.
 withEditor ::
-  forall m a cq slot cs query state.
+  forall m a cq slot cs query state msg.
   Eq cs =>
   MonadEffect m =>
   ChildPath AceQuery cq slot cs ->
   slot ->
   (Editor -> Effect a) ->
-  HalogenM state query cq cs Void m (Maybe a)
+  HalogenM state query cq cs msg m (Maybe a)
 withEditor cp slot action = do
   mEditor <- query' cp slot $ request GetEditor
   case join mEditor of

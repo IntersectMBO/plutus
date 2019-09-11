@@ -6,14 +6,17 @@ module Types
   ) where
 
 import qualified Auth
-import           Data.Aeson (FromJSON, parseJSON, withObject, (.:))
+import           Data.Aeson     (FromJSON, parseJSON, withObject, (.:))
+import qualified Marlowe.Config as MC
 
-newtype Config = Config
-  { _authConfig :: Auth.Config
+data Config = Config
+  { _authConfig    :: Auth.Config
+  , _marloweConfig :: MC.Config
   }
 
 instance FromJSON Config where
   parseJSON =
     withObject "config" $ \o -> do
       _authConfig <- o .: "auth"
+      _marloweConfig <- o .: "marlowe"
       pure Config {..}

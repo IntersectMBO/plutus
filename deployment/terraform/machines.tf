@@ -58,6 +58,7 @@ locals {
     tld            = "${var.plutus_tld}"
     plutusTld     = "${var.plutus_tld}"
     marloweTld     = "${var.marlowe_tld}"
+    marloweSymbolicUrl = "${aws_api_gateway_deployment.marlowe_symbolic_lambda.invoke_url}"
   }
 
   bastionMachines = {
