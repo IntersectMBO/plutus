@@ -27,7 +27,7 @@ highest bidder can take the token.
 
 One problem we discussed in the last chapter was the problem of how to deal with
 several outputs to a contract. We want to keep the state in one output, but
-nobody can prevent others from arbitrarilycreating many more outputs.
+nobody can prevent others from arbitrarily creating many more outputs.
 
 We solved the problem by creating a unique "admin token" and using its
 uniqueness to identify the "right" contract output.
