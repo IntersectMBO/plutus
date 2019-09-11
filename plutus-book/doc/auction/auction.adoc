@@ -58,7 +58,7 @@ We therefore need the following wallet endpoints:
 * `reclaimBid` for bidders who have been outbid to reclaim their bids,
 * `claimBid` for the token owner to claim the highest bid after the auction has
   ended,
-* `claimToken` for the highest bidder to claim the token in the end 
+* `claimToken` for the highest bidder to claim the token in the end,
 * `reclaimToken` for the token owner to reclaim the token if the auction ends
   without any bid having been placed.
 
