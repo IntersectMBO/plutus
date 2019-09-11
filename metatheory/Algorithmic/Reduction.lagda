@@ -220,13 +220,13 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → ∀{X : Φ ⊢Nf⋆ *}
     → {p : B ≡Nf X}
     → ∀{M : Γ ⊢ X}
-    → Eq p (N [ W ]) M
+    → Eq reflCtx p (N [ W ]) M
       -------------------
     → (ƛ x N) · W —→ M
 
   β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{x}{N : Γ ,⋆ K ⊢ B}{A}{X : Φ ⊢Nf⋆ *}{p}
     → {M : Γ ⊢ X}
-    → Eq p (N [ A ]⋆) M
+    → Eq reflCtx p (N [ A ]⋆) M
       -------------------
     → ·⋆ (Λ x N) A p —→ M
 
@@ -237,7 +237,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → {term : Γ ⊢ _}
     → {p : _ ≡Nf X}
     → {term' : Γ ⊢ X}
-    → Eq p term term'
+    → Eq reflCtx p term term'
     → unwrap1 (wrap1 pat arg term) p —→ term'
 
   ξ-unwrap1 : ∀{Φ Γ K}
@@ -265,7 +265,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → {B : Φ ⊢Nf⋆ *}
     → (p : substNf σ C ≡Nf B)
     → {M : Γ ⊢ B}
-    → (q : Eq p (BUILTIN bn σ tel vtel) M)
+    → (q : Eq reflCtx p (BUILTIN bn σ tel vtel) M)
       -----------------------------
     → builtin bn σ tel p —→ M
     
@@ -353,21 +353,21 @@ data TelProgress
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress t → (u : Γ ⊢ A)
   → Progress (t · u)
 progress-· (step p)         u = step (ξ-·₁ p)
-progress-· (done V-ƛ)       u = step (β-ƛ (coh reflNf _))
+progress-· (done V-ƛ)       u = step (β-ƛ (coh reflCtx reflNf _))
 progress-· (error e)        u = error (E-·₁ e)
 
 progress-·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → {X : _} → {p : _ ≡Nf X}
   → Progress (·⋆ t A p)
 progress-·⋆ (step p)       A = step (ξ-·⋆ p)
-progress-·⋆ (done (V-Λ p)) A {p = q}  = step (β-Λ (coh q _)) -- step β-Λ
+progress-·⋆ (done (V-Λ p)) A {p = q}  = step (β-Λ (coh reflCtx q _))
 progress-·⋆ (error e)      A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → {X : Φ ⊢Nf⋆ *}(p : nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf X)
   → Progress t → Progress (unwrap1 t p)
 progress-unwrap p (step q)           = step (ξ-unwrap1 p q)
-progress-unwrap p (done (V-wrap {term = t} v)) = step (β-wrap1 (coh p t))
+progress-unwrap p (done (V-wrap {term = t} v)) = step (β-wrap1 (coh reflCtx p t))
 progress-unwrap p (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn
@@ -378,7 +378,7 @@ progress-builtin : ∀{Φ Γ} bn
   → (q : substNf σ (proj₂ (proj₂ (SIG bn))) ≡Nf B)
   → Progress (builtin bn σ tel q)
 progress-builtin bn σ tel (done vtel) q                     =
-  step (β-builtin bn σ tel vtel q (coh q _))
+  step (β-builtin bn σ tel vtel q (coh reflCtx q _))
 progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r) s  =
   step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
 progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) q =

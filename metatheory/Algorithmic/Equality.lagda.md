@@ -167,5 +167,6 @@ cohVar (p , p') q (Z r)   = ZEq r (transNf (symNf p') (transNf r q)) p' p q
 cohVar (p , p') q (S x)   = SEq p p' q (cohVar p q x)
 cohVar (p ,⋆ K) q (T x r) = TEq r (transNf r q) p reflNf q (cohVar p reflNf x)
 
+postulate coh : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(t : Γ ⊢ A) → Eq p q t (conv⊢ p q t)
 
 ```
