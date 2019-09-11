@@ -46,7 +46,7 @@ data Direction
     | Backward  -- ^ To the left.
     deriving (Eq)
 
--- | A context an expression is rendering in.
+-- | A context that an expression is being rendered in.
 data RenderContext = RenderContext
     { _rcDirection :: Direction
     , _rcFixity    :: Fixity
@@ -68,42 +68,45 @@ instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigReada
     toPrettyConfigName = _pcrConfigName
 
 -- | A fixity with the lowest precedence.
--- When used as a part of an outer context, never causes the addition of parens.
-botApp :: Fixity
-botApp = Fixity 0 NonAssociative
+-- When used as a part of an outer context, never causes addition of parens.
+botFixity :: Fixity
+botFixity = Fixity 0 NonAssociative
 
 -- | The fixity of a binder.
-binderApp :: Fixity
-binderApp = Fixity 1 RightAssociative
+binderFixity :: Fixity
+binderFixity = Fixity 1 RightAssociative
 
 -- | The fixity of @(->)@.
-arrowApp :: Fixity
-arrowApp = Fixity 2 RightAssociative
+arrowFixity :: Fixity
+arrowFixity = Fixity 2 RightAssociative
 
 -- | The fixity of juxtaposition.
-juxtApp :: Fixity
-juxtApp = Fixity 10 LeftAssociative
+juxtFixity :: Fixity
+juxtFixity = Fixity 10 LeftAssociative
 
 -- | The fixity of a unitary expression which is safe to render
 -- without parens in any context.
-unitApp :: Fixity
-unitApp = Fixity 11 NonAssociative
+unitFixity :: Fixity
+unitFixity = Fixity 11 NonAssociative
 
 -- | A fixity with the highest precedence.
--- When used as a part of an outer context, always causes the addition of parens.
-topApp :: Fixity
-topApp = Fixity 12 NonAssociative
+-- When used as a part of an outer context, always causes addition of parens.
+topFixity :: Fixity
+topFixity = Fixity 12 NonAssociative
 
--- | A 'PrettyConfigReadable' with the fixity specified to 'topApp'.
+-- | A 'PrettyConfigReadable' with the fixity specified to 'topFixity'.
 topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
-topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext Forward topApp
+topPrettyConfigReadable configName =
+    PrettyConfigReadable configName $ RenderContext Forward topFixity
 
--- | A 'PrettyConfigReadable' with the fixity specified to 'botApp'.
+-- | A 'PrettyConfigReadable' with the fixity specified to 'botFixity'.
 botPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
-botPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext Forward botApp
+botPrettyConfigReadable configName =
+    PrettyConfigReadable configName $ RenderContext Forward botFixity
 
 -- | Set the 'RenderContext' of a 'PrettyConfigReadable'.
-setRenderContext :: RenderContext -> PrettyConfigReadable configName -> PrettyConfigReadable configName
+setRenderContext
+    :: RenderContext -> PrettyConfigReadable configName -> PrettyConfigReadable configName
 setRenderContext context configReadable = configReadable { _pcrRenderContext = context }
 
 -- | Enclose a 'Doc' in parens if required or leave it as is.
@@ -145,13 +148,13 @@ prettyInBy
     => PrettyConfigReadable configName -> Direction -> Fixity -> a -> Doc ann
 prettyInBy config dir app = prettyBy $ setRenderContext (RenderContext dir app) config
 
--- | Pretty-print in 'botApp'.
+-- | Pretty-print in 'botFixity'.
 prettyInBotBy :: PrettyReadableBy configName a => PrettyConfigReadable configName -> a -> Doc ann
-prettyInBotBy config = prettyInBy config Forward botApp
+prettyInBotBy config = prettyInBy config Forward botFixity
 
--- | Call 'encloseInContext' on 'unitApp'.
+-- | Call 'encloseInContext' on 'unitFixity'.
 unitaryDoc :: PrettyConfigReadable configName -> Doc ann -> Doc ann
-unitaryDoc config = encloseInContext (_pcrRenderContext config) unitApp
+unitaryDoc config = encloseInContext (_pcrRenderContext config) unitFixity
 
 -- | Instantiate a supplied continuation with a pretty-printer specialized to the supplied
 -- 'Fixity' and apply 'encloseInContext', specialized to the same 'Fixity', to the result.
@@ -165,12 +168,12 @@ rayDoc config dir app k =
     encloseInContext (_pcrRenderContext config) app $
         k (prettyInBy config dir app)
 
--- | 'rayDoc' specialized to 'binderApp'.
+-- | 'rayDoc' specialized to 'binderFixity'.
 binderDoc
     :: PrettyConfigReadable configName
     -> (AnyToDocBy configName ann -> Doc ann)
     -> Doc ann
-binderDoc config = rayDoc config Forward binderApp
+binderDoc config = rayDoc config Forward binderFixity
 -- This perhaps makes less sense than 'compoundDoc', because to the outside binders
 -- can look differently than how they look to the inside, but whatever.
 -- This applies to 'rayDoc' in general.
@@ -194,14 +197,14 @@ applicationDoc
     :: (PrettyReadableBy configName a, PrettyReadableBy configName b)
     => PrettyConfigReadable configName -> a -> b -> Doc ann
 applicationDoc config fun arg =
-    compoundDoc config juxtApp $ \juxtL juxtR -> juxtL fun <+> juxtR arg
+    compoundDoc config juxtFixity $ \juxtL juxtR -> juxtL fun <+> juxtR arg
 
 -- | Pretty-print a @->@ between two things.
 arrowDoc
     :: (PrettyReadableBy configName a, PrettyReadableBy configName b)
     => PrettyConfigReadable configName -> a -> b -> Doc ann
 arrowDoc config a b =
-    compoundDoc config arrowApp $ \arrL arrR -> arrL a <+> "->" <+> arrR b
+    compoundDoc config arrowFixity $ \arrL arrR -> arrL a <+> "->" <+> arrR b
 
 -- | Pretty-print a binding at the type level.
 prettyTypeBinding
@@ -235,7 +238,7 @@ instance (PrettyReadableBy configName (tyname ann), GShow uni) =>
         TyApp _ fun arg         -> applicationDoc config fun arg
         TyVar _ name            -> unit $ prettyName name
         TyFun _ tyIn tyOut      -> arrowDoc config tyIn tyOut
-        TyIFix _ pat arg        -> rayR juxtApp $ \juxt -> "ifix" <+> juxt pat <+> juxt arg
+        TyIFix _ pat arg        -> rayR juxtFixity $ \juxt -> "ifix" <+> juxt pat <+> juxt arg
         TyForall _ name kind ty -> bind $ \bindBody ->
             "all" <+> prettyTypeBinding config name kind <> "." <+> bindBody ty
         TyConstant _ con        -> unit $ pretty con
@@ -258,13 +261,13 @@ instance ( PrettyReadableBy configName (tyname ann)
         Var _ name             -> unit $ prettyName name
         TyAbs _ name kind body -> bind $ \bindBody ->
             "/\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody body
-        TyInst _ fun ty        -> rayL juxtApp $ \juxt -> juxt fun <+> inBraces ty
+        TyInst _ fun ty        -> rayL juxtFixity $ \juxt -> juxt fun <+> inBraces ty
         LamAbs _ name ty body  -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
-        Unwrap _ term          -> rayR juxtApp $ \juxt -> "unwrap" <+> juxt term
-        IWrap _ pat arg term   -> rayR juxtApp $ \juxt ->
+        Unwrap _ term          -> rayR juxtFixity $ \juxt -> "unwrap" <+> juxt term
+        IWrap _ pat arg term   -> rayR juxtFixity $ \juxt ->
             "iwrap" <+> juxt pat <+> juxt arg <+> juxt term
-        Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
+        Error _ ty             -> comp juxtFixity $ \_ _ -> "error" <+> inBraces ty
       where
         prettyName = prettyBy config
         unit = unitaryDoc  config
@@ -278,4 +281,4 @@ instance ( PrettyReadableBy configName (tyname ann)
 instance PrettyReadableBy configName (Term tyname name uni ann) =>
         PrettyBy (PrettyConfigReadable configName) (Program tyname name uni ann) where
     prettyBy config (Program _ version term) =
-        rayDoc config Forward juxtApp $ \juxt -> "program" <+> pretty version <+> juxt term
+        rayDoc config Forward juxtFixity $ \juxt -> "program" <+> pretty version <+> juxt term
