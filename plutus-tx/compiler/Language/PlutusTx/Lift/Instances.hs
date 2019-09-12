@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -14,6 +15,7 @@ import           Language.PlutusTx.Builtins
 import           Language.PlutusTx.Lift.Class
 
 import           Language.PlutusIR
+import           Language.PlutusIR.MkPir
 
 import           Data.Proxy
 
@@ -24,8 +26,25 @@ import           Data.Proxy
 instance (Typeable (f :: * -> k), Typeable (a :: *)) => Typeable (f a) where
     typeRep _ = TyApp () <$> typeRep (undefined :: Proxy f) <*> typeRep (undefined :: Proxy a)
 
-instance (Typeable (a :: *), Typeable (b :: *)) => Typeable (a -> b) where
-    typeRep _ = TyFun () <$> typeRep (undefined :: Proxy a) <*> typeRep (undefined :: Proxy b)
+{- Note [Typeable instances for function types]
+Surely there is an obvious 'Typeable' instance for 'a -> b': we just turn it directly
+into a 'TyFun'!
+
+However, if you write this instance, you find that it overlaps with the instance for applied
+type constructors. For is not '(->) a' an applied type constructor?
+
+Vexing. However, if we run with this, we can define a 'Typeable' instance for '(->)' directly.
+What is this? Well, it's something like '\a b . a -> b' as a type function. Which is a rather
+silly thing to write, but it does work.
+-}
+-- See Note [Typeable instances for function types]
+instance Typeable (->) where
+    typeRep _ = do
+        a <- PLC.liftQuote $ PLC.freshTyName () "a"
+        b <- PLC.liftQuote $ PLC.freshTyName () "b"
+        let tvda = TyVarDecl () a (Type ())
+            tvdb = TyVarDecl () b (Type ())
+        pure $ mkIterTyLam [tvda, tvdb] $ TyFun () (mkTyVar () tvda) (mkTyVar () tvdb)
 
 -- Primitives
 
@@ -44,6 +63,7 @@ instance Lift ByteString where
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 
+makeLift ''Sealed
 makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either

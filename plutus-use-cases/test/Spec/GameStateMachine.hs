@@ -1,11 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
 module Spec.GameStateMachine(tests) where
 
 import           Control.Monad                                             (void)
 import qualified Data.Map                                                  as Map
-import qualified Spec.Size                                                 as Size
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                          as HUnit
+
+import qualified Spec.Lib                                                  as Lib
+
+import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
 import qualified Ledger.Ada                                                as Ada
@@ -26,7 +31,7 @@ tests =
                     _ <- step (show err)
                     HUnit.assertFailure "own funds not equal"
                 Right _ ->
-                    Size.reasonable G.gameValidator 55000
+                    Lib.reasonable G.gameValidator 55000
     in
         testGroup "state machine tests" [
             HUnit.testCaseSteps "run a successful game trace"
@@ -34,7 +39,8 @@ tests =
             HUnit.testCaseSteps "run a 2nd successful game trace"
                 (checkResult (EM.runEmulator initialState runGameSuccess2)),
             HUnit.testCaseSteps "run a failed trace"
-                (checkResult (EM.runEmulator initialState runGameFailure))
+                (checkResult (EM.runEmulator initialState runGameFailure)),
+            Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
         ]
 
 initialVal :: Value

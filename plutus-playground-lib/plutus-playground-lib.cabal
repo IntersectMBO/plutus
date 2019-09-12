@@ -33,26 +33,29 @@ library
   other-modules:
   hs-source-dirs:
       src
-  ghc-options:
-    -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
+  ghc-options: -Wall -Wcompat -Wnoncanonical-monad-instances
+               -Wincomplete-uni-patterns -Wincomplete-record-updates
+               -Wredundant-constraints -Widentities
   build-depends:
       aeson
     , base >=4.7 && <5
     , bytestring
     , containers
     , insert-ordered-containers
+    , iots-export
     , playground-common
     , lens
     , memory
     , mtl
+    , newtype-generics
     , servant
-    , swagger2
     , template-haskell
     , text
     , transformers
     , plutus-tx
     , plutus-wallet-api
     , plutus-emulator
+    , wl-pprint-text
   default-language: Haskell2010
 
 test-suite plutus-playground-lib-test
@@ -69,8 +72,8 @@ test-suite plutus-playground-lib-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        iots-export -any,
         playground-common -any,
-        swagger2 -any,
         tasty -any,
         tasty-hunit -any,
         text -any,
@@ -81,7 +84,7 @@ test-suite plutus-playground-lib-test
         hspec -any,
         QuickCheck -any,
         aeson -any
-  ghc-options:
-    -Wall -Wnoncanonical-monad-instances
-    -Wincomplete-uni-patterns -Wincomplete-record-updates
-    -Wredundant-constraints -Widentities
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+               -Wall -Wcompat -Wnoncanonical-monad-instances
+               -Wincomplete-uni-patterns -Wincomplete-record-updates
+               -Wredundant-constraints -Widentities

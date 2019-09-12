@@ -11,7 +11,8 @@ in
   , fasterBuild ? false
   , skipPackages ? []
   , nixpkgsArgs ? {
-      config = { allowUnfree = false; inHydra = true; };
+      # we need unfree for kindlegen
+      config = { allowUnfree = false; allowUnfreePredicate = localLib.unfreePredicate; inHydra = true; };
       inherit fasterBuild;
     }
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
@@ -45,9 +46,10 @@ let
     # At least the client is broken on darwin for some yarn reason
     plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
     # At least the client is broken on darwin for some yarn reason
-    meadow = lib.mapAttrs (_: _: linux) packageSet.meadow;
+    marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
+    papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
     dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
     dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts; 
@@ -66,8 +68,9 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.metatheory)
       ++ (allJobs jobsets.tests)
       ++ (allJobs jobsets.docs) 
+      ++ (allJobs jobsets.papers) 
       ++ (allJobs jobsets.plutus-playground)
-      ++ (allJobs jobsets.meadow)
+      ++ (allJobs jobsets.marlowe-playground)
       ++ (allJobs jobsets.dev.scripts);
   });
 })

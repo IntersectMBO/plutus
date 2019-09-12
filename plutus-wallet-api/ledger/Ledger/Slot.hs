@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
@@ -14,18 +15,19 @@
 module Ledger.Slot(
       Slot(..)
     , SlotRange
-    , singleton
     , width
     ) where
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Hashable                (Hashable)
-import           Data.Swagger.Internal.Schema (ToSchema)
-import           GHC.Generics                 (Generic)
-import qualified Prelude                      as Haskell
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import           Data.Hashable             (Hashable)
+import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
+import qualified Prelude                   as Haskell
+import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
 
-import           Language.PlutusTx.Lift       (makeLift)
+
+import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
 import           Ledger.Interval
@@ -36,22 +38,27 @@ import           Ledger.Interval
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON)
-    deriving newtype (Num, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
+    deriving anyclass (ToSchema, FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
+    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
 
 makeLift ''Slot
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
 
--- | A 'SlotRange' that covers only a single slot.
-singleton :: Slot -> SlotRange
-singleton (Slot s) = Interval (Just (Slot s)) (Just (Slot (plus s 1)))
+instance ToSchema SlotRange where
+  toSchema = FormSchemaSlotRange
 
--- | Number of 'Slot's covered by the interval. @width (from x) == Nothing@.
+{-# INLINABLE width #-}
+-- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.
 width :: SlotRange -> Maybe Integer
-width (Interval f t) = case f of
-    Nothing -> Nothing
-    Just (Slot f') -> case t of
-        Nothing        -> Nothing
-        Just (Slot t') -> Just (minus t' f')
+width (Interval (LowerBound (Finite (Slot s1)) in1) (UpperBound (Finite (Slot s2)) in2)) =
+    let lowestValue = if in1 then s1 else s1 + 1
+        highestValue = if in2 then s2 else s2 - 1
+    in if lowestValue <= highestValue
+    -- +1 avoids fencepost error: width of [2,4] is 3.
+    then Just $ (highestValue - lowestValue) + 1
+    -- low > high, i.e. empty interval
+    else Nothing
+-- Infinity is involved!
+width _ = Nothing

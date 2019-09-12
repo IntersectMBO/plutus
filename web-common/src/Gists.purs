@@ -25,10 +25,10 @@ import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Ajax (AjaxError)
 import Types (Query(SetGistUrl, LoadGist, PublishGist))
 
-idPublishGist :: forall r i. IProp (id :: String | r) i
+idPublishGist :: forall r i. IProp ( id :: String | r ) i
 idPublishGist = id_ "publish-gist"
 
-idLoadGist :: forall r i. IProp (id :: String | r) i
+idLoadGist :: forall r i. IProp ( id :: String | r ) i
 idLoadGist = id_ "load-gist"
 
 gistControls ::
@@ -39,8 +39,8 @@ gistControls ::
   | a
   } ->
   HTML p (Query Unit)
-gistControls {authStatus, createGistResult, gistUrl} =
-  div [classes [ClassName "gist-controls"]]
+gistControls { authStatus, createGistResult, gistUrl } =
+  div [ classes [ ClassName "gist-controls" ] ]
     [ authButton
         $ div_
             [ row_
@@ -50,18 +50,18 @@ gistControls {authStatus, createGistResult, gistUrl} =
                         , value $ fromMaybe "" $ gistUrl
                         , id_ "gist-id"
                         , classes
-                            ( [formControl]
-                              <> case parsedGistId of
-                                  Just (Left err) -> [isInvalid]
-                                  Just (Right err) -> [isValid]
-                                  Nothing -> []
+                            ( [ formControl ]
+                                <> case parsedGistId of
+                                    Just (Left err) -> [ isInvalid ]
+                                    Just (Right err) -> [ isValid ]
+                                    Nothing -> []
                             )
                         , placeholder "Load Gist ID"
                         , onValueInput $ HE.input SetGistUrl
                         ]
                     ]
-                , col6_ [publishButton]
-                , col6_ [loadButton]
+                , col6_ [ publishButton ]
+                , col6_ [ loadButton ]
                 ]
             , case createGistResult of
                 Success gist -> gistPane gist
@@ -80,12 +80,13 @@ gistControls {authStatus, createGistResult, gistUrl} =
     Failure _ ->
       button
         [ idPublishGist
-        , classes [btn, btnDanger, pullRight]
-        ] [text "Failure"]
+        , classes [ btn, btnDanger, pullRight ]
+        ]
+        [ text "Failure" ]
     Success Anonymous ->
       a
         [ idPublishGist
-        , classes [btn, btnInfo, pullRight]
+        , classes [ btn, btnInfo, pullRight ]
         , href "/api/oauth/github"
         ]
         [ icon Github
@@ -96,42 +97,48 @@ gistControls {authStatus, createGistResult, gistUrl} =
     Loading ->
       button
         [ idPublishGist
-        , classes [btn, btnInfo, pullRight]
+        , classes [ btn, btnInfo, pullRight ]
         , disabled true
-        ] [icon Spinner]
+        ]
+        [ icon Spinner ]
     NotAsked ->
       button
         [ idPublishGist
-        , classes [btn, btnInfo, pullRight]
+        , classes [ btn, btnInfo, pullRight ]
         , disabled true
-        ] [icon Spinner]
+        ]
+        [ icon Spinner ]
 
   publishButton = case createGistResult of
     Failure _ ->
       button
         [ idPublishGist
-        , classes [btn, btnBlock, btnSmall, btnDanger]
-        ] [text "Failure"]
+        , classes [ btn, btnBlock, btnSmall, btnDanger ]
+        ]
+        [ text "Failure" ]
     Success _ ->
       button
         [ idPublishGist
-        , classes [btn, btnBlock, btnSmall, btnPrimary]
+        , classes [ btn, btnBlock, btnSmall, btnPrimary ]
         , onClick $ input_ PublishGist
-        ] [icon Github, nbsp, text "Republish"]
+        ]
+        [ icon Github, nbsp, text "Republish" ]
     Loading ->
       button
         [ idPublishGist
-        , classes [btn, btnBlock, btnSmall, btnInfo]
+        , classes [ btn, btnBlock, btnSmall, btnInfo ]
         , disabled true
-        ] [icon Spinner]
+        ]
+        [ icon Spinner ]
     NotAsked ->
       button
         [ idPublishGist
-        , classes [btn, btnBlock, btnSmall, btnPrimary]
+        , classes [ btn, btnBlock, btnSmall, btnPrimary ]
         , onClick $ input_ PublishGist
-        ] [icon Github, nbsp, text "Publish"]
+        ]
+        [ icon Github, nbsp, text "Publish" ]
 
-  loadMessage = [icon Github, nbsp, text "Load"]
+  loadMessage = [ icon Github, nbsp, text "Load" ]
 
   loadButton = case createGistResult of
     Loading -> empty
@@ -153,15 +160,17 @@ gistControls {authStatus, createGistResult, gistUrl} =
                 Just (Left url) -> true
                 Just (Right url) -> false
                 Nothing -> true
-        ] loadMessage
+        ]
+        loadMessage
 
 gistPane :: forall p i. Gist -> HTML p i
 gistPane gist =
-  div [class_ $ ClassName "gist-link"]
+  div [ class_ $ ClassName "gist-link" ]
     [ a
         [ href $ view gistHtmlUrl gist
         , target "_blank"
-        ] [text $ "View on Github"]
+        ]
+        [ text $ "View on Github" ]
     ]
 
 gistIdInLinkRegex :: Either String Regex

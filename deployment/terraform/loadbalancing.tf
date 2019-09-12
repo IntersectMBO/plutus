@@ -48,8 +48,8 @@ data "aws_acm_certificate" "plutus_private" {
   most_recent = true
 }
 
-data "aws_acm_certificate" "meadow_private" {
-  domain      = "*.${var.meadow_tld}"
+data "aws_acm_certificate" "marlowe_private" {
+  domain      = "*.${var.marlowe_tld}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -98,9 +98,9 @@ resource "aws_alb_listener" "playground" {
   }
 }
 
-resource "aws_lb_listener_certificate" "meadow" {
+resource "aws_lb_listener_certificate" "marlowe" {
   listener_arn    = "${aws_alb_listener.playground.arn}"
-  certificate_arn = "${data.aws_acm_certificate.meadow_private.arn}"
+  certificate_arn = "${data.aws_acm_certificate.marlowe_private.arn}"
 }
 
 resource "aws_lb_listener_certificate" "monitoring" {
@@ -158,8 +158,8 @@ resource "aws_route53_record" "playground_alb" {
   }
 }
 
-# Meadow
-resource "aws_alb_target_group" "meadow" {
+# Marlowe
+resource "aws_alb_target_group" "marlowe" {
   # ALB is taking care of SSL termination so we listen to port 80 here
   port     = "80"
   protocol = "HTTP"
@@ -172,34 +172,34 @@ resource "aws_alb_target_group" "meadow" {
   }
 }
 
-resource "aws_alb_listener_rule" "meadow" {
-  depends_on   = ["aws_alb_target_group.meadow"]
+resource "aws_alb_listener_rule" "marlowe" {
+  depends_on   = ["aws_alb_target_group.marlowe"]
   listener_arn = "${aws_alb_listener.playground.arn}"
   priority     = 101
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.meadow.id}"
+    target_group_arn = "${aws_alb_target_group.marlowe.id}"
   }
   condition {
     field  = "host-header"
-    values = ["${local.meadow_domain_name}"]
+    values = ["${local.marlowe_domain_name}"]
   }
 }
 
-resource "aws_alb_target_group_attachment" "meadow_a" {
-  target_group_arn = "${aws_alb_target_group.meadow.arn}"
-  target_id        = "${aws_instance.meadow_a.id}"
+resource "aws_alb_target_group_attachment" "marlowe_a" {
+  target_group_arn = "${aws_alb_target_group.marlowe.arn}"
+  target_id        = "${aws_instance.marlowe_a.id}"
   port             = "80"
 }
-resource "aws_alb_target_group_attachment" "meadow_b" {
-  target_group_arn = "${aws_alb_target_group.meadow.arn}"
-  target_id        = "${aws_instance.meadow_b.id}"
+resource "aws_alb_target_group_attachment" "marlowe_b" {
+  target_group_arn = "${aws_alb_target_group.marlowe.arn}"
+  target_id        = "${aws_instance.marlowe_b.id}"
   port             = "80"
 }
 
-resource "aws_route53_record" "meadow_alb" {
-  zone_id = "${var.meadow_public_zone}"
-  name    = "${local.meadow_domain_name}"
+resource "aws_route53_record" "marlowe_alb" {
+  zone_id = "${var.marlowe_public_zone}"
+  name    = "${local.marlowe_domain_name}"
   type    = "A"
   alias {
     name                   = "${aws_alb.plutus.dns_name}"

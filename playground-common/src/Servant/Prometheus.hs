@@ -9,6 +9,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Servant.Prometheus (
     HasEndpoint(..),
@@ -20,7 +21,7 @@ import           Control.Exception                              (bracket, bracke
 import           Control.Monad                                  (mplus)
 import           Control.Monad.IO.Class                         (MonadIO)
 import           Control.Monad.Logger                           (MonadLogger, MonadLoggerIO)
-import           Data.Hashable                                  (Hashable (..))
+import           Data.Hashable                                  (Hashable)
 import qualified Data.HashMap.Strict                            as H
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
@@ -112,25 +113,23 @@ initializeMetersTable endpoints = do
     meters <- mapM initializeMeters endpoints
     pure $ H.fromList (zip endpoints meters)
 
-monitorEndpoints :: (MonadIO m, HasEndpoint api) => Proxy api -> RegistryT m Middleware
+monitorEndpoints ::
+       (MonadIO m, HasEndpoint api) => Proxy api -> RegistryT m Middleware
 monitorEndpoints proxy = do
     meters <- initializeMetersTable (enumerateEndpoints proxy)
-    return (monitorEndpoints' meters)
-
-    where
-        monitorEndpoints' :: H.HashMap APIEndpoint Meters -> Middleware
-        monitorEndpoints' meters application request respond =
-            case getEndpoint proxy request >>= \ep -> H.lookup ep meters of
-                Nothing ->
-                    application request respond
-                Just meters ->
-                    updateCounters meters application request respond
-
-            where
-                updateCounters Meters{..} =
-                      responseTimeHistogram metersTime
-                    . countResponseCodes (metersC2XX, metersC4XX, metersC5XX, metersCXXX)
-                    . gaugeInflight metersInflight
+    return (monitorEndpointsWith meters)
+  where
+    monitorEndpointsWith :: H.HashMap APIEndpoint Meters -> Middleware
+    monitorEndpointsWith meters application request respond =
+        case getEndpoint proxy request >>= \ep -> H.lookup ep meters of
+            Nothing -> application request respond
+            Just endpointMeter ->
+                updateCounters endpointMeter application request respond
+      where
+        updateCounters Meters {..} =
+            responseTimeHistogram metersTime .
+            countResponseCodes (metersC2XX, metersC4XX, metersC5XX, metersCXXX) .
+            gaugeInflight metersInflight
 
 
 class HasEndpoint a where
@@ -266,6 +265,6 @@ instance HasEndpoint (sub :: *) => HasEndpoint (BasicAuth (realm :: Symbol) a :>
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance (HasEndpoint (a :: *)) => HasEndpoint (BrowserHeader "Cookie" Text :> a) where
+instance HasEndpoint (BrowserHeader "Cookie" Text :> a) where
   getEndpoint      _ _ = Nothing
   enumerateEndpoints _ = []

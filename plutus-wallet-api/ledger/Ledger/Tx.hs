@@ -38,6 +38,7 @@ module Ledger.Tx(
     txOutData,
     pubKeyTxOut,
     scriptTxOut,
+    scriptTxOut',
     -- * Transaction inputs
     TxInOf(..),
     TxInType(..),
@@ -57,30 +58,33 @@ module Ledger.Tx(
     inAddress
     ) where
 
-import qualified Codec.CBOR.Write             as Write
-import           Codec.Serialise.Class        (Serialise, encode)
-import           Control.Lens                 hiding (lifted)
-import           Crypto.Hash                  (Digest, SHA256, hash)
-import           Data.Aeson                   (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import qualified Data.ByteArray               as BA
-import qualified Data.ByteString.Char8        as BS8
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Hashable                (Hashable, hashWithSalt)
-import           Data.Map                     (Map)
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (isJust)
-import qualified Data.Set                     as Set
-import           Data.Swagger.Internal.Schema (ToSchema)
-import           GHC.Generics                 (Generic)
+import qualified Codec.CBOR.Write          as Write
+import           Codec.Serialise.Class     (Serialise, encode)
+import           Control.Lens
+import           Crypto.Hash               (Digest, SHA256, hash)
+import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import qualified Data.ByteArray            as BA
+import qualified Data.ByteString.Char8     as BS8
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Hashable             (Hashable, hashWithSalt)
+import           Data.Map                  (Map)
+import qualified Data.Map                  as Map
+import           Data.Maybe                (isJust)
+import qualified Data.Set                  as Set
+import           GHC.Generics              (Generic)
+import           Schema                    (ToSchema)
+
+import           Language.PlutusTx.Lattice
 
 import           Ledger.Ada
 import           Ledger.Crypto
+import           Ledger.Orphans            ()
 import           Ledger.Scripts
 import           Ledger.Slot
 import           Ledger.TxId
 import           Ledger.Value
-import qualified Ledger.Value                 as V
-import qualified LedgerBytes                  as LB
+import qualified Ledger.Value              as V
+import qualified LedgerBytes               as LB
 
 {- Note [Serialisation and hashing]
 
@@ -138,6 +142,19 @@ data Tx = Tx {
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise)
 
+instance Semigroup Tx where
+    tx1 <> tx2 = Tx {
+        txInputs = txInputs tx1 <> txInputs tx2,
+        txOutputs = txOutputs tx1 <> txOutputs tx2,
+        txForge = txForge tx1 <> txForge tx2,
+        txFee = txFee tx1 <> txFee tx2,
+        txValidRange = txValidRange tx1 /\ txValidRange tx2,
+        txSignatures = txSignatures tx1 <> txSignatures tx2
+        }
+
+instance Monoid Tx where
+    mempty = Tx mempty mempty mempty mempty top mempty
+
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
 inputs = lens g s where
@@ -169,7 +186,7 @@ instance BA.ByteArrayAccess Tx where
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
   = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && txFee >= 0 where
-    nonNegative i = V.geq i V.zero
+    nonNegative i = V.geq i mempty
 
 -- | A transaction without witnesses for its inputs.
 data TxStripped = TxStripped {
@@ -358,11 +375,15 @@ scriptAddress vl = AddressOf $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     e = encode vl
 
+-- | Create a transaction output locked by a validator script hash
+--   with the given data script attached.
+scriptTxOut' :: Value -> Address -> DataScript -> TxOut
+scriptTxOut' v a ds = TxOutOf a v tp where
+    tp = PayToScript ds
+
 -- | Create a transaction output locked by a validator script and with the given data script attached.
 scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut
-scriptTxOut v vl ds = TxOutOf a v tp where
-    a = scriptAddress vl
-    tp = PayToScript ds
+scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
 
 -- | Create a transaction output locked by a public key.
 pubKeyTxOut :: Value -> PubKey -> TxOut

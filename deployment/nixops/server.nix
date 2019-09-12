@@ -44,7 +44,7 @@
     };
   };
 
-  # a user for people who want to ssh in and fiddle with playground/meadow service only
+  # a user for people who want to ssh in and fiddle with plutus/marlowe service only
   users.users.monitor = {
     isNormalUser = true;
     home = "/home/monitor";

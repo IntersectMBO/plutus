@@ -16,7 +16,7 @@ let
   });
   # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
   # See Plutus Tx readme for information on the flags
-  doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables -fno-ignore-interface-pragmas -fobject-code";
+  doctestOpts = "-pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -fno-ignore-interface-pragmas -fobject-code";
 in
 
 self: super: {
@@ -24,6 +24,7 @@ self: super: {
     ########################################################################
     # Overides of local packages
     language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
+    plutus-book = deferPluginErrors super.plutus-book;
     plutus-tx = doctest doctestOpts super.plutus-tx;
     plutus-tutorial = doctest doctestOpts (deferPluginErrors super.plutus-tutorial);
     plutus-use-cases = deferPluginErrors super.plutus-use-cases;

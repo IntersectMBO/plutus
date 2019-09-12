@@ -1,0 +1,1 @@
+../doc/contract-api.adoc

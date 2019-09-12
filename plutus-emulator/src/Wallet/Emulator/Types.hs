@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -42,7 +43,8 @@ module Wallet.Emulator.Types(
     execTraceTxPool,
     walletAction,
     runWalletAction,
-    execWalletAction,
+    runSuccessfulWalletAction,
+    runFailingWalletAction,
     walletRecvNotifications,
     walletNotifyBlock,
     walletsNotifyBlock,
@@ -51,6 +53,7 @@ module Wallet.Emulator.Types(
     addBlocksAndNotify,
     assertion,
     assertOwnFundsEq,
+    ownFundsEqual,
     runEmulator,
     runTraceChainDefault,
     runTraceChainDefaultWallet,
@@ -89,7 +92,7 @@ import           Control.Newtype.Generics  (Newtype)
 import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Foldable             (fold, traverse_)
+import           Data.Foldable             (traverse_)
 import           Data.Hashable             (Hashable)
 import           Data.HashMap.Strict       (HashMap)
 import qualified Data.HashMap.Strict       as HashMap
@@ -98,13 +101,16 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
-import           Data.Swagger              (ToSchema)
 import qualified Data.Text                 as T
 import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType (iotsDefinition))
 import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
+import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
+
+import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
@@ -122,7 +128,7 @@ import qualified Wallet.API                as WAPI
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema, IotsType)
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey
@@ -153,6 +159,12 @@ newtype MockWallet a = MockWallet { runMockWallet :: (ExceptT WalletAPIError (St
 
 instance WalletDiagnostics MockWallet where
     logMsg t = tell (WalletLog [t], [])
+
+-- | JavaScript has no effect system, so we basically have to throw
+-- away the monadic context and trust that things will magically work
+-- out.
+instance IotsType a => IotsType (MockWallet a) where
+  iotsDefinition = iotsDefinition @a
 
 tellTx :: [Tx] -> MockWallet ()
 tellTx tx = MockWallet $ tell (mempty, tx)
@@ -297,8 +309,8 @@ selectCoin :: (MonadError WalletAPIError m)
     -> m ([(a, Value)], Value)
 selectCoin fnds vl =
         let
-            total = fold $ fmap snd fnds
-            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl Value.plus Value.zero $ fmap snd fnds)
+            total = foldMap snd fnds
+            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl (<>) mempty $ fmap snd fnds)
             err   = throwError
                     $ InsufficientFunds
                     $ T.unwords
@@ -314,9 +326,9 @@ selectCoin fnds vl =
                 let
                     fundsToSpend   = takeUntil (\(_, runningTotal) -> vl `Value.leq` runningTotal) fundsWithTotal
                     totalSpent     = case reverse fundsToSpend of
-                                        []            -> Value.zero
+                                        []            -> PlutusTx.zero
                                         (_, total'):_ -> total'
-                    change         = totalSpent `Value.minus` vl
+                    change         = totalSpent PlutusTx.- vl
                 in pure (fst <$> fundsToSpend, change)
 
 -- | Take elements from a list until the predicate is satisfied.
@@ -352,6 +364,8 @@ data Event n a where
     BlockchainProcessPending :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
+    -- | Failure.
+    Failure :: T.Text -> Event n a
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 -- | A series of 'Event's.
@@ -370,7 +384,7 @@ makeLenses ''EmulatorState
 
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (fold . fmap txOutValue . view ownFunds) . view walletStates
+fundsDistribution = Map.map (foldMap txOutValue . view ownFunds) . view walletStates
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -404,7 +418,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-    let total = fold $ fmap txOutValue $ ws ^. ownFunds
+    let total = foldMap txOutValue $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
@@ -438,8 +452,8 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = Set.empty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
-            , txForge = fold $ snd <$> Map.toList mp
-            , txFee = Ada.zero
+            , txForge = foldMap snd $ Map.toList mp
+            , txFee = PlutusTx.zero
             , txValidRange = WAPI.defaultSlotRange
             , txSignatures = Map.empty
             }
@@ -499,6 +513,7 @@ evalEmulated = \case
             }
         pure block
     Assertion a -> assert a
+    Failure message -> throwError $ AssertionError message
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
@@ -552,18 +567,29 @@ mkEvent t result =
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
 
--- | A synonym for 'execWalletAction'.
-walletAction :: Wallet -> m a -> Trace m [Tx]
-walletAction = execWalletAction
-
--- | Perform a wallet action as the given 'Wallet', returning
---   the transactions that were submitted.
-execWalletAction :: Wallet -> m a -> Trace m [Tx]
-execWalletAction w = fmap snd . runWalletAction w
+-- | A synonym for 'runSuccessfulWalletAction'. Runs a wallet action and asserts that it was a success.
+walletAction :: Wallet -> m a -> Trace m (a, [Tx])
+walletAction = runSuccessfulWalletAction
 
 -- | Peform a wallet action as the given 'Wallet'.
 runWalletAction :: Wallet -> m a -> Trace m (Either WalletAPIError a, [Tx])
 runWalletAction w = Op.singleton . WalletAction w
+
+-- | Peform a wallet action as the given 'Wallet', asserting that the result was a success.
+runSuccessfulWalletAction :: Wallet -> m a -> Trace m (a, [Tx])
+runSuccessfulWalletAction w act = do
+    (maybeOut, txs) <- runWalletAction w act
+    case maybeOut of
+        Left e  -> failure $ T.pack $ show e
+        Right a -> pure (a, txs)
+
+-- | Peform a wallet action as the given 'Wallet', asserting that the result was a failure.
+runFailingWalletAction :: Wallet -> m a -> Trace m [Tx]
+runFailingWalletAction w act = do
+    (maybeOut, txs) <- runWalletAction w act
+    case maybeOut of
+        Left _  -> pure txs
+        Right _ -> failure "Wallet action succeeded unexpectedly"
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
@@ -603,6 +629,10 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
 
+-- | Fail.
+failure :: T.Text -> Trace m a
+failure = Op.singleton . Failure
+
 newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
     deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)
 
@@ -634,12 +664,13 @@ execTraceTxPool :: TxPool -> Trace MockWallet a -> EmulatorState
 execTraceTxPool pl = snd . runTraceTxPool pl
 
 -- | Run an action as a wallet, subsequently process any pending transactions
---   and notify wallets.
+--   and notify wallets. Returns the new block
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
 runWalletActionAndProcessPending wallets wallet action = do
-  _ <- walletAction wallet action
-  block <- processPending
-  walletsNotifyBlock wallets block
+    _ <- runWalletAction wallet action
+    block <- processPending
+    _ <- walletsNotifyBlock wallets block
+    pure block
 
 allWallets :: [Wallet]
 allWallets = Wallet <$> [1..10]

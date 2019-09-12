@@ -36,7 +36,7 @@ data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
    error : {L : ∅ ⊢ A} → Error L → Finished L
 
    -- is this actually possible?
-   neutral : {L : ∅ ⊢ A} → Neutral L → Finished L
+--   neutral : {L : ∅ ⊢ A} → Neutral L → Finished L
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
@@ -65,10 +65,10 @@ eval : ∀ {A : ∅ ⊢Nf⋆ *} → Gas → (M : ∅ ⊢ A) → Steps M
 evalProg : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t → Steps t
 
 eval (gas zero) M = steps refl—↠ out-of-gas
-eval (gas (suc n)) M = evalProg (gas n) (progress M)
+eval (gas (suc n)) M = evalProg (gas n) (progress _ M)
 
 evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
 evalProg g (done VM) = steps refl—↠ (done _ VM)
 evalProg g (error e) = steps refl—↠ (error e)
-evalProg g (neutral p) = steps refl—↠ (neutral p)
+--evalProg g (neutral p) = steps refl—↠ (neutral p)
 \end{code}

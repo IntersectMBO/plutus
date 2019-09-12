@@ -12,7 +12,7 @@
                , ... }: node: { config, pkgs, lib, ... }:
 
 let
-    servers = [machines.meadowA machines.meadowB machines.playgroundA machines.playgroundB];
+    servers = [machines.marlowePlaygroundA machines.marlowePlaygroundB machines.playgroundA machines.playgroundB];
     nginxPort = 80;
     deploymentServerPort = 8080;
     target = port: node:
@@ -107,7 +107,7 @@ in
         };
 
     environment.systemPackages = with pkgs;
-                    [ nixops vim tmux git ];
+                    [ nixops vim tmux git curl jq ];
 
     services.grafana = {
       enable = true;
@@ -196,16 +196,18 @@ in
 
     systemd.services.deploymentServer = {
       enable = enableGithubHooks;
-      path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip ];
+      path = ["${deploymentServer}" pkgs.git pkgs.nixops pkgs.nix pkgs.gnutar pkgs.gzip pkgs.curl ];
       script = ''deployment-server-exe \
-      --slackChannel ${slackChannel} \
       --keyfile ${configDir}/secrets.json \
       --port ${toString deploymentServerPort} \
       --configDir ${configDir} \
       --stateFile ${nixopsStateFile} \
       --deploymentName ${deploymentName} \
+      --environment ${machines.environment} \
       --include nixos=${nixosLocation} \
-      --include nixpkgs=${nixpkgsLocation}
+      --include nixpkgs=${nixpkgsLocation} \
+      --ref ${secrets.deploymentRef} \
+      --githubToken ${secrets.githubToken}
       '';
     };
 

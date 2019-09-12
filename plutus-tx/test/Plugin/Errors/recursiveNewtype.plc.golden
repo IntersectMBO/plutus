@@ -1,1 +1,1 @@
-Error: Unsupported feature: Recursive newtypes, use data: RecursiveNewtype
+Error: Unsupported feature: Recursive newtypes, use data: Plugin.Errors.Spec.RecursiveNewtype

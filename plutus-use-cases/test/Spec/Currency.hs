@@ -5,9 +5,10 @@ import           Control.Monad                                     (void)
 import           Control.Monad.Except
 import qualified Data.Map                                          as Map
 import qualified Data.Text                                         as T
-import qualified Spec.Size                                         as Size
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                  as HUnit
+
+import qualified Spec.Lib                                          as Lib
 
 import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
@@ -26,7 +27,7 @@ tests = HUnit.testCaseSteps "forge a simple currency" $ \step -> do
             step (show err)
             HUnit.assertFailure "own funds not equal"
         Right cur ->
-            Size.reasonable (Cur.curValidator cur) 50000
+            Lib.reasonable (Cur.curValidator cur) 50000
 
 initialVal :: Value
 initialVal = Ada.adaValueOf 10

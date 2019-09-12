@@ -8,11 +8,11 @@ let
   };
   playgroundA = mkInstance machines.playgroundA;
   playgroundB = mkInstance machines.playgroundB;
-  meadowA = mkInstance machines.meadowA;
-  meadowB = mkInstance machines.meadowB;
+  marlowePlaygroundA = mkInstance machines.marlowePlaygroundA;
+  marlowePlaygroundB = mkInstance machines.marlowePlaygroundB;
   nixops = { deployment.targetHost = "localhost"; };
 in
-  { inherit playgroundA playgroundB meadowA meadowB nixops;
+  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops;
     network.description = "Plutus Playground";
     network.enableRollback = true;
   }

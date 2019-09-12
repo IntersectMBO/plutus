@@ -29,11 +29,10 @@ import qualified Data.Text                                  as T ()
 import qualified Data.Text.Encoding                         as T (encodeUtf8)
 import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Git                                        (gitRev)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
                                                              genericShow, haskType, isTuple, mkSumType, order,
                                                              psTypeParameters, typeModule, typeName, writePSTypesWith,
                                                              (^==))
@@ -47,14 +46,16 @@ import           Ledger                                     (AddressOf, DataScri
                                                              TxOutType, ValidatorScript)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
-import           Ledger.Interval                            (Interval)
+import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
+import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
-                                                             SimpleArgumentSchema, SimulatorWallet)
+                                                             PlaygroundError, SimulatorWallet)
 import qualified Playground.API                             as API
-import           Playground.Usecases                        (crowdfunding, game, messages, vesting)
+import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
+import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -64,9 +65,9 @@ import           Wallet.API                                 (WalletAPIError)
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
 import           Wallet.Graph                               (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
-psLedgerMap :: MonadReader BridgeData m => m PSType
-psLedgerMap =
-    TypeInfo "plutus-playground-client" "Ledger.Extra" "LedgerMap" <$>
+psAssocMap :: MonadReader BridgeData m => m PSType
+psAssocMap =
+    TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
     psTypeParameters
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
@@ -86,11 +87,11 @@ integerBridge = do
     typeName ^== "Integer"
     pure psInt
 
-ledgerMapBridge :: BridgePart
-ledgerMapBridge = do
+assocMapBridge :: BridgePart
+assocMapBridge = do
     typeName ^== "Map"
     typeModule ^== "Language.PlutusTx.AssocMap"
-    psLedgerMap
+    psAssocMap
 
 ledgerBytesBridge :: BridgePart
 ledgerBytesBridge = do
@@ -160,7 +161,7 @@ validatorBridge = do
 validatorHashBridge :: BridgePart
 validatorHashBridge = do
     typeName ^== "ValidatorHash"
-    typeModule ^== "Ledger.Validation"
+    typeModule ^== "Ledger.Scripts"
     pure psString
 
 headersBridge :: BridgePart
@@ -194,12 +195,12 @@ mapBridge :: BridgePart
 mapBridge = do
     typeName ^== "Map"
     typeModule ^== "Data.Map.Internal"
-    psLedgerMap
+    psAssocMap
 
 myBridge :: BridgePart
 myBridge =
     eitherBridge <|> tupleBridge <|> defaultBridge <|> integerBridge <|>
-    ledgerMapBridge <|>
+    assocMapBridge <|>
     scientificBridge <|>
     aesonBridge <|>
     setBridge <|>
@@ -226,42 +227,49 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-    [ (equal <*> mkSumType) (Proxy @SimpleArgumentSchema)
-    , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
+    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
+    , (functor <*> (equal <*> mkSumType)) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)
     , (equal <*> mkSumType) (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , (equal <*> mkSumType) (Proxy @Wallet)
     , (equal <*> mkSumType) (Proxy @SimulatorWallet)
-    , mkSumType (Proxy @DataScript)
-    , (equal <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
-    , (equal <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
-    , (equal <*> (order <*> mkSumType)) (Proxy @Signature)
+    , (genericShow <*> mkSumType) (Proxy @DataScript)
+    , (genericShow <*> (equal <*> (order <*> mkSumType)))
+          (Proxy @ValidatorScript)
+    , (genericShow <*> (equal <*> (order <*> mkSumType)))
+          (Proxy @RedeemerScript)
+    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @Signature)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @Expression)
     , mkSumType (Proxy @Evaluation)
     , mkSumType (Proxy @EvaluationResult)
     , mkSumType (Proxy @EmulatorEvent)
-    , mkSumType (Proxy @ValidationError)
-    , mkSumType (Proxy @Slot)
-    , mkSumType (Proxy @WalletAPIError)
-    , mkSumType (Proxy @Tx)
-    , mkSumType (Proxy @(TxInOf A))
-    , mkSumType (Proxy @(TxOutRefOf A))
-    , mkSumType (Proxy @TxOutType)
-    , mkSumType (Proxy @(TxOutOf A))
-    , mkSumType (Proxy @(TxIdOf A))
-    , (equal <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , (equal <*> (order <*> mkSumType)) (Proxy @PubKey)
-    , mkSumType (Proxy @(AddressOf A))
+    , mkSumType (Proxy @PlaygroundError)
+    , (genericShow <*> mkSumType) (Proxy @ValidationError)
+    , (genericShow <*> mkSumType) (Proxy @ScriptError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
+    , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
+    , (genericShow <*> mkSumType) (Proxy @Tx)
+    , (genericShow <*> mkSumType) (Proxy @(TxIdOf A))
+    , (genericShow <*> mkSumType) (Proxy @(TxInOf A))
+    , (genericShow <*> mkSumType) (Proxy @(TxOutOf A))
+    , (genericShow <*> mkSumType) (Proxy @(TxOutRefOf A))
+    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TxInType)
+    , (genericShow <*> mkSumType) (Proxy @TxOutType)
+    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @PubKey)
+    , (genericShow <*> mkSumType) (Proxy @(AddressOf A))
+    , (genericShow <*> (genericShow <*> mkSumType)) (Proxy @TxRef)
     , mkSumType (Proxy @FlowLink)
-    , mkSumType (Proxy @TxRef)
     , mkSumType (Proxy @UtxOwner)
     , mkSumType (Proxy @UtxoLocation)
     , mkSumType (Proxy @FlowGraph)
-    , mkSumType (Proxy @(Interval A))
-    , (equal <*> mkSumType) (Proxy @Ada)
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Interval A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(LowerBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(UpperBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Extended A))
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
     , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
@@ -294,10 +302,11 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "gitRev" gitRev <> multilineString "vesting" vesting <>
+            multilineString "vesting" vesting <>
             multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
-            multilineString "messages" messages
+            multilineString "messages" messages <>
+            multilineString "starter" starter
         usecasesModule = psModule "Playground.Usecases" usecases
     BS.writeFile
         (outputDir </> "Playground" </> "Usecases.purs")

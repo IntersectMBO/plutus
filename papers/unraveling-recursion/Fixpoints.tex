@@ -1,0 +1,130 @@
+\subsection{Recursive types}
+
+\FOM{} is very powerful, but does not allow us to define (non-positive) recursive
+types. Adding a type-level fixed point operator enables us to do
+this (see e.g. \cite[Chapter 20]{pierce2002types}).
+However, we must make a number of choices about the precise nature of our type-level fixed points. 
+
+\subsubsection{Isorecursive and equirecursive types.}
+
+The first choice we have is between two approaches to exposing the fixpoint
+property of our recursive types.
+Systems with \emph{equirecursive} types identify $(\fixo f)$ and $f (\fixo f)$; whereas
+systems with \emph{isorecursive} types provide an isomorphism between
+the two, using a term $\unwrap$ to convert the first into the second, and a term
+$\wrap$ for the other direction.
+
+The tradeoff is that equirecursive types add no additional terms to the language, but
+have a more complicated metatheory. Indeed, typechecking \FOMF{} with equirecursive types is not
+known to be decidable in general (\cite{dreyer:recursive-modules,cai-giarrusso-ostermann}). Isorecursive types, on the other hand,
+have a simpler metatheory, but require additional terms. It is not
+too important for an IR to be easy to program by hand, so we opt for
+isorecursive types, with our witness terms being $\wrap$ and $\unwrap$.
+
+\subsubsection{Choosing an appropriate fixpoint operator.}
+
+We also have a number of options for \emph{which} fixpoint operator to add. The most obvious choice is a fixpoint
+operator $\fixo$ which takes fixpoints of type-level endofunctions 
+at any kind $K$ (i.e. it has signature $\fixo : (K \kindArrow K) \kindArrow
+K$). In contrast, our language \FOMF{} has a fixpoint operator $\ifix$
+(``indexed fix'') which allows us to
+take fixpoints only at kinds $K \kindArrow \Type$. 
+
+\noindent The key advantage of $\ifix$ over $\fixo$ is that it is much easier to give
+fully-synthesizing type rules for $\ifix$. To see this, suppose we had a $\fixo$
+operator in our language, with corresponding $\wrap$
+and $\unwrap$ terms. We now want to write typing rules for $\wrap$.
+However, $\fixo$ allows us to take fixpoints at \emph{arbitrary} kinds, whereas
+$\wrap$ and $\unwrap$ are terms, which always have types of kind $\Type$.
+Thus, the best we can hope for is to use $\wrap$ and $\unwrap$ with \emph{fully applied} fixed points, i.e.:
+\begin{displaymath}
+\begin{array}{l@{\ }l@{\ }l@{\ }l@{\ }l}
+\wrap_0 f_0            & t &: \fixo f_0 & \quad\textrm{where} & t : f_0\ (\fixo f_0)\\
+\wrap_1 f_1  ~ a1      & t &: \fixo f_1\ a1 & \quad\textrm{where} & t : f_1\ (\fixo f_1)\ a1\\
+\wrap_2 f_2  ~ a1 ~ a2 & t &: \fixo f_2\ a1\ a2 & \quad\textrm{where} & t : f_2\ (\fixo f_2)\ a1\ a2\\
+\dots & & & & 
+\end{array}
+\end{displaymath}
+This must be accounted for in our typing rules for fixed points. 
+
+It is possible to give typing rules for $\wrap$ that will do the right thing
+regardless of how the fixpoint type is applied. One approach is to use
+\emph{elimination contexts}, which represent the context in which a type will be
+eliminated (i.e. applied). This is the approach taken in
+\cite{dreyer2005understanding}. However, this incurs a cost, since we cannot
+\emph{guess} the elimination context (since type synthesis is bottom-up), so we
+must attach elimination contexts to our terms somehow.
+
+An alternative approach is to pick a more restricted fixpoint operator. Using $\ifix$
+avoids the problems of $\fixo$: it always produces fixpoints at kind $K \kindArrow
+\Type$, which must be applied to precisely one argument of kind $K$ before
+producing a type of kind $\Type$. This means we can give relatively straightforward typing rules as shown
+in \cref{fig:fir_typing}.
+
+\subsubsection{Adequacy of $\ifix$.}
+
+Perhaps surprisingly, $\ifix$ is powerful enough to give us fixpoints at any
+kind $K$. We give a semantic argument here, but the idea is simply 
+stated: we can ``CPS-transform'' a kind $K$ into
+$(K \kindArrow \Type) \kindArrow \Type$, which then has the correct shape for
+$\ifix$.
+ 
+\begin{definition}
+  Let $J$ and $K$ be kinds. Then $J$ is a \emph{retract} of $K$ if
+  there exist functions $\phi: J \kindArrow K$ and $\psi : K \kindArrow J$
+  such that $\psi \circ \phi = id$.
+\end{definition}
+
+\begin{proposition}
+   \label{prop:retracts-fixed-points}
+  Suppose $J$ is a retract of $K$ and there is a fixpoint operator \textnormal{$\fixo_K$} on $K$.
+  Then there is fixpoint operator \textnormal{$\fixo_J$} on $J$.
+\end{proposition}
+\begin{proof}
+  Take $\fixo_J(f) = \psi (\fixo_K (\phi \circ f \circ \psi))$.
+\end{proof}
+
+\begin{proposition}
+  \label{prop:kind-structure}
+  Let $K$ be a kind in \FOMF{}. Then there is a unique (possibly empty) sequence
+  of kinds $(K_0, \dots, K_n)$ such that $K = \seqKindArr{K}{\Type}$.
+\end{proposition}
+\begin{proof}
+  Simple structural induction.
+\end{proof}
+
+\begin{proposition}
+  For any kind $K$ in \FOMF{}, $K$ is a retract of $(K \kindArrow \Type)
+  \kindArrow \Type$.
+\end{proposition}
+\begin{proof}
+  Let $K = \seqKindArr{K}{\Type}$ (by \cref{prop:kind-structure}), and take
+  \begin{align*}
+    \phi &: K \kindArrow (K \kindArrow \Type) \kindArrow \Type \\
+    \phi &= \lambda (x :: K) . \lambda (f :: K \kindArrow \Type) . f\ x\\
+    \psi &: ((K \kindArrow \Type) \kindArrow \Type) \kindArrow K\\
+    \psi &= \lambda (w :: (K \kindArrow \Type) \kindArrow \Type) . \lambda (\seq{a :: K}) . w (\lambda (o :: K) . o\ \seq{a})\\
+  \end{align*}
+\end{proof}
+
+\begin{corollary}
+  If there is a fixpoint operator at kind $(K \kindArrow \Type) \kindArrow \Type$ then there is a fixpoint operator at any kind $K$.
+\end{corollary}
+
+We can instantiate $\ifix$ with $K \kindArrow \Type$ to get fixpoints at $(K
+\kindArrow \Type) \kindArrow \Type$, so $\ifix$ is sufficient to get fixpoints
+at any kind.
+
+Note that since our proof relies on \cref{prop:kind-structure}, it will not go
+through for arbitrary kinds when there are additional kind forms beyond $\Type$
+and $\kindArrow$. However, it will still be true for all kinds of the structure
+shown in \cref{prop:kind-structure}.
+
+The fact that retractions preserve the fixed point property is
+well-known in the context of algebraic topology: see
+~\cite[Exercise 4.7]{fulton1995algebraic} or
+~\cite[Proposition 23.9]{bredon1993topology} for example. While retractions
+between datatypes are a common tool in theoretical computer science
+(see e.g. \cite{stirling}), we have been unable to find a version of
+\cref{prop:retracts-fixed-points} in the computer science
+literature. Nonetheless, we suspect this to be widely known.

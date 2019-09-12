@@ -46,9 +46,11 @@ library
         Language.PlutusTx.Bool
         Language.PlutusTx.Eq
         Language.PlutusTx.Functor
+        Language.PlutusTx.Lattice
         Language.PlutusTx.List
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
+        Language.PlutusTx.Numeric
         Language.PlutusTx.Semigroup
         Language.PlutusTx.Monoid
         Language.PlutusTx.AssocMap
@@ -74,6 +76,7 @@ library plutus-tx-compiler
     exposed-modules:
         Language.PlutusTx.Plugin
         Language.PlutusTx.Builtins
+        Language.PlutusTx.Sealed
         Language.PlutusTx.PLCTypes
         Language.PlutusTx.PIRTypes
         Language.PlutusTx.Utils

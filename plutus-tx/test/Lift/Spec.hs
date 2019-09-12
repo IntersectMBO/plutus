@@ -38,6 +38,14 @@ Lift.makeLift ''Newtype2
 newtype Newtype3 = Newtype3 { unNt3 :: Newtype2 }
 Lift.makeLift ''Newtype3
 
+-- 'Z' so it sorts late and this doesn't work by accident
+data Z = Z Integer
+Lift.makeLift ''Z
+type Syn = Z
+
+data SynExample = SynExample { unSE :: Syn }
+Lift.makeLift ''SynExample
+
 tests :: TestNested
 tests = testNested "Lift" [
     goldenPlc "int" (Lift.unsafeLiftProgram (1::Integer))
@@ -55,4 +63,5 @@ tests = testNested "Lift" [
     , goldenPlc "newtypeInt" (Lift.unsafeLiftProgram (NewtypeInt 1))
     , goldenPlc "newtypeInt2" (Lift.unsafeLiftProgram (Newtype2 $ NewtypeInt 1))
     , goldenPlc "newtypeInt3" (Lift.unsafeLiftProgram (Newtype3 $ Newtype2 $ NewtypeInt 1))
+    , goldenPlc "syn" (Lift.unsafeLiftProgram (SynExample $ Z $ 1))
  ]

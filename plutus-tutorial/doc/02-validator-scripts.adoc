@@ -44,8 +44,7 @@ import           Ledger                       (Address, DataScript(..), PubKey(.
 import qualified Ledger                       as L -- <7>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
-import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
-import qualified Ledger.Validation            as V -- <8>
+import           Ledger.Validation            as V -- <8>
 
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
                                                EventHandler(..), EventTrigger)
@@ -92,7 +91,7 @@ PlutusTx.makeLift ''ClearText -- <2>
 
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = V.plcSHA2_256 (C.pack word)
+    let hashedWord = L.plcSHA2_256 (C.pack word)
     in  DataScript (L.lifted (HashedText hashedWord)) -- <3>
 
 mkRedeemerScript :: String -> RedeemerScript

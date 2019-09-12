@@ -50,12 +50,6 @@ Haskell uses system FC, which includes type equalities and coercions.
 PLC does *not* have coercions in particular. However, PLC also does not have a nominal
 type system - everything is constructed via operators on base types, so we have no
 need for coercions to convert between newtypes and datatypes.
-
-So we mostly ignore coercions. The one place that I know of where the mismatch hurts
-us is that GHC uses the `Any` type (coercible to and from anything) for unconstrained
-function variables, e.g. in polymorphic lambdas. This is annoying for us, since we
-really want the version with explicit type abstraction. I don't currently have a fix
-for this.
 -}
 
 

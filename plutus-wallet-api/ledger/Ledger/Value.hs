@@ -3,10 +3,12 @@
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DataKinds          #-}
+
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -27,62 +29,43 @@ module Ledger.Value(
     , valueOf
     , scale
     , symbols
-      -- * Constants
-    , zero
-      -- * Num operations
-    , plus
-    , minus
-    , multiply
-    , negate
+      -- * Partial order operations
     , geq
     , gt
     , leq
     , lt
       -- * Etc.
     , isZero
+    , split
     ) where
 
 import qualified Prelude                      as Haskell
 
 import           Codec.Serialise.Class        (Serialise)
-import           Control.Lens                 (set,(.~))
 import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Extras            as JSON
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Lazy.Char8   as C8
 import           Data.Hashable                (Hashable)
-import qualified Data.Swagger.Internal        as S
-import           Data.Swagger.Schema          (ToSchema(declareNamedSchema))
-import qualified Data.Swagger.Lens            as S
-import           Data.Swagger                 (SwaggerType(SwaggerObject), NamedSchema(NamedSchema), declareSchemaRef)
-import           Data.Proxy                   (Proxy(Proxy))
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
-import           Language.PlutusTx.Prelude    hiding (plus, minus, negate, multiply)
-import qualified Language.PlutusTx.Prelude    as P
+import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
 import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Data.Function                ((&))
-
-hexSchema :: S.Schema
-hexSchema = Haskell.mempty & set S.type_ S.SwaggerString & set S.format (Just "hex")
-
-stringSchema :: S.Schema
-stringSchema = Haskell.mempty & set S.type_ S.SwaggerString
+import           Schema                       (ToSchema(toSchema), FormSchema(FormSchemaValue))
+import           IOTS                         (IotsType)
+import           Ledger.Orphans               ()
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
-    deriving anyclass (Hashable)
-
-instance ToSchema CurrencySymbol where
-  declareNamedSchema _ = pure $ S.NamedSchema (Just "CurrencySymbol") hexSchema
+    deriving anyclass (Hashable, ToSchema, IotsType)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -111,7 +94,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
-    deriving anyclass (Hashable)
+    deriving anyclass (Hashable, ToSchema, IotsType)
 
 instance IsString TokenName where
   fromString = TokenName . C8.pack
@@ -121,9 +104,6 @@ toString = C8.unpack . unTokenName
 
 instance Show TokenName where
   show = toString
-
-instance ToSchema TokenName where
-    declareNamedSchema _ = pure $ S.NamedSchema (Just "TokenName") stringSchema
 
 instance ToJSON TokenName where
     toJSON tokenName =
@@ -159,8 +139,11 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable)
+    deriving anyclass (ToJSON, FromJSON, Hashable,  IotsType)
     deriving newtype (Serialise)
+
+instance ToSchema Value where
+    toSchema = FormSchemaValue
 
 -- Orphan instances for 'Map' to make this work
 instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where
@@ -171,7 +154,6 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
-deriving anyclass instance (ToSchema k, ToSchema v) => ToSchema (Map.Map k v)
 
 makeLift ''Value
 
@@ -186,31 +168,30 @@ instance Eq Value where
 -- do the right thing in some cases.
 
 instance Haskell.Semigroup Value where
-    (<>) = plus
+    (<>) = unionWith (+)
 
 instance Semigroup Value where
-    (<>) = plus
+    {-# INLINABLE (<>) #-}
+    (<>) = unionWith (+)
 
 instance Haskell.Monoid Value where
-    mempty = zero
+    mempty = Value (Map.empty ())
 
 instance Monoid Value where
-    mempty = zero
+    {-# INLINABLE mempty #-}
+    mempty = Value (Map.empty ())
 
--- 'InnerMap' exists only to trick swagger's generic deriving mechanism
--- into not looping indefinitely when it encounters a nested map.
-newtype InnerMap = InnerMap { unMap :: [(TokenName, Integer)] }
-    deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON, ToSchema)
+instance Group Value where
+    {-# INLINABLE inv #-}
+    inv = scale @Integer @Value (-1)
 
-instance ToSchema Value where
-    declareNamedSchema _ = do
-        mapSchema <- declareSchemaRef (Proxy @(Map.Map CurrencySymbol InnerMap))
-        return $
-                NamedSchema (Just "Value") $ Haskell.mempty
-                    & S.type_ .~ SwaggerObject
-                    & S.properties .~ [ ("getValue", mapSchema) ]
-                    & S.required .~ [ "getValue" ]
+deriving via (Additive Value) instance AdditiveSemigroup Value
+deriving via (Additive Value) instance AdditiveMonoid Value
+deriving via (Additive Value) instance AdditiveGroup Value
+
+instance Module Integer Value where
+    {-# INLINABLE scale #-}
+    scale i (Value xs) = Value (fmap (fmap (\i' -> i * i')) xs)
 
 {- note [Currencies]
 
@@ -273,37 +254,7 @@ unionWith f ls rs =
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
 
-{-# INLINABLE scale #-}
--- | Multiply all the quantities in the 'Value' by the given scale factor.
-scale :: Integer -> Value -> Value
-scale i (Value xs) = Value (fmap (fmap (\i' -> P.multiply i i')) xs)
-
 -- Num operations
-
-{-# INLINABLE plus #-}
--- | Add two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-plus :: Value -> Value -> Value
-plus = unionWith P.plus
-
-{-# INLINABLE negate #-}
--- | Negate a 'Value's. See 'Value' for an explanation of how operations on 'Value's work.
-negate :: Value -> Value
-negate = scale (-1)
-
-{-# INLINABLE minus #-}
--- | Subtract one 'Value' from another. See 'Value' for an explanation of how operations on 'Value's work.
-minus :: Value -> Value -> Value
-minus = unionWith P.minus
-
-{-# INLINABLE multiply #-}
--- | Multiply two 'Value's together. See 'Value' for an explanation of how operations on 'Value's work.
-multiply :: Value -> Value -> Value
-multiply = unionWith P.multiply
-
-{-# INLINABLE zero #-}
--- | The empty 'Value'.
-zero :: Value
-zero = Value (Map.empty ())
 
 {-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.
@@ -360,3 +311,17 @@ lt l r = not (isZero l && isZero r) && checkBinRel (<) l r
 eq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 eq = checkBinRel (==)
+
+-- | Split a value into its positive and negative parts. The first element of
+--   the tuple contains the negative parts of the value, the second element
+--   contains the positive parts.
+--
+--   @negate (fst (split a)) `plus` (snd (split a)) == a@
+--
+split :: Value -> (Value, Value)
+split (Value mp) = (negate (Value neg), Value pos) where
+  (neg, pos) = Map.mapThese splitIntl mp
+
+  splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
+  splitIntl mp' = These l r where
+    (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'

@@ -28,6 +28,7 @@ eraseVar (T α) = eraseVar α
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ *} → TyTermCon A → TermCon
 eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
+eraseTC (string s)     = string s
 
 open import Type.RenamingSubstitution
 

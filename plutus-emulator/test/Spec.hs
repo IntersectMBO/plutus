@@ -28,6 +28,7 @@ import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
+import qualified Language.PlutusTx.Numeric  as P
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Language.PlutusTx.AssocMap as AssocMap
@@ -112,9 +113,9 @@ selectCoinProp = property $ do
     let result = runExcept (selectCoin inputs target)
     case result of
         Left _ ->
-            Hedgehog.assert $ not $ (fold $ snd <$> inputs) `Value.geq` target
+            Hedgehog.assert $ not $ (foldMap snd inputs) `Value.geq` target
         Right (ins, change) ->
-            Hedgehog.assert $ (fold $ snd <$> ins) == (target `Value.plus` change)
+            Hedgehog.assert $ (foldMap snd ins) == (target P.+ change)
 
 -- | Submits a transaction that is valid in the future, then adds a number of
 --   slots, then verifies that the transaction has been validated.
@@ -122,7 +123,7 @@ validFromTransaction :: Trace MockWallet ()
 validFromTransaction = do
     let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
-        five = Ada.adaValueOf 5
+        five = Ada.lovelaceValueOf 5
     updateAll
 
     -- Set the validation interval to (5, 5] for the
@@ -135,8 +136,8 @@ validFromTransaction = do
     -- Add some blocks so that the transaction is validated
     addBlocks 50 >>= traverse_ (walletsNotifyBlock [w1, w2])
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, initialBalance `Value.minus` five),
-        (w2, initialBalance `Value.plus` five)]
+        (w1, initialBalance P.- five),
+        (w2, initialBalance P.+ five)]
 
 txnIndex :: Property
 txnIndex = property $ do
@@ -156,7 +157,7 @@ txnIndexValid = property $ do
 --   validated
 simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
-    txn' <- head <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
+    txn' <- head . snd <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
     block <- processPending
     assertIsValidated txn'
 
@@ -227,7 +228,7 @@ invalidScript = property $ do
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case _emulatorLog st of
-        SlotAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+        SlotAdd{} : TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"])) : _
             -> True
         _
             -> False
@@ -268,18 +269,18 @@ eventTrace = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.lovelaceValueOf 100) pubKey2
                 trigger = slotRangeT (W.intervalFrom 3)
 
             -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
-            b1 <- walletAction wallet1 $ register trigger mkPayment
+            b1 <- snd <$> (walletAction wallet1 $ register trigger mkPayment)
             walletNotifyBlock w b1
 
             -- advance the clock to trigger `mkPayment`
             addBlocks 2 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 100)
+            assertOwnFundsEq w (initialBalance P.- Ada.lovelaceValueOf 100)
 
     Hedgehog.assert $ isRight e
 
@@ -287,8 +288,8 @@ payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-        payment1 = initialBalance `Value.minus` Ada.adaValueOf 1
-        payment2 = initialBalance `Value.plus` Ada.adaValueOf 1
+        payment1 = initialBalance P.- Ada.lovelaceValueOf 1
+        payment2 = initialBalance P.+ Ada.lovelaceValueOf 1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
@@ -299,7 +300,7 @@ payToPubKeyScript2 = property $ do
             updateAll
             walletAction wallet3 $ payToPublicKey_ W.always payment2 pubKey1
             updateAll
-            walletAction wallet1 $ payToPublicKey_ W.always (Ada.adaValueOf 2) pubKey2
+            walletAction wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 2) pubKey2
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, initialBalance),
@@ -311,7 +312,7 @@ pubKeyTransactions :: Trace MockWallet ()
 pubKeyTransactions = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-        five = Ada.adaValueOf 5
+        five = Ada.lovelaceValueOf 5
     updateAll
     walletAction wallet1 $ payToPublicKey_ W.always five pubKey2
     updateAll
@@ -338,19 +339,19 @@ watchFundsAtAddress = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.adaValueOf 100) pubKey2
+                    EventHandler $ \_ -> payToPublicKey_ W.always (Ada.lovelaceValueOf 100) pubKey2
                 t1 = slotRangeT (W.interval 3 4)
-                t2 = fundsAtAddressGtT (pubKeyAddress pkTarget) Value.zero
+                t2 = fundsAtAddressGtT (pubKeyAddress pkTarget) P.zero
             walletNotifyBlock w =<<
-                (walletAction wallet1 $ do
+                (snd <$> (walletAction wallet1 $ do
                     register t1 mkPayment
-                    register t2 mkPayment)
+                    register t2 mkPayment))
 
             -- after 3 blocks, t1 should fire, triggering the first payment of 100 to PubKey 2
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 200)
+            assertOwnFundsEq w (initialBalance P.- Ada.lovelaceValueOf 200)
 
     Hedgehog.assert $ isRight e
 
@@ -362,4 +363,4 @@ genChainTxn = do
 
 
 initialBalance :: Value
-initialBalance = Ada.adaValueOf 100000
+initialBalance = Ada.lovelaceValueOf 100000

@@ -24,7 +24,7 @@ let
   # List of all public (i.e. published Haddock, will go on Hackage) Plutus pkgs
   plutusPublicPkgList = [
     "language-plutus-core"
-    "plutus-contract-exe"
+    "plutus-contract"
     "plutus-core-interpreter"
     "plutus-playground-lib"
     "plutus-exe"
@@ -32,6 +32,7 @@ let
     "plutus-tx"
     "plutus-wallet-api"
     "plutus-emulator"
+    "iots-export"
   ];
 
   isPublicPlutus = name: builtins.elem name plutusPublicPkgList;
@@ -44,13 +45,15 @@ let
     "plutus-use-cases"
     "playground-common"
     "marlowe"
-    "meadow"
+    "marlowe-playground-server"
     "deployment-server"
   ];
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-05-28T09:58:14Z"; };
+
+  unfreePredicate = pkg: (builtins.parseDrvName pkg.name).name == "kindlegen";
 
   comp = f: g: (v: f(g v));
 in lib // {
@@ -62,6 +65,7 @@ in lib // {
   plutusPublicPkgList
   plutusPkgList
   regeneratePackages
+  unfreePredicate
   nixpkgs
   pkgs
   comp;

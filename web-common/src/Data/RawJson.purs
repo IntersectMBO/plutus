@@ -51,13 +51,13 @@ instance showJsonTuple :: (Show a, Show b) => Show (JsonTuple a b) where
   show = genericShow
 
 instance encodeJsonTuple :: (Encode a, Encode b) => Encode (JsonTuple a b) where
-  encode (JsonTuple (Tuple a b)) = encode [encode a, encode b]
+  encode (JsonTuple (Tuple a b)) = encode [ encode a, encode b ]
 
 instance decodeJsonTuple :: (Decode a, Decode b) => Decode (JsonTuple a b) where
   decode value = do
     xs <- readArray value
     case xs of
-      [x, y] -> do
+      [ x, y ] -> do
         a <- decode x
         b <- decode y
         pure $ JsonTuple (Tuple a b)
@@ -84,7 +84,7 @@ instance decodeJsonEither :: (Decode a, Decode b) => Decode (JsonEither a b) whe
   decode value =
     JsonEither
       <$> ( (readProp "Left" value >>= (map Left <<< decode))
-          <|> (readProp "Right" value >>= (map Right <<< decode))
+            <|> (readProp "Right" value >>= (map Right <<< decode))
         )
 
 ------------------------------------------------------------
@@ -101,11 +101,7 @@ instance showJsonNonEmptyList :: Show a => Show (JsonNonEmptyList a) where
   show = genericShow
 
 instance encodeJsonNonEmptyList :: Encode a => Encode (JsonNonEmptyList a) where
-  encode (JsonNonEmptyList x) = b
-    where
-    a = Array.fromFoldable x
-
-    b = encode a
+  encode (JsonNonEmptyList x) = encode $ Array.fromFoldable x
 
 instance decodeJsonNonEmptyList :: Decode a => Decode (JsonNonEmptyList a) where
   decode value = do

@@ -3,11 +3,11 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests) where
 
 import           Control.Monad                                    (void)
-import           Control.Monad.IO.Class
 import           Data.Either                                      (isRight)
 import           Data.Foldable                                    (traverse_)
 import qualified Data.Map                                         as Map
@@ -17,14 +17,18 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                              (testProperty)
 import qualified Test.Tasty.HUnit                                 as HUnit
 
+import           Spec.Lib                                                      as Lib
+
+import qualified Language.PlutusTx as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
+
 import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
-                                                                   retrieveFunds, totalAmount, validatorScript,
+                                                                   retrieveFunds, totalAmount, validatorScript, mkValidator,
                                                                    validatorScriptHash, vestFunds)
 import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
-import qualified Ledger.Validation                                as Validation
+import qualified Ledger.Scripts                                   as Scripts
 import           Ledger.Value                                     (Value)
-import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators                       as Gen
@@ -40,16 +44,9 @@ tests = testGroup "vesting" [
     testProperty "retrieve some funds" canRetrieveFunds,
     testProperty "cannot retrieve more than allowed" cannotRetrieveTooMuch,
     testProperty "can retrieve everything at end" canRetrieveFundsAtEnd,
-    HUnit.testCase "script size is reasonable" size
+    Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| mkValidator ||]),
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (validatorScript $ vsVestingScheme scen1) 45000)
     ]
-
-size :: HUnit.Assertion
-size = do
-    let Ledger.ValidatorScript s = validatorScript (vsVestingScheme scen1)
-    let sz = Ledger.scriptSize s
-    -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
-    HUnit.assertBool "script too big" (sz <= 45000)
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a
 --   total of 600 ada over 20 blocks (200 ada can be taken out before that, at
@@ -70,7 +67,7 @@ scen1 = VestingScenario{..} where
 --   script (and can be collected by the scheme's owner)
 commit :: Wallet -> Vesting -> Value -> Trace MockWallet Ledger.TxOutRef
 commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
-    exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
+    exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
 
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
@@ -101,7 +98,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance amt)]
+        (w1, 1 `timesFeeAdjustV` (startingBalance PlutusTx.+ amt))]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
@@ -138,13 +135,13 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     -- vesting scheme.
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance total)]
+        (w1, 1 `timesFeeAdjustV` (startingBalance PlutusTx.+ total))]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
     vsInitialBalances :: Map.Map PubKey Ledger.Value,
-    vsScriptHash      :: Validation.ValidatorHash -- Hash of validator script for this scenario
+    vsScriptHash      :: Scripts.ValidatorHash -- Hash of validator script for this scenario
     }
 
 -- | Funds available to each wallet after the initial transaction on the
@@ -155,7 +152,7 @@ startingBalance = Ada.adaValueOf 1000
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
 w2Funds :: Ledger.Value
-w2Funds = Value.minus startingBalance total
+w2Funds = 1 `timesFeeAdjustV` (startingBalance PlutusTx.- total)
 
 -- | Total amount of money vested in the scheme `scen1`
 total :: Value

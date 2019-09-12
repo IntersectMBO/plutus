@@ -43,8 +43,6 @@ library
     import: lang
     exposed-modules:
         Wallet.Emulator
-        Wallet.Emulator.Client
-        Wallet.Emulator.Http
         Wallet.Emulator.Types
         Wallet.Emulator.Generators
     hs-source-dirs: src
@@ -63,6 +61,7 @@ library
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,
+        iots-export,
         language-plutus-core -any,
         memory -any,
         mtl -any,
@@ -73,7 +72,6 @@ library
         servant-client -any,
         servant-server -any,
         stm -any,
-        swagger2 -any,
         template-haskell -any,
         text -any,
         text -any,
@@ -83,20 +81,11 @@ library
         deriving-compat -any,
         newtype-generics,
         http-api-data,
+        playground-common,
         cardano-crypto
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
-executable emulator
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: emulator
-    build-depends:
-        base <5,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
-        warp -any
 
 test-suite plutus-emulator-test
     type: exitcode-stdio-1.0

@@ -9,9 +9,8 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe, Warning(..), InterpreterResult(..)) where
 
-import           Control.Exception         (IOException)
 import           Control.Monad             (unless)
-import           Control.Monad.Catch       (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Catch       (MonadCatch, MonadMask)
 import           Control.Monad.Error.Class (MonadError, throwError)
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -26,16 +25,12 @@ import           Data.Monoid               ((<>))
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import qualified Data.Text.Internal.Search as Text
-import qualified Data.Text.IO              as Text
 import           Data.Time.Units           (TimeUnit)
 import           GHC.Generics              (Generic)
-import           System.Directory          (removeFile)
 import           System.Environment        (lookupEnv)
 import           System.Exit               (ExitCode (ExitSuccess))
-import           System.FilePath           ((</>))
 import           System.IO.Error           (tryIOError)
-import           System.IO.Temp            (getCanonicalTemporaryDirectory, openTempFile)
-import           System.Process            (cwd, proc, readProcessWithExitCode)
+import           System.Process            (readProcessWithExitCode)
 import           Text.Read                 (readMaybe)
 
 data CompilationError
@@ -100,13 +95,13 @@ runProcess
     -> String
     -> m (ExitCode, String, String)
 runProcess bin timeoutValue runghcOpts file = do
-    result <- timeout' timeoutValue $ liftIO $ tryIOError $ readProcessWithExitCode bin (runghcOpts <> [file]) ""
+    result <- withTimeout $ liftIO $ tryIOError $ readProcessWithExitCode bin (runghcOpts <> [file]) ""
     case result of
         Left e  -> throwError . CompilationErrors . pure . RawError . Text.pack . show $ e
         Right v -> pure v
     where
-        timeout' :: (Show t, TimeUnit t, MonadIO m, MonadError InterpreterError m, MonadCatch m) => t -> m a -> m a
-        timeout' timeoutValue a = do
+        withTimeout :: (MonadIO m, MonadError InterpreterError m, MonadCatch m) => m a -> m a
+        withTimeout a = do
             mr <- timeout timeoutValue a
             case mr of
                 Nothing -> throwError (TimeoutError . Text.pack . show $ timeoutValue)

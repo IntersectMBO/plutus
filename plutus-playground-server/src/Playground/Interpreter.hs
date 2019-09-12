@@ -22,17 +22,18 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Ledger                       (Blockchain)
 import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                                Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, OtherError), SimulatorWallet,
-                                               program, simulatorWalletWallet, toSimpleArgumentSchema, wallets)
+                                               PlaygroundError (DecodeJsonTypeError, OtherError), program,
+                                               simulatorWalletWallet, wallets)
 import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
-import           System.IO                    (Handle, hFlush)
-import           System.IO.Temp.Extras        (withSystemTempFile)
+import           System.FilePath              ((</>))
+import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
+import           System.IO.Extras             (withFile)
+import           System.IO.Temp               (withSystemTempDirectory)
 import qualified Text.Regex                   as Regex
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Wallet.Emulator.Types        (Wallet)
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =
@@ -43,7 +44,11 @@ replaceModuleName script =
 ensureMkFunctionExists :: Text -> Text
 ensureMkFunctionExists script =
     let scriptString = Text.unpack script
-        regex = Regex.mkRegex "^\\$\\(mkFunctions \\[.*])"
+        -- I don't really like this regex as it doesn't require properly formed mkFunctions
+        -- however I couldn't find a better regex that worked for all current usecases
+        -- additionally I think this check is strong enough to decide whether to add the
+        -- empty $(mkFunctions [])
+        regex = Regex.mkRegex "^\\$\\(mkFunctions[ \n\t].*"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Nothing -> script <> "\n$(mkFunctions [])"
@@ -84,8 +89,13 @@ mkCompileScript :: Text -> Text
 mkCompileScript script =
     (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
         script <>
-    "\n\nmain :: IO ()" <>
-    "\nmain = printSchemas (schemas, registeredKnownCurrencies)"
+    Text.unlines
+        [ ""
+        , "$ensureIotsDefinitions"
+        , ""
+        , "main :: IO ()"
+        , "main = printSchemas (schemas, registeredKnownCurrencies, iotsDefinitions)"
+        ]
 
 runscript ::
        ( Show t
@@ -119,29 +129,27 @@ compile timeout source
  = do
     avoidUnsafe source
     ensureMinimumImports source
-    withSystemTempFile "Main.hs" $ \file handle -> do
-        (InterpreterResult warnings result) <-
-            runscript handle file timeout . mkCompileScript . Newtype.unpack $
-            source
-        let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
-        case eSchema of
-            Left err ->
-                throwError . CompilationErrors . pure . RawError $
-                "unable to decode compilation result" <> Text.pack err
-            Right ([schema], currencies) -> do
-                let warnings' =
-                        Warning
-                            "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
-                        warnings
-                pure . InterpreterResult warnings' $
-                    CompilationResult
-                        [toSimpleArgumentSchema <$> schema]
-                        currencies
-            Right (schemas, currencies) ->
-                pure . InterpreterResult warnings $
-                CompilationResult
-                    (fmap toSimpleArgumentSchema <$> schemas)
-                    currencies
+    withSystemTempDirectory "playgroundcompile" $ \dir -> do
+        let file = dir </> "Main.hs"
+        withFile file ReadWriteMode $ \handle -> do
+            (InterpreterResult warnings result) <-
+                runscript handle file timeout . mkCompileScript . Newtype.unpack $
+                source
+            let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
+            case eSchema of
+                Left err ->
+                    throwError . CompilationErrors . pure . RawError $
+                    "unable to decode compilation result: " <> Text.pack err <> "\n" <> Text.pack result
+                Right ([schema], currencies, iots) -> do
+                    let warnings' =
+                            Warning
+                                "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
+                            warnings
+                    pure . InterpreterResult warnings' $
+                        CompilationResult [schema] currencies iots
+                Right (schemas, currencies, iots) ->
+                    pure . InterpreterResult warnings $
+                    CompilationResult schemas currencies iots
 
 runFunction ::
        ( Show t
@@ -157,20 +165,25 @@ runFunction timeout evaluation = do
     let source = sourceCode evaluation
     mapError API.InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
-    withSystemTempFile "Main.hs" $ \file handle -> do
-        (InterpreterResult warnings result) <-
-            mapError API.InterpreterError . runscript handle file timeout $
-            mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
-        let decodeResult =
-                JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
-        case decodeResult of
-            Left err ->
-                throwError . OtherError $
-                "unable to decode compilation result" <> err
-            Right eResult ->
-                case eResult of
-                    Left err      -> throwError err
-                    Right result' -> pure $ InterpreterResult warnings result'
+    withSystemTempDirectory "playgroundrun" $ \dir -> do
+        let file = dir </> "Main.hs"
+        withFile file ReadWriteMode $ \handle -> do
+            (InterpreterResult warnings result) <-
+                mapError API.InterpreterError . runscript handle file timeout $
+                mkRunScript
+                    (Newtype.unpack source)
+                    (Text.pack . BS8.unpack $ expr)
+            let decodeResult =
+                    JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
+            case decodeResult of
+                Left err ->
+                    throwError . OtherError $
+                    "unable to decode compilation result: " <> err
+                Right eResult ->
+                    case eResult of
+                        Left err -> throwError err
+                        Right result' ->
+                            pure $ InterpreterResult warnings result'
 
 mkRunScript :: Text -> Text -> Text
 mkRunScript script expr =
@@ -193,14 +206,15 @@ runghcOpts =
     , "-XStandaloneDeriving"
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
+    , "-XDataKinds"
     , "-XNoImplicitPrelude"
     -- See Plutus Tx readme
     -- runghc is interpreting our code
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
-    , "-package plutus-wallet-api"
     , "-package plutus-tx"
+    -- , "-package plutus-wallet-api"
     ]
 
 jsonToString :: ToJSON a => a -> String

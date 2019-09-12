@@ -17,6 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , lock
     , gameTokenVal
     , gameValidator
+    , mkValidator
     ) where
 
 import qualified Data.Map                     as Map
@@ -24,9 +25,8 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude    hiding (check)
 import           Ledger                       hiding (to)
-import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
@@ -54,48 +54,50 @@ data GameInput =
 
 PlutusTx.makeLift ''GameInput
 
-mkValidator :: (GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool
-mkValidator ds vs p =
-    let
+{-# INLINABLE step #-}
+step :: GameState -> GameInput -> Maybe GameState
+step state input = case (state, input) of
+    (Initialised s, ForgeToken tn) -> Just $ Locked tn s
+    (Locked tn _, Guess _ nextSecret) -> Just $ Locked tn nextSecret
+    _ -> Nothing
 
+{-# INLINABLE check #-}
+check :: GameState -> GameInput -> PendingTx -> Bool
+check state input ptx = case (state, input) of
+    (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
+    (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge zero
+    _ -> False
+    where
         -- | Given a 'TokeName', get the value that contains
         --   exactly one token of that name in the contract's
         --   currency.
         tokenVal :: TokenName -> V.Value
         tokenVal tn =
-            let ownSymbol = Validation.ownCurrencySymbol p
+            let ownSymbol = Validation.ownCurrencySymbol ptx
             in V.singleton ownSymbol tn 1
-
         -- | Check whether the token that was forged at the beginning of the
         --   contract is present in the pending transaction
         tokenPresent :: TokenName -> Bool
         tokenPresent tn =
-            let vSpent = Validation.valueSpent p
+            let vSpent = Validation.valueSpent ptx
             in  V.geq vSpent (tokenVal tn)
-
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
-        checkForge vl = vl == (Validation.pendingTxForge p)
+        checkForge vl = vl == (Validation.pendingTxForge ptx)
 
-        -- | The SM.transition function of the game's state machine
-        trans :: GameState -> GameInput -> GameState
-        trans (Initialised s) (ForgeToken tn) =
-            if checkForge (tokenVal tn)
-            then Locked tn s
-            else error ()
-        trans (Locked tn currentSecret) (Guess theGuess nextSecret) =
-            if checkGuess currentSecret theGuess && tokenPresent tn && checkForge V.zero
-            then Locked tn nextSecret
-            else error ()
-        trans _ _ = traceErrorH "Invalid SM.transition"
-
-        sm = SM.StateMachine trans
-
-    in SM.mkValidator sm ds vs p
+{-# INLINABLE mkValidator #-}
+mkValidator :: SM.StateMachineValidator GameState GameInput
+mkValidator = SM.mkValidator (SM.StateMachine step check)
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
+
+mkRedeemer :: GameInput -> RedeemerScript
+mkRedeemer i = RedeemerScript $
+    $$(Ledger.compileScript [|| SM.mkRedeemer @GameState @GameInput ||])
+        `Ledger.applyScript`
+            (Ledger.lifted i)
 
 gameToken :: TokenName
 gameToken = "guess"
@@ -122,24 +124,26 @@ guess ::
     -> Value
     -- ^ How much to put back into the contract
     -> m ()
-guess gss newSecret keepVal restVal = do
+guess gss new keepVal restVal = do
 
-    let clear = ClearString (C.pack gss)
-        addr = Ledger.scriptAddress gameValidator
-        scr   = HashedString (plcSHA2_256 (C.pack newSecret))
-    let step = SM.transition (Locked gameToken scr) (Guess clear scr)
-    ins <- WAPI.spendScriptOutputs addr gameValidator (RedeemerScript (Ledger.lifted step))
+    let addr = Ledger.scriptAddress gameValidator
+        guessedSecret = ClearString (C.pack gss)
+        newSecret = HashedString (plcSHA2_256 (C.pack new))
+        input = Guess guessedSecret newSecret
+        newState = Locked gameToken newSecret
+        redeemer = mkRedeemer input
+    ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
     ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted step))
+    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted newState))
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
     let tx = Ledger.Tx
                 { txInputs = Set.union i (Set.fromList $ fmap fst ins)
                 , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
-                , txForge = V.zero
-                , txFee   = Ada.zero
+                , txForge = zero
+                , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
                 }
@@ -152,7 +156,7 @@ lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
 lock initialWord vl = do
     let secret = HashedString (plcSHA2_256 (C.pack initialWord))
         addr = Ledger.scriptAddress gameValidator
-        state = SM.initialState @GameState @GameInput (Initialised secret)
+        state = Initialised secret
         ds   = DataScript (Ledger.lifted state)
 
     -- 1. Create a transaction output with the value and the secret
@@ -160,23 +164,24 @@ lock initialWord vl = do
 
     -- 2. Define a trigger that fires when the first transaction (1.) is
     --    placed on the chain.
-    let trg1        = fundsAtAddressGtT addr V.zero
+    let trg1        = fundsAtAddressGtT addr zero
 
     -- 3. Define a forge_ action that creates the token by and puts the contract
     --    into its new state.
     let forge :: (WalletAPI m, WalletDiagnostics m) => m ()
         forge = do
             ownOutput <- WAPI.ownPubKeyTxOut gameTokenVal
-            let step = SM.transition (Locked gameToken secret) (ForgeToken gameToken)
-                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted step))
-                redeemer = RedeemerScript (Ledger.lifted step)
+            let input = ForgeToken gameToken
+                newState = Locked gameToken secret
+                redeemer = mkRedeemer input
+                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted newState))
             ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
 
             let tx = Ledger.Tx
                         { txInputs = Set.fromList (fmap fst ins)
                         , txOutputs = [ownOutput, scriptOut]
                         , txForge = gameTokenVal
-                        , txFee   = Ada.zero
+                        , txFee   = zero
                         , txValidRange = defaultSlotRange
                         , txSignatures = Map.empty
                         }

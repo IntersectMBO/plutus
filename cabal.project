@@ -12,9 +12,10 @@ packages: language-plutus-core
           plutus-tutorial
           plutus-book
           playground-common
-          meadow
-          plutus-contract-exe
+          marlowe-playground-server
+          plutus-contract
           deployment-server
+          iots-export
 optimization: 2
 constraints: language-plutus-core +development
            , plutus-wallet-api +development
@@ -24,6 +25,7 @@ constraints: language-plutus-core +development
            , plutus-ir +development
            , plutus-playground-server +development
            , plutus-playground-lib +development
+           , iots-export +development
 max-backjumps: 160000
 write-ghc-environment-files: never
 tests: true
@@ -42,12 +44,12 @@ program-options
 source-repository-package
   type: git
   location: https://github.com/shmish111/purescript-bridge.git
-  tag: a7069a515800135ce932742e995f3a96bc1c7129
+  tag: fedae2c308fac73b129a684a7d10f547837470f4
 
 source-repository-package
   type: git
   location: https://github.com/shmish111/servant-purescript.git
-  tag: ab14502279c92084f06aa6222a17873275279e63
+  tag: ece5d1dad16a5731ac22040075615803796c7c21
 
 source-repository-package
   type: git

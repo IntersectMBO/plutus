@@ -1,5 +1,4 @@
-module Data.Lens.Extra
-       (peruse) where
+module Data.Lens.Extra (peruse) where
 
 import Control.Category ((<<<))
 import Control.Monad.State.Class (class MonadState, gets)

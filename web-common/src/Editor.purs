@@ -74,10 +74,11 @@ editorPane initialContents state =
     , div_
         [ button
             [ id_ "compile"
-            , classes [btn, btnClass]
+            , classes [ btn, btnClass ]
             , onClick $ input_ CompileProgram
             , disabled (isLoading state)
-            ] [btnText]
+            ]
+            [ btnText ]
         ]
     , br_
     , errorList
@@ -104,48 +105,50 @@ editorPane initialContents state =
     fromMaybe empty
       $ preview
           ( _Success
-            <<< _Right
-            <<< _InterpreterResult
-            <<< _warnings
-            <<< to compilationWarningsPane
-          ) state
+              <<< _Right
+              <<< _InterpreterResult
+              <<< _warnings
+              <<< to compilationWarningsPane
+          )
+          state
 
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
-  div [id_ "demos"]
-    ( Array.cons (strong_ [text "Demos: "]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+  div [ id_ "demos" ]
+    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
     )
 
 demoScriptButton :: forall p. String -> HTML p Query
 demoScriptButton key =
   button
-    [ classes [btn, btnInfo, btnSmall]
+    [ classes [ btn, btnInfo, btnSmall ]
     , onClick $ input_ $ LoadScript key
-    ] [text key]
+    ]
+    [ text key ]
 
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Query)
-interpreterErrorPane (TimeoutError error) = [listGroupItem_ [div_ [text error]]]
+interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]
 
 interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Query
-compilationErrorPane (RawError error) = div_ [text error]
+compilationErrorPane (RawError error) = div_ [ text error ]
 
 compilationErrorPane (CompilationError error) =
   div
     [ class_ $ ClassName "compilation-error"
-    , onClick $ input_ $ ScrollTo {row: error.row, column: error.column}
+    , onClick $ input_ $ ScrollTo { row: error.row, column: error.column }
     ]
-    [ small [class_ pullRight] [text "jump"]
-    , h3_ [text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":"]
-    , code_ [pre_ [text $ String.joinWith "\n" error.text]]
+    [ small [ class_ pullRight ] [ text "jump" ]
+    , h3_ [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
+    , code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
 
 compilationWarningsPane :: forall p. Array Warning -> HTML p Query
 compilationWarningsPane warnings = listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
 compilationWarningPane :: forall p. Warning -> HTML p Query
-compilationWarningPane warning = div [class_ $ ClassName "compilation-warning"] [text $ view _Warning warning]
+compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text $ view _Warning warning ]
 
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.

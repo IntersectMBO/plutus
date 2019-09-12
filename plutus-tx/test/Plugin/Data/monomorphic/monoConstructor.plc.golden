@@ -6,11 +6,11 @@
         (tyvardecl MyMonoData (type))
         
         MyMonoData_match
-        (vardecl Mono1 (fun (con integer) (fun (con integer) MyMonoData)))
-        (vardecl Mono2 (fun (con integer) MyMonoData))
-        (vardecl Mono3 (fun (con integer) MyMonoData))
+        (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
+        (vardecl Mono (fun (con integer) MyMonoData))
+        (vardecl Mono (fun (con integer) MyMonoData))
       )
     )
-    Mono1
+    Mono
   )
 )

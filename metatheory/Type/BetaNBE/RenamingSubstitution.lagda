@@ -5,6 +5,7 @@ open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
+open import Type.BetaNormal.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
@@ -21,9 +22,9 @@ NBE algorithm.
 reify ∘ reflect preserves the neutral term
 
 \begin{code}
-reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡ ne n
-reify-reflect {*}     n = refl
-reify-reflect {K ⇒ J} n = refl
+reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡Nf ne n
+reify-reflect {*}     n = ne≡Nf reflNe
+reify-reflect {K ⇒ J} n = ne≡Nf reflNe
 \end{code}
 
 eval is closed under propositional equality for terms
@@ -32,15 +33,15 @@ eval is closed under propositional equality for terms
 evalCRSubst : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → {t t' : Φ ⊢⋆ K}
-  → t ≡ t'
+  → t ≡α t'
   → CR K (eval t η) (eval t' η')
-evalCRSubst p {t = t} refl = idext p t
+evalCRSubst p {t = t} q = fund p (α2β q) 
 \end{code}
 
 \begin{code}
 ren-nf : ∀{ϕ ψ K}(σ : Ren ϕ ψ)(A : ϕ ⊢⋆ K) →
-  renNf σ (nf A) ≡ nf (ren σ A)
-ren-nf σ A = trans
+  renNf σ (nf A) ≡Nf nf (ren σ A)
+ren-nf σ A = transNf
   (ren-reify (idext idCR A) σ)
   (reifyCR
     (transCR
@@ -56,15 +57,17 @@ ren-nf-μ1 : ∀ {Φ Ψ}{K}
   → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
   → (arg  : Φ ⊢Nf⋆ K)
   → renNf ρ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-    ≡
+    ≡Nf
     nf (embNf (renNf ρ⋆ pat)
         · (μ1 · embNf (renNf ρ⋆ pat))
         · embNf (renNf ρ⋆ arg))
-ren-nf-μ1 ρ⋆ pat arg = trans
+ren-nf-μ1 ρ⋆ pat arg = transNf
   (ren-nf ρ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg))
-  (cong₂ (λ (p : _ ⊢⋆ _)(a : _ ⊢⋆ _) → nf (p · (μ1 · p) · a))
-         (sym (ren-embNf ρ⋆ pat))
-         (sym (ren-embNf ρ⋆ arg)))
+  (symCR (fund
+    idCR
+    (α2β (·≡α
+      (·≡α (ren-embNf ρ⋆ pat) (·≡α (reflα {A = μ1}) (ren-embNf ρ⋆ pat)))
+      (ren-embNf ρ⋆ arg))))) 
 \end{code}
 
 \begin{code}
@@ -90,8 +93,10 @@ First monad law for substNf
 \begin{code}
 substNf-id : ∀ {Φ J}
   → (n : Φ ⊢Nf⋆ J)
-  → substNf (ne ∘ `) n ≡ n
-substNf-id n = trans (cong nf (subst-id (embNf n))) (stability n)
+  → substNf (ne ∘ `) n ≡Nf n
+substNf-id n = transNf
+  (reifyCR (fund idCR (α2β (subst-id (embNf n)))))
+  (stability n)
 \end{code}
 
 This version of the first monad law might be η compatible as it doesn't rely
@@ -100,13 +105,13 @@ on subst-id
 \begin{code}
 substNf-id' : ∀ {Φ J}
   → (n : Φ ⊢Nf⋆ J)
-  → substNf (nf ∘ `) n ≡ n
-substNf-id' n = trans
+  → substNf (nf ∘ `) n ≡Nf n
+substNf-id' n = transNf
   (reifyCR
     (transCR
       (subst-eval (embNf n) idCR (embNf ∘ nf ∘ `))
       (idext
-        (λ α → evalCRSubst idCR (cong embNf (stability (ne (` α)))))
+        (λ α → fund idCR (α2β (embNf-cong (stability (ne (` α))))))
         (embNf n))))
   (stability n)
 \end{code}
@@ -118,7 +123,7 @@ This is often holds definitionally for substitution (e.g. subst) but not here.
 substNf-∋ : ∀ {Φ Ψ J}
   → (ρ : SubNf Φ Ψ)
   → (α : Φ ∋⋆ J)
-  → substNf ρ (ne (` α)) ≡ ρ α
+  → substNf ρ (ne (` α)) ≡Nf ρ α
 substNf-∋ ρ α = stability (ρ α) 
 \end{code}
 
@@ -133,13 +138,13 @@ substNf-nf : ∀ {Φ Ψ}
   → ∀ {J}
   → (t : Φ ⊢⋆ J)
     -------------------------------------------
-  → nf (subst (embNf ∘ σ) t) ≡ substNf σ (nf t)
-substNf-nf σ t = trans
+  → nf (subst (embNf ∘ σ) t) ≡Nf substNf σ (nf t)
+substNf-nf σ t = transNf
   (reifyCR (subst-eval t idCR (embNf ∘ σ)))
-  (trans
-    (sym
+  (transNf
+    (symNf
       (reifyCR (fund (λ x → idext idCR (embNf (σ x))) (sym≡β (soundness t)))))
-    (sym (reifyCR (subst-eval (embNf (nf t)) idCR (embNf ∘ σ)))))
+    (symNf (reifyCR (subst-eval (embNf (nf t)) idCR (embNf ∘ σ)))))
 \end{code}
 
 Third Monad Law for substNf
@@ -150,28 +155,29 @@ substNf-comp : ∀{Φ Ψ Θ}
   (f : SubNf Ψ Θ)
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     -----------------------------------------------
-  → substNf (substNf f ∘ g) A ≡ substNf f (substNf g A)
-substNf-comp g f A = trans
-  (trans
-    (trans
+  → substNf (substNf f ∘ g) A ≡Nf substNf f (substNf g A)
+substNf-comp g f A = transNf
+  (transNf
+    (transNf
       (reifyCR
         (subst-eval
           (embNf A)
           idCR
           (embNf ∘ nf ∘ subst (embNf ∘ f) ∘ embNf ∘ g)))
-      (trans (reifyCR
+      (transNf (reifyCR
                (idext
                  (λ x → fund
                    idCR
                    (sym≡β (soundness (subst (embNf ∘ f) (embNf (g x))))))
                  (embNf A)))
-             (sym
+             (symNf
                (reifyCR
                  (subst-eval
                    (embNf A)
                    idCR
                    (subst (embNf ∘ f) ∘ embNf ∘ g))))))
-  (cong nf (subst-comp (embNf A)))) (substNf-nf f (subst (embNf ∘ g) (embNf A)))
+    (completeness (α2β (subst-comp (embNf A)))))
+  (substNf-nf f (subst (embNf ∘ g) (embNf A)))
 \end{code}
 
 extending a normal substitution
@@ -211,12 +217,22 @@ Congruence lemma for subst
 \begin{code}
 substNf-cong : ∀ {Φ Ψ}
   → {f g : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
+  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡Nf g x)
   → ∀{K}(A : Φ ⊢Nf⋆ K)
     -------------------------------
-  → substNf f A ≡ substNf g A
+  → substNf f A ≡Nf substNf g A
 substNf-cong p A =
- reifyCR (evalCRSubst idCR (subst-cong (cong embNf ∘ p) (embNf A)))
+ reifyCR (fund idCR (α2β (subst-cong (embNf-cong ∘ p ) (embNf A))))
+\end{code}
+
+\begin{code}
+substNf-cong' : ∀ {Φ Ψ}
+  → (f : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
+  → ∀{K}{A A' : Φ ⊢Nf⋆ K}
+  → A ≡Nf A'
+    -------------------------------
+  → substNf f A ≡Nf substNf f A'
+substNf-cong' f p = completeness (α2β (subst-cong' (embNf ∘ f) (embNf-cong p)))
 \end{code}
 
 Pushing renaming through normal substitution
@@ -227,8 +243,8 @@ renNf-substNf : ∀{Φ Ψ Θ}
   → (f : Ren Ψ Θ)
   → ∀{J}(A : Φ ⊢Nf⋆ J)
    -----------------------------------------------------
-  → substNf (renNf f ∘ g) A ≡ renNf f (substNf g A)
-renNf-substNf g f A = trans
+  → substNf (renNf f ∘ g) A ≡Nf renNf f (substNf g A)
+renNf-substNf g f A = transNf
   (reifyCR
     (transCR
       (transCR
@@ -243,7 +259,7 @@ renNf-substNf g f A = trans
             (embNf A))
           (symCR (subst-eval (embNf A) (renCR f ∘ idCR) (embNf ∘ g)))))
       (symCR (renVal-eval (subst (embNf ∘ g) (embNf A)) idCR f))))
-  (sym (ren-reify (idext idCR (subst (embNf ∘ g) (embNf A))) f))
+  (symNf (ren-reify (idext idCR (subst (embNf ∘ g) (embNf A))) f))
 \end{code}
 
 Pushing a substitution through a renaming
@@ -254,7 +270,7 @@ substNf-renNf : ∀{Φ Ψ Θ}
   → (f : SubNf Ψ Θ)
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     --------------------------------------
-  → substNf (f ∘ g) A ≡ substNf f (renNf g A)
+  → substNf (f ∘ g) A ≡Nf substNf f (renNf g A)
 substNf-renNf g f A = reifyCR
   (transCR
     (subst-eval (embNf A) idCR (embNf ∘ f ∘ g))
@@ -274,14 +290,14 @@ ren[]Nf : ∀ {Φ Θ J K}
         → (t : Φ ,⋆ K ⊢Nf⋆ J)
         → (u : Φ ⊢Nf⋆ K )
           --------------------------------------------------------------
-        → renNf ρ (t [ u ]Nf) ≡ renNf (ext ρ) t [ renNf ρ u ]Nf
-ren[]Nf ρ t u = trans
-  (sym (renNf-substNf (substNf-cons (ne ∘ `) u) ρ t))
-  (trans
+        → renNf ρ (t [ u ]Nf) ≡Nf (renNf (ext ρ) t [ renNf ρ u ]Nf)
+ren[]Nf ρ t u = transNf
+  (symNf (renNf-substNf (substNf-cons (ne ∘ `) u) ρ t))
+  (transNf
     (substNf-cong
       {f = renNf ρ ∘ substNf-cons (ne ∘ `) u}
       {g = substNf-cons (ne ∘ `) (renNf ρ u) ∘ ext ρ}
-      (λ { Z → refl ; (S α) → refl})
+      (λ { Z → reflNf ; (S α) → reflNf})
       t)
     (substNf-renNf (ext ρ)(substNf-cons (ne ∘ `) (renNf ρ u)) t))
 \end{code}
@@ -294,16 +310,16 @@ subst[]Nf : ∀{Φ Ψ K J}
   → (A : Φ ⊢Nf⋆ K)
   → (B : Φ ,⋆ K ⊢Nf⋆ J)
     --------------------------------------------------------------
-  → substNf ρ (B [ A ]Nf) ≡ substNf (extsNf ρ) B [ substNf ρ A ]Nf
-subst[]Nf ρ A B = trans
-  (sym (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
-  (trans
+  → substNf ρ (B [ A ]Nf) ≡Nf (substNf (extsNf ρ) B [ substNf ρ A ]Nf)
+subst[]Nf ρ A B = transNf
+  (symNf (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
+  (transNf
     (substNf-cong
       {f = substNf ρ ∘ substNf-cons (ne ∘ `) A}
       {g = substNf (substNf-cons (ne ∘ `) (substNf ρ A)) ∘ extsNf ρ}
-      (λ { Z     → sym (substNf-∋ (substNf-cons (ne ∘ `) (substNf ρ A)) Z) 
-         ; (S α) → trans
-              (trans (substNf-∋ ρ α) (sym (substNf-id (ρ α))))
+      (λ { Z     → symNf (substNf-∋ (substNf-cons (ne ∘ `) (substNf ρ A)) Z) 
+         ; (S α) → transNf
+              (transNf (substNf-∋ ρ α) (symNf (substNf-id (ρ α))))
               (substNf-renNf
                 S
                 (substNf-cons (ne ∘ `) (substNf ρ A))
@@ -319,9 +335,9 @@ embedding and then extending.
 substNf-lemma : ∀{Φ Ψ K J}
   (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → (t : Φ ,⋆ K ⊢⋆ J)
-  → subst (exts (embNf ∘ ρ)) t ≡ subst (embNf ∘ extsNf ρ) t
+  → subst (exts (embNf ∘ ρ)) t ≡α subst (embNf ∘ extsNf ρ) t
 substNf-lemma ρ t =
-  subst-cong (λ { Z → refl ; (S x) → sym (ren-embNf S (ρ x))}) t
+  subst-cong (λ { Z → reflα ; (S x) → symα (ren-embNf S (ρ x))}) t
 \end{code}
 
 Repair a mismatch between two different ways of extending an environment
@@ -329,9 +345,9 @@ Repair a mismatch between two different ways of extending an environment
 \begin{code}
 substNf-lemma' : ∀{Φ K J}
   → (B : Φ ,⋆ K ⊢⋆ J)
-  → nf B ≡ reify (eval B ((renVal S ∘ idEnv _) ,,⋆ fresh))
+  → nf B ≡Nf reify (eval B ((renVal S ∘ idEnv _) ,,⋆ fresh))
 substNf-lemma' B = reifyCR
-  (idext (λ { Z     → reflectCR refl
+  (idext (λ { Z     → reflectCR reflNe
             ; (S x) → symCR (renVal-reflect S (` x))}) B)
 \end{code}
 
@@ -347,16 +363,20 @@ subst[]Nf' : ∀{Φ Ψ K J}
   → (A : Φ ⊢Nf⋆ K)
   → (B : Φ ,⋆ K ⊢Nf⋆ J)
   → substNf ρ (B [ A ]Nf)
-    ≡
-    (reify (eval (subst (exts (embNf ∘ ρ)) (embNf B))
+    ≡Nf
+    ((reify (eval (subst (exts (embNf ∘ ρ)) (embNf B))
                  ((renVal S ∘ idEnv _) ,,⋆ fresh)))
-    [ substNf ρ A ]Nf
+    [ substNf ρ A ]Nf)
 subst[]Nf' ρ A B =
-  trans (subst[]Nf ρ A B)
-        (trans (cong (λ t → nf t [ substNf ρ A ]Nf)
-                     (sym (substNf-lemma ρ (embNf B))))
-               (cong (λ n → n [ substNf ρ A ]Nf)
-                     (substNf-lemma' (subst (exts (embNf ∘ ρ)) (embNf B)))))
+  transNf (subst[]Nf ρ A B)
+  (substNf-cong' (substNf-cons (ne ∘ `) (substNf ρ A))
+     {A = substNf (extsNf (λ {K = K₁} → ρ)) B}
+     {A' =
+      reify
+      (eval (subst (exts (embNf ∘ ρ)) (embNf B))
+       ((renVal S ∘ idEnv _) ,,⋆ fresh))}
+     (transNf (symNf (completeness (α2β (substNf-lemma ρ (embNf B)))))
+              (substNf-lemma'  (subst (exts (embNf ∘ ρ)) (embNf B)))))
 \end{code}
 
 \begin{code}
@@ -364,26 +384,25 @@ weakenNf-renNf : ∀ {Φ Ψ}
   → (ρ⋆ : Ren Φ Ψ)
   → ∀{K}
   → (A : Φ ⊢Nf⋆ *)
-  → weakenNf (renNf ρ⋆ A) ≡ renNf (ext ρ⋆ {K = K}) (weakenNf A)
-weakenNf-renNf ρ⋆ A = trans (sym (renNf-comp _)) (renNf-comp _)
+  → weakenNf (renNf ρ⋆ A) ≡Nf renNf (ext ρ⋆ {K = K}) (weakenNf A)
+weakenNf-renNf ρ⋆ A = transNf (symNf (renNf-comp _)) (renNf-comp _)
 
 weakenNf-substNf : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
   → ∀{K}
   → (A : Φ ⊢Nf⋆ *)
-  → weakenNf (substNf σ⋆ A) ≡ substNf (extsNf σ⋆ {K = K}) (weakenNf A)
-weakenNf-substNf σ⋆ A = trans
-  (sym (renNf-substNf σ⋆ S A))
+  → weakenNf (substNf σ⋆ A) ≡Nf substNf (extsNf σ⋆ {K = K}) (weakenNf A)
+weakenNf-substNf σ⋆ A = transNf
+  (symNf (renNf-substNf σ⋆ S A))
   (substNf-renNf S (extsNf σ⋆) A)
 
 weakenNf[] : ∀ {Φ K}(B : Φ ⊢Nf⋆ K)
         → (A : Φ ⊢Nf⋆ *)
-        → A ≡ weakenNf A [ B ]Nf
-weakenNf[] B A = trans
-  (trans (sym (stability A))
-         (evalCRSubst idCR (sym (subst-id (embNf A)))))
+        → A ≡Nf (weakenNf A [ B ]Nf)
+weakenNf[] B A = transNf
+  (transNf (symNf (stability A))
+         (evalCRSubst idCR (symα (subst-id (embNf A)))))
   (substNf-renNf S (substNf-cons (ne ∘ `) B) A)
-
 
 open import Data.Sum
 
@@ -392,10 +411,10 @@ subst-nf-Π : ∀ {Φ Ψ}
   → ∀{K}
   → (B : Φ ,⋆ K ⊢Nf⋆ *)
   → substNf (extsNf σ⋆) B
-    ≡
+    ≡Nf
     eval (subst (exts (embNf ∘ σ⋆)) (embNf B)) (exte (idEnv Ψ))
-subst-nf-Π σ⋆ B = trans
-  (evalCRSubst idCR (sym (substNf-lemma σ⋆ (embNf B))))
+subst-nf-Π σ⋆ B = transNf
+  (evalCRSubst idCR (symα (substNf-lemma σ⋆ (embNf B))))
   (substNf-lemma' (subst (exts (embNf ∘ σ⋆)) (embNf B)))
 
 subst-nf-μ : ∀ {Φ Ψ}{K}
@@ -403,12 +422,12 @@ subst-nf-μ : ∀ {Φ Ψ}{K}
   → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
   → (arg  : Φ ⊢Nf⋆ K)
   → substNf σ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-    ≡
+    ≡Nf
     nf (embNf (substNf σ⋆ pat)
         · (μ1 · embNf (substNf σ⋆ pat))
         · embNf (substNf σ⋆ arg))
-subst-nf-μ σ⋆ pat arg = trans
-  (sym (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
+subst-nf-μ σ⋆ pat arg = transNf
+  (symNf (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
   (completeness
      (·≡β
        (·≡β

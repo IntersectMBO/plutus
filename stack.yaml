@@ -9,15 +9,16 @@ packages:
 - plutus-use-cases
 - playground-common
 - marlowe
-- meadow
+- marlowe-playground-server
 - plutus-wallet-api
 - plutus-playground-server
 - plutus-playground-lib
 - plutus-tutorial
 - plutus-book
-- plutus-contract-exe
+- plutus-contract
 - plutus-emulator
 - deployment-server
+- iots-export
 
 extra-deps:
 # Agda and deps
@@ -45,11 +46,14 @@ extra-deps:
 - binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b
 - binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
 - time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
+- extensible-effects-5.0.0.1
+- git: https://github.com/target/row-types
+  commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: a7069a515800135ce932742e995f3a96bc1c7129
+  commit: fedae2c308fac73b129a684a7d10f547837470f4
 - git: https://github.com/shmish111/servant-purescript.git
-  commit: ab14502279c92084f06aa6222a17873275279e63
+  commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
 # Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
@@ -72,8 +76,8 @@ flags:
     development: true
   plutus-playground-server:
     development: true
-  plutus-contract-exe:
+  plutus-contract:
     development: true
 extra-package-dbs: []
 nix:
-  packages: [gmp, openssl]
+  packages: [zlib, gmp, openssl]

@@ -25,11 +25,7 @@ open import Agda.Builtin.Int
 open import Data.Integer
 
 open import Data.Product renaming (_,_ to _,,_)
---open import test.AddInteger
---open import test.IntegerLiteral
---open import test.IntegerOverflow -- can't be used
---open import test.Negation -- TODO
---open import test.StringLiteral
+open import Data.Bool
 
 open Agda.Builtin.IO
 open import Data.String
@@ -56,7 +52,8 @@ postulate
   readFile : String → IO ByteString
   parse : ByteString → Maybe Program
   showTerm : RawTm → String
-
+  getContents : IO ByteString
+  
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
@@ -66,6 +63,7 @@ postulate
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC getContents = BSL.getContents #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
 {-# COMPILE GHC mmap = \_ _ -> fmap #-}
 {-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
@@ -97,38 +95,74 @@ open import Untyped
 
 open import Data.Fin
 
-postulate prettyPrint : RawTm → String
+postulate
+  prettyPrintTm : RawTm → String
+  prettyPrintTy : RawTy → String
 
-{-# COMPILE GHC prettyPrint = prettyText . unconv #-}
+{-# COMPILE GHC prettyPrintTm = prettyText . unconv #-}
+{-# COMPILE GHC prettyPrintTy = prettyText . unconvT #-}
 
 open import Data.Vec hiding (_>>=_)
 
+open import Scoped.CK
+
+data EvalMode : Set where
+  CK L : EvalMode
+
 -- extrinsically typed evaluation
-stestPLC : ByteString → String
-stestPLC plc with parse plc
-stestPLC plc | just t with deBruijnifyTm nil (convP t)
-stestPLC plc | just t | just t' with S.run (saturate t') 1000000
-stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ (just v) =
---  prettyPrint (unDeBruijnify zero Z (unsaturate t''))
- prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
-stestPLC plc | just t | just t' | t'' ,, p ,, inj₂ e =
+evalPLC : EvalMode → ByteString → String
+evalPLC m plc with parse plc
+evalPLC m plc | just t with deBruijnifyTm nil (convP t)
+evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
+evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
-  prettyPrint (deDeBruijnify [] nil (unsaturate t''))
-stestPLC plc | just t | nothing = "scope error"
-stestPLC plc | nothing = "parse error"
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
+evalPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
+evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
+evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+  "this shouldn't happen"
+evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+evalPLC m plc | just t | nothing = "scope error"
+evalPLC m plc | nothing = "parse error"
 
-blah : ByteString → String
-blah plc with parse plc
-blah plc | nothing = "parse error"
-blah plc | just t with deBruijnifyTm nil (convP t)
-blah plc | just t | just t' = "so far so good"
-blah plc | just t | nothing = "deBruijnifying failed"
+open import Check hiding (_>>=_)
+open import Scoped.Extrication
+open import Type.BetaNBE
 
-testFile : String → IO String
-testFile fn = do
-  t ← readFile fn
-  return (stestPLC t)
+junk : ∀{n} → Vec String n
+junk {zero}      = []
+junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
+
+tcPLC : ByteString → String
+tcPLC plc with parse plc
+... | nothing = "parse error"
+... | just t with deBruijnifyTm nil (convP t)
+... | nothing = "scope error"
+... | just t' with inferType _ t'
+... | inj₁ (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
+... | inj₂ typeError = "typeError"
+... | inj₂ kindEqError = "kindEqError"
+... | inj₂ notTypeError = "notTypeError"
+... | inj₂ notFunction = "notFunction"
+... | inj₂ notPiError = "notPiError"
+... | inj₂ notPat = "notPat"
+... | inj₂ (nameError x x') = x Data.String.++ " != " Data.String.++ x'
+... | inj₂ (typeEqError n n') =
+  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n))
+  Data.String.++
+  "\n != \n"
+  Data.String.++
+  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n'))
+  
+... | inj₂ typeVarEqError = "typeVarEqError"
+... | inj₂ tyConError     = "tyConError"
+... | inj₂ builtinError   = "builtinError"
+... | inj₂ unwrapError    = "unwrapError"
+
 
 
 {-# FOREIGN GHC import System.Environment #-}
@@ -139,55 +173,44 @@ postulate getArgs : IO (List String)
 
 {-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
 
+{-# FOREIGN GHC import Opts #-}
+
+data Input : Set where
+  FileInput : String → Input
+  StdInput : Input
+
+{-# COMPILE GHC Input = data Input (FileInput | StdInput) #-}
+
+data EvalOptions : Set where
+  EvalOpts : Input → EvalMode → EvalOptions
+
+data TCOptions : Set where
+  TCOpts : Input → TCOptions
+  
+data Command : Set where
+  Evaluate  : EvalOptions → Command
+  TypeCheck : TCOptions → Command
+
+postulate execP : IO Command
+
+{-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
+{-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
+{-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (CK | L) #-}
+{-# COMPILE GHC execP = execP #-}
+
+evalInput : EvalMode → Input → IO String
+evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
+evalInput m StdInput       = imap (evalPLC m) getContents 
+
+tcInput : Input → IO String
+tcInput (FileInput fn) = imap tcPLC (readFile fn)
+tcInput StdInput       = imap tcPLC getContents
+
+main' : Command → IO ⊤
+main' (Evaluate (EvalOpts i m)) = evalInput m i >>= putStrLn
+main' (TypeCheck (TCOpts i))    = tcInput i >>= putStrLn
+
 main : IO ⊤
-main = do
-  (arg ∷ args) ← getArgs
-    where [] → return _
-  testFile arg >>= putStrLn
-
-ex0 : RawTm
-ex0 = con (integer (pos 1))
-
-{-
-ex1 : RawTm
-ex1 = (Λ "s" # (ƛ "i" (_·_ (con integer) (` "s")) (_·_ (_·_ (_·⋆_ (builtin addInteger) (` "s")) (` "i")) (_·_ (_·_ (_·⋆_ (_·⋆_ (builtin resizeInteger) (size 2)) (` "s")) (_·_ (_·⋆_ (builtin sizeOfInteger) (` "s")) (` "i"))) (con (integer 2 (pos 1)))))))
--}
-
-open import Scoped.Reduction
-frun :  ℕ → (t : ScopedTm Z)
-    → Σ (ScopedTm Z) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
-frun n t = run t n
+main = execP >>= main'
 \end{code}
-
-deBruijnifyTm nil ex1
-
-just
-(Λ "s" #
- (ƛ "i" (con integer · ` zero)
-  (((builtin addInteger [] [] ·⋆ ` zero) · ` Z) ·
-   ((((builtin resizeInteger [] [] ·⋆ size 2) ·⋆ ` zero) ·
-     ((builtin sizeOfInteger [] [] ·⋆ ` zero) · ` Z))
-    · con (integer 2 (pos 1) tt)))))
-
-mapper saturate (deBruijnifyTm nil ex1)
-
-just
-(Λ "s" #
- (ƛ "i" (con integer · ` zero)
-  (builtin addInteger (` zero ∷ [])
-   (` Z ∷
-    builtin resizeInteger (size 2 ∷ ` zero ∷ [])
-    (builtin sizeOfInteger (` zero ∷ []) (` Z ∷ []) ∷
-     con (integer 2 (pos 1) tt) ∷ [])
-    ∷ []))))
-
-unsaturate
-
-Λ "s" #
-(ƛ "i" (con integer · ` zero)
- (builtin addInteger (` zero ∷ [])
-  (` Z ∷
-   builtin resizeInteger (size 2 ∷ ` zero ∷ [])
-   (builtin sizeOfInteger (` zero ∷ []) (` Z ∷ []) ∷
-    con (integer 2 (pos 1) tt) ∷ [])
-   ∷ [])))

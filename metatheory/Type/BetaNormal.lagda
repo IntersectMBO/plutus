@@ -116,84 +116,6 @@ weakenNf : ∀ {Φ J K}
 weakenNf = renNf S
 \end{code}
 
-\begin{code}
-renNe-cong : ∀ {Φ Ψ}
-  → {f g : Ren Φ Ψ}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{K}(A : Φ ⊢Ne⋆ K)
-    -------------------------
-  → renNe f A ≡ renNe g A
-
-renNf-cong : ∀ {Φ Ψ}
-  → {f g : Ren Φ Ψ}
-  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
-  → ∀{K}(A : Φ ⊢Nf⋆ K)
-    ---------------------------
-  → renNf f A ≡ renNf g A
-renNf-cong p (Π x A)     = cong (Π x) (renNf-cong (ext-cong p) A)
-renNf-cong p (A ⇒ B)     = cong₂ _⇒_ (renNf-cong p A) (renNf-cong p B)
-renNf-cong p (ƛ x A)     = cong (ƛ x) (renNf-cong (ext-cong p) A)
-renNf-cong p (ne A)      = cong ne (renNe-cong p A)
-renNf-cong p (con tcn)   = refl
-
-renNe-cong p (` x)   = cong ` (p x)
-renNe-cong p (A · B) = cong₂ _·_ (renNe-cong p A) (renNf-cong p B)
-renNe-cong p μ1      = refl
-\end{code}
-
-\begin{code}
-renNf-id : ∀ {Φ}
-  → ∀ {J}
-  → (n : Φ ⊢Nf⋆ J)
-    -----------------
-  → renNf id n ≡ n
-
-renNe-id : ∀ {Φ}
-  → ∀ {J}
-  → (n : Φ ⊢Ne⋆ J)
-    ------------------
-  → renNe id n ≡ n
-
-renNf-id (Π x n)       =
-  cong (Π x) (trans (renNf-cong ext-id n) (renNf-id n))
-renNf-id (n ⇒ n')    = cong₂ _⇒_ (renNf-id n) (renNf-id n')
-renNf-id (ƛ x n)       =
-  cong (ƛ x) (trans (renNf-cong ext-id n) (renNf-id n))
-renNf-id (ne x)      = cong ne (renNe-id x)
-renNf-id (con tcn)   = refl
-
-renNe-id (` x)    = refl
-renNe-id (n · n') = cong₂ _·_ (renNe-id n) (renNf-id n')
-renNe-id μ1       = refl
-\end{code}
-
-\begin{code}
-renNf-comp : ∀{Φ Ψ Θ}
-  → {g : Ren Φ Ψ}
-  → {f : Ren Ψ Θ}
-  → ∀{J}(A : Φ ⊢Nf⋆ J)
-    -------------------------------------------
-  → renNf (f ∘ g) A ≡ renNf f (renNf g A)
-renNe-comp : ∀{Φ Ψ Θ}
-  → {g : Ren Φ Ψ}
-  → {f : Ren Ψ Θ}
-  → ∀{J}(A : Φ ⊢Ne⋆ J)
-    -------------------------------------------
-  → renNe (f ∘ g) A ≡ renNe f (renNe g A)
-
-renNf-comp (Π x B)     =
-  cong (Π x) (trans (renNf-cong ext-comp B) (renNf-comp B))
-renNf-comp (A ⇒ B)     = cong₂ _⇒_ (renNf-comp A) (renNf-comp B)
-renNf-comp (ƛ x B)     = 
-  cong (ƛ x) (trans (renNf-cong ext-comp B) (renNf-comp B))
-renNf-comp (ne n)      = cong ne (renNe-comp n)
-renNf-comp (con tcn)   = refl
-
-renNe-comp (` x) = cong ` refl
-renNe-comp (A · x) = cong₂ _·_ (renNe-comp A) (renNf-comp x)
-renNe-comp μ1    = refl
-\end{code}
-
 Embedding normal forms back into terms
 
 \begin{code}
@@ -217,24 +139,24 @@ ren-embNf : ∀ {Φ Ψ}
   → ∀ {J}
   → (n : Φ ⊢Nf⋆ J)
     -----------------------------------------
-  → embNf (renNf ρ n) ≡ ren ρ (embNf n)
+  → embNf (renNf ρ n) ≡α ren ρ (embNf n)
 
 ren-embNe : ∀ {Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → ∀ {J}
   → (n : Φ ⊢Ne⋆ J)
     --------------------------------------------
-  → embNe (renNe ρ n) ≡ ren ρ (embNe n)
+  → embNe (renNe ρ n) ≡α ren ρ (embNe n)
 
-ren-embNf ρ (Π x B)     = cong (Π x) (ren-embNf (ext ρ) B)
-ren-embNf ρ (A ⇒ B)     = cong₂ _⇒_ (ren-embNf ρ A) (ren-embNf ρ B)
-ren-embNf ρ (ƛ x B)     = cong (ƛ x) (ren-embNf (ext ρ) B)
+ren-embNf ρ (Π x B)     = Π≡α (ren-embNf (ext ρ) B)
+ren-embNf ρ (A ⇒ B)     = ⇒≡α (ren-embNf ρ A) (ren-embNf ρ B)
+ren-embNf ρ (ƛ x B)     = ƛ≡α (ren-embNf (ext ρ) B)
 ren-embNf ρ (ne n)      = ren-embNe ρ n
-ren-embNf ρ (con tcn  ) = refl
+ren-embNf ρ (con tcn  ) = con≡α -- refl
 
-ren-embNe ρ (` x)    = refl
-ren-embNe ρ (n · n') = cong₂ _·_ (ren-embNe ρ n) (ren-embNf ρ n')
-ren-embNe ρ μ1       = refl
+ren-embNe ρ (` x)    = var≡α refl -- refl
+ren-embNe ρ (n · n') = ·≡α (ren-embNe ρ n) (ren-embNf ρ n')
+ren-embNe ρ μ1       = μ≡α -- refl
 \end{code}
 
 # Assemblies

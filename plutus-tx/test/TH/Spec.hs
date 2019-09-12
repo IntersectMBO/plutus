@@ -96,6 +96,6 @@ traceRepeatedly = $$(compile
      [||
                let i1 = traceH "Making my first int" (1::Integer)
                    i2 = traceH "Making my second int" (2::Integer)
-                   i3 = traceH "Adding them up" (plus i1 i2)
+                   i3 = traceH "Adding them up" (i1 + i2)
               in i3
     ||])

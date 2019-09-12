@@ -17,8 +17,8 @@ data-files:
     usecases/Game.hs
     usecases/Messages.hs
     usecases/Vesting.hs
+    usecases/Starter.hs
     test/gists1.json
-    test/oAuthToken1.json
 
 source-repository head
     type: git
@@ -41,13 +41,11 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-        Auth
-        Control.Monad.Now
-        Control.Monad.Trace
-        Control.Monad.Web
-        Servant.Extra
     hs-source-dirs: src
     default-language: Haskell2010
+    ghc-options: -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists -Wredundant-constraints
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -56,10 +54,12 @@ library
         cookie -any,
         exceptions -any,
         file-embed -any,
+        filepath -any,
         http-client -any,
         http-client-tls -any,
         http-conduit -any,
         http-types -any,
+        iots-export -any,
         jwt -any,
         lens -any,
         monad-logger -any,
@@ -69,6 +69,7 @@ library
         plutus-emulator -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
+        plutus-tx -any,
         process -any,
         regex-compat -any,
         servant <0.16,
@@ -76,6 +77,7 @@ library
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
+        temporary -any,
         template-haskell -any,
         text -any,
         time -any,
@@ -89,10 +91,15 @@ library plutus-playground-usecases
         Game
         Messages
         Vesting
+        Starter
     default-language: Haskell2010
-    ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
+    ghc-options: -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints
+                 -Wno-missing-signatures -Wno-missing-import-lists
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -100,13 +107,13 @@ library plutus-playground-usecases
         containers -any,
         hspec -any,
         insert-ordered-containers -any,
+        iots-export -any,
         mtl -any,
         playground-common -any,
         plutus-emulator -any,
         plutus-playground-lib -any,
         plutus-tx -any,
         plutus-wallet-api -any,
-        swagger2 -any,
         text -any,
         time-units -any,
         transformers -any
@@ -122,9 +129,9 @@ executable plutus-playground-server
         Types
         PSGenerator
     default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists
+                 -Wmissing-import-lists -Wredundant-constraints
     build-depends:
         adjunctions -any,
         aeson -any,
@@ -166,12 +173,11 @@ test-suite plutus-playground-server-test
     other-modules:
         Playground.UsecasesSpec
         Paths_plutus_playground_server
-        Auth.TypesSpec
         GistSpec
     default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists
+                 -Wmissing-import-lists -Wredundant-constraints
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -179,11 +185,11 @@ test-suite plutus-playground-server-test
         hspec -any,
         insert-ordered-containers -any,
         playground-common -any,
+        iots-export -any,
         mtl -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
         plutus-emulator -any,
-        swagger2 -any,
         text -any,
         time-units -any,
         transformers -any,
