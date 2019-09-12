@@ -169,7 +169,7 @@ makeLift ''EnglishAuction
 <1> <<endmatter#currency-symbol,Currency symbol>> of the token.
 
 <2> <<endmatter#token-name,Token name>> of the token. As discussed above,
-    we assume that the token is defined by `eaSymbol` and that `eaName` is _unique_.
+    we assume that the token defined by the combination of `eaSymbol` and `eaName` is _unique_.
 
 <3> Public key of the token owner.
 
