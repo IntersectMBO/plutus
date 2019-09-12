@@ -472,7 +472,7 @@ mainHeader =
     ]
   where
   links =
-    [ Tuple "Tutorial" $ "https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/README.md"
+    [ Tuple "Tutorial" "./tutorial"
     , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 

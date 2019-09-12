@@ -13,6 +13,18 @@
                             ''
                             machine_role{role="nginx"} 1
                             '';
+    docs = if serviceName == "plutus-playground" then plutus.docs.plutus-tutorial else plutus.docs.marlowe-tutorial;
+    documentation-site =
+      let
+        adjustedTutorial = docs.override { marlowePlaygroundUrl = "https://${machines.environment}.${machines.marloweTld}";
+                                           plutusPlaygroundUrl = "https://${machines.environment}.${machines.plutusTld}";
+                                           haddockUrl = "../haddock";
+                                         };
+      in pkgs.runCommand "documentation-site" {} ''
+        mkdir -p $out
+        cp -aR ${adjustedTutorial} $out/tutorial
+        cp -aR ${plutus.docs.public-combined-haddock}/share/doc $out/haddock
+      '';
   in
   {
     imports = [ (defaultMachine node pkgs)
@@ -104,10 +116,10 @@
             '';
           };
           "/tutorial/" = {
-            root = "${plutus.plutus-playground.documentation-site}/";
+            root = "${documentation-site}/";
           };
           "/haddock/" = {
-            root = "${plutus.plutus-playground.documentation-site}/";
+            root = "${documentation-site}/";
           };
           "/+" = {
             proxyPass = "http://${serviceName}/";
