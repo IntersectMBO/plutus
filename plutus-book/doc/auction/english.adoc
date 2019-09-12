@@ -790,12 +790,12 @@ withAuctionOutput' ea notFound cont = do
     given a reference to the output, the output itself and its data script.
 
 <3> If we do not find the output containing the token,
-    we return a result of "exceptional".
+    we return the "exceptional" result.
 
 <4> Having found the output and its data script, we invoke our continuation.
 
 <5> If the output is not a script output and thus does not have a data script,
-    we return a result of "exceptional".
+    we return the "exceptional" result.
 
 <6> We check that the output contains the token.
 
