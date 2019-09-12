@@ -247,7 +247,7 @@ end, when the highest bidder takes the token for herself).
 
 Function `eaOutput` will give us the unique output at the script address,
 given the pending transaction,
-and it will simply log a message and do nothing if there is not an exact output.
+and it will simply log a message and do nothing if there is not exactly one such output.
 
 [source,haskell]
 ----
