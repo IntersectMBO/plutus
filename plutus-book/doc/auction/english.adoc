@@ -379,10 +379,10 @@ updateEAData ea a (DataScript script) = DataScript $
 ----
 
 Next we write the checking part of our state machine.
-Everything depends on the input
+Everything which only depends on the input
 data script and the action is already contained in `eaTransit`
 (via returning `Nothing`),
-so in `eaCheck`, we have to check those conditions that depend on the pending
+so in `eaCheck`, we have to check those conditions that additionally depend on the pending
 transaction:
 
 [source,haskell]
