@@ -531,6 +531,7 @@ eaStateMachine :: EnglishAuction -> StateMachine EAState EAAction
 eaStateMachine ea = StateMachine
     { smTransition = eaTransit ea
     , smCheck      = eaCheck ea
+    , smFinal      = const False
     }
 
 mkEAValidator :: EnglishAuction -> ValidatorScript
@@ -544,7 +545,7 @@ eaAddress :: EnglishAuction -> Address
 eaAddress = scriptAddress . mkEAValidator
 ----
 
-We use `mkRedeemer` from module `Language.PlutusTx.StateMachine` to build
+We use `mkStepRedeemer` from module `Language.PlutusTx.StateMachine` to build
 redeemer scripts.
 
 [source,haskell]
@@ -552,7 +553,7 @@ redeemer scripts.
 mkEARedeemer :: EAAction -> RedeemerScript
 mkEARedeemer a = RedeemerScript $
     $$(compileScript [||
-        (mkRedeemer :: EAAction -> StateMachineRedeemerFunction EAState EAAction) ||])
+        (mkStepRedeemer :: EAAction -> StateMachineRedeemerFunction EAState EAAction) ||])
     `applyScript`
     lifted a
 ----
@@ -671,7 +672,7 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ 
+        "forging " ++ n ++
         " (symbol " ++ show (nonFungibleSymbol nf) ++
         ") of " ++ show nf
 

@@ -15,7 +15,8 @@ module Language.PlutusTx.StateMachine(
     , StateMachineRedeemer
     , StateMachineRedeemerFunction
     , mkValidator
-    , mkRedeemer
+    , mkStepRedeemer
+    , mkHaltRedeemer
     ) where
 
 import           Language.PlutusTx.Prelude hiding (check)
@@ -29,8 +30,12 @@ import           Ledger.Validation         (PendingTx, findContinuingOutputs, fi
 -- next state from the current state and an input, and a checking function that checks the validity
 -- of the transition in the context of the current transaction.
 data StateMachine s i = StateMachine {
+      -- | The transition function of the state machine. 'Nothing' indicates an invalid transition from the current state.
       smTransition :: s -> i -> Maybe s,
-      smCheck :: s -> i -> PendingTx -> Bool
+      -- | The condition checking function. Checks whether a given state transition is allowed given the 'PendingTx'.
+      smCheck :: s -> i -> PendingTx -> Bool,
+      -- | The final state predicate. Indicates whether a given state is final (the machine halts in that state).
+      smFinal :: s -> Bool
     }
 
 instance ScriptType (StateMachine s i) where
@@ -38,44 +43,49 @@ instance ScriptType (StateMachine s i) where
     type instance DataType (StateMachine s i) = s
 
 data StateMachineInstance s i = StateMachineInstance {
+    -- | The state machine specification.
     stateMachine :: StateMachine s i,
+    -- | The validator code for this state machine.
     validatorInstance :: ScriptInstance (StateMachine s i),
-    redeemerInstance :: PlutusTx.CompiledCode (i -> RedeemerFunctionType '[(StateMachine s i)] (StateMachine s i))
+    -- | The code for a function that computes the redeemer that indicates stepping the machine.
+    stepRedeemer :: PlutusTx.CompiledCode (i -> RedeemerFunctionType '[(StateMachine s i)] (StateMachine s i)),
+    -- | The code for a function that computes the redeemer that indicates halting the machine.
+    haltRedeemer :: PlutusTx.CompiledCode (i -> RedeemerFunctionType '[] (StateMachine s i))
     }
 
 -- Type synonyms that don't require TypeFamilies
-type StateMachineValidator s i = (s -> (i, Sealed (HashedDataScript s)) -> PendingTx -> Bool)
-type StateMachineRedeemer s i = (i, Sealed (HashedDataScript s))
-type StateMachineRedeemerFunction s i = Sealed (HashedDataScript s) -> (i, Sealed (HashedDataScript s))
+type StateMachineValidator s i = s -> StateMachineRedeemer s i -> PendingTx -> Bool
+type StateMachineRedeemer s i = (i, Maybe (Sealed (HashedDataScript s)))
+type StateMachineRedeemerFunction s i = Sealed (HashedDataScript s) -> StateMachineRedeemer s i
 
-{-# INLINABLE mkRedeemer #-}
-mkRedeemer :: forall s i . i -> StateMachineRedeemerFunction s i
-mkRedeemer i ss = (i, ss)
+{-# INLINABLE mkStepRedeemer #-}
+mkStepRedeemer :: forall s i . i -> StateMachineRedeemerFunction s i
+mkStepRedeemer i ss = (i, Just ss)
+
+{-# INLINABLE mkHaltRedeemer #-}
+mkHaltRedeemer :: forall s i . i -> StateMachineRedeemer s i
+mkHaltRedeemer i = (i, Nothing)
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
 mkValidator :: Eq s => StateMachine s i -> StateMachineValidator s i
-mkValidator (StateMachine step check) currentState (input, unseal -> HashedDataScript newState hsh) ptx =
-    let
-        vsOutput = uniqueElement (findContinuingOutputs ptx)
-        dsOutputs = findDataScriptOutputs hsh ptx
-        dataScriptOk = case vsOutput of
-            -- It is *not* okay to have multiple outputs with the current validator script, that allows "spliting" the machine.
-            -- This could be okay in principle, but then we'd have to validate the data script for each one, which would complicate
-            -- this validator quite a bit.
-            -- TODO: the state machine should probably be able to "halt" in which case it could be okay to have no outputs with
-            -- the validator script. Argument from redeemer could then be 'Maybe-ified'.
-            Nothing -> traceH "There must be precisely one output with the same validator script" False
-            -- It's fine to duplicate the data script - only the one on the continuing output matters. So we just check
-            -- that the unique continuing output is one of the ones with this data script.
-            Just i  -> traceIfFalseH "The data script must be attached to the ongoing output" (i `elem` dsOutputs)
-
-        stateOk = case step currentState input of
-            Just expectedState ->
-                traceIfFalseH "State transition invalid - 'expectedState' not equal to 'newState'"
-                (expectedState == newState)
+mkValidator (StateMachine step check final) currentState (input, maybeData) ptx =
+    let checkOk = traceIfFalseH "State transition invalid - checks failed" (check currentState input ptx)
+        stateAndOutputsOk = case step currentState input of
+            Just newState ->
+                case (final newState, findContinuingOutputs ptx, maybeData) of
+                    -- Provided there are no ongoing outputs we don't care about the data scripts
+                    (True, outs, _) -> traceIfFalseH "There must be no ongoing output from a final state" (null outs)
+                    -- It's fine to duplicate the data script - only the one on the continuing output matters.
+                    -- So we just check that the unique continuing output is one of the ones with this data script.
+                    (False, [i], Just (unseal -> HashedDataScript givenState hsh)) ->
+                        let dsOutputs = findDataScriptOutputs hsh ptx
+                            stateOk = traceIfFalseH "State transition invalid - 'givenState' not equal to 'newState'" (givenState == newState)
+                            dataOk = traceIfFalseH "The data script must be attached to the ongoing output" (i `elem` dsOutputs)
+                        in stateOk && dataOk
+                    -- It is *not* okay to have multiple outputs with the current validator script, that allows "spliting" the machine.
+                    -- This could be okay in principle, but then we'd have to validate the data script for each one, which would complicate
+                    -- this validator quite a bit.
+                    (False, _, _) -> traceH "In a non final state there must be precisely one output with the same validator script and a data script must be passed." False
             Nothing -> traceH "State transition invalid - input is not a valid transition at the current state" False
-        checkOk =
-            traceIfFalseH "State transition invalid - checks failed"
-            (check currentState input ptx)
-    in dataScriptOk && stateOk && checkOk
+    in checkOk && stateAndOutputsOk
