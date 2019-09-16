@@ -124,7 +124,7 @@ ignoreArgs
     -> CompiledCode r
     -> CompiledCode (Uncurry args r)
 ignoreArgs NilSpine _ c = c
-ignoreArgs (ConsSpine tspine) p c = Lift.unsafeConstCode Proxy $ ignoreArgs tspine p c
+ignoreArgs (ConsSpine tspine) p c = Lift.constCode Proxy $ ignoreArgs tspine p c
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 newtype TypedScriptTxIn (outs :: [Type]) a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }

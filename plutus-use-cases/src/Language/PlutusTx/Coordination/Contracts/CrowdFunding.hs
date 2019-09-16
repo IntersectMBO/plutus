@@ -117,7 +117,7 @@ instance Typed.ScriptType CrowdFunding where
     type instance DataType CrowdFunding = PubKey
 
 scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
-scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode cmp
+scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
@@ -182,7 +182,7 @@ contribute cmp = do
     -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
     -- outputs whose data script is our own public key (in 'ds')
     let flt _ txOut = Ledger.txOutData txOut == Just ds
-        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Refund)
+        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.liftCode Refund)
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
@@ -210,7 +210,7 @@ scheduleCollection cmp = do
     -- campaign collection deadline, so we use the 'timeout' combinator.
     void $ timeout (campaignCollectionDeadline cmp) $ do
         (outxo, _) <- trg
-        let tx = Typed.collectFromScriptFilter (\_ _ -> True) outxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Collect)
+        let tx = Typed.collectFromScriptFilter (\_ _ -> True) outxo (scriptInstance cmp) (PlutusTx.liftCode Collect)
                     & validityRange .~ collectionRange cmp
         writeTx tx
 
