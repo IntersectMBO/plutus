@@ -30,7 +30,7 @@ import Builtin.Constant.Type
 import Builtin.Constant.Term
 
 import Declarative
---import Declarative.RenamingSubstitution
+import Declarative.RenamingSubstitution
 --import Declarative.Reduction
 --import Declarative.Evaluation
 --import Declarative.Erasure
@@ -48,8 +48,8 @@ import Main
 
 import Algorithmic
 import Algorithmic.RenamingSubstitution
---import Algorithmic.Reduction
---import Algorithmic.Evaluation
+import Algorithmic.Reduction
+import Algorithmic.Evaluation
 --import Algorithmic.Examples
 --import Algorithmic.Main
 --import Algorithmic.Soundness
