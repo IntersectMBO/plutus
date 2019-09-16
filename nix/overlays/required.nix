@@ -16,7 +16,7 @@ let
   });
   # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
   # See Plutus Tx readme for information on the flags
-  doctestOpts = "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables -fno-ignore-interface-pragmas -fobject-code";
+  doctestOpts = "-pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -fno-ignore-interface-pragmas -fobject-code";
 in
 
 self: super: {

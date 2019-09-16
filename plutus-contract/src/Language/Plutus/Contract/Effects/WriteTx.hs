@@ -1,41 +1,45 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
--- | Write an 'UnbalancedTx' to be transferred to the wallet for
---   balancing and signing.
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.WriteTx where
 
-import           Language.Plutus.Contract.Tx
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Row
+import           GHC.Generics                     (Generic)
 
-import           Control.Eff
-import           Control.Eff.Exception
-import           Control.Eff.Extend
-import           Control.Eff.Reader.Lazy
-import           Data.Function                         (fix)
-import           Language.Plutus.Contract.Prompt.Event as Event
-import           Language.Plutus.Contract.Prompt.Hooks as Hooks
+import           Language.Plutus.Contract.Request as Req
+import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Tx      (UnbalancedTx)
 
-data WriteTx v where
-  WriteTx :: UnbalancedTx -> WriteTx ()
+type HasWriteTx s =
+    ( HasType "tx" () (Input s)
+    , HasType "tx" PendingTransactions (Output s)
+    , ContractRow s)
 
-writeTx :: Member WriteTx r => UnbalancedTx -> Eff r ()
-writeTx tx = send $ WriteTx tx
+type WriteTx = "tx" .== ((), PendingTransactions)
 
-instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Handle WriteTx r a k where
-  handle step cor req = case req of
-    WriteTx t -> step (comp (singleK promptTx) cor ^$ t)
+newtype PendingTransactions =
+  PendingTransactions { unPendingTransactions :: [UnbalancedTx] }
+    deriving stock (Eq, Generic, Show)
+    deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
-runWriteTx :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => Eff (WriteTx ': r) a -> Eff r a
-runWriteTx = fix (handle_relay pure)
+--  | Send an unbalanced transaction to the wallet.
+writeTx :: forall s. HasWriteTx s => UnbalancedTx -> Contract s ()
+writeTx t = request @"tx" @_ @_ @s (PendingTransactions [t])
 
-promptTx :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r) => UnbalancedTx -> Eff r ()
-promptTx t = do
-  sl <- reader (>>= Event.txSubmissionEvent)
-  case sl of
-    Just () -> pure ()
-    _       -> throwError @(Hook ()) (Hooks.txHook t)
+event
+  :: forall s. (HasType "tx" () (Input s), AllUniqueLabels (Input s))
+  => Event s
+event = Event (IsJust #tx ())
+
+transactions
+  :: forall s. ( HasType "tx" PendingTransactions (Output s) )
+   => Handlers s
+   -> [UnbalancedTx]
+transactions (Handlers r) = unPendingTransactions $ r .! #tx

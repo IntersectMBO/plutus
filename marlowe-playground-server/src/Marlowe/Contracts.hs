@@ -14,3 +14,5 @@ zeroCouponBond = $(makeRelativeToProject "contracts/ZeroCouponBond.hs" >>= embed
 couponBondGuaranteed :: ByteString
 couponBondGuaranteed = $(makeRelativeToProject "contracts/CouponBondGuaranteed.hs" >>= embedFile)
 
+swap :: ByteString
+swap = $(makeRelativeToProject "contracts/Swap.hs" >>= embedFile)

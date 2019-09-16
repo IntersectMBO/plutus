@@ -47,9 +47,11 @@ extra-deps:
 - binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
 - time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
 - extensible-effects-5.0.0.1
+- git: https://github.com/target/row-types
+  commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: 0d9389151062a94078caf6e66a9dd2cf012646cf
+  commit: fedae2c308fac73b129a684a7d10f547837470f4
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git

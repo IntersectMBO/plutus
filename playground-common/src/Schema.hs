@@ -33,12 +33,15 @@ data FormSchema
     | FormSchemaInt
     | FormSchemaString
     | FormSchemaHex
-    | FormSchemaValue
     | FormSchemaArray FormSchema
     | FormSchemaMaybe FormSchema
     | FormSchemaRadio [String]
     | FormSchemaTuple FormSchema FormSchema
     | FormSchemaObject [(String, FormSchema)]
+    -- Blessed types that get their own special UI widget.
+    | FormSchemaValue
+    | FormSchemaSlotRange
+    -- Exceptions.
     | FormSchemaUnsupported
           { description :: String
           }

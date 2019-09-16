@@ -32,7 +32,7 @@ import           Gist                                       (Gist, GistFile, Gis
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
                                                              genericShow, haskType, isTuple, mkSumType, order,
                                                              psTypeParameters, typeModule, typeName, writePSTypesWith,
                                                              (^==))
@@ -46,13 +46,13 @@ import           Ledger                                     (AddressOf, DataScri
                                                              TxOutType, ValidatorScript)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
-import           Ledger.Interval                            (Interval)
+import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import           Playground.API                             (CompilationResult, Evaluation, EvaluationResult,
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
-                                                             SimulatorWallet)
+                                                             PlaygroundError, SimulatorWallet)
 import qualified Playground.API                             as API
 import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
 import           Schema                                     (FormSchema)
@@ -228,7 +228,7 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
     [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
-    , (equal <*> mkSumType) (Proxy @(FunctionSchema A))
+    , (functor <*> (equal <*> mkSumType)) (Proxy @(FunctionSchema A))
     , mkSumType (Proxy @CompilationResult)
     , mkSumType (Proxy @Warning)
     , (equal <*> mkSumType) (Proxy @Fn)
@@ -246,9 +246,10 @@ myTypes =
     , mkSumType (Proxy @Evaluation)
     , mkSumType (Proxy @EvaluationResult)
     , mkSumType (Proxy @EmulatorEvent)
+    , mkSumType (Proxy @PlaygroundError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (genericShow <*> mkSumType) (Proxy @ScriptError)
-    , (genericShow <*> mkSumType) (Proxy @Slot)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
     , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
     , (genericShow <*> mkSumType) (Proxy @Tx)
     , (genericShow <*> mkSumType) (Proxy @(TxIdOf A))
@@ -264,7 +265,10 @@ myTypes =
     , mkSumType (Proxy @UtxOwner)
     , mkSumType (Proxy @UtxoLocation)
     , mkSumType (Proxy @FlowGraph)
-    , (genericShow <*> mkSumType) (Proxy @(Interval A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Interval A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(LowerBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(UpperBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Extended A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)

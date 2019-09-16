@@ -19,13 +19,8 @@ module Ledger.Ada(
     , adaOf
     , lovelaceValueOf
     , adaValueOf
-    , zero
     -- * Num operations
-    , plus
-    , minus
-    , multiply
     , divide
-    , negate
     -- * Etc.
     , isZero
     ) where
@@ -37,8 +32,9 @@ import           Data.Fixed
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (divide, minus, multiply, negate, plus)
+import           Language.PlutusTx.Prelude hiding (divide)
 import qualified Language.PlutusTx.Prelude as P
 import           Schema                    (ToSchema)
 
@@ -61,8 +57,20 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Lovelace { getLovelace :: Integer }
     deriving (Enum)
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
-    deriving newtype (Eq, Ord, Num, Integral, Real, Serialise)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
+    deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise)
+
+instance Haskell.Semigroup Ada where
+    Lovelace a1 <> Lovelace a2 = Lovelace (a1 + a2)
+
+instance Semigroup Ada where
+    Lovelace a1 <> Lovelace a2 = Lovelace (a1 + a2)
+
+instance Haskell.Monoid Ada where
+    mempty = Lovelace 0
+
+instance Monoid Ada where
+    mempty = Lovelace 0
 
 makeLift ''Ada
 
@@ -107,35 +115,10 @@ lovelaceValueOf = TH.singleton adaSymbol adaToken
 adaValueOf :: Micro -> Value
 adaValueOf (MkFixed x) = TH.singleton adaSymbol adaToken x
 
-{-# INLINABLE plus #-}
--- | Add two 'Ada' values together.
-plus :: Ada -> Ada -> Ada
-plus (Lovelace a) (Lovelace b) = Lovelace (P.plus a b)
-
-{-# INLINABLE minus #-}
--- | Subtract one 'Ada' value from another.
-minus :: Ada -> Ada -> Ada
-minus (Lovelace a) (Lovelace b) = Lovelace (P.minus a b)
-
-{-# INLINABLE multiply #-}
--- | Multiply two 'Ada' values together.
-multiply :: Ada -> Ada -> Ada
-multiply (Lovelace a) (Lovelace b) = Lovelace (P.multiply a b)
-
 {-# INLINABLE divide #-}
 -- | Divide one 'Ada' value by another.
 divide :: Ada -> Ada -> Ada
 divide (Lovelace a) (Lovelace b) = Lovelace (P.divide a b)
-
-{-# INLINABLE zero #-}
--- | The zero 'Ada' value.
-zero :: Ada
-zero = Lovelace 0
-
-{-# INLINABLE negate #-}
--- | Negate an 'Ada' value.
-negate :: Ada -> Ada
-negate (Lovelace i) = Lovelace (P.multiply (-1) i)
 
 {-# INLINABLE isZero #-}
 -- | Check whether an 'Ada' value is zero.

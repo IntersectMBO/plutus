@@ -18,12 +18,12 @@ fibOpt n =
     then 0
     else if n P.== 1
     then 1
-    else fibOpt (n `P.minus` 1) `P.plus` fibOpt (n `P.minus` 2)
+    else fibOpt (n P.- 1) P.+ fibOpt (n P.- 2)
 
 fromToOpt :: Integer -> Integer -> [Integer]
 fromToOpt f t =
     if f P.== t then [f]
-    else f:(fromToOpt (f `P.plus` 1) t)
+    else f:(fromToOpt (f P.+ 1) t)
 
 foldrOpt :: (a -> b -> b) -> b -> [a] -> b
 foldrOpt f z = go

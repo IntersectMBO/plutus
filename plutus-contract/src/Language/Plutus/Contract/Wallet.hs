@@ -19,6 +19,9 @@ import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
+import qualified Language.PlutusTx.Prelude   as P
+import qualified Ledger                      as L
+import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
 import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
@@ -47,15 +50,15 @@ balanceWallet utx = do
 --
 --   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
-computeBalance :: WAPI.MonadWallet m => UnbalancedTx -> m Value
-computeBalance utx = Value.minus <$> left <*> pure right  where
-    right = foldMap (view Tx.outValue) (utx ^. T.outputs)
-    left = foldM go Value.zero (utx ^. T.inputs)
+computeBalance :: WAPI.MonadWallet m => Tx -> m Value
+computeBalance tx = (P.-) <$> left <*> pure right  where
+    right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
+    left = foldM go P.zero (tx ^. Tx.inputs)
     go cur inp = do
         am <- WAPI.watchedAddresses
         let txout = AM.outRefMap am ^. at (Tx.txInRef inp)
         case txout of
-            Just vl -> pure (cur `Value.plus` Tx.txOutValue vl)
+            Just vl -> pure (cur P.+ Tx.txOutValue vl)
             Nothing ->
                 WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show inp)
 
@@ -72,13 +75,16 @@ balanceTx
     -> UnbalancedTx
     -- ^ The unbalanced transaction
     -> m Tx
-balanceTx utxo pk tx = do
+balanceTx utxo pk utx = do
+    let tx = T.toLedgerTx utx
     (neg, pos) <- Value.split <$> computeBalance tx
-    tx' <-  if Value.isZero pos
-            then pure $ T.toLedgerTx tx
-            else do
-                    WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
-                    pure $ addOutputs pk pos (T.toLedgerTx tx)
+
+    tx' <- if Value.isZero pos
+           then pure tx
+           else do
+                   WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
+                   pure $ addOutputs pk pos tx
+
     if Value.isZero neg
     then pure tx'
     else do
@@ -103,7 +109,7 @@ addInputs mp pk vl tx = do
             let ins = Set.fromList (flip Tx.pubKeyTxIn pk . fst <$> spend)
             in over Tx.inputs (Set.union ins)
 
-        addTxOuts = if change == Value.zero
+        addTxOuts = if Value.isZero change
                     then id
                     else addOutputs pk change
 

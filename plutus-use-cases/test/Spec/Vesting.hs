@@ -20,6 +20,7 @@ import qualified Test.Tasty.HUnit                                 as HUnit
 import           Spec.Lib                                                      as Lib
 
 import qualified Language.PlutusTx as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
                                                                    retrieveFunds, totalAmount, validatorScript, mkValidator,
@@ -28,7 +29,6 @@ import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
 import qualified Ledger.Scripts                                   as Scripts
 import           Ledger.Value                                     (Value)
-import qualified Ledger.Value                                     as Value
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators                       as Gen
@@ -98,7 +98,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance amt)]
+        (w1, 1 `timesFeeAdjustV` (startingBalance PlutusTx.+ amt))]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
@@ -135,7 +135,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     -- vesting scheme.
     traverse_ (uncurry assertOwnFundsEq) [
         (w2, w2Funds),
-        (w1, Value.plus startingBalance total)]
+        (w1, 1 `timesFeeAdjustV` (startingBalance PlutusTx.+ total))]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
@@ -152,7 +152,7 @@ startingBalance = Ada.adaValueOf 1000
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
 w2Funds :: Ledger.Value
-w2Funds = Value.minus startingBalance total
+w2Funds = 1 `timesFeeAdjustV` (startingBalance PlutusTx.- total)
 
 -- | Total amount of money vested in the scheme `scen1`
 total :: Value

@@ -50,7 +50,7 @@ spec = do
     trStart :: Trace MockWallet (CurrencySymbol, V.TokenName, Value)
     trStart = do
         updateWallets
-        (adSymbol, _) <- runSuccessfulWalletAction w1 start
+        (adSymbol, _) <- runSuccessfulWalletAction w1 start'
         let nfSymbol :: CurrencySymbol
             nfSymbol = nonFungibleSymbol $ NonFungible
                 { issuer        = key1

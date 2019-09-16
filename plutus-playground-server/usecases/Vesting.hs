@@ -28,7 +28,7 @@ import qualified Ledger.Value              as Value
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
-import           Ledger.Validation         (PendingTx(..))
+import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import           Wallet                    (WalletAPI(..),
                                             PubKey)
 import qualified Wallet                    as W
@@ -83,7 +83,7 @@ PlutusTx.makeLift ''Vesting
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value
 totalAmount (Vesting l r _) =
-    (vestingTrancheAmount l) `Value.plus` (vestingTrancheAmount r)
+    (vestingTrancheAmount l) + (vestingTrancheAmount r)
 
 -- | The amount guaranteed to be available from a given tranche in a
 -- given slot range.
@@ -97,7 +97,7 @@ availableFrom (VestingTranche d v) range =
     -- in particular that the start slot of the argument range is after the
     -- tranche vesting date), then the money in the tranche is available,
     -- otherwise nothing is available.
-    in if validRange `Interval.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else zero
 
 {- |
 
@@ -129,11 +129,11 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
-            `Value.plus` availableFrom vestingTranche2 range
+            + availableFrom vestingTranche2 range
 
         -- And the following amount has not been released yet:
         unreleased :: Value
-        unreleased = (totalAmount d) `Value.minus` released
+        unreleased = (totalAmount d) - released
 
         -- To check whether the withdrawal is legitimate we need to
         -- 1. Ensure that the amount taken out does not exceed the current
@@ -189,7 +189,7 @@ vestFunds tranche1 tranche2 ownerWallet = do
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: (WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
-registerVestingScheme tranche1 tranche2 ownerWallet = 
+registerVestingScheme tranche1 tranche2 ownerWallet =
     let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
     in startWatching (contractAddress vst)
 
@@ -247,10 +247,10 @@ withdraw tranche1 tranche2 ownerWallet vl = do
     -- scheme:
     let
         currentlyLocked = Map.foldr
-            (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo)
-            Value.zero
+            (\txo vl' -> vl' + Ledger.txOutValue txo)
+            zero
             utxos
-        remaining = currentlyLocked `Value.minus` vl
+        remaining = currentlyLocked - vl
 
         lockedOutput =
             Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))

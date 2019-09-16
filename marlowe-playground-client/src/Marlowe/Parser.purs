@@ -1,23 +1,25 @@
 module Marlowe.Parser where
 
-import Prelude
+
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
-import Data.BigInt (BigInt)
-import Data.BigInt as BigInt
+import Data.Array (fromFoldable, many)
+import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.List (List, many, some)
+import Data.List (List, some)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (wrap)
-import Marlowe.Types (BlockNumber(BlockNumber), Choice, Contract(..), IdAction(IdAction), IdChoice, IdCommit(IdCommit), IdOracle(IdOracle), LetLabel, Observation(..), Person(Person), Timeout(Timeout), Value(..))
+import Data.String.CodeUnits (fromCharArray)
+import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party, Payee(..), PubKey, Slot(..), Timeout, Value(..), ValueId(..))
+import Prelude ((*>), (<*), (<*>), bind, pure, (<$>), void, ($), (<<<), discard)
 import Text.Parsing.Parser (Parser, fail)
 import Text.Parsing.Parser.Basic (integral, parens)
+import Text.Parsing.Parser.Combinators (between, choice, sepBy)
 import Text.Parsing.Parser.String (char, string)
-import Text.Parsing.Parser.Token (space)
+import Text.Parsing.Parser.Token (alphaNum, space)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
-maybeSpaces :: Parser String (List Char)
+maybeSpaces :: Parser String (Array Char)
 maybeSpaces = many space
 
 spaces :: Parser String (List Char)
@@ -33,6 +35,24 @@ appSpaces p q = p <*> (spaces *> q)
 
 infixl 4 appSpaces as <**>
 
+text :: Parser String String
+text = between (char '"') (char '"') $ fromCharArray <<< fromFoldable <$> many (choice [alphaNum, space])
+
+haskellList :: forall a. Parser String a -> Parser String (List a)
+haskellList p = squareParens $ do
+  void maybeSpaces
+  v <- p `sepBy` (maybeSpaces *> string "," *> maybeSpaces)
+  void maybeSpaces
+  pure v
+  where
+    squareParens = between (string "[") (string "]")
+
+maybeParens :: forall a. Parser String a -> Parser String a
+maybeParens p = parens p <|> p
+
+array :: forall a. Parser String a -> Parser String (Array a)
+array p = Array.fromFoldable <$> haskellList p
+
 ----------------------------------------------------------------------
 bigInteger :: Parser String BigInteger
 bigInteger = do
@@ -41,64 +61,52 @@ bigInteger = do
     (Just v) -> pure v
     Nothing -> fail "not a valid BigInt"
 
-bigInt :: Parser String BigInt
-bigInt = do
-  i <- integral
-  case BigInt.fromString i of
-    (Just v) -> pure v
-    Nothing -> fail "not a valid BigInt"
+valueId :: Parser String ValueId
+valueId = ValueId <$> bigInteger
 
-person :: Parser String Person
-person = Person <$> bigInt
-
-idChoice :: Parser String IdChoice
-idChoice =
-  parens do
-    void maybeSpaces
-    first <- bigInteger
-    void maybeSpaces
-    void $ char ','
-    void maybeSpaces
-    second <- person
-    void maybeSpaces
-    pure $ wrap { choice: first, person: second }
-
-choice :: Parser String Choice
-choice = bigInteger
-
-blockNumber :: Parser String BlockNumber
-blockNumber = BlockNumber <$> bigInt
+slot :: Parser String Slot
+slot = Slot <$> bigInteger
 
 timeout :: Parser String Timeout
-timeout = Timeout <$> blockNumber
+timeout = slot
 
-idOracle :: Parser String IdOracle
-idOracle = IdOracle <$> bigInteger
+accountId :: Parser String AccountId
+accountId =
+  parens do
+    void maybeSpaces
+    void $ string "AccountId"
+    void spaces
+    first <- bigInteger
+    void spaces
+    second <- text
+    void maybeSpaces
+    pure $ AccountId first second
 
-idCommit :: Parser String IdCommit
-idCommit = IdCommit <$> bigInteger
-
-idAction :: Parser String IdAction
-idAction = IdAction <$> bigInteger
-
-letLabel :: Parser String LetLabel
-letLabel = bigInteger
+choiceId :: Parser String ChoiceId
+choiceId =
+  parens do
+    void maybeSpaces
+    void $ string "ChoiceId"
+    void spaces
+    first <- text
+    void spaces
+    second <- text
+    void maybeSpaces
+    pure $ ChoiceId first second
 
 atomValue :: Parser String Value
-atomValue = pure CurrentBlock <* string "CurrentBlock"
+atomValue = pure SlotIntervalStart <* string "SlotIntervalStart"
+    <|> pure SlotIntervalEnd <* string "SlotIntervalEnd"
 
 recValue :: Parser String Value
 recValue =
-  (Committed <$> (string "Committed" **> idCommit))
+  (AvailableMoney <$> (string "AvailableMoney" **> accountId))
     <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
-    <|> (MulValue <$> (string "MulValue" **> value') <**> value')
-    <|> (DivValue <$> (string "DivValue" **> value') <**> value' <**> value')
-    <|> (ModValue <$> (string "ModValue" **> value') <**> value' <**> value')
-    <|> (ValueFromChoice <$> (string "ValueFromChoice" **> idChoice) <**> value')
-    <|> (ValueFromOracle <$> (string "ValueFromOracle" **> idOracle) <**> value')
+    <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId) <**> value')
+    <|> (UseValue <$> (string "UseValue" **> valueId))
   where
   value' :: Parser String Value
   value' = atomValue <|> fix (\p -> parens recValue)
@@ -106,7 +114,7 @@ recValue =
 value :: Parser String Value
 value = atomValue <|> recValue
 
--- 
+
 atomObservation :: Parser String Observation
 atomObservation =
   pure TrueObs <* string "TrueObs"
@@ -115,12 +123,10 @@ atomObservation =
 
 recObservation :: Parser String Observation
 recObservation =
-  (BelowTimeout <$> (string "BelowTimeout" **> timeout))
-    <|> (AndObs <$> (string "AndObs" **> observation') <**> observation')
+    (AndObs <$> (string "AndObs" **> observation') <**> observation')
     <|> (OrObs <$> (string "OrObs" **> observation') <**> observation')
     <|> (NotObs <$> (string "NotObs" **> observation'))
-    <|> (ChoseThis <$> (string "ChoseThis" **> idChoice) <**> choice)
-    <|> (ChoseSomething <$> (string "ChoseSomething" **> idChoice))
+    <|> (ChoseSomething <$> (string "ChoseSomething" **> choiceId))
     <|> (ValueGE <$> (string "ValueGE" **> value') <**> value')
     <|> (ValueGT <$> (string "ValueGT" **> value') <**> value')
     <|> (ValueLT <$> (string "ValueLT" **> value') <**> value')
@@ -134,35 +140,66 @@ recObservation =
 observation :: Parser String Observation
 observation = atomObservation <|> recObservation
 
+payee :: Parser String Payee
+payee = (Account <$> (string "Account" **> accountId))
+        <|> (Party <$> (string "Party" **> text))
+
+pubkey :: Parser String PubKey
+pubkey = text
+
+party :: Parser String Party
+party = pubkey
+
+bound :: Parser String Bound
+bound =
+  parens do
+    void maybeSpaces
+    void $ string "Bound"
+    void spaces
+    first <- bigInteger
+    void spaces
+    second <- bigInteger
+    void maybeSpaces
+    pure (Bound first second)
+
+action :: Parser String Action
+action =
+    (Deposit <$> (string "Deposit" **> accountId) <**> party <**> value')
+    <|> (Choice <$> (string "Choice" **> choiceId) <**> array bound)
+    <|> (Notify <$> (string "Notify" **> observation'))
+    where
+      observation' = atomObservation <|> fix \p -> parens recObservation
+      value' = atomValue <|> fix (\p -> parens recValue)
+
+case' :: Parser String Case
+case' = do
+    void maybeSpaces
+    void $ string "Case"
+    void spaces
+    first <- parens action
+    void spaces
+    second <- contract'
+    void maybeSpaces
+    pure $ (Case first second)
+  where
+  contract' = atomContract <|> fix \p -> parens recContract
+
+cases :: Parser String (Array Case)
+cases = array case'
+
 atomContract :: Parser String Contract
-atomContract = pure Null <* string "Null"
+atomContract = pure Refund <* string "Refund"
 
 recContract :: Parser String Contract
 recContract =
-  ( Commit <$> (string "Commit" **> idAction)
-      <**> idCommit
-      <**> person
-      <**> value'
-      <**> timeout
-      <**> timeout
-      <**> contract'
-      <**> contract'
-  )
-    <|> ( Pay <$> (string "Pay" **> idAction)
-          <**> idCommit
-          <**> person
+    ( Pay <$> (string "Pay" **> accountId)
+          <**> parens payee
           <**> value'
-          <**> timeout
-          <**> contract'
           <**> contract'
       )
-    <|> (Both <$> (string "Both" **> contract') <**> contract')
-    <|> (Choice <$> (string "Choice" **> observation') <**> contract' <**> contract')
-    <|> (When <$> (string "When" **> observation') <**> timeout <**> contract' <**> contract')
-    <|> (While <$> (string "While" **> observation') <**> timeout <**> contract' <**> contract')
-    <|> (Scale <$> (string "Scale" **> value') <**> value' <**> value' <**> contract')
-    <|> (Let <$> (string "Let" **> letLabel) <**> contract' <**> contract')
-    <|> (Use <$> (string "Use" **> letLabel))
+    <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
+    <|> (When <$> (string "When" **> (array (maybeParens case'))) <**> timeout <**> contract')
+    <|> (Let <$> (string "Let" **> valueId) <**> value' <**> contract')
     <|> (fail "not a valid Contract")
   where
   contract' = atomContract <|> fix \p -> parens recContract
@@ -177,3 +214,122 @@ contract = do
   c <- (atomContract <|> recContract)
   void maybeSpaces
   pure c
+
+testString :: String
+testString = """When [
+  (Case
+     (Deposit
+        (AccountId 0 "alice") "alice"
+        (Constant 450))
+     (When [
+           (Case
+              (Choice
+                 (ChoiceId "1" "alice") [
+                 (Bound 0 1)])
+              (When [
+                 (Case
+                    (Choice
+                       (ChoiceId "1" "bob") [
+                       (Bound 0 1)])
+                    (If
+                       (ValueEQ
+                          (ChoiceValue
+                             (ChoiceId "1" "alice")
+                             (Constant 42))
+                          (ChoiceValue
+                             (ChoiceId "1" "bob")
+                             (Constant 42)))
+                       (If
+                          (ValueEQ
+                             (ChoiceValue
+                                (ChoiceId "1" "alice")
+                                (Constant 42))
+                             (Constant 0))
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Refund) Refund)
+                       (When [
+                             (Case
+                                (Choice
+                                   (ChoiceId "1" "carol") [
+                                   (Bound 1 1)]) Refund)
+                             ,
+                             (Case
+                                (Choice
+                                   (ChoiceId "1" "carol") [
+                                   (Bound 0 0)])
+                                (Pay
+                                   (AccountId 0 "alice")
+                                   (Party "bob")
+                                   (Constant 450) Refund))] 100 Refund)))] 60
+                 (When [
+                       (Case
+                          (Choice
+                             (ChoiceId "1" "carol") [
+                             (Bound 1 1)]) Refund)
+                       ,
+                       (Case
+                          (Choice
+                             (ChoiceId "1" "carol") [
+                             (Bound 0 0)])
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Refund))] 100 Refund)))
+           ,
+           (Case
+              (Choice
+                 (ChoiceId "1" "bob") [
+                 (Bound 0 1)])
+              (When [
+                 (Case
+                    (Choice
+                       (ChoiceId "1" "alice") [
+                       (Bound 0 1)])
+                    (If
+                       (ValueEQ
+                          (ChoiceValue
+                             (ChoiceId "1" "alice")
+                             (Constant 42))
+                          (ChoiceValue
+                             (ChoiceId "1" "bob")
+                             (Constant 42)))
+                       (If
+                          (ValueEQ
+                             (ChoiceValue
+                                (ChoiceId "1" "alice")
+                                (Constant 42))
+                             (Constant 0))
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Refund) Refund)
+                       (When [
+                             (Case
+                                (Choice
+                                   (ChoiceId "1" "carol") [
+                                   (Bound 1 1)]) Refund)
+                             ,
+                             (Case
+                                (Choice
+                                   (ChoiceId "1" "carol") [
+                                   (Bound 0 0)])
+                                (Pay
+                                   (AccountId 0 "alice")
+                                   (Party "bob")
+                                   (Constant 450) Refund))] 100 Refund)))] 60
+                 (When [
+                       (Case
+                          (Choice
+                             (ChoiceId "1" "carol") [
+                             (Bound 1 1)]) Refund)
+                       ,
+                       (Case
+                          (Choice
+                             (ChoiceId "1" "carol") [
+                             (Bound 0 0)])
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Refund))] 100 Refund)))] 40 Refund))] 10 Refund"""

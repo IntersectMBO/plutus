@@ -44,12 +44,12 @@ program-options
 source-repository-package
   type: git
   location: https://github.com/shmish111/purescript-bridge.git
-  tag: a7069a515800135ce932742e995f3a96bc1c7129
+  tag: fedae2c308fac73b129a684a7d10f547837470f4
 
 source-repository-package
   type: git
   location: https://github.com/shmish111/servant-purescript.git
-  tag: ab14502279c92084f06aa6222a17873275279e63
+  tag: ece5d1dad16a5731ac22040075615803796c7c21
 
 source-repository-package
   type: git

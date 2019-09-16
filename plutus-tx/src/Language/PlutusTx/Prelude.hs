@@ -8,7 +8,9 @@ module Language.PlutusTx.Prelude (
     module Ord,
     module Semigroup,
     module Monoid,
+    module Numeric,
     module Functor,
+    module Lattice,
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -22,9 +24,6 @@ module Language.PlutusTx.Prelude (
     -- * Booleans
     module Bool,
     -- * Int operators
-    plus,
-    minus,
-    multiply,
     divide,
     remainder,
     -- * Tuples
@@ -34,6 +33,8 @@ module Language.PlutusTx.Prelude (
     module Maybe,
     -- * Lists
     module List,
+    fold,
+    foldMap,
     -- * ByteStrings
     ByteString,
     takeByteString,
@@ -58,15 +59,17 @@ import           Language.PlutusTx.Builtins  (ByteString, Sealed, concatenate, d
 import qualified Language.PlutusTx.Builtins  as Builtins
 import           Language.PlutusTx.Eq        as Eq
 import           Language.PlutusTx.Functor   as Functor
+import           Language.PlutusTx.Lattice   as Lattice
 import           Language.PlutusTx.List      as List
 import           Language.PlutusTx.Maybe     as Maybe
 import           Language.PlutusTx.Monoid    as Monoid
+import           Language.PlutusTx.Numeric   as Numeric
 import           Language.PlutusTx.Ord       as Ord
 import           Language.PlutusTx.Semigroup as Semigroup
-import           Prelude                     as Prelude hiding (Eq (..), Functor (..), Monoid (..), Ord (..),
-                                                         Semigroup (..), all, any, const, elem, error, filter, foldl,
-                                                         foldr, fst, length, map, max, maybe, min, not, null, snd, (!!),
-                                                         (&&), (++), (<$>), (||))
+import           Prelude                     as Prelude hiding (Eq (..), Functor (..), Monoid (..), Num (..), Ord (..),
+                                                         Semigroup (..), all, any, const, elem, error, filter, foldMap,
+                                                         foldl, foldr, fst, length, map, max, maybe, min, not, null,
+                                                         snd, (!!), (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -129,33 +132,6 @@ traceIfFalseH str a = if a then True else traceH str False
 traceIfTrueH :: String -> Bool -> Bool
 traceIfTrueH str a = if a then traceH str True else False
 
-{-# INLINABLE plus #-}
--- | Addition
---
---   >>> plus 2 1
---   3
---
-plus :: Integer -> Integer -> Integer
-plus = Builtins.addInteger
-
-{-# INLINABLE minus #-}
--- | Subtraction
---
---   >>> minus 2 1
---   1
---
-minus :: Integer -> Integer -> Integer
-minus = Builtins.subtractInteger
-
-{-# INLINABLE multiply #-}
--- | Multiplication
---
---   >>> multiply 2 1
---   2
---
-multiply :: Integer -> Integer -> Integer
-multiply = Builtins.multiplyInteger
-
 {-# INLINABLE divide #-}
 -- | Integer division
 --
@@ -183,3 +159,11 @@ fst (a, _) = a
 -- | PlutusTx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
+
+{-# INLINABLE fold #-}
+fold :: Monoid m => [m] -> m
+fold = foldr (<>) mempty
+
+{-# INLINABLE foldMap #-}
+foldMap :: Monoid m => (a -> m) -> [a] -> m
+foldMap f = foldr (\a m -> f a <> m) mempty

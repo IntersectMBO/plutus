@@ -41,7 +41,9 @@ module Wallet.API(
     register,
     -- * Slot ranges
     Interval(..),
+    Slot,
     SlotRange,
+    width,
     defaultSlotRange,
     interval,
     intervalFrom,
@@ -50,7 +52,6 @@ module Wallet.API(
     isEmpty,
     always,
     member,
-    width,
     before,
     after,
     contains,
@@ -104,11 +105,12 @@ import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
-                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, txOutRefId)
+                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId,
+                                            width)
 import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
-import           Ledger.Slot               (singleton, width)
 import qualified Ledger.Value              as Value
 import           Text.Show.Deriving        (deriveShow1)
 
@@ -204,10 +206,10 @@ annTruthValue h mp = cata f where
         TNever -> embedC (False, TNever)
         TSlotRange r -> embedC (h `member` r, TSlotRange r)
         TFundsAtAddressGeq a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.geq` r, TFundsAtAddressGeq a r)
         TFundsAtAddressGt a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.gt` r, TFundsAtAddressGt a r)
 
 -- | The addresses that an 'EventTrigger' refers to.
@@ -459,7 +461,8 @@ outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef T
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
---   TODO: Also compute the fee
+--   TODO: This is here to make the calculation of fees easier for old-style contracts
+--         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
     (Monad m, WalletAPI m)
     => SlotRange
@@ -470,12 +473,12 @@ createTxAndSubmit range ins outs = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
-            , txForge = Value.zero
+            , txForge = mempty
             , txFee = 0
             , txValidRange = range
             , txSignatures = Map.empty
             }
-    signTxAndSubmit tx
+    signTxAndSubmit $ tx { txFee = minFee tx }
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.

@@ -1,6 +1,7 @@
 module Simulation where
 
 import Marlowe.Semantics
+
 import API (RunResult(RunResult))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
@@ -8,44 +9,44 @@ import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
 import Control.Alternative (map, (<|>))
+import Data.Array (catMaybes, foldMap, mapWithIndex, null)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Eq ((==), (/=))
-import Data.Foldable (all)
-import Data.HeytingAlgebra ((&&))
+import Data.Foldable (intercalate)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Lens (to, view, (^.))
-import Data.List (List(..))
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
-import Data.Ord ((>=))
-import Data.Semiring ((+))
-import Data.Set as Set
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, pre_, slot', span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
-import Halogen.HTML.Events (input_, onChecked, onClick, onDragOver, onDrop, onValueChange)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, pre_, slot', span, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
+import Halogen.HTML.Events (input_, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
-import Halogen.HTML.Properties (InputType(InputCheckbox, InputNumber), checked, class_, classes, enabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, type_, value)
 import Halogen.Query as HQ
 import LocalStorage as LocalStorage
-import Marlowe.Types (BlockNumber(BlockNumber), Person, IdOracle, Choice, IdAction, IdCommit, Timeout, WIdChoice(..), IdChoice(..))
-import Prelude (Unit, bind, const, discard, flip, identity, pure, show, class Show, unit, void, ($), (<$>), (<<<), (<>), (>))
+import Marlowe.Parser as Parser
+import Prelude (class Show, Unit, bind, const, discard, flip, identity, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (+))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, FrontendState, InputData, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, OracleEntry, Query(..), TransactionValidity(..), _Head, _blockNum, _contract, _currentTransaction, _input, _marloweCompileResult, _marloweState, _moneyInContract, _oldContract, _outcomes, _signatures, _state, _transaction, _validity, cpMarloweEditor, isInvalidTransaction, isValidTransaction)
+import Text.Parsing.Parser (runParser)
+import Types (ActionInput(..), ChildQuery, ChildSlot, FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, Query(..), _Head, _contract, _editorErrors, _marloweCompileResult, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, cpMarloweEditor)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
 
 isContractValid :: FrontendState -> Boolean
-isContractValid state = view (_marloweState <<< _Head <<< _contract) state /= Nothing
+isContractValid state = 
+  view (_marloweState <<< _Head <<< _contract) state /= Nothing
+  && view (_marloweState <<< _Head <<< _editorErrors) state == []
 
 simulationPane ::
   forall m.
@@ -62,8 +63,7 @@ simulationPane state =
         , stateTitle state
         , row_ [statePane state]
         ]
-      , state ^. (_currentTransaction <<< _validity <<< to transactionErrors)
-      , contractParsingError (isContractValid state)
+      , state ^. (_marloweState <<< _Head <<< _transactionError <<< to transactionErrors)
       , [ div
             [ classes
                 [ ClassName "demos"
@@ -156,7 +156,7 @@ inputComposerPane state =
         [ class_ $ ClassName "wallet"
         ]
         [ card_
-            [ cardBody_ (inputComposer isEnabled (view (_marloweState <<< _Head <<< _input) state))
+            [ cardBody_ (inputComposer isEnabled (view (_marloweState <<< _Head <<< _possibleActions) state))
             ]
         ]
     ]
@@ -168,173 +168,109 @@ onEmpty alt [] = alt
 
 onEmpty _ arr = arr
 
-inputComposer :: forall p. Boolean -> InputData -> Array (HTML p Query)
-inputComposer isEnabled {inputs, choiceData, oracleData} =
-  onEmpty [text "No valid inputs can be added to the transaction"]
-    $ Array.concat
-        [ Array.concat (Array.fromFoldable (map (\x -> inputComposerPerson isEnabled x inputs choiceData) people))
-        , if (Map.isEmpty oracleData)
-            then []
-            else [h3_ [text ("Oracles")]]
-        , Array.fromFoldable (map (inputComposerOracle isEnabled) oracles)
-        ]
+inputComposer :: forall p. Boolean -> Map PubKey (Array ActionInput) -> Array (HTML p Query)
+inputComposer isEnabled actionInputs =
+  onEmpty 
+    [text "No valid inputs can be added to the transaction"]
+    $ actionsForPeople actionInputs
   where
-  ik = Set.fromFoldable (Map.keys inputs)
+  kvs :: forall k v. Map k v -> Array (Tuple k v)
+  kvs = Map.toUnfoldable
 
-  cdk = Set.fromFoldable (Map.keys choiceData)
-
-  people = Set.toUnfoldable (Set.union ik cdk) :: List Person
-
-  oracles = Map.toUnfoldable oracleData :: List (Tuple IdOracle OracleEntry)
+  actionsForPeople :: forall q. Map PubKey (Array ActionInput) -> Array (HTML q Query)
+  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k v) (kvs m)
 
 inputComposerPerson ::
   forall p.
   Boolean ->
-  Person ->
-  Map Person (List DetachedPrimitiveWIA) ->
-  Map Person (Map BigInteger Choice) ->
+  PubKey ->
+  Array ActionInput ->
   Array (HTML p Query)
-inputComposerPerson isEnabled person inputs choices =
-  Array.concat
-    [ [ h3_
+inputComposerPerson isEnabled person actionInputs =
+      [ h3_
           [ text ("Person " <> show person)
           ]
-      ]
-    , case Map.lookup person inputs of
-        Nothing -> []
-        Just x -> do
-          y <- Array.sortWith (idActionFromDWAI) (Array.fromFoldable x)
-          case y of
-            DWAICommit idAction idCommit val tim -> pure (inputCommit isEnabled person idAction idCommit val tim)
-            DWAIPay idAction idCommit val -> pure (inputPay isEnabled person idAction idCommit val)
-    , case Map.lookup person choices of
-        Nothing -> []
-        Just x -> do
-          (Tuple idChoice choice) <- Map.toUnfoldable x
-          pure (inputChoice isEnabled person idChoice choice)
-    ]
+      ] <> catMaybes (mapWithIndex inputForAction actionInputs)
   where
-  idActionFromDWAI (DWAICommit idAction _ _ _) = idAction
+    inputForAction :: Int -> ActionInput -> Maybe (HTML p Query)
+    inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled person index accountId party value
+    inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled person index choiceId chosenNum bounds
+    inputForAction index (NotifyInput observation) = Just $ inputNotify isEnabled person index observation
 
-  idActionFromDWAI (DWAIPay idAction _ _) = idAction
-
-inputCommit ::
+inputDeposit ::
   forall p.
   Boolean ->
-  Person ->
-  IdAction ->
-  IdCommit ->
+  PubKey ->
+  Int ->
+  AccountId ->
+  Party ->
   BigInteger ->
-  Timeout ->
   HTML p Query
-inputCommit isEnabled person idAction idCommit val tim =
-  flexRow_
+inputDeposit isEnabled person index accountId party value =
+  let money = wrap value in
+  flexRow_ $
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
         , onClick $ input_
-            $ AddAnyInput
-                { person: Just person
-                , anyInput: Action idAction
-                }
+            $ AddInput person (IDeposit accountId party money) []
         ]
         [ text "+"
         ]
-    , spanText "Action "
-    , b_ [spanText (show idAction)]
-    , spanText ": Commit "
-    , b_ [spanText (show val)]
-    , spanText " ADA with id "
-    , b_ [spanText (show idCommit)]
-    , spanText " to expire by "
-    , b_ [spanText (show tim)]
+    ] <> (renderDeposit accountId party value)
+
+renderDeposit :: forall p. AccountId -> Party -> BigInteger -> Array (HTML p Query)
+renderDeposit (AccountId accountNumber accountOwner) party money =
+    [ spanText "Deposit "
+    , b_ [spanText (show money)]
+    , spanText " ADA into Account "
+    , b_ [spanText (accountOwner <> " (" <> show accountNumber <> ")")]
+    , spanText " as "
+    , b_ [spanText party]
     ]
 
-inputPay :: forall p. Boolean -> Person -> IdAction -> IdCommit -> BigInteger -> HTML p Query
-inputPay isEnabled person idAction idCommit val =
+inputChoice :: forall p. Boolean -> PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p Query
+inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) chosenNum bounds =
+  let validBounds = inBounds chosenNum bounds
+      errorRow = if validBounds then [] else [ text boundsError ]
+  in
   flexRow_
-    [ button
+    ([ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
         , onClick $ input_
-            $ AddAnyInput
-                { person: Just person
-                , anyInput: Action idAction
-                }
-        ]
-        [ text "+"
-        ]
-    , spanText "Action "
-    , b_ [spanText (show idAction)]
-    , spanText ": Claim "
-    , b_ [spanText (show val)]
-    , spanText " ADA from commit "
-    , b_ [spanText (show idCommit)]
-    ]
-
-inputChoice :: forall p. Boolean -> Person -> BigInteger -> BigInteger -> HTML p Query
-inputChoice isEnabled person idChoice val =
-  flexRow_
-    [ button
-        [ class_ $ ClassName "composer-add-button"
-        , enabled isEnabled
-        , onClick $ input_
-            $ AddAnyInput
-                { person: Just person
-                , anyInput: Input (IChoice (IdChoice {choice: idChoice, person}) val)
-                }
+            $ AddInput person (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
         ]
         [ text "+"
         ]
     , spanText "Choice "
-    , b_ [spanText (show idChoice)]
+    , b_ [spanText choiceName]
     , spanText ": Choose value "
-    , marloweActionInput isEnabled
-        ( \x ->
-          SetChoice
-            { idChoice:
-              ( IdChoice
-                { choice: idChoice
-                , person
-                }
-              )
-            , value: x
-            }
-        ) val
-    ]
+    , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+    ] <> errorRow)
+    where
+    boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+    boundError (Bound from to) = show from <> " and " <> show to
 
-inputComposerOracle :: forall p. Boolean -> Tuple IdOracle OracleEntry -> HTML p Query
-inputComposerOracle isEnabled (Tuple idOracle {blockNumber, value}) =
+
+inputNotify ::
+  forall p.
+  Boolean ->
+  PubKey ->
+  Int ->
+  Observation ->
+  HTML p Query
+inputNotify isEnabled person index observation =
   flexRow_
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
         , onClick $ input_
-            $ AddAnyInput
-                { person: Nothing
-                , anyInput: Input (IOracle idOracle blockNumber value)
-                }
+            $ AddInput person INotify []
         ]
         [ text "+"
         ]
-    , spanText "Oracle "
-    , b_ [spanText (show idOracle)]
-    , spanText ": Provide "
-    , marloweActionInput isEnabled
-        ( \x ->
-          SetOracleVal
-            { idOracle
-            , value: x
-            }
-        ) value
-    , spanText " as the value for block "
-    , marloweActionInput isEnabled
-        ( \x ->
-          SetOracleBn
-            { idOracle
-            , blockNumber: BlockNumber (unwrap x)
-            }
-        ) blockNumber
+    , text $ "Notify " <> show observation
     ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
@@ -382,15 +318,15 @@ transactionComposerPane state =
         ]
         [ div
             [ classes
-                ( ( if (isInvalidTransaction (view (_marloweState <<< _Head <<< _transaction <<< _validity) state))
+                ( ( if view (_marloweState <<< _Head <<< _transactionError <<< to isJust) state
                   then (flip Array.snoc) (ClassName "invalid-transaction")
                   else identity
                 ) [card]
                 )
             ]
             [ cardBody_ $ transactionInputs (view (_marloweState <<< _Head) state)
-                <> ( signatures (view (_marloweState <<< _Head <<< _transaction <<< _signatures) state) (isContractValid state) (view (_marloweState <<< _Head <<< _transaction <<< _outcomes) state)
-                  )
+                -- <> ( signatures (view (_marloweState <<< _Head <<< _transaction <<< _signatures) state) (isContractValid state) (view (_marloweState <<< _Head <<< _transaction <<< _outcomes) state)
+                --   )
                 <> transactionButtons state
             ]
         ]
@@ -414,7 +350,7 @@ transactionButtons state =
               , ClassName "transaction-btn"
               ]
           , onClick $ Just <<< HQ.action <<< const ApplyTransaction
-          , enabled (isValidTransaction (view (_marloweState <<< _Head <<< _transaction <<< _validity) state) && isContractValid state)
+          , enabled $ isContractValid state
           ] [text "Apply Transaction"]
       , button
           [ classes
@@ -422,7 +358,7 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          , onClick $ Just <<< HQ.action <<< const NextBlock
+          , onClick $ Just <<< HQ.action <<< const NextSlot
           , enabled (isContractValid state)
           ] [text "Next Block"]
       , button
@@ -431,7 +367,7 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          , enabled (view _oldContract state /= Nothing)
+          , enabled (hasHistory state)
           , onClick $ Just <<< HQ.action <<< const ResetSimulator
           ] [text "Reset"]
       , button
@@ -449,71 +385,13 @@ transactionButtons state =
 hasHistory :: FrontendState -> Boolean
 hasHistory state = NEL.length (view _marloweState state) > 1
 
-printTransWarnings :: forall p. Int -> List DynamicProblem -> Array (HTML p Query)
-printTransWarnings _ Nil = []
+-- TODO: Need to make these errors nice explanations - function in smeantics utils
+printTransError :: forall p. TransactionError -> Array (HTML p Query)
+printTransError error = [ul_ [li_ [text (show error)]]]
 
-printTransWarnings num (Cons NoProblem rest) = printTransWarnings (num + 1) rest
-
-printTransWarnings num (Cons CommitNotMade rest) = Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has not been made yet.")) (printTransWarnings (num + 1) rest)
-
-printTransWarnings num (Cons NotEnoughMoneyLeftInCommit rest) = Array.cons (text ("Input number " <> (show num) <> " will not have the expected effect because there is not enough money left in the commit.")) (printTransWarnings (num + 1) rest)
-
-printTransWarnings num (Cons CommitIsExpired rest) = Array.cons (text ("Input number " <> (show num) <> " will have no effect because the commitment has expired already.")) (printTransWarnings (num + 1) rest)
-
-printTransError :: forall p. ErrorResult -> Array (HTML p Query)
-printTransError InvalidInput = [ul_ [li_ [text "At least one of the inputs in the transaction is not acceptable given the state of the contract."]]]
-
-printTransError NoValidSignature = [ul_ [li_ [text "At least one of the inputs requires a signature that is not provided."]]]
-
-printTransError NegativeTransaction = [ul_ [li_ [text "At least one of transactions is for a negative amount of money."]]]
-
-printTransError AmbiguousId = [ul_ [li_ [text "At least one of the action identifiers appears more than once in the contract. Please, ensure that every contruct in the contract has a unique id."]]]
-
-printTransError InternalError = [ul_ [li_ [text "The internal state of the contract is inconsistent. This should not happen. Please, open an issue and let us know how you got to this error."]]]
-
-contractParsingError :: forall p. Boolean -> Array (HTML p Query)
-contractParsingError true =
-  [ div
-      [ classes
-          [ ClassName "invalid-transaction"
-          , ClassName "input-composer"
-          ]
-      ]
-      [ h2 [] [text ""]
-      ]
-  ]
-
-contractParsingError false =
-  [ div
-      [ classes
-          [ ClassName "invalid-transaction"
-          , ClassName "input-composer"
-          ]
-      ]
-      [ h2 [] [text "Cannot parse contract"]
-      ]
-  ]
-
-transactionErrors :: forall p. TransactionValidity -> Array (HTML p Query)
-transactionErrors EmptyTransaction = []
-
-transactionErrors (ValidTransaction l) = if (all (\x -> x == NoProblem) l)
-  then []
-  else
-    [ div
-        [ classes
-            [ ClassName "warning-transaction"
-            , ClassName "input-composer"
-            ]
-        ]
-        [ h2 [] [text "Transaction is valid but:"]
-        , transWarn
-        ]
-    ]
-  where
-  transWarn = ul_ (map (li_ <<< pure) (printTransWarnings 1 l))
-
-transactionErrors (InvalidTransaction err) =
+transactionErrors :: forall p. Maybe TransactionError -> Array (HTML p Query)
+transactionErrors Nothing = []
+transactionErrors (Just error) =
   [ div
       [ classes
           [ ClassName "invalid-transaction"
@@ -521,54 +399,9 @@ transactionErrors (InvalidTransaction err) =
           ]
       ]
       ( [h2 [] [text "The transaction is invalid:"]]
-        <> printTransError err
+        <> printTransError error
       )
   ]
-
-signatures :: forall p. Map Person Boolean -> Boolean -> Map Person BigInteger -> Array (HTML p Query)
-signatures people isEnabled outcomes =
-  [ h3_ [text "Signatures"]
-  , if ((Map.size people) == 0)
-      then div [] [text "No participants in contract"]
-      else
-        div
-          [ classes
-              [ ClassName "d-flex"
-              , ClassName "flex-row"
-              , ClassName "align-items-center"
-              , ClassName "justify-content-start"
-              ]
-          ] (map (\x -> signature x isEnabled outcomes) $ Map.toUnfoldable people)
-  ]
-
-signature :: forall p. Tuple Person Boolean -> Boolean -> Map Person BigInteger -> HTML p Query
-signature (Tuple person isChecked) isEnabled outcomes =
-  span
-    [ class_ $ ClassName "pr-2"
-    ]
-    [ input
-        [ type_ InputCheckbox
-        , onChecked $ Just <<< HQ.action
-            <<< ( \v ->
-                SetSignature
-                  { person
-                  , isChecked: v
-                  }
-              )
-        , enabled isEnabled
-        , checked isChecked
-        ]
-    , span_
-        [ text $ " Person " <> show person
-        ]
-    , span [classes [ClassName "outcome-block"]]
-        [ text $ "(" <> outcome <> " ADA)"
-        ]
-    ]
-  where
-  outcome = case Map.lookup person outcomes of
-    Nothing -> "+0"
-    Just x -> if (x >= fromInt 0) then "+" <> show x else show x
 
 transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
 transactionInputs state =
@@ -577,75 +410,60 @@ transactionInputs state =
       ]
   ]
     <> ( onEmpty [text "No inputs in the transaction"]
-        $ map (inputRow isEnabled) state.transaction.inputs
+        $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
       )
   where
-  isEnabled = state.contract /= Nothing
+  isEnabled = state.contract /= Nothing || state.editorErrors /= []
+  mapWithOneIndex f = mapWithIndex (\i a -> f (i + 1) a)
 
-inputRow :: forall p. Boolean -> AnyInput -> HTML p Query
-inputRow isEnabled idInput@(Action idAction) =
+inputRow :: forall p. Boolean -> Int -> Tuple Input PubKey -> HTML p Query
+inputRow isEnabled idx (Tuple INotify person) = 
   row_
     [ col_
         [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
-            , onClick $ input_ $ RemoveAnyInput idInput
+            , onClick $ input_ $ RemoveInput person INotify
             ]
-            [ text "-"
+            [ text $ "- " <> show idx <> ":"
             ]
-        , text "Action with id "
-        , b_
-            [ text (show idAction)
-            ]
+        , text "Notification"
         ]
     ]
+inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
+  row_
+    [ col_ $
+        [ button
+            [ class_ $ ClassName "composer-add-button"
+            , enabled isEnabled
+            , onClick $ input_ $ RemoveInput person input
+            ]
+            [ text $ "- " <> show idx <> ":"
+            ]
+        ] <> (renderDeposit accountId party (unwrap money))
+    ]
 
-inputRow isEnabled idInput@(Input (IChoice (IdChoice {choice, person}) val)) =
+inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
   row_
     [ col_
         [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
-            , onClick $ input_ $ RemoveAnyInput idInput
+            , onClick $ input_ $ RemoveInput person input
             ]
-            [ text "-"
+            [ text $ "- " <> show idx <> ":"
             ]
         , text "Participant "
         , b_
-            [ text (show person)
+            [ text choiceOwner
             ]
         , text " chooses the value "
         , b_
-            [ text (show val)
+            [ text (show chosenNum)
             ]
         , text " for choice with id "
         , b_
-            [ text (show choice)
-            ]
-        ]
-    ]
-
-inputRow isEnabled idInput@(Input (IOracle idOracle bn val)) =
-  row_
-    [ col_
-        [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ input_ $ RemoveAnyInput idInput
-            ]
-            [ text "-"
-            ]
-        , text "Oracle "
-        , b_
-            [ text (show idOracle)
-            ]
-        , text " had value "
-        , b_
-            [ text (show val)
-            ]
-        , text " at block "
-        , b_
-            [ text (show bn)
+            [ text choiceName
             ]
         ]
     ]
@@ -679,7 +497,7 @@ stateTitle state =
         , span
             [ class_ $ ClassName "block-number"
             ]
-            [ view (_marloweState <<< _Head <<< _blockNum <<< to show <<< to text) state
+            [ view (_marloweState <<< _Head <<< _slot <<< to show <<< to text) state
             ]
         , strong_
             [ text "Money in contract:"
@@ -709,136 +527,83 @@ stateTable state =
     [ card_
         [ cardBody_
             [ h3_
-                [ text "Money owed"
+                [ text "Accounts"
                 ]
             , row_
-                [ if (Map.size commits.redeemedPerPerson == 0)
-                    then text "No participant is owed money"
-                    else renderMoneyOwed mState.commits
-                ]
-            , h3_
-                [ text "Commits"
-                ]
-            , row_
-                [ if (Map.size commits.currentCommitsById == 0)
-                    then text "There are no commits in the state"
-                    else renderCommits mState.commits
+                [ if (Map.size accounts == 0)
+                    then text "There are no accounts in the state"
+                    else renderAccounts accounts
                 ]
             , h3_
                 [ text "Choices"
                 ]
             , row_
-                [ if (Map.size mState.choices == 0)
+                [ if (Map.size choices == 0)
                     then text "No choices have been recorded"
-                    else renderChoices mState.choices
+                    else renderChoices choices
                 ]
             , h3_
-                [ text "Oracle values"
+                [ text "Payments"
                 ]
             , row_
-                [ if (Map.size mState.oracles == 0)
-                    then text "No oracle values have been recorded"
-                    else renderOracles mState.oracles
+                [ if (Array.length payments == 0)
+                    then text "No payments have been recorded"
+                    else renderPayments payments
                 ]
             ]
         ]
     ]
   where
-  (State mState) = view (_marloweState <<< _Head <<< _state) state
+  accounts = state ^. _marloweState <<< _Head <<< _state <<< _accounts
+  choices = state ^. _marloweState <<< _Head <<< _state <<< _choices
+  payments = state ^. _marloweState <<< _Head <<< _payments
 
-  (CommitInfo commits) = mState.commits
-
-renderMoneyOwed :: forall p. CommitInfo -> HTML p Query
-renderMoneyOwed (CommitInfo ci) =
+renderAccounts :: forall p. Map AccountId Ada -> HTML p Query
+renderAccounts accounts =
   table_
     [ colgroup []
         [ col []
-        , col []
-        ]
-    , thead_
-        [ tr []
-            [ th_
-                [ text "Participant id"
-                ]
-            , th
-                [ class_ $ ClassName "left-border-column"
-                ]
-                [ text "Owed amount"
-                ]
-            ]
-        ]
-    , tbody_ (Array.fromFoldable (map renderMoneyOwedIndividual owedList))
-    ]
-  where
-  owedList = Map.toUnfoldable ci.redeemedPerPerson :: List (Tuple Person BigInteger)
-
-renderMoneyOwedIndividual :: forall p. Tuple Person BigInteger -> HTML p Query
-renderMoneyOwedIndividual (Tuple person amount) =
-  tr []
-    [ td_
-        [ text (show person)
-        ]
-    , td_
-        [ text (show amount <> " ADA")
-        ]
-    ]
-
-renderCommits :: forall p. CommitInfo -> HTML p Query
-renderCommits (CommitInfo ci) =
-  table_
-    [ colgroup []
-        [ col []
-        , col []
         , col []
         , col []
         ]
     , thead_
         [ tr []
             [ th_
-                [ text "Commit id"
+                [ text "Account id"
                 ]
             , th
                 [ class_ $ ClassName "middle-column"
                 ]
-                [ text "Owner"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Amount"
+                [ text "Participant"
                 ]
             , th_
-                [ text "Expiration"
+                [ text "Money"
                 ]
             ]
         ]
-    , tbody_ (Array.fromFoldable (map renderCommit commitList))
+    , tbody_ (map renderAccount accountList)
     ]
   where
-  commitList = Map.toUnfoldable ci.currentCommitsById :: List (Tuple IdCommit CommitInfoRecord)
+  accountList = Map.toUnfoldable accounts :: Array (Tuple AccountId Ada)
 
-renderCommit :: forall p. Tuple IdCommit CommitInfoRecord -> HTML p Query
-renderCommit (Tuple idCommit (CommitInfoRecord {person, amount, timeout})) =
+renderAccount :: forall p. Tuple AccountId Ada -> HTML p Query
+renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
   tr []
     [ td_
-        [ text (show idCommit)
+        [ text (show accountNumber)
         ]
     , td
         [ class_ $ ClassName "middle-column"
         ]
-        [ text (show person)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show amount <> " ADA")
+        [ text accountOwner
         ]
     , td_
-        [ text (show timeout)
+        [ text (show value)
         ]
     ]
 
-renderChoices :: forall p. Map WIdChoice Choice -> HTML p Query
+
+renderChoices :: forall p. Map ChoiceId ChosenNum -> HTML p Query
 renderChoices choices =
   table_
     [ colgroup []
@@ -861,29 +626,29 @@ renderChoices choices =
                 ]
             ]
         ]
-    , tbody_ (Array.fromFoldable (map renderChoice choiceList))
+    , tbody_ (map renderChoice choiceList)
     ]
   where
-  choiceList = Map.toUnfoldable choices :: List (Tuple WIdChoice Choice)
+  choiceList = Map.toUnfoldable choices :: Array (Tuple ChoiceId ChosenNum)
 
-renderChoice :: forall p. Tuple WIdChoice Choice -> HTML p Query
-renderChoice (Tuple (WIdChoice (IdChoice {choice, person})) value) =
+renderChoice :: forall p. Tuple ChoiceId ChosenNum -> HTML p Query
+renderChoice (Tuple (ChoiceId choiceName choiceOwner) value) =
   tr []
     [ td_
-        [ text (show choice)
+        [ text choiceName
         ]
     , td
         [ class_ $ ClassName "middle-column"
         ]
-        [ text (show person)
+        [ text choiceOwner
         ]
     , td_
         [ text (show value)
         ]
     ]
 
-renderOracles :: forall p. Map IdOracle OracleDataPoint -> HTML p Query
-renderOracles oracles =
+renderPayments :: forall p. Array Payment -> HTML p Query
+renderPayments payments =
   table_
     [ colgroup []
         [ col []
@@ -892,36 +657,28 @@ renderOracles oracles =
         ]
     , thead_
         [ tr []
-            [ th_
-                [ text "Oracle id"
-                ]
-            , th
+            [ th
                 [ class_ $ ClassName "middle-column"
                 ]
-                [ text "Timestamp"
+                [ text "Party"
                 ]
             , th_
-                [ text "Value"
+                [ text "Money"
                 ]
             ]
         ]
-    , tbody_ (Array.fromFoldable (map renderOracle oracleList))
+    , tbody_ (map renderPayment payments)
     ]
-  where
-  oracleList = Map.toUnfoldable oracles :: List (Tuple IdOracle OracleDataPoint)
 
-renderOracle :: forall p. Tuple IdOracle OracleDataPoint -> HTML p Query
-renderOracle (Tuple idOracle (OracleDataPoint {blockNumber, value})) =
+renderPayment :: forall p. Payment -> HTML p Query
+renderPayment (Payment party money) =
   tr []
-    [ td_
-        [ text (show idOracle)
-        ]
-    , td
+    [ td
         [ class_ $ ClassName "middle-column"
         ]
-        [ text (show blockNumber)
+        [ text party
         ]
     , td_
-        [ text (show value)
+        [ text (show money)
         ]
     ]

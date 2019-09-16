@@ -10,6 +10,7 @@
 *.bbl
 *.fdb_latexmk
 *.blg
+auto
 
 # Cabal
 .ghc.environment*
@@ -31,6 +32,9 @@ stack.yaml.lock
 *.chi
 *.chs.h
 *.prof
+
+# Agda
+*.agdai
 
 # Nix
 result*

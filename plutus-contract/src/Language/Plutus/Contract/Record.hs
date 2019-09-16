@@ -27,13 +27,19 @@ data ClosedRecord i =
   deriving stock (Eq, Show, Generic)
   deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
+instance Functor ClosedRecord where
+  fmap f = \case
+    ClosedLeaf v -> ClosedLeaf (fmap f v)
+    ClosedBin l r -> ClosedBin (fmap f l) (fmap f r)
+    ClosedAlt e -> ClosedAlt $ bimap (fmap f) (fmap f) e
+
 data OpenRecord i =
     OpenLeaf (Maybe i)
   | OpenBind (OpenRecord i)
   | OpenLeft (OpenRecord i) (ClosedRecord i)
   | OpenRight (ClosedRecord i) (OpenRecord i)
   | OpenBoth (OpenRecord i) (OpenRecord i)
-  deriving stock (Eq, Show, Generic)
+  deriving stock (Eq, Show, Generic, Functor)
   deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 openSubRecords :: Traversal' (OpenRecord i) (OpenRecord i)

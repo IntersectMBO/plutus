@@ -8,7 +8,7 @@ module MainFrame
 import Types
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
-import Action (simulationPane)
+import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
@@ -23,9 +23,10 @@ import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
-import Data.Array (concat, deleteAt, fromFoldable, snoc) as Array
+import Data.Array (deleteAt, snoc, fromFoldable) as Array
 import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
+import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
@@ -35,10 +36,10 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
+import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.RawJson (JsonEither(..))
 import Data.String as String
-import Data.Traversable (foldl)
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (demoScriptsPane, editorPane)
@@ -59,14 +60,13 @@ import Halogen.Query (HalogenM)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(CurrencySymbol), TokenName(TokenName), Value(Value))
+import Ledger.Value (CurrencySymbol(..), Value(..))
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
-import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
+import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.API (KnownCurrency(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
-import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(Wallet))
@@ -83,17 +83,15 @@ mkInitialValue :: Array KnownCurrency -> Int -> Value
 mkInitialValue currencies initialBalance = Value { getValue: value }
   where
   value =
-    foldl
-      (AssocMap.unionWith (AssocMap.unionWith (+)))
-      (AssocMap.fromTuples [])
-      $ Array.concat
-      $ map
+    map (map unwrap)
+     $ fold
+     $ foldMap
           ( \(KnownCurrency { hash, knownTokens }) ->
               map
-                ( \(TokenName tokenId) ->
+                ( \tokenName ->
                     AssocMap.fromTuples
                       [ CurrencySymbol { unCurrencySymbol: hash }
-                          /\ AssocMap.fromTuples [ TokenName tokenId /\ initialBalance ]
+                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
                       ]
                 )
                 $ Array.fromFoldable knownTokens
@@ -389,7 +387,10 @@ eval (EvaluateActions next) = do
           assign _evaluationResult Loading
           result <- lift $ postEvaluation evaluation
           assign _evaluationResult result
-          replaceViewOnSuccess result Simulations Transactions
+          -- If we got a successful result, switch tab.
+          case result of
+            Success (JsonEither (Left _)) -> pure unit
+            _ -> replaceViewOnSuccess result Simulations Transactions
           pure unit
   pure next
 
@@ -468,57 +469,41 @@ evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) 
 
 evalForm ::
   forall a.
-  Warn (Text "I wonder if this code would be simpler if we just abandoned FormArgument and used the Functor version everywhere.") =>
   Value ->
   FormEvent a ->
   FormArgument ->
   FormArgument
 evalForm initialValue = rec
   where
-  rec (SetIntField n next) (FormInt _) = FormInt n
+  evalField (SetIntField n) (FormInt _) = FormInt n
 
-  rec (SetIntField _ _) arg = arg
+  evalField (SetBoolField n) (FormBool _) = FormBool n
 
-  rec (SetBoolField n next) (FormBool _) = FormBool n
+  evalField (SetStringField s) (FormString _) = FormString (Just s)
 
-  rec (SetBoolField _ _) arg = arg
+  evalField (SetHexField s) (FormHex _) = FormHex (Just s)
 
-  rec (SetStringField s next) (FormString _) = FormString (Just s)
+  evalField (SetRadioField s) (FormRadio options _) = FormRadio options (Just s)
 
-  rec (SetStringField _ _) arg = arg
+  evalField (SetValueField valueEvent) (FormValue value) = FormValue $ evalValueEvent valueEvent value
 
-  rec (SetHexField s next) (FormHex _) = FormHex (Just s)
+  evalField (SetSlotRangeField newInterval) arg@(FormSlotRange _) = FormSlotRange newInterval
 
-  rec (SetHexField _ _) arg = arg
+  evalField _ arg = arg
 
-  rec (SetRadioField s next) (FormRadio options _) = FormRadio options (Just s)
-
-  rec (SetRadioField _ _) arg = arg
-
-  rec (SetValueField valueEvent _) (FormValue value) = FormValue $ evalValueEvent valueEvent value
-
-  rec (SetValueField _ _) arg = arg
+  rec (SetField field subEvent) arg = evalField field arg
 
   rec (SetSubField 1 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _1) (rec subEvent) fields
 
   rec (SetSubField 2 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _2) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormTuple _) = arg
+  rec (SetSubField 0 subEvent) (FormMaybe schema field) = FormMaybe schema $ over _Just (rec subEvent) field
 
-  rec (SetSubField _ subEvent) arg@(FormString _) = arg
+  rec (SetSubField n subEvent) (FormArray schema fields) = FormArray schema $ over (ix n) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormInt _) = arg
+  rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  rec (SetSubField _ subEvent) arg@(FormBool _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormHex _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormRadio _ _) = arg
-
-  rec (SetSubField _ subEvent) arg@(FormValue _) = arg
-
-  rec (AddSubField _) (FormArray schema fields) =
-    -- As the code stands, this is the only guarantee we get that every
+  rec (AddSubField _) (FormArray schema fields) = -- As the code stands, this is the only guarantee we get that every
     -- value in the array will conform to the schema: the fact that we
     -- create the 'empty' version from the same schema template.
     --
@@ -528,19 +513,9 @@ evalForm initialValue = rec
 
   rec (AddSubField _) arg = arg
 
-  rec (SetSubField 0 subEvent) (FormMaybe schema field) = FormMaybe schema $ over _Just (rec subEvent) field
-
-  rec (SetSubField _ subEvent) arg@(FormMaybe schema field) = arg
-
-  rec (SetSubField n subEvent) (FormArray schema fields) = FormArray schema $ over (ix n) (rec subEvent) fields
-
-  rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
-
-  rec (SetSubField n subEvent) arg@(FormUnsupported _) = arg
-
   rec (RemoveSubField n subEvent) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
 
-  rec (RemoveSubField n subEvent) arg = arg
+  rec _ arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
@@ -601,11 +576,17 @@ render state@(State { currentView }) =
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
                     Failure error -> ajaxErrorPane error
+                    Success (JsonEither (Left error)) -> actionsErrorPane error
                     _ -> empty
                 ]
         , viewContainer currentView Transactions
             $ case view _evaluationResult state of
-                Success evaluation -> [ evaluationPane evaluation ]
+                Success (JsonEither (Right evaluation)) -> [ evaluationPane evaluation ]
+                Success (JsonEither (Left error)) ->
+                  [ text "Your simulation has errors. Click the "
+                  , strong_ [ text "Simulation" ]
+                  , text " tab above to fix them and recompile."
+                  ]
                 Failure error ->
                   [ text "Your simulation has errors. Click the "
                   , strong_ [ text "Simulation" ]

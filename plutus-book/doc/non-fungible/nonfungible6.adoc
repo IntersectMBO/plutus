@@ -12,7 +12,7 @@ module NonFungible.NonFungible6 where
 
 import           Language.PlutusTx
 import qualified Language.PlutusTx.AssocMap as AM
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -49,10 +49,10 @@ validateNonFungible nf () name tx =
     && case (pendingTxInputs tx, pendingTxOutputs tx) of
         ([i], os@(o : _)) ->                                -- <1>
             let inValue = pendingTxInValue i                -- <2>
-            in     foldl f V.zero os
-                    == (inValue `V.plus` v3)                -- <3>
+            in     foldMap pendingTxOutValue os
+                    == (inValue + v3)                -- <3>
                 && pendingTxOutValue o
-                    == (inValue `V.plus` v2)                -- <4>
+                    == (inValue + v2)                -- <4>
                 && V.valueOf inValue s name == 0            -- <5>
                 && case pendingTxOutHashes o of
                     Just (vh, _) -> vh == ownHash tx        -- <6>
@@ -64,11 +64,8 @@ validateNonFungible nf () name tx =
 
     v, v2, v3 :: Value
     v  = V.singleton s name 1
-    v2 = v `V.plus` v
-    v3 = v2 `V.plus` v
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
+    v2 = v + v
+    v3 = v2 + v
 ----
 
 <1> We expect exactly one input, the script input we are currently validating,
@@ -142,7 +139,7 @@ start = do
     void $ createTxAndSubmit
         defaultSlotRange
         Set.empty
-        [mkNonFungibleTxOut nf V.zero]
+        [mkNonFungibleTxOut nf zero]
 ----
 ////
 
@@ -162,10 +159,10 @@ forge n = do
     case findOut (nonFungibleSymbol nf) $ Map.toList outs of        -- <1>
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
-                v2   = v `V.plus` v
-                v3   = v2 `V.plus` v
+                v2   = v + v
+                v3   = v2 + v
                 vIn  = txOutValue o
-                vOut = vIn `V.plus` v2
+                vOut = vIn + v2
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
@@ -174,7 +171,7 @@ forge n = do
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut       -- <2>
                                  , pubKeyTxOut v key                -- <3>
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v3                                 -- <4>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
@@ -189,7 +186,7 @@ forge n = do
         let ys = filter f xs                                        -- <5>
         in  case find (ours s . snd) ys of                          -- <6>
                 Just x  -> Just x
-                Nothing -> find (zero . snd) ys                     -- <7>
+                Nothing -> find (zeroValue . snd) ys                     -- <7>
 
     f :: (TxOutRef, TxOut) -> Bool
     f (_, o) = case txOutType o of
@@ -201,8 +198,8 @@ forge n = do
         Nothing -> False
         Just m  -> any (>= 2) [i | (_, i) <- AM.toList m]
 
-    zero :: TxOut -> Bool
-    zero o = txOutValue o == V.zero
+    zeroValue :: TxOut -> Bool
+    zeroValue o = txOutValue o == zero
 
 $(mkFunctions ['start, 'forge])
 ----

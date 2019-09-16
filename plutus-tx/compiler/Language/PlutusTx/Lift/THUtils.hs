@@ -55,3 +55,7 @@ isNewtype :: TH.DatatypeInfo -> Bool
 isNewtype TH.DatatypeInfo{TH.datatypeVariant=variant} = case variant of
     TH.Newtype -> True
     _          -> False
+
+-- | "Safe" wrapper around 'TH.listE' for typed TH.
+tyListE :: [TH.TExpQ a] -> TH.TExpQ [a]
+tyListE texps = TH.unsafeTExpCoerce [| $(TH.listE (fmap TH.unTypeQ texps)) |]

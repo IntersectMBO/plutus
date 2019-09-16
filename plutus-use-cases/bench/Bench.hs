@@ -18,13 +18,12 @@ import qualified Data.ByteString                                   as BS
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
 import qualified Language.PlutusTx.Prelude                         as P
 import           Ledger
-import           Ledger.Ada                                        as Ada
 import qualified Ledger.Crypto                                     as Crypto
-import           Ledger.Value                                      as Value
 import           LedgerBytes
 import           Wallet
 
 import qualified Language.PlutusTx                                 as PlutusTx
+import qualified Language.PlutusTx.Prelude                         as PlutusTx
 import           Language.PlutusTx.Evaluation                      (evaluateCek)
 
 import qualified Recursion                                         as Rec
@@ -82,7 +81,7 @@ fibB = bgroup "fib" [
             then 0
             else if n P.== 1
             then 1
-            else fib (n `P.minus` 1) `P.plus` fib (n `P.minus` 2)
+            else fib (n P.- 1) P.+ fib (n P.- 2)
 
         fibRec :: Integer -> Integer
         fibRec = Rec.fix1zSimple $ \r n -> if n == 0 then 0 else if n == 1 then 1 else r (n-1) + r (n-2)
@@ -111,7 +110,7 @@ sumB = bgroup "sum" [
         fromTo :: Integer -> Integer -> [Integer]
         fromTo f t =
             if f P.== t then [f]
-            else f:(fromTo (f `P.plus` 1) t)
+            else f:(fromTo (f P.+ 1) t)
 
         foldrRec :: (a -> b -> b) -> b -> [a] -> b
         foldrRec f z = go
@@ -139,10 +138,10 @@ sumB = bgroup "sum" [
         haskellRecScott :: Integer -> Integer
         haskellRecScott i = foldrRecScott (+) 0 (Scott.fromTo 1 i)
 
-        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 5) ||])
-        script5Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 5) ||])
-        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 20) ||])
-        script20Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 20) ||])
+        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr (P.+) 0 (fromTo 1 5) ||])
+        script5Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt (P.+) 0 (fromToOpt 1 5) ||])
+        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr (P.+) 0 (fromTo 1 20) ||])
+        script20Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt (P.+) 0 (fromToOpt 1 20) ||])
 
 -- | This aims to exercise some reasonably substantial computation *without* using any builtins.
 -- Hence we also provide explicitly constructed lists, rather than writing 'replicate', which would
@@ -272,15 +271,15 @@ mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
     { pendingTxInputs = []
     , pendingTxOutputs = []
-    , pendingTxFee = Ada.zero
-    , pendingTxForge = Value.zero
+    , pendingTxFee = PlutusTx.zero
+    , pendingTxForge = PlutusTx.zero
     , pendingTxIn = PendingTxIn
         { pendingTxInRef = PendingTxOutRef
             { pendingTxOutRefId = TxHash P.emptyByteString
             , pendingTxOutRefIdx = 0
             }
-        , pendingTxInWitness = Nothing
-        , pendingTxInValue = Value.zero
+        , pendingTxInWitness = ("", "")
+        , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
     , pendingTxSignatures = []

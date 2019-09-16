@@ -11,7 +11,7 @@
 module NonFungible.NonFungible8 where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
+import           Language.PlutusTx.Prelude
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -120,10 +120,10 @@ validateNonFungible nf () name tx =
     && case (pendingTxInputs tx, pendingTxOutputs tx) of
         ([i], os@(o : _)) ->
             let inValue = pendingTxInValue i
-            in     foldl f V.zero os
-                    == (inValue `V.plus` v2)               -- <1>
+            in     foldMap pendingTxOutValue os
+                    == (inValue + v2)               -- <1>
                 && pendingTxOutValue o
-                    == (inValue `V.plus` v)
+                    == (inValue + v)
                 && V.valueOf inValue s name == 0
                 && V.valueOf
                     inValue
@@ -140,10 +140,7 @@ validateNonFungible nf () name tx =
 
     v, v2 :: Value
     v  = V.singleton s name 1
-    v2 = v `V.plus` v
-
-    f :: Value -> PendingTxOut -> Value
-    f w o = w `V.plus` pendingTxOutValue o
+    v2 = v + v
 ----
 
 <1> We only need to forge _two_ tokens, not _three_ anymore.
@@ -196,12 +193,18 @@ hasAdminToken s (_, o) =
 ----
 
 Now we can write our endpoints. The biggest change is in `start`, where
-we now first have to forge the admin token before we can start our policy:
+we now first have to forge the admin token before we can start our policy.
+
+We also rename `start` to `start'`, because for later use we want a version 
+of `start` that _returns_ the symbol of our policy
+.
+It is not allowed to have wallet endpoints in the Playground return types other than `()`, though, 
+so afterwards we will define `start` in terms of `start'`.
 
 [source,haskell]
 ----
-start :: forall m. MonadWallet m => m CurrencySymbol
-start = do
+start' :: forall m. MonadWallet m => m CurrencySymbol
+start' = do
 
     key  <- ownPubKey
     outs <- outputsAt $ pubKeyAddress key
@@ -217,7 +220,7 @@ start = do
                 defaultSlotRange
                 Set.empty
                 [scriptTxOut
-                    V.zero
+                    zero
                     (mkAdminValidator admin)
                     unitData]
             go1 ref $ txOutValue o                         -- <3>
@@ -248,12 +251,12 @@ start = do
                             (mkAdminValidator admin)
                             unitRedeemer
                     o  = pubKeyTxOut                       -- <7>
-                            (v `V.plus` adminValue admin)
+                            (v + adminValue admin)
                             key
                 signTxAndSubmit_ Tx
                     { txInputs     = Set.fromList [i1, i2]
                     , txOutputs    = [o]
-                    , txFee        = A.zero
+                    , txFee        = zero
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
@@ -289,12 +292,15 @@ start = do
                             (mkNonFungibleValidator nf)
                             unitData
                     o2 = pubKeyTxOut                       -- <12>
-                            (txOutValue o `V.minus` v)
+                            (txOutValue o - v)
                             key
                 void $ createTxAndSubmit
                     defaultSlotRange
                     (Set.singleton i)
                     [o1, o2]
+
+start :: MonadWallet m => m ()
+start = void start'
 ----
 
 <1> We pick one of our outputs as the unique output used by the admin token
@@ -324,7 +330,7 @@ token.
 
 <12> The second output gets the excess value contained in the input.
 
-[source,haskell,highlight='31-31,41-41']
+[source,haskell,highlight='33-33,43-43']
 ----
 forge :: forall m. MonadWallet m
       => CurrencySymbol -- admin token symbol
@@ -338,15 +344,17 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ " of " ++ show nf
+        "forging " ++ n ++ 
+        " (symbol " ++ show (nonFungibleSymbol nf) ++
+        ") of " ++ show nf
 
     outs <- outputsAt $ nonFungibleAddress nf
     case findOut s $ Map.toList outs of
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
-                v2   = v `V.plus` v
+                v2   = v + v
                 vIn  = txOutValue o
-                vOut = vIn `V.plus` v
+                vOut = vIn + v
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
@@ -355,7 +363,7 @@ forge s n = do
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
-                , txFee        = A.zero
+                , txFee        = zero
                 , txForge      = v2                               -- <1>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty

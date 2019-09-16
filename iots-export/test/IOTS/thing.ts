@@ -1,8 +1,6 @@
-import * as t from 'io-ts';
-
 // Ledger.Slot.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 // Ledger.Value.CurrencySymbol
@@ -20,7 +18,7 @@ const MapTokenNameInteger = t.type({
     unMap: t.array(
         t.tuple([
             TokenName,
-            t.Int
+            t.number
         ])
     )
 });
@@ -42,7 +40,7 @@ const Value = t.type({
 
 // Wallet.Emulator.Types.Wallet
 const Wallet = t.type({
-    getWallet: t.Int
+    getWallet: t.number
 });
 
 const ScheduleCollectionArgA = Slot;

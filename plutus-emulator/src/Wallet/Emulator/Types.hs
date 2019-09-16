@@ -92,7 +92,7 @@ import           Control.Newtype.Generics  (Newtype)
 import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Foldable             (fold, traverse_)
+import           Data.Foldable             (traverse_)
 import           Data.Hashable             (Hashable)
 import           Data.HashMap.Strict       (HashMap)
 import qualified Data.HashMap.Strict       as HashMap
@@ -109,6 +109,8 @@ import qualified Ledger.Crypto             as Crypto
 import           Prelude                   as P
 import           Schema                    (ToSchema)
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
+
+import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
                                             TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
@@ -307,8 +309,8 @@ selectCoin :: (MonadError WalletAPIError m)
     -> m ([(a, Value)], Value)
 selectCoin fnds vl =
         let
-            total = fold $ fmap snd fnds
-            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl Value.plus Value.zero $ fmap snd fnds)
+            total = foldMap snd fnds
+            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl (<>) mempty $ fmap snd fnds)
             err   = throwError
                     $ InsufficientFunds
                     $ T.unwords
@@ -324,9 +326,9 @@ selectCoin fnds vl =
                 let
                     fundsToSpend   = takeUntil (\(_, runningTotal) -> vl `Value.leq` runningTotal) fundsWithTotal
                     totalSpent     = case reverse fundsToSpend of
-                                        []            -> Value.zero
+                                        []            -> PlutusTx.zero
                                         (_, total'):_ -> total'
-                    change         = totalSpent `Value.minus` vl
+                    change         = totalSpent PlutusTx.- vl
                 in pure (fst <$> fundsToSpend, change)
 
 -- | Take elements from a list until the predicate is satisfied.
@@ -382,7 +384,7 @@ makeLenses ''EmulatorState
 
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (fold . fmap txOutValue . view ownFunds) . view walletStates
+fundsDistribution = Map.map (foldMap txOutValue . view ownFunds) . view walletStates
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -416,7 +418,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-    let total = fold $ fmap txOutValue $ ws ^. ownFunds
+    let total = foldMap txOutValue $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
@@ -450,8 +452,8 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = Set.empty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
-            , txForge = fold $ snd <$> Map.toList mp
-            , txFee = Ada.zero
+            , txForge = foldMap snd $ Map.toList mp
+            , txFee = PlutusTx.zero
             , txValidRange = WAPI.defaultSlotRange
             , txSignatures = Map.empty
             }
@@ -665,7 +667,7 @@ execTraceTxPool pl = snd . runTraceTxPool pl
 --   and notify wallets. Returns the new block
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
 runWalletActionAndProcessPending wallets wallet action = do
-    _ <- walletAction wallet action
+    _ <- runWalletAction wallet action
     block <- processPending
     _ <- walletsNotifyBlock wallets block
     pure block

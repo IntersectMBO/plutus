@@ -44369,20 +44369,13 @@ license = "GPL";
 ({
   mkDerivation
 , base
-, bytestring
 , containers
-, hedgehog
-, memory
-, mtl
-, plutus-emulator
 , plutus-tx
 , plutus-wallet-api
 , stdenv
-, tasty
-, tasty-hedgehog
-, tasty-hunit
 , template-haskell
 , text
+, unlit
 , wl-pprint
 }:
 mkDerivation {
@@ -44393,27 +44386,14 @@ src = .././marlowe;
 libraryHaskellDepends = [
 base
 containers
-mtl
 plutus-tx
 plutus-wallet-api
 template-haskell
 text
 wl-pprint
 ];
-testHaskellDepends = [
-base
-bytestring
-containers
-hedgehog
-memory
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-tasty
-tasty-hedgehog
-tasty-hunit
-template-haskell
-text
+libraryToolDepends = [
+unlit
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
@@ -44518,6 +44498,7 @@ directory
 filepath
 http-types
 lens
+marlowe
 monad-logger
 mtl
 optparse-applicative
@@ -53740,6 +53721,7 @@ license = stdenv.lib.licenses.asl20;
 , doctest
 , extensible-effects
 , hedgehog
+, iots-export
 , language-plutus-core
 , lens
 , mmorph
@@ -53750,6 +53732,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-wallet-api
 , prettyprinter
 , profunctors
+, row-types
 , semigroupoids
 , servant
 , servant-server
@@ -53773,7 +53756,7 @@ aeson
 base
 bytestring
 containers
-extensible-effects
+iots-export
 lens
 mmorph
 monad-control
@@ -53782,6 +53765,7 @@ plutus-emulator
 plutus-tx
 plutus-wallet-api
 profunctors
+row-types
 semigroupoids
 servant
 servant-server
@@ -54332,8 +54316,8 @@ pname = "plutus-tutorial";
 version = "0.1.0.0";
 src = .././plutus-tutorial;
 isLibrary = false;
-isExecutable = false;
-testHaskellDepends = [
+isExecutable = true;
+executableHaskellDepends = [
 base
 bytestring
 containers
@@ -54344,7 +54328,7 @@ plutus-wallet-api
 prettyprinter
 template-haskell
 ];
-testToolDepends = [
+executableToolDepends = [
 doctest
 unlit
 ];
@@ -57116,8 +57100,8 @@ version = "0.13.0.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0maa7fqf75nw1cv5ls6j4wa2mipbw5760134brlw1k2h8sc1mdv6";
-rev = "0d9389151062a94078caf6e66a9dd2cf012646cf";
+sha256 = "0bbsy2x1yn63zc26q6xib1c489b50akjm8l6kb1a8zmpy1pi5d7l";
+rev = "fedae2c308fac73b129a684a7d10f547837470f4";
 fetchSubmodules = true;
 
 };
@@ -60454,6 +60438,48 @@ description = "Correctly-rounded arbitrary-precision floating-point arithmetic";
 license = stdenv.lib.licenses.bsd3;
 
 }) {inherit (pkgs) gmp; inherit (pkgs) mpfr;};
+"row-types" = callPackage
+({
+  mkDerivation
+, base
+, constraints
+, deepseq
+, fetchgit
+, generic-lens
+, hashable
+, profunctors
+, stdenv
+, text
+, unordered-containers
+}:
+mkDerivation {
+
+pname = "row-types";
+version = "0.3.0.0";
+src = fetchgit {
+
+url = "https://github.com/target/row-types";
+sha256 = "0ly5m4r8wkm8gdqyrqzsjfmp189yxsd4qp0zi3idrbgfaf45sk9k";
+rev = "1e8d5e084ffd46f6c7842826a1f62c60820885df";
+fetchSubmodules = true;
+
+};
+libraryHaskellDepends = [
+base
+constraints
+deepseq
+generic-lens
+hashable
+profunctors
+text
+unordered-containers
+];
+doHaddock = false;
+doCheck = false;
+description = "Open Records and Variants";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "rpmbuild-order" = callPackage
 ({
   mkDerivation

@@ -10,12 +10,12 @@
 module Token.Fungible where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude  hiding (plus, minus)
-import           Ledger   
+import           Language.PlutusTx.Prelude
+import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
-import           Wallet    
+import           Wallet
 
 import           Control.Monad              (void)
 import qualified Data.ByteString.Lazy.Char8 as C
@@ -52,7 +52,7 @@ monetary policy of our currency:
 [source,haskell]
 ----
 validateFungible :: Fungible -> FungibleValidator
-validateFungible f () n tx = 
+validateFungible f () n tx =
     case pendingTxOutputs tx of
         [o] -> case pendingTxOutData o of
             DataTxOut       -> False
@@ -63,7 +63,7 @@ validateFungible f () n tx =
         _   -> False                        -- <4>
   where
     v :: Value                              -- <5>
-    v = V.singleton 
+    v = V.singleton
             (ownCurrencySymbol tx)          -- <6>
             (name f)
             n
@@ -94,7 +94,7 @@ mkFungibleRedeemerScript :: Integer -> RedeemerScript
 mkFungibleRedeemerScript = RedeemerScript . lifted
 
 mkFungibleValidator :: Fungible -> ValidatorScript
-mkFungibleValidator = ValidatorScript 
+mkFungibleValidator = ValidatorScript
                     . applyScript $$(compileScript [|| validateFungible ||])
                     . lifted
 
@@ -119,7 +119,7 @@ will use the previous UTXO as input to validate its forging.
 
 [source,haskell]
 ----
-forge :: forall m. MonadWallet m 
+forge :: forall m. MonadWallet m
       => String  -- token name
       -> Integer -- quantity to forge
       -> m ()
@@ -130,16 +130,16 @@ forge n s = do
             { name   = TokenName $ C.pack n
             , issuer = key                                           -- <1>
             }
-    logMsg $ T.pack $ 
+    logMsg $ T.pack $
         "forging " ++ show s ++ " of " ++ show f
     startWatching $ fungibleAddress f                                -- <2>
 
     void $ createTxAndSubmit                                         -- <3>
         defaultSlotRange
         Set.empty
-        [ scriptTxOut 
-            V.zero                                                 
-            (mkFungibleValidator f) 
+        [ scriptTxOut
+            zero
+            (mkFungibleValidator f)
             fungibleDataScript
         ]
 
@@ -150,7 +150,7 @@ forge n s = do
     go f = do
         t <- trigger
         registerOnce t $ handler f
-        
+
     trigger :: m EventTrigger
     trigger = do
         sl <- slot
@@ -168,7 +168,7 @@ forge n s = do
                                         (mkFungibleValidator f)
                                         (mkFungibleRedeemerScript s)
                     , txOutputs    = [pubKeyTxOut v $ issuer f]      -- <7>
-                    , txFee        = A.zero
+                    , txFee        = zero
                     , txForge      = v                               -- <8>
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
@@ -238,7 +238,7 @@ trade:
 data TradeAction = Execute | Reclaim
     deriving Show
 
-makeLift ''TradeAction 
+makeLift ''TradeAction
 
 type TradeValidator = () -> TradeAction -> PendingTx -> Bool
 
@@ -257,7 +257,7 @@ validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
 validateTrade t () Reclaim tx = case pendingTxOutputs tx of
     [o] -> case pendingTxOutData o of
         PubKeyTxOut key ->
-               intervalFrom (deadline t) 
+               intervalFrom (deadline t)
                     `contains` pendingTxValidRange tx
             && (   (   key == party1 t
                     && pendingTxOutValue o == value1 t)
@@ -288,7 +288,7 @@ We write the usual helper functions and have completed the on-chain part:
 [source,haskell]
 ----
 mkTradeValidator :: Trade -> ValidatorScript
-mkTradeValidator = 
+mkTradeValidator =
       ValidatorScript
     . applyScript $$(compileScript [|| validateTrade ||])
     . lifted
@@ -319,7 +319,7 @@ When this happens, the trade has failed, and the seller will reclaim her currenc
 
 [source,haskell]
 ----
-sell :: forall m. MonadWallet m 
+sell :: forall m. MonadWallet m
      => PubKey  -- currency issuer
      -> String  -- currency name
      -> Integer -- currency quantity
@@ -354,15 +354,15 @@ sell i c n v2 p2 dl = do
   where
     trigger1 :: Trade -> EventTrigger               -- <2>
     trigger1 t =
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value1 t <> value2 t)
         `andT`
         slotRangeT
             (intervalTo $ deadline t)
     trigger2 t =                                    -- <3>
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value1 t)
         `andT`
         slotRangeT
@@ -414,7 +414,7 @@ reclaiming her payment in case of a failed trade:
 
 [source,haskell]
 ----
-buy :: forall m. MonadWallet m 
+buy :: forall m. MonadWallet m
     => PubKey  -- currency issuer
     -> String  -- currency name
     -> Integer -- currency quantity
@@ -447,8 +447,8 @@ buy i c n p1 v2 dl = do
 
   where
     trigger t =                                    -- <2>
-        fundsAtAddressGeqT 
-            (tradeAddress t) 
+        fundsAtAddressGeqT
+            (tradeAddress t)
             (value2 t)
         `andT`
         slotRangeT
@@ -471,4 +471,3 @@ $(mkFunctions ['forge, 'sell, 'buy])
 <2> Has the deadline passed, and is my payment is still locked?
 
 <3> Reclaim the payment.
-

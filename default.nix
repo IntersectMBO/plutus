@@ -164,7 +164,8 @@ let
     };
 
     docs = {
-      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc {};
+      # this version of asciidoctor is also more recent, although we don't care about the epub bit
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
       plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
       plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
 
@@ -185,19 +186,16 @@ let
             text = "Combined documentation for all the public Plutus libraries.";
         };
       };
+
+      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
+    };
+
+    papers = {
+      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; };
+      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; };
     };
 
     plutus-playground = rec {
-      documentation-site = let
-        # TODO: the playgroundUrl needs to be set to whatever will actually be appropriate when it's bundled
-        # with the playground
-        adjustedTutorial = docs.plutus-tutorial.override { playgroundUrl = "../.."; haddockUrl = "../haddock"; };
-      in pkgs.runCommand "documentation-site" {} ''
-        mkdir -p $out
-        cp -aR ${adjustedTutorial} $out/tutorial
-        cp -aR ${docs.public-combined-haddock}/share/doc $out/haddock
-      '';
-
       playground-exe = set-git-rev haskellPackages.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -300,6 +298,33 @@ let
           Cmd = ["${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
         };
       };
+
+      development = pkgs.dockerTools.buildImage {
+        name = "plutus-development";
+        contents =         
+          let runtimeGhc = 
+                haskellPackages.ghcWithPackages (ps: [
+                  haskellPackages.language-plutus-core
+                  haskellPackages.plutus-core-interpreter
+                  haskellPackages.plutus-emulator
+                  haskellPackages.plutus-wallet-api
+                  haskellPackages.plutus-tx
+                  haskellPackages.plutus-use-cases
+                  haskellPackages.plutus-ir
+                  haskellPackages.plutus-contract
+                ]);
+          in  [ 
+                runtimeGhc
+                pkgs.binutils-unwrapped
+                pkgs.coreutils
+                pkgs.bash
+                pkgs.git # needed by cabal-install
+                haskellPackages.cabal-install 
+              ];
+        config = {
+          Cmd = ["bash"];
+        };
+      };
     };
 
     plutus-contract = rec {
@@ -325,9 +350,10 @@ let
     };
 
     agdaPackages = rec {
+      Agda = haskellPackages.Agda;
       # Override the agda builder code from nixpkgs to use our versions of Agda and Haskell.
       # The Agda version is from our package set, and is newer than the one in nixpkgs.
-      agda = pkgs.agda.override { Agda = haskellPackages.Agda; };
+      agda = pkgs.agda.override { inherit Agda; };
 
       # We also rely on a newer version of the stdlib
       AgdaStdlib = (pkgs.AgdaStdlib.override {

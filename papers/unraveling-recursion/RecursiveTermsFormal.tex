@@ -1,0 +1,59 @@
+\newcommand{\selnk}[2]{\sel_{#2}^{#1}}
+\newcommand{\selk}[1]{\sel_{#1}}
+
+We define the compilation scheme for recursive term bindings in
+\cref{fig:compile-recursive-terms}, along with a number of auxiliary
+functions.
+
+\newcommand{\natT}[2]{#1 \rightsquigarrow #2}
+
+\begin{figure}[!t]
+  \centering
+  \begin{displaymath}
+  \begin{array}{l@{\ }l@{\ }l}
+  \multicolumn{3}{l}{\textsc{Auxiliary functions}}\\
+  \textsf{Id} &=& \lambda (X :: \Type) . X \\
+  \natT{F}{G} &=& \forall Q . F\ Q \rightarrow G\ Q\\
+  \fixBy &=& \Lambda (F :: \Type \kindArrow \Type) . 
+  \lambda (by : (\natT{F}{\textsf{Id}}) \rightarrow (\natT{F}{\textsf{Id}})) . \\
+  &&z\ (\lambda (r : (\natT{F}{F}) \rightarrow (\natT{F}{\textsf{Id}})) . 
+  \lambda (f : \natT{F}{F}) . 
+  by (
+  \Lambda Q . 
+  \lambda (k : F\ Q) . 
+  r\ f\ \{ Q \}\ (f\ \{ Q \}\ k)))\\
+
+  \selk{k}(\seq{T}) &=& \lambda (\seq{x:T}) . x_k\\
+
+  \by(\seq{T}) &=& \lambda (r : \forall Q . (\seqFunArr{T}{Q}) \rightarrow Q) . \Lambda Q. 
+  \lambda (k : \seqFunArr{T}{Q}).
+  k\ \seq{\fixed{r}\ \{ \fixed{Q} \}\ (\selk{j} \fixed{(\seq{T})})}^j\\
+
+  \fixml(\seq{T}) &=& \fixBy\ \{ \lambda Q . \seqFunArr{T}{Q} \}\ \by(\seq{T})\\
+  \\
+  \multicolumn{3}{l}{\textsc{Compilation function}}\\
+  \multicolumn{3}{l}{\compiletermrec(\tlet\, \rec\, \seq{x : T = t} \tin\, u)}\\
+  &=&\tlet\, r = \fixml(\seq{T})\ \Lambda Q . \lambda (k: \seqFunArr{T}{Q} )\ (\seq{x:T}) . k\ \seq{t} \\
+  &&\tin\, \tlet \seq{x = \fixed{r}\ \{ T \}\ (\selk{j} \fixed{(\seq{T})})}^j \tin\, u
+  \end{array}
+  \end{displaymath}
+
+  \captionof{figure}{Compilation of recursive let-bindings}
+  \label{fig:compile-recursive-terms}
+\end{figure}
+
+\noindent The definitions of $\fixBy$, $\by$, and $\fixml$ are as in our
+Agda presentation. The function $\selk{k}$ is what we pass to a Scott-encoded
+tuple to select the $k$th element. The Z combinator is defined as in the
+previous section (we do not repeat the definition here). We have given the lazy version of $\by$, but it is
+straightforward to define the strict version, in exchange for the corresponding
+restriction on the types of the recursive bindings.
+
+The compilation function is a little indirect: we create a recursive tuple of
+values, then we let-bind each component of the tuple again! Why not just pass a
+single function to the tuple that consumes all the components and produces $t$? The answer
+is that in order to use the Scott-encoded tuple we need to give it the
+\emph{type} of the value that we are producing, which in this case would be the
+type of $t$. But we do not know this type without doing type inference
+on \FIR{}. This way we instead extract each of the
+components, whose types we \emph{do} know, since they are in the original let-binding.

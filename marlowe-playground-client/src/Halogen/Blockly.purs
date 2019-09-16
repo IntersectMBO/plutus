@@ -26,7 +26,7 @@ import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Parser as Parser
 import Marlowe.Pretty (pretty)
-import Marlowe.Types (Contract(..))
+import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, discard, pure, show, unit, ($), map, (<>), (<<<), const)
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
@@ -123,7 +123,7 @@ eval (SetCode code next) = do
   let
     contract = case runParser code Parser.contract of
       Right c -> c
-      Left _ -> Null
+      Left _ -> Refund
   case blocklyState of
     Nothing -> pure unit
     Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)

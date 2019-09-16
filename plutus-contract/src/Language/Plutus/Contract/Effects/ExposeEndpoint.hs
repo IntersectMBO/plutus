@@ -1,54 +1,65 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
--- | Expose an endpoint
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.ExposeEndpoint where
 
-import           Control.Eff
-import           Control.Eff.Exception
-import           Control.Eff.Extend
-import           Control.Eff.Reader.Lazy
-import           Data.Aeson                            (FromJSON)
-import qualified Data.Aeson                            as Aeson
-import           Data.Function                         (fix)
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Proxy
+import           Data.Row
+import           Data.Set                         (Set)
+import qualified Data.Set                         as Set
+import           GHC.Generics                     (Generic)
+import           GHC.TypeLits                     (Symbol, symbolVal)
 
+import           Language.Plutus.Contract.IOTS
+import           Language.Plutus.Contract.Request as Req
+import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 
-import           Language.Plutus.Contract.Prompt.Event as Event
-import           Language.Plutus.Contract.Prompt.Hooks as Hooks
+newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
+    deriving stock (Eq, Ord, Generic, Show)
+    deriving newtype (ToJSON, FromJSON)
+    deriving anyclass (IotsType)
 
-data ExposeEndpoint v where
-  ExposeEndpoint :: FromJSON a => String -> ExposeEndpoint a
+type HasEndpoint l a s =
+  ( HasType l a (Input s)
+  , HasType l ActiveEndpoints (Output s)
+  , KnownSymbol l
+  , ContractRow s
+  )
 
--- TODO: The name of the endpoint (currently a value) and its schema (currently
--- missing from the ExposeEndpoint type) should both be expressed on the type
--- level, so that we can write
---
--- endpoint :: Member (ExposeEndpoint "myEndpoint" MySchema) r => Eff r (Result MySchema)
--- (maybe we don't need the endpoint name then, if we say that each endpoint
--- has a unique type)
+newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDescription }
+  deriving (Eq, Ord, Show)
+  deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
-exposeEndpoint :: FromJSON a => Member ExposeEndpoint r => String -> Eff r a
-exposeEndpoint = send . ExposeEndpoint
+type Endpoint l a = l .== (a, ActiveEndpoints)
 
-instance (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => Handle ExposeEndpoint r a k where
-  handle step cor req = case req of
-    ExposeEndpoint ep -> step (comp (singleK promptEndpoint) cor ^$ ep)
+-- | Expose an endpoint, return the data that was entered
+endpoint
+  :: forall l a s.
+     ( HasEndpoint l a s )
+  => Contract s a
+endpoint = request @l @_ @_ @s s where
+  s = ActiveEndpoints $ Set.singleton $ EndpointDescription $ symbolVal (Proxy @l)
 
-promptEndpoint :: (FromJSON a, Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => String -> Eff r a
-promptEndpoint ep = do
-  sl <- reader (>>= Event.endpointEvent)
-  case sl of
-    Just (ep', vl)
-      | ep' == ep ->
-        case Aeson.fromJSON vl of
-                    Aeson.Success r   -> pure r
-                    Aeson.Error   err -> throwError @String err
-    _ -> throwError @(Hook ()) (Hooks.endpointHook ep)
+event
+  :: forall (l :: Symbol) a s. (KnownSymbol l, HasType l a (Input s), AllUniqueLabels (Input s))
+  => a
+  -> Event s
+event = Event . IsJust (Label @l)
 
-runExposeEndpoint :: (Member (Reader (Maybe Event)) r, Member (Exc (Hook ())) r, Member (Exc String) r) => Eff (ExposeEndpoint ': r) a -> Eff r a
-runExposeEndpoint = fix (handle_relay pure)
+isActive
+  :: forall (l :: Symbol) s. (KnownSymbol l, HasType l ActiveEndpoints (Output s))
+  => Handlers s
+  -> Bool
+isActive (Handlers r) =
+  let lbl = EndpointDescription $ symbolVal (Proxy @l)
+  in Set.member lbl $ unActiveEndpoints $ r .! Label @l

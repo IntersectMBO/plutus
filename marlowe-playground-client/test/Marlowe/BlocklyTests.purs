@@ -23,7 +23,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, buildGenerator, toBlockly)
 import Marlowe.Gen (genContract)
 import Marlowe.Parser as Parser
-import Marlowe.Types (Contract, Observation, Value)
+import Marlowe.Semantics (Contract, Observation, Value)
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.QuickCheck.Gen (Gen)
 import Test.Unit (Test, TestSuite, suite, test)

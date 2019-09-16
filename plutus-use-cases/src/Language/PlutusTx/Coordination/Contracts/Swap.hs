@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -14,7 +15,7 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
-import           Ledger.Validation         (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
+import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
@@ -26,16 +27,23 @@ instance Eq a => Eq (Ratio a) where
     {-# INLINABLE (==) #-}
     (n1 :% d1) == (n2 :% d2) = n1 == n2 && d1 == d2
 
+instance AdditiveSemigroup (Ratio Integer) where
+    {-# INLINABLE (+) #-}
+    (x :% y) + (x' :% y') = ((x * y') + (x' * y)) :% (y * y')
+
+instance AdditiveMonoid (Ratio Integer) where
+    {-# INLINABLE zero #-}
+    zero = zero :% one
+
+instance AdditiveGroup (Ratio Integer) where
+    {-# INLINABLE (-) #-}
+    (x :% y) - (x' :% y') = ((x * y') - (x' * y)) :% (y * y')
+
+instance MultiplicativeSemigroup (Ratio Integer) where
+    {-# INLINABLE (*) #-}
+    (x :% y) * (x' :% y') = (x * x') :% (y * y')
+
 PlutusTx.makeLift ''Ratio
-
-timesR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-timesR (x :% y) (x' :% y') = (x `multiply` x') :% (y `multiply` y')
-
-plusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-plusR (x :% y) (x' :% y') = ((x `multiply` y') `plus` (x' `multiply` y)) :% (y `multiply` y')
-
-minusR :: Ratio Integer -> Ratio Integer -> Ratio Integer
-minusR (x :% y) (x' :% y') = ((x `multiply` y') `minus` (x' `multiply` y)) :% (y `multiply` y')
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -97,7 +105,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
 
         rtDiff :: Ratio Integer
-        rtDiff = rt `minusR` swapFixedRate
+        rtDiff = rt - swapFixedRate
 
         amt    = Ada.getLovelace swapNotionalAmt
         margin = Ada.getLovelace swapMargin
@@ -106,21 +114,21 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         amt' = fromInt amt
 
         delta :: Ratio Integer
-        delta = amt' `timesR` rtDiff
+        delta = amt' * rtDiff
 
         fixedPayment :: Integer
-        fixedPayment = round_ (amt' `plusR` delta)
+        fixedPayment = round_ (amt' + delta)
 
         floatPayment :: Integer
-        floatPayment = round_ (amt' `plusR` delta)
+        floatPayment = round_ (amt' + delta)
 
         -- Compute the payouts (initial margin +/- the sum of the two
         -- payments), ensuring that it is at least 0 and does not exceed
         -- the total amount of money at stake (2 * margin)
         clamp :: Integer -> Integer
-        clamp x = min 0 (max (multiply 2 margin) x)
-        fixedRemainder = clamp (plus (minus margin fixedPayment) floatPayment)
-        floatRemainder = clamp (plus (minus margin floatPayment) fixedPayment)
+        clamp x = min 0 (max (2 * margin) x)
+        fixedRemainder = clamp ((margin - fixedPayment) + floatPayment)
+        floatRemainder = clamp ((margin - floatPayment) + fixedPayment)
 
         -- The transaction must have one input from each of the
         -- participants.
@@ -138,12 +146,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: PendingTxIn -> Bool
-        iP1 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFixedLeg && adaValueIn v == margin
+        iP1 PendingTxIn{pendingTxInValue=v} = Validation.txSignedBy p swapOwnersFixedLeg && adaValueIn v == margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: PendingTxIn -> Bool
-        iP2 (PendingTxIn _ _ v) = Validation.txSignedBy p swapOwnersFloating && adaValueIn v == margin
+        iP2 PendingTxIn{pendingTxInValue=v} = Validation.txSignedBy p swapOwnersFloating && adaValueIn v == margin
 
         inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 

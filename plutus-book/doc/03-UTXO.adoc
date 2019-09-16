@@ -48,7 +48,7 @@ from other transactions.
 
 [#tx-flow]
 .UTxO Funds Flow Example
-image::UTxO_pic.png[]
+image::UTXO_pic.png[]
 
 The above model is strictly showing the flow of currency between several
 participants. In this simplified version, the transactions illustrated are not
@@ -78,7 +78,7 @@ model we discuss here, refer to <<utxo-definitions>>.
 
 [#utxo-definitions]
 .Basic UTxO definitions
-image::UTxO.png[]
+image::UTXO.png[]
 
 Before we examine the structure of transactions, let us look at how book keeping
 is done on the ledger. The record on the ledger that

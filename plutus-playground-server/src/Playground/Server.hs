@@ -10,21 +10,19 @@ module Playground.Server
     ( mkHandlers
     ) where
 
-import           Control.Monad.Except         (MonadError, runExceptT, throwError)
+import           Control.Monad.Except         (runExceptT, throwError)
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
-import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode))
 import           Ledger                       (hashTx)
-import           Network.HTTP.Types           (hContentType)
 import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult))
 import qualified Playground.API               as PA
 import qualified Playground.Interpreter       as PI
 import           Playground.Usecases          (vesting)
-import           Servant                      (ServantErr, err400, errBody, errHeaders)
+import           Servant                      (err400, errBody)
 import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
 import qualified Wallet.Graph                 as V
@@ -42,13 +40,7 @@ acceptSourceCode sourceCode = do
             pure . Left $ CompilationErrors errors
         Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
-throwJSONError :: (MonadError ServantErr m, ToJSON a) => ServantErr -> a -> m b
-throwJSONError err json =
-    throwError $ err {errBody = encode json, errHeaders = [jsonHeader]}
-  where
-    jsonHeader = (hContentType, "application/json;charset=utf-8")
-
-runFunction :: Evaluation -> Handler EvaluationResult
+runFunction :: Evaluation -> Handler (Either PA.PlaygroundError EvaluationResult)
 runFunction evaluation = do
     let maxInterpretationTime :: Microsecond =
             fromMicroseconds (80 * 1000 * 1000)
@@ -58,15 +50,14 @@ runFunction evaluation = do
     case result of
         Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) -> do
             let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
-            pure $
+            pure . Right $
                 EvaluationResult
                     (fmap (\tx -> (hashTx tx, tx)) <$> blockchain)
                     flowgraph
                     emulatorLog
                     fundsDistribution
                     walletAddresses
-        Left (PA.InterpreterError errors) -> throwJSONError err400 errors
-        Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
+        Left playgroundError -> pure . Left $ playgroundError
 
 checkHealth :: Handler ()
 checkHealth = do

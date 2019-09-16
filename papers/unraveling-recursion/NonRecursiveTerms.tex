@@ -1,0 +1,19 @@
+\subsection{Non-recursive term and type bindings}
+\label{sec:non-recursive-terms}
+
+Non-recursive term and type bindings are easy to compile.
+They are encoded as immediately-applied lambda- and type-abstractions,
+respectively. We define the compilation scheme in \cref{fig:compile-nonrecursive-terms}.
+
+\begin{figure}[!t]
+  \centering
+  \begin{displaymath}
+  \begin{array}{lll}
+  \compileterm(\tlet\, x : t = b\, \tin\, v) &=& (\lambda (x : t) . v)\ b\\
+  \compiletype(\tlet\, t :: k = b\, \tin\, v) &=& (\Lambda (t :: k) . v)\ \{b\}
+  \end{array}
+  \end{displaymath}
+
+  \captionof{figure}{Compilation of non-recursive term and type bindings}
+  \label{fig:compile-nonrecursive-terms}
+\end{figure}

@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 // Ledger.Value
 const CurrencySymbol = t.type({
     unCurrencySymbol: t.string
@@ -7,7 +5,7 @@ const CurrencySymbol = t.type({
 
 // Ledger.Slot
 const Slot = t.type({
-    getSlot: t.Int
+    getSlot: t.number
 });
 
 // Ledger.Crypto
@@ -26,7 +24,7 @@ const Value = t.type({
         CurrencySymbol,
         t.record(
             TokenName,
-            t.Int
+            t.number
         )
     )
 });

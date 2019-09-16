@@ -38,7 +38,7 @@ import           Data.Proxy
 -- | Get a Plutus Core term corresponding to the given value.
 lift :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Term TyName Name ())
 lift x = do
-    lifted <- runDefT () $ Lift.lift x
+    lifted <- liftQuote $ runDefT () $ Lift.lift x
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm lifted
     pure $ void compiled
 
@@ -55,7 +55,7 @@ constCode
     -> CompiledCode b
     -> m (CompiledCode (a -> b))
 constCode proxy code = do
-    newTerm <- runDefT () $ do
+    newTerm <- liftQuote $ runDefT () $ do
         term <- Lift.lift code
         ty <- Lift.typeRep proxy
         pure $ TyInst () (PLC.constPartial term) ty
@@ -112,7 +112,7 @@ typeCheckAgainst p plcTerm = do
     term <- PIR.embed <$> PLC.rename plcTerm
     -- We need to run Def *before* applying to the term, otherwise we may refer to abstract
     -- types and we won't match up with the term.
-    idFun <- runDefT () $ do
+    idFun <- liftQuote $ runDefT () $ do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term

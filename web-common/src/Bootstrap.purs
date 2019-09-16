@@ -364,6 +364,33 @@ formCheckInput = ClassName "form-check-input"
 formCheckLabel :: ClassName
 formCheckLabel = ClassName "form-check-label"
 
+formText :: ClassName
+formText = ClassName "form-text"
+
+textMuted :: ClassName
+textMuted = ClassName "text-muted"
+
+inputGroup :: ClassName
+inputGroup = ClassName "input-group"
+
+inputGroup_ :: forall p i. Array (HTML p i) -> HTML p i
+inputGroup_ = div [class_ inputGroup]
+
+inputGroupPrepend :: ClassName
+inputGroupPrepend = ClassName "input-group-prepend"
+
+inputGroupPrepend_ :: forall p i. Array (HTML p i) -> HTML p i
+inputGroupPrepend_ = div [class_ inputGroupPrepend]
+
+inputGroupAppend :: ClassName
+inputGroupAppend = ClassName "input-group-append"
+
+inputGroupAppend_ :: forall p i. Array (HTML p i) -> HTML p i
+inputGroupAppend_ = div [class_ inputGroupAppend]
+
+inputGroupText :: ClassName
+inputGroupText = ClassName "input-group-text"
+
 validFeedback :: ClassName
 validFeedback = ClassName "valid-feedback"
 

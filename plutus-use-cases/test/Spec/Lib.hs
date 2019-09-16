@@ -1,4 +1,9 @@
-module Spec.Lib(reasonable, goldenPir) where
+module Spec.Lib
+    ( reasonable
+    , goldenPir
+    , timesFeeAdjust
+    , timesFeeAdjustV
+    ) where
 
 import           Control.Monad.IO.Class    (MonadIO (liftIO))
 import           Test.Tasty
@@ -10,8 +15,11 @@ import           Data.String
 import           Data.Text.Prettyprint.Doc
 
 import           Language.PlutusTx
+import qualified Language.PlutusTx.Prelude as P
 import           Ledger                    (ValidatorScript)
 import qualified Ledger
+import qualified Ledger.Ada                as Ada
+import           Ledger.Value              (Value)
 
 -- | Assert that the size of a 'ValidatorScript' is below
 --   the maximum.
@@ -25,3 +33,18 @@ reasonable (Ledger.ValidatorScript s) maxSize = do
 
 goldenPir :: FilePath -> CompiledCode a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
+
+staticFee :: Integer
+staticFee = 0
+
+-- | Deduct transaction fees from wallet funds, and make
+--   the fee amount explicit in the test specification
+timesFeeAdjust :: Integer -> Integer -> Value
+timesFeeAdjust multiplier change =
+    timesFeeAdjustV multiplier (Ada.lovelaceValueOf change)
+
+-- | Deduct transaction fees from wallet funds, and make
+--   the fee amount explicit in the test specification
+timesFeeAdjustV :: Integer -> Value -> Value
+timesFeeAdjustV multiplier change =
+    change P.- Ada.lovelaceValueOf (staticFee * multiplier)

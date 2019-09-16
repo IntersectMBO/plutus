@@ -99,36 +99,38 @@ splitVal = property $ do
 valueAddIdentity :: Property
 valueAddIdentity = property $ do
     vl1 <- forAll Gen.genValue
-    Hedgehog.assert $ vl1 == (vl1 `Value.plus` Value.zero)
-    Hedgehog.assert $ vl1 == (Value.zero `Value.plus` vl1)
+    Hedgehog.assert $ vl1 == (vl1 PlutusTx.+ PlutusTx.zero)
+    Hedgehog.assert $ vl1 == (PlutusTx.zero PlutusTx.+ vl1)
 
 valueAddInverse :: Property
 valueAddInverse = property $ do
     vl1 <- forAll Gen.genValue
-    let vl1' = Value.negate vl1
-    Hedgehog.assert $ Value.zero == (vl1 `Value.plus` vl1')
+    let vl1' = PlutusTx.negate vl1
+    Hedgehog.assert $ PlutusTx.zero == (vl1 PlutusTx.+ vl1')
 
 valueScalarIdentity :: Property
 valueScalarIdentity = property $ do
     vl1 <- forAll Gen.genValue
-    Hedgehog.assert $ vl1 == Value.scale 1 vl1
+    Hedgehog.assert $ vl1 == PlutusTx.scale 1 vl1
 
 valueScalarDistrib :: Property
 valueScalarDistrib = property $ do
     vl1 <- forAll Gen.genValue
     vl2 <- forAll Gen.genValue
     scalar <- forAll (Gen.integral (fromIntegral <$> Range.linearBounded @Int))
-    let r1 = Value.scale scalar (Value.plus vl1 vl2)
-        r2 = Value.plus (Value.scale scalar vl1) (Value.scale scalar vl2)
+    let r1 = PlutusTx.scale scalar (vl1 PlutusTx.+ vl2)
+        r2 = PlutusTx.scale scalar vl1 PlutusTx.+ PlutusTx.scale scalar vl2
     Hedgehog.assert $ r1 == r2
 
 intvlMember :: Property
 intvlMember = property $ do
     (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
-    let (from, to) = (Slot $ min i1 i2, Slot $ max i1 i2)
-        i          = W.interval from to
-    Hedgehog.assert $ W.member from i || W.isEmpty i
-    Hedgehog.assert $ (not $ W.member to i) || W.isEmpty i
+    let (from, to) = (min i1 i2, max i1 i2)
+        i          = W.interval (Slot from) (Slot to)
+    Hedgehog.assert $ W.member (Slot from) i || W.isEmpty i
+    Hedgehog.assert $ not (W.member (Slot (from-1)) i) || W.isEmpty i
+    Hedgehog.assert $ W.member (Slot to) i || W.isEmpty i
+    Hedgehog.assert $ not (W.member (Slot (to+1)) i) || W.isEmpty i
 
 intvlContains :: Property
 intvlContains = property $ do

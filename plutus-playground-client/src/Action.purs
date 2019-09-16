@@ -1,34 +1,39 @@
 module Action
   ( simulationPane
+  , actionsErrorPane
   ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, validFeedback_, wasValidated)
+import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Int as Int
-import Data.Lens (preview, view)
+import Data.Lens (Lens', over, preview, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.RawJson (JsonTuple(..))
+import Data.RawJson (JsonEither(..), JsonTuple(..))
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onChecked, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disabled, draggable, for, id_, name, placeholder, required, type_, value)
+import Halogen.HTML.Properties as HP
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
+import Ledger.Interval (Extended(..), Interval, _Interval)
+import Ledger.Slot (Slot(..))
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, _Fn, _FunctionSchema)
-import Prelude (Unit, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Playground.API (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
+import Prelude (Unit, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), Blockchain, ChildQuery, ChildSlot, DragAndDropEventType(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _argumentSchema, _functionName, _resultBlockchain, _simulatorWallet, _simulatorWalletWallet, _walletId)
+import Types (class HasBound, Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), ChildQuery, ChildSlot, DragAndDropEventType(..), FieldEvent(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _argumentSchema, _functionName, _ivFrom, _ivTo, _simulatorWallet, _simulatorWalletWallet, _walletId, hasBound, isInclusive)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -40,7 +45,7 @@ simulationPane ::
   Value ->
   Maybe Int ->
   Cursor Simulation ->
-  WebData EvaluationResult ->
+  WebData (JsonEither PlaygroundError EvaluationResult) ->
   ParentHTML Query ChildQuery ChildSlot m
 simulationPane initialValue actionDrag simulations evaluationResult = case current simulations of
   Just (Simulation simulation) ->
@@ -59,7 +64,7 @@ simulationPane initialValue actionDrag simulations evaluationResult = case curre
         [ simulationsNav simulations
         , walletsPane simulation.signatures initialValue simulation.wallets
         , br_
-        , actionsPane isValidWallet actionDrag simulation.actions (view _resultBlockchain <$> evaluationResult)
+        , actionsPane isValidWallet actionDrag simulation.actions evaluationResult
         ]
   Nothing ->
     div_
@@ -120,7 +125,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData Blockchain -> HTML p Query
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p Query
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -252,7 +257,7 @@ actionArgumentField ancestors _ arg@(FormInt n) =
         , value $ maybe "" show n
         , required true
         , placeholder "Int"
-        , onValueInput $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+        , onValueInput $ HE.input (SetField <<< SetIntField <<< Int.fromString)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -264,7 +269,7 @@ actionArgumentField ancestors _ arg@(FormBool b) =
         , id_ elementId
         , classes (Array.cons formCheckInput (actionArgumentClass ancestors))
         , checked b
-        , onChecked (Just <<< HQ.action <<< SetBoolField)
+        , onChecked $ HE.input (SetField <<< SetBoolField)
         ]
     , label
         [ class_ formCheckLabel
@@ -284,7 +289,7 @@ actionArgumentField ancestors _ arg@(FormString s) =
         , value $ fromMaybe "" s
         , required true
         , placeholder "String"
-        , onValueInput $ HE.input SetStringField
+        , onValueInput $ HE.input (SetField <<< SetStringField)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -308,7 +313,7 @@ actionArgumentField ancestors _ arg@(FormRadio options s) =
             , name option
             , value option
             , required (s == Nothing)
-            , onValueInput $ HE.input $ SetRadioField
+            , onValueInput $ HE.input (SetField <<< SetRadioField)
             , checked (Just option == s)
             ]
         , label
@@ -326,7 +331,7 @@ actionArgumentField ancestors _ arg@(FormHex s) =
         , value $ fromMaybe "" s
         , required true
         , placeholder "String"
-        , onValueInput $ HE.input SetHexField
+        , onValueInput $ HE.input (SetField <<< SetHexField)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -375,22 +380,128 @@ actionArgumentField ancestors isNested (FormObject subFields) =
         ]
     )
 
+actionArgumentField ancestors isNested (FormSlotRange interval) =
+  div [ class_ formGroup, nesting isNested ]
+    [ label [ for "interval" ] [ text "Interval" ]
+    , formRow_
+        [ label [ for "ivFrom", classes [ col, colFormLabel ] ] [ text "From" ]
+        , label [ for "ivTo", classes [ col, colFormLabel ] ] [ text "To" ]
+        ]
+    , formRow_
+        [ let
+            extensionLens :: Lens' (Interval Slot) (Extended Slot)
+            extensionLens = _Interval <<< _ivFrom <<< _LowerBoundExtended
+
+            inclusionLens :: Lens' (Interval Slot) Boolean
+            inclusionLens = _Interval <<< _ivFrom <<< _LowerBoundInclusive
+          in
+            div [ classes [ col, extentFieldClass ] ]
+              [ inputGroup_
+                  [ inputGroupPrepend_
+                      [ extentFieldExtendedButton extensionLens NegInf
+                      , extentFieldInclusionButton inclusionLens StepBackward Reverse
+                      ]
+                  , extentFieldInput extensionLens
+                  ]
+              ]
+        , let
+            extensionLens :: Lens' (Interval Slot) (Extended Slot)
+            extensionLens = _Interval <<< _ivTo <<< _UpperBoundExtended
+
+            inclusionLens :: Lens' (Interval Slot) Boolean
+            inclusionLens = _Interval <<< _ivTo <<< _UpperBoundInclusive
+          in
+            div [ classes [ col, extentFieldClass ] ]
+              [ inputGroup_
+                  [ extentFieldInput extensionLens
+                  , inputGroupAppend_
+                      [ extentFieldInclusionButton inclusionLens StepForward Play
+                      , extentFieldExtendedButton extensionLens PosInf
+                      ]
+                  ]
+              ]
+        ]
+    , small
+        [ classes [ formText, textMuted ] ]
+        [ text $ "From "
+            <> humanise (view (_Interval <<< _ivFrom) interval)
+            <> " to "
+            <> humanise (view (_Interval <<< _ivTo) interval)
+            <> "."
+        ]
+    ]
+  where
+  extentFieldClass = ClassName "extent-field"
+
+  extentFieldInclusionButton :: Lens' (Interval Slot) Boolean -> Icon -> Icon -> HTML p FormEvent
+  extentFieldInclusionButton inclusionLens inclusionIcon exclusionIcon =
+    button
+      [ classes [ btn, btnSmall, btnPrimary ]
+      , onClick $ HE.input_ $ SetField $ SetSlotRangeField $ over inclusionLens not interval
+      ]
+      [ icon
+          $ if view inclusionLens interval then
+              inclusionIcon
+            else
+              exclusionIcon
+      ]
+
+  extentFieldExtendedButton :: Lens' (Interval Slot) (Extended Slot) -> Extended Slot -> HTML p FormEvent
+  extentFieldExtendedButton extensionLens value =
+    button
+      [ classes
+          [ btn
+          , btnSmall
+          , if view extensionLens interval == value then
+              btnPrimary
+            else
+              btnInfo
+          ]
+      , onClick $ HE.input_ $ SetField $ SetSlotRangeField $ set extensionLens value interval
+      ]
+      [ icon Infinity ]
+
+  extentFieldInput :: Lens' (Interval Slot) (Extended Slot) -> HTML p FormEvent
+  extentFieldInput extensionLens =
+    input
+      [ type_ InputNumber
+      , class_ formControl
+      , HP.min zero
+      , value
+          $ case view extensionLens interval of
+              Finite (Slot slot) -> show slot.getSlot
+              _ -> mempty
+      , onValueInput $ map (\n -> HQ.action (SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval)))) <<< Int.fromString
+      ]
+
+  humanise :: forall a. HasBound a Slot => a -> String
+  humanise bound = start <> " " <> end
+    where
+    start = case hasBound bound of
+      NegInf -> "the start of time"
+      Finite (Slot slot) -> "Slot " <> show slot.getSlot
+      PosInf -> "the end of time"
+
+    end = case isInclusive bound of
+      true -> "(inclusive)"
+      false -> "(exclusive)"
+
 actionArgumentField ancestors isNested (FormValue value) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
-    , valueForm SetValueField value
+    , valueForm (SetField <<< SetValueField) value
     ]
 
 actionArgumentField _ _ (FormMaybe dataType child) =
   div_
-    [ text $ "Unsupported Maybe"
+    [ text "Unsupported Maybe"
     , code_ [ text $ show dataType ]
     , code_ [ text $ show child ]
     ]
 
 actionArgumentField _ _ (FormUnsupported { description }) =
   div_
-    [ text $ "Unsupported"
+    [ text "Unsupported"
     , code_ [ text description ]
     ]
 
@@ -424,7 +535,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData Blockchain -> Array Action -> HTML p Query
+evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
@@ -439,6 +550,8 @@ evaluateActionsPane evaluationResult actions =
   btnClass Loading _ = btnSecondary
 
   btnClass _ true = btnWarning
+
+  btnClass (Success (JsonEither (Left _))) _ = btnDanger
 
   btnClass (Success _) _ = btnSuccess
 
@@ -495,4 +608,24 @@ dragTargetProperties index =
   ]
 
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe (Query Unit)
-dragAndDropAction index eventType = Just <<< HQ.action <<< ActionDragAndDrop index eventType
+dragAndDropAction index eventType = HE.input (ActionDragAndDrop index eventType)
+
+actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
+actionsErrorPane error =
+  div
+    [ class_ $ ClassName "ajax-error" ]
+    [ alertDanger_
+        [ text (showPlaygroundError error)
+        , br_
+        , text "Please try again or contact support for assistance."
+        ]
+    ]
+
+-- | There's a few errors that make sense to display nicely, others should not occur so lets
+-- | not deal with them.
+showPlaygroundError :: PlaygroundError -> String
+showPlaygroundError PlaygroundTimeout = "Evaluation timed out"
+
+showPlaygroundError (OtherError error) = error
+
+showPlaygroundError _ = "Unexpected interpreter error"
