@@ -75,6 +75,7 @@ unfoldings = testNested "unfoldings" [
     -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
     -- it seems to sometimes float these in, but we should keep an eye on these.
     , goldenPir "polyMap" polyMap
+    , goldenPir "applicationFunction" applicationFunction
   ]
 
 andDirect :: Bool -> Bool -> Bool
@@ -117,3 +118,9 @@ mapDirect f l = case l of
 
 polyMap :: CompiledCode ([Integer])
 polyMap = plc @"polyMap" (mapDirect (Builtins.addInteger 1) [0, 1])
+
+myDollar :: (a -> b) -> a -> b
+myDollar f a = f a
+
+applicationFunction :: CompiledCode (Integer)
+applicationFunction = plc @"applicationFunction" ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
