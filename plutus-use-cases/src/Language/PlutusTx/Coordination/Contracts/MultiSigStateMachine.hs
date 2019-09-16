@@ -213,7 +213,7 @@ mkValidator :: Params -> SM.StateMachineValidator State Input
 mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
 validatorCode :: Params -> PlutusTx.CompiledCode (Typed.ValidatorType MultiSigSym)
-validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode params
+validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
 type MultiSigSym = StateMachine State Input
 scriptInstance :: Params -> Typed.ScriptInstance MultiSigSym

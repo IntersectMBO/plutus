@@ -27,7 +27,7 @@ mkInitialise
     -> m (Typed.TypedTx '[] '[SM.StateMachine s i], s)
     -- ^ The initalizing transaction and the initial state of the contract.
 mkInitialise (SM.StateMachineInstance _ si _ _) state vl = do
-    let dataScript = PlutusTx.unsafeLiftCode state
+    let dataScript = PlutusTx.liftCode state
 
     tx <- WAPITyped.makeScriptPayment si WAPI.defaultSlotRange vl dataScript
 
@@ -56,9 +56,9 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si stepRedeemer _) cu
         Just s  -> pure s
         Nothing -> WAPI.throwOtherError "Invalid transition"
     let redeemer :: PlutusTx.CompiledCode (Typed.RedeemerFunctionType '[SM.StateMachine s i] (SM.StateMachine s i))
-        redeemer = stepRedeemer `PlutusTx.applyCode` PlutusTx.unsafeLiftCode input
+        redeemer = stepRedeemer `PlutusTx.applyCode` PlutusTx.liftCode input
         dataScript :: PlutusTx.CompiledCode s
-        dataScript = PlutusTx.unsafeLiftCode newState
+        dataScript = PlutusTx.liftCode newState
 
     -- TODO: This needs to check that all the inputs have exactly the state we specify as the argument here,
     -- otherwise you can poison the contract by adding a state machine output that's not in the same state.
@@ -94,7 +94,7 @@ mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si _ haltRedeemer
         Nothing -> WAPI.throwOtherError "Invalid transition"
     unless (final newState) $ WAPI.throwOtherError $ "Cannot halt when transitioning to a non-final state: " <> (T.pack $ show newState)
     let redeemer :: PlutusTx.CompiledCode (Typed.RedeemerFunctionType '[] (SM.StateMachine s i))
-        redeemer = haltRedeemer `PlutusTx.applyCode` PlutusTx.unsafeLiftCode input
+        redeemer = haltRedeemer `PlutusTx.applyCode` PlutusTx.liftCode input
 
     -- TODO: This needs to check that all the inputs have exactly the state we specify as the argument here,
     -- otherwise you can poison the contract by adding a state machine output that's not in the same state.
