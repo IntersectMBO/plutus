@@ -18,6 +18,7 @@ import           Control.Monad.State                   (StateT, evalStateT, get,
 import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
 import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Foldable                         (fold)
 import           Data.List                             (find, intersperse)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
@@ -59,10 +60,16 @@ class Render a where
     render :: a -> StateT EvaluationResult (Either Text) (Doc ann)
 
 instance Render [[AnnotatedTx]] where
-    render = numbered "====" "Slot"
-
-instance Render [AnnotatedTx] where
-    render = numbered "----" "Tx"
+    render blockchain =
+        vsep . intersperse mempty . fold <$>
+        itraverse
+            (\slotIndex ->
+                 itraverse
+                     (\txIndex tx -> do
+                          i <- render SequenceId {..}
+                          v <- render tx
+                          pure $ vsep ["====" <+> i <+> "====", v]))
+            blockchain
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
@@ -76,10 +83,10 @@ instance Render AnnotatedTx where
             , heading "Fee:" txFee
             , heading "Forge:" txForge
             , pure "Inputs:"
-            , indent 2 <$> numbered "__" "Input" dereferencedInputs
+            , indent 2 <$> numbered "----" "Input" dereferencedInputs
             , pure line
             , pure "Outputs:"
-            , indent 2 <$> numbered "__" "Output" txOutputs
+            , indent 2 <$> numbered "----" "Output" txOutputs
             , pure line
             , pure "Balances Carried Forward:"
             , indented balances
@@ -93,7 +100,7 @@ instance Render SequenceId where
     render SequenceId {..} =
         pure $
         "Slot #" <> viaShow slotIndex <> "," <+>
-        "Transaction #" <> viaShow txIndex
+        "Tx #" <> viaShow txIndex
 
 instance Render CurrencySymbol where
     render (CurrencySymbol "")    = pure "Ada"
