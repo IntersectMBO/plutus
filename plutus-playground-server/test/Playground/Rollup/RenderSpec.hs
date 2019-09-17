@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Playground.Rollup.RenderSpec
     ( spec
@@ -144,11 +145,10 @@ rendersAs evaluationResult filename = do
         Right output -> output `shouldBePrettyDiff` file
   where
     shouldBePrettyDiff :: Text -> Text -> Assertion
-    shouldBePrettyDiff a b =
-        assertBool
-            (formatError (ppDiff (diffLines a b)))
-            (stripTrailingWhitespace a == stripTrailingWhitespace b)
+    shouldBePrettyDiff (stripTrailingWhitespace -> a) (stripTrailingWhitespace -> b) =
+        assertBool (formatError (ppDiff (diffLines a b))) (a == b)
     diffLines :: Text -> Text -> [Diff [String]]
     diffLines = getGroupedDiff `on` lines . Text.unpack
     formatError err = unlines [filename, "Render failed with:", err]
-    stripTrailingWhitespace = Text.stripEnd . Text.unlines . fmap Text.stripEnd . Text.lines
+    stripTrailingWhitespace =
+        Text.stripEnd . Text.unlines . fmap Text.stripEnd . Text.lines

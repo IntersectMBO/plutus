@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass   #-}
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns     #-}
 
 module IOTSSpec where
 
@@ -78,10 +79,8 @@ exportsAs exportable filename = do
   export exportable `shouldBePrettyDiff` file
   where
     shouldBePrettyDiff :: Text -> Text -> Assertion
-    shouldBePrettyDiff a b =
-      assertBool
-        (formatError (ppDiff (diffLines a b)))
-        (Text.stripEnd a == Text.stripEnd b)
+    shouldBePrettyDiff (Text.stripEnd -> a) (Text.stripEnd -> b) =
+        assertBool (formatError (ppDiff (diffLines a b))) (a == b)
     diffLines :: Text -> Text -> [Diff [String]]
     diffLines = getGroupedDiff `on` lines . Text.unpack
     formatError err = unlines [filename, "Export failed with:", err]
