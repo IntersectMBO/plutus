@@ -456,7 +456,7 @@ let
         '';
       };
 
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install pkgs.git pkgs.cacert ]; });
     };
   });
 
