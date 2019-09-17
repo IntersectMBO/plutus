@@ -148,7 +148,7 @@ instance Render TxOutType where
         wallet <- lookupWallet pubKey walletKeys
         w <- render wallet
         p <- render pubKey
-        pure $ w <+> parens p
+        pure $ p <+> parens w
 
 instance Render Ada where
     render ada@(Lovelace l)
@@ -176,11 +176,11 @@ instance Render [TxOut] where
 instance Render TxOut where
     render TxOutOf {txOutValue, txOutType} =
         vsep <$>
-        sequence [heading "Type:" txOutType, heading "Value:" txOutValue]
+        sequence [heading "Destination:" txOutType, heading "Value:" txOutValue]
       where
         heading t x = do
             r <- render x
-            pure $ fill 10 t <> r
+            pure $ fill 14 t <> r
 
 ------------------------------------------------------------
 indented :: Render a => a -> StateT EvaluationResult (Either Text) (Doc ann)

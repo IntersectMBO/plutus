@@ -6,41 +6,41 @@ Forge:      Ada:      Lovelace:  30000000
             °°:       USDToken:  60
                       EURToken:  90
 Inputs:
-  
+
 
 
 Outputs:
   __ Entry 0 __
-  Type:     Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
-  Value:    Ada:      Lovelace:  10000000
+  Destination:  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
+  Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
+
   __ Entry 1 __
-  Type:     Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
-  Value:    Ada:      Lovelace:  10000000
+  Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
+  Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
+
   __ Entry 2 __
-  Type:     Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
-  Value:    Ada:      Lovelace:  10000000
+  Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
+  Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
 
 
 Balances Carried Forward:
-  Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
+  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
+
+  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
+
+  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
@@ -55,39 +55,39 @@ Fee:        -
 Forge:      -
 Inputs:
   __ Entry 0 __
-  Type:     Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
-  Value:    Ada:      Lovelace:  10000000
+  Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
+  Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
 
 
 Outputs:
   __ Entry 0 __
-  Type:     Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
-  Value:    Ada:      Lovelace:  2000000
+  Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
+  Value:        Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
-  
+
   __ Entry 1 __
-  Type:     DataScript { <script> }
-  Value:    Ada:      Lovelace:  8000000
+  Destination:  DataScript { <script> }
+  Value:        Ada:      Lovelace:  8000000
 
 
 Balances Carried Forward:
   DataScript { <script> }
   Ada:      Lovelace:  8000000
-  
-  Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
+
+  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
+
+  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
+
+  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
@@ -99,42 +99,42 @@ Fee:        -
 Forge:      -
 Inputs:
   __ Entry 0 __
-  Type:     Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
-  Value:    Ada:      Lovelace:  10000000
+  Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
+  Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
 
 
 Outputs:
   __ Entry 0 __
-  Type:     Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
-  Value:    Ada:      Lovelace:  2000000
+  Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
+  Value:        Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
-  
+
   __ Entry 1 __
-  Type:     DataScript { <script> }
-  Value:    Ada:      Lovelace:  8000000
+  Destination:  DataScript { <script> }
+  Value:        Ada:      Lovelace:  8000000
 
 
 Balances Carried Forward:
   DataScript { <script> }
   Ada:      Lovelace:  8000000
-  
+
   DataScript { <script> }
   Ada:      Lovelace:  8000000
-  
-  Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
+
+  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
+
+  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
+
+  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
@@ -164,38 +164,38 @@ Fee:        -
 Forge:      -
 Inputs:
   __ Entry 0 __
-  Type:     DataScript { <script> }
-  Value:    Ada:      Lovelace:  8000000
-  
+  Destination:  DataScript { <script> }
+  Value:        Ada:      Lovelace:  8000000
+
   __ Entry 1 __
-  Type:     DataScript { <script> }
-  Value:    Ada:      Lovelace:  8000000
+  Destination:  DataScript { <script> }
+  Value:        Ada:      Lovelace:  8000000
 
 
 Outputs:
   __ Entry 0 __
-  Type:     Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
-  Value:    Ada:      Lovelace:  16000000
+  Destination:  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
+  Value:        Ada:      Lovelace:  16000000
 
 
 Balances Carried Forward:
   DataScript { <script> }
   Ada:      Lovelace:  0
-  
+
   DataScript { <script> }
   Ada:      Lovelace:  0
-  
-  Wallet 1 (3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c)
+
+  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Ada:      Lovelace:  26000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 3 (98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63)
+
+  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
-  
-  Wallet 2 (fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025)
+
+  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
