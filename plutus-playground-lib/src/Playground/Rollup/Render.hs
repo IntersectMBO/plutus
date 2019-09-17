@@ -17,7 +17,7 @@ import           Control.Monad.Except                  (MonadError, throwError)
 import           Control.Monad.State                   (StateT, evalStateT, get, gets)
 import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
-import qualified Data.ByteString.Lazy.Char8            as C8
+import qualified Data.ByteString.Lazy                  as BSL
 import           Data.List                             (find, intersperse)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
@@ -29,6 +29,7 @@ import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOption
                                                         parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx.AssocMap            as AssocMap
+import qualified Language.PlutusTx.Builtins            as Builtins
 import           Ledger                                (DataScript, PubKey, Tx (Tx), TxId, TxOut, TxOutOf (TxOutOf),
                                                         TxOutType (PayToPubKey, PayToScript), Value, getPubKey, getTxId,
                                                         txFee, txForge, txOutType, txOutValue, txOutputs)
@@ -95,11 +96,14 @@ instance Render SequenceId where
 
 instance Render CurrencySymbol where
     render (CurrencySymbol "")    = pure "Ada"
-    render (CurrencySymbol other) = pure $ pretty $ C8.unpack other
+    render (CurrencySymbol other) = render other
 
 instance Render TokenName where
     render (TokenName "") = pure "Lovelace"
     render t              = pure $ pretty $ Value.toString t
+
+instance Render Builtins.ByteString where
+    render = pure . pretty . JSON.encodeByteString . BSL.toStrict
 
 instance Render Value where
     render value = render (getValue value)
