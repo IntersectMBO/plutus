@@ -69,12 +69,12 @@ Outputs:
             EURToken:  30
 
   __ Output 1 __
-  Destination:  DataScript { <script> }
+  Destination:  f6f6010000c4f6c1f65820fc51cd8e6218a1a38d... (Script)
   Value:        Ada:      Lovelace:  8000000
 
 
 Balances Carried Forward:
-  DataScript { <script> }
+  f6f6010000c4f6c1f65820fc51cd8e6218a1a38d... (Script)
   Ada:      Lovelace:  8000000
 
   3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
@@ -113,15 +113,15 @@ Outputs:
             EURToken:  30
 
   __ Output 1 __
-  Destination:  DataScript { <script> }
+  Destination:  f6f6010000c4f6c1f6582098a5e3a36e67aaba89... (Script)
   Value:        Ada:      Lovelace:  8000000
 
 
 Balances Carried Forward:
-  DataScript { <script> }
+  f6f6010000c4f6c1f6582098a5e3a36e67aaba89... (Script)
   Ada:      Lovelace:  8000000
 
-  DataScript { <script> }
+  f6f6010000c4f6c1f65820fc51cd8e6218a1a38d... (Script)
   Ada:      Lovelace:  8000000
 
   3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
@@ -164,11 +164,11 @@ Fee:        -
 Forge:      -
 Inputs:
   __ Input 0 __
-  Destination:  DataScript { <script> }
+  Destination:  f6f6010000c4f6c1f6582098a5e3a36e67aaba89... (Script)
   Value:        Ada:      Lovelace:  8000000
 
   __ Input 1 __
-  Destination:  DataScript { <script> }
+  Destination:  f6f6010000c4f6c1f65820fc51cd8e6218a1a38d... (Script)
   Value:        Ada:      Lovelace:  8000000
 
 
@@ -179,10 +179,10 @@ Outputs:
 
 
 Balances Carried Forward:
-  DataScript { <script> }
+  f6f6010000c4f6c1f6582098a5e3a36e67aaba89... (Script)
   Ada:      Lovelace:  0
 
-  DataScript { <script> }
+  f6f6010000c4f6c1f65820fc51cd8e6218a1a38d... (Script)
   Ada:      Lovelace:  0
 
   3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)

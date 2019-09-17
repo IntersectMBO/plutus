@@ -30,7 +30,8 @@ import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOption
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (DataScript, PubKey, Tx (Tx), TxId, TxOut, TxOutOf (TxOutOf),
+import           Ledger                                (DataScript (getDataScript), PubKey, Script (unScript), Tx (Tx),
+                                                        TxId, TxOut, TxOutOf (TxOutOf),
                                                         TxOutType (PayToPubKey, PayToScript), Value, getPubKey, getTxId,
                                                         txFee, txForge, txOutType, txOutValue, txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
@@ -169,7 +170,10 @@ instance Render PubKey where
     render = pure . viaShow . getPubKey
 
 instance Render DataScript where
-    render = pure . viaShow
+    render dataScript =
+        pure $
+        let v = JSON.encodeSerialise . unScript . getDataScript $ dataScript
+         in pretty (abbreviate 40 v) <+> parens "Script"
 
 instance Render a => Render (Set a) where
     render xs = vsep <$> traverse render (Set.toList xs)
@@ -213,3 +217,10 @@ lookupWallet pubKey walletKeys = do
             throwError $
             Text.pack $ "Could not find referenced PubKey: " <> show pubKey
         Just wallet -> pure wallet
+
+abbreviate :: Int -> Text -> Text
+abbreviate n t =
+    let prefix = Text.take n t
+     in if prefix == t
+            then t
+            else prefix <> "..."

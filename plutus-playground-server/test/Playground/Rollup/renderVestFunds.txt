@@ -34,12 +34,12 @@ Outputs:
   Value:        Ada:      Lovelace:  8000000
 
   __ Output 1 __
-  Destination:  DataScript { <script> }
+  Destination:  f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54... (Script)
   Value:        Ada:      Lovelace:  2000000
 
 
 Balances Carried Forward:
-  DataScript { <script> }
+  f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54... (Script)
   Ada:      Lovelace:  2000000
 
   3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
