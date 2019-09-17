@@ -47,9 +47,9 @@ import Main
 -- types
 
 import Algorithmic
---import Algorithmic.RenamingSubstitution
---import Algorithmic.Reduction
---import Algorithmic.Evaluation
+import Algorithmic.RenamingSubstitution
+import Algorithmic.Reduction
+import Algorithmic.Evaluation
 --import Algorithmic.Examples
 --import Algorithmic.Main
 --import Algorithmic.Soundness

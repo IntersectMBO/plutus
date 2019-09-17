@@ -25,6 +25,7 @@ open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+open import Type.BetaNormal.Equality
 \end{code}
 
 ## Renaming
@@ -39,7 +40,7 @@ ext : ∀ {Φ Ψ Γ Δ}
   → {B : Φ ⊢Nf⋆ *}
     -------------------------------
   → Ren ρ⋆ (Γ , B) (Δ , renNf ρ⋆ B)
-ext ρ⋆ ρ Z     = Z
+ext ρ⋆ ρ (Z p) = Z (renNf-cong (λ _ → refl) p)
 ext ρ⋆ ρ (S x) = S (ρ x)
 \end{code}
 
@@ -50,7 +51,9 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   → ∀ {K}
     --------------------------------
   → Ren (⋆.ext ρ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
-ext⋆ ρ⋆ ρ (T x) = {!weaken-renNf ρ⋆ _!} -- conv∋ (weakenNf-renNf ρ⋆ _) (T (ρ x))
+ext⋆ ρ⋆ ρ (T x p) = T
+  (ρ x)
+  (transNf (weakenNf-renNf ρ⋆ _) (renNf-cong (λ _ → refl) p))
 \end{code}
 
 \begin{code}
@@ -64,7 +67,6 @@ renTermCon ρ⋆ (string s)     = string s
 \end{code}
 
 \begin{code}
-{-
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
@@ -83,24 +85,28 @@ ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ x N)    = ƛ x (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
 ren ρ⋆ ρ (Λ x N)    = Λ x (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
-ren ρ⋆ ρ (_·⋆_ {B = B} t A) =
-  conv⊢ (sym (ren[]Nf ρ⋆ B A)) (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)
+ren ρ⋆ ρ (·⋆ {B = B} t A p) = ·⋆
+  (ren ρ⋆ ρ t)
+  (renNf ρ⋆ A)
+  (transNf (symNf (ren[]Nf ρ⋆ B A)) (renNf-cong (λ _ → refl) p))
 ren ρ⋆ ρ (wrap1 pat arg term) = wrap1
   (renNf ρ⋆ pat)
   (renNf ρ⋆ arg)
-  (conv⊢ (ren-nf-μ1 ρ⋆ pat arg) (ren ρ⋆ ρ term))
-ren ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) =
-  conv⊢ (sym (ren-nf-μ1 ρ⋆ pat arg)) (unwrap1 (ren ρ⋆ ρ term))
+  (conv⊢ reflCtx (ren-nf-μ1 ρ⋆ pat arg) (ren ρ⋆ ρ term))
+ren ρ⋆ ρ (unwrap1 {pat = pat}{arg} term p) = unwrap1
+  (ren ρ⋆ ρ term)
+  (transNf (symNf (ren-nf-μ1 ρ⋆ pat arg)) (renNf-cong (λ _ → refl) p))
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
-ren ρ⋆ ρ (builtin bn σ X) =
-  let _ ,, _ ,, A = SIG bn in conv⊢
-  (renNf-substNf σ ρ⋆ A)
-  (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
+ren ρ⋆ ρ (builtin bn σ X p) = let _ ,, _ ,, A = SIG bn in builtin
+  bn
+  (renNf ρ⋆ ∘ σ)
+  (renTel ρ⋆ ρ X)
+  (transNf (renNf-substNf σ ρ⋆ A) (renNf-cong (λ _ → refl) p))
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 
 renTel ρ⋆ ρ     {As = []}     _         = _
 renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
-  conv⊢ (sym (renNf-substNf σ ρ⋆ A)) (ren ρ⋆ ρ M) ,, renTel ρ⋆ ρ Ms
+  conv⊢ reflCtx (symNf (renNf-substNf σ ρ⋆ A)) (ren ρ⋆ ρ M) ,, renTel ρ⋆ ρ Ms
 \end{code}
 
 \begin{code}
@@ -108,7 +114,10 @@ weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken x = ? -- conv⊢ (renNf-id _) (ren id (conv∋ (sym (renNf-id _)) ∘ S) x)
+weaken t = conv⊢
+  reflCtx
+  (renNf-id _)
+  (ren id (conv∋ reflCtx (symNf (renNf-id _)) ∘ S) t)
 \end{code}
 
 \begin{code}
@@ -116,7 +125,7 @@ weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}
   → Γ ⊢ A
     ------------------
   → Γ ,⋆ K ⊢ weakenNf A
-weaken⋆ x = ren _∋⋆_.S _∋_.T x
+weaken⋆ t = ren S (λ α → _∋_.T α reflNf) t
 \end{code}
 
 ## Substitution
@@ -131,8 +140,8 @@ exts : ∀ {Φ Ψ Γ Δ}
   → {B : Φ ⊢Nf⋆ *}
     ---------------------------------
   → Sub σ⋆ (Γ , B) (Δ , substNf σ⋆ B)
-exts σ⋆ σ Z     = ` Z
-exts σ⋆ σ (S x) = weaken (σ x)
+exts σ⋆ σ (Z p) = ` (Z (substNf-cong' σ⋆ p))
+exts σ⋆ σ (S α) = weaken (σ α)
 \end{code}
 
 \begin{code}
@@ -142,7 +151,10 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
   → ∀ {K}
     --------------------------------
   → Sub (extsNf σ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
-exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢ (weakenNf-substNf σ⋆ A) (weaken⋆ (σ x))
+exts⋆ σ⋆ σ {K}(T {A = A} α p) = conv⊢
+  reflCtx
+  (transNf (weakenNf-substNf σ⋆ A) (substNf-cong' (extsNf σ⋆) p))
+  (weaken⋆ (σ α))
 \end{code}
 
 \begin{code}
@@ -172,24 +184,32 @@ subst : ∀ {Φ Ψ Γ Δ}
 
 substTel σ⋆ σ      {As = []}     _         = _
 substTel σ⋆ σ {σ'} {As = A ∷ As} (M ,, Ms) =
-  conv⊢ (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M) ,, substTel σ⋆ σ Ms
-
+  conv⊢ reflCtx (symNf (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
+  ,,
+  substTel σ⋆ σ Ms
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ x N)                   = ƛ x (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
 subst σ⋆ σ (Λ x {B = B} N) =
-  Λ x (conv⊢ (subst-nf-Π σ⋆ B) (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
-subst σ⋆ σ (_·⋆_ {B = B} L M) =
-  conv⊢ (sym (subst[]Nf' σ⋆ M B)) (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
+  Λ x (conv⊢ reflCtx (subst-nf-Π σ⋆ B) (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
+subst σ⋆ σ (·⋆ {B = B} L M p) = ·⋆
+  (subst σ⋆ σ L)
+  (substNf σ⋆ M)
+  (transNf (symNf (subst[]Nf' σ⋆ M B)) (substNf-cong' σ⋆ p))
 subst σ⋆ σ (wrap1 pat arg term) = wrap1
   (substNf σ⋆ pat)
   (substNf σ⋆ arg)
-  (conv⊢ (subst-nf-μ σ⋆ pat arg) (subst σ⋆ σ term))
-subst σ⋆ σ (unwrap1 {pat = pat}{arg} term) =
-  conv⊢ (sym  (subst-nf-μ σ⋆ pat arg)) (unwrap1 (subst σ⋆ σ term))
+  (conv⊢ reflCtx (subst-nf-μ σ⋆ pat arg) (subst σ⋆ σ term))
+subst σ⋆ σ (unwrap1 {pat = pat}{arg} term p) = unwrap1
+  (subst σ⋆ σ term)
+  (transNf (symNf (subst-nf-μ σ⋆ pat arg))
+  (substNf-cong' σ⋆ p))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
-subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in
-  conv⊢ (substNf-comp σ' σ⋆ A) (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
+subst σ⋆ σ (builtin bn σ' X p) = let _ ,, _ ,, A = SIG bn in builtin
+  bn
+  (substNf σ⋆ ∘ σ')
+  (substTel σ⋆ σ X)
+  (transNf (substNf-comp σ' σ⋆ A) (substNf-cong' σ⋆ p))
 subst σ⋆ x (error A) = error (substNf σ⋆ A)
 \end{code}
 
@@ -201,7 +221,7 @@ substcons : ∀{Φ Ψ Γ Δ}
   → (t : Δ ⊢ substNf σ⋆ A)
     ---------------------
   → (∀ {B : Φ ⊢Nf⋆ *} → Γ , A ∋ B → Δ ⊢ substNf σ⋆ B)
-substcons σ⋆ σ t Z     = t
+substcons σ⋆ σ t (Z p) = conv⊢ reflCtx (substNf-cong' σ⋆ p) t
 substcons σ⋆ σ t (S x) = σ x
 \end{code}
 
@@ -211,19 +231,22 @@ _[_] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → Γ ⊢ B 
     -----
   → Γ ⊢ A
-_[_] {A = A}{B} b a = conv⊢
+_[_] {A = A}{B} b a = conv⊢ reflCtx
   (substNf-id A)
   (subst ( ne ∘ `)
          (substcons (ne ∘ `)
-                    (conv⊢ (sym (substNf-id _)) ∘ `)
-                    (conv⊢ (sym (substNf-id B)) a))
+                    (conv⊢ reflCtx (symNf (substNf-id _)) ∘ `)
+                    (conv⊢ reflCtx (symNf (substNf-id B)) a))
          b)
 \end{code}
 
 \begin{code}
 lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) → 
   Γ ⊢ substNf (substNf-cons (λ x₁ → ne (` x₁)) A) B
-lem (T x) = conv⊢ (weakenNf[] _ _) (` x)
+lem (T x p) = conv⊢
+  reflCtx
+  (transNf (weakenNf[] _ _) (substNf-cong' (substNf-cons (ne ∘ `) _) p))
+  (` x)
 
 _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
         → Γ ,⋆ K ⊢ B
@@ -234,5 +257,4 @@ _[_]⋆ b A = subst
   (substNf-cons (ne ∘ `) A)
   lem
   b
--}
 \end{code}

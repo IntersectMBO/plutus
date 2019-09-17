@@ -26,7 +26,6 @@ Ren : ∀ {Φ Ψ}(Γ : Ctx Φ)(Δ : Ctx Ψ) → ⋆.Ren Φ Ψ → Set
 Ren {Φ} Γ Δ ρ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ∋ ⋆.ren ρ A
 \end{code}
 
-
 \begin{code}
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
@@ -34,7 +33,7 @@ ext : ∀ {Φ Ψ Γ Δ}
   → {B : Φ ⊢⋆ *}
     ----------------------------------
   → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
-ext _ ρ Z     = Z
+ext _ ρ (Z p)     = Z (⋆.ren-cong (λ _ → refl) p)
 ext _ ρ (S x) = S (ρ x)
 \end{code}
 
@@ -45,10 +44,10 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   →  ∀ {K}
     --------------------------------
   → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
-ext⋆ {Δ = Δ} _ ρ {K}{A} (T x) =
-  substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
-          (T (ρ x))
+ext⋆ {Δ = Δ} _ ρ {K}{A} (T x p) = T
+  (ρ x)
+  (transα (transα (symα (⋆.ren-comp _)) (⋆.ren-comp _))
+          (⋆.ren-cong (λ _ → refl) p))
 \end{code}
 
 \begin{code}
@@ -80,27 +79,28 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
 
 renTel _ ρ {As = []}     _         = _
-renTel _ ρ {As = A ∷ As} (M ,, Ms) =
-  substEq (_ ⊢_) (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
+renTel _ ρ {As = A ∷ As} (M ,, Ms) = {!!}
+--  substEq (_ ⊢_) (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
 
 ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ x N)  = ƛ x (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
 ren _ ρ (Λ x N)  = Λ x (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} _ ρ (_·⋆_ {B = B} t A) =
-  substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-ren B))
-                 (trans (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
-                        (⋆.ren-subst B) ) )
-          (ren _ ρ t ·⋆ ⋆.ren _ A)
+ren {Δ = Δ} _ ρ (·⋆ {B = B} t A p) = ·⋆
+  (ren _ ρ t)
+  (⋆.ren _ A)
+  (transα (symα (⋆.subst-ren B))
+          (transα (transα (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
+                          (⋆.ren-subst B))
+                  (⋆.ren-cong (λ _ → refl) p))) 
 ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
 ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
 ren ρ⋆ ρ (con cn)   = con (renTermCon ρ⋆ cn)
-ren {Δ = Δ} _ ρ (builtin bn σ X ) = substEq
+ren {Δ = Δ} _ ρ (builtin bn σ X ) = {!!} {- substEq
   (Δ ⊢_)
   (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X)) 
+  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X)) -}
 ren _ ρ (error A) = error (⋆.ren _ A)
 \end{code}
 
@@ -109,12 +109,12 @@ weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken {Γ = Γ}{A}{B} x =
-  substEq (λ x → Γ , B ⊢ x)
+weaken {Γ = Γ}{A}{B} x = {!ren!}
+{-  substEq (λ x → Γ , B ⊢ x)
           (⋆.ren-id A)
           (ren _
                   (λ x → substEq (λ A → Γ , B ∋ A) (sym (⋆.ren-id _)) (S x))
-                  x)
+                  x) -}
 \end{code}
 
 \begin{code}
@@ -122,7 +122,7 @@ weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
   → Γ ⊢ A
     -------------------
   → Γ ,⋆ K ⊢ ⋆.weaken A
-weaken⋆ x = ren _ _∋_.T x
+weaken⋆ x = {!!} -- ren _ _∋_.T x
 \end{code}
 
 ## Substitution
@@ -142,7 +142,7 @@ exts : ∀ {Φ Ψ Γ Δ}
      → Γ , B ∋ A
      -------------------------------
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
-exts σ⋆ σ Z     = ` Z
+exts σ⋆ σ (Z p)     = {!!} -- ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
 \end{code}
 
@@ -155,11 +155,11 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
      → Γ ,⋆ K ∋ A 
        -------------------------------
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
-exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) =
-  substEq (λ x → Δ ,⋆ K ⊢ x)
+exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x p) = {!!}
+{-  substEq (λ x → Δ ,⋆ K ⊢ x)
           (trans (sym (⋆.ren-subst A))
                  (⋆.subst-ren A))
-          (weaken⋆ (σ x))
+          (weaken⋆ (σ x)) -}
 
 \end{code}
 
@@ -189,28 +189,28 @@ substTel : ∀ {Φ Ψ Γ Γ' Δ}
  → Tel Γ Δ σ' As
  → Tel Γ' Δ (⋆.subst σ⋆ ∘ σ') As
 substTel _ σ {As = []}     _         = _
-substTel _ σ {As = A ∷ As} (M ,, Ms) =
-  substEq (_ ⊢_) (sym (⋆.subst-comp A)) (subst _ σ M) ,, substTel _ σ Ms
+substTel _ σ {As = A ∷ As} (M ,, Ms) = {!!}
+  {!!} -- substEq (_ ⊢_) (sym (⋆.subst-comp A)) (subst _ σ M) ,, substTel _ σ Ms
 
 subst _ σ (` k)                     = σ k
 subst _ σ (ƛ x N)                   = ƛ x (subst _ (exts _ σ) N)
 subst _ σ (L · M)                   = subst _ σ L · subst _ σ M
 subst _ σ (Λ x N)                   = Λ x (subst _ (exts⋆ _ σ) N)
-subst {Δ = Δ} _ σ (_·⋆_ {B = B} L M) =
-  substEq (λ A → Δ ⊢ A)
+subst {Δ = Δ} _ σ (·⋆ {B = B} L M p) = {!!}
+{-  substEq (λ A → Δ ⊢ A)
           (trans (sym (⋆.subst-comp B))
                  (trans (⋆.subst-cong (⋆.subst-subst-cons _ M)
                                     B)
                         (⋆.subst-comp B)))
-          (subst _ σ L ·⋆ ⋆.subst _ M)
+          (subst _ σ L ·⋆ ⋆.subst _ M) -}
 subst _ σ (wrap1 pat arg t) = wrap1 _ _ (subst _ σ t)
 subst _ σ (unwrap1 t)       = unwrap1 (subst _ σ t)
 subst _ σ (conv p t) = conv (subst≡β _ p) (subst _ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
-subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel ) = substEq
+subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel ) = {!!} {-substEq
   (Γ' ⊢_)
   (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel {Φ} σ⋆ σ tel))
+  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel {Φ} σ⋆ σ tel)) -}
 subst _ σ (error A) = error (⋆.subst _ A)
 \end{code}
 
@@ -223,7 +223,7 @@ substcons : ∀{Φ Ψ Γ Δ} →
   → (t : Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------
   → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
-substcons _ σ t Z     = t
+substcons _ σ t (Z p) = {!!} -- t
 substcons _ σ t (S x) = σ x
 \end{code}
 
@@ -233,8 +233,8 @@ _[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
-_[_]  {Γ = Γ}{A}{B} t s =
-  substEq (Γ ⊢_)
+_[_]  {Γ = Γ}{A}{B} t s = {!!}
+{-  substEq (Γ ⊢_)
           (⋆.subst-id A)
           (subst _
                  (substcons `
@@ -242,7 +242,7 @@ _[_]  {Γ = Γ}{A}{B} t s =
                                            (sym (⋆.subst-id _))
                                            (` x))
                             (substEq (λ A → Γ ⊢ A) (sym (⋆.subst-id B)) s))
-                 t) 
+                 t)  -}
 \end{code}
 
 \begin{code}
@@ -251,11 +251,11 @@ _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
         → (A : Φ ⊢⋆ K)
           ---------
         → Γ ⊢ B ⋆.[ A ]
-_[_]⋆ {J}{Γ = Γ}{K}{B} t A =
-  subst _ -- (⋆.subst-cons ` A)
+_[_]⋆ {J}{Γ = Γ}{K}{B} t A = {!!}
+{-  subst _ -- (⋆.subst-cons ` A)
         (λ{(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
                                      (trans (sym (⋆.subst-id A'))
                                      (⋆.subst-ren A'))
                                      (` x)})
-          t
+          t -}
 \end{code}

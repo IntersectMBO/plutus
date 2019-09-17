@@ -77,19 +77,21 @@ A variable is indexed by its context and type. Notice there is only
 one Z as a type variable cannot be a term.
 \begin{code}
 data _∋_ : ∀{Γ⋆}(Γ : Ctx Γ⋆) → Γ⋆ ⊢⋆ * → Set where
-  Z : ∀ {Γ⋆ Γ}{A : Γ⋆ ⊢⋆ *}
+  Z : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
+    → A ≡α B
       ----------
-    → Γ , A ∋ A
+    → Γ , A ∋ B
 
-  S : ∀ {Γ⋆ Γ} {A B : Γ⋆ ⊢⋆ *}
+  S : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Γ⋆ Γ K} {A : Γ⋆ ⊢⋆ *}
+  T : ∀ {Φ Γ K} {A : Φ ⊢⋆ *}{B : Φ ,⋆ K ⊢⋆ *}
     → Γ ∋ A
+    → weaken A ≡α B
       -------------------
-    → Γ ,⋆ K ∋ weaken A
+    → Γ ,⋆ K ∋ B
 \end{code}
 Let `x`, `y` range over variables.
 
@@ -102,9 +104,9 @@ application.
 \begin{code}
 Tel : ∀ {Γ⋆} Γ Δ → Sub Δ Γ⋆ → List (Δ ⊢⋆ *) → Set
 
-data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : Γ⋆ ⊢⋆ * → Set where
+data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
-  ` : {A : Γ⋆ ⊢⋆ *}
+  ` : {A : Φ ⊢⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A
@@ -121,51 +123,73 @@ data _⊢_ {Γ⋆} (Γ : Ctx Γ⋆) : Γ⋆ ⊢⋆ * → Set where
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {K}{B : Γ⋆ ,⋆ K ⊢⋆ *}
+  Λ : ∀ {K}{B : Φ ,⋆ K ⊢⋆ *}
     → (x : String)
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π x B
 
-  _·⋆_ : ∀ {K B x}
+  ·⋆ : ∀ {K B x}
     → Γ ⊢ Π x B
-    → (A : Γ⋆ ⊢⋆ K)
+    → {C : Φ ⊢⋆ *}
+    → (A : Φ ⊢⋆ K)
+    → (B [ A ]) ≡α C
       ---------------
-    → Γ ⊢ B [ A ]
+    → Γ ⊢ C
 
   wrap1 : ∀{K}
-   → (pat : Γ⋆ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
-   → (arg : Γ⋆ ⊢⋆ K)
+   → (pat : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (arg : Φ ⊢⋆ K)
    → (term : Γ ⊢ pat · (μ1 · pat) · arg)
    → Γ ⊢ μ1 · pat · arg
 
   unwrap1 : ∀{K}
-    → {pat : Γ⋆ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Γ⋆ ⊢⋆ K}
+    → {pat : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : Φ ⊢⋆ K}
     → (term : Γ ⊢ μ1 · pat · arg)
     → Γ ⊢ pat · (μ1 · pat) · arg
     
-  conv : {A B : Γ⋆ ⊢⋆ *}
+  conv : {A B : Φ ⊢⋆ *}
     → A ≡β B
     → Γ ⊢ A
       -----
     → Γ ⊢ B
 
   con : ∀{tcn}
-    → TermCon {Γ⋆} (con tcn)
+    → TermCon {Φ} (con tcn)
       -------------------
     → Γ ⊢ con tcn
 
   builtin : 
       (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : Sub Δ Γ⋆) -- substitutes for new vars introduced by the Sig
+      (σ : Sub Δ Φ) -- substitutes for new vars introduced by the Sig
     → Tel Γ Δ σ As     -- a telescope of terms M_i typed in subst σ
     -----------------------------
     → Γ ⊢ subst σ C
 
-  error : (A : Γ⋆ ⊢⋆ *) → Γ ⊢ A
+  error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
+\end{code}
+
+Smart constructors
+
+\begin{code}
+Z' : ∀ {Φ Γ}{A : Φ ⊢⋆ *} → Γ , A ∋ A
+Z' = Z reflα
+
+_·⋆'_ : ∀ {Φ Γ K B x}
+    → Γ ⊢ Π x B
+    → (A : Φ ⊢⋆ K)
+      ---------------
+    → Γ ⊢ B [ A ]
+_·⋆'_ t A = ·⋆ t A reflα
+
+T' : ∀ {Φ Γ K} {A : Φ ⊢⋆ *}
+  → Γ ∋ A
+    -------------------
+  → Γ ,⋆ K ∋ weaken A
+T' x = T x reflα 
 \end{code}
