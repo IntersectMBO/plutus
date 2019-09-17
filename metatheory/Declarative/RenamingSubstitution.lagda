@@ -44,10 +44,10 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   →  ∀ {K}
     --------------------------------
   → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
-ext⋆ {Δ = Δ} _ ρ {K}{A} (T x p) = {!!}
-{-  substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
-          (T (ρ x)) -}
+ext⋆ {Δ = Δ} _ ρ {K}{A} (T x p) = T
+  (ρ x)
+  (transα (transα (symα (⋆.ren-comp _)) (⋆.ren-comp _))
+          (⋆.ren-cong (λ _ → refl) p))
 \end{code}
 
 \begin{code}
@@ -86,20 +86,21 @@ ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ x N)  = ƛ x (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
 ren _ ρ (Λ x N)  = Λ x (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} _ ρ (·⋆ {B = B} t A p) = {!!}
-{-  substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-ren B))
-                 (trans (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
-                        (⋆.ren-subst B) ) )
-          (ren _ ρ t ·⋆ ⋆.ren _ A) -}
+ren {Δ = Δ} _ ρ (·⋆ {B = B} t A p) = ·⋆
+  (ren _ ρ t)
+  (⋆.ren _ A)
+  (transα (symα (⋆.subst-ren B))
+          (transα (transα (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
+                          (⋆.ren-subst B))
+                  (⋆.ren-cong (λ _ → refl) p))) 
 ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
 ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
 ren ρ⋆ ρ (con cn)   = con (renTermCon ρ⋆ cn)
-ren {Δ = Δ} _ ρ (builtin bn σ X ) = substEq
+ren {Δ = Δ} _ ρ (builtin bn σ X ) = {!!} {- substEq
   (Δ ⊢_)
-  {!!} -- (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X)) 
+  (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X)) -}
 ren _ ρ (error A) = error (⋆.ren _ A)
 \end{code}
 
@@ -108,7 +109,7 @@ weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken {Γ = Γ}{A}{B} x = {!!}
+weaken {Γ = Γ}{A}{B} x = {!ren!}
 {-  substEq (λ x → Γ , B ⊢ x)
           (⋆.ren-id A)
           (ren _
