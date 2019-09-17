@@ -170,7 +170,7 @@ balancesView :: forall p i. SequenceId -> Map PubKey Wallet -> Map TxOutType Val
 balancesView sequenceId walletKeys m =
   div []
     [ h2_
-        [ text "Closing Balances"
+        [ text "Balances Carried Forward"
         , nbsp
         , small_
             [ text "(as at "
