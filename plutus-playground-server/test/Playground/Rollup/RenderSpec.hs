@@ -147,7 +147,8 @@ rendersAs evaluationResult filename = do
     shouldBePrettyDiff a b =
         assertBool
             (formatError (ppDiff (diffLines a b)))
-            (Text.stripEnd a == Text.stripEnd b)
+            (stripTrailingWhitespace a == stripTrailingWhitespace b)
     diffLines :: Text -> Text -> [Diff [String]]
     diffLines = getGroupedDiff `on` lines . Text.unpack
     formatError err = unlines [filename, "Render failed with:", err]
+    stripTrailingWhitespace = Text.stripEnd . Text.unlines . fmap Text.stripEnd . Text.lines
