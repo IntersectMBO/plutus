@@ -74,10 +74,10 @@ instance Render AnnotatedTx where
             , heading "Fee:" txFee
             , heading "Forge:" txForge
             , pure "Inputs:"
-            , indented dereferencedInputs
+            , indent 2 <$> numbered "__" "Input" dereferencedInputs
             , pure line
             , pure "Outputs:"
-            , indented txOutputs
+            , indent 2 <$> numbered "__" "Output" txOutputs
             , pure line
             , pure "Balances Carried Forward:"
             , indented balances
@@ -169,9 +169,6 @@ instance Render DataScript where
 
 instance Render a => Render (Set a) where
     render xs = vsep <$> traverse render (Set.toList xs)
-
-instance Render [TxOut] where
-    render = numbered "__" "Entry"
 
 instance Render TxOut where
     render TxOutOf {txOutValue, txOutType} =

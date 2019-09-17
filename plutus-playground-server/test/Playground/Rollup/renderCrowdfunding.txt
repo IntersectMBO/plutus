@@ -10,19 +10,19 @@ Inputs:
 
 
 Outputs:
-  __ Entry 0 __
+  __ Output 0 __
   Destination:  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
 
-  __ Entry 1 __
+  __ Output 1 __
   Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
             EURToken:  30
 
-  __ Entry 2 __
+  __ Output 2 __
   Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
@@ -54,7 +54,7 @@ TxId:       d27580e49bf86286179670973efd994cde9feb97068f6365bec47c02427b45f9
 Fee:        -
 Forge:      -
 Inputs:
-  __ Entry 0 __
+  __ Input 0 __
   Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
@@ -62,13 +62,13 @@ Inputs:
 
 
 Outputs:
-  __ Entry 0 __
+  __ Output 0 __
   Destination:  fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025 (Wallet 2)
   Value:        Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
 
-  __ Entry 1 __
+  __ Output 1 __
   Destination:  DataScript { <script> }
   Value:        Ada:      Lovelace:  8000000
 
@@ -98,7 +98,7 @@ TxId:       25db5750089c5224ef3893409c559d7a7537efc036d41bbd5c321dccb524f971
 Fee:        -
 Forge:      -
 Inputs:
-  __ Entry 0 __
+  __ Input 0 __
   Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Value:        Ada:      Lovelace:  10000000
   °°:       USDToken:  20
@@ -106,13 +106,13 @@ Inputs:
 
 
 Outputs:
-  __ Entry 0 __
+  __ Output 0 __
   Destination:  98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63 (Wallet 3)
   Value:        Ada:      Lovelace:  2000000
   °°:       USDToken:  20
             EURToken:  30
 
-  __ Entry 1 __
+  __ Output 1 __
   Destination:  DataScript { <script> }
   Value:        Ada:      Lovelace:  8000000
 
@@ -163,17 +163,17 @@ TxId:       0855d5c212f830519bf3b59d3254e9a4f220904c6b52258a268820de4729af4b
 Fee:        -
 Forge:      -
 Inputs:
-  __ Entry 0 __
+  __ Input 0 __
   Destination:  DataScript { <script> }
   Value:        Ada:      Lovelace:  8000000
 
-  __ Entry 1 __
+  __ Input 1 __
   Destination:  DataScript { <script> }
   Value:        Ada:      Lovelace:  8000000
 
 
 Outputs:
-  __ Entry 0 __
+  __ Output 0 __
   Destination:  3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c (Wallet 1)
   Value:        Ada:      Lovelace:  16000000
 
