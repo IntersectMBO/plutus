@@ -138,8 +138,6 @@ data AnnotatedTx =
         , tx                   :: Tx
         , dereferencedInputs   :: [TxOut]
         , balances             :: Map TxOutType V.Value
-        , involvedAddresses    :: Set Text
-        , involvedTransactions :: Set Text
         }
     deriving (Eq, Show, Generic)
     deriving anyclass (ToJSON)

@@ -8,28 +8,23 @@ module Playground.Rollup
     ( doAnnotateBlockchain
     ) where
 
-import           Codec.Serialise.Class    (Serialise)
 import           Control.Lens             (assign, ifoldr, makeLenses, over, traversed, use)
 import           Control.Lens.Combinators (itraverse)
 import           Control.Monad.Except     (MonadError, throwError)
 import           Control.Monad.State      (StateT, evalStateT)
 import           Crypto.Hash              (Digest, SHA256)
-import qualified Data.Aeson.Extras        as JSON
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
-import           Data.Set                 (Set)
 import qualified Data.Set                 as Set
 import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 import           Language.PlutusTx.Monoid (inv)
-import           Ledger                   (DataScript, PubKey, Tx, TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut,
-                                           TxOutOf (TxOutOf), TxOutRefOf, TxOutType (PayToPubKey, PayToScript), Value,
-                                           getDataScript, getPubKey, getTxId, outValue, txInRef, txInputs, txOutRefId,
+import           Ledger                   (Tx, TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut, TxOutOf (TxOutOf),
+                                           TxOutType, Value, getTxId, outValue, txInRef, txInputs, txOutRefId,
                                            txOutRefIdx, txOutType, txOutValue, txOutputs)
 import           Playground.Types         (AnnotatedTx (AnnotatedTx), SequenceId (SequenceId), balances,
-                                           dereferencedInputs, involvedAddresses, involvedTransactions, sequenceId,
-                                           slotIndex, tx, txId, txIndex)
+                                           dereferencedInputs, sequenceId, slotIndex, tx, txId, txIndex)
 
 data TxKey =
     TxKey
@@ -98,9 +93,6 @@ annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
             sumBalances :: Maybe Value -> Maybe Value
             sumBalances Nothing         = Just txOutValue
             sumBalances (Just oldValue) = Just (oldValue <> txOutValue)
-        involvedAddresses =
-            foldMap getAddresses (dereferencedInputs <> txOutputs tx)
-        involvedTransactions = foldMap getTxIds (txInputs tx)
     assign previousOutputs newOutputs
     assign rollingBalances newBalances
     pure $
@@ -110,37 +102,7 @@ annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
             , tx
             , dereferencedInputs
             , balances = newBalances
-            , involvedAddresses
-            , involvedTransactions
             }
-
-class HasAddresses a where
-    getAddresses :: a -> Set Text
-
-instance HasAddresses (TxOutOf a) where
-    getAddresses = getAddresses . txOutType
-
-instance HasAddresses TxOutType where
-    getAddresses (PayToScript dataScript) = getAddresses dataScript
-    getAddresses (PayToPubKey pubKey)     = getAddresses pubKey
-
-instance HasAddresses PubKey where
-    getAddresses = Set.singleton . JSON.encodeSerialise . getPubKey
-
-instance HasAddresses DataScript where
-    getAddresses = Set.singleton . JSON.encodeSerialise . getDataScript
-
-class HasTxIds a where
-    getTxIds :: a -> Set Text
-
-instance Serialise a => HasTxIds (TxInOf a) where
-    getTxIds = getTxIds . txInRef
-
-instance Serialise a => HasTxIds (TxOutRefOf a) where
-    getTxIds = getTxIds . txOutRefId
-
-instance Serialise a => HasTxIds (TxIdOf a) where
-    getTxIds = Set.singleton . JSON.encodeSerialise . getTxId
 
 annotateChainSlot ::
        MonadError Text m => Int -> [(TxId, Tx)] -> StateT Rollup m [AnnotatedTx]
