@@ -99,7 +99,7 @@ detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx t
                     [ div_
                         [ strong_ [ text "Position:" ]
                         , nbsp
-                        , showSequenceId sequenceId
+                        , sequenceIdView sequenceId
                         ]
                     , div_
                         [ strong_ [ text "Validity:" ]
@@ -174,7 +174,7 @@ balancesView sequenceId walletKeys m =
         , nbsp
         , small_
             [ text "(as at "
-            , showSequenceId sequenceId
+            , sequenceIdView sequenceId
             , text ")"
             ]
         ]
@@ -192,15 +192,14 @@ balancesView sequenceId walletKeys m =
           ]
       ]
 
-showSequenceId :: forall p i. SequenceId -> HTML p i
-showSequenceId (SequenceId { slotIndex, txIndex }) =
+sequenceIdView :: forall p i. SequenceId -> HTML p i
+sequenceIdView sequenceId =
   span_
-    [ text "Slot #"
-    , text $ show slotIndex
-    , text ", "
-    , text "Transaction #"
-    , text $ show txIndex
-    ]
+    [ text $ formatSequenceId sequenceId ]
+
+formatSequenceId :: SequenceId -> String
+formatSequenceId (SequenceId { slotIndex, txIndex }) =
+    "Slot #" <> show slotIndex <> ", Tx #" <>  show txIndex
 
 txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =
