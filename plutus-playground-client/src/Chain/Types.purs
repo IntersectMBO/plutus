@@ -32,7 +32,7 @@ derive instance genericChainFocus :: Generic ChainFocus _
 instance showChainFocus :: Show ChainFocus where
   show = genericShow
 
-type BlockchainVisualisationState =
+type State =
   { chainFocus :: Maybe ChainFocus
   , chainFocusAppearing :: Boolean
   , chainFocusAge :: Ordering

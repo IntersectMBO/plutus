@@ -6,7 +6,7 @@ module Chain
 
 import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
-import Chain.Types (BlockchainVisualisationState)
+import Chain.Types (State)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
@@ -41,13 +41,13 @@ import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 evaluationPane ::
   forall m.
   MonadAff m =>
-  BlockchainVisualisationState ->
+  State ->
   EvaluationResult ->
   ParentHTML Query ChildQuery ChildSlot m
-evaluationPane blockchainVisualisationState evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
+evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
   div_
     [ chainView
-        blockchainVisualisationState
+        state
         (AssocMap.toDataMap (AssocMap.Map walletKeys))
         resultRollup
     , br_

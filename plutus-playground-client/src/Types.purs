@@ -4,7 +4,8 @@ import Prelude
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
-import Chain.Types (BlockchainVisualisationState, ChainFocus)
+import Chain.Types (ChainFocus)
+import Chain.Types as Chain
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import Cursor (Cursor)
@@ -337,7 +338,7 @@ newtype State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
-  , blockchainVisualisationState :: BlockchainVisualisationState
+  , blockchainVisualisationState :: Chain.State
   }
 
 derive instance newtypeState :: Newtype State _
@@ -404,7 +405,7 @@ _PayToPubKey = prism PayToPubKey case _ of
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)
 _knownCurrencies = _Newtype <<< prop (SProxy :: SProxy "knownCurrencies")
 
-_blockchainVisualisationState :: Lens' State BlockchainVisualisationState
+_blockchainVisualisationState :: Lens' State Chain.State
 _blockchainVisualisationState = _Newtype <<< prop (SProxy :: SProxy "blockchainVisualisationState")
 
 _x :: forall r a. Lens' { x :: a | r } a

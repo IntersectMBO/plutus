@@ -2,7 +2,7 @@ module Chain.View where
 
 import Prelude hiding (div)
 import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col2, col3_, col4_, col6_, col_, empty, nbsp, row, row_, textTruncate)
-import Chain.Types (BlockchainVisualisationState, ChainFocus(..))
+import Chain.Types (State, ChainFocus(..))
 import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
@@ -27,16 +27,16 @@ import Playground.Types (AnnotatedTx(..), SequenceId(..))
 import Types (Query(..))
 import Wallet.Emulator.Types (Wallet(..))
 
-chainView :: forall p. BlockchainVisualisationState -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
-chainView blockchainVisualisationState walletKeys annotatedBlockchain =
+chainView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
+chainView state walletKeys annotatedBlockchain =
   div
     [ classes
         ( [ ClassName "chain", ClassName "animation" ]
-            <> case blockchainVisualisationState.chainFocusAge of
+            <> case state.chainFocusAge of
                 LT -> [ ClassName "animation-newer" ]
                 EQ -> []
                 GT -> [ ClassName "animation-older" ]
-            <> if blockchainVisualisationState.chainFocusAppearing then
+            <> if state.chainFocusAppearing then
                 []
               else
                 [ ClassName "animation-done" ]
@@ -49,9 +49,9 @@ chainView blockchainVisualisationState walletKeys annotatedBlockchain =
         ]
     , div
         [ classes [ row, ClassName "blocks" ] ]
-        (chainSlotView blockchainVisualisationState <$> Array.reverse annotatedBlockchain)
+        (chainSlotView state <$> Array.reverse annotatedBlockchain)
     , div [ class_ $ ClassName "detail" ]
-        [ detailView blockchainVisualisationState walletKeys annotatedBlockchain ]
+        [ detailView state walletKeys annotatedBlockchain ]
     ]
 
 slotEmpty :: ClassName
@@ -60,15 +60,15 @@ slotEmpty = ClassName "slot-empty"
 slot :: ClassName
 slot = ClassName "slot"
 
-chainSlotView :: forall p. BlockchainVisualisationState -> Array AnnotatedTx -> HTML p (Query Unit)
-chainSlotView blockchainVisualisationState [] = empty
+chainSlotView :: forall p. State -> Array AnnotatedTx -> HTML p (Query Unit)
+chainSlotView state [] = empty
 
-chainSlotView blockchainVisualisationState chainSlot =
+chainSlotView state chainSlot =
   div [ classes [ col2, slot ] ]
-    (blockView blockchainVisualisationState <$> chainSlot)
+    (blockView state <$> chainSlot)
 
-blockView :: forall p. BlockchainVisualisationState -> AnnotatedTx -> HTML p (Query Unit)
-blockView blockchainVisualisationState annotatedTx@(AnnotatedTx { txId }) =
+blockView :: forall p. State -> AnnotatedTx -> HTML p (Query Unit)
+blockView state annotatedTx@(AnnotatedTx { txId }) =
   div
     [ classes ([ card, ClassName "transaction" ] <> if isActive then [ active ] else [])
     , onClick $ const $ Just $ action
@@ -78,12 +78,12 @@ blockView blockchainVisualisationState annotatedTx@(AnnotatedTx { txId }) =
     ]
     [ cardHeaderTxId txId ]
   where
-  isActive = case blockchainVisualisationState of
+  isActive = case state of
     ({ chainFocus: Just (FocusTx focusTx) }) -> focusTx == annotatedTx
     _ -> false
 
-detailView :: forall p. BlockchainVisualisationState -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
-detailView blockchainVisualisationState@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx tx, dereferencedInputs, balances, sequenceId })) } walletKeys annotatedBlockchain =
+detailView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
+detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx tx, dereferencedInputs, balances, sequenceId })) } walletKeys annotatedBlockchain =
   div_
     [ row_
         [ col3_
@@ -125,9 +125,9 @@ detailView blockchainVisualisationState@{ chainFocus: Just (FocusTx (AnnotatedTx
     , balancesView sequenceId walletKeys (AssocMap.toDataMap balances)
     ]
 
-detailView blockchainVisualisationState@{ chainFocus: Just (FocusAddress address) } _ _ = div_ [ code_ [ text $ show address ] ]
+detailView state@{ chainFocus: Just (FocusAddress address) } _ _ = div_ [ code_ [ text $ show address ] ]
 
-detailView blockchainVisualisationState@{ chainFocus: Nothing } _ _ = div_ []
+detailView state@{ chainFocus: Nothing } _ _ = div_ []
 
 cardHeaderTxId :: forall i p. TxIdOf String -> HTML p i
 cardHeaderTxId (TxIdOf { getTxId: t }) =
