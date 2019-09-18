@@ -11,13 +11,13 @@ import Ledger.Slot (Slot(..))
 import Ledger.Value (Value(..))
 
 humaniseInterval :: Interval Slot -> String
-humaniseInterval interval =
-  case from, to of
-    LowerBound NegInf true, UpperBound PosInf true -> "All time."
-    _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to <> "."
+humaniseInterval interval = case from, to of
+  LowerBound NegInf true, UpperBound PosInf true -> "All time."
+  _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to <> "."
   where
-    from = view (_Interval <<< _ivFrom) interval
-    to = view (_Interval <<< _ivTo) interval
+  from = view (_Interval <<< _ivFrom) interval
+
+  to = view (_Interval <<< _ivTo) interval
 
 humaniseSlot :: forall a. HasBound a Slot => a -> String
 humaniseSlot bound = start <> " " <> end
@@ -45,7 +45,6 @@ instance upperBoundHasBound :: HasBound (UpperBound v) v where
   isInclusive (UpperBound _ x) = x
 
 ------------------------------------------------------------
-
 _ivFrom :: forall a r. Lens' { ivFrom :: a | r } a
 _ivFrom = prop (SProxy :: SProxy "ivFrom")
 
@@ -85,5 +84,4 @@ _a = prop (SProxy :: SProxy "a")
 
 ------------------------------------------------------------
 sum :: Value -> Value -> Value
-sum (Value {getValue: x}) (Value {getValue: y}) =
-  Value {getValue: unionWith (unionWith (+)) x y}
+sum (Value { getValue: x }) (Value { getValue: y }) = Value { getValue: unionWith (unionWith (+)) x y }
