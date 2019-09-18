@@ -1,6 +1,5 @@
 module Chain.View where
 
-import Prelude hiding (div)
 import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col2, col3_, col4_, col6_, col_, empty, nbsp, row, row_, textTruncate)
 import Chain.Types (State, ChainFocus(..))
 import Data.Array as Array
@@ -18,12 +17,13 @@ import Halogen.HTML.Properties (class_, classes)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
-import Ledger.Extra (humaniseInterval)
+import Ledger.Extra (humaniseInterval, adaToValue)
 import Ledger.Scripts (DataScript(..))
 import Ledger.Tx (Tx(..), TxOutOf(..), TxOutType(..))
 import Ledger.TxId (TxIdOf(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), SequenceId(..))
+import Prelude hiding (div)
 import Types (Query(..))
 import Wallet.Emulator.Types (Wallet(..))
 
@@ -88,7 +88,6 @@ detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx t
     [ row_
         [ col3_
             [ h2_ [ text "Inputs" ]
-            , feeView tx.txFee
             , forgeView tx.txForge
             , div_ (txOutOfView true walletKeys <$> dereferencedInputs)
             ]
@@ -119,6 +118,7 @@ detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx t
             ]
         , col3_
             [ h2_ [ text "Outputs" ]
+            , feeView tx.txFee
             , div_ (txOutOfView false walletKeys <$> tx.txOutputs)
             ]
         ]
@@ -149,9 +149,9 @@ feeView (Lovelace { getLovelace: 0 }) = text ""
 
 feeView txFee =
   div [ classes [ card, entry, ClassName "fee" ] ]
-    [ cardHeader_ [ triangleRight, text "Fee" ]
+    [ cardHeader_ [ text "Fee" ]
     , cardBody_
-        [ div_ [ code_ [ text $ show txFee ] ]
+        [ valueView $ adaToValue txFee
         ]
     ]
 

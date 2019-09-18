@@ -234,10 +234,9 @@ table.balance-map {
     }
 
     .entry {
-        min-height: 150px;
+        line-height: 1.2rem;
 
         .card-header {
-            /* font-family: monospace; */
             font-size: 1rem;
             padding: 0.5rem 1rem;
         }
@@ -261,7 +260,7 @@ table.balance-map {
             }
         }
         &.fee {
-            @include entry-background($teal);
+            @include entry-background($pink);
         }
         &.forge {
             @include entry-background($cyan);

@@ -1,14 +1,17 @@
 module Ledger.Extra where
 
-import Prelude
-
 import Data.Lens (Lens', lens, view)
 import Data.Lens.Record (prop)
+import Data.RawJson (JsonTuple(..))
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple(..))
 import Language.PlutusTx.AssocMap (unionWith)
+import Language.PlutusTx.AssocMap as AssocMap
+import Ledger.Ada (Ada(..))
 import Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
 import Ledger.Slot (Slot(..))
-import Ledger.Value (Value(..))
+import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
+import Prelude (show, (+), (<<<), (<>))
 
 humaniseInterval :: Interval Slot -> String
 humaniseInterval interval = case from, to of
@@ -85,3 +88,16 @@ _a = prop (SProxy :: SProxy "a")
 ------------------------------------------------------------
 sum :: Value -> Value -> Value
 sum (Value { getValue: x }) (Value { getValue: y }) = Value { getValue: unionWith (unionWith (+)) x y }
+
+adaToValue :: Ada -> Value
+adaToValue (Lovelace ada) =
+  Value
+    { getValue:
+      AssocMap.Map
+        [ JsonTuple
+            ( Tuple
+                (CurrencySymbol { unCurrencySymbol: "" })
+                (AssocMap.Map [ JsonTuple (Tuple (TokenName { unTokenName: "Lovelace" }) ada.getLovelace) ])
+            )
+        ]
+    }
