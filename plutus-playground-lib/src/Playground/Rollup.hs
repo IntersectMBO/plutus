@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns   #-}
+{-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 
 module Playground.Rollup
@@ -56,37 +57,34 @@ txInputKey TxInOf {txInRef} =
 
 annotateTransaction ::
        MonadError Text m
-    => Int
-    -> Int
+    => SequenceId
     -> (TxId, Tx)
     -> StateT Rollup m AnnotatedTx
-annotateTransaction slotIndex txIndex (txIdOf@(TxIdOf txId), tx) = do
+annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
     cPreviousOutputs <- use previousOutputs
     cRollingBalances <- use rollingBalances
     dereferencedInputs <-
         traverse
-            ((\key ->
-                  case Map.lookup key cPreviousOutputs of
-                      Nothing ->
-                          throwError $
-                          Text.pack $
-                          "Could not find referenced transaction: " <> show key
-                      Just txOut -> pure txOut) .
-             txInputKey)
+            (\txIn ->
+                 let key = txInputKey txIn
+                  in case Map.lookup key cPreviousOutputs of
+                         Just txOut -> pure txOut
+                         Nothing ->
+                             throwError $
+                             Text.pack $
+                             "Could not find referenced transaction: " <>
+                             show key)
             (Set.toList (txInputs tx))
     let newOutputs =
             ifoldr
-                (\i ->
+                (\outputIndex ->
                      Map.insert
                          TxKey
                              { _txKeyTxId = txId
-                             , _txKeyTxOutRefIdx = fromIntegral i
+                             , _txKeyTxOutRefIdx = fromIntegral outputIndex
                              })
                 cPreviousOutputs
                 (txOutputs tx)
-        involvedAddresses =
-            foldMap getAddresses (dereferencedInputs <> txOutputs tx)
-        involvedTransactions = foldMap getTxIds (txInputs tx)
         newBalances =
             foldr
                 sumAccounts
@@ -100,11 +98,14 @@ annotateTransaction slotIndex txIndex (txIdOf@(TxIdOf txId), tx) = do
             sumBalances :: Maybe Value -> Maybe Value
             sumBalances Nothing         = Just txOutValue
             sumBalances (Just oldValue) = Just (oldValue <> txOutValue)
+        involvedAddresses =
+            foldMap getAddresses (dereferencedInputs <> txOutputs tx)
+        involvedTransactions = foldMap getTxIds (txInputs tx)
     assign previousOutputs newOutputs
     assign rollingBalances newBalances
     pure $
         AnnotatedTx
-            { sequenceId = SequenceId {slotIndex, txIndex}
+            { sequenceId
             , txId = txIdOf
             , tx
             , dereferencedInputs
@@ -143,7 +144,8 @@ instance Serialise a => HasTxIds (TxIdOf a) where
 
 annotateChainSlot ::
        MonadError Text m => Int -> [(TxId, Tx)] -> StateT Rollup m [AnnotatedTx]
-annotateChainSlot slotIndex = itraverse (annotateTransaction slotIndex)
+annotateChainSlot slotIndex =
+    itraverse (\txIndex -> annotateTransaction SequenceId {..})
 
 annotateBlockchain ::
        MonadError Text m => [[(TxId, Tx)]] -> StateT Rollup m [[AnnotatedTx]]
