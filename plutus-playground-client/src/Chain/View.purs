@@ -250,7 +250,7 @@ txOutTypeView _ (PayToScript dataScript) = showDataScript dataScript
 showDataScript :: forall p i. DataScript -> HTML p i
 showDataScript (DataScript { getDataScript: d }) =
   span_
-    [ text "DataScript"
+    [ text "Script"
     , nbsp
     , text d
     ]
