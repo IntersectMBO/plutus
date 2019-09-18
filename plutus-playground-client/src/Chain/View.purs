@@ -1,8 +1,11 @@
 module Chain.View where
 
+import Prelude hiding (div)
+
 import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col2, col3_, col4_, col6_, col_, empty, nbsp, row, row_, textTruncate)
 import Chain.Types (State, ChainFocus(..))
 import Data.Array as Array
+import Data.Array.Extra (intersperse)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -11,7 +14,7 @@ import Data.RawJson (JsonTuple(..))
 import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen (action)
-import Halogen.HTML (ClassName(..), HTML, br_, code_, div, div_, h2_, small_, span_, strong_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, code_, div, div_, h2_, hr_, small_, span, span_, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Language.PlutusTx.AssocMap as AssocMap
@@ -23,7 +26,6 @@ import Ledger.Tx (Tx(..), TxOutOf(..), TxOutType(..))
 import Ledger.TxId (TxIdOf(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), SequenceId(..))
-import Prelude hiding (div)
 import Types (Query(..))
 import Wallet.Emulator.Types (Wallet(..))
 
@@ -265,7 +267,8 @@ showPubKey (PubKey { getPubKey: p }) =
 valueView :: forall p i. Value -> HTML p i
 valueView (Value { getValue: (AssocMap.Map []) }) = empty
 
-valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (currencyView <$> currencies)
+valueView (Value { getValue: (AssocMap.Map currencies) }) =
+  div_ (intersperse hr_ (currencyView <$> currencies))
   where
   currencyView :: JsonTuple CurrencySymbol (AssocMap.Map TokenName Int) -> HTML p i
   currencyView (JsonTuple (currency /\ (AssocMap.Map tokens))) =

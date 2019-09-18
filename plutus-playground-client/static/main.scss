@@ -245,6 +245,12 @@ table.balance-map {
             font-family: monospace;
             font-size: 1rem;
             padding: 0.5rem 1rem;
+
+            hr {
+                margin-top: 0.2rem;
+                margin-bottom: 0.2rem;
+                border-top-color: $transparent-white;
+            }
         }
 
         @mixin entry-background($color) {
