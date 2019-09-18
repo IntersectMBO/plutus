@@ -203,10 +203,10 @@ table.balance-map {
 }
 
 .chain {
-    .card {
-        $card-border-width: 2px;
-        $arrow-width: 15px;
+    $card-border-width: 2px;
+    $arrow-width: 15px;
 
+    .card {
         border: solid $card-border-width $gray-800;
 
         &.active {
@@ -278,9 +278,9 @@ table.balance-map {
             @include entry-background($yellow);
         }
     }
+
     .blocks {
-        overflow-x: auto;
-        flex-wrap:nowrap;
+        margin-right: $arrow-width;
     }
 
     overflow: hidden;
