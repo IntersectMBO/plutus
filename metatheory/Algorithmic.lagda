@@ -212,7 +212,8 @@ open import Type.BetaNBE.RenamingSubstitution
 conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡Ctx Γ'
  → A ≡Nf A'
- → (Γ ⊢ A) → Γ' ⊢ A'
+ → Γ ⊢ A
+ → Γ' ⊢ A'
 
 convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → Γ ≡Ctx Γ'

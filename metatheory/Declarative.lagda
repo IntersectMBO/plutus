@@ -144,10 +144,11 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
    → Γ ⊢ μ1 · pat · arg
 
   unwrap1 : ∀{K}
-    → {pat : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {pat pat' : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢⋆ K}
     → (term : Γ ⊢ μ1 · pat · arg)
-    → Γ ⊢ pat · (μ1 · pat) · arg
+    → pat ≡α pat'
+    → Γ ⊢ pat · (μ1 · pat') · arg
     
   conv : {A B : Φ ⊢⋆ *}
     → A ≡β B
@@ -165,8 +166,10 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     → let Δ ,, As ,, C = SIG bn in
       (σ : Sub Δ Φ) -- substitutes for new vars introduced by the Sig
     → Tel Γ Δ σ As     -- a telescope of terms M_i typed in subst σ
+    → {B : Φ ⊢⋆ *}
+    → subst σ C ≡α B
     -----------------------------
-    → Γ ⊢ subst σ C
+    → Γ ⊢ B
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
@@ -192,4 +195,56 @@ T' : ∀ {Φ Γ K} {A : Φ ⊢⋆ *}
     -------------------
   → Γ ,⋆ K ∋ weaken A
 T' x = T x reflα 
+\end{code}
+
+\begin{code}
+data _≡Ctx_ : ∀{Φ} → Ctx Φ → Ctx Φ → Set where
+  ∅ : ∅ ≡Ctx ∅
+  _,⋆_ : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → ∀ K → (Γ ,⋆ K) ≡Ctx (Γ' ,⋆ K)
+  _,_  : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → {A A' : Φ ⊢⋆ *} → A ≡α A'
+    → (Γ , A) ≡Ctx (Γ' , A')
+
+reflCtx : ∀{Φ}{Γ : Ctx Φ} → Γ ≡Ctx Γ
+reflCtx {Γ = ∅} = ∅
+reflCtx {Γ = Γ ,⋆ J} = reflCtx ,⋆ J
+reflCtx {Γ = Γ , A} = reflCtx , reflα
+\end{code}
+
+\begin{code}
+conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢⋆ *}
+ → Γ ≡Ctx Γ'
+ → A ≡α A'
+ →  (Γ ∋ A)
+ → Γ' ∋ A'
+conv∋ (p , p') q (Z r) = Z (transα (symα p') (transα r q))
+conv∋ (p , p') q (S x) = S (conv∋ p q x)
+conv∋ (p ,⋆ K) q (T x r) = T (conv∋ p reflα x) (transα r q)
+
+convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
+  → Γ ≡Ctx Γ'
+  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢⋆ J)
+  → (As : List (Ψ ⊢⋆ *))
+  → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
+
+conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢⋆ *}
+ → Γ ≡Ctx Γ'
+ → A ≡α A'
+ → Γ ⊢ A
+ → Γ' ⊢ A'
+conv⊢ p q (` x)             = ` (conv∋ p q x)
+conv⊢ p (⇒≡α q q') (ƛ x t)  = ƛ x (conv⊢ (p , q) q' t)
+conv⊢ p q (t · u)           = conv⊢ p (⇒≡α reflα q) t · conv⊢ p reflα u
+conv⊢ p (Π≡α q) (Λ x t)     = Λ _ (conv⊢ (p ,⋆ _) q t) 
+conv⊢ p q (·⋆ t A r)        = ·⋆ (conv⊢ p reflα t) A (transα r q)
+conv⊢ p (·≡α (·≡α μ≡α q) q') (wrap1 pat arg t) =
+  wrap1 _ _ (conv⊢ p (·≡α (·≡α q (·≡α μ≡α q)) q') t)
+conv⊢ p (·≡α (·≡α q (·≡α μ≡α q')) q'') (unwrap1 t r) =
+  unwrap1 (conv⊢ p (·≡α (·≡α μ≡α q) q'') t) (transα (symα q) (transα r q'))
+conv⊢ p q (conv r t)        = conv (trans≡β r (α2β q)) (conv⊢ p reflα t)
+conv⊢ p con≡α (con c)       = con c
+conv⊢ p q (builtin bn σ ts r) = builtin bn σ (convTel p σ _ ts) (transα r q)
+conv⊢ p q (error A)         = error _
+
+convTel p σ []       _         = tt
+convTel p σ (A ∷ As) (t ,, ts) = conv⊢ p reflα t ,, convTel p σ As ts
 \end{code}

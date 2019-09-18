@@ -79,7 +79,7 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
 
 renTel _ ρ {As = []}     _         = _
-renTel _ ρ {As = A ∷ As} (M ,, Ms) = {!!}
+renTel _ ρ {As = A ∷ As} (M ,, Ms) = {!!} ,, {!!}
 --  substEq (_ ⊢_) (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
 
 ren _ ρ (` x)    = ` (ρ x)
@@ -109,7 +109,7 @@ weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
   → Γ , B ⊢ A
-weaken {Γ = Γ}{A}{B} x = {!ren!}
+weaken {Γ = Γ}{A}{B} x = ?  -- ren _ (λ y → {!conv∋ ? (S y)!}) x
 {-  substEq (λ x → Γ , B ⊢ x)
           (⋆.ren-id A)
           (ren _

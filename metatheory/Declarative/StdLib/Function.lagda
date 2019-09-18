@@ -33,7 +33,7 @@ unwrap0 {Γ} pat X = conv
   (trans≡β
     (·≡β (β≡β _ _) (refl≡β _))
     (trans≡β (β≡β _ _) (·≡β (refl≡β _) (sym≡β (β≡β _ _)))))
-  (unwrap1 (conv (β≡β _ _) X))
+  (unwrap1 (conv (β≡β _ _) X) reflα)
 
 
 {-
