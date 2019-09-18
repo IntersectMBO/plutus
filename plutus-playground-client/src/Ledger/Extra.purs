@@ -15,8 +15,8 @@ import Prelude (show, (+), (<<<), (<>))
 
 humaniseInterval :: Interval Slot -> String
 humaniseInterval interval = case from, to of
-  LowerBound NegInf true, UpperBound PosInf true -> "All time."
-  _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to <> "."
+  LowerBound NegInf true, UpperBound PosInf true -> "All time"
+  _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to
   where
   from = view (_Interval <<< _ivFrom) interval
 

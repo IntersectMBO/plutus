@@ -70,7 +70,7 @@ chainSlotView state chainSlot =
     (blockView state <$> chainSlot)
 
 blockView :: forall p. State -> AnnotatedTx -> HTML p (Query Unit)
-blockView state annotatedTx@(AnnotatedTx { txId }) =
+blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   div
     [ classes ([ card, ClassName "transaction" ] <> if isActive then [ active ] else [])
     , onClick $ const $ Just $ action
@@ -78,14 +78,26 @@ blockView state annotatedTx@(AnnotatedTx { txId }) =
         $ Just
         $ FocusTx annotatedTx
     ]
-    [ cardHeaderTxId txId ]
+    [ entryCardHeader sequenceId ]
   where
   isActive = case state of
     ({ chainFocus: Just (FocusTx focusTx) }) -> focusTx == annotatedTx
     _ -> false
 
 detailView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
-detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx tx, dereferencedInputs, balances, sequenceId })) } walletKeys annotatedBlockchain =
+detailView state@{ chainFocus:
+  Just
+  ( FocusTx
+    ( AnnotatedTx
+      annotatedTx@{ tx: Tx tx
+    , dereferencedInputs
+    , balances
+    , sequenceId
+    , txId: (TxIdOf { getTxId: txId })
+    }
+  )
+)
+} walletKeys annotatedBlockchain =
   div_
     [ row_
         [ col3_
@@ -96,12 +108,13 @@ detailView state@{ chainFocus: Just (FocusTx (AnnotatedTx annotatedTx@{ tx: Tx t
         , col6_
             [ h2_ [ text "Transaction" ]
             , div [ classes [ card, active ] ]
-                [ cardHeaderTxId annotatedTx.txId
+                [ entryCardHeader sequenceId
                 , cardBody_
-                    [ div_
-                        [ strong_ [ text "Position:" ]
+                    [ div
+                        [ class_ textTruncate ]
+                        [ strong_ [ text "Tx: " ]
                         , nbsp
-                        , sequenceIdView sequenceId
+                        , text txId
                         ]
                     , div_
                         [ strong_ [ text "Validity:" ]
@@ -131,13 +144,11 @@ detailView state@{ chainFocus: Just (FocusAddress address) } _ _ = div_ [ code_ 
 
 detailView state@{ chainFocus: Nothing } _ _ = div_ []
 
-cardHeaderTxId :: forall i p. TxIdOf String -> HTML p i
-cardHeaderTxId (TxIdOf { getTxId: t }) =
+entryCardHeader :: forall i p. SequenceId -> HTML p i
+entryCardHeader sequenceId =
   div [ classes [ cardHeader, textTruncate ] ]
     [ triangleRight
-    , strong_ [ text "Tx" ]
-    , nbsp
-    , text t
+    , sequenceIdView sequenceId
     ]
 
 entry :: ClassName
@@ -200,8 +211,7 @@ sequenceIdView sequenceId =
     [ text $ formatSequenceId sequenceId ]
 
 formatSequenceId :: SequenceId -> String
-formatSequenceId (SequenceId { slotIndex, txIndex }) =
-    "Slot #" <> show slotIndex <> ", Tx #" <>  show txIndex
+formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
 txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =
@@ -236,7 +246,8 @@ txOutTypeView :: forall p i. Map PubKey Wallet -> TxOutType -> HTML p i
 txOutTypeView walletKeys (PayToPubKey pubKey) = case Map.lookup pubKey walletKeys of
   Nothing -> showPubKey pubKey
   Just (Wallet { getWallet: n }) ->
-    span_
+    span
+      [ class_ textTruncate ]
       [ showPubKey pubKey
       , br_
       , small_
