@@ -50,6 +50,7 @@ initEditor initialContents editor =
           contents = fromMaybe "" (savedContents <|> initialContents)
         void $ Editor.setValue contents (Just 1) editor
         Editor.setTheme "ace/theme/monokai" editor
+        Editor.setShowPrintMargin false editor
         --
         session <- Editor.getSession editor
         Session.setMode "ace/mode/haskell" session
