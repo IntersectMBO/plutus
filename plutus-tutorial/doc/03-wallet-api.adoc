@@ -36,21 +36,16 @@ module Tutorial.WalletAPI where
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as I
-import qualified Ledger.Slot                  as S
 import           Ledger                       (Address, DataScript(..), PubKey(..),
-                                               RedeemerScript(..), Signature(..), Slot(..),
+                                               RedeemerScript(..), Slot(..),
                                                TxId, ValidatorScript(..))
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
-import qualified Ledger.Value                 as Value
-import           Ledger.Value                 (Value)
 import           Ledger.Validation            (PendingTx, PendingTx'(..), PendingTxIn'(..), PendingTxOut)
 import qualified Ledger.Validation            as V
-import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
-                                               EventHandler(..), EventTrigger)
+import           Wallet                       (MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
-import           GHC.Generics                 (Generic)
 ----
 
 === Datatypes

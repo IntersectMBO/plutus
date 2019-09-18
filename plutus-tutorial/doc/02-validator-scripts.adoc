@@ -38,19 +38,16 @@ import           Language.PlutusTx.Prelude -- <5>
 
 import qualified Language.PlutusTx            as PlutusTx -- <6>
 
-import qualified Ledger.Interval              as I
-import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..),
-                                               Signature(..), Slot(..), TxId, ValidatorScript(..))
+import           Ledger                       (Address, DataScript(..), RedeemerScript(..),
+                                               ValidatorScript(..))
 import qualified Ledger                       as L -- <7>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import           Ledger.Validation            as V -- <8>
 
-import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
-                                               EventHandler(..), EventTrigger)
-import qualified Wallet                       as W -- <9>
+import           Wallet                       (MonadWallet)
 
-import           GHC.Generics                 (Generic)
+import qualified Wallet                       as W -- <9>
 
 import qualified Data.ByteString.Lazy.Char8   as C
 ----

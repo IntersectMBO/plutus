@@ -30,9 +30,6 @@ import qualified Language.PlutusTx         as PlutusTx
 
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import           Ledger.Validation         (PendingTx, PendingTx'(..))
@@ -43,7 +40,6 @@ import qualified Ledger.Value              as Value
 import           Wallet                    (MonadWallet, PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set -- <1>
