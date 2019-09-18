@@ -33,6 +33,11 @@ Even if you already have Nix installed, make sure to set up the xref:iohk-binary
 * https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
 * https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
 
+=== How to get started using the libraries
+
+There is an example project in the `example` folder, see its link:./example/README.md[README]
+for more details.
+
 === How to build the Haskell packages and other artifacts
 
 [[building-with-nix]]
