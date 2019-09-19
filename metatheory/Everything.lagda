@@ -50,8 +50,8 @@ import Algorithmic.Reduction
 import Algorithmic.Evaluation
 --import Algorithmic.Examples
 --import Algorithmic.Main
---import Algorithmic.Soundness
---import Algorithmic.Completeness
+import Algorithmic.Soundness
+import Algorithmic.Completeness
 --import Algorithmic.Erasure
 --import Algorithmic.Erasure.Reduction
 --import Algorithmic.CK
