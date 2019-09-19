@@ -31,8 +31,6 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
---import Declarative.Reduction
---import Declarative.Evaluation
 --import Declarative.Erasure
 
 --import Declarative.Examples
