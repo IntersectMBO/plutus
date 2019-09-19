@@ -71,7 +71,7 @@ I need to pattern match on the term constructors
 # Erasing decl/alg terms agree
 
 \begin{code}
-{-
+
 open import Relation.Binary.PropositionalEquality
 import Declarative as D
 import Declarative.Erasure as D
@@ -94,11 +94,7 @@ lemsuc : ∀{n n'}(p : suc n ≡ suc n')(q : n ≡ n')(i : Fin n) →
   suc (subst Fin q i) ≡ subst Fin p (suc i)
 lemsuc refl refl i = refl
 
-lemT : ∀{Φ K}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
-  → (p : weakenNf {K = K} A ≡ A'')(q : A ≡ A')(x : Γ ∋ A)
-  → eraseVar x ≡ eraseVar (conv∋ reflCtx {! p !} (T x {!!}))
-lemT refl refl x = {!!}
-
+open import Type.BetaNormal.Equality
 open import Function
 
 sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
@@ -106,17 +102,15 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
-{-
+
 sameVar : ∀{Φ Γ}{A : Φ ⊢⋆ *}(x : Γ D.∋ A)
   → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
 sameVar {Γ = Γ D., _} (D.Z p) = lemzero (cong suc (lenLemma Γ))
 sameVar {Γ = Γ D., _} (D.S x) = trans
   (cong suc (sameVar x))
   (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
-sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x p) = trans
-  (sameVar x)
-  (cong (subst Fin (lenLemma Γ)) (lemT (ren-nf S A) refl (nfTyVar x)))
--}
+sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x p) = sameVar x
+{-
 lemVar : ∀{n n'}(p : n ≡ n')(i : Fin n) →  ` (subst Fin p i) ≡ subst _⊢ p (` i)
 lemVar refl i = refl
 

@@ -7,6 +7,7 @@ open import Type.RenamingSubstitution
 import Declarative as Syn
 import Algorithmic as Norm
 open import Type.BetaNormal
+open import Type.BetaNormal.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.RenamingSubstitution
@@ -24,11 +25,10 @@ nfTyVar : ∀{Φ Γ}
   → Γ Syn.∋ A
   → nfCtx Γ Norm.∋ nf A
 nfTyVar (Syn.Z p)           = Norm.Z (completeness (α2β p))
-nfTyVar (Syn.S α)           =  Norm.S (nfTyVar α)
-nfTyVar (Syn.T {A = A} α p) = Norm.conv∋
-  Norm.reflCtx
-  (completeness (α2β p))
-  (Norm.T (nfTyVar α) (ren-nf S A))
+nfTyVar (Syn.S α)           = Norm.S (nfTyVar α)
+nfTyVar (Syn.T {A = A} α p) = Norm.T
+  (nfTyVar α)
+  (transNf (ren-nf S A) (completeness (α2β p)))
 
 open import Type.BetaNormal.Equality
 
