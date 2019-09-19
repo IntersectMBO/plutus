@@ -434,3 +434,6 @@ hidden = ClassName "d-none"
 -- size. Collapses sensibly as the size goes down to iPhone.
 responsiveThird :: forall p i. Array (HTML p i) -> HTML p i
 responsiveThird = div [classes [col12, colSm6, colMd4]]
+
+textTruncate :: ClassName
+textTruncate = ClassName "text-truncate"

@@ -304,7 +304,7 @@ instance BA.ByteArrayAccess TxIn where
 data TxOutType =
     PayToScript !DataScript -- ^ A pay-to-script output with the given data script.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
-    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, ToJSONKey)
 
 -- | A transaction output, using the given transaction id type, consisting of a target address,
 -- a value, and an output type.

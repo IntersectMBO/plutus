@@ -1,6 +1,7 @@
 module Test.Main where
 
 import Prelude
+
 import AjaxUtilsTests as AjaxUtilsTests
 import ChainTests as ChainTests
 import CursorTests as CursorTests
@@ -8,9 +9,8 @@ import Data.Array.ExtraTests as Data.Array.ExtraTests
 import Data.String.ExtraTests as Data.String.ExtraTests
 import Effect (Effect)
 import GistsTests as GistsTests
-import Ledger.ExtraTests as Ledger.ExtraTests
-import MainFrameTests as MainFrameTests
 import Language.PlutusTx.AssocMapTests as Language.PlutusTx.AssocMapTests
+import MainFrameTests as MainFrameTests
 import Test.Unit.Main (runTest)
 import TypesTests as TypesTests
 
@@ -26,6 +26,5 @@ main =
     Data.String.ExtraTests.all
     GistsTests.all
     Language.PlutusTx.AssocMapTests.all
-    Ledger.ExtraTests.all
     MainFrameTests.all
     TypesTests.all

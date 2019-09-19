@@ -139,7 +139,7 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable,  IotsType)
+    deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
     deriving newtype (Serialise)
 
 instance ToSchema Value where

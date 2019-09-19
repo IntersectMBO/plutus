@@ -1,0 +1,55 @@
+==== Slot #0, Tx #0 ====
+TxId:       7a68cea098afed859383feaee49a5ac8d6c17a811e787026d3c65a7973032f79
+Fee:        -
+Forge:      Ada:      Lovelace:  10000000
+Inputs:
+
+
+
+Outputs:
+  ---- Output 0 ----
+  Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
+  Value:
+    Ada:      Lovelace:  10000000
+
+
+Balances Carried Forward:
+  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
+  Value:
+    Ada:      Lovelace:  10000000
+
+==== Slot #1, Tx #0 ====
+TxId:       ceac047d09978e3b86385103cd8b36b1a907bfa12a21f9bd760a4b32932940d0
+Fee:        -
+Forge:      -
+Inputs:
+  ---- Input 0 ----
+  Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
+  Value:
+    Ada:      Lovelace:  10000000
+  Source:
+    Tx:     7a68cea098afed859383feaee49a5ac8d6c17a811e787026d3c65a7973032f79
+    Output #0
+    PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
+
+
+Outputs:
+  ---- Output 0 ----
+  Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
+  Value:
+    Ada:      Lovelace:  8000000
+
+  ---- Output 1 ----
+  Destination:  Script: f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54...
+  Value:
+    Ada:      Lovelace:  2000000
+
+
+Balances Carried Forward:
+  Script: f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54...
+  Value:
+    Ada:      Lovelace:  2000000
+
+  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
+  Value:
+    Ada:      Lovelace:  8000000

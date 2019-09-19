@@ -3,6 +3,7 @@ module Action
   , actionsErrorPane
   ) where
 
+import Types
 import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -26,14 +27,14 @@ import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disable
 import Halogen.HTML.Properties as HP
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
+import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
 import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
+import Playground.Types (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
 import Prelude (Unit, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
-import Types (class HasBound, Action(Wait, Action), ActionEvent(AddWaitAction, SetWaitTime, RemoveAction), ChildQuery, ChildSlot, DragAndDropEventType(..), FieldEvent(..), FormArgument(..), FormEvent(..), Query(..), Simulation(Simulation), WebData, _Action, _LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _argumentSchema, _functionName, _ivFrom, _ivTo, _simulatorWallet, _simulatorWalletWallet, _walletId, hasBound, isInclusive)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -423,11 +424,7 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
         ]
     , small
         [ classes [ formText, textMuted ] ]
-        [ text $ "From "
-            <> humanise (view (_Interval <<< _ivFrom) interval)
-            <> " to "
-            <> humanise (view (_Interval <<< _ivTo) interval)
-            <> "."
+        [ text $ humaniseInterval interval
         ]
     ]
   where
@@ -473,18 +470,6 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
               _ -> mempty
       , onValueInput $ map (\n -> HQ.action (SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval)))) <<< Int.fromString
       ]
-
-  humanise :: forall a. HasBound a Slot => a -> String
-  humanise bound = start <> " " <> end
-    where
-    start = case hasBound bound of
-      NegInf -> "the start of time"
-      Finite (Slot slot) -> "Slot " <> show slot.getSlot
-      PosInf -> "the end of time"
-
-    end = case isInclusive bound of
-      true -> "(inclusive)"
-      false -> "(exclusive)"
 
 actionArgumentField ancestors isNested (FormValue value) =
   div [ nesting isNested ]
