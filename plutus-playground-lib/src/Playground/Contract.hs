@@ -49,10 +49,10 @@ import           IOTS                        (IotsType (iotsDefinition))
 import           Ledger.Interval             (always)
 import           Ledger.Scripts              (ValidatorHash (ValidatorHash))
 import           Ledger.Value                (TokenName (TokenName), Value)
-import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (ensureIotsDefinitions, mkFunction, mkFunctions, mkIotsDefinitions,
                                               mkKnownCurrencies, mkSingleFunction)
+import           Playground.Types            (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Schema                      (FormSchema, ToSchema)
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)

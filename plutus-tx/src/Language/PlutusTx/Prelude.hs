@@ -11,6 +11,8 @@ module Language.PlutusTx.Prelude (
     module Numeric,
     module Functor,
     module Lattice,
+    -- * Standard functions
+    ($),
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -69,7 +71,7 @@ import           Language.PlutusTx.Semigroup as Semigroup
 import           Prelude                     as Prelude hiding (Eq (..), Functor (..), Monoid (..), Num (..), Ord (..),
                                                          Semigroup (..), all, any, const, elem, error, filter, foldMap,
                                                          foldl, foldr, fst, length, map, max, maybe, min, not, null,
-                                                         snd, (!!), (&&), (++), (<$>), (||))
+                                                         snd, (!!), ($), (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -167,3 +169,10 @@ fold = foldr (<>) mempty
 {-# INLINABLE foldMap #-}
 foldMap :: Monoid m => (a -> m) -> [a] -> m
 foldMap f = foldr (\a m -> f a <> m) mempty
+
+infixr 0 $
+-- Normal $ is levity-polymorphic, which we can't handle.
+{-# INLINABLE ($) #-}
+-- | Plutus Tx version of 'Data.Function.($)'.
+($) :: (a -> b) -> a -> b
+f $ a = f a

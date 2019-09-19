@@ -8,13 +8,13 @@
 
 module Playground.THSpec where
 
-import           Data.Text      (Text)
-import           Ledger.Value   (Value)
-import           Playground.API (Fn (Fn), FunctionSchema (FunctionSchema))
-import           Playground.TH  (mkFunctions, mkSingleFunction)
-import           Schema         (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
-import           Test.Hspec     (Spec, describe, it, shouldBe)
-import           Wallet         (MonadWallet)
+import           Data.Text        (Text)
+import           Ledger.Value     (Value)
+import           Playground.TH    (mkFunctions, mkSingleFunction)
+import           Playground.Types (Fn (Fn), FunctionSchema (FunctionSchema))
+import           Schema           (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
+import           Test.Hspec       (Spec, describe, it, shouldBe)
+import           Wallet           (MonadWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.

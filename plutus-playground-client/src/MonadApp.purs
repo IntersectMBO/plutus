@@ -17,6 +17,8 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.RawJson (JsonEither)
 import Editor as Editor
 import Effect (Effect)
+import Effect.Aff (Milliseconds)
+import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
@@ -25,7 +27,7 @@ import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
-import Playground.API (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
+import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Servant.PureScript.Ajax (AjaxError)
@@ -48,6 +50,8 @@ class
   setDropEffect :: DropEffect -> DragEvent -> m Unit
   setDataTransferData :: DragEvent -> MediaType -> String -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
+  --
+  delay :: Milliseconds -> m Unit
   --
   getOauthStatus :: m (WebData AuthStatus)
   getGistByGistId :: GistId -> m (WebData Gist)
@@ -102,6 +106,7 @@ instance monadAppHalogenApp ::
   setDropEffect dropEffect event = wrap $ liftEffect $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
   setDataTransferData event mimeType value = wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
+  delay ms = wrap $ liftAff $ Aff.delay ms
   saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   getOauthStatus = runAjax Server.getOauthStatus
   getGistByGistId gistId = runAjax $ Server.getGistsByGistId gistId

@@ -4,23 +4,29 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# OPTIONS_GHC   -Wno-orphans #-}
 
 module Playground.Server
     ( mkHandlers
+    , doAnnotateBlockchain
+    , postProcessEvaluation
     ) where
 
 import           Control.Monad.Except         (runExceptT, throwError)
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
+import           Data.Bifunctor               (first)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode))
 import           Ledger                       (hashTx)
-import           Playground.API               (API, CompilationResult, Evaluation, EvaluationResult (EvaluationResult))
-import qualified Playground.API               as PA
+import           Playground.API               (API)
 import qualified Playground.Interpreter       as PI
+import           Playground.Interpreter.Util  (TraceResult)
+import           Playground.Rollup            (doAnnotateBlockchain)
+import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
+                                               PlaygroundError (RollupError))
+import qualified Playground.Types             as PT
 import           Playground.Usecases          (vesting)
 import           Servant                      (err400, errBody)
 import           Servant.API                  ((:<|>) ((:<|>)))
@@ -40,24 +46,33 @@ acceptSourceCode sourceCode = do
             pure . Left $ CompilationErrors errors
         Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
-runFunction :: Evaluation -> Handler (Either PA.PlaygroundError EvaluationResult)
+runFunction :: Evaluation -> Handler (Either PlaygroundError EvaluationResult)
 runFunction evaluation = do
     let maxInterpretationTime :: Microsecond =
             fromMicroseconds (80 * 1000 * 1000)
     result <-
         liftIO . runExceptT $ PI.runFunction maxInterpretationTime evaluation
-    let pubKeys = PA.pubKeys evaluation
-    case result of
-        Right (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) -> do
-            let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
-            pure . Right $
-                EvaluationResult
-                    (fmap (\tx -> (hashTx tx, tx)) <$> blockchain)
-                    flowgraph
-                    emulatorLog
-                    fundsDistribution
-                    walletAddresses
-        Left playgroundError -> pure . Left $ playgroundError
+    pure $ postProcessEvaluation evaluation result
+
+postProcessEvaluation ::
+       Evaluation
+    -> Either PlaygroundError (InterpreterResult TraceResult)
+    -> Either PlaygroundError EvaluationResult
+postProcessEvaluation evaluation interpreterResult = do
+    let pubKeys = PT.pubKeys evaluation
+    (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) <-
+        interpreterResult
+    let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
+    let blockchainWithTxIds = fmap (\tx -> (hashTx tx, tx)) <$> blockchain
+    rollup <- first RollupError $ doAnnotateBlockchain blockchainWithTxIds
+    pure $
+        EvaluationResult
+            blockchainWithTxIds
+            rollup
+            flowgraph
+            emulatorLog
+            fundsDistribution
+            walletAddresses
 
 checkHealth :: Handler ()
 checkHealth = do

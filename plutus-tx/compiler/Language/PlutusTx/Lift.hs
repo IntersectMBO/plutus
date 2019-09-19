@@ -1,14 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Language.PlutusTx.Lift (
     makeLift,
+    safeLift,
+    safeLiftProgram,
+    safeLiftCode,
+    safeConstCode,
     lift,
     liftProgram,
     liftCode,
     constCode,
-    unsafeLift,
-    unsafeLiftProgram,
-    unsafeLiftCode,
-    unsafeConstCode,
     typeCheckAgainst,
     typeCode) where
 
@@ -36,25 +36,25 @@ import           Data.Functor                                  (void)
 import           Data.Proxy
 
 -- | Get a Plutus Core term corresponding to the given value.
-lift :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Term TyName Name ())
-lift x = do
+safeLift :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Term TyName Name ())
+safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm lifted
     pure $ void compiled
 
 -- | Get a Plutus Core program corresponding to the given value.
-liftProgram :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Program TyName Name ())
-liftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> lift x
+safeLiftProgram :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Program TyName Name ())
+safeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
-liftCode :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (CompiledCode a)
-liftCode x = DeserializedCode <$> liftProgram x <*> pure Nothing
+safeLiftCode :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (CompiledCode a)
+safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
-constCode
+safeConstCode
     :: (Lift.Typeable a, AsError e (Provenance ()), MonadError e m, MonadQuote m)
     => Proxy a
     -> CompiledCode b
     -> m (CompiledCode (a -> b))
-constCode proxy code = do
+safeConstCode proxy code = do
     newTerm <- liftQuote $ runDefT () $ do
         term <- Lift.lift code
         ty <- Lift.typeRep proxy
@@ -70,24 +70,24 @@ unsafely ma = runQuote $ do
         Right t -> pure t
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
-unsafeLift :: Lift.Lift a => a -> PLC.Term TyName Name ()
-unsafeLift a = unsafely $ lift a
+lift :: Lift.Lift a => a -> PLC.Term TyName Name ()
+lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
-unsafeLiftProgram :: Lift.Lift a => a -> PLC.Program TyName Name ()
-unsafeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) $ unsafeLift x
+liftProgram :: Lift.Lift a => a -> PLC.Program TyName Name ()
+liftProgram x = PLC.Program () (PLC.defaultVersion ()) $ lift x
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
-unsafeLiftCode :: Lift.Lift a => a -> CompiledCode a
-unsafeLiftCode x = unsafely $ liftCode x
+liftCode :: Lift.Lift a => a -> CompiledCode a
+liftCode x = unsafely $ safeLiftCode x
 
 -- | Creates a program that ignores an argument of the given type and returns the program given.
-unsafeConstCode
+constCode
     :: Lift.Typeable a
     => Proxy a
     -> CompiledCode b
     -> CompiledCode (a -> b)
-unsafeConstCode proxy b = unsafely $ constCode proxy b
+constCode proxy b = unsafely $ safeConstCode proxy b
 
 {- Note [Checking the type of a term with Typeable]
 Checking the type of a term should be simple, right? We can just use 'checkType', easy peasy.

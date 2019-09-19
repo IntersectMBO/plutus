@@ -33,10 +33,15 @@ Even if you already have Nix installed, make sure to set up the xref:iohk-binary
 * https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
 * https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
 
+=== How to get started using the libraries
+
+There is an example project in the `example` folder, see its link:./example/README.md[README]
+for more details.
+
 === How to build the Haskell packages and other artifacts
 
 [[building-with-nix]]
-=== How to build Haskell packages and other artifacts with Nix
+==== How to build Haskell packages and other artifacts with Nix
 
 Run `nix build -f default.nix localPackages.language-plutus-core`
 from the root to build the Plutus Core library.
@@ -44,7 +49,7 @@ from the root to build the Plutus Core library.
 See the section on xref:nix-build-attributes[Nix build attributes] to find out
 what other attributes you can build.
 
-=== How to build Haskell packages with `cabal`
+==== How to build Haskell packages with `cabal`
 
 Run `cabal v2-build language-plutus-core` from the root to build the
 Plutus Core library.
@@ -52,7 +57,7 @@ Plutus Core library.
 See the link:./cabal.project[cabal project file] to see the other
 projects that you can build with `cabal`.
 
-=== How to build the Haskell packages with `stack`
+==== How to build the Haskell packages with `stack`
 
 Run `stack build language-plutus-core` from the root to build the
 Plutus Core library.
@@ -66,8 +71,7 @@ projects that you can build with stack.
 2. Run `nix build -f default.nix docker.plutusPlaygroundImage`, to build
 3. Run `docker load < docker-image-plutus-playgrounds.tar.gz` - this will
 print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
-4. Run `docker run -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
-using the image name from the previous step.
+4. Run `docker run --mount ‘type=bind,source=/tmp,target=/tmp’ -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp` using the image name from the previous step.
 5. Open http://localhost:8080/ in a web browser.
 
 == Where to go next

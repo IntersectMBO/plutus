@@ -14,7 +14,7 @@ import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
+import Playground.Types (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
 import Schema (FormSchema(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)

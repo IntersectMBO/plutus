@@ -30,9 +30,6 @@ import qualified Language.PlutusTx         as PlutusTx
 
 import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
 import qualified Ledger                    as L
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import           Ledger.Validation         (PendingTx, PendingTx'(..))
@@ -43,19 +40,18 @@ import qualified Ledger.Value              as Value
 import           Wallet                    (MonadWallet, PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 
 import qualified Data.Map                  as Map
-import qualified Data.Set                  as Set -- <1>
+import qualified Data.Set                  as Set -- <.>
 
 import           GHC.Generics              (Generic)
 ----
-<1> We need a few more standard Haskell data structures for this tutorial.
+<.> We need a few more standard Haskell data structures for this tutorial.
 
 In our vesting scheme the money will be released in two _tranches_ (parts):
 A smaller part will be available after an initial number of slots have
 passed, and the entire amount will be released at the end. The owner of the
-vesting scheme does not have to take out all the money at once: They can take out
+vesting scheme does not have to take out all the money at once: they can take out
 any amount up to the total that has been released so far. The remaining
 funds stay locked and can be retrieved later.
 
@@ -69,7 +65,7 @@ Let's start with the data types.
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
     -- ^ When this tranche is released
-    vestingTrancheAmount :: Value -- <1>
+    vestingTrancheAmount :: Value -- <.>
     -- ^ How much money is locked in this tranche
     } deriving (Generic)
 
@@ -104,7 +100,7 @@ availableFrom (VestingTranche d v) range =
     -- the money in the tranche is available, otherwise nothing is available.
     in if validRange `Interval.contains` range then v else zero
 ----
-<1> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
+<.> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
 Most of the functions work very similarly, so there is usually little reason not
 to use `Value` instead of `Ada`.
 
@@ -159,7 +155,7 @@ We will call these conditions `con1` and `con2`.
         -- is greater than or equal to 'unreleased'.
         con1 :: Bool
         con1 =
-            let remaining = V.valueLockedBy p ownHash -- <1>
+            let remaining = V.valueLockedBy p ownHash -- <.>
             in remaining `Value.geq` unreleased
 
         -- 'con2' is true if the pending transaction 'p' has  been signed
@@ -169,7 +165,7 @@ We will call these conditions `con1` and `con2`.
 
     in con1 && con2
 ----
-<1> We use the `valueLockedBy` function to get the amount of value paid by pending
+<.> We use the `valueLockedBy` function to get the amount of value paid by pending
 transaction `p` to the script address `ownHash`.
 
 === Contract endpoints
@@ -222,7 +218,7 @@ withdraw vst vl = do
     range <- Haskell.fmap WAPI.intervalFrom WAPI.slot
 
     -- The input should be the UTXO of the vesting scheme.
-    utxos <- WAPI.outputsAt address -- <1>
+    utxos <- WAPI.outputsAt address -- <.>
 
     let
         -- the redeemer script containing the unit value ()
@@ -234,7 +230,7 @@ withdraw vst vl = do
 
         ins = Set.map mkIn (Map.keysSet utxos)
 ----
-<1> We can get the outputs at an address (as far as they are known by the wallet) with
+<.> We can get the outputs at an address (as far as they are known by the wallet) with
 `outputsAt`, which returns a map of `TxOutRef` to `TxOut`.
 
 Our transaction has either one or two outputs.
@@ -247,7 +243,7 @@ that keeps the remaining value.
 
 [source,haskell]
 ----
-    ownOutput <- W.ownPubKeyTxOut vl -- <1>
+    ownOutput <- W.ownPubKeyTxOut vl -- <.>
 
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
@@ -264,8 +260,7 @@ that keeps the remaining value.
 
     pure ()
 ----
-<1> We can create a public key output to our own key with `ownPubKeyTxOut`.
-
+<.> We can create a public key output to our own key with `ownPubKeyTxOut`.
 
 == Exercises
 

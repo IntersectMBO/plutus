@@ -1,41 +1,53 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DerivingVia         #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE PolyKinds           #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE IncoherentInstances  #-}
+{-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -fno-warn-unticked-promoted-constructors #-}
 module Language.Plutus.Contract.IOTS(
     IotsType(..)
-  , schemaMap
+  , IotsRow(..)
+  , rowSchema
   ) where
 
-import           Data.Functor.Const
-import           Data.Functor.Identity
-import           Data.Proxy            (Proxy (..))
+import           Data.Kind         (Type)
 import           Data.Row
-import           Data.Row.Internal     (Unconstrained1)
-import qualified Data.Row.Records      as Records
-import           Data.Sequence         (Seq)
-import qualified Data.Sequence         as Seq
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
-import           GHC.TypeLits          (symbolVal)
-import           IOTS                  (IotsType (..), export)
+import           Data.Row.Internal
+import           Data.Text         (Text)
+import           Type.Reflection   (Typeable)
 
+import           IOTS
 
-mksConst :: forall l a. (KnownSymbol l, IotsType a) => Label l -> (Const (Seq Text)) a
-mksConst Label = Const (Seq.fromList [Text.pack $ symbolVal (Proxy @l), export (Proxy @a)])
+class IotsExportable (HList (IotsRowTypes s)) => IotsRow (s :: Row *) where
 
-mkSchema :: forall s. (AllUniqueLabels s, Forall s IotsType) => Rec (Records.Map (Const (Seq Text)) s)
-mkSchema = runIdentity (Records.fromLabelsMapA @IotsType @Identity @(Const (Seq Text)) @s (Identity . mksConst))
+  -- The list of types. Every @l :-> a@ in @s@ results in one
+  -- @Tagged l (a -> ())@ in @IotsRowTypes s@.
+  type IotsRowTypes s :: [Type]
 
-unSchema :: forall s. Forall s Unconstrained1 => Rec (Records.Map (Const (Seq Text)) s) -> Const (Seq Text) (Rec s)
-unSchema = Records.sequence
+  -- The 'IotsTypeRep' for the list of types
+  -- mkRep :: IotsTypeRep (HList (IotsRowTypes s))
+  mkRep :: HList (IotsRowTypes s)
 
-schemaMap :: forall s. (AllUniqueLabels s, Forall s IotsType, Forall s Unconstrained1) => Const (Seq Text) (Rec s)
-schemaMap = unSchema @s (mkSchema @s)
+instance IotsRow Empty where
+  type IotsRowTypes Empty = '[]
+  mkRep = HNil
+
+instance (IotsRow (R bs), KnownSymbol l, IotsType a, Typeable a) => IotsRow (R (l :-> a ': bs)) where
+  type IotsRowTypes (R (l :-> a ': bs)) = Tagged l (a -> ()) ': IotsRowTypes (R bs)
+  mkRep =
+    HCons (Tagged @l @(a -> ()) (const ())) (mkRep @(R bs))
+
+-- | The IOTS schema for 's', calling @createEndpoint@ for each entry
+--   in the row.
+rowSchema :: forall s. IotsRow s => Text
+rowSchema = export (mkRep @s)

@@ -80,7 +80,7 @@ data FlowLink = FlowLink
 data FlowGraph = FlowGraph
   { flowGraphLinks :: [FlowLink]
   , flowGraphNodes :: [TxRef]
-  } deriving (Generic, ToJSON)
+  } deriving (Show, Generic, ToJSON)
 
 -- | Construct a graph from a list of 'FlowLink's.
 graph :: [FlowLink] -> FlowGraph

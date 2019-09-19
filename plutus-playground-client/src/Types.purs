@@ -1,18 +1,22 @@
 module Types where
 
 import Prelude
+
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
+import Chain.Types (ChainFocus)
+import Chain.Types as Chain
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import Cursor (Cursor)
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens, Lens', Prism', lens, prism', to, view)
+import Data.Lens (Lens, Lens', Prism', prism, prism', to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -37,13 +41,13 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
-import Ledger.Tx (Tx)
+import Ledger.Tx (Tx, TxOutType(..))
 import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
-import Playground.API as API
+import Playground.Types (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.Types as Playground
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -135,52 +139,6 @@ _functionName = prop (SProxy :: SProxy "functionName")
 _blocks :: forall a b r. Lens { blocks :: a | r } { blocks :: b | r } a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
-_ivFrom :: forall a r. Lens' { ivFrom :: a | r } a
-_ivFrom = prop (SProxy :: SProxy "ivFrom")
-
-_ivTo :: forall a r. Lens' { ivTo :: a | r } a
-_ivTo = prop (SProxy :: SProxy "ivTo")
-
-_LowerBoundExtended :: forall a. Lens' (LowerBound a) (Extended a)
-_LowerBoundExtended = lens get set
-  where
-    get (LowerBound e _) = e
-    set (LowerBound _ i) e = LowerBound e i
-
-_LowerBoundInclusive :: forall a. Lens' (LowerBound a) Boolean
-_LowerBoundInclusive = lens get set
-  where
-    get (LowerBound _ i) = i
-    set (LowerBound e _) i = LowerBound e i
-
-_UpperBoundExtended :: forall a. Lens' (UpperBound a) (Extended a)
-_UpperBoundExtended = lens get set
-  where
-    get (UpperBound e _) = e
-    set (UpperBound _ i) e = UpperBound e i
-
-_UpperBoundInclusive :: forall a. Lens' (UpperBound a) Boolean
-_UpperBoundInclusive = lens get set
-  where
-    get (UpperBound _ i) = i
-    set (UpperBound e _) i = UpperBound e i
-
-_a :: forall a r. Lens' { a :: a | r } a
-_a = prop (SProxy :: SProxy "a")
-
--- | Any type that contains an `Extended a` value and an inclusive/exclusive flag.
-class HasBound a v | a -> v where
-  hasBound :: a -> Extended v
-  isInclusive :: a -> Boolean
-
-instance lowerBoundHasBound :: HasBound (LowerBound v) v where
-  hasBound (LowerBound x _) = x
-  isInclusive (LowerBound _ x) = x
-
-instance upperBoundHasBound :: HasBound (UpperBound v) v where
-  hasBound (UpperBound x _) = x
-  isInclusive (UpperBound _ x) = x
-
 instance actionValidation :: Validation Action where
   validate (Wait _) = []
   validate (Action action) = Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
@@ -192,14 +150,14 @@ instance actionValidation :: Validation Action where
 -- | TODO: It should always be true that either toExpression returns a
 -- `Just value` OR validate returns a non-empty array.
 -- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
-toExpression :: Action -> Maybe API.Expression
-toExpression (Wait wait) = Just $ API.Wait wait
+toExpression :: Action -> Maybe Playground.Expression
+toExpression (Wait wait) = Just $ Playground.Wait wait
 
 toExpression (Action action) = do
   let
     wallet = view _simulatorWalletWallet action.simulatorWallet
   arguments <- jsonArguments
-  pure $ API.Action { wallet, function, arguments }
+  pure $ Playground.Action { wallet, function, arguments }
   where
   function = view (_functionSchema <<< to unwrap <<< _functionName) action
 
@@ -247,6 +205,8 @@ data Query a
   | ModifyActions ActionEvent a
   | EvaluateActions a
   | PopulateAction Int Int (FormEvent a)
+  -- Chain.
+  | SetChainFocus (Maybe ChainFocus) a
 
 data WalletEvent
   = AddWallet
@@ -335,8 +295,14 @@ cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlo
 cpBalancesChart = cp2
 
 -----------------------------------------------------------
+type Block
+  = JsonTuple (TxIdOf String) Tx
+
+type ChainSlot
+  = Array Block
+
 type Blockchain
-  = Array (Array (JsonTuple (TxIdOf String) Tx))
+  = Array ChainSlot
 
 type Signatures
   = Array (FunctionSchema FormSchema)
@@ -372,6 +338,7 @@ newtype State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
+  , blockchainVisualisationState :: Chain.State
   }
 
 derive instance newtypeState :: Newtype State _
@@ -412,8 +379,49 @@ _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
 _resultBlockchain :: Lens' EvaluationResult Blockchain
 _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
+_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKey Wallet))
+_walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
+
+_txSignatures :: forall r a. Lens' { txSignatures :: a | r } a
+_txSignatures = prop (SProxy :: SProxy "txSignatures")
+
+_txInputs :: forall r a. Lens' { txInputs :: a | r } a
+_txInputs = prop (SProxy :: SProxy "txInputs")
+
+_txOutputs :: forall r a. Lens' { txOutputs :: a | r } a
+_txOutputs = prop (SProxy :: SProxy "txOutputs")
+
+_txOutType :: forall r a. Lens' { txOutType :: a | r } a
+_txOutType = prop (SProxy :: SProxy "txOutType")
+
+_txOutValue :: forall r a. Lens' { txOutValue :: a | r } a
+_txOutValue = prop (SProxy :: SProxy "txOutValue")
+
+_PayToPubKey :: Prism' TxOutType PubKey
+_PayToPubKey = prism PayToPubKey case _ of
+  PayToPubKey pubKey -> Right pubKey
+  other -> Left other
+
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)
 _knownCurrencies = _Newtype <<< prop (SProxy :: SProxy "knownCurrencies")
+
+_blockchainVisualisationState :: Lens' State Chain.State
+_blockchainVisualisationState = _Newtype <<< prop (SProxy :: SProxy "blockchainVisualisationState")
+
+_x :: forall r a. Lens' { x :: a | r } a
+_x = prop (SProxy :: SProxy "x")
+
+_y :: forall r a. Lens' { y :: a | r } a
+_y = prop (SProxy :: SProxy "y")
+
+_chainFocus :: forall r a. Lens' { chainFocus :: a | r } a
+_chainFocus = prop (SProxy :: SProxy "chainFocus")
+
+_chainFocusAppearing :: forall r a. Lens' { chainFocusAppearing :: a | r } a
+_chainFocusAppearing = prop (SProxy :: SProxy "chainFocusAppearing")
+
+_chainFocusAge :: forall r a. Lens' { chainFocusAge :: a | r } a
+_chainFocusAge = prop (SProxy :: SProxy "chainFocusAge")
 
 data View
   = Editor

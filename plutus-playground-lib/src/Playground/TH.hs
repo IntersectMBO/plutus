@@ -19,7 +19,7 @@ import           Language.Haskell.TH   (Body (NormalB), Clause (Clause), Dec (Fu
                                         Exp (ListE, LitE, VarE), ExpQ, Info (VarI), Lit (StringL), Name, Pat (VarP), Q,
                                         Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), appTypeE, conE, conT,
                                         litT, lookupValueName, mkName, nameBase, reify, strTyLit, varE)
-import           Playground.API        (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
+import           Playground.Types      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
 import           Schema                (toSchema)
 import           Wallet.Emulator.Types (MockWallet)
 
@@ -124,7 +124,7 @@ args a                          = error $ "incorrect type in template haskell fu
 mkKnownCurrencies :: [Name] -> Q [Dec]
 mkKnownCurrencies ks = do
     let name = mkName "registeredKnownCurrencies"
-        names = fmap VarE ('Playground.API.adaCurrency : ks)
+        names = fmap VarE ('Playground.Types.adaCurrency : ks)
         body = NormalB (ListE names)
         val = ValD (VarP name) body []
         typeName = mkName "KnownCurrency"

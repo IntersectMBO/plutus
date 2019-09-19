@@ -40,12 +40,12 @@ primitives = testNested "Primitives" [
   , goldenPir "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ getProgram ifThenElse, getProgram int, getProgram int2 ]
   , goldenPir "emptyByteString" emptyByteString
-  , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, unsafeLiftProgram Builtins.emptyByteString ]
+  , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
   , goldenPir "bytestring" bytestring
-  , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::Builtins.ByteString) ]
-  , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: Builtins.ByteString)]
-  , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("hello" :: Builtins.ByteString)]
-  , goldenEval "ltByteString" [ getPlc bsLt, unsafeLiftProgram ("hello" :: Builtins.ByteString), unsafeLiftProgram ("world" :: Builtins.ByteString)]
+  , goldenEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello"::Builtins.ByteString) ]
+  , goldenEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   ]

@@ -74,7 +74,7 @@ import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusTx.Lift                   (unsafeLiftCode)
+import           Language.PlutusTx.Lift                   (liftCode)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift)
 import           Language.PlutusTx.Prelude
@@ -193,7 +193,7 @@ instance FromJSON Script where
 -- | Lift a Haskell value into the corresponding 'Script'. This allows you to create
 -- 'Script's at runtime, whereas 'compileScript' allows you to do so at compile time.
 lifted :: Lift a => a -> Script
-lifted = fromCompiledCode . unsafeLiftCode
+lifted = fromCompiledCode . liftCode
 
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }

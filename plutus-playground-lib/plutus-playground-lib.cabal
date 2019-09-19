@@ -28,6 +28,9 @@ library
   exposed-modules:
       Playground.Contract
       Playground.API
+      Playground.Rollup
+      Playground.Rollup.Render
+      Playground.Types
       Playground.TH
       Playground.Interpreter.Util
   other-modules:
@@ -41,6 +44,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , cryptonite
     , insert-ordered-containers
     , iots-export
     , playground-common
@@ -55,6 +59,8 @@ library
     , plutus-tx
     , plutus-wallet-api
     , plutus-emulator
+    , prettyprinter
+    , serialise
     , wl-pprint-text
   default-language: Haskell2010
 
