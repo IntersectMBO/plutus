@@ -1,4 +1,4 @@
-[#playground-overview]
+[#playground-blockly]
 == Marlowe in Blockly
 
 So far in these tutorials we have concentrated on building contracts in the textual version of Marlowe, embedded in Haskell, Marlowe contracts can also be built using the Blockly visual programming environment, as described in this series of videos.
