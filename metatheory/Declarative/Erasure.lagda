@@ -10,7 +10,8 @@ open import Untyped
 \begin{code}
 open import Type
 open import Declarative
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con renaming (TermCon to TyTermCon)
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+  renaming (TermCon to TyTermCon)
 open import Data.Nat
 open import Data.Fin
 open import Data.List

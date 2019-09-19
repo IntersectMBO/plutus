@@ -46,7 +46,6 @@ eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → A.Tel Γ Δ σ As
   → Untyped.Tel (len Γ)
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
-
 erase (` α)               = ` (eraseVar α)
 erase (ƛ x t)             = ƛ x (erase t) 
 erase (t · u)             = erase t · erase u
@@ -110,7 +109,7 @@ sameVar {Γ = Γ D., _} (D.S x) = trans
   (cong suc (sameVar x))
   (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
 sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x p) = sameVar x
-{-
+
 lemVar : ∀{n n'}(p : n ≡ n')(i : Fin n) →  ` (subst Fin p i) ≡ subst _⊢ p (` i)
 lemVar refl i = refl
 
@@ -121,11 +120,17 @@ lemƛ refl refl t = refl
 lem· : ∀{n n'}(p : n ≡ n')(t u : n ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
 lem· refl t u = refl
 
-{-
-lem-erase : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(p : A ≡ A')(t : Γ A.⊢ A)
-  → erase t ≡ erase (conv⊢ p t)
-lem-erase refl t = refl
--}
+lemcon' : ∀{n n'}(p : n ≡ n')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
+lemcon' refl tcn = refl
+
+lemerror : ∀{n n'}(p : n ≡ n') →  error ≡ subst _⊢ p error
+lemerror refl = refl
+
+lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡Ctx Γ' → len Γ ≡ len Γ'
+lem≡Ctx ∅        = refl
+lem≡Ctx (p ,⋆ K) = lem≡Ctx p
+lem≡Ctx (p , p') = cong suc (lem≡Ctx p)
+
 lem[]' : ∀{n n'}(p : n ≡ n') →
   [] ≡ subst (List ∘ _⊢) p []
 lem[]' refl = refl
@@ -134,11 +139,58 @@ lem∷ : ∀{n n'}(p : n ≡ n')(t : n ⊢)(ts : List (n ⊢))
   → subst _⊢ p t ∷ subst (List ∘ _⊢) p ts ≡ subst (List ∘ _⊢) p (t ∷ ts) 
 lem∷ refl t ts = refl
 
-lemcon' : ∀{n n'}(p : n ≡ n')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
-lemcon' refl tcn = refl
+lemTel : ∀{n n'}(p : n ≡ n')(bn : Builtin)(ts : List (n ⊢))
+  → builtin bn (subst (List ∘ _⊢) p ts) ≡ subst _⊢ p (builtin bn ts)
+lemTel refl bn ts = refl
 
-lemerror : ∀{n n'}(p : n ≡ n') →  error ≡ subst _⊢ p error
-lemerror refl = refl
+lem-convTel : ∀{Φ Γ Γ' Δ}(As : List (Δ ⊢Nf⋆ *))(p : Γ ≡Ctx Γ')
+  → (σ : ∀{J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
+  → (tel : A.Tel Γ Δ σ As)
+  → subst (List ∘ _⊢) (lem≡Ctx p) (eraseTel tel)
+    ≡ eraseTel (convTel p σ As tel)
+
+lem-conv∋ : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(x : Γ A.∋ A)
+  → subst Fin (lem≡Ctx p) (eraseVar x)  ≡ eraseVar (conv∋ p q x)
+lem-conv∋ (p , p') q (Z r) = sym (lemzero (cong suc (lem≡Ctx p)))
+lem-conv∋ (p , p') q (S x) = trans
+  (sym (lemsuc (cong suc (lem≡Ctx p)) (lem≡Ctx p) (eraseVar x)))
+  (cong suc (lem-conv∋ p q x))
+lem-conv∋ (p ,⋆ K) q (T x r) = lem-conv∋ p reflNf x
+
+lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')(t : Γ A.⊢ A)
+  → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
+lem-erase p q (` x) = trans
+  (sym (lemVar (lem≡Ctx p) (eraseVar x)))
+  (cong ` (lem-conv∋ p q x))
+lem-erase p (⇒≡Nf q q') (ƛ x t) = trans
+  (sym (lemƛ (lem≡Ctx p) (lem≡Ctx (p , q)) (erase t)))
+  (cong (ƛ x) (lem-erase (p , q) q' t))
+lem-erase p q (t · u) = trans
+  (sym (lem· (lem≡Ctx p) (erase t) (erase u)))
+  (cong₂ _·_ (lem-erase p (⇒≡Nf reflNf q) t) (lem-erase p reflNf u))
+lem-erase p (Π≡Nf q) (Λ x t) = lem-erase (p ,⋆ _) q t
+lem-erase p q (·⋆ t A x) = lem-erase p reflNf t
+lem-erase p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) (wrap1 pat arg t) = lem-erase p _ t
+lem-erase p q (unwrap1 t x) = lem-erase p _ t
+lem-erase p con≡Nf (con c) = sym (lemcon' (lem≡Ctx p) _)
+lem-erase p q (builtin bn σ tel r) = trans
+  (sym (lemTel (lem≡Ctx p) bn (eraseTel tel)))
+  (cong (builtin bn) (lem-convTel _ p σ tel))
+lem-erase p q (error A) = sym (lemerror (lem≡Ctx p))
+
+lem-convTel []       p σ _         = sym (lem[]' (lem≡Ctx p))
+lem-convTel (A ∷ As) p σ (t ,, ts) = trans
+  (sym (lem∷ (lem≡Ctx p) (erase t) (eraseTel ts)))
+  (cong₂ _∷_ (lem-erase p reflNf t) (lem-convTel As p σ ts))
+
+lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
+lem-subst t refl = refl
+
+lem-erase' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡Nf A')(t : Γ A.⊢ A)
+  → erase t  ≡ erase (conv⊢ reflCtx q t)
+lem-erase' {Γ = Γ} p t = trans
+  (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} reflCtx)))
+  (lem-erase reflCtx p t)
 
 open import Type.RenamingSubstitution renaming (subst to sub)
 open import Type.Equality
@@ -153,15 +205,10 @@ sameTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))(tel : D.Tel Γ 
     subst (List ∘ _⊢) (lenLemma Γ) (eraseTel (nfTypeTel σ As tel)) 
 sameTel {Γ = Γ} σ [] tel = lem[]' (lenLemma Γ)
 -- if the proof in nfTypeTel was pulled out as a lemma this would be shorter
-sameTel {Γ = Γ} σ (A ∷ As) (t ,, ts) = {!!} {- trans (cong₂ _∷_ (trans (same t) (cong (subst _⊢ (lenLemma Γ)) (lem-erase (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t)))) (sameTel σ As ts)) (lem∷ (lenLemma Γ) (erase (conv⊢ (sym (trans (trans (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (sym (subst-eval A idCR σ)))) (nfType t))) (eraseTel (nfTypeTel σ As ts))) -}
+sameTel {Γ = Γ} σ (A ∷ As) (t ,, ts) = trans (cong₂ _∷_ (trans (same t) ((cong (subst _⊢ (lenLemma Γ)) (trans (sym (lem-subst (erase (nfType t)) (lem≡Ctx {Γ = nfCtx Γ} reflCtx))) ( lem-erase reflCtx (symNf (transNf (transNf (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ)) (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness A)))) (symNf (subst-eval A idCR σ)))) (nfType t)))))) (sameTel σ As ts))  (lem∷ _ _ _)
 
 open import Data.Unit
 
-lemTel : ∀{n n'}(p : n ≡ n')(bn : Builtin)(ts : List (n ⊢))
-  → builtin bn (subst (List ∘ _⊢) p ts) ≡ subst _⊢ p (builtin bn ts)
-lemTel refl bn ts = refl
--}
-{-
 same {Γ = Γ}(D.` x) =
   trans (cong ` (sameVar x)) (lemVar (lenLemma Γ) (eraseVar (nfTyVar x)))
 same {Γ = Γ} (D.ƛ x t) = trans
@@ -170,24 +217,17 @@ same {Γ = Γ} (D.ƛ x t) = trans
 same {Γ = Γ} (t D.· u) = trans
   (cong₂ _·_ (same t) (same u))
   (lem· (lenLemma Γ) (erase (nfType t)) (erase (nfType u)))
-same {Γ = Γ} (D.Λ {B = B} x t) = {!!} {- trans
+same {Γ = Γ} (D.Λ {B = B} x t) = trans
   (same t)
-  (cong (subst _⊢ (lenLemma Γ)) (lem-erase (substNf-lemma' B) (nfType t))) -}
-same {Γ = Γ} (D.·⋆ {B = B} t A p) = {!!} {- trans
+  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (substNf-lemma' B) (nfType t)))
+same {Γ = Γ} (D.·⋆ {B = B} t A p) = trans
   (same t)
-  (cong (subst _⊢ (lenLemma Γ))
-        (trans (lem-erase (lemΠ B) (nfType t))
-               (lem-erase (lem[] A B) (conv⊢ (lemΠ B) (nfType t) ·⋆ nf A)))) -}
-same {Γ = Γ} (D.wrap1 pat arg t) = {!!} {- trans
+  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemΠ B) (nfType t)))
+same {Γ = Γ} (D.wrap1 pat arg t) = trans (same t) (cong (subst _⊢ (lenLemma Γ)) (lem-erase' _ (nfType t)))
+same {Γ = Γ} (D.unwrap1 {pat = pat}{arg = arg} t p) = same t
+same {Γ = Γ} (D.conv p t) = trans
   (same t)
-  (cong (subst _⊢ (lenLemma Γ)) (lem-erase (lemXX pat arg) (nfType t))) -}
-same {Γ = Γ} (D.unwrap1 {pat = pat}{arg} t p) = {!!} {- trans
-  (same t)
-  (cong (subst _⊢ (lenLemma Γ))
-        (lem-erase (sym (lemXX pat arg)) (unwrap1 (nfType t)))) -}
-same {Γ = Γ} (D.conv p t) = {!!} {- trans
-  (same t)
-  (cong (subst _⊢ (lenLemma Γ)) (lem-erase (completeness p) (nfType t))) -}
+  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
 same {Γ = Γ} (D.con tcn) = trans
   (cong con (sameTC {Γ = Γ} tcn))
   (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
@@ -211,7 +251,7 @@ same {Γ = Γ} (D.builtin sha3-256 σ ts p) = trans (cong (builtin sha3-256) (sa
 same {Γ = Γ} (D.builtin verifySignature σ ts p) = trans (cong (builtin verifySignature) (sameTel σ (proj₁ (proj₂ (DS.SIG verifySignature))) ts)) (lemTel (lenLemma Γ) verifySignature _)
 same {Γ = Γ} (D.builtin equalsByteString σ ts p) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
--}
+
 
 open import Algorithmic.Soundness
 {-
