@@ -19,7 +19,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (Blockchain, PubKey, Tx, TxId, TxOut, TxOutType, fromSymbol)
+import           Ledger                       (Blockchain, PubKey, Tx, TxId, TxIn, TxOut, TxOutType, fromSymbol)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
@@ -130,13 +130,21 @@ data SequenceId =
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON)
 
+data DereferencedInput =
+    DereferencedInput
+        { originalInput :: TxIn
+        , refersTo      :: TxOut
+        }
+    deriving (Eq, Show, Generic)
+    deriving anyclass (ToJSON)
+
 data AnnotatedTx =
     AnnotatedTx
-        { sequenceId           :: SequenceId
-        , txId                 :: TxId
-        , tx                   :: Tx
-        , dereferencedInputs   :: [TxOut]
-        , balances             :: Map TxOutType V.Value
+        { sequenceId         :: SequenceId
+        , txId               :: TxId
+        , tx                 :: Tx
+        , dereferencedInputs :: [DereferencedInput]
+        , balances           :: Map TxOutType V.Value
         }
     deriving (Eq, Show, Generic)
     deriving anyclass (ToJSON)

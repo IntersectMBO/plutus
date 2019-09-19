@@ -8,7 +8,7 @@ module Playground.Rollup
     ( doAnnotateBlockchain
     ) where
 
-import           Control.Lens             (assign, ifoldr, makeLenses, over, traversed, use)
+import           Control.Lens             (assign, ifoldr, makeLenses, over, use)
 import           Control.Lens.Combinators (itraverse)
 import           Control.Monad.Except     (MonadError, throwError)
 import           Control.Monad.State      (StateT, evalStateT)
@@ -20,11 +20,12 @@ import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 import           Language.PlutusTx.Monoid (inv)
-import           Ledger                   (Tx, TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut, TxOutOf (TxOutOf),
-                                           TxOutType, Value, getTxId, outValue, txInRef, txInputs, txOutRefId,
-                                           txOutRefIdx, txOutType, txOutValue, txOutputs)
-import           Playground.Types         (AnnotatedTx (AnnotatedTx), SequenceId (SequenceId), balances,
-                                           dereferencedInputs, sequenceId, slotIndex, tx, txId, txIndex)
+import           Ledger                   (Tx (Tx), TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut,
+                                           TxOutOf (TxOutOf), TxOutType, Value, getTxId, outValue, txInRef, txInputs,
+                                           txOutRefId, txOutRefIdx, txOutType, txOutValue, txOutputs)
+import           Playground.Types         (AnnotatedTx (AnnotatedTx), DereferencedInput (DereferencedInput, refersTo),
+                                           SequenceId (SequenceId), balances, dereferencedInputs, sequenceId, slotIndex,
+                                           tx, txId, txIndex)
 
 data TxKey =
     TxKey
@@ -55,7 +56,9 @@ annotateTransaction ::
     => SequenceId
     -> (TxId, Tx)
     -> StateT Rollup m AnnotatedTx
-annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
+annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx@Tx { txInputs
+                                                            , txOutputs
+                                                            }) = do
     cPreviousOutputs <- use previousOutputs
     cRollingBalances <- use rollingBalances
     dereferencedInputs <-
@@ -63,13 +66,13 @@ annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
             (\txIn ->
                  let key = txInputKey txIn
                   in case Map.lookup key cPreviousOutputs of
-                         Just txOut -> pure txOut
+                         Just txOut -> pure $ DereferencedInput txIn txOut
                          Nothing ->
                              throwError $
                              Text.pack $
                              "Could not find referenced transaction: " <>
                              show key)
-            (Set.toList (txInputs tx))
+            (Set.toList txInputs)
     let newOutputs =
             ifoldr
                 (\outputIndex ->
@@ -79,13 +82,13 @@ annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx) = do
                              , _txKeyTxOutRefIdx = fromIntegral outputIndex
                              })
                 cPreviousOutputs
-                (txOutputs tx)
+                txOutputs
         newBalances =
             foldr
                 sumAccounts
                 cRollingBalances
-                (over (traversed . outValue) inv dereferencedInputs <>
-                 txOutputs tx)
+                ((over outValue inv . refersTo <$> dereferencedInputs) <>
+                 txOutputs)
         sumAccounts :: TxOut -> Map TxOutType Value -> Map TxOutType Value
         sumAccounts TxOutOf {txOutType, txOutValue} =
             Map.alter sumBalances txOutType

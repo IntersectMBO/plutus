@@ -103,7 +103,7 @@ detailView state@{ chainFocus:
         [ col3_
             [ h2_ [ text "Inputs" ]
             , forgeView tx.txForge
-            , div_ (txOutOfView true walletKeys <$> dereferencedInputs)
+            , div_ (txOutOfView true walletKeys <<< _.refersTo <<< unwrap <$> dereferencedInputs)
             ]
         , col6_
             [ h2_ [ text "Transaction" ]

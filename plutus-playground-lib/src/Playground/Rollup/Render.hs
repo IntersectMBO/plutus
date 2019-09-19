@@ -31,19 +31,27 @@ import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOption
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (DataScript (getDataScript), PubKey, Script (unScript), Tx (Tx),
-                                                        TxId, TxOut, TxOutOf (TxOutOf),
-                                                        TxOutType (PayToPubKey, PayToScript), Value, getPubKey, getTxId,
-                                                        txFee, txForge, txOutType, txOutValue, txOutputs)
+import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn,
+                                                        TxInOf (TxInOf, txInRef, txInType),
+                                                        TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress), TxOut,
+                                                        TxOutOf (TxOutOf), TxOutRef,
+                                                        TxOutRefOf (TxOutRefOf, txOutRefId, txOutRefIdx),
+                                                        TxOutType (PayToPubKey, PayToScript), Value, getAddress,
+                                                        getPubKey, getTxId, txFee, txForge, txOutType,
+                                                        txOutValue, txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
+import           Ledger.Scripts                        (DataScript (getDataScript), Script,
+                                                        ValidatorScript (getValidator))
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
 import           Playground.Rollup                     (doAnnotateBlockchain)
-import           Playground.Types                      (AnnotatedTx (AnnotatedTx), EvaluationResult,
-                                                        SequenceId (SequenceId, slotIndex, txIndex), balances,
-                                                        dereferencedInputs, resultBlockchain, tx, txId, walletKeys)
+import           Playground.Types                      (AnnotatedTx (AnnotatedTx),
+                                                        DereferencedInput (DereferencedInput, originalInput, refersTo),
+                                                        EvaluationResult, SequenceId (SequenceId, slotIndex, txIndex),
+                                                        balances, dereferencedInputs, resultBlockchain, tx, txId,
+                                                        walletKeys)
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 
 showBlockchain :: EvaluationResult -> Either Text Text
@@ -99,8 +107,7 @@ instance Render AnnotatedTx where
 instance Render SequenceId where
     render SequenceId {..} =
         pure $
-        "Slot #" <> viaShow slotIndex <> "," <+>
-        "Tx #" <> viaShow txIndex
+        "Slot #" <> viaShow slotIndex <> "," <+> "Tx #" <> viaShow txIndex
 
 instance Render CurrencySymbol where
     render (CurrencySymbol "")    = pure "Ada"
@@ -128,7 +135,7 @@ instance (Render k, Render v) => Render (AssocMap.Map k v) where
                      pure $ fill 8 (rk <> ":") <> indent 2 rv)
                 (AssocMap.toList m)
 
-instance Render (Map TxOutType Value) where
+instance Render k => Render (Map k Value) where
     render xs
         | Map.null xs = pure "-"
         | otherwise = do
@@ -137,7 +144,7 @@ instance Render (Map TxOutType Value) where
                     (\(k, v) -> do
                          rk <- render k
                          rv <- render v
-                         pure $ vsep [rk, rv])
+                         pure $ vsep [rk, "Value:", indent 2 rv])
                     (Map.toList xs)
             pure $ vsep $ intersperse mempty entries
 
@@ -152,6 +159,9 @@ instance Render Integer where
 
 instance Render Wallet where
     render (Wallet n) = pure $ "Wallet" <+> viaShow n
+
+instance Render Address where
+    render = render . getAddress
 
 instance Render TxOutType where
     render (PayToScript dataScript) = render dataScript
@@ -168,31 +178,63 @@ instance Render Ada where
         | otherwise = pure $ "Ada" <+> pretty l
 
 instance Render (Digest SHA256) where
-    render = render . JSON.encodeSerialise
+    render = render . abbreviate 40 . JSON.encodeSerialise
 
 instance Render TxId where
     render t = pure $ viaShow (getTxId t)
 
 instance Render PubKey where
-    render = pure . viaShow . getPubKey
+    render pubKey =
+        pure $
+        let v = Text.pack (show (getPubKey pubKey))
+         in "PubKey:" <+> pretty (abbreviate 40 v)
+
+instance Render Script where
+    render script =
+        pure $
+        let v = JSON.encodeSerialise script
+         in "Script:" <+> pretty (abbreviate 40 v)
+
+instance Render ValidatorScript where
+    render = render . getValidator
 
 instance Render DataScript where
-    render dataScript =
-        pure $
-        let v = JSON.encodeSerialise . unScript . getDataScript $ dataScript
-         in pretty (abbreviate 40 v) <+> parens "Script"
+    render = render . getDataScript
 
 instance Render a => Render (Set a) where
     render xs = vsep <$> traverse render (Set.toList xs)
 
-instance Render TxOut where
-    render TxOutOf {txOutValue, txOutType} =
+instance Render DereferencedInput where
+    render DereferencedInput {originalInput, refersTo} =
         vsep <$>
-        sequence [heading "Destination:" txOutType, heading "Value:" txOutValue]
+        sequence
+            [render refersTo, pure "Source:", indent 2 <$> render originalInput]
+
+instance Render TxIn where
+    render TxInOf {txInRef, txInType} =
+        vsep <$> sequence [render txInRef, render txInType]
+
+instance Render TxInType where
+    render (ConsumeScriptAddress validator _) = render validator
+    render (ConsumePublicKeyAddress pubKey)   = render pubKey
+
+instance Render TxOutRef where
+    render TxOutRefOf {txOutRefId, txOutRefIdx} =
+        vsep <$>
+        sequence [heading "Tx:" txOutRefId, heading "Output #" txOutRefIdx]
       where
         heading t x = do
             r <- render x
-            pure $ fill 14 t <> r
+            pure $ fill 8 t <> r
+
+instance Render TxOut where
+    render TxOutOf {txOutValue, txOutType} =
+        vsep <$>
+        sequence
+            [ mappend "Destination:" . indent 2 <$> render txOutType
+            , pure "Value:"
+            , indent 2 <$> render txOutValue
+            ]
 
 ------------------------------------------------------------
 indented :: Render a => a -> StateT EvaluationResult (Either Text) (Doc ann)

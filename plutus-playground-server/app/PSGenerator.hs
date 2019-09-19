@@ -51,9 +51,9 @@ import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
-import           Playground.Types                           (AnnotatedTx, CompilationResult, Evaluation,
-                                                             EvaluationResult, Expression, Fn, FunctionSchema,
-                                                             KnownCurrency, PlaygroundError, SequenceId,
+import           Playground.Types                           (AnnotatedTx, CompilationResult, DereferencedInput,
+                                                             Evaluation, EvaluationResult, Expression, Fn,
+                                                             FunctionSchema, KnownCurrency, PlaygroundError, SequenceId,
                                                              SimulatorWallet)
 import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
 import           Schema                                     (FormSchema)
@@ -232,7 +232,8 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
     [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
-    , (functor <*> (genericShow <*> (equal <*> mkSumType))) (Proxy @(FunctionSchema A))
+    , (functor <*> (genericShow <*> (equal <*> mkSumType)))
+          (Proxy @(FunctionSchema A))
     , (genericShow <*> mkSumType) (Proxy @CompilationResult)
     , (genericShow <*> mkSumType) (Proxy @Warning)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Fn)
@@ -240,8 +241,10 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @DataScript)
-    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType)))) (Proxy @ValidatorScript)
-    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType)))) (Proxy @RedeemerScript)
+    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType))))
+          (Proxy @ValidatorScript)
+    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType))))
+          (Proxy @RedeemerScript)
     , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Expression)
@@ -256,6 +259,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxIdOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxInOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutOf A))
@@ -269,10 +273,14 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @UtxoLocation)
     , (genericShow <*> mkSumType) (Proxy @FlowLink)
     , (genericShow <*> mkSumType) (Proxy @FlowGraph)
-    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Interval A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(LowerBound A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(UpperBound A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType))) (Proxy @(Extended A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
+          (Proxy @(Interval A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
+          (Proxy @(LowerBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
+          (Proxy @(UpperBound A))
+    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
+          (Proxy @(Extended A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
@@ -286,7 +294,8 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> mkSumType) (Proxy @(InterpreterResult A))
-    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @CurrencySymbol)
+    , (genericShow <*> (equal <*> (order <*> mkSumType)))
+          (Proxy @CurrencySymbol)
     , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TokenName)
     ]
 
@@ -305,8 +314,7 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "vesting" vesting <>
-            multilineString "game" game <>
+            multilineString "vesting" vesting <> multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
             multilineString "messages" messages <>
             multilineString "starter" starter
