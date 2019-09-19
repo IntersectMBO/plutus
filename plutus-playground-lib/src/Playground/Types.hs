@@ -14,7 +14,6 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.Aeson                   as JSON
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Map                     (Map)
-import           Data.Set                     (Set)
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
