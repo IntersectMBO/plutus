@@ -37,8 +37,8 @@ import           Ledger                                (Address, PubKey, Tx (Tx)
                                                         TxOutOf (TxOutOf), TxOutRef,
                                                         TxOutRefOf (TxOutRefOf, txOutRefId, txOutRefIdx),
                                                         TxOutType (PayToPubKey, PayToScript), Value, getAddress,
-                                                        getPubKey, getTxId, txFee, txForge, txOutType,
-                                                        txOutValue, txOutputs)
+                                                        getPubKey, getTxId, txFee, txForge, txOutType, txOutValue,
+                                                        txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script,
