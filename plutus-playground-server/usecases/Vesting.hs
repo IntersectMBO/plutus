@@ -262,7 +262,6 @@ withdraw tranche1 tranche2 ownerWallet vl = do
             else RedeemerScript $ $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
                                   -- Discard the data script for the output containing the remaining funds
                      
-
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
         mkIn r = Ledger.scriptTxIn r validator redeemer
