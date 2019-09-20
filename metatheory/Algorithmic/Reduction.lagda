@@ -117,6 +117,13 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
 VTel Γ Δ σ []       tt         = ⊤
 VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
+
+convVal :  ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')
+  → ∀{t : Γ ⊢ A} → Value t → Value (conv⊢ p q t)
+convVal p (⇒≡Nf q q') V-ƛ = V-ƛ
+convVal p (Π≡Nf q) (V-Λ V) = V-Λ (convVal (p ,⋆ _) q V)
+convVal p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) (V-wrap V) = V-wrap (convVal p _ V)
+convVal p con≡Nf (V-con cn) = V-con cn
 \end{code}
 
 \begin{code}
