@@ -64,7 +64,6 @@ import           Servant.PureScript                         (HasBridge, Settings
 import           System.FilePath                            ((</>))
 import           Wallet.API                                 (WalletAPIError)
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
-import           Wallet.Graph                               (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
@@ -267,11 +266,6 @@ myTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @(AddressOf A))
-    , (genericShow <*> (genericShow <*> mkSumType)) (Proxy @TxRef)
-    , (genericShow <*> mkSumType) (Proxy @UtxOwner)
-    , (genericShow <*> mkSumType) (Proxy @UtxoLocation)
-    , (genericShow <*> mkSumType) (Proxy @FlowLink)
-    , (genericShow <*> mkSumType) (Proxy @FlowGraph)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(Interval A))
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))

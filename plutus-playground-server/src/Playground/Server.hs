@@ -26,12 +26,10 @@ import           Playground.Interpreter.Util  (TraceResult)
 import           Playground.Rollup            (doAnnotateBlockchain)
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                PlaygroundError (RollupError))
-import qualified Playground.Types             as PT
 import           Playground.Usecases          (vesting)
 import           Servant                      (err400, errBody)
 import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
-import qualified Wallet.Graph                 as V
 
 acceptSourceCode ::
        SourceCode
@@ -52,24 +50,20 @@ runFunction evaluation = do
             fromMicroseconds (80 * 1000 * 1000)
     result <-
         liftIO . runExceptT $ PI.runFunction maxInterpretationTime evaluation
-    pure $ postProcessEvaluation evaluation result
+    pure $ postProcessEvaluation result
 
 postProcessEvaluation ::
-       Evaluation
-    -> Either PlaygroundError (InterpreterResult TraceResult)
+       Either PlaygroundError (InterpreterResult TraceResult)
     -> Either PlaygroundError EvaluationResult
-postProcessEvaluation evaluation interpreterResult = do
-    let pubKeys = PT.pubKeys evaluation
+postProcessEvaluation interpreterResult = do
     (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) <-
         interpreterResult
-    let flowgraph = V.graph $ V.txnFlows pubKeys blockchain
     let blockchainWithTxIds = fmap (\tx -> (hashTx tx, tx)) <$> blockchain
     rollup <- first RollupError $ doAnnotateBlockchain blockchainWithTxIds
     pure $
         EvaluationResult
             blockchainWithTxIds
             rollup
-            flowgraph
             emulatorLog
             fundsDistribution
             walletAddresses

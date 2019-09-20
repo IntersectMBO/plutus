@@ -130,7 +130,7 @@ toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
 shouldEvaluateTo :: Evaluation -> FilePath -> IO ()
 shouldEvaluateTo scenario filename = do
     result <- runExceptT $ PI.runFunction maxInterpretationTime scenario
-    case postProcessEvaluation scenario result of
+    case postProcessEvaluation result of
         Left err               -> expectationFailure $ show err
         Right evaluationResult -> rendersAs evaluationResult filename
   where
