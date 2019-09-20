@@ -51,10 +51,10 @@ import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
-import           Playground.Types                           (AnnotatedTx, CompilationResult, DereferencedInput,
-                                                             Evaluation, EvaluationResult, Expression, Fn,
-                                                             FunctionSchema, KnownCurrency, PlaygroundError, SequenceId,
-                                                             SimulatorWallet)
+import           Playground.Types                           (AnnotatedTx, BeneficialOwner, CompilationResult,
+                                                             DereferencedInput, Evaluation, EvaluationResult,
+                                                             Expression, Fn, FunctionSchema, KnownCurrency,
+                                                             PlaygroundError, SequenceId, SimulatorWallet)
 import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
 import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
@@ -260,6 +260,7 @@ myTypes =
     , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxIdOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxInOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutOf A))
@@ -267,7 +268,7 @@ myTypes =
     , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TxInType)
     , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @TxOutType)
     , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @PubKey)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AddressOf A))
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @(AddressOf A))
     , (genericShow <*> (genericShow <*> mkSumType)) (Proxy @TxRef)
     , (genericShow <*> mkSumType) (Proxy @UtxOwner)
     , (genericShow <*> mkSumType) (Proxy @UtxoLocation)

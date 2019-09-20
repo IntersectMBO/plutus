@@ -10,8 +10,8 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Ledger.Tx (AddressOf)
-import Playground.Types (AnnotatedTx, SequenceId)
+import Ledger.Tx (AddressOf, TxOutOf(..), TxOutType(..))
+import Playground.Types (AnnotatedTx, BeneficialOwner(..), SequenceId)
 
 data ChainFocus
   = FocusTx AnnotatedTx
@@ -40,3 +40,9 @@ type State =
 
 _sequenceId :: Lens' AnnotatedTx SequenceId
 _sequenceId = _Newtype <<< prop (SProxy :: SProxy "sequenceId")
+
+toBeneficialOwner :: TxOutOf String -> BeneficialOwner
+toBeneficialOwner (TxOutOf {txOutType, txOutAddress}) =
+    case txOutType of
+        PayToPubKey pubKey -> OwnedByPubKey pubKey
+        PayToScript _      -> OwnedByScript txOutAddress

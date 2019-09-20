@@ -21,11 +21,12 @@ import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 import           Language.PlutusTx.Monoid (inv)
 import           Ledger                   (Tx (Tx), TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut,
-                                           TxOutOf (TxOutOf), TxOutType, Value, getTxId, outValue, txInRef, txInputs,
-                                           txOutRefId, txOutRefIdx, txOutType, txOutValue, txOutputs)
-import           Playground.Types         (AnnotatedTx (AnnotatedTx), DereferencedInput (DereferencedInput, refersTo),
-                                           SequenceId (SequenceId), balances, dereferencedInputs, sequenceId, slotIndex,
-                                           tx, txId, txIndex)
+                                           TxOutOf (TxOutOf), Value, getTxId, outValue, txInRef, txInputs, txOutRefId,
+                                           txOutRefIdx, txOutValue, txOutputs)
+import           Playground.Types         (AnnotatedTx (AnnotatedTx), BeneficialOwner,
+                                           DereferencedInput (DereferencedInput, refersTo), SequenceId (SequenceId),
+                                           balances, dereferencedInputs, sequenceId, slotIndex, toBeneficialOwner, tx,
+                                           txId, txIndex)
 
 data TxKey =
     TxKey
@@ -37,7 +38,7 @@ data TxKey =
 data Rollup =
     Rollup
         { _previousOutputs :: Map TxKey TxOut
-        , _rollingBalances :: Map TxOutType Value
+        , _rollingBalances :: Map BeneficialOwner Value
         }
     deriving (Show, Eq, Generic)
 
@@ -89,9 +90,10 @@ annotateTransaction sequenceId (txIdOf@(TxIdOf txId), tx@Tx { txInputs
                 cRollingBalances
                 ((over outValue inv . refersTo <$> dereferencedInputs) <>
                  txOutputs)
-        sumAccounts :: TxOut -> Map TxOutType Value -> Map TxOutType Value
-        sumAccounts TxOutOf {txOutType, txOutValue} =
-            Map.alter sumBalances txOutType
+        sumAccounts ::
+               TxOut -> Map BeneficialOwner Value -> Map BeneficialOwner Value
+        sumAccounts txOut@TxOutOf {txOutValue} =
+            Map.alter sumBalances (toBeneficialOwner txOut)
           where
             sumBalances :: Maybe Value -> Maybe Value
             sumBalances Nothing         = Just txOutValue

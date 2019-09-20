@@ -35,9 +35,8 @@ import           Ledger                                (Address, PubKey, Tx (Tx)
                                                         TxInOf (TxInOf, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress), TxOut,
                                                         TxOutOf (TxOutOf), TxOutRef,
-                                                        TxOutRefOf (TxOutRefOf, txOutRefId, txOutRefIdx),
-                                                        TxOutType (PayToPubKey, PayToScript), Value, getAddress,
-                                                        getPubKey, getTxId, txFee, txForge, txOutType, txOutValue,
+                                                        TxOutRefOf (TxOutRefOf, txOutRefId, txOutRefIdx), Value,
+                                                        getAddress, getPubKey, getTxId, txFee, txForge, txOutValue,
                                                         txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
@@ -48,10 +47,11 @@ import           Ledger.Value                          (CurrencySymbol (Currency
 import qualified Ledger.Value                          as Value
 import           Playground.Rollup                     (doAnnotateBlockchain)
 import           Playground.Types                      (AnnotatedTx (AnnotatedTx),
+                                                        BeneficialOwner (OwnedByPubKey, OwnedByScript),
                                                         DereferencedInput (DereferencedInput, originalInput, refersTo),
                                                         EvaluationResult, SequenceId (SequenceId, slotIndex, txIndex),
-                                                        balances, dereferencedInputs, resultBlockchain, tx, txId,
-                                                        walletKeys)
+                                                        balances, dereferencedInputs, resultBlockchain,
+                                                        toBeneficialOwner, tx, txId, walletKeys)
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 
 showBlockchain :: EvaluationResult -> Either Text Text
@@ -135,7 +135,7 @@ instance (Render k, Render v) => Render (AssocMap.Map k v) where
                      pure $ fill 8 (rk <> ":") <> indent 2 rv)
                 (AssocMap.toList m)
 
-instance Render k => Render (Map k Value) where
+instance Render (Map BeneficialOwner Value) where
     render xs
         | Map.null xs = pure "-"
         | otherwise = do
@@ -163,9 +163,9 @@ instance Render Wallet where
 instance Render Address where
     render = render . getAddress
 
-instance Render TxOutType where
-    render (PayToScript dataScript) = render dataScript
-    render (PayToPubKey pubKey) = do
+instance Render BeneficialOwner where
+    render (OwnedByScript address) = ("Script:" <+>) <$> render address
+    render (OwnedByPubKey pubKey) = do
         walletKeys <- gets walletKeys
         wallet <- lookupWallet pubKey walletKeys
         w <- render wallet
@@ -228,10 +228,11 @@ instance Render TxOutRef where
             pure $ fill 8 t <> r
 
 instance Render TxOut where
-    render TxOutOf {txOutValue, txOutType} =
+    render txOut@TxOutOf {txOutValue} =
         vsep <$>
         sequence
-            [ mappend "Destination:" . indent 2 <$> render txOutType
+            [ mappend "Destination:" . indent 2 <$>
+              render (toBeneficialOwner txOut)
             , pure "Value:"
             , indent 2 <$> render txOutValue
             ]
