@@ -21,8 +21,9 @@ import           IOTS
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..),
                                             RedeemerScript(..),  Slot,
-                                            TxOutRef, TxIn, ValidatorScript(..))
+                                            TxOutRef, TxIn, ValidatorScript(..), compileScript)
 import qualified Ledger                    as Ledger
+import           Ledger.Scripts            (HashedDataScript)
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
 import qualified Ledger.Interval           as Interval
@@ -116,6 +117,8 @@ availableFrom (VestingTranche d v) range =
 
     `Vesting -> Signature -> () -> PendingTx -> ()`
 
+    This isn't completely implemented yet:  `mkValidator` below just takes 
+    () in place of a signature.
 -}
 
 -- | The validator script
@@ -223,8 +226,8 @@ withdraw tranche1 tranche2 ownerWallet vl = do
     utxos <- WAPI.outputsAt address
 
     let
-        -- the redeemer script with the unit value ()
-        redeemer  = RedeemerScript (Ledger.lifted ())
+        -- a redeemer script which just discards its datascript argument
+        redeemer  = RedeemerScript $ $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
