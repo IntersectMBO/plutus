@@ -36,7 +36,7 @@ import           Language.Haskell.Interpreter               (CompilationError, I
                                                              SourceCode, Warning)
 import           Language.Marlowe.Pretty                    (pretty)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, haskType,
                                                              isTuple, mkSumType, order, psTypeParameters, typeModule,
                                                              typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.Builder         (BridgeData)
@@ -144,7 +144,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
+    , (order <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
