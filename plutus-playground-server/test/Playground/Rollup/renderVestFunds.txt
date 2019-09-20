@@ -40,16 +40,16 @@ Outputs:
     Ada:      Lovelace:  8000000
 
   ---- Output 1 ----
-  Destination:  Script: f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54...
+  Destination:  Script: 9f186f18721218c1182c182618c118dd12187d18...
   Value:
     Ada:      Lovelace:  2000000
 
 
 Balances Carried Forward:
-  Script: f6f6010000c3f6c3f6c5f6c1f6f66e4748435f54...
-  Value:
-    Ada:      Lovelace:  2000000
-
   PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
     Ada:      Lovelace:  8000000
+
+  Script: 9f186f18721218c1182c182618c118dd12187d18...
+  Value:
+    Ada:      Lovelace:  2000000

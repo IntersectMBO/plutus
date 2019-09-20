@@ -57108,12 +57108,12 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "purescript-bridge";
-version = "0.13.0.0";
+version = "0.13.1.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0bbsy2x1yn63zc26q6xib1c489b50akjm8l6kb1a8zmpy1pi5d7l";
-rev = "fedae2c308fac73b129a684a7d10f547837470f4";
+sha256 = "1vl88g41f4vvgw9iyn7zd7i52qshpnk02z0y6czg4zy7wk3q12gz";
+rev = "0042602f8a195b1fe185138f9ccca02020b8dd62";
 fetchSubmodules = true;
 
 };

@@ -10,13 +10,13 @@
       {
         "tag": "TxnValidate",
         "contents": {
-          "getTxId": "9f18aa185d182e188818491894185a01185f18c9185618eb0418840e1843187c18bd0218fa18ad1018aa189e1218fb18301872183918c618380bff"
+          "getTxId": "9f1892011857186018fe18da18a218ea18e718e0183718620818c018a018b3187318f21874189c188118b2185a0d18e6186a189618f918c3188e184f187cff"
         }
       },
       {
         "tag": "TxnSubmit",
         "contents": {
-          "getTxId": "9f18aa185d182e188818491894185a01185f18c9185618eb0418840e1843187c18bd0218fa18ad1018aa189e1218fb18301872183918c618380bff"
+          "getTxId": "9f1892011857186018fe18da18a218ea18e718e0183718620818c018a018b3187318f21874189c188118b2185a0d18e6186a189618f918c3188e184f187cff"
         }
       },
       {
@@ -105,7 +105,7 @@
       [
         [
           {
-            "getTxId": "9f18aa185d182e188818491894185a01185f18c9185618eb0418840e1843187c18bd0218fa18ad1018aa189e1218fb18301872183918c618380bff"
+            "getTxId": "9f1892011857186018fe18da18a218ea18e718e0183718620818c018a018b3187318f21874189c188118b2185a0d18e6186a189618f918c3188e184f187cff"
           },
           {
             "txInputs": [
@@ -157,7 +157,7 @@
                           {
                             "unTokenName": ""
                           },
-                          10
+                          11
                         ]
                       ]
                     ],
@@ -170,13 +170,13 @@
                           {
                             "unTokenName": "EURToken"
                           },
-                          11
+                          12
                         ],
                         [
                           {
                             "unTokenName": "USDToken"
                           },
-                          12
+                          13
                         ]
                       ]
                     ]
@@ -204,7 +204,7 @@
                           {
                             "unTokenName": ""
                           },
-                          10
+                          9
                         ]
                       ]
                     ],
@@ -217,13 +217,13 @@
                           {
                             "unTokenName": "EURToken"
                           },
-                          19
+                          18
                         ],
                         [
                           {
                             "unTokenName": "USDToken"
                           },
-                          28
+                          27
                         ]
                       ]
                     ]
@@ -246,7 +246,7 @@
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 },
                 {
-                  "getSignature": "8d3e61011eca4bb7a9d6aabcbdffbe473ef2d1445f611e50339f8cba161c57cb2affb8236e55fed0a37c6f4e897fa92e4be3f3544bdc475b40557f54ba783206"
+                  "getSignature": "df3e747168bb475d0b31ab2214bfb09525e4e3eb5566b35314eac639a9f878502ae2428c177c3ab00f51f8313a0e4349e2a212ed258464fdd8bb14ed5f8d160e"
                 }
               ]
             ]
@@ -779,7 +779,7 @@
                           {
                             "unTokenName": ""
                           },
-                          10
+                          11
                         ]
                       ]
                     ],
@@ -792,13 +792,13 @@
                           {
                             "unTokenName": "EURToken"
                           },
-                          11
+                          12
                         ],
                         [
                           {
                             "unTokenName": "USDToken"
                           },
-                          12
+                          13
                         ]
                       ]
                     ]
@@ -826,7 +826,7 @@
                           {
                             "unTokenName": ""
                           },
-                          10
+                          9
                         ]
                       ]
                     ],
@@ -839,13 +839,13 @@
                           {
                             "unTokenName": "EURToken"
                           },
-                          19
+                          18
                         ],
                         [
                           {
                             "unTokenName": "USDToken"
                           },
-                          28
+                          27
                         ]
                       ]
                     ]
@@ -868,7 +868,7 @@
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 },
                 {
-                  "getSignature": "8d3e61011eca4bb7a9d6aabcbdffbe473ef2d1445f611e50339f8cba161c57cb2affb8236e55fed0a37c6f4e897fa92e4be3f3544bdc475b40557f54ba783206"
+                  "getSignature": "df3e747168bb475d0b31ab2214bfb09525e4e3eb5566b35314eac639a9f878502ae2428c177c3ab00f51f8313a0e4349e2a212ed258464fdd8bb14ed5f8d160e"
                 }
               ]
             ]
@@ -880,51 +880,7 @@
           "balances": [
             [
               {
-                "tag": "PayToScript",
-                "contents": {
-                  "getDataScript": "f6f6010000c3f6c3f6c5f6c1f6f6714d61696e5f486173686564537472696e670ac0f6c2f6f6714d61696e5f486173686564537472696e670bc1f6c4f6c0c0f6f6714d61696e5f486173686564537472696e670ac2f6f6776d617463685f4d61696e5f486173686564537472696e670cc1f6c0f6f6714d61696e5f486173686564537472696e670ac3f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6f6756f75745f4d61696e5f486173686564537472696e670dc3f6c0f6f6714d61696e5f486173686564537472696e670bc4f6c1f658201cbec737f863e4922cee63cc2ebbfaafcd1cff8b790d8cfd2e6a5d550b648afac3f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6f6756f75745f4d61696e5f486173686564537472696e670ec2f6f6656172675f300fc4f6c0c1f6f6756f75745f4d61696e5f486173686564537472696e6710c0f6c2f6f676636173655f4d61696e5f486173686564537472696e6711c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6710c3f6c0f6f676636173655f4d61696e5f486173686564537472696e6711c0f6f6656172675f300fc2f6f6617812c3f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6617812"
-                }
-              },
-              {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        0
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        0
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        0
-                      ]
-                    ]
-                  ]
-                ]
-              }
-            ],
-            [
-              {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 }
@@ -968,7 +924,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
                 }
@@ -984,7 +940,7 @@
                         {
                           "unTokenName": ""
                         },
-                        40
+                        41
                       ]
                     ]
                   ],
@@ -997,13 +953,13 @@
                         {
                           "unTokenName": "EURToken"
                         },
-                        51
+                        52
                       ],
                       [
                         {
                           "unTokenName": "USDToken"
                         },
-                        62
+                        63
                       ]
                     ]
                   ]
@@ -1012,7 +968,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 }
@@ -1028,7 +984,7 @@
                         {
                           "unTokenName": ""
                         },
-                        15
+                        14
                       ]
                     ]
                   ],
@@ -1041,13 +997,57 @@
                         {
                           "unTokenName": "EURToken"
                         },
-                        25
+                        24
                       ],
                       [
                         {
                           "unTokenName": "USDToken"
                         },
-                        35
+                        34
+                      ]
+                    ]
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                "tag": "OwnedByScript",
+                "contents": {
+                  "getAddress": "9f186818e1185c1879185b18b61837188818ef183c187a18d418bb189018fd1846182118401859182918e5188418ac181918b218b318cd189c18ac18aa18ca18f4ff"
+                }
+              },
+              {
+                "getValue": [
+                  [
+                    {
+                      "unCurrencySymbol": ""
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": ""
+                        },
+                        0
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "unCurrencySymbol": "b0b0"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "EURToken"
+                        },
+                        0
+                      ],
+                      [
+                        {
+                          "unTokenName": "USDToken"
+                        },
+                        0
                       ]
                     ]
                   ]
@@ -1121,7 +1121,7 @@
             }
           ],
           "txId": {
-            "getTxId": "9f18aa185d182e188818491894185a01185f18c9185618eb0418840e1843187c18bd0218fa18ad1018aa189e1218fb18301872183918c618380bff"
+            "getTxId": "9f1892011857186018fe18da18a218ea18e718e0183718620818c018a018b3187318f21874189c188118b2185a0d18e6186a189618f918c3188e184f187cff"
           }
         }
       ],
@@ -1236,51 +1236,7 @@
           "balances": [
             [
               {
-                "tag": "PayToScript",
-                "contents": {
-                  "getDataScript": "f6f6010000c3f6c3f6c5f6c1f6f6714d61696e5f486173686564537472696e670ac0f6c2f6f6714d61696e5f486173686564537472696e670bc1f6c4f6c0c0f6f6714d61696e5f486173686564537472696e670ac2f6f6776d617463685f4d61696e5f486173686564537472696e670cc1f6c0f6f6714d61696e5f486173686564537472696e670ac3f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6f6756f75745f4d61696e5f486173686564537472696e670dc3f6c0f6f6714d61696e5f486173686564537472696e670bc4f6c1f658201cbec737f863e4922cee63cc2ebbfaafcd1cff8b790d8cfd2e6a5d550b648afac3f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6f6756f75745f4d61696e5f486173686564537472696e670ec2f6f6656172675f300fc4f6c0c1f6f6756f75745f4d61696e5f486173686564537472696e6710c0f6c2f6f676636173655f4d61696e5f486173686564537472696e6711c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6710c3f6c0f6f676636173655f4d61696e5f486173686564537472696e6711c0f6f6656172675f300fc2f6f6617812c3f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6617812"
-                }
-              },
-              {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        0
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        0
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        0
-                      ]
-                    ]
-                  ]
-                ]
-              }
-            ],
-            [
-              {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 }
@@ -1324,7 +1280,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
                 }
@@ -1368,7 +1324,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 }
@@ -1404,6 +1360,50 @@
                           "unTokenName": "USDToken"
                         },
                         47
+                      ]
+                    ]
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                "tag": "OwnedByScript",
+                "contents": {
+                  "getAddress": "9f186818e1185c1879185b18b61837188818ef183c187a18d418bb189018fd1846182118401859182918e5188418ac181918b218b318cd189c18ac18aa18ca18f4ff"
+                }
+              },
+              {
+                "getValue": [
+                  [
+                    {
+                      "unCurrencySymbol": ""
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": ""
+                        },
+                        0
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "unCurrencySymbol": "b0b0"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "EURToken"
+                        },
+                        0
+                      ],
+                      [
+                        {
+                          "unTokenName": "USDToken"
+                        },
+                        0
                       ]
                     ]
                   ]
@@ -1640,51 +1640,7 @@
           "balances": [
             [
               {
-                "tag": "PayToScript",
-                "contents": {
-                  "getDataScript": "f6f6010000c3f6c3f6c5f6c1f6f6714d61696e5f486173686564537472696e670ac0f6c2f6f6714d61696e5f486173686564537472696e670bc1f6c4f6c0c0f6f6714d61696e5f486173686564537472696e670ac2f6f6776d617463685f4d61696e5f486173686564537472696e670cc1f6c0f6f6714d61696e5f486173686564537472696e670ac3f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670dc0f6f6756f75745f4d61696e5f486173686564537472696e670dc3f6c0f6f6714d61696e5f486173686564537472696e670bc4f6c1f658201cbec737f863e4922cee63cc2ebbfaafcd1cff8b790d8cfd2e6a5d550b648afac3f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e670ec0f6f6756f75745f4d61696e5f486173686564537472696e670ec2f6f6656172675f300fc4f6c0c1f6f6756f75745f4d61696e5f486173686564537472696e6710c0f6c2f6f676636173655f4d61696e5f486173686564537472696e6711c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6710c3f6c0f6f676636173655f4d61696e5f486173686564537472696e6711c0f6f6656172675f300fc2f6f6617812c3f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6c1f6c1f6c4f6c0c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6756f75745f4d61696e5f486173686564537472696e6713c0f6f6617812"
-                }
-              },
-              {
-                "getValue": [
-                  [
-                    {
-                      "unCurrencySymbol": ""
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": ""
-                        },
-                        5
-                      ]
-                    ]
-                  ],
-                  [
-                    {
-                      "unCurrencySymbol": "b0b0"
-                    },
-                    [
-                      [
-                        {
-                          "unTokenName": "EURToken"
-                        },
-                        6
-                      ],
-                      [
-                        {
-                          "unTokenName": "USDToken"
-                        },
-                        7
-                      ]
-                    ]
-                  ]
-                ]
-              }
-            ],
-            [
-              {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 }
@@ -1728,7 +1684,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
                 }
@@ -1772,7 +1728,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 }
@@ -1808,6 +1764,50 @@
                           "unTokenName": "USDToken"
                         },
                         40
+                      ]
+                    ]
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                "tag": "OwnedByScript",
+                "contents": {
+                  "getAddress": "9f186818e1185c1879185b18b61837188818ef183c187a18d418bb189018fd1846182118401859182918e5188418ac181918b218b318cd189c18ac18aa18ca18f4ff"
+                }
+              },
+              {
+                "getValue": [
+                  [
+                    {
+                      "unCurrencySymbol": ""
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": ""
+                        },
+                        5
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "unCurrencySymbol": "b0b0"
+                    },
+                    [
+                      [
+                        {
+                          "unTokenName": "EURToken"
+                        },
+                        6
+                      ],
+                      [
+                        {
+                          "unTokenName": "USDToken"
+                        },
+                        7
                       ]
                     ]
                   ]
@@ -2098,7 +2098,7 @@
           "balances": [
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
                 }
@@ -2142,7 +2142,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
                 }
@@ -2186,7 +2186,7 @@
             ],
             [
               {
-                "tag": "PayToPubKey",
+                "tag": "OwnedByPubKey",
                 "contents": {
                   "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
                 }
@@ -2239,13 +2239,13 @@
     "resultGraph": {
       "flowGraphNodes": [
         "60ee66f4",
+        "92015760",
         "a194c459",
-        "aa5d2e88",
         "c55c5378",
         "utxo 60ee66f4 1",
+        "utxo 92015760 0",
+        "utxo 92015760 1",
         "utxo a194c459 0",
-        "utxo aa5d2e88 0",
-        "utxo aa5d2e88 1",
         "utxo c55c5378 0"
       ],
       "flowGraphLinks": [
@@ -2269,6 +2269,38 @@
           "flowLinkOwner": {
             "tag": "PubKeyOwner",
             "contents": {
+              "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
+            }
+          },
+          "flowLinkValue": 11,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 6,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "92015760",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo 92015760 0"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
+              "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+            }
+          },
+          "flowLinkValue": 9,
+          "flowLinkSourceLoc": {
+            "utxoLocBlock": 6,
+            "utxoLocBlockIdx": 1
+          },
+          "flowLinkSource": "92015760",
+          "flowLinkTargetLoc": null,
+          "flowLinkTarget": "utxo 92015760 1"
+        },
+        {
+          "flowLinkOwner": {
+            "tag": "PubKeyOwner",
+            "contents": {
               "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
             }
           },
@@ -2280,38 +2312,6 @@
           "flowLinkSource": "a194c459",
           "flowLinkTargetLoc": null,
           "flowLinkTarget": "utxo a194c459 0"
-        },
-        {
-          "flowLinkOwner": {
-            "tag": "PubKeyOwner",
-            "contents": {
-              "getPubKey": "98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63"
-            }
-          },
-          "flowLinkValue": 10,
-          "flowLinkSourceLoc": {
-            "utxoLocBlock": 6,
-            "utxoLocBlockIdx": 1
-          },
-          "flowLinkSource": "aa5d2e88",
-          "flowLinkTargetLoc": null,
-          "flowLinkTarget": "utxo aa5d2e88 0"
-        },
-        {
-          "flowLinkOwner": {
-            "tag": "PubKeyOwner",
-            "contents": {
-              "getPubKey": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
-            }
-          },
-          "flowLinkValue": 10,
-          "flowLinkSourceLoc": {
-            "utxoLocBlock": 6,
-            "utxoLocBlockIdx": 1
-          },
-          "flowLinkSource": "aa5d2e88",
-          "flowLinkTargetLoc": null,
-          "flowLinkTarget": "utxo aa5d2e88 1"
         },
         {
           "flowLinkOwner": {
@@ -2381,7 +2381,7 @@
             "utxoLocBlock": 6,
             "utxoLocBlockIdx": 1
           },
-          "flowLinkTarget": "aa5d2e88"
+          "flowLinkTarget": "92015760"
         }
       ]
     },
@@ -2439,7 +2439,7 @@
                   {
                     "unTokenName": ""
                   },
-                  15
+                  14
                 ]
               ]
             ],
@@ -2452,13 +2452,13 @@
                   {
                     "unTokenName": "EURToken"
                   },
-                  25
+                  24
                 ],
                 [
                   {
                     "unTokenName": "USDToken"
                   },
-                  35
+                  34
                 ]
               ]
             ]
@@ -2480,7 +2480,7 @@
                   {
                     "unTokenName": ""
                   },
-                  40
+                  41
                 ]
               ]
             ],
@@ -2493,13 +2493,13 @@
                   {
                     "unTokenName": "EURToken"
                   },
-                  51
+                  52
                 ],
                 [
                   {
                     "unTokenName": "USDToken"
                   },
-                  62
+                  63
                 ]
               ]
             ]
