@@ -10,7 +10,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.RawJson (JsonTuple(..))
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen (action)

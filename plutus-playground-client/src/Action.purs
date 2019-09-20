@@ -13,7 +13,8 @@ import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Lens (Lens', over, preview, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.RawJson (JsonEither(..), JsonTuple(..))
+import Data.Json.JsonEither (JsonEither(..))
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))

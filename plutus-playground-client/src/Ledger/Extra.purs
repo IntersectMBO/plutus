@@ -2,7 +2,7 @@ module Ledger.Extra where
 
 import Data.Lens (Lens', lens, view)
 import Data.Lens.Record (prop)
-import Data.RawJson (JsonTuple(..))
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Language.PlutusTx.AssocMap (unionWith)

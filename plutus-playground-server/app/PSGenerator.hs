@@ -71,17 +71,17 @@ psAssocMap =
     TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
     psTypeParameters
 
-psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
-
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$> psTypeParameters
+
 psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+psJsonEither = TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
 
 psJsonTuple :: MonadReader BridgeData m => m PSType
-psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
+psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do

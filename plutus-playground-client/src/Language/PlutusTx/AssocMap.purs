@@ -14,7 +14,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Data.Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.RawJson (JsonTuple(..))
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (sequence)

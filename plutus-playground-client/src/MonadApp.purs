@@ -14,7 +14,7 @@ import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.RawJson (JsonEither)
+import Data.Json.JsonEither (JsonEither)
 import Editor as Editor
 import Effect (Effect)
 import Effect.Aff (Milliseconds)

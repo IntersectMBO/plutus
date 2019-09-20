@@ -41,7 +41,7 @@ import Data.MediaType.Common (textPlain)
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap, wrap)
 import Data.Ord (Ordering(..), compare)
-import Data.RawJson (JsonEither(..))
+import Data.Json.JsonEither (JsonEither(..))
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
