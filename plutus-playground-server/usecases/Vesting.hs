@@ -226,22 +226,16 @@ withdraw tranche1 tranche2 ownerWallet vl = do
     utxos <- WAPI.outputsAt address
 
     let
-        -- a redeemer script which just discards its datascript argument
-        redeemer  = RedeemerScript $ $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
-
-        -- Turn the 'utxos' map into a set of 'TxIn' values
-        mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator redeemer
-
-        ins = Set.map mkIn (Map.keysSet utxos)
-
-    -- Our transaction has either one or two outputs.
-    -- If the scheme is finished (no money is left in it) then
-    -- there is only one output, a pay-to-pubkey output owned by
-    -- us.
-    -- If any money is left in the scheme then there will be an additional
-    -- pay-to-script output locked by the vesting scheme's validator script
-    -- that keeps the remaining value.
+    -- Our transaction has either one or two outputs.  If the scheme
+    -- is finished (no money is left in it) then there is only one
+    -- output, a pay-to-pubkey output owned by us.  If any money is
+    -- left in the scheme then there will be an additional
+    -- pay-to-script output locked by the vesting scheme's validator
+    -- script that keeps the remaining value.  In this case, we need a
+    -- redeemer which discards the contents of the extra output's data
+    -- script (strictly, the redeemer should check that the data
+    -- script is correct).  If there is no money left then redeemer
+    -- should just be ().
 
     -- We can create a public key output to our own key with 'ownPubKeyTxOut'.
     ownOutput <- W.ownPubKeyTxOut vl
@@ -262,6 +256,17 @@ withdraw tranche1 tranche2 ownerWallet vl = do
             then []
             else [lockedOutput]
 
+        redeemer  = if Value.isZero remaining
+                    then RedeemerScript $ Ledger.lifted () -- Nothing more to do
+                    else RedeemerScript $  -- Discard the data script for the output containing the remaining funds
+                             $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
+
+        -- Turn the 'utxos' map into a set of 'TxIn' values
+        mkIn :: TxOutRef -> TxIn
+        mkIn r = Ledger.scriptTxIn r validator redeemer
+
+        ins = Set.map mkIn (Map.keysSet utxos)
+                 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
 
