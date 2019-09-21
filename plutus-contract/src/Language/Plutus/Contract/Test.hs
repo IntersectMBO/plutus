@@ -13,7 +13,8 @@ module Language.Plutus.Contract.Test(
     , Language.Plutus.Contract.Test.not
     , endpointAvailable
     , interestingAddress
-    , assertResult
+    , assertOutcome
+    , Outcome(..)
     , assertHooks
     , assertRecord
     , tx
@@ -82,16 +83,16 @@ instance Applicative f => BoundedJoinSemiLattice (PredF f a) where
 instance Applicative f => BoundedMeetSemiLattice (PredF f a) where
     top = PredF $ const (pure top)
 
-type TracePredicate s a = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult s a)
+type TracePredicate s = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult s)
 
 hooks
-    :: forall s a.
+    :: forall s.
        ( Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        , AllUniqueLabels (Output s)
        )
     => Wallet
-    -> ContractTraceResult s a
+    -> ContractTraceResult s
     -> Handlers s
 hooks w rs =
     let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
@@ -99,28 +100,28 @@ hooks w rs =
     in either (const mempty) id (State.execResumable evts con)
 
 record 
-    :: forall s a.
+    :: forall s.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        )
     => Wallet 
-    -> ContractTraceResult s a
+    -> ContractTraceResult s
     -> Either ResumableError (Record (Event s))
 record w rs =
     let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
         con  = rs ^. ctrTraceState . ctsContract
     in fmap (fmap fst . fst) (State.runResumable evts con)
 
-not :: TracePredicate s a -> TracePredicate s a
+not :: TracePredicate s -> TracePredicate s
 not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
-    :: forall s a. 
+    :: forall s.
        String
-    -> Contract s a
-    -> TracePredicate s a
-    -> ContractTrace s EmulatorAction a ()
+    -> Contract s ()
+    -> TracePredicate s
+    -> ContractTrace s EmulatorAction ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
@@ -134,7 +135,7 @@ checkPredicate nm con predicate action =
                 HUnit.assertBool nm result
 
 endpointAvailable
-    :: forall (l :: Symbol) s a.
+    :: forall (l :: Symbol) s.
        ( HasType l Endpoints.ActiveEndpoints (Output s)
        , KnownSymbol l
        , AllUniqueLabels (Output s)
@@ -142,7 +143,7 @@ endpointAvailable
        , Forall (Output s) Semigroup
        )
     => Wallet
-    -> TracePredicate s a
+    -> TracePredicate s
 endpointAvailable w = PredF $ \(_, r) -> do
     if Endpoints.isActive @l @s (hooks w r)
     then pure True
@@ -151,11 +152,11 @@ endpointAvailable w = PredF $ \(_, r) -> do
         pure False
 
 interestingAddress
-    :: forall s a.
+    :: forall s.
        ( WatchAddress.HasWatchAddress s )
     => Wallet
     -> Address
-    -> TracePredicate s a
+    -> TracePredicate s
 interestingAddress w addr = PredF $ \(_, r) -> do
     let hks = WatchAddress.addresses (hooks w r)
     if addr `Set.member` hks
@@ -165,7 +166,7 @@ interestingAddress w addr = PredF $ \(_, r) -> do
         pure False
 
 tx
-    :: forall s a.
+    :: forall s.
        ( HasType "tx" WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
@@ -173,7 +174,7 @@ tx
     => Wallet
     -> (UnbalancedTx -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s
 tx w flt nm = PredF $ \(_, r) -> do
     let hks = WriteTx.transactions (hooks w r)
     if any flt hks
@@ -183,11 +184,11 @@ tx w flt nm = PredF $ \(_, r) -> do
         pure False
 
 walletState 
-    :: forall s a.
+    :: forall s.
        Wallet 
     -> (EM.WalletState -> Bool) 
     -> String 
-    -> TracePredicate s a
+    -> TracePredicate s
 walletState w flt nm = PredF $ \(_, r) -> do
     let ws = view (at w) $ EM._walletStates $  _ctrEmulatorState r
     case ws of
@@ -202,21 +203,21 @@ walletState w flt nm = PredF $ \(_, r) -> do
                 pure False
 
 walletWatchingAddress 
-    :: forall s a.
+    :: forall s.
        Wallet
     -> Address
-    -> TracePredicate s a
+    -> TracePredicate s
 walletWatchingAddress w addr =
     let desc = "watching address " <> show addr in
     walletState w (Map.member addr . AM.values . view EM.addressMap) desc
 
 assertEvents 
-    :: forall s a.
+    :: forall s.
        (Forall (Input s) Show)
     => Wallet
     -> ([Event s] -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s
 assertEvents w pr nm = PredF $ \(_, r) -> do
     let es = fmap toList (view (ctsEvents . at w) $ _ctrTraceState r)
     case es of
@@ -231,7 +232,7 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
                 pure False
 
 waitingForSlot
-    :: forall s a.
+    :: forall s.
        ( HasType "slot" AwaitSlot.WaitingForSlot (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
@@ -239,7 +240,7 @@ waitingForSlot
        )
     => Wallet
     -> Slot
-    -> TracePredicate s a
+    -> TracePredicate s
 waitingForSlot w sl = PredF $ \(_, r) ->
     case AwaitSlot.nextSlot (hooks w r) of
         Nothing -> do
@@ -253,11 +254,11 @@ waitingForSlot w sl = PredF $ \(_, r) ->
                 pure False
 
 emulatorLog
-    :: forall s a. 
+    :: forall s.
        ()
     => ([EmulatorEvent] -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s
 emulatorLog f nm = PredF $ \(_, r) ->
     let lg = EM._emulatorLog $ _ctrEmulatorState r in
     if f lg
@@ -267,18 +268,18 @@ emulatorLog f nm = PredF $ \(_, r) ->
         pure False
 
 anyTx
-    :: forall s a. 
+    :: forall s.
        ( HasType "tx" WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
     => Wallet
-    -> TracePredicate s a
+    -> TracePredicate s
 anyTx w = tx w (const True) "anyTx"
 
 assertHooks 
-    :: forall s a. 
+    :: forall s.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
@@ -287,7 +288,7 @@ assertHooks
     => Wallet
     -> (Handlers s -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s
 assertHooks w p nm = PredF $ \(_, rs) ->
     let hks = hooks w rs in
     if p hks
@@ -297,7 +298,7 @@ assertHooks w p nm = PredF $ \(_, rs) ->
         pure False
 
 assertRecord 
-    :: forall s a. 
+    :: forall s.
        ( Forall (Input s) Show
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
@@ -306,7 +307,7 @@ assertRecord
     => Wallet 
     -> (Record (Event s) -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s
 assertRecord w p nm = PredF $ \(_, rs) ->
     case record w rs of
         Right r
@@ -318,45 +319,48 @@ assertRecord w p nm = PredF $ \(_, rs) ->
             tellSeq ["Record failed with", show err, "in '" <> nm <> "'"]
             pure False
 
-assertResult
-    :: forall s a. 
+data Outcome = Done | NotDone
+    deriving (Eq, Ord, Show)
+
+assertOutcome
+    :: forall s.
        ( Forall (Input s) Show
        , AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        )
     => Wallet
-    -> (Maybe a -> Bool)
+    -> (Outcome -> Bool)
     -> String
-    -> TracePredicate s a
-assertResult w p nm = PredF $ \(_, rs) ->
+    -> TracePredicate s
+assertOutcome w p nm = PredF $ \(_, rs) ->
     let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
         con  = rs ^. ctrTraceState . ctsContract
         result = State.runResumable evts con
     in
         case fmap fst result of
             Left err
-                | p Nothing -> pure True
+                | p NotDone -> pure True
                 | otherwise -> do
                     tellSeq ["Resumable error", show err, "in '" <> nm <> "'"]
                     pure False
             Right (Left openRec)
-                | p Nothing -> pure True
+                | p NotDone -> pure True
                 | otherwise -> do
                     tellSeq ["Open record", show openRec, "in '" <> nm <> "'"]
                     pure False
-            Right (Right (closedRec, a))
-                | p (Just a) -> pure True
+            Right (Right (closedRec, _))
+                | p Done -> pure True
                 | otherwise -> do
                     tellSeq ["Closed record", show closedRec, "failed with '" <> nm <> "'"]
                     pure False
 
 walletFundsChange
-    :: forall s a. 
+    :: forall s.
        ()
     => Wallet
     -> Value
-    -> TracePredicate s a
+    -> TracePredicate s
 walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulatorState = st}) ->
         let initialValue = foldMap Ada.toValue (Map.fromList initialDist ^. at w)
             finalValue   = fromMaybe mempty (EM.fundsDistribution st ^. at w)
