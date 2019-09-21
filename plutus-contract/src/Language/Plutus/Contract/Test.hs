@@ -1,9 +1,10 @@
-{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 -- | Testing contracts with HUnit and Tasty
@@ -13,6 +14,9 @@ module Language.Plutus.Contract.Test(
     , Language.Plutus.Contract.Test.not
     , endpointAvailable
     , interestingAddress
+    , assertDone
+    , assertNotDone
+    , assertContractError
     , assertOutcome
     , Outcome(..)
     , assertHooks
@@ -46,8 +50,8 @@ import           Test.Tasty.Providers                  (TestTree)
 
 import qualified Language.PlutusTx.Prelude             as P
 
-import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Record       (Record)
+import           Language.Plutus.Contract.Request      (Contract(..), ContractError)
 import           Language.Plutus.Contract.Resumable    (ResumableError)
 import qualified Language.Plutus.Contract.Resumable    as State
 import           Language.Plutus.Contract.Tx           (UnbalancedTx)
@@ -97,9 +101,8 @@ hooks
     -> ContractTraceResult s
     -> Handlers s
 hooks w rs =
-    let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
-        con  = rs ^. ctrTraceState . ctsContract
-    in either (const mempty) id (State.execResumable evts con)
+    let (evts, con) = contractEventsWallet rs w
+    in either (const mempty) snd (State.runResumable evts (unContract con))
 
 record 
     :: forall s.
@@ -109,11 +112,10 @@ record
        )
     => Wallet 
     -> ContractTraceResult s
-    -> Either ResumableError (Record (Event s))
+    -> Either (ResumableError ContractError) (Record (Event s))
 record w rs =
-    let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
-        con  = rs ^. ctrTraceState . ctsContract
-    in fmap (fmap fst . fst) (State.runResumable evts con)
+    let (evts, con) = contractEventsWallet rs w
+    in fmap (fmap fst . fst) (State.runResumable evts (unContract con))
 
 not :: TracePredicate s -> TracePredicate s
 not = PredF . fmap (fmap Prelude.not) . unPredF
@@ -321,8 +323,61 @@ assertRecord w p nm = PredF $ \(_, rs) ->
             tellSeq ["Record failed with", show err, "in '" <> nm <> "'"]
             pure False
 
-data Outcome = Done | NotDone
+data Outcome = 
+    Done 
+    -- ^ The contract finished without errors.
+    | NotDone
+    -- ^ The contract is waiting for more input.
+    | Error (ResumableError ContractError)
+    -- ^ The contract failed with an error.
     deriving (Eq, Ord, Show)
+
+-- | A 'TracePredicate' checking that the wallet's contract instance finished
+--   without errors.
+assertDone
+    :: forall s.
+    ( Forall (Input s) Show
+    , AllUniqueLabels (Output s)
+    , Forall (Output s) Semigroup
+    , Forall (Output s) Monoid
+    , Forall (Output s) Show
+    )
+    => Wallet
+    -> String
+    -> TracePredicate s
+assertDone w = assertOutcome w (\case { Done -> True; _ -> False})
+
+-- | A 'TracePredicate' checking that the wallet's contract instance is 
+--   waiting for input.
+assertNotDone 
+    :: forall s.
+    ( Forall (Input s) Show
+    , AllUniqueLabels (Output s)
+    , Forall (Output s) Semigroup
+    , Forall (Output s) Monoid
+    , Forall (Output s) Show
+    )
+    => Wallet
+    -> String
+    -> TracePredicate s
+assertNotDone w = assertOutcome w (\case { NotDone -> True; _ -> False})
+
+-- | A 'TracePredicate' checking that the wallet's contract instance
+--   failed with an error.
+assertContractError
+    :: forall s.
+    ( Forall (Input s) Show
+    , AllUniqueLabels (Output s)
+    , Forall (Output s) Semigroup
+    , Forall (Output s) Monoid
+    , Forall (Output s) Show
+    )
+    => Wallet
+    -> ContractError
+    -> String
+    -> TracePredicate s
+assertContractError w err =
+    assertOutcome w (\case { Error (State.OtherError err') -> err' == err; _ -> False })
 
 assertOutcome
     :: forall s.
@@ -330,19 +385,19 @@ assertOutcome
        , AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
+       , Forall (Output s) Show
        )
     => Wallet
     -> (Outcome -> Bool)
     -> String
     -> TracePredicate s
 assertOutcome w p nm = PredF $ \(_, rs) ->
-    let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
-        con  = rs ^. ctrTraceState . ctsContract
-        result = State.runResumable evts con
+    let (evts, con) = contractEventsWallet rs w
+        result = State.runResumable evts (unContract con)
     in
         case fmap fst result of
             Left err
-                | p NotDone -> pure True
+                | p (Error err) -> pure True
                 | otherwise -> do
                     tellSeq ["Resumable error", show err, "in '" <> nm <> "'"]
                     pure False
@@ -350,12 +405,19 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
                 | p NotDone -> pure True
                 | otherwise -> do
                     tellSeq ["Open record", show openRec, "in '" <> nm <> "'"]
+                    tellSeq [show result]
                     pure False
-            Right (Right (closedRec, _))
+            Right (Right closedRec)
                 | p Done -> pure True
                 | otherwise -> do
                     tellSeq ["Closed record", show closedRec, "failed with '" <> nm <> "'"]
                     pure False
+
+contractEventsWallet :: ContractTraceResult s -> Wallet -> ([Event s], Contract s ())
+contractEventsWallet rs w = 
+    let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
+        con  = rs ^. ctrTraceState . ctsContract
+    in (evts, con)
 
 walletFundsChange
     :: forall s.

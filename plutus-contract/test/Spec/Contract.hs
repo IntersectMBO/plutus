@@ -1,7 +1,9 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications  #-}
 module Spec.Contract(tests) where
 
 import           Control.Monad                         (void)
@@ -99,6 +101,11 @@ tests =
             (void $ collectUntil (+) 0 (endpoint @"1") 10)
             (endpointAvailable @"1" w1 /\ waitingForSlot w1 10)
             (callEndpoint @"1" @Int w1 1)
+
+        , cp "throw an error"
+            (void $ throwContractError "error")
+            (assertContractError w1 "error" "failed to throw error")
+            (pure ())
         ]
 
 w1 :: EM.Wallet
