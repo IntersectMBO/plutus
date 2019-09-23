@@ -25,7 +25,7 @@ data VarEq : ∀{Φ}{A A' : Φ ⊢Nf⋆ *}{Γ Γ'}
     ZEq : ∀ {Φ}{Γ Γ' : Ctx Φ}
       → {A B : Φ ⊢Nf⋆ *}(p : A ≡Nf B)
       → {A' B' : Φ ⊢Nf⋆ *}(p' : A' ≡Nf B')
-      → (p'' : A ≡Nf A') -- this is derivable from the other three
+       → (p'' : A ≡Nf A') -- this is derivable from the other three
       → (q : Γ ≡Ctx Γ')
       → (r : B ≡Nf B') 
       → VarEq (q , p'') r (Z p) (Z p')
