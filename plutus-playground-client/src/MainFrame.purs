@@ -641,7 +641,7 @@ bannerMessage =
     [ id_ "banner-message"
     , classes [ alert, alertPrimary ]
     ]
-    [ text "Plutus Beta - Updated 11th April 2019 - See the "
+    [ text "Plutus Beta - Updated 19th September 2019 - See the "
     , a
         [ href ("https://github.com/input-output-hk/plutus/blob/master/CHANGELOG.md") ]
         [ text "CHANGELOG" ]
