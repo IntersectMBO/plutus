@@ -14,7 +14,7 @@ import Data.RawJson (JsonTuple(..))
 import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen (action)
-import Halogen.HTML (ClassName(..), HTML, br_, code_, div, div_, h2_, hr_, small_, span, span_, strong_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, div, div_, h2_, hr_, small_, span, span_, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Language.PlutusTx.AssocMap as AssocMap
@@ -140,8 +140,6 @@ detailView state@{ chainFocus:
     , balancesView sequenceId walletKeys (AssocMap.toDataMap balances)
     ]
 
-detailView state@{ chainFocus: Just (FocusAddress address) } _ _ = div_ [ code_ [ text $ show address ] ]
-
 detailView state@{ chainFocus: Nothing } _ _ = div_ []
 
 entryCardHeader :: forall i p. SequenceId -> HTML p i
@@ -216,15 +214,7 @@ formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotInde
 txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =
   div
-    [ classes [ card, entry, beneficialOwnerClass beneficialOwner ]
-    , onClick
-        $ const
-        $ Just
-        $ action
-        $ SetChainFocus
-        $ Just
-        $ FocusAddress txOutAddress
-    ]
+    [ classes [ card, entry, beneficialOwnerClass beneficialOwner ] ]
     [ cardHeaderOwnerView showArrow walletKeys beneficialOwner
     , cardBody_
         [ valueView txOutValue ]

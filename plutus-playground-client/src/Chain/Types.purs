@@ -2,30 +2,24 @@ module Chain.Types where
 
 import Prelude
 
-import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Prism', Lens', prism)
+import Data.Lens (Iso', Lens', iso)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Ledger.Tx (AddressOf, TxOutOf(..), TxOutType(..))
+import Ledger.Tx (TxOutOf(..), TxOutType(..))
 import Playground.Types (AnnotatedTx, BeneficialOwner(..), SequenceId)
 
 data ChainFocus
   = FocusTx AnnotatedTx
-  | FocusAddress (AddressOf String)
 
-_FocusTx :: Prism' ChainFocus AnnotatedTx
-_FocusTx = prism FocusTx case _ of
-  FocusTx tx -> Right tx
-  other -> Left other
-
-_FocusAddress :: Prism' ChainFocus (AddressOf String)
-_FocusAddress = prism FocusAddress case _ of
-  FocusAddress address -> Right address
-  other -> Left other
+_FocusTx :: Iso' ChainFocus AnnotatedTx
+_FocusTx = iso get set
+  where
+    get (FocusTx annotatedTx) = annotatedTx
+    set = FocusTx
 
 derive instance genericChainFocus :: Generic ChainFocus _
 
