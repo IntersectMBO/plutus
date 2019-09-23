@@ -1,0 +1,1 @@
+Error: Unsupported feature: Irreducible type family application: Plugin.Data.Spec.BasicClosed

@@ -146,7 +146,7 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
     GHC.DEFAULT   -> do
         body' <- compileExpr body >>= maybeDelay mustDelay
         -- need to consume the args
-        argTypes <- mapM compileType instArgTys
+        argTypes <- mapM compileTypeNorm instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
         pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
@@ -300,10 +300,10 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
         -- Special kinds of id
@@ -336,7 +336,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
         GHC.Lit lit -> compileLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileType t
+        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction
@@ -388,7 +388,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                resultType <- compileType t >>= maybeDelayType lazyCase
+                resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
 
                 branches <- forM dcs $ \dc ->

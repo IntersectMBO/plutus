@@ -12,6 +12,7 @@ import           Language.PlutusIR.Compiler.Definitions
 
 import           Language.PlutusCore.Quote
 
+import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
 
 import           Control.Monad.Except
@@ -32,6 +33,7 @@ data CompileOptions = CompileOptions {}
 data CompileContext = CompileContext {
     ccOpts            :: CompileOptions,
     ccFlags           :: GHC.DynFlags,
+    ccFamInstEnvs     :: GHC.FamInstEnvs,
     ccBuiltinNameInfo :: BuiltinNameInfo,
     ccScopes          :: ScopeStack,
     ccBlackholed      :: Set.Set GHC.Name
