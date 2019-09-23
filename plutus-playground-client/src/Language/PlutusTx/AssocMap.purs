@@ -7,6 +7,7 @@ import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.Function (on)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Iso', lens, wander)
 import Data.Lens.At (class At)
 import Data.Lens.Index (class Index)
@@ -14,7 +15,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Data.Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Newtype as Newtype
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (sequence)
@@ -80,14 +81,10 @@ instance indexMap :: Eq k => Index (Map k a) k a where
       map Map
         $ sequence
         $ map
-            ( \(JsonTuple (Tuple k v)) ->
-                JsonTuple <<< Tuple k
-                  <$> ( if k == key then
-                        f
-                      else
-                        pure
-                    )
-                      v
+            ( Newtype.traverse JsonTuple
+                ( \(Tuple k v) ->
+                    Tuple k <$> (if k == key then f v else pure v)
+                )
             )
             values
 
@@ -106,14 +103,10 @@ instance atMap :: Eq k => At (Map k a) k a where
             Nothing -> Array.snoc xs (JsonTuple (Tuple key new))
             _ ->
               map
-                ( \(JsonTuple (Tuple k v)) ->
-                    JsonTuple
-                      $ Tuple k
-                          ( if k == key then
-                              new
-                            else
-                              v
-                          )
+                ( Newtype.over JsonTuple
+                    ( \(Tuple k v) ->
+                        Tuple k (if k == key then new else v)
+                    )
                 )
                 xs
 
