@@ -6,6 +6,7 @@
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
 {-# LANGUAGE TemplateHaskell                 #-}
+{-# LANGUAGE TypeApplications                #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Auction.English where
@@ -553,7 +554,7 @@ redeemer scripts.
 mkEARedeemer :: EAAction -> RedeemerScript
 mkEARedeemer a = RedeemerScript $
     $$(compileScript [||
-        (mkStepRedeemer :: EAAction -> StateMachineRedeemerFunction EAState EAAction) ||])
+        (mkStepRedeemer @EAState @EAAction) ||])
     `applyScript`
     lifted a
 ----

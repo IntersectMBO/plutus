@@ -30,6 +30,7 @@ import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
+import qualified Ledger.Typed.Tx              as Typed
 import           Wallet
 import qualified Wallet                       as WAPI
 
@@ -109,7 +110,7 @@ check state input ptx = case (state, input) of
         checkForge vl = vl == (Validation.pendingTxForge ptx)
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: SM.StateMachineValidator GameState GameInput
+mkValidator :: Typed.ValidatorType (SM.StateMachine GameState GameInput)
 mkValidator = SM.mkValidator (SM.StateMachine step check (const False))
 
 gameValidator :: ValidatorScript
