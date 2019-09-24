@@ -437,3 +437,15 @@ responsiveThird = div [classes [col12, colSm6, colMd4]]
 
 textTruncate :: ClassName
 textTruncate = ClassName "text-truncate"
+
+textCenter :: ClassName
+textCenter = ClassName "text-center"
+
+tableStriped :: ClassName
+tableStriped = ClassName "table-striped"
+
+tableBordered :: ClassName
+tableBordered = ClassName "table-bordered"
+
+tableSmall :: ClassName
+tableSmall = ClassName "table-sm"
