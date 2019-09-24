@@ -64,24 +64,23 @@ import           Servant.PureScript                         (HasBridge, Settings
 import           System.FilePath                            ((</>))
 import           Wallet.API                                 (WalletAPIError)
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
-import           Wallet.Graph                               (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
     TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
     psTypeParameters
 
-psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
-
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
+psNonEmpty :: MonadReader BridgeData m => m PSType
+psNonEmpty = TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$> psTypeParameters
+
 psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+psJsonEither = TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
 
 psJsonTuple :: MonadReader BridgeData m => m PSType
-psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
+psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -240,12 +239,10 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @SourceCode)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
-    , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @DataScript)
-    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType))))
-          (Proxy @ValidatorScript)
-    , (equal <*> (genericShow <*> (equal <*> (order <*> mkSumType))))
-          (Proxy @RedeemerScript)
-    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @Signature)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @DataScript)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Expression)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
@@ -257,7 +254,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
     , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
-    , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @SequenceId)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
@@ -265,15 +262,10 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxInOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutOf A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutRefOf A))
-    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TxInType)
-    , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @TxOutType)
-    , (equal <*> (order <*> (genericShow <*> mkSumType))) (Proxy @PubKey)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @(AddressOf A))
-    , (genericShow <*> (genericShow <*> mkSumType)) (Proxy @TxRef)
-    , (genericShow <*> mkSumType) (Proxy @UtxOwner)
-    , (genericShow <*> mkSumType) (Proxy @UtxoLocation)
-    , (genericShow <*> mkSumType) (Proxy @FlowLink)
-    , (genericShow <*> mkSumType) (Proxy @FlowGraph)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(Interval A))
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
@@ -285,7 +277,7 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
+    , (order <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
@@ -295,9 +287,8 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> mkSumType) (Proxy @(InterpreterResult A))
-    , (genericShow <*> (equal <*> (order <*> mkSumType)))
-          (Proxy @CurrencySymbol)
-    , (genericShow <*> (equal <*> (order <*> mkSumType))) (Proxy @TokenName)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
 
 mySettings :: Settings

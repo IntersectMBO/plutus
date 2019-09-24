@@ -14,7 +14,7 @@ import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
-import Chain.Types (_FocusTx, _sequenceId)
+import Chain.Types (ChainFocus(..), _FocusTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
@@ -30,6 +30,7 @@ import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
 import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
+import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
@@ -41,7 +42,6 @@ import Data.MediaType.Common (textPlain)
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap, wrap)
 import Data.Ord (Ordering(..), compare)
-import Data.RawJson (JsonEither(..))
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
@@ -213,7 +213,8 @@ toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category
 
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
-toEvent (SetChainFocus _ _) = Nothing
+toEvent (SetChainFocus (Just (FocusTx _)) _) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
+toEvent (SetChainFocus Nothing _) = Nothing
 
 eval ::
   forall m.

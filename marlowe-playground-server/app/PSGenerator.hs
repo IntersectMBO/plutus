@@ -36,7 +36,7 @@ import           Language.Haskell.Interpreter               (CompilationError, I
                                                              SourceCode, Warning)
 import           Language.Marlowe.Pretty                    (pretty)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, haskType,
                                                              isTuple, mkSumType, order, psTypeParameters, typeModule,
                                                              typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.Builder         (BridgeData)
@@ -54,16 +54,16 @@ import           System.FilePath                            ((</>))
 import qualified ZeroCouponBond
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
+psNonEmpty = TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$> psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+psJsonEither = TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
 
 psJsonTuple :: MonadReader BridgeData m => m PSType
-psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
+psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -144,7 +144,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
+    , (order <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)

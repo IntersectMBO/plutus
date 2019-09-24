@@ -22,7 +22,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.RawJson (JsonEither)
+import Data.Json.JsonEither (JsonEither)
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect (Effect)

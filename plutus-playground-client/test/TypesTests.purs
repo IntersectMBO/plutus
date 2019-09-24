@@ -3,8 +3,9 @@ module TypesTests
   ) where
 
 import Prelude
+
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Maybe (Maybe(..))
-import Data.RawJson (JsonTuple(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (Aff)

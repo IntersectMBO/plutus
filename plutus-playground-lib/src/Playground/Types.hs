@@ -29,7 +29,6 @@ import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import           Schema                       (FormSchema)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
-import           Wallet.Graph                 (FlowGraph)
 
 data KnownCurrency =
     KnownCurrency
@@ -90,7 +89,6 @@ data EvaluationResult =
     EvaluationResult
         { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
         , resultRollup      :: [[AnnotatedTx]]
-        , resultGraph       :: FlowGraph
         , emulatorLog       :: [EmulatorEvent]
         , fundsDistribution :: [SimulatorWallet]
         , walletKeys        :: [(PubKey, Wallet)]
