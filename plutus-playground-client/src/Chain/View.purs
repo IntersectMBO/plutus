@@ -20,7 +20,7 @@ import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple (fst)
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Tuple.Nested ((/\))
 import Halogen (action)
 import Halogen.HTML (ClassName(..), HTML, br_, div, div_, h2_, hr_, small_, span, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_)
 import Halogen.HTML.Events (onClick)
@@ -29,8 +29,7 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
 import Ledger.Extra (humaniseInterval, adaToValue)
-import Ledger.Scripts (DataScript(..))
-import Ledger.Tx (AddressOf(..), Tx(..), TxOutOf(..), TxOutType(..))
+import Ledger.Tx (AddressOf(..), Tx(..), TxOutOf(..))
 import Ledger.TxId (TxIdOf(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), SequenceId(..))
@@ -191,32 +190,6 @@ forgeView txForge =
         ]
     ]
 
-balancesView :: forall p i. SequenceId -> Map PubKey Wallet -> Map BeneficialOwner Value -> HTML p i
-balancesView sequenceId walletKeys m =
-  div []
-    [ h2_
-        [ text "Balances Carried Forward"
-        , nbsp
-        , small_
-            [ text "(as at "
-            , sequenceIdView sequenceId
-            , text ")"
-            ]
-        ]
-    , row_ (balanceView <$> Map.toUnfoldable m)
-    ]
-  where
-  balanceView :: BeneficialOwner /\ Value -> HTML p i
-  balanceView (beneficialOwner /\ value) =
-    col3_
-      [ div
-          [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ]
-          ]
-          [ cardHeaderOwnerView false walletKeys beneficialOwner
-          , cardBody_ [ valueView value ]
-          ]
-      ]
-
 balancesTable :: forall p i. SequenceId -> Map PubKey Wallet -> Map BeneficialOwner Value -> HTML p i
 balancesTable sequenceId walletKeys balances =
   div []
@@ -342,28 +315,6 @@ beneficialOwnerView _ (OwnedByScript (AddressOf a)) =
     [ text "Script"
     , nbsp
     , text a.getAddress
-    ]
-
-txOutTypeView :: forall p i. Map PubKey Wallet -> TxOutType -> HTML p i
-txOutTypeView walletKeys (PayToPubKey pubKey) = case Map.lookup pubKey walletKeys of
-  Nothing -> showPubKey pubKey
-  Just (Wallet { getWallet: n }) ->
-    span
-      [ class_ textTruncate ]
-      [ showPubKey pubKey
-      , br_
-      , small_
-          [ text "Wallet"
-          , nbsp
-          , text $ show n
-          ]
-      ]
-
-txOutTypeView _ (PayToScript (DataScript d)) =
-  span_
-    [ text "Script"
-    , nbsp
-    , text d.getDataScript
     ]
 
 showPubKey :: forall p i. PubKey -> HTML p i
