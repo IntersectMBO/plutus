@@ -16,6 +16,8 @@ import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonEither (JsonEither)
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Lens, Lens', Prism', prism, prism', to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -23,8 +25,6 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
-import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Json.JsonEither (JsonEither)
 import Data.String.Extra (toHex) as String
 import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
@@ -48,7 +48,7 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData)
-import Playground.Types (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.Types (AnnotatedTx, CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.Types as Playground
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -366,6 +366,9 @@ _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 _evaluationResult :: Lens' State (WebData (JsonEither PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
+_resultRollup :: Lens' EvaluationResult (Array (Array AnnotatedTx))
+_resultRollup = _Newtype <<< prop (SProxy :: SProxy "resultRollup")
+
 _compilationResult :: Lens' State (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
@@ -415,15 +418,6 @@ _x = prop (SProxy :: SProxy "x")
 
 _y :: forall r a. Lens' { y :: a | r } a
 _y = prop (SProxy :: SProxy "y")
-
-_chainFocus :: forall r a. Lens' { chainFocus :: a | r } a
-_chainFocus = prop (SProxy :: SProxy "chainFocus")
-
-_chainFocusAppearing :: forall r a. Lens' { chainFocusAppearing :: a | r } a
-_chainFocusAppearing = prop (SProxy :: SProxy "chainFocusAppearing")
-
-_chainFocusAge :: forall r a. Lens' { chainFocusAge :: a | r } a
-_chainFocusAge = prop (SProxy :: SProxy "chainFocusAge")
 
 data View
   = Editor

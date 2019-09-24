@@ -1,8 +1,9 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
+
 import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
-import Chain.Types (ChainFocus(..), State, toBeneficialOwner)
+import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
 import Data.Array.Extra (intersperse)
@@ -10,7 +11,7 @@ import Data.Foldable (foldMap, foldr)
 import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
 import Data.Int (toNumber)
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Fold', preview)
+import Data.Lens (Fold', _Just, filtered, has, preview)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
@@ -32,7 +33,7 @@ import Ledger.Extra (humaniseInterval, adaToValue)
 import Ledger.Tx (AddressOf(..), Tx(..), TxOutOf(..))
 import Ledger.TxId (TxIdOf(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), SequenceId(..))
+import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Types (Query(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
 
@@ -89,69 +90,63 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
     , onClick $ const $ Just $ action
         $ SetChainFocus
         $ Just
-        $ FocusTx annotatedTx
+        $ FocusTx txId
     ]
     [ entryCardHeader sequenceId ]
   where
-  isActive = case state of
-    ({ chainFocus: Just (FocusTx focusTx) }) -> focusTx == annotatedTx
-    _ -> false
+  isActive = has (_chainFocus <<< _Just <<< _FocusTx <<< filtered (eq txId)) state
 
 detailView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
-detailView state@{ chainFocus:
-  Just
-  ( FocusTx
-    ( AnnotatedTx
-      annotatedTx@{ tx: Tx tx
-    , dereferencedInputs
-    , balances
-    , sequenceId
-    , txId: (TxIdOf { getTxId: txId })
-    }
-  )
-)
-} walletKeys annotatedBlockchain =
-  div_
-    [ row_
-        [ col3_
-            [ h2_ [ text "Inputs" ]
-            , forgeView tx.txForge
-            , div_ (txOutOfView true walletKeys <<< _.refersTo <<< unwrap <$> dereferencedInputs)
-            ]
-        , col6_
-            [ h2_ [ text "Transaction" ]
-            , div [ classes [ card, active ] ]
-                [ entryCardHeader sequenceId
-                , cardBody_
-                    [ div
-                        [ class_ textTruncate ]
-                        [ strong_ [ text "Tx: " ]
-                        , nbsp
-                        , text txId
-                        ]
-                    , div_
-                        [ strong_ [ text "Validity:" ]
-                        , nbsp
-                        , text $ humaniseInterval tx.txValidRange
-                        ]
-                    , div_
-                        [ strong_ [ text "Signatures:" ]
-                        , nbsp
-                        , case unwrap tx.txSignatures of
-                            [] -> text "None"
-                            sigs -> div_ (showPubKey <<< fst <<< unwrap <$> sigs)
+detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
+  Just (AnnotatedTx annotatedTx) ->
+    let
+      { tx: Tx tx, txId: (TxIdOf { getTxId: txId }) } = annotatedTx
+    in
+      div_
+        [ row_
+            [ col3_
+                [ h2_ [ text "Inputs" ]
+                , forgeView tx.txForge
+                , div_ (dereferencedInputView walletKeys <$> annotatedTx.dereferencedInputs)
+                ]
+            , col6_
+                [ h2_ [ text "Transaction" ]
+                , div [ classes [ card, active ] ]
+                    [ entryCardHeader annotatedTx.sequenceId
+                    , cardBody_
+                        [ div
+                            [ class_ textTruncate ]
+                            [ strong_ [ text "Tx: " ]
+                            , nbsp
+                            , text txId
+                            ]
+                        , div_
+                            [ strong_ [ text "Validity:" ]
+                            , nbsp
+                            , text $ humaniseInterval tx.txValidRange
+                            ]
+                        , div_
+                            [ strong_ [ text "Signatures:" ]
+                            , nbsp
+                            , case unwrap tx.txSignatures of
+                                [] -> text "None"
+                                sigs -> div_ (showPubKey <<< fst <<< unwrap <$> sigs)
+                            ]
                         ]
                     ]
                 ]
+            , col3_
+                [ h2_ [ text "Outputs" ]
+                , feeView tx.txFee
+                , div_ (txOutOfView false walletKeys <$> tx.txOutputs)
+                ]
             ]
-        , col3_
-            [ h2_ [ text "Outputs" ]
-            , feeView tx.txFee
-            , div_ (txOutOfView false walletKeys <$> tx.txOutputs)
-            ]
+        , balancesTable
+            annotatedTx.sequenceId
+            walletKeys
+            (AssocMap.toDataMap annotatedTx.balances)
         ]
-    , balancesTable sequenceId walletKeys (AssocMap.toDataMap balances)
-    ]
+  Nothing -> div_ []
 
 detailView state@{ chainFocus: Nothing } _ _ = div_ []
 
@@ -266,11 +261,24 @@ collectBalanceTableHeadings balances = foldr collectCurrencies Map.empty $ Map.v
   collectTokenNames currency currencyBalances = Map.insertWith Set.union currency $ AssocMap.keys currencyBalances
 
 sequenceIdView :: forall p i. SequenceId -> HTML p i
-sequenceIdView sequenceId =
-  span_ [ text $ formatSequenceId sequenceId ]
+sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
 
 formatSequenceId :: SequenceId -> String
 formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
+
+dereferencedInputView :: forall p. Map PubKey Wallet -> DereferencedInput -> HTML p (Query Unit)
+dereferencedInputView walletKeys (DereferencedInput { originalInput, refersTo }) =
+  div
+    [ onClick $ const $ Just $ action
+        $ SetChainFocus
+        $ Just
+        $ FocusTx txId
+    ]
+    [ txOutOfView true walletKeys refersTo
+    ]
+  where
+  txId :: TxId
+  txId = _.txOutRefId $ unwrap $ _.txInRef $ unwrap $ originalInput
 
 txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =

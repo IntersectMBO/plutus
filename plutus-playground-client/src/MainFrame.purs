@@ -14,7 +14,7 @@ import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
-import Chain.Types (ChainFocus(..), _FocusTx, _sequenceId)
+import Chain.Types (ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
@@ -30,7 +30,7 @@ import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
 import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
-import Data.Json.JsonEither (JsonEither(..))
+import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
@@ -445,20 +445,34 @@ eval (PopulateAction n l event) = do
   pure $ extract event
 
 eval (SetChainFocus newFocus next) = do
+  mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
   oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
 
   let
-    oldSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) oldFocus
-    newSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) newFocus
-    relativeAge = fromMaybe EQ $ compareSequenceIds <$> oldSequenceId <*> newSequenceId
-  assign (_blockchainVisualisationState <<< _chainFocus) newFocus
-  assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
+    mOldFocusTxId :: Maybe TxId
+    mOldFocusTxId = preview (_Just <<< _FocusTx) oldFocus
+    mNewFocusTxId :: Maybe TxId
+    mNewFocusTxId = preview (_Just <<< _FocusTx) newFocus
 
-  assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
-  delay $ wrap 10.0
-  assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
+  assign (_blockchainVisualisationState <<< _chainFocus) newFocus
+
+  case mOldFocusTxId, mNewFocusTxId, mAnnotatedBlockchain of
+    Just oldFocusTxId, Just newFocusTxId, Just annotatedBlockchain -> do
+        let
+          oldFocusSequenceId :: Maybe SequenceId
+          oldFocusSequenceId =  preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
+          newFocusSequenceId :: Maybe SequenceId
+          newFocusSequenceId =  preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
+          relativeAge = fromMaybe EQ $ compareSequenceIds <$> oldFocusSequenceId <*> newFocusSequenceId
+        assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
+
+        assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
+        delay $ wrap 10.0
+        assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
+    _, _, _ -> pure unit
 
   pure next
+
   where
     compareSequenceIds (SequenceId old) (SequenceId new) =
          compare old.slotIndex new.slotIndex
