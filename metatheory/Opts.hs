@@ -23,7 +23,7 @@ stdInput = flag' StdInput
 input :: Parser Input
 input = fileInput <|> stdInput
 
-data EvalMode = CK | L deriving (Show, Read)
+data EvalMode = TCK | CK | L deriving (Show, Read)
 
 data EvalOptions = EvalOpts Input EvalMode
 
@@ -34,7 +34,7 @@ evalMode = option auto
   <> metavar "MODE"
   <> value CK
   <> showDefault
-  <> help "Evaluation mode (one of CK or L)" )
+  <> help "Evaluation mode (one of TCK, CK, or L)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOpts <$> input <*> evalMode

@@ -76,7 +76,7 @@ backVar-eraseVar q (Z p) = ZEq _ p reflNf reflCtx q
 backVar-eraseVar {Γ = Γ , A} q (S x) = SEq reflCtx reflNf q (backVar-eraseVar q x) {- trans
   (subst-S (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))
   (cong S (backVar-eraseVar x)) -}
-backVar-eraseVar q (T x p) = TEq _ p reflCtx (backVar⋆-eraseVar x) q {!backVar⋆-eraseVar x!} {- trans
+backVar-eraseVar q (T x p) = TEq _ p reflCtx (backVar⋆-eraseVar x) q {!(conv∋ reflCtx (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))!} {- trans
   (subst-T (backVar⋆-eraseVar x)
            (cong weakenNf (backVar⋆-eraseVar x))
            (backVar _ (eraseVar x)))

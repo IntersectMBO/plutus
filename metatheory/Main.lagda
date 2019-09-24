@@ -107,7 +107,7 @@ open import Data.Vec hiding (_>>=_)
 open import Scoped.CK
 
 data EvalMode : Set where
-  CK L : EvalMode
+  TCK CK L : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String
@@ -126,6 +126,7 @@ evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+evalPLC TCK plc | just t | just t' = "typed execution not yet implemented"
 evalPLC m plc | just t | nothing = "scope error"
 evalPLC m plc | nothing = "parse error"
 
@@ -196,7 +197,7 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 {-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (CK | L) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (TCK | CK | L ) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO String
