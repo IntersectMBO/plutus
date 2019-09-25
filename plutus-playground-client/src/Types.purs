@@ -297,11 +297,8 @@ cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlo
 cpBalancesChart = cp2
 
 -----------------------------------------------------------
-type Block
-  = JsonTuple (TxIdOf String) Tx
-
 type ChainSlot
-  = Array Block
+  = Array (JsonTuple (TxIdOf String) Tx)
 
 type Blockchain
   = Array ChainSlot
