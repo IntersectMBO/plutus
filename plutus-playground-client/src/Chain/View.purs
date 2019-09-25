@@ -53,9 +53,9 @@ chainView state walletKeys annotatedBlockchain =
     ]
     [ h2_
         [ text "Blockchain"
-        , nbsp
-        , small_ [ text "Click a transaction for details" ]
         ]
+    , div_
+        [ small_ [ text "Click a transaction for details" ] ]
     , div
         [ classes [ row, ClassName "blocks" ] ]
         (chainSlotView state <$> Array.reverse annotatedBlockchain)
