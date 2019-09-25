@@ -145,9 +145,9 @@ detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotate
             walletKeys
             (AssocMap.toDataMap annotatedTx.balances)
         ]
-  Nothing -> div_ []
+  Nothing -> empty
 
-detailView state@{ chainFocus: Nothing } _ _ = div_ []
+detailView state@{ chainFocus: Nothing } _ _ = empty
 
 entryCardHeader :: forall i p. SequenceId -> HTML p i
 entryCardHeader sequenceId =
