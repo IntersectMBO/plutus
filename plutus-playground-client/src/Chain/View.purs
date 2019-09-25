@@ -12,7 +12,7 @@ import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int (toNumber)
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Fold', _Just, filtered, has, preview, view)
+import Data.Lens (Traversal', _Just, filtered, has, preview, view)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
@@ -224,7 +224,7 @@ balancesTable sequenceId walletKeys balances =
                                     foldMap
                                       ( \token ->
                                           let
-                                            _thisBalance :: forall m. Monoid m => Fold' m (Map BeneficialOwner Value) Int
+                                            _thisBalance :: Traversal' (Map BeneficialOwner Value) Int
                                             _thisBalance = ix owner <<< _value <<< ix currency <<< ix token
 
                                             amount :: Maybe Int
