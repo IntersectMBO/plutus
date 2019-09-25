@@ -3,14 +3,14 @@ module Chain.Types where
 import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Fold', Iso', Lens', filtered, iso, traversed)
+import Data.Lens (Fold', Iso', Lens', filtered, iso, preview, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Ledger.Tx (TxOutOf(..), TxOutType(..))
+import Ledger.Tx (Tx, TxInOf, TxOutOf(..), TxOutRefOf(..), TxOutType(..))
 import Ledger.TxId (TxIdOf)
-import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), SequenceId)
+import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
 
 type TxId
   = TxIdOf String
@@ -48,11 +48,32 @@ _chainFocusAge = prop (SProxy :: SProxy "chainFocusAge")
 _sequenceId :: Lens' AnnotatedTx SequenceId
 _sequenceId = _Newtype <<< prop (SProxy :: SProxy "sequenceId")
 
+_dereferencedInputs :: Lens' AnnotatedTx (Array DereferencedInput)
+_dereferencedInputs = _Newtype <<< prop (SProxy :: SProxy "dereferencedInputs")
+
+_originalInput :: Lens' DereferencedInput (TxInOf String)
+_originalInput = _Newtype <<< prop (SProxy :: SProxy "originalInput")
+
 _txIdOf :: Lens' AnnotatedTx TxId
 _txIdOf = _Newtype <<< prop (SProxy :: SProxy "txId")
 
+_tx :: Lens' AnnotatedTx Tx
+_tx = _Newtype <<< prop (SProxy :: SProxy "tx")
+
+_txInputs :: Lens' Tx (Array (TxInOf String))
+_txInputs = _Newtype <<< prop (SProxy :: SProxy "txInputs")
+
+_txOutputs :: Lens' Tx (Array (TxOutOf String))
+_txOutputs = _Newtype <<< prop (SProxy :: SProxy "txOutputs")
+
 _txId :: forall a. Lens' (TxIdOf a) a
 _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
+
+_txInRef :: forall a. Lens' (TxInOf a) (TxOutRefOf a)
+_txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")
+
+_txOutRefId :: forall a. Lens' (TxOutRefOf a) (TxIdOf a)
+_txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
 
 toBeneficialOwner :: TxOutOf String -> BeneficialOwner
 toBeneficialOwner (TxOutOf { txOutType, txOutAddress }) = case txOutType of
@@ -64,3 +85,17 @@ _findTx focussedTxId = (traversed <<< traversed <<< filtered isAnnotationOf)
   where
   isAnnotationOf :: AnnotatedTx -> Boolean
   isAnnotationOf (AnnotatedTx { txId }) = txId == focussedTxId
+
+-- | Where is this output consumed?
+findConsumptionPoint :: Int -> TxIdOf String -> Array (Array AnnotatedTx) -> Maybe AnnotatedTx
+findConsumptionPoint outputIndex txId = preview (traversed <<< traversed <<< (filtered isMatchingTx))
+  where
+  isMatchingTx :: AnnotatedTx -> Boolean
+  isMatchingTx tx = preview (_tx <<< _txInputs <<< traversed <<< _txInRef) tx == Just txOutRef
+
+  txOutRef :: TxOutRefOf String
+  txOutRef =
+    TxOutRefOf
+      { txOutRefId: txId
+      , txOutRefIdx: outputIndex
+      }

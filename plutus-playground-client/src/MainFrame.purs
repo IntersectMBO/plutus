@@ -447,37 +447,30 @@ eval (PopulateAction n l event) = do
 eval (SetChainFocus newFocus next) = do
   mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
   oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
-
   let
-    mOldFocusTxId :: Maybe TxId
-    mOldFocusTxId = preview (_Just <<< _FocusTx) oldFocus
-    mNewFocusTxId :: Maybe TxId
-    mNewFocusTxId = preview (_Just <<< _FocusTx) newFocus
+    relativeAge =
+      fromMaybe EQ
+        $ do
+            annotatedBlockchain <- mAnnotatedBlockchain
+            oldFocusTxId :: TxId <- preview (_Just <<< _FocusTx) oldFocus
+            newFocusTxId :: TxId <- preview (_Just <<< _FocusTx) newFocus
+            oldFocusSequenceId :: SequenceId <- preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
+            newFocusSequenceId :: SequenceId <- preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
+            pure $ compareSequenceIds oldFocusSequenceId newFocusSequenceId
 
+  -- Update.
   assign (_blockchainVisualisationState <<< _chainFocus) newFocus
-
-  case mOldFocusTxId, mNewFocusTxId, mAnnotatedBlockchain of
-    Just oldFocusTxId, Just newFocusTxId, Just annotatedBlockchain -> do
-        let
-          oldFocusSequenceId :: Maybe SequenceId
-          oldFocusSequenceId =  preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
-          newFocusSequenceId :: Maybe SequenceId
-          newFocusSequenceId =  preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
-          relativeAge = fromMaybe EQ $ compareSequenceIds <$> oldFocusSequenceId <*> newFocusSequenceId
-        assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
-
-        assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
-        delay $ wrap 10.0
-        assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
-    _, _, _ -> pure unit
+  assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
+  -- Animate.
+  assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
+  delay $ wrap 10.0
+  assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
 
   pure next
-
   where
-    compareSequenceIds (SequenceId old) (SequenceId new) =
-         compare old.slotIndex new.slotIndex
-         <>
-         compare old.txIndex new.txIndex
+  compareSequenceIds (SequenceId old) (SequenceId new) =
+    compare old.slotIndex new.slotIndex
+      <> compare old.txIndex new.txIndex
 
 getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
 getKnownCurrencies = do

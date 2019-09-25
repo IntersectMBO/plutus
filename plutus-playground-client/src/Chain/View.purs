@@ -3,15 +3,16 @@ module Chain.View (chainView) where
 import Prelude hiding (div)
 
 import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
-import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, toBeneficialOwner)
+import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, _sequenceId, _txIdOf, _txInRef, _txOutRefId, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
 import Data.Array.Extra (intersperse)
 import Data.Foldable (foldMap, foldr)
 import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
+import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int (toNumber)
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Fold', _Just, filtered, has, preview)
+import Data.Lens (Fold', _Just, filtered, has, preview, view)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
@@ -23,7 +24,7 @@ import Data.Set as Set
 import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
 import Halogen (action)
-import Halogen.HTML (ClassName(..), HTML, br_, div, div_, h2_, hr_, small_, span, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_)
+import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small_, span, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
@@ -36,6 +37,7 @@ import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Types (Query(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
+import Web.UIEvent.MouseEvent (MouseEvent)
 
 chainView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
 chainView state walletKeys annotatedBlockchain =
@@ -87,10 +89,7 @@ blockView :: forall p. State -> AnnotatedTx -> HTML p (Query Unit)
 blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   div
     [ classes ([ card, ClassName "transaction" ] <> if isActive then [ active ] else [])
-    , onClick $ const $ Just $ action
-        $ SetChainFocus
-        $ Just
-        $ FocusTx txId
+    , onClickFocusTx txId
     ]
     [ entryCardHeader sequenceId ]
   where
@@ -138,7 +137,7 @@ detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotate
             , col3_
                 [ h2_ [ text "Outputs" ]
                 , feeView tx.txFee
-                , div_ (txOutOfView false walletKeys <$> tx.txOutputs)
+                , div_ (mapWithIndex (outputView walletKeys annotatedTx.txId annotatedBlockchain) tx.txOutputs)
                 ]
             ]
         , balancesTable
@@ -269,16 +268,24 @@ formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotInde
 dereferencedInputView :: forall p. Map PubKey Wallet -> DereferencedInput -> HTML p (Query Unit)
 dereferencedInputView walletKeys (DereferencedInput { originalInput, refersTo }) =
   div
-    [ onClick $ const $ Just $ action
-        $ SetChainFocus
-        $ Just
-        $ FocusTx txId
-    ]
+    [ onClickFocusTx txId ]
     [ txOutOfView true walletKeys refersTo
     ]
   where
   txId :: TxId
-  txId = _.txOutRefId $ unwrap $ _.txInRef $ unwrap $ originalInput
+  txId = view (_txInRef <<< _txOutRefId) originalInput
+
+outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> Array (Array AnnotatedTx) -> Int -> TxOutOf String -> HTML p (Query Unit)
+outputView walletKeys txId annotatedBlockchain outputIndex txOut =
+  div
+    ( case consumedInTx of
+        Nothing -> []
+        Just linkedTx -> [ onClickFocusTx (view _txIdOf linkedTx) ]
+    )
+    [ txOutOfView false walletKeys txOut ]
+  where
+  consumedInTx :: Maybe AnnotatedTx
+  consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
 txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =
@@ -365,3 +372,14 @@ showToken :: TokenName -> String
 showToken (TokenName { unTokenName: "" }) = "Lovelace"
 
 showToken (TokenName { unTokenName: name }) = name
+
+onClickFocusTx :: forall p. TxId -> IProp ( onClick :: MouseEvent | p ) (Query Unit)
+onClickFocusTx txId =
+  onClick
+    $ const
+    $ Just
+    $ action
+    $ SetChainFocus
+    $ Just
+    $ FocusTx
+    $ txId
