@@ -384,26 +384,6 @@ _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 _walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKey Wallet))
 _walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
 
-_txSignatures :: forall r a. Lens' { txSignatures :: a | r } a
-_txSignatures = prop (SProxy :: SProxy "txSignatures")
-
-_txInputs :: forall r a. Lens' { txInputs :: a | r } a
-_txInputs = prop (SProxy :: SProxy "txInputs")
-
-_txOutputs :: forall r a. Lens' { txOutputs :: a | r } a
-_txOutputs = prop (SProxy :: SProxy "txOutputs")
-
-_txOutType :: forall r a. Lens' { txOutType :: a | r } a
-_txOutType = prop (SProxy :: SProxy "txOutType")
-
-_txOutValue :: forall r a. Lens' { txOutValue :: a | r } a
-_txOutValue = prop (SProxy :: SProxy "txOutValue")
-
-_PayToPubKey :: Prism' TxOutType PubKey
-_PayToPubKey = prism PayToPubKey case _ of
-  PayToPubKey pubKey -> Right pubKey
-  other -> Left other
-
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)
 _knownCurrencies = _Newtype <<< prop (SProxy :: SProxy "knownCurrencies")
 

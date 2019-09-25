@@ -9,8 +9,14 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Language.PlutusTx.AssocMap as AssocMap
+import Ledger.Ada (Ada)
+import Ledger.Crypto (PubKey, Signature)
+import Ledger.Interval (Interval)
+import Ledger.Slot (Slot)
 import Ledger.Tx (Tx, TxInOf, TxOutOf(..), TxOutRefOf(..), TxOutType(..))
 import Ledger.TxId (TxIdOf)
+import Ledger.Value (Value)
 import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
 
 type TxId
@@ -58,8 +64,23 @@ _originalInput = _Newtype <<< prop (SProxy :: SProxy "originalInput")
 _txIdOf :: Lens' AnnotatedTx TxId
 _txIdOf = _Newtype <<< prop (SProxy :: SProxy "txId")
 
+_balances :: Lens' AnnotatedTx (AssocMap.Map BeneficialOwner Value)
+_balances = _Newtype <<< prop (SProxy :: SProxy "balances")
+
 _tx :: Lens' AnnotatedTx Tx
 _tx = _Newtype <<< prop (SProxy :: SProxy "tx")
+
+_txFee :: Lens' Tx Ada
+_txFee = _Newtype <<< prop (SProxy :: SProxy "txFee")
+
+_txForge :: Lens' Tx Value
+_txForge = _Newtype <<< prop (SProxy :: SProxy "txForge")
+
+_txValidRange :: Lens' Tx (Interval Slot)
+_txValidRange = _Newtype <<< prop (SProxy :: SProxy "txValidRange")
+
+_txSignatures :: Lens' Tx (AssocMap.Map PubKey Signature)
+_txSignatures = _Newtype <<< prop (SProxy :: SProxy "txSignatures")
 
 _txInputs :: Lens' Tx (Array (TxInOf String))
 _txInputs = _Newtype <<< prop (SProxy :: SProxy "txInputs")

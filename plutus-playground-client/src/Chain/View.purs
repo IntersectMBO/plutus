@@ -1,11 +1,10 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
-
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
-import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, _sequenceId, _txIdOf, _txInRef, _txOutRefId, findConsumptionPoint, toBeneficialOwner)
+import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _balances, _chainFocus, _dereferencedInputs, _findTx, _sequenceId, _tx, _txFee, _txForge, _txId, _txIdOf, _txInRef, _txOutRefId, _txOutputs, _txSignatures, _txValidRange, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
 import Data.Array.Extra (intersperse)
@@ -13,17 +12,15 @@ import Data.Foldable (foldMap, foldr)
 import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int (toNumber)
-import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Traversal', _Just, filtered, has, preview, view)
+import Data.Json.JsonTuple (JsonTuple(..), _JsonTuple)
+import Data.Lens (Traversal', _1, _Just, filtered, has, preview, toListOf, traversed, view)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
 import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
 import Halogen (action)
 import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small_, span, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_)
@@ -33,8 +30,8 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
 import Ledger.Extra (humaniseInterval, adaToValue)
-import Ledger.Tx (AddressOf(..), Tx(..), TxOutOf(..))
-import Ledger.TxId (TxIdOf(..))
+import Ledger.Tx (AddressOf(..), TxOutOf(..))
+import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Types (Query(..), _value)
@@ -99,57 +96,57 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
 
 detailView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
 detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
-  Just (AnnotatedTx annotatedTx) ->
-    let
-      { tx: Tx tx, txId: (TxIdOf { getTxId: txId }) } = annotatedTx
-    in
-      div_
-        [ row_
-            [ col3_
-                [ h2_ [ text "Inputs" ]
-                , forgeView tx.txForge
-                , div_ (dereferencedInputView walletKeys annotatedBlockchain <$> annotatedTx.dereferencedInputs)
-                ]
-            , col6_
-                [ h2_ [ text "Transaction" ]
-                , div [ classes [ card, active ] ]
-                    [ entryCardHeader annotatedTx.sequenceId
-                    , cardBody_
-                        [ div
-                            [ class_ textTruncate ]
-                            [ strong_ [ text "Tx: " ]
-                            , nbsp
-                            , text txId
-                            ]
-                        , div_
-                            [ strong_ [ text "Validity:" ]
-                            , nbsp
-                            , text $ humaniseInterval tx.txValidRange
-                            ]
-                        , div_
-                            [ strong_ [ text "Signatures:" ]
-                            , nbsp
-                            , case unwrap tx.txSignatures of
-                                [] -> text "None"
-                                sigs -> div_ (showPubKey <<< fst <<< unwrap <$> sigs)
-                            ]
-                        ]
-                    ]
-                ]
-            , col3_
-                [ h2_ [ text "Outputs" ]
-                , feeView tx.txFee
-                , div_ (mapWithIndex (outputView walletKeys annotatedTx.txId annotatedBlockchain) tx.txOutputs)
-                ]
-            ]
-        , balancesTable
-            annotatedTx.sequenceId
-            walletKeys
-            (AssocMap.toDataMap annotatedTx.balances)
-        ]
+  Just annotatedTx -> transactionDetailView walletKeys annotatedBlockchain annotatedTx
   Nothing -> empty
 
 detailView state@{ chainFocus: Nothing } _ _ = empty
+
+transactionDetailView :: forall p. Map PubKey Wallet -> Array (Array AnnotatedTx) -> AnnotatedTx -> HTML p (Query Unit)
+transactionDetailView walletKeys annotatedBlockchain annotatedTx =
+  div_
+    [ row_
+        [ col3_
+            [ h2_ [ text "Inputs" ]
+            , forgeView (view (_tx <<< _txForge) annotatedTx)
+            , div_ (dereferencedInputView walletKeys annotatedBlockchain <$> (view _dereferencedInputs annotatedTx))
+            ]
+        , col6_
+            [ h2_ [ text "Transaction" ]
+            , div [ classes [ card, active ] ]
+                [ entryCardHeader (view _sequenceId annotatedTx)
+                , cardBody_
+                    [ div
+                        [ class_ textTruncate ]
+                        [ strong_ [ text "Tx: " ]
+                        , nbsp
+                        , text (view (_txIdOf <<< _txId) annotatedTx)
+                        ]
+                    , div_
+                        [ strong_ [ text "Validity:" ]
+                        , nbsp
+                        , text $ humaniseInterval (view (_tx <<< _txValidRange) annotatedTx)
+                        ]
+                    , div_
+                        [ strong_ [ text "Signatures:" ]
+                        , nbsp
+                        , case Array.fromFoldable (toListOf (_tx <<< _txSignatures <<< AssocMap._Map <<< traversed <<< _JsonTuple <<< _1) annotatedTx) of
+                            [] -> text "None"
+                            pubKeys -> div_ (showPubKey <$> pubKeys)
+                        ]
+                    ]
+                ]
+            ]
+        , col3_
+            [ h2_ [ text "Outputs" ]
+            , feeView (view (_tx <<< _txFee) annotatedTx)
+            , div_ (mapWithIndex (outputView walletKeys (view _txIdOf annotatedTx) annotatedBlockchain) (view (_tx <<< _txOutputs) annotatedTx))
+            ]
+        ]
+    , balancesTable
+        (view _sequenceId annotatedTx)
+        walletKeys
+        (AssocMap.toDataMap (view _balances annotatedTx))
+    ]
 
 entryCardHeader :: forall i p. SequenceId -> HTML p i
 entryCardHeader sequenceId =
