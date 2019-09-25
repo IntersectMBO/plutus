@@ -1,7 +1,9 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
+
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
+import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
 import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, _sequenceId, _txIdOf, _txInRef, _txOutRefId, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
@@ -198,7 +200,7 @@ balancesTable sequenceId walletKeys balances =
         ]
     , table
         [ classes
-            [ ClassName "table"
+            [ Bootstrap.table
             , tableBordered
             , tableSmall
             , ClassName "balances-table"
