@@ -1,8 +1,8 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
-
-import Bootstrap (active, card, cardBody_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
+import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
+import Bootstrap.Extra (clickable)
 import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _chainFocus, _findTx, _sequenceId, _txIdOf, _txInRef, _txOutRefId, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
@@ -88,7 +88,7 @@ chainSlotView state chainSlot =
 blockView :: forall p. State -> AnnotatedTx -> HTML p (Query Unit)
 blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   div
-    [ classes ([ card, ClassName "transaction" ] <> if isActive then [ active ] else [])
+    [ classes ([ card, clickable, ClassName "transaction" ] <> if isActive then [ active ] else [])
     , onClickFocusTx txId
     ]
     [ entryCardHeader sequenceId ]
@@ -106,7 +106,7 @@ detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotate
             [ col3_
                 [ h2_ [ text "Inputs" ]
                 , forgeView tx.txForge
-                , div_ (dereferencedInputView walletKeys <$> annotatedTx.dereferencedInputs)
+                , div_ (dereferencedInputView walletKeys annotatedBlockchain <$> annotatedTx.dereferencedInputs)
                 ]
             , col6_
                 [ h2_ [ text "Transaction" ]
@@ -265,35 +265,52 @@ sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
 formatSequenceId :: SequenceId -> String
 formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
-dereferencedInputView :: forall p. Map PubKey Wallet -> DereferencedInput -> HTML p (Query Unit)
-dereferencedInputView walletKeys (DereferencedInput { originalInput, refersTo }) =
-  div
-    [ onClickFocusTx txId ]
-    [ txOutOfView true walletKeys refersTo
-    ]
+dereferencedInputView :: forall p. Map PubKey Wallet -> Array (Array AnnotatedTx) -> DereferencedInput -> HTML p (Query Unit)
+dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
+  txOutOfView true walletKeys refersTo
+    $ case originatingTx of
+        Just tx ->
+          Just
+            $ div
+                [ class_ clickable
+                , onClickFocusTx txId
+                ]
+                [ text "Created by:", nbsp, sequenceIdView (view _sequenceId tx) ]
+        Nothing -> Nothing
   where
   txId :: TxId
   txId = view (_txInRef <<< _txOutRefId) originalInput
 
+  originatingTx :: Maybe AnnotatedTx
+  originatingTx = preview (_findTx txId) annotatedBlockchain
+
 outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> Array (Array AnnotatedTx) -> Int -> TxOutOf String -> HTML p (Query Unit)
 outputView walletKeys txId annotatedBlockchain outputIndex txOut =
-  div
-    ( case consumedInTx of
-        Nothing -> []
-        Just linkedTx -> [ onClickFocusTx (view _txIdOf linkedTx) ]
-    )
-    [ txOutOfView false walletKeys txOut ]
+  txOutOfView false walletKeys txOut
+    $ case consumedInTx of
+        Just linkedTx ->
+          Just
+            $ div
+                [ class_ clickable, onClickFocusTx (view _txIdOf linkedTx) ]
+                [ text "Spent in:", nbsp, sequenceIdView (view _sequenceId linkedTx) ]
+        Nothing ->
+          Just
+            $ div_
+                [ text "Unspent" ]
   where
   consumedInTx :: Maybe AnnotatedTx
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
-txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> HTML p (Query Unit)
-txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) =
+txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> Maybe (HTML p (Query Unit)) -> HTML p (Query Unit)
+txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
     [ cardHeaderOwnerView showArrow walletKeys beneficialOwner
     , cardBody_
         [ valueView txOutValue ]
+    , case mFooter of
+        Nothing -> empty
+        Just footer -> cardFooter_ [ footer ]
     ]
   where
   beneficialOwner = toBeneficialOwner txOutOf

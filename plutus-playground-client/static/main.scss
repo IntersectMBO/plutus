@@ -204,7 +204,7 @@ table.balance-map {
             border-color: $color;
         }
 
-        th, .card-header {
+        th, .card-header, .card-footer {
             background-color: $color;
             background: $color; /* Old browsers */
             background: linear-gradient(130deg, $color 0%, $color 0%, lighten($color, 8%) 5%, $color 45%, $color 100%);
