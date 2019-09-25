@@ -169,7 +169,7 @@ triangleRight :: forall p i. HTML p i
 triangleRight = div [ class_ $ ClassName "triangle-right" ] []
 
 feeView :: forall p i. Ada -> HTML p i
-feeView (Lovelace { getLovelace: 0 }) = text ""
+feeView (Lovelace { getLovelace: 0 }) = empty
 
 feeView txFee =
   div [ classes [ card, entryClass, feeClass ] ]
@@ -180,7 +180,7 @@ feeView txFee =
     ]
 
 forgeView :: forall p i. Value -> HTML p i
-forgeView (Value { getValue: (AssocMap.Map []) }) = text ""
+forgeView (Value { getValue: (AssocMap.Map []) }) = empty
 
 forgeView txForge =
   div [ classes [ card, entryClass, forgeClass ] ]
@@ -291,7 +291,7 @@ beneficialOwnerClass (OwnedByScript _) = ClassName "script"
 cardHeaderOwnerView :: forall p i. Boolean -> Map PubKey Wallet -> BeneficialOwner -> HTML p i
 cardHeaderOwnerView showArrow walletKeys beneficialOwner =
   div [ classes [ cardHeader, textTruncate ] ]
-    [ if showArrow then triangleRight else text ""
+    [ if showArrow then triangleRight else empty
     , beneficialOwnerView walletKeys beneficialOwner
     ]
 
