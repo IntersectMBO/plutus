@@ -209,7 +209,13 @@ balancesTable sequenceId walletKeys balances =
         [ thead_
             [ tr_
                 ( th [ rowSpan 2 ] [ text "Beneficial Owner" ]
-                    : foldMapWithIndex (\currency s -> [ th [ colSpan (Set.size s) ] [ text $ showCurrency currency ] ]) headings
+                    : foldMapWithIndex
+                        ( \currency s ->
+                            [ th [ colSpan (Set.size s) ]
+                                [ text $ showCurrency currency ]
+                            ]
+                        )
+                        headings
                 )
             , tr_
                 ( foldMap (foldMap tokenHeadingView) headings
