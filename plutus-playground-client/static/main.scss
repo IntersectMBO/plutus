@@ -204,12 +204,24 @@ table.balance-map {
             border-color: $color;
         }
 
-        th, .card-header, .card-footer {
+        th, .card-header {
             background-color: $color;
             background: $color; /* Old browsers */
             background: linear-gradient(130deg, $color 0%, $color 0%, lighten($color, 8%) 5%, $color 45%, $color 100%);
 
             color: $dark;
+        }
+    }
+
+
+    .card-footer {
+        background-color: $gray-800 !important;
+        border-top: solid 1px $gray-700;
+    }
+
+    .detail {
+        .card-header {
+            border-bottom: solid 1px $gray-700;
         }
     }
 
@@ -322,10 +334,10 @@ table.balance-map {
 
         thead {
             background-color: $gray-800;
-            border-bottom: solid 2px $gray-500;
+            border-bottom: solid 2px $gray-700;
         }
         th, td {
-            border-color: $gray-500;
+            border-color: $gray-700;
             border-width: 1px;
         }
     }

@@ -4,10 +4,11 @@ import Prelude
 
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Fold', Iso', Lens', filtered, iso, preview, traversed)
+import Data.Lens (Fold', Iso', Lens', Traversal', filtered, iso, preview, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada)
@@ -36,6 +37,17 @@ derive instance genericChainFocus :: Generic ChainFocus _
 
 instance showChainFocus :: Show ChainFocus where
   show = genericShow
+
+newtype AnnotatedBlockchain
+ = AnnotatedBlockchain (Array (Array AnnotatedTx))
+
+derive instance newtypeAnnotatedBlockchain :: Newtype AnnotatedBlockchain _
+
+_AnnotatedBlockchain :: Iso' AnnotatedBlockchain (Array (Array AnnotatedTx))
+_AnnotatedBlockchain = _Newtype
+
+_AnnotatedBlocks :: Traversal' AnnotatedBlockchain AnnotatedTx
+_AnnotatedBlocks = _AnnotatedBlockchain <<< traversed <<< traversed
 
 type State
   = { chainFocus :: Maybe ChainFocus
@@ -102,15 +114,15 @@ toBeneficialOwner (TxOutOf { txOutType, txOutAddress }) = case txOutType of
   PayToPubKey pubKey -> OwnedByPubKey pubKey
   PayToScript _ -> OwnedByScript txOutAddress
 
-_findTx :: forall m. Monoid m => TxId -> Fold' m (Array (Array AnnotatedTx)) AnnotatedTx
-_findTx focussedTxId = (traversed <<< traversed <<< filtered isAnnotationOf)
+_findTx :: forall m. Monoid m => TxId -> Fold' m AnnotatedBlockchain AnnotatedTx
+_findTx focussedTxId = (_AnnotatedBlocks <<< filtered isAnnotationOf)
   where
   isAnnotationOf :: AnnotatedTx -> Boolean
   isAnnotationOf (AnnotatedTx { txId }) = txId == focussedTxId
 
 -- | Where is this output consumed?
-findConsumptionPoint :: Int -> TxIdOf String -> Array (Array AnnotatedTx) -> Maybe AnnotatedTx
-findConsumptionPoint outputIndex txId = preview (traversed <<< traversed <<< (filtered isMatchingTx))
+findConsumptionPoint :: Int -> TxIdOf String -> AnnotatedBlockchain -> Maybe AnnotatedTx
+findConsumptionPoint outputIndex txId = preview (_AnnotatedBlocks <<< filtered isMatchingTx)
   where
   isMatchingTx :: AnnotatedTx -> Boolean
   isMatchingTx tx = preview (_tx <<< _txInputs <<< traversed <<< _txInRef) tx == Just txOutRef

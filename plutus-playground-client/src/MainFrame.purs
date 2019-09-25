@@ -14,13 +14,13 @@ import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
-import Chain.Types (ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
+import Chain.Types (AnnotatedBlockchain, ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State (class MonadState, evalState)
+import Control.Monad.State (evalState, class MonadState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
@@ -445,7 +445,7 @@ eval (PopulateAction n l event) = do
   pure $ extract event
 
 eval (SetChainFocus newFocus next) = do
-  mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
+  mAnnotatedBlockchain :: Maybe AnnotatedBlockchain <- map wrap <$> peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
   oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
   let
     relativeAge =

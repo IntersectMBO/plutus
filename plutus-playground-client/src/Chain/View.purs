@@ -1,10 +1,11 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
+
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
-import Chain.Types (ChainFocus(..), State, TxId, _FocusTx, _balances, _chainFocus, _dereferencedInputs, _findTx, _sequenceId, _tx, _txFee, _txForge, _txId, _txIdOf, _txInRef, _txOutRefId, _txOutputs, _txSignatures, _txValidRange, findConsumptionPoint, toBeneficialOwner)
+import Chain.Types (AnnotatedBlockchain, ChainFocus(..), State, TxId, _FocusTx, _balances, _chainFocus, _dereferencedInputs, _findTx, _sequenceId, _tx, _txFee, _txForge, _txId, _txIdOf, _txInRef, _txOutRefId, _txOutputs, _txSignatures, _txValidRange, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
 import Data.Array.Extra (intersperse)
@@ -18,6 +19,7 @@ import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
@@ -38,7 +40,7 @@ import Types (Query(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
-chainView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
+chainView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p (Query Unit)
 chainView state walletKeys annotatedBlockchain =
   div
     [ classes
@@ -60,7 +62,7 @@ chainView state walletKeys annotatedBlockchain =
         [ small_ [ text "Click a transaction for details" ] ]
     , div
         [ classes [ row, ClassName "blocks" ] ]
-        (chainSlotView state <$> Array.reverse annotatedBlockchain)
+        (chainSlotView state <$> Array.reverse (unwrap annotatedBlockchain))
     , div [ class_ $ ClassName "detail" ]
         [ detailView state walletKeys annotatedBlockchain ]
     ]
@@ -94,14 +96,14 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   where
   isActive = has (_chainFocus <<< _Just <<< _FocusTx <<< filtered (eq txId)) state
 
-detailView :: forall p. State -> Map PubKey Wallet -> Array (Array AnnotatedTx) -> HTML p (Query Unit)
+detailView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p (Query Unit)
 detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
   Just annotatedTx -> transactionDetailView walletKeys annotatedBlockchain annotatedTx
   Nothing -> empty
 
 detailView state@{ chainFocus: Nothing } _ _ = empty
 
-transactionDetailView :: forall p. Map PubKey Wallet -> Array (Array AnnotatedTx) -> AnnotatedTx -> HTML p (Query Unit)
+transactionDetailView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p (Query Unit)
 transactionDetailView walletKeys annotatedBlockchain annotatedTx =
   div_
     [ row_
@@ -270,7 +272,7 @@ sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
 formatSequenceId :: SequenceId -> String
 formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
-dereferencedInputView :: forall p. Map PubKey Wallet -> Array (Array AnnotatedTx) -> DereferencedInput -> HTML p (Query Unit)
+dereferencedInputView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p (Query Unit)
 dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
   txOutOfView true walletKeys refersTo
     $ case originatingTx of
@@ -289,7 +291,7 @@ dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { origin
   originatingTx :: Maybe AnnotatedTx
   originatingTx = preview (_findTx txId) annotatedBlockchain
 
-outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> Array (Array AnnotatedTx) -> Int -> TxOutOf String -> HTML p (Query Unit)
+outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> AnnotatedBlockchain -> Int -> TxOutOf String -> HTML p (Query Unit)
 outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   txOutOfView false walletKeys txOut
     $ case consumedInTx of

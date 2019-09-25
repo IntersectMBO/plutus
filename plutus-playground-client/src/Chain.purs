@@ -17,6 +17,7 @@ import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
 import Data.Maybe (Maybe, fromMaybe)
+import Data.Newtype (wrap)
 import Data.Semiring (zero)
 import Data.Set (Set)
 import Data.Set as Set
@@ -49,7 +50,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     [ chainView
         state
         (AssocMap.toDataMap (AssocMap.Map walletKeys))
-        resultRollup
+        (wrap resultRollup)
     , br_
     , div_
         [ h2_ [ text "Logs" ]
