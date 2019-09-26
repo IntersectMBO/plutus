@@ -1,8 +1,10 @@
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A guessing game that
@@ -20,12 +22,14 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , mkValidator
     ) where
 
+import           Control.Applicative          (Applicative (..))
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude    hiding (check)
+import qualified Language.PlutusTx.Applicative as PlutusTx
+import           Language.PlutusTx.Prelude    hiding (check, Applicative (..))
 import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
@@ -39,11 +43,11 @@ import qualified Data.ByteString.Lazy.Char8   as C
 import qualified Language.PlutusTx.StateMachine as SM
 import           Language.PlutusTx.StateMachine ()
 
-newtype HashedString = HashedString ByteString
+newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString
+newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
@@ -61,6 +65,14 @@ instance Eq GameState where
     (Locked (V.TokenName n) (HashedString s)) == (Locked (V.TokenName n') (HashedString s')) = s == s' && n == n'
     _ == _ = traceIfFalseH "states not equal" False
 
+instance PlutusTx.IsData GameState where
+    toData (Initialised s) = PlutusTx.Constr 0 [PlutusTx.toData s]
+    toData (Locked n s) = PlutusTx.Constr 1 [PlutusTx.toData n, PlutusTx.toData s]
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [s]) | i == 0 = Initialised <$> PlutusTx.fromData s
+    fromData (PlutusTx.Constr i [n, s]) | i == 1 = Locked <$> PlutusTx.fromData n PlutusTx.<*> PlutusTx.fromData s
+    fromData _ = Nothing
+
 PlutusTx.makeLift ''GameState
 
 -- | Check whether a 'ClearString' is the preimage of a
@@ -75,18 +87,27 @@ data GameInput =
     | Guess ClearString HashedString
     -- ^ Make a guess and lock the remaining funds using a new secret word.
 
+instance PlutusTx.IsData GameInput where
+    toData (ForgeToken n) = PlutusTx.Constr 0 [PlutusTx.toData n]
+    toData (Guess g h) = PlutusTx.Constr 1 [PlutusTx.toData g, PlutusTx.toData h]
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [n]) | i == 0 = ForgeToken <$> PlutusTx.fromData n
+    fromData (PlutusTx.Constr i [g, h]) | i == 1 = Guess <$> PlutusTx.fromData g PlutusTx.<*> PlutusTx.fromData h
+    fromData _ = Nothing
+
 PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE step #-}
-step :: GameState -> GameInput -> Maybe GameState
-step state input = case (state, input) of
-    (Initialised s, ForgeToken tn) -> Just $ Locked tn s
-    (Locked tn _, Guess _ nextSecret) -> Just $ Locked tn nextSecret
+step :: PlutusTx.Data -> PlutusTx.Data -> Maybe PlutusTx.Data
+step (PlutusTx.fromData -> Just state) (PlutusTx.fromData -> Just input) = case (state, input) of
+    (Initialised s, ForgeToken tn) -> Just $ PlutusTx.toData $ Locked tn s
+    (Locked tn _, Guess _ nextSecret) -> Just $ PlutusTx.toData $ Locked tn nextSecret
     _ -> Nothing
+step _ _ = Nothing
 
 {-# INLINABLE check #-}
-check :: GameState -> GameInput -> PendingTx -> Bool
-check state input ptx = case (state, input) of
+check :: PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+check (PlutusTx.fromData -> Just state) (PlutusTx.fromData -> Just input) ptx = case (state, input) of
     (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
     (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge zero
     _ -> False
@@ -108,9 +129,10 @@ check state input ptx = case (state, input) of
         --   equal to the argument.
         checkForge :: Value -> Bool
         checkForge vl = vl == (Validation.pendingTxForge ptx)
+check _ _ _ = False
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Typed.ValidatorType (SM.StateMachine GameState GameInput)
+mkValidator :: Typed.ValidatorType (SM.StateMachine PlutusTx.Data PlutusTx.Data)
 mkValidator = SM.mkValidator (SM.StateMachine step check (const False))
 
 gameValidator :: ValidatorScript
@@ -118,9 +140,9 @@ gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
 
 mkRedeemer :: GameInput -> RedeemerScript
 mkRedeemer i = RedeemerScript $
-    $$(Ledger.compileScript [|| SM.mkStepRedeemer @GameState @GameInput ||])
+    $$(Ledger.compileScript [|| SM.mkStepRedeemer @PlutusTx.Data @PlutusTx.Data ||])
         `Ledger.applyScript`
-            (Ledger.lifted i)
+            (Ledger.lifted $ PlutusTx.toData i)
 
 gameToken :: TokenName
 gameToken = "guess"
@@ -158,7 +180,7 @@ guess gss new keepVal restVal = do
     ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
     ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted newState))
+    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted $ PlutusTx.toData newState))
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
@@ -180,7 +202,7 @@ lock initialWord vl = do
     let secret = HashedString (plcSHA2_256 (C.pack initialWord))
         addr = Ledger.scriptAddress gameValidator
         state = Initialised secret
-        ds   = DataScript (Ledger.lifted state)
+        ds   = DataScript (Ledger.lifted $ PlutusTx.toData state)
 
     -- 1. Create a transaction output with the value and the secret
     payToScript_ defaultSlotRange addr vl ds
@@ -197,7 +219,7 @@ lock initialWord vl = do
             let input = ForgeToken gameToken
                 newState = Locked gameToken secret
                 redeemer = mkRedeemer input
-                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted newState))
+                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted $ PlutusTx.toData newState))
             ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
 
             let tx = Ledger.Tx

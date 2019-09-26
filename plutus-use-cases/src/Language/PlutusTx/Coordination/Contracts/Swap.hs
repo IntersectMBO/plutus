@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE ViewPatterns   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
@@ -12,6 +13,7 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     ) where
 
 import qualified Language.PlutusTx         as PlutusTx
+import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
@@ -22,6 +24,13 @@ import           Ledger.Ada                (Ada)
 import           Ledger.Value              (Value)
 
 data Ratio a = a :% a
+
+instance PlutusTx.IsData a => PlutusTx.IsData (Ratio a) where
+    {-# INLINABLE toData #-}
+    toData (n :% d) = PlutusTx.Constr 0 [PlutusTx.toData n, PlutusTx.toData d]
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [n, d]) | i == 0 = (:%) <$> PlutusTx.fromData n PlutusTx.<*> PlutusTx.fromData d
+    fromData _ = Nothing
 
 instance Eq a => Eq (Ratio a) where
     {-# INLINABLE (==) #-}
@@ -73,16 +82,23 @@ PlutusTx.makeLift ''Swap
 --   In the future we could also put the `swapMargin` value in here to implement
 --   a variable margin.
 data SwapOwners = SwapOwners {
-    swapOwnersFixedLeg :: !PubKey,
-    swapOwnersFloating :: !PubKey
+    swapOwnersFixedLeg :: PubKey,
+    swapOwnersFloating :: PubKey
     }
+
+instance PlutusTx.IsData SwapOwners where
+    {-# INLINABLE toData #-}
+    toData (SwapOwners fixed floating) = PlutusTx.Constr 0 [PlutusTx.toData fixed, PlutusTx.toData floating]
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [fixed, floating]) | i == 0 = SwapOwners <$> PlutusTx.fromData fixed PlutusTx.<*> PlutusTx.fromData floating
+    fromData _ = Nothing
 
 PlutusTx.makeLift ''SwapOwners
 
 type SwapOracle = OracleValue (Ratio Integer)
 
-mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
-mkValidator Swap{..} SwapOwners{..} redeemer p =
+mkValidator :: Swap -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+mkValidator Swap{..} (PlutusTx.fromData -> Just (SwapOwners{..})) (PlutusTx.fromData -> Just redeemer) p =
     let
         extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
         extractVerifyAt = error ()
@@ -174,6 +190,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         outConditions = (ol1 o1 && ol2 o2) || (ol1 o2 && ol2 o1)
 
     in inConditions && outConditions
+mkValidator _ _ _ _ = False
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]

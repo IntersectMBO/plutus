@@ -23,7 +23,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.Vesting where
 
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -126,7 +126,7 @@ vestingValidatorScript :: Vesting -> ValidatorScript
 vestingValidatorScript v = ValidatorScript $
     $$(L.compileScript [|| vestingValidator ||]) `L.applyScript` L.lifted v
 
-vestingValidator :: Vesting -> () -> () -> PendingTx -> Bool
+vestingValidator :: Vesting -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
 vestingValidator v@(Vesting {vestingTranche1, vestingTranche2, vestingOwner}) _ _ p@PendingTx{pendingTxValidRange = range} =
     let
         -- We need the hash of this validator script in order to ensure
@@ -188,7 +188,7 @@ vestFunds :: MonadWallet m => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (L.lifted ())
+        dataScript = DataScript (L.lifted (PlutusTx.toData ()))
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: MonadWallet m =>  Vesting -> m ()
@@ -222,7 +222,7 @@ withdraw vst vl = do
 
     let
         -- the redeemer script containing the unit value ()
-        redeemer  = RedeemerScript (L.lifted ())
+        redeemer  = RedeemerScript (L.lifted (PlutusTx.toData ()))
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
@@ -253,12 +253,12 @@ that keeps the remaining value.
 
         otherOutputs = if Value.isZero remaining
                        then []
-                       else [L.scriptTxOut remaining validator (DataScript (L.lifted ()))]
+                       else [L.scriptTxOut remaining validator (DataScript (L.lifted (PlutusTx.toData ())))]
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
 
-    pure ()
+    Haskell.pure ()
 ----
 <.> We can create a public key output to our own key with `ownPubKeyTxOut`.
 

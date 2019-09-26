@@ -45,6 +45,7 @@ import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import qualified Language.PlutusTx.Prelude  as P
@@ -59,14 +60,14 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
-    deriving newtype (P.Eq, P.Ord, Serialise)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 makeLift ''PubKey
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
-    deriving newtype (P.Eq, P.Ord, Serialise)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 makeLift ''PrivateKey
 

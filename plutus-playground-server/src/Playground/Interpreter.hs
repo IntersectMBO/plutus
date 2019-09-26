@@ -212,7 +212,7 @@ runghcOpts =
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
-    , "-package plutus-tx"
+    --, "-package plutus-tx"
     -- , "-package plutus-wallet-api"
     ]
 
@@ -248,8 +248,8 @@ walletActionExpr allWallets (Action (Fn f) wallet args) = do
 -- We return an empty list to fix types as wallets have already been notified
 walletActionExpr allWallets (Wait blocks) =
     pure $
-    "pure $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
-    " >> pure []"
+    "return $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
+    " >> return []"
 
 {-# ANN mkApplyExpr ("HLint: ignore" :: String) #-}
 

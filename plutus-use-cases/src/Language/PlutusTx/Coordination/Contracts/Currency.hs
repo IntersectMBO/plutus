@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
@@ -13,6 +14,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgedValue
     ) where
 
+import           Control.Applicative          (Applicative (..))
 import           Control.Lens               ((^.), at, to)
 import           Data.Bifunctor             (Bifunctor(first))
 import qualified Data.Set                   as Set
@@ -21,10 +23,10 @@ import           Data.Maybe                 (fromMaybe)
 import           Data.String                (IsString(fromString))
 import qualified Data.Text                  as Text
 
-import           Language.PlutusTx.Prelude
-import qualified Language.PlutusTx          as PlutusTx
+import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 
 import qualified Ledger.Ada                 as Ada
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Scripts             (ValidatorScript(..))
 import qualified Ledger.Validation          as V
@@ -61,8 +63,8 @@ mkCurrency (TxOutRefOf h i) amts =
         , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)
         }
 
-validate :: Currency -> () -> () -> V.PendingTx -> Bool
-validate c@(Currency (refHash, refIdx) _) () () p =
+validate :: Currency -> PlutusTx.Data -> PlutusTx.Data -> V.PendingTx -> Bool
+validate c@(Currency (refHash, refIdx) _) _ _ p =
     let
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol p
@@ -148,7 +150,7 @@ forge amounts = do
             am <- WAPI.watchedAddresses
 
             let inputs' = am ^. at curAddr . to (Map.toList . fromMaybe Map.empty)
-                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ Ledger.lifted ())
+                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ Ledger.lifted $ PlutusTx.toData ())
                 ins        = con <$> inputs'
 
             let tx = Ledger.Tx
@@ -171,7 +173,7 @@ forge amounts = do
     -- 3. When trg1 fires we submit a transaction that creates a
     --    pay-to-script output locked by the monetary policy
     registerOnce trg1 (EventHandler $ const $ do
-        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ Ledger.lifted ()))
+        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ Ledger.lifted $ PlutusTx.toData ()))
 
     -- Return the currency definition so that we can use the symbol
     -- in other places

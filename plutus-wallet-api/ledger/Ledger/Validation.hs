@@ -64,6 +64,7 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude
+import           Language.PlutusTx
 import qualified Prelude                      as Haskell
 
 import           Ledger.Ada                   (Ada)
@@ -196,6 +197,12 @@ data OracleValue a = OracleValue {
         ovValue     :: a
     }
     deriving (Generic)
+
+instance IsData a => IsData (OracleValue a) where
+    toData (OracleValue sig s v) = Constr 0 [toData sig, toData s, toData v]
+    {-# INLINABLE fromData #-}
+    fromData (Constr i [sig, s, v]) | i == 0 = OracleValue <$> fromData sig <*> fromData s <*> fromData v
+    fromData _ = Nothing
 
 {- Note [Hashes in validator scripts]
 

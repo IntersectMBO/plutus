@@ -19,7 +19,7 @@ module Game where
 -- If it isn't, the funds stay locked.
 
 import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
                                              RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
                                              compileScript, lifted, plcSHA2_256, scriptAddress)
@@ -103,7 +103,7 @@ startGame =
     -- Player 2's wallet is aware of the game address.
     startWatching gameAddress
 
-$(mkFunctions 
+$(mkFunctions
     ['lock
     , 'guess
     , 'startGame

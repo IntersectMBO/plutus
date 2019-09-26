@@ -7,6 +7,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE MonoLocalBinds #-}
@@ -51,11 +52,11 @@ import qualified Prelude
 
 import qualified Data.ByteString.Lazy.Char8     as C
 
-newtype HashedString = HashedString ByteString
+newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString
+newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
@@ -68,8 +69,9 @@ correctGuess :: HashedString -> ClearString -> Bool
 correctGuess (HashedString actual) (ClearString guess') = actual == sha2_256 guess'
 
 -- | The validator (datascript -> redeemer -> PendingTx -> Bool)
-validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
-validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
+validateGuess :: PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+validateGuess (PlutusTx.fromData -> Just dataScript) (PlutusTx.fromData -> Just redeemerScript) _ = correctGuess dataScript redeemerScript
+validateGuess _ _ _ = False
 
 gameValidator :: ValidatorScript
 gameValidator =
@@ -77,11 +79,11 @@ gameValidator =
 
 gameDataScript :: String -> DataScript
 gameDataScript =
-    Ledger.DataScript . Ledger.lifted . HashedString . Ledger.plcSHA2_256 . C.pack
+    Ledger.DataScript . Ledger.lifted . PlutusTx.toData . HashedString . Ledger.plcSHA2_256 . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =
-    Ledger.RedeemerScript . Ledger.lifted . ClearString . C.pack
+    Ledger.RedeemerScript . Ledger.lifted . PlutusTx.toData . ClearString . C.pack
 
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
@@ -130,9 +132,9 @@ lockTrace
     :: ( MonadEmulator m )
     => ContractTrace GameSchema m ()
 lockTrace =
-    let w1 = Trace.Wallet 1 
+    let w1 = Trace.Wallet 1
         w2 = Trace.Wallet 2 in
-    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10) 
+    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10)
         >> Trace.notifyInterestingAddresses w2
         >> Trace.handleBlockchainEvents w1
 
@@ -141,8 +143,8 @@ guessTrace
     => ContractTrace GameSchema m ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
-    lockTrace 
-        >> Trace.callEndpoint @"guess" w2 (GuessParams "secret") 
+    lockTrace
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "secret")
         >> Trace.handleBlockchainEvents w2
 
 guessWrongTrace
@@ -150,6 +152,6 @@ guessWrongTrace
     => ContractTrace GameSchema m ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
-    lockTrace 
-        >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET") 
+    lockTrace
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET")
         >> Trace.handleBlockchainEvents w2

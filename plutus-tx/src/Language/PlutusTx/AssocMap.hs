@@ -26,6 +26,7 @@ module Language.PlutusTx.AssocMap (
     ) where
 
 import           GHC.Generics              (Generic)
+import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (all, lookup)
 import qualified Language.PlutusTx.Prelude as P
@@ -37,7 +38,7 @@ import           Language.PlutusTx.These
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving newtype (Eq, Ord)
+    deriving newtype (Eq, Ord, IsData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}

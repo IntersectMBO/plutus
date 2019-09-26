@@ -3,6 +3,7 @@ module Language.PlutusTx.Eq (Eq(..), (/=)) where
 
 import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Data
 import           Prelude                    hiding (Eq (..), not, (&&))
 
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -58,3 +59,11 @@ instance Eq () where
 instance (Eq a, Eq b) => Eq (a, b) where
     {-# INLINABLE (==) #-}
     (a, b) == (a', b') = a == a' && b == b'
+
+instance Eq Data where
+    {-# INLINABLE (==) #-}
+    Constr i ds == Constr i' ds' = i == i' && ds == ds'
+    Map ds == Map ds' = ds == ds'
+    I i == I i' = i == i'
+    B b == B b' = b == b'
+    _ == _ = False

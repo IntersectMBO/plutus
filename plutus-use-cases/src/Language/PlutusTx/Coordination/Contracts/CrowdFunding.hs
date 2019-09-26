@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
@@ -39,7 +40,7 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative            (Alternative(..))
+import           Control.Applicative            (Alternative(..), Applicative(..))
 import           Control.Lens                   ((&), (.~), (^.))
 import           Control.Monad                  (Monad((>>)), void)
 import qualified Data.Set                       as Set
@@ -48,7 +49,7 @@ import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude hiding ((>>), return, (>>=))
+import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), Applicative (..))
 import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
@@ -82,6 +83,15 @@ PlutusTx.makeLift ''Campaign
 --
 data CampaignAction = Collect | Refund
 
+instance PlutusTx.IsData CampaignAction where
+    toData Collect = PlutusTx.Constr 0 []
+    toData Refund = PlutusTx.Constr 1 []
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [])
+        | i == 0 = Just Collect
+        | i == 1 = Just Refund
+    fromData _ = Nothing
+
 PlutusTx.makeLift ''CampaignAction
 
 type CrowdfundingSchema =
@@ -110,11 +120,10 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
-
 data CrowdFunding
 instance Typed.ScriptType CrowdFunding where
-    type instance RedeemerType CrowdFunding = CampaignAction
-    type instance DataType CrowdFunding = PubKey
+    type instance RedeemerType CrowdFunding = PlutusTx.Data --CampaignAction
+    type instance DataType CrowdFunding = PlutusTx.Data --PubKey
 
 scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
 scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp
@@ -133,10 +142,11 @@ validCollection campaign p =
     && (p `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Campaign -> (PubKey -> CampaignAction -> PendingTx -> Bool)
-mkValidator c con act p = case act of
+mkValidator :: Campaign -> (PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool)
+mkValidator c (PlutusTx.fromData -> Just con) (PlutusTx.fromData -> Just act) p = case act of
     Refund  -> validRefund c con p
     Collect -> validCollection c p
+mkValidator _ _ _ _ = False
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
@@ -168,7 +178,7 @@ theCampaign = Campaign
 contribute :: Campaign -> Contract CrowdfundingSchema ()
 contribute cmp = do
     (ownPK, contribution) <- endpoint @"contribute"
-    let ds = Ledger.DataScript (Ledger.lifted ownPK)
+    let ds = Ledger.DataScript (Ledger.lifted $ PlutusTx.toData ownPK)
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     writeTx tx
@@ -182,7 +192,7 @@ contribute cmp = do
     -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
     -- outputs whose data script is our own public key (in 'ds')
     let flt _ txOut = Ledger.txOutData txOut == Just ds
-        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.liftCode Refund)
+        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.liftCode $ PlutusTx.toData Refund)
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
@@ -205,7 +215,7 @@ scheduleCollection cmp = do
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) (PlutusTx.liftCode Collect)
+    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) (PlutusTx.liftCode $ PlutusTx.toData Collect)
             & validityRange .~ collectionRange cmp
     writeTx tx
 

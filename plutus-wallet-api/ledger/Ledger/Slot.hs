@@ -27,6 +27,7 @@ import qualified Prelude                   as Haskell
 import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
 
 
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
@@ -39,7 +40,7 @@ import           Ledger.Interval
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
-    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
+    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''Slot
 

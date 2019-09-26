@@ -76,7 +76,7 @@ import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (liftCode)
 import           Language.PlutusTx.Lift.Class             (Lift)
-import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift)
+import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift, IsData)
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
@@ -164,15 +164,15 @@ instance FromJSON ScriptError
 evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
     case checking of
-      DontCheck -> pure ()
+      DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
     let (logOut, result) = evaluateCekTrace (unScript s)
     unless (PLC.isEvaluationSuccess result) $ throwError $ EvaluationError logOut
-    pure logOut
+    Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
 typecheckScript (unScript -> p) =
-    either (throwError . TypecheckError . show . PLC.prettyPlcDef) pure $ act
+    either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure $ act
       where
         act :: Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         act = runExcept $ PLC.runQuoteT $ do
@@ -245,7 +245,7 @@ newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
 
 -- | Script runtime representation of a @Digest SHA256@.
@@ -253,14 +253,14 @@ newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
 {-# INLINABLE plcDataScriptHash #-}
 plcDataScriptHash :: DataScript -> DataScriptHash
@@ -307,7 +307,7 @@ runScript checking (ValidationData valData) dataScripts (ValidatorScript validat
     dsSealed <- for dataScripts $ \ds -> do
         let script = getDataScript ds
         dsTy <- typecheckScript script
-        pure $ (sealScript dsTy `applyScript` script) `applyScript` (lifted (plcDataScriptHash ds))
+        Haskell.pure $ (sealScript dsTy `applyScript` script) `applyScript` (lifted (plcDataScriptHash ds))
     let appliedRedeemer = foldl' applyScript redeemer dsSealed
     let appliedValidator = ((validator `applyScript` dataScript) `applyScript` appliedRedeemer) `applyScript` valData
     -- See Note [Scripts returning Bool]

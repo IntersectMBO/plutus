@@ -10,6 +10,7 @@ module Language.PlutusTx.Prelude (
     module Monoid,
     module Numeric,
     module Functor,
+    module Applicative,
     module Lattice,
     -- * Standard functions
     ($),
@@ -54,24 +55,26 @@ module Language.PlutusTx.Prelude (
     module Prelude
     ) where
 
-import           Language.PlutusTx.Bool      as Bool
-import           Language.PlutusTx.Builtins  (ByteString, Sealed, concatenate, dropByteString, emptyByteString,
-                                              equalsByteString, greaterThanByteString, lessThanByteString, seal,
-                                              sha2_256, sha3_256, takeByteString, unseal, verifySignature)
-import qualified Language.PlutusTx.Builtins  as Builtins
-import           Language.PlutusTx.Eq        as Eq
-import           Language.PlutusTx.Functor   as Functor
-import           Language.PlutusTx.Lattice   as Lattice
-import           Language.PlutusTx.List      as List
-import           Language.PlutusTx.Maybe     as Maybe
-import           Language.PlutusTx.Monoid    as Monoid
-import           Language.PlutusTx.Numeric   as Numeric
-import           Language.PlutusTx.Ord       as Ord
-import           Language.PlutusTx.Semigroup as Semigroup
-import           Prelude                     as Prelude hiding (Eq (..), Functor (..), Monoid (..), Num (..), Ord (..),
-                                                         Semigroup (..), all, any, const, elem, error, filter, foldMap,
-                                                         foldl, foldr, fst, length, map, max, maybe, min, not, null,
-                                                         snd, (!!), ($), (&&), (++), (<$>), (||))
+import           Language.PlutusTx.Applicative as Applicative
+import           Language.PlutusTx.Bool        as Bool
+import           Language.PlutusTx.Builtins    (ByteString, Sealed, concatenate, dropByteString, emptyByteString,
+                                                equalsByteString, greaterThanByteString, lessThanByteString, seal,
+                                                sha2_256, sha3_256, takeByteString, unseal, verifySignature)
+import qualified Language.PlutusTx.Builtins    as Builtins
+import           Language.PlutusTx.Eq          as Eq
+import           Language.PlutusTx.Functor     as Functor
+import           Language.PlutusTx.Lattice     as Lattice
+import           Language.PlutusTx.List        as List
+import           Language.PlutusTx.Maybe       as Maybe
+import           Language.PlutusTx.Monoid      as Monoid
+import           Language.PlutusTx.Numeric     as Numeric
+import           Language.PlutusTx.Ord         as Ord
+import           Language.PlutusTx.Semigroup   as Semigroup
+import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
+                                                           Num (..), Ord (..), Semigroup (..), all, any, const, elem,
+                                                           error, filter, foldMap, foldl, foldr, fst, id, length, map,
+                                                           max, maybe, min, not, null, snd, (!!), ($), (&&), (++),
+                                                           (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
