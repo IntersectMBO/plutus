@@ -10,6 +10,7 @@ import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
+import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
@@ -123,3 +124,21 @@ runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
 withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
+
+instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
+   editorGetContents = lift editorGetContents
+   editorSetContents contents cursor = lift $ editorSetContents contents cursor
+   editorSetAnnotations annotations = lift $ editorSetAnnotations annotations
+   editorGotoLine row column = lift $ editorGotoLine row column
+   preventDefault event = lift $ preventDefault event
+   setDropEffect dropEffect event = lift $ setDropEffect dropEffect event
+   setDataTransferData event mimeType value = lift $ setDataTransferData event mimeType value
+   readFileFromDragEvent event = lift $ readFileFromDragEvent event
+   delay ms = lift $ delay ms
+   saveBuffer text = lift $ saveBuffer text
+   getOauthStatus = lift getOauthStatus
+   getGistByGistId gistId = lift $ getGistByGistId gistId
+   postEvaluation evaluation = lift $ postEvaluation evaluation
+   postGist newGist = lift $ postGist newGist
+   patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
+   postContract source = lift $ postContract source

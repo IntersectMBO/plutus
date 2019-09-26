@@ -5,16 +5,19 @@ module MainFrame
   ) where
 
 import Types
+
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
 import Analytics (Event, defaultEvent, trackEvent)
-import Chain.Types (AnnotatedBlockchain, ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
+import Chain.Eval (eval) as Chain
+import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..))
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State (class MonadState)
+import Control.Monad.State.Class (class MonadState)
+import Control.Monad.State.Extra (zoomStateT)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
@@ -24,7 +27,7 @@ import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
-import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -32,8 +35,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
-import Data.Newtype (wrap)
-import Data.Ord (Ordering(..), compare)
+import Data.Ord (Ordering(..))
 import Data.String as String
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -47,12 +49,12 @@ import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, delay, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
-import Playground.Types (KnownCurrency, SequenceId(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Playground.Types (KnownCurrency, SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import View as View
@@ -411,30 +413,10 @@ eval (PopulateAction n l event) = do
   pure $ extract event
 
 eval (SetChainFocus newFocus next) = do
-  mAnnotatedBlockchain :: Maybe AnnotatedBlockchain <- map wrap <$> peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
-  oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
-  let
-    relativeAge =
-      fromMaybe EQ
-        $ do
-            annotatedBlockchain <- mAnnotatedBlockchain
-            oldFocusTxId :: TxId <- preview (_Just <<< _FocusTx) oldFocus
-            newFocusTxId :: TxId <- preview (_Just <<< _FocusTx) newFocus
-            oldFocusSequenceId :: SequenceId <- preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
-            newFocusSequenceId :: SequenceId <- preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
-            pure $ compareSequenceIds oldFocusSequenceId newFocusSequenceId
-  -- Update.
-  assign (_blockchainVisualisationState <<< _chainFocus) newFocus
-  assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
-  -- Animate.
-  assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
-  delay $ wrap 10.0
-  assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
-  pure next
-  where
-  compareSequenceIds (SequenceId old) (SequenceId new) =
-    compare old.slotIndex new.slotIndex
-      <> compare old.txIndex new.txIndex
+  mAnnotatedBlockchain
+    <- peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+
+  zoomStateT _blockchainVisualisationState $ Chain.eval newFocus mAnnotatedBlockchain next
 
 evalWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 evalWalletEvent mkWallet AddWallet wallets =
