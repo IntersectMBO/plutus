@@ -1,6 +1,6 @@
-:2c: ::
-
 [#contract-api]
+
+:2c: ::
 
 The `PlutusContract` type represents the client-side parts of Plutus contracts. `PlutusContract` values describe the interactions of contracts with the blockchain and with the user. They can be composed in different ways, allowing you to assemble contracts from the building blocks provided by the Plutus library and by other contract authors.
 
