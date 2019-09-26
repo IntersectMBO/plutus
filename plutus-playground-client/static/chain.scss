@@ -65,10 +65,24 @@
 
         .card-header {
             font-size: 1rem;
-            padding: 0.5rem 1rem;
+        }
+
+        .card-header,
+        .card-footer {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .card-header,
+        .card-body,
+        .card-footer {
+            padding-left: 0.8rem;
+            padding-right: 0.8rem;
         }
 
         .card-body {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
             hr {
                 margin-top: 0.2rem;
                 margin-bottom: 0.2rem;
@@ -140,6 +154,7 @@
         th, td {
             border-color: $gray-700;
             border-width: 1px;
+            padding: 0.5rem 0.8rem;
         }
     }
 }
