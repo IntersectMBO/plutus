@@ -19,7 +19,6 @@
     "@fortawesome/fontawesome-free": "^5.10.2",
     "ace-builds": "^1.4.1",
     "bootstrap": "^4.3.1",
-    "bower": "^1.8.4",
     "chartist": "^0.11.0",
     "chartist-plugin-axistitle": "^0.0.4",
     "chartist-plugin-tooltips": "^0.0.17",
