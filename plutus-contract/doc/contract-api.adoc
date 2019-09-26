@@ -1,3 +1,5 @@
+:2c: ::
+
 [#contract-api]
 = Writing Plutus Contracts
 
