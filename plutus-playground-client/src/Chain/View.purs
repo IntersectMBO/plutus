@@ -151,7 +151,7 @@ transactionDetailView walletKeys annotatedBlockchain annotatedTx =
 
 entryCardHeader :: forall i p. SequenceId -> HTML p i
 entryCardHeader sequenceId =
-  div [ classes [ cardHeader, textTruncate ] ]
+  cardHeader_
     [ triangleRight
     , sequenceIdView sequenceId
     ]
@@ -310,7 +310,10 @@ txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> Maybe
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
-    [ cardHeaderOwnerView showArrow walletKeys beneficialOwner
+    [ div [ classes [ cardHeader, textTruncate ] ]
+        [ if showArrow then triangleRight else empty
+        , beneficialOwnerView walletKeys beneficialOwner
+        ]
     , cardBody_
         [ valueView txOutValue ]
     , case mFooter of
@@ -325,19 +328,11 @@ beneficialOwnerClass (OwnedByPubKey _) = ClassName "wallet"
 
 beneficialOwnerClass (OwnedByScript _) = ClassName "script"
 
-cardHeaderOwnerView :: forall p i. Boolean -> Map PubKey Wallet -> BeneficialOwner -> HTML p i
-cardHeaderOwnerView showArrow walletKeys beneficialOwner =
-  div [ classes [ cardHeader, textTruncate ] ]
-    [ if showArrow then triangleRight else empty
-    , beneficialOwnerView walletKeys beneficialOwner
-    ]
-
 beneficialOwnerView :: forall p i. Map PubKey Wallet -> BeneficialOwner -> HTML p i
 beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey walletKeys of
   Nothing -> showPubKey pubKey
   Just (Wallet { getWallet: n }) ->
-    span
-      [ class_ textTruncate ]
+    span_
       [ showPubKey pubKey
       , br_
       , small_
@@ -356,7 +351,8 @@ beneficialOwnerView _ (OwnedByScript (AddressOf a)) =
 
 showPubKey :: forall p i. PubKey -> HTML p i
 showPubKey (PubKey { getPubKey: p }) =
-  span_
+  span
+    [ class_ textTruncate ]
     [ text "PubKey"
     , nbsp
     , text p
