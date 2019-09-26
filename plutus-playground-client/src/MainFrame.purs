@@ -14,13 +14,13 @@ import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
-import Chain.Types (ChainFocus(..), _FocusTx, _sequenceId)
+import Chain.Types (AnnotatedBlockchain, ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State (class MonadState, evalState)
+import Control.Monad.State (evalState, class MonadState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
@@ -30,7 +30,7 @@ import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
 import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
-import Data.Json.JsonEither (JsonEither(..))
+import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
@@ -50,7 +50,7 @@ import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
-import Gist (gistFileContent, gistId)
+import Gist (_GistId, gistFileContent, gistId)
 import Gists (gistControls)
 import Gists as Gists
 import Halogen (Component, action)
@@ -289,9 +289,9 @@ eval (PublishGist next) = do
         Nothing -> postGist newGist
         Just gistId -> patchGistByGistId newGist gistId
       assign _createGistResult newResult
-      case preview (_Success <<< gistId) newResult of
+      case preview (_Success <<< gistId <<< _GistId) newResult of
         Nothing -> pure unit
-        Just gistId -> assign _gistUrl (Just (unwrap gistId))
+        Just gistId -> assign _gistUrl (Just gistId)
       pure next
 
 eval (SetGistUrl newGistUrl next) = do
@@ -445,25 +445,32 @@ eval (PopulateAction n l event) = do
   pure $ extract event
 
 eval (SetChainFocus newFocus next) = do
+  mAnnotatedBlockchain :: Maybe AnnotatedBlockchain <- map wrap <$> peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup)
   oldFocus <- use (_blockchainVisualisationState <<< _chainFocus)
-
   let
-    oldSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) oldFocus
-    newSequenceId = preview (_Just <<< _FocusTx <<< _sequenceId) newFocus
-    relativeAge = fromMaybe EQ $ compareSequenceIds <$> oldSequenceId <*> newSequenceId
+    relativeAge =
+      fromMaybe EQ
+        $ do
+            annotatedBlockchain <- mAnnotatedBlockchain
+            oldFocusTxId :: TxId <- preview (_Just <<< _FocusTx) oldFocus
+            newFocusTxId :: TxId <- preview (_Just <<< _FocusTx) newFocus
+            oldFocusSequenceId :: SequenceId <- preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
+            newFocusSequenceId :: SequenceId <- preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
+            pure $ compareSequenceIds oldFocusSequenceId newFocusSequenceId
+
+  -- Update.
   assign (_blockchainVisualisationState <<< _chainFocus) newFocus
   assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
-
+  -- Animate.
   assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
   delay $ wrap 10.0
   assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
 
   pure next
   where
-    compareSequenceIds (SequenceId old) (SequenceId new) =
-         compare old.slotIndex new.slotIndex
-         <>
-         compare old.txIndex new.txIndex
+  compareSequenceIds (SequenceId old) (SequenceId new) =
+    compare old.slotIndex new.slotIndex
+      <> compare old.txIndex new.txIndex
 
 getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
 getKnownCurrencies = do

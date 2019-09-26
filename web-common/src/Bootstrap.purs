@@ -441,6 +441,12 @@ textTruncate = ClassName "text-truncate"
 textCenter :: ClassName
 textCenter = ClassName "text-center"
 
+
+-- | Because of the clash with the HTML tag, it's recommended to use this class name qualified.
+-- eq. `table [ classes [ Bootstrap.table, tableStriped ] ] [ ... ] `
+table :: ClassName
+table = ClassName "table"
+
 tableStriped :: ClassName
 tableStriped = ClassName "table-striped"
 
