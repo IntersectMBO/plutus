@@ -50,7 +50,7 @@ import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
-import Gist (gistFileContent, gistId)
+import Gist (_GistId, gistFileContent, gistId)
 import Gists (gistControls)
 import Gists as Gists
 import Halogen (Component, action)
@@ -289,9 +289,9 @@ eval (PublishGist next) = do
         Nothing -> postGist newGist
         Just gistId -> patchGistByGistId newGist gistId
       assign _createGistResult newResult
-      case preview (_Success <<< gistId) newResult of
+      case preview (_Success <<< gistId <<< _GistId) newResult of
         Nothing -> pure unit
-        Just gistId -> assign _gistUrl (Just (unwrap gistId))
+        Just gistId -> assign _gistUrl (Just gistId)
       pure next
 
 eval (SetGistUrl newGistUrl next) = do
