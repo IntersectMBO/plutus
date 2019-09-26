@@ -38,7 +38,7 @@ import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
 import           Ledger.Validation            (PendingTx, PendingTx' (..), PendingTxIn'(..), PendingTxOut(..), getContinuingOutputs)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {

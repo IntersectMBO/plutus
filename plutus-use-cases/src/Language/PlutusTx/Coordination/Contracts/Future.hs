@@ -43,7 +43,7 @@ import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
 
 {- note [Futures in Plutus]
 

@@ -106,7 +106,7 @@ addInputs mp pk vl tx = do
     let
 
         addTxIns  =
-            let ins = Set.fromList (flip Tx.pubKeyTxIn pk . fst <$> spend)
+            let ins = Set.fromList (Tx.pubKeyTxIn pk . fst <$> spend)
             in over Tx.inputs (Set.union ins)
 
         addTxOuts = if Value.isZero change

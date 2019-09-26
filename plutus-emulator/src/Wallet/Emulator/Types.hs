@@ -113,8 +113,9 @@ import           Servant.API               (FromHttpApiData (..), ToHttpApiData 
 import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                            TxId, TxOut, TxOutOf (..), TxOutRef, Value, addSignature, hashTx, lastSlot,
-                                            pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
+                                            TxId, TxInOf (..), TxOut, TxOutOf (..), TxOutRef, Value, addSignature,
+                                            hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey,
+                                            txOutAddress)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
 import qualified Ledger.Index              as Index
@@ -170,7 +171,6 @@ tellTx :: [Tx] -> MockWallet ()
 tellTx tx = MockWallet $ tell (mempty, tx)
 
 -- Wallet code
-
 
 -- EventTrigger is not Ord so we use a HashMap in here
 -- | The state used by the mock wallet environment.
@@ -267,6 +267,11 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
     -- Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (AM.updateAddresses t)
 
+-- Make a transaction output from a positive value.
+mkChangeOutput :: PubKey -> Value -> Maybe TxOut
+mkChangeOutput pubK v =
+    if Value.isZero v then Nothing else Just (pubKeyTxOut v pubK)
+
 instance WalletAPI MockWallet where
 
     submitTxn txn =
@@ -280,16 +285,28 @@ instance WalletAPI MockWallet where
         privK <- use ownPrivateKey
         pure (Crypto.sign (BSL.toStrict bs) privK)
 
-    createPaymentWithChange vl = do
+    updatePaymentWithChange vl (oldIns, changeOut) = do
         ws <- get
-        let fnds   = ws ^. ownFunds
+        let -- These inputs have been already used, we won't touch them
+            usedFnds = Set.map txInRef oldIns
+            -- Optional, left over change. Replace a `Nothing` with a Value of 0.
+            oldChange = maybe (Ada.lovelaceValueOf 0) txOutValue changeOut
+            -- Available funds.
+            fnds   = Map.withoutKeys (ws ^. ownFunds) usedFnds
             privK  = ws ^. ownPrivateKey
-            pubK   =  toPublicKey privK
-        (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
-        let
-            txOutput = if Value.isZero change then Nothing else Just (pubKeyTxOut change pubK)
-            ins = Set.fromList (flip pubKeyTxIn pubK . fst <$> spend)
-        pure (ins, txOutput)
+            pubK   = toPublicKey privK
+        if vl `Value.leq` oldChange
+        then
+          -- If the requested value is covered by the change we only need to update
+          -- the remaining change.
+          pure (oldIns, mkChangeOutput pubK $ oldChange PlutusTx.- vl)
+        else do
+          -- If the requested value is not covered by the change, then we need to
+          -- select new inputs, after deducting the oldChange from the value.
+          (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds)
+                                        (vl PlutusTx.- oldChange)
+          let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
+          pure (Set.union oldIns ins, mkChangeOutput pubK change)
 
     registerOnce tr action =
         modify (over triggers (HashMap.insertWith (<>) tr action))
