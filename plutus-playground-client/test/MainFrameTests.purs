@@ -18,31 +18,24 @@ import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Record (prop)
-import Data.List (List(..))
-import Data.List.NonEmpty (NonEmptyList(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Newtype (class Newtype, unwrap)
-import Data.NonEmpty ((:|))
-import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonEither (JsonEither)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(Tuple))
-import Data.Tuple.Nested ((/\))
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
-import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import MainFrame (eval, initialState, mkInitialValue)
+import MainFrame (eval, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
-import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..))
+import Playground.Types (CompilationResult, EvaluationResult)
 import Playground.Server (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
@@ -50,14 +43,12 @@ import StaticData as StaticData
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import TestUtils (equalGenericShow)
 import Types (Query(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: TestSuite
 all =
   suite "MainFrame" do
     evalTests
-    mkInitialValueTests
 
 ------------------------------------------------------------
 type World
@@ -260,42 +251,3 @@ loadCompilationResponse1 = do
   case runExcept $ decodeJSON contents of
     Left err -> pure $ Left $ show err
     Right value -> pure $ Right $ Success value
-
-mkInitialValueTests :: TestSuite
-mkInitialValueTests =
-  suite "mkInitialValue" do
-    test "balance" do
-      equalGenericShow
-        ( Value
-            { getValue:
-              AssocMap.fromTuples
-                [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
-                , currencies
-                    /\ AssocMap.fromTuples
-                        [ usdToken /\ 10
-                        , eurToken /\ 10
-                        ]
-                ]
-            }
-        )
-        ( mkInitialValue
-            [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName: "" }))) }
-            , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList (NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName: "EURToken" }) Nil))) }
-            ]
-            10
-        )
-
-ada :: CurrencySymbol
-ada = CurrencySymbol { unCurrencySymbol: "" }
-
-currencies :: CurrencySymbol
-currencies = CurrencySymbol { unCurrencySymbol: "Currency" }
-
-adaToken :: TokenName
-adaToken = TokenName { unTokenName: "" }
-
-usdToken :: TokenName
-usdToken = TokenName { unTokenName: "USDToken" }
-
-eurToken :: TokenName
-eurToken = TokenName { unTokenName: "EURToken" }

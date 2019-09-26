@@ -1,27 +1,29 @@
 module Types where
 
 import Prelude
-
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Either.Nested (Either2)
+import Data.Foldable (fold, foldMap)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonEither (JsonEither)
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Lens, Lens', Prism', prism, prism', to, view)
+import Data.Lens (Lens, Lens', Prism', _Right, prism', to, view)
+import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
@@ -38,17 +40,17 @@ import Foreign.Object as FO
 import Gist (Gist)
 import Halogen.Chartist (ChartistMessage, ChartistQuery)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
-import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
-import Ledger.Tx (Tx, TxOutType(..))
+import Ledger.Tx (Tx)
 import Ledger.TxId (TxIdOf)
-import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
+import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
-import Network.RemoteData (RemoteData)
-import Playground.Types (AnnotatedTx, CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Network.RemoteData (RemoteData, _Success)
+import Playground.Types (AnnotatedTx, CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.Types as Playground
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -638,3 +640,27 @@ _result = prop (SProxy :: SProxy "result")
 
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
+
+getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
+getKnownCurrencies = do
+  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _knownCurrencies)
+  pure $ fromMaybe [] knownCurrencies
+
+mkInitialValue :: Array KnownCurrency -> Int -> Value
+mkInitialValue currencies initialBalance = Value { getValue: value }
+  where
+  value =
+    map (map unwrap)
+      $ fold
+      $ foldMap
+          ( \(KnownCurrency { hash, knownTokens }) ->
+              map
+                ( \tokenName ->
+                    AssocMap.fromTuples
+                      [ CurrencySymbol { unCurrencySymbol: hash }
+                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
+                      ]
+                )
+                $ Array.fromFoldable knownTokens
+          )
+          currencies
