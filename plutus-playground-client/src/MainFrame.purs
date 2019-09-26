@@ -2,36 +2,29 @@ module MainFrame
   ( mainFrame
   , eval
   , initialState
-  , mkInitialValue
   ) where
 
 import Types
-
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
-import Action (actionsErrorPane, simulationPane)
-import AjaxUtils (ajaxErrorPane)
 import Analytics (Event, defaultEvent, trackEvent)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
-import Chain (evaluationPane)
 import Chain.Types (AnnotatedBlockchain, ChainFocus(..), TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Bind (bindFlipped)
 import Control.Comonad (extract)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Control.Monad.State (evalState, class MonadState)
+import Control.Monad.State (class MonadState)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
-import Data.Array (deleteAt, snoc, fromFoldable) as Array
+import Data.Array (deleteAt, snoc) as Array
 import Data.Array.Extra (move) as Array
 import Data.Either (Either(..), note)
-import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
-import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -39,39 +32,30 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
-import Data.Monoid.Additive (Additive(..))
-import Data.Newtype (unwrap, wrap)
+import Data.Newtype (wrap)
 import Data.Ord (Ordering(..), compare)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
-import Data.Tuple.Nested ((/\))
-import Editor (demoScriptsPane, editorPane)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (_GistId, gistFileContent, gistId)
-import Gists (gistControls)
 import Gists as Gists
-import Halogen (Component, action)
+import Halogen (Component)
 import Halogen as H
-import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href, id_)
+import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
-import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
-import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(CurrencySymbol), Value(Value))
+import Ledger.Value (Value)
 import MonadApp (class MonadApp, delay, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
-import Playground.Types (KnownCurrency(..), SequenceId(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.Types (KnownCurrency, SequenceId(..), SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, map, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
+import View as View
 import Wallet.Emulator.Types (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
 
@@ -81,25 +65,6 @@ mkSimulatorWallet currencies walletId =
     { simulatorWalletWallet: Wallet { getWallet: walletId }
     , simulatorWalletBalance: mkInitialValue currencies 10
     }
-
-mkInitialValue :: Array KnownCurrency -> Int -> Value
-mkInitialValue currencies initialBalance = Value { getValue: value }
-  where
-  value =
-    map (map unwrap)
-      $ fold
-      $ foldMap
-          ( \(KnownCurrency { hash, knownTokens }) ->
-              map
-                ( \tokenName ->
-                    AssocMap.fromTuples
-                      [ CurrencySymbol { unCurrencySymbol: hash }
-                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
-                      ]
-                )
-                $ Array.fromFoldable knownTokens
-          )
-          currencies
 
 mkSimulation :: Array KnownCurrency -> Signatures -> Simulation
 mkSimulation currencies signatures =
@@ -137,7 +102,7 @@ mainFrame ::
 mainFrame =
   H.lifecycleParentComponent
     { initialState: const initialState
-    , render
+    , render: View.render
     , eval: evalWithAnalyticsTracking
     , receiver: const Nothing
     , initializer: Just $ H.action $ CheckAuthStatus
@@ -214,6 +179,7 @@ toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
 toEvent (SetChainFocus (Just (FocusTx _)) _) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
+
 toEvent (SetChainFocus Nothing _) = Nothing
 
 eval ::
@@ -457,7 +423,6 @@ eval (SetChainFocus newFocus next) = do
             oldFocusSequenceId :: SequenceId <- preview (_findTx oldFocusTxId <<< _sequenceId) annotatedBlockchain
             newFocusSequenceId :: SequenceId <- preview (_findTx newFocusTxId <<< _sequenceId) annotatedBlockchain
             pure $ compareSequenceIds oldFocusSequenceId newFocusSequenceId
-
   -- Update.
   assign (_blockchainVisualisationState <<< _chainFocus) newFocus
   assign (_blockchainVisualisationState <<< _chainFocusAge) relativeAge
@@ -465,17 +430,11 @@ eval (SetChainFocus newFocus next) = do
   assign (_blockchainVisualisationState <<< _chainFocusAppearing) true
   delay $ wrap 10.0
   assign (_blockchainVisualisationState <<< _chainFocusAppearing) false
-
   pure next
   where
   compareSequenceIds (SequenceId old) (SequenceId new) =
     compare old.slotIndex new.slotIndex
       <> compare old.txIndex new.txIndex
-
-getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
-getKnownCurrencies = do
-  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _knownCurrencies)
-  pure $ fromMaybe [] knownCurrencies
 
 evalWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 evalWalletEvent mkWallet AddWallet wallets =
@@ -579,135 +538,3 @@ toAnnotation (CompilationError { row, column, text }) =
     , column
     , text: String.joinWith "\n" text
     }
-
-render ::
-  forall m.
-  MonadAff m =>
-  State -> ParentHTML Query ChildQuery ChildSlot m
-render state@(State { currentView, blockchainVisualisationState }) =
-  div_
-    [ bannerMessage
-    , div
-        [ class_ $ ClassName "main-frame" ]
-        [ container_
-            [ mainHeader
-            , div [ classes [ row, noGutters, justifyContentBetween ] ]
-                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
-                ]
-            ]
-        , viewContainer currentView Editor
-            [ demoScriptsPane
-            , editorPane defaultContents (map unwrap (view _compilationResult state))
-            , case view _compilationResult state of
-                Failure error -> ajaxErrorPane error
-                _ -> empty
-            ]
-        , viewContainer currentView Simulations
-            $ let
-                knownCurrencies = evalState getKnownCurrencies state
-
-                initialValue = mkInitialValue knownCurrencies 0
-              in
-                [ simulationPane
-                    initialValue
-                    (view _actionDrag state)
-                    (view _simulations state)
-                    (view _evaluationResult state)
-                , case (view _evaluationResult state) of
-                    Failure error -> ajaxErrorPane error
-                    Success (JsonEither (Left error)) -> actionsErrorPane error
-                    _ -> empty
-                ]
-        , viewContainer currentView Transactions
-            $ case view _evaluationResult state of
-                Success (JsonEither (Right evaluation)) -> [ evaluationPane blockchainVisualisationState evaluation ]
-                Success (JsonEither (Left error)) ->
-                  [ text "Your simulation has errors. Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above to fix them and recompile."
-                  ]
-                Failure error ->
-                  [ text "Your simulation has errors. Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above to fix them and recompile."
-                  ]
-                Loading -> [ icon Spinner ]
-                NotAsked ->
-                  [ text "Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above and evaluate a simulation to see some results."
-                  ]
-        ]
-    ]
-  where
-  defaultContents = Map.lookup "Vesting" StaticData.demoFiles
-
-bannerMessage :: forall p i. HTML p i
-bannerMessage =
-  div
-    [ id_ "banner-message"
-    , classes [ alert, alertPrimary ]
-    ]
-    [ text "Plutus Beta - Updated 19th September 2019 - See the "
-    , a
-        [ href ("https://github.com/input-output-hk/plutus/blob/master/CHANGELOG.md") ]
-        [ text "CHANGELOG" ]
-    ]
-
-viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
-viewContainer currentView targetView =
-  if currentView == targetView then
-    div [ classes [ container ] ]
-  else
-    div [ classes [ container, hidden ] ]
-
-mainHeader :: forall p. HTML p (Query Unit)
-mainHeader =
-  div_
-    [ div [ classes [ btnGroup, floatRight ] ]
-        (makeLink <$> links)
-    , h1
-        [ class_ $ ClassName "main-title" ]
-        [ text "Plutus Playground" ]
-    ]
-  where
-  links =
-    [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-    , Tuple "Tutorial" "./tutorial"
-    , Tuple "API" "./haddock"
-    , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
-    ]
-
-  makeLink (Tuple name link) =
-    a
-      [ classes [ btn, btnSmall ]
-      , href link
-      ]
-      [ text name ]
-
-mainTabBar :: forall p. View -> HTML p (Query Unit)
-mainTabBar activeView = navTabs_ (mkTab <$> tabs)
-  where
-  tabs =
-    [ Editor /\ "Editor"
-    , Simulations /\ "Simulation"
-    , Transactions /\ "Transactions"
-    ]
-
-  mkTab :: Tuple View String -> HTML p (Query Unit)
-  mkTab (link /\ title) =
-    navItem_
-      [ a
-          [ id_ $ "tab-" <> String.toLower (show link)
-          , classes $ [ navLink ] <> activeClass
-          , onClick $ const $ Just $ action $ ChangeView link
-          ]
-          [ text title ]
-      ]
-    where
-    activeClass =
-      if link == activeView then
-        [ active ]
-      else
-        []
