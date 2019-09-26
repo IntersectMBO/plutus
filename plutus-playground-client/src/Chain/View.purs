@@ -1,7 +1,6 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
-
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
@@ -217,8 +216,7 @@ balancesTable sequenceId walletKeys balances =
                         headings
                 )
             , tr_
-                ( foldMap (foldMap tokenHeadingView) headings
-                )
+                (foldMap (foldMap tokenHeadingView) headings)
             ]
         , tbody_
             ( foldMap
