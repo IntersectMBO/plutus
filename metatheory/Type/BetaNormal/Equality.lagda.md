@@ -54,6 +54,23 @@ data _≡Ne_ {Φ} where
 ```
 
 ```
+-- are proofs of ≡Nf unique?
+
+uniqNf : ∀{Φ J}{A A' : Φ ⊢Nf⋆ J}(p q : A ≡Nf A') → p ≡ q
+uniqNe : ∀{Φ J}{A A' : Φ ⊢Ne⋆ J}(p q : A ≡Ne A') → p ≡ q
+
+uniqNf (⇒≡Nf p p') (⇒≡Nf q q') = cong₂ ⇒≡Nf (uniqNf p q) (uniqNf p' q')
+uniqNf (Π≡Nf p) (Π≡Nf q)        = cong Π≡Nf (uniqNf p q)
+uniqNf (ƛ≡Nf p) (ƛ≡Nf q)        = cong ƛ≡Nf (uniqNf p q)
+uniqNf con≡Nf con≡Nf            = refl
+uniqNf (ne≡Nf p) (ne≡Nf q)      = cong ne≡Nf (uniqNe p q)
+
+uniqNe (var≡Ne refl) (var≡Ne refl) = refl
+uniqNe (·≡Ne p p')   (·≡Ne q q')   = cong₂ ·≡Ne (uniqNe p q) (uniqNf p' q')
+uniqNe μ≡Ne          μ≡Ne          = refl
+```
+
+```
 symNf : ∀{Φ J}{A A' : Φ ⊢Nf⋆ J} → A ≡Nf A' → A' ≡Nf A
 symNe : ∀{Φ J}{A A' : Φ ⊢Ne⋆ J} → A ≡Ne A' → A' ≡Ne A
 
