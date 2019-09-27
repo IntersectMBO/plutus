@@ -7,6 +7,7 @@
 -- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
 -- matchers, and pattern match alternatives.
 module Language.PlutusTx.Compiler.Type (
+    compileTypeNorm,
     compileType,
     compileKind,
     getDataCons,
@@ -24,6 +25,7 @@ import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 
+import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
 import qualified TysPrim                                as GHC
 
@@ -43,6 +45,35 @@ import           Data.Traversable
 
 -- Types
 
+{- Note [Type families and normalizing types]
+GHC provides a function to normalize type and data family applications in a type. This
+is great for us, since it means that we can support them "for free" by just normalizing
+them away.
+
+However, that means we won't support cases that *don't* reduce, e.g. cases where the
+family is applied to a type variable.
+
+Technically, this normalization comes along with a coercion, since for data families
+the instance type is only *representationally* equal to the family application. This is
+okay for us, since we *always* treat data family applications as their instance type.
+
+TODO: use topNormaliseType to be more efficient and handle newtypes as well. Problem
+is dealing with recursive newtypes.
+-}
+
+-- | Compile a type, first of all normalizing it to remove type family redexes.
+--
+-- Generally, we need to call this whenever we are compiling a "new" type from the program.
+-- If we are compiling a part of a type we are already processing then it has likely been
+-- normalized and we can just use 'compileType'
+compileTypeNorm :: Compiling m => GHC.Type -> m PIRType
+compileTypeNorm ty = do
+    CompileContext {ccFamInstEnvs=envs} <- ask
+    -- See Note [Type families and normalizing types]
+    let (_, ty') = GHC.normaliseType envs GHC.Representational ty
+    compileType ty'
+
+-- | Compile a type.
 compileType :: Compiling m => GHC.Type -> m PIRType
 compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
@@ -103,7 +134,7 @@ compileTyCon tc
                     -- See Note [Coercions and newtypes]
                     -- See Note [Occurrences of recursive names]
                     -- Type variables are in scope for the rhs of the alias
-                    alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ compileType underlying
+                    alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ compileTypeNorm underlying
                     PIR.defineType (LexName tcName) (PIR.Def tvd alias) (Set.fromList $ LexName <$> deps)
                     PIR.recordAlias @LexName @() (LexName tcName)
                     pure alias
@@ -200,6 +231,7 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
               GHC.TupleTyCon{GHC.data_con=dc}  -> pure [dc]
               GHC.SumTyCon{GHC.data_cons=dcs}  -> pure dcs
               GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
+          | GHC.isFamilyTyCon tc = throwSd UnsupportedError $ "Irreducible type family application:" GHC.<+> GHC.ppr tc
           | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 -- | Makes the type of the constructor corresponding to the given 'DataCon', with the type variables free.
@@ -209,8 +241,8 @@ mkConstructorType dc =
     in
         -- See Note [Scott encoding of datatypes]
         withContextM 3 (sdToTxt $ "Compiling data constructor type:" GHC.<+> GHC.ppr dc) $ do
-            args <- mapM compileType argTys
-            resultType <- compileType (GHC.dataConOrigResTy dc)
+            args <- mapM compileTypeNorm argTys
+            resultType <- compileTypeNorm (GHC.dataConOrigResTy dc)
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
             pure $ PIR.mkIterTyFun () args resultType
 
@@ -232,7 +264,7 @@ getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated
         constrs <- getConstructors tc
 
         forM constrs $ \c -> do
-            args' <- mapM compileType args
+            args' <- mapM compileTypeNorm args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
@@ -254,7 +286,7 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
 
-        args' <- mapM compileType args
+        args' <- mapM compileTypeNorm args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t

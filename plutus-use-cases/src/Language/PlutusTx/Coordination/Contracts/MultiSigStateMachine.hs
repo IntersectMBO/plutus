@@ -209,7 +209,7 @@ final (Holding v) = Value.isZero v
 final _ = False
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Params -> SM.StateMachineValidator State Input
+mkValidator :: Params -> Typed.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
 validatorCode :: Params -> PlutusTx.CompiledCode (Typed.ValidatorType MultiSigSym)

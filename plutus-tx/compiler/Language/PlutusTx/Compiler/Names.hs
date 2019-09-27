@@ -52,7 +52,7 @@ compileNameFresh n = safeFreshName () $ T.pack $ getUntidiedOccString n
 
 compileVarFresh :: Compiling m => GHC.Var -> m PLCVar
 compileVarFresh v = do
-    t' <- compileType $ GHC.varType v
+    t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v
     pure $ PLC.VarDecl () n' t'
 

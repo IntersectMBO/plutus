@@ -22,6 +22,7 @@ import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.PLCTypes
 import           Language.PlutusTx.Utils
 
+import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
@@ -114,10 +115,16 @@ install args todo = do
     pure $ simpl:pass:todo
 
 pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
-pluginPass opts guts = getMarkerName >>= \case
-    -- nothing to do
-    Nothing -> pure guts
-    Just name -> GHC.bindsOnlyPass (mapM $ compileMarkedExprsBind opts name) guts
+pluginPass opts guts = do
+    -- Family env code borrowed from SimplCore
+    p_fam_env <- GHC.getPackageFamInstEnv
+    let fam_envs = (p_fam_env, GHC.mg_fam_inst_env guts)
+
+    maybeName <- getMarkerName
+    case maybeName of
+        -- nothing to do
+        Nothing   -> pure guts
+        Just name -> GHC.bindsOnlyPass (mapM $ compileMarkedExprsBind (opts, fam_envs) name) guts
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
@@ -206,13 +213,13 @@ stripTicks = \case
     e -> e
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.
-compileMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
+compileMarkedExprsBind :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 compileMarkedExprsBind opts markerName = \case
     GHC.NonRec b e -> GHC.NonRec b <$> compileMarkedExprs opts markerName e
     GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> compileMarkedExprs opts markerName e) bs
 
 -- | Compiles all the marked expressions in the given expression into PLC literals.
-compileMarkedExprs :: PluginOptions -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileMarkedExprs :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
 compileMarkedExprs opts markerName =
     let
         comp = compileMarkedExprs opts markerName
@@ -250,14 +257,16 @@ mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
-compileCoreExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-compileCoreExpr opts locStr codeTy origE = do
+compileCoreExpr :: (PluginOptions, GHC.FamInstEnvs) -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
     flags <- GHC.getDynFlags
+
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let context = CompileContext {
             ccOpts=CompileOptions {},
             ccFlags=flags,
+            ccFamInstEnvs=famEnvs,
             ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack,
             ccBlackholed=mempty

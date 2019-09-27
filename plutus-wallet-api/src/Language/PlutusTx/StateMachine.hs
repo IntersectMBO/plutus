@@ -11,9 +11,6 @@
 module Language.PlutusTx.StateMachine(
       StateMachine(..)
     , StateMachineInstance (..)
-    , StateMachineValidator
-    , StateMachineRedeemer
-    , StateMachineRedeemerFunction
     , mkValidator
     , mkStepRedeemer
     , mkHaltRedeemer
@@ -39,7 +36,7 @@ data StateMachine s i = StateMachine {
     }
 
 instance ScriptType (StateMachine s i) where
-    type instance RedeemerType (StateMachine s i) = StateMachineRedeemer s i
+    type instance RedeemerType (StateMachine s i) = (i, Maybe (Sealed (HashedDataScript s)))
     type instance DataType (StateMachine s i) = s
 
 data StateMachineInstance s i = StateMachineInstance {
@@ -53,22 +50,17 @@ data StateMachineInstance s i = StateMachineInstance {
     haltRedeemer :: PlutusTx.CompiledCode (i -> RedeemerFunctionType '[] (StateMachine s i))
     }
 
--- Type synonyms that don't require TypeFamilies
-type StateMachineValidator s i = s -> StateMachineRedeemer s i -> PendingTx -> Bool
-type StateMachineRedeemer s i = (i, Maybe (Sealed (HashedDataScript s)))
-type StateMachineRedeemerFunction s i = Sealed (HashedDataScript s) -> StateMachineRedeemer s i
-
 {-# INLINABLE mkStepRedeemer #-}
-mkStepRedeemer :: forall s i . i -> StateMachineRedeemerFunction s i
+mkStepRedeemer :: forall s i . i -> RedeemerFunctionType '[StateMachine s i] (StateMachine s i)
 mkStepRedeemer i ss = (i, Just ss)
 
 {-# INLINABLE mkHaltRedeemer #-}
-mkHaltRedeemer :: forall s i . i -> StateMachineRedeemer s i
+mkHaltRedeemer :: forall s i . i -> RedeemerFunctionType '[] (StateMachine s i)
 mkHaltRedeemer i = (i, Nothing)
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
-mkValidator :: Eq s => StateMachine s i -> StateMachineValidator s i
+mkValidator :: Eq s => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step check final) currentState (input, maybeData) ptx =
     let checkOk = traceIfFalseH "State transition invalid - checks failed" (check currentState input ptx)
         stateAndOutputsOk = case step currentState input of

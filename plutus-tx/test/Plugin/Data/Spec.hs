@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 
 module Plugin.Data.Spec where
@@ -23,6 +24,7 @@ datat = testNested "Data" [
   , polyData
   , newtypes
   , recursiveTypes
+  , typeFamilies
   ]
 
 monoData :: TestNested
@@ -226,3 +228,61 @@ sameEmptyRose = plc @"sameEmptyRose" (
         unEmptyRose (EmptyRose x) = x
         go = EmptyRose |. (map go .| unEmptyRose)
     in go)
+
+typeFamilies :: TestNested
+typeFamilies = testNested "families" [
+    goldenPir "basicClosed" basicClosed
+    , goldenPir "basicOpen" basicOpen
+    , goldenPir "associated" associated
+    , goldenPir "associatedParam" associatedParam
+    , goldenPir "basicData" basicData
+    , goldenPlcCatch "irreducible" irreducible
+  ]
+
+type family BasicClosed a where
+    BasicClosed Bool = Integer
+
+basicClosed :: CompiledCode (BasicClosed Bool -> BasicClosed Bool)
+basicClosed = plc @"basicClosed" (\(x :: BasicClosed Bool) -> x)
+
+type family BasicOpen a
+type instance BasicOpen Bool = Integer
+
+basicOpen :: CompiledCode (BasicOpen Bool -> BasicOpen Bool)
+basicOpen = plc @"basicOpen" (\(x :: BasicOpen Bool) -> x)
+
+class Associated a where
+    type AType a
+
+instance Associated Bool where
+    type instance AType Bool = Integer
+
+data Param a = Param a
+
+instance Associated (Param a) where
+    type instance AType (Param a) = a
+
+associated :: CompiledCode (AType Bool -> AType Bool)
+associated = plc @"associated" (\(x :: AType Bool) -> x)
+
+-- Despite the type family being applied to a parameterized type we can still reduce it
+{-# NOINLINE paramId #-}
+paramId :: forall a . Param a -> AType (Param a) -> AType (Param a)
+paramId _ x = x
+
+associatedParam :: CompiledCode Integer
+associatedParam = plc @"associatedParam" (paramId (Param 1) 1)
+
+-- Here we cannot reduce the type family
+{-# NOINLINE tfId #-}
+tfId :: forall a . a -> BasicClosed a -> BasicClosed a
+tfId _ x = x
+
+irreducible :: CompiledCode Integer
+irreducible = plc @"irreducible" (tfId True 1)
+
+data family BasicData a
+data instance BasicData Bool = Inst Integer
+
+basicData :: CompiledCode (BasicData Bool -> Integer)
+basicData = plc @"basicData" (\(x :: BasicData Bool) -> let Inst i = x in i)
