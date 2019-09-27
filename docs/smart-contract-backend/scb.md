@@ -7,8 +7,7 @@ The Smart Contract Backend (SCB) is a piece of software that manages the client-
 
 ### 1.1 What are compiled Plutus Contracts
 
-Conceptually, Plutus contracts are state machines - functions (s,i) -> s for inputs of type i and states of type s. An instance of a contract is a value of s. The type s contains contract-internal data (not interpreted by the SCB) as well as the event handlers that the contract has currently registered (interpreted by the SCB - see section 1.2.1). It is through the event handlers that the contract’s effects are expressed.
-From the Smart Contract Backend’s perspective, Plutus contracts are compiled Haskell programs that all have the same interface: They expect as input the previous state and a new event, and produce as output the new state.
+Conceptually, Plutus contracts are state machines - functions `(s,i) -> s` for inputs of type `i` and states of type `s`. An instance of a contract is a value of `s`. The type `s` contains contract-internal data (not interpreted by the SCB) as well as the event handlers that the contract has currently registered (interpreted by the SCB - see section 1.2.1). It is through the event handlers that the contract’s effects are expressed. From the Smart Contract Backend’s perspective, Plutus contracts are compiled Haskell programs that all have the same interface: They expect as input the previous state and a new event, and produce as output the new state.
 
 The SCB maintains a set of Plutus contracts that it knows about, and for each of those contracts it manages zero or more instances. New contracts, as well as new instances for existing contracts, are added through user interaction.
 
@@ -27,15 +26,22 @@ Note that steps 2 and 3 introduce concurrency by acting on whichever event is re
 
 The format of messages handled by the SCB is JSON. For each Plutus contract there exists a schema in form of an IOTS type definition that specifies the message types accepted and produced by the contract. (IOTS is a TypeScript library for describing types and validating JSON objects against them). 
 
-If a Plutus contract has the type (s,i) -> s in Haskell, then its IOTS schema describes the JSON representation of the two top-level types (s,i) and s, and of all their constituents.
+If a Plutus contract has the type `(s,i) -> s` in Haskell, then its IOTS schema describes the JSON representation of the two top-level types `(s,i)` and `s`, and of all their constituents.
 
-The type s (contract state) looks like this in Haskell: data ContractState = ContractState { handlers :: EventHandlers, state :: State }. The state field contains contract-internal data. The SCB does not interpret the content of state, but it is expected to save the value and feed it back to the contract when the next event is received.  The triggers field is what the SCB uses in step (1) of the update procedure.
+The type s (contract state) looks like this in Haskell: `data ContractState = ContractState { handlers :: EventHandlers, state :: State }`. The state field contains contract-internal data. The SCB does not interpret the content of state, but it is expected to save the value and feed it back to the contract when the next event is received.  The triggers field is what the SCB uses in step (1) of the update procedure.
 
 #### 1.2.1 Event Handlers
 
-The `EventHandlers` type looks like `data EventHandlers = EventHandlers { slot :: Maybe Slot, endpoints :: [Endpoint], pendingTransactions :: [UnbalancedTx], interestingAddresses :: [Address], ...  }`. Note that the exact set of fields depends on the contract. For example, there could be a contract that needs to make requests to an oracle, and these kinds of requests would be stored in an `oracleRequests` field. Or a contract that requires no interaction at all might not have an `endpoints` field. The `EventHandler` type of a given contract is described by that contract's IOTS schema.
+The `EventHandlers` type looks like `data EventHandlers = EventHandlers { slot :: Maybe Slot, endpoints :: [Endpoint], pendingTransactions :: [UnbalancedTx], ...  }`. Note that the exact set of fields depends on the contract. For example, there could be a contract that needs to make requests to an oracle, and these kinds of requests would be stored in an `oracleRequests` field. Or a contract that requires no interaction at all might not have an `endpoints` field. The `EventHandler` type of a given contract is described by that contract's IOTS schema.
 
-Q. Contract endpoints??
+The following five event handlers are required to support all the sample contracts that currently exist.
+
+1. `Slot`: When the given slot is reached or has passed, send the current slot number to the contract.
+2. `Endpoint`: Ask the user for input from the named endpoint. The user is expected to provide a value of the endpoint's type.
+3. `SubmitTx`: Balance the transaction and sign it (see 1.3.2), then respond to the contract with the transaction's ID, then forward the signed transaction to the node client which sends it to the network.
+4. `NextTransactionAt`: Start watching the address for changes and respond with the first transaction that changes the address (that is, the first transaction that spends or produces an output at the address)
+5. `OutputsAt`: Respond to the client with a list of all unspent outputs that currently reside at the address.
+
 
 #### 1.2.2 Events
 
@@ -57,12 +63,19 @@ The transactions produced by Plutus contracts are unbalanced and unsigned (repre
 
 #### 1.3.3 Node Client
 
-The node client is a process that talks to a Cardano node. It can query the blockchain for information (UTXO set of an address, current slot) and it can submit transactions to the blockchain.
+The node client is a process that talks to a Cardano node. It can submit transactions to the blockchain and it can query the blockchain for information. There are three types of queries that the node client supports:
+
+1. Stream all blocks to the SCB, including the `n` most recent blocks (where `n` is smaller than or equal to `k`, the number of blocks that may be rolled back (blockchain constant)). In practice, the SCB will maintain a connection to the node client throughout, and inspect every new block to check for triggers that have been registered by the contracts (see 1.2.1.4).
+2. Ask for all unspent outputs at an address (see 1.2.1.5)
+3. Ask for the current slot number (see 1.2.1.1)
 
 #### 1.3.4 Endpoints
 
 The user can call any one of the active endpoints by providing a JSON value that conforms with the endpoint's IOTS schema to the SCB. This value can be constructed via a UI or (in the first iteration) manually. Once an endpoint has been called, the SCB uses the endpoint's IOTS schema to validate the argument and then forwards it to the contract.
+
 ### 1.4 Failure Scenarios & Error Handling
+
+* Connection between SCB and node client is lost: When the connection is restored, the SCB will ask the node client to stream the blocks that it has missed (see 1.3.3.1), unless the gap is larger than the rollback constant `k`. In that case it will only ask for the last `k` blocks.
 
 TBD
 
