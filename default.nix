@@ -428,6 +428,12 @@ let
         '';
 
         updateClientDeps = pkgs.writeScript "update-client-deps" ''
+          #!${pkgs.runtimeShell}
+
+          export PATH=${pkgs.stdenv.lib.makeBinPath [ pkgs.nodejs-10_x ]}
+
+          set -e
+
           if [ ! -f package.json ]
           then
               echo "package.json not found. Please run this script from the client directory." >&2
