@@ -23,9 +23,14 @@ open import Agda.Builtin.Nat
 open import Data.Nat
 open import Agda.Builtin.Int
 open import Data.Integer
-
+import Data.Maybe as M
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
+
+open import Check hiding (_>>=_; return)
+open import Scoped.Extrication
+open import Type.BetaNBE
+
 
 open Agda.Builtin.IO
 open import Data.String
@@ -91,7 +96,7 @@ open import Untyped
 
 -- untyped evaluation
 --utestPLC : ByteString → Maybe String
---utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
+--utestplc plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ erase⊢) (mbind (deBruijnifyTm nil) (mmap convP (parse plc)))
 
 open import Data.Fin
 
@@ -105,6 +110,7 @@ postulate
 open import Data.Vec hiding (_>>=_)
 
 open import Scoped.CK
+open import Algorithmic.CK
 
 data EvalMode : Set where
   TCK CK L : EvalMode
@@ -120,19 +126,22 @@ evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
 evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
   "runtime error" Data.String.++
   prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
-evalPLC CK plc | just t | just t' with stepper 1000000000 _ (ε ▻ saturate t')
+evalPLC CK plc | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   "this shouldn't happen"
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
-evalPLC TCK plc | just t | just t' = "typed execution not yet implemented"
+evalPLC TCK plc | just t | just t' with inferType _ t'
+... | inj₂ e = "typechecking error"
+... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
+... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  = prettyPrintTm (deDeBruijnify [] nil (extricate t'''))
+... | _ ,, _ ,, _ ,, _ ,, M.just _  = "this shouldn't happen"
+... | _ ,, _ ,, _ ,, _ ,, M.nothing = "out of fuel"
+
+-- prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
 evalPLC m plc | just t | nothing = "scope error"
 evalPLC m plc | nothing = "parse error"
-
-open import Check hiding (_>>=_)
-open import Scoped.Extrication
-open import Type.BetaNBE
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
