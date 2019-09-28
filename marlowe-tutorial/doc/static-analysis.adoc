@@ -39,9 +39,15 @@ If we modify the contract so that Alice makes an initial deposit of `2`, then th
 
 image:analysis4.png[Successful analysis]
 
+=== Under the hood
+
+Just to re-iterate: the effect of this analysis is to check _every possible execution path_ through the contract, using a symbolic version of the contract. This gets passed to the Z3 SMT solver, which is a state-of-the-art automated system for deciding whether logic formulas are satisfable. 
+
+If the analysis is not successful, i.e. if there is a way of making the contract fail a payment, then the system will also _give an example_ of how it can go wrong, and present that to the user. Users can then fix the problem, and check it again.
+
 === Next steps
 
-In the next stage we will look at how to present the results of our analysis in a more "user friendly" way, as well as broadening out the scope of our work.
+In the next few months we will look at how to present the results of our analysis in a more "user friendly" way, as well as broadening out the scope of our work.
 
  
 [caption=""]
