@@ -63,11 +63,13 @@ import           Language.Plutus.Contract.Schema                 (Event, Handler
 import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
 import qualified Language.Plutus.Contract.Wallet                 as Wallet
 
+import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
+import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
 import           Ledger.Ada                                      (Ada)
@@ -202,7 +204,7 @@ callEndpoint w = addEvent w . Endpoint.event @l @_ @s
 submitUnbalancedTx
     :: forall s m.
       ( MonadEmulator m
-      , HasType "tx" () (Input s)
+      , HasType TxSymbol () (Input s)
       , AllUniqueLabels (Input s)
       )
     => Wallet
@@ -229,7 +231,7 @@ addTxEvent tx = do
 unbalancedTransactions
     :: forall s m.
        ( MonadEmulator m
-       , HasType "tx" WriteTx.PendingTransactions (Output s)
+       , HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        , AllUniqueLabels (Output s)
@@ -264,7 +266,7 @@ interestingAddresses =
 notifySlot
     :: forall s m.
        ( MonadEmulator m
-       , HasType "slot" Slot (Input s)
+       , HasType SlotSymbol Slot (Input s)
        , AllUniqueLabels (Input s)
        )
     => Wallet
