@@ -239,5 +239,5 @@ successfulCampaign =
         >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
         >> Trace.addBlocks 18
         >> Trace.notifySlot (Trace.Wallet 1)
-        >> Trace.handleUtxoQueries (Trace.Wallet 1)
+        >> Trace.handleBlockchainEvents (Trace.Wallet 1)
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)

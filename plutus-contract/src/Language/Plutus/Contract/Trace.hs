@@ -286,8 +286,8 @@ addBlocks i =
 --   UTXO queries
 handleBlockchainEvents
     :: ( MonadEmulator m
-       , HasWatchAddress s
        , HasUtxoAt s
+       , HasWatchAddress s
        , HasWriteTx s
        )
     => Wallet

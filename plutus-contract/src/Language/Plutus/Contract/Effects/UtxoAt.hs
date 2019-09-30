@@ -27,9 +27,11 @@ import           Ledger.Tx                        (TxOut, TxOutRef)
 import           Language.Plutus.Contract.Request (Contract, ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 
+type UtxoAtSym = "utxo-at"
+
 type HasUtxoAt s =
-    ( HasType "utxo-at" UtxoAtAddress (Input s)
-    , HasType "utxo-at" (Set Address) (Output s)
+    ( HasType UtxoAtSym UtxoAtAddress (Input s)
+    , HasType UtxoAtSym (Set Address) (Output s)
     , ContractRow s)
 
 data UtxoAtAddress =
@@ -40,7 +42,7 @@ data UtxoAtAddress =
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
-type UtxoAt = "utxo-at" .== (UtxoAtAddress, Set Address)
+type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Set Address)
 
 -- | Get the unspent transaction outputs at an address.
 utxoAt :: forall s. HasUtxoAt s => Address -> Contract s AddressMap
@@ -49,18 +51,18 @@ utxoAt address' =
         check UtxoAtAddress{address,utxo} =
           if address' == address then Just (AM.AddressMap $ Map.singleton address utxo) else Nothing
     in
-    requestMaybe @"utxo-at" @_ @_ @s (Set.singleton address') check
+    requestMaybe @UtxoAtSym @_ @_ @s (Set.singleton address') check
 
 event
     :: forall s.
     ( HasUtxoAt s )
     => UtxoAtAddress
     -> Event s
-event = Event . IsJust (Label @"utxo-at")
+event = Event . IsJust (Label @UtxoAtSym)
 
 addresses
     :: forall s.
     ( HasUtxoAt s )
     => Handlers s
     -> Set Address
-addresses (Handlers r) = r .! Label @"utxo-at"
+addresses (Handlers r) = r .! Label @UtxoAtSym
