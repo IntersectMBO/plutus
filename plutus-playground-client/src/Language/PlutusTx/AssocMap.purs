@@ -21,7 +21,8 @@ import Data.Set as Set
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Foreign.Class (class Decode, class Encode)
-import Foreign.Generic (aesonSumEncoding, defaultOptions, genericDecode, genericEncode)
+import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
+import Foreign.Generic.Class (aesonSumEncoding)
 
 newtype Map a b
   = Map (Array (JsonTuple a b))

@@ -12,10 +12,10 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
+import Data.Json.JsonEither (JsonEither)
 import Data.Maybe (Maybe(..))
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Json.JsonEither (JsonEither)
 import Editor as Editor
 import Effect (Effect)
 import Effect.Aff (Milliseconds)
@@ -28,13 +28,13 @@ import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
-import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import Playground.Server (SPParams_)
 import Playground.Server as Server
+import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query, State, WebData, cpEditor)
+import Types (ChildSlots, HAction, State, WebData, _editorSlot)
 import Web.HTML.Event.DataTransfer (DropEffect)
 import Web.HTML.Event.DataTransfer as DataTransfer
 import Web.HTML.Event.DragEvent (DragEvent, dataTransfer)
@@ -62,7 +62,7 @@ class
   postContract :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
 
 newtype HalogenApp m a
-  = HalogenApp (HalogenM State Query ChildQuery ChildSlot Void m a)
+  = HalogenApp (HalogenM State HAction ChildSlots Void m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
@@ -86,7 +86,7 @@ instance monadThrowHalogenApp :: MonadThrow e m => MonadThrow e (HalogenApp m) w
   throwError e = lift (throwError e)
 
 ------------------------------------------------------------
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM State Query ChildQuery ChildSlot Void m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM State HAction ChildSlots Void m a
 runHalogenApp = unwrap
 
 instance monadAppHalogenApp ::
@@ -118,12 +118,12 @@ instance monadAppHalogenApp ::
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM State Query ChildQuery ChildSlot Void m) a ->
+  ExceptT AjaxError (HalogenM State HAction ChildSlots Void m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
 withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
-withEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
+withEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
 
 instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
    editorGetContents = lift editorGetContents

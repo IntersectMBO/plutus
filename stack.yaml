@@ -55,7 +55,7 @@ extra-deps:
   commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: 0042602f8a195b1fe185138f9ccca02020b8dd62
+  commit: fb8a038e4c9a97377834779ec6b2e0e7faf5b2a1
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git

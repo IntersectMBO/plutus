@@ -57297,8 +57297,8 @@ version = "0.13.1.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "1vl88g41f4vvgw9iyn7zd7i52qshpnk02z0y6czg4zy7wk3q12gz";
-rev = "0042602f8a195b1fe185138f9ccca02020b8dd62";
+sha256 = "0kqskcssx1r9lybyqnykk4y7ymzf95khgkjnzgd6m050gq30xxi1";
+rev = "fb8a038e4c9a97377834779ec6b2e0e7faf5b2a1";
 fetchSubmodules = true;
 
 };

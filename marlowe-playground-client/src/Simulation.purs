@@ -1,7 +1,5 @@
 module Simulation where
 
-import Marlowe.Semantics
-
 import API (RunResult(RunResult))
 import Ace.EditSession as Session
 import Ace.Editor as Editor
@@ -9,13 +7,14 @@ import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
 import Control.Alternative (map, (<|>))
-import Data.Array (catMaybes, foldMap, mapWithIndex)
+import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
-import Data.Foldable (intercalate)
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.Foldable (foldMap, intercalate)
+import Data.FunctorWithIndex (mapWithIndex)
+import Data.HeytingAlgebra ((&&), (||))
 import Data.Lens (to, view, (^.))
 import Data.List (List, toUnfoldable, null)
 import Data.List.NonEmpty as NEL
@@ -27,27 +26,24 @@ import Data.Tuple (Tuple(..), snd)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen (HTML, PropName(..), action)
-import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, prop, slot', span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
-import Halogen.HTML.Events (input_, onClick, onDragOver, onDrop, onValueChange)
-import Halogen.HTML.Events as Events
-import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, type_, value)
-import Halogen.Query as HQ
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
+import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
+import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (transactionInputList, transactionWarningList)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Observation, Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), _accounts, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (class Show, Unit, bind, const, discard, flip, identity, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (+))
+import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ActionInputId, ChildQuery, ChildSlot, FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, Query(..), _Head, _analysisState, _contract, _editorErrors, _marloweCompileResult, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, cpMarloweEditor)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError)
 
-paneHeader :: forall p. String -> HTML p Query
+paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
 
 isContractValid :: FrontendState -> Boolean
-isContractValid state = 
+isContractValid state =
   view (_marloweState <<< _Head <<< _contract) state /= Nothing
   && view (_marloweState <<< _Head <<< _editorErrors) state == []
 
@@ -55,7 +51,7 @@ simulationPane ::
   forall m.
   MonadAff m =>
   FrontendState ->
-  ParentHTML Query ChildQuery ChildSlot m
+  ComponentHTML HAction ChildSlots m
 simulationPane state =
   div_
     ( Array.concat
@@ -79,10 +75,10 @@ simulationPane state =
                 ]
             ] [paneHeader "Marlowe Contract", codeToBlocklyButton state, demoScriptsPane]
         , div
-            [ onDragOver $ Just <<< action <<< MarloweHandleDragEvent
-            , onDrop $ Just <<< action <<< MarloweHandleDropEvent
+            [ onDragOver $ Just <<< MarloweHandleDragEvent
+            , onDrop $ Just <<< MarloweHandleDropEvent
             ]
-            [ slot' cpMarloweEditor MarloweEditorSlot (aceComponent initEditor (Just Live)) unit (Events.input MarloweHandleEditorMessage)
+            [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage)
             ]
         , br_
         , errorList
@@ -116,7 +112,7 @@ initEditor editor =
         session <- Editor.getSession editor
         Session.setMode "ace/mode/haskell" session
 
-demoScriptsPane :: forall p. HTML p Query
+demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =
   div_
     ( Array.cons
@@ -126,28 +122,28 @@ demoScriptsPane =
       ) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.marloweContracts))
     )
 
-demoScriptButton :: forall p. String -> HTML p Query
+demoScriptButton :: forall p. String -> HTML p HAction
 demoScriptButton key =
   button
     [ classes [btn, btnInfo, btnSmall]
-    , onClick $ input_ $ LoadMarloweScript key
+    , onClick $ const $ Just $ LoadMarloweScript key
     ] [text key]
 
-codeToBlocklyButton :: forall p. FrontendState -> HTML p Query
+codeToBlocklyButton :: forall p. FrontendState -> HTML p HAction
 codeToBlocklyButton state =
   button
     [ classes [btn, btnInfo, btnSmall]
-    , onClick $ input_ $ SetBlocklyCode
+    , onClick $ const $ Just $ SetBlocklyCode
     , enabled (isContractValid state)
     ] [text "Code to Blockly"]
 
-compilationResultPane :: forall p. RunResult -> HTML p Query
+compilationResultPane :: forall p. RunResult -> HTML p HAction
 compilationResultPane (RunResult stdout) = div_ [code_ [pre_ [text stdout]]]
 
-compilationErrorPane :: forall p. MarloweError -> HTML p Query
+compilationErrorPane :: forall p. MarloweError -> HTML p HAction
 compilationErrorPane (MarloweError error) = div_ [text error]
 
-inputComposerPane :: forall p. FrontendState -> HTML p Query
+inputComposerPane :: forall p. FrontendState -> HTML p HAction
 inputComposerPane state =
   div
     [ classes
@@ -172,9 +168,9 @@ onEmpty alt [] = alt
 
 onEmpty _ arr = arr
 
-inputComposer :: forall p. Boolean -> Map PubKey (Map ActionInputId ActionInput) -> Array (HTML p Query)
+inputComposer :: forall p. Boolean -> Map PubKey (Map ActionInputId ActionInput) -> Array (HTML p HAction)
 inputComposer isEnabled actionInputs =
-    if (Map.isEmpty actionInputs) 
+    if (Map.isEmpty actionInputs)
     then [text "No valid inputs can be added to the transaction"]
     else (actionsForPeople actionInputs)
   where
@@ -184,7 +180,7 @@ inputComposer isEnabled actionInputs =
   vs :: forall k v. Map k v -> Array v
   vs m = map snd (kvs m)
 
-  actionsForPeople :: forall q. Map PubKey (Map ActionInputId ActionInput) -> Array (HTML q Query)
+  actionsForPeople :: forall q. Map PubKey (Map ActionInputId ActionInput) -> Array (HTML q HAction)
   actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v)) (kvs m)
 
 inputComposerPerson ::
@@ -192,14 +188,14 @@ inputComposerPerson ::
   Boolean ->
   PubKey ->
   Array ActionInput ->
-  Array (HTML p Query)
+  Array (HTML p HAction)
 inputComposerPerson isEnabled person actionInputs =
       [ h3_
           [ text ("Person " <> show person)
           ]
       ] <> catMaybes (mapWithIndex inputForAction actionInputs)
   where
-    inputForAction :: Int -> ActionInput -> Maybe (HTML p Query)
+    inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
     inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled person index accountId party value
     inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled person index choiceId chosenNum bounds
     inputForAction index (NotifyInput observation) = Just $ inputNotify isEnabled person index observation
@@ -212,21 +208,21 @@ inputDeposit ::
   AccountId ->
   Party ->
   BigInteger ->
-  HTML p Query
+  HTML p HAction
 inputDeposit isEnabled person index accountId party value =
   let money = wrap value in
   flexRow_ $
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
-        , onClick $ input_
+        , onClick $ const $ Just
             $ AddInput person (IDeposit accountId party money) []
         ]
         [ text "+"
         ]
     ] <> (renderDeposit accountId party value)
 
-renderDeposit :: forall p. AccountId -> Party -> BigInteger -> Array (HTML p Query)
+renderDeposit :: forall p. AccountId -> Party -> BigInteger -> Array (HTML p HAction)
 renderDeposit (AccountId accountNumber accountOwner) party money =
     [ spanText "Deposit "
     , b_ [spanText (show money)]
@@ -236,7 +232,7 @@ renderDeposit (AccountId accountNumber accountOwner) party money =
     , b_ [spanText party]
     ]
 
-inputChoice :: forall p. Boolean -> PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p Query
+inputChoice :: forall p. Boolean -> PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
 inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) chosenNum bounds =
   let validBounds = inBounds chosenNum bounds
       errorRow = if validBounds then [] else [ text boundsError ]
@@ -245,7 +241,7 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
     ([ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
-        , onClick $ input_
+        , onClick $ const $ Just
             $ AddInput person (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
         ]
         [ text "+"
@@ -266,13 +262,13 @@ inputNotify ::
   PubKey ->
   Int ->
   Observation ->
-  HTML p Query
+  HTML p HAction
 inputNotify isEnabled person index observation =
   flexRow_
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
-        , onClick $ input_
+        , onClick $ const $ Just
             $ AddInput person INotify []
         ]
         [ text "+"
@@ -280,7 +276,7 @@ inputNotify isEnabled person index observation =
     , text $ "Notify " <> show observation
     ]
 
-marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Unit -> Query Unit) -> a -> HTML p Query
+marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> HAction) -> a -> HTML p HAction
 marloweActionInput isEnabled f current =
   input
     [ type_ InputNumber
@@ -290,7 +286,7 @@ marloweActionInput isEnabled f current =
     , value $ show current
     , onValueChange
         $ ( \x ->
-            Just $ HQ.action
+            Just
               $ f
                   ( case fromString x of
                     Just y -> y
@@ -301,17 +297,17 @@ marloweActionInput isEnabled f current =
 
 flexRow_ ::
   forall p.
-  Array (HTML p Query) ->
-  HTML p Query
+  Array (HTML p HAction) ->
+  HTML p HAction
 flexRow_ html = div [classes [ClassName "d-flex", ClassName "flex-row"]] html
 
-spanText :: forall p. String -> HTML p Query
+spanText :: forall p. String -> HTML p HAction
 spanText s = span [class_ $ ClassName "pr-1"] [text s]
 
 transactionComposerPane ::
   forall p.
   FrontendState ->
-  HTML p Query
+  HTML p HAction
 transactionComposerPane state =
   div
     [ classes
@@ -339,7 +335,7 @@ transactionComposerPane state =
         ]
     ]
 
-transactionButtons :: FrontendState -> forall p. Array (HTML p Query)
+transactionButtons :: FrontendState -> forall p. Array (HTML p HAction)
 transactionButtons state =
   [ div
       [ classes
@@ -356,7 +352,7 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          , onClick $ Just <<< HQ.action <<< const ApplyTransaction
+          , onClick $ Just <<< const ApplyTransaction
           , enabled $ isContractValid state
           ] [text "Apply Transaction"]
       , button
@@ -365,7 +361,7 @@ transactionButtons state =
               , btnPrimary
               , ClassName "transaction-btn"
               ]
-          , onClick $ Just <<< HQ.action <<< const NextSlot
+          , onClick $ Just <<< const NextSlot
           , enabled (isContractValid state)
           ] [text "Next Block"]
       , button
@@ -375,7 +371,7 @@ transactionButtons state =
               , ClassName "transaction-btn"
               ]
           , enabled (hasHistory state)
-          , onClick $ Just <<< HQ.action <<< const ResetSimulator
+          , onClick $ Just <<< const ResetSimulator
           ] [text "Reset"]
       , button
           [ classes
@@ -384,7 +380,7 @@ transactionButtons state =
               , ClassName "transaction-btn"
               ]
           , enabled (hasHistory state)
-          , onClick $ Just <<< HQ.action <<< const Undo
+          , onClick $ Just <<< const Undo
           ] [text "Undo"]
       ]
   ]
@@ -393,10 +389,10 @@ hasHistory :: FrontendState -> Boolean
 hasHistory state = NEL.length (view _marloweState state) > 1
 
 -- TODO: Need to make these errors nice explanations - function in smeantics utils
-printTransError :: forall p. TransactionError -> Array (HTML p Query)
+printTransError :: forall p. TransactionError -> Array (HTML p HAction)
 printTransError error = [ul_ [li_ [text (show error)]]]
 
-transactionErrors :: forall p. Maybe TransactionError -> Array (HTML p Query)
+transactionErrors :: forall p. Maybe TransactionError -> Array (HTML p HAction)
 transactionErrors Nothing = []
 transactionErrors (Just error) =
   [ div
@@ -410,7 +406,7 @@ transactionErrors (Just error) =
       )
   ]
 
-transactionInputs :: forall p. MarloweState -> Array (HTML p Query)
+transactionInputs :: forall p. MarloweState -> Array (HTML p HAction)
 transactionInputs state =
   [ h3_
       [ text "Input list"
@@ -423,14 +419,14 @@ transactionInputs state =
   isEnabled = state.contract /= Nothing || state.editorErrors /= []
   mapWithOneIndex f = mapWithIndex (\i a -> f (i + 1) a)
 
-inputRow :: forall p. Boolean -> Int -> Tuple Input PubKey -> HTML p Query
-inputRow isEnabled idx (Tuple INotify person) = 
+inputRow :: forall p. Boolean -> Int -> Tuple Input PubKey -> HTML p HAction
+inputRow isEnabled idx (Tuple INotify person) =
   row_
     [ col_
         [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
-            , onClick $ input_ $ RemoveInput person INotify
+            , onClick $ const $ Just $ RemoveInput person INotify
             ]
             [ text $ "- " <> show idx <> ":"
             ]
@@ -443,7 +439,7 @@ inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
         [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
-            , onClick $ input_ $ RemoveInput person input
+            , onClick $ const $ Just $ RemoveInput person input
             ]
             [ text $ "- " <> show idx <> ":"
             ]
@@ -456,7 +452,7 @@ inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) c
         [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
-            , onClick $ input_ $ RemoveInput person input
+            , onClick $ const $ Just $ RemoveInput person input
             ]
             [ text $ "- " <> show idx <> ":"
             ]
@@ -478,7 +474,7 @@ inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) c
 stateTitle ::
   forall p.
   FrontendState ->
-  HTML p Query
+  HTML p HAction
 stateTitle state =
   div
     [ classes
@@ -518,7 +514,7 @@ stateTitle state =
         ]
     ]
 
-statePane :: forall p. FrontendState -> HTML p Query
+statePane :: forall p. FrontendState -> HTML p HAction
 statePane state =
   div
     [ class_ $ ClassName "col"
@@ -526,7 +522,7 @@ statePane state =
     [ stateTable state
     ]
 
-stateTable :: forall p. FrontendState -> HTML p Query
+stateTable :: forall p. FrontendState -> HTML p HAction
 stateTable state =
   div
     [ class_ $ ClassName "full-width-card"
@@ -565,7 +561,7 @@ stateTable state =
   choices = state ^. _marloweState <<< _Head <<< _state <<< _choices
   payments = state ^. _marloweState <<< _Head <<< _payments
 
-renderAccounts :: forall p. Map AccountId Ada -> HTML p Query
+renderAccounts :: forall p. Map AccountId Ada -> HTML p HAction
 renderAccounts accounts =
   table_
     [ colgroup []
@@ -593,7 +589,7 @@ renderAccounts accounts =
   where
   accountList = Map.toUnfoldable accounts :: Array (Tuple AccountId Ada)
 
-renderAccount :: forall p. Tuple AccountId Ada -> HTML p Query
+renderAccount :: forall p. Tuple AccountId Ada -> HTML p HAction
 renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
   tr []
     [ td_
@@ -610,7 +606,7 @@ renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
     ]
 
 
-renderChoices :: forall p. Map ChoiceId ChosenNum -> HTML p Query
+renderChoices :: forall p. Map ChoiceId ChosenNum -> HTML p HAction
 renderChoices choices =
   table_
     [ colgroup []
@@ -638,7 +634,7 @@ renderChoices choices =
   where
   choiceList = Map.toUnfoldable choices :: Array (Tuple ChoiceId ChosenNum)
 
-renderChoice :: forall p. Tuple ChoiceId ChosenNum -> HTML p Query
+renderChoice :: forall p. Tuple ChoiceId ChosenNum -> HTML p HAction
 renderChoice (Tuple (ChoiceId choiceName choiceOwner) value) =
   tr []
     [ td_
@@ -654,7 +650,7 @@ renderChoice (Tuple (ChoiceId choiceName choiceOwner) value) =
         ]
     ]
 
-renderPayments :: forall p. Array Payment -> HTML p Query
+renderPayments :: forall p. Array Payment -> HTML p HAction
 renderPayments payments =
   table_
     [ colgroup []
@@ -677,7 +673,7 @@ renderPayments payments =
     , tbody_ (map renderPayment payments)
     ]
 
-renderPayment :: forall p. Payment -> HTML p Query
+renderPayment :: forall p. Payment -> HTML p HAction
 renderPayment (Payment party money) =
   tr []
     [ td
@@ -690,7 +686,7 @@ renderPayment (Payment party money) =
         ]
     ]
 
-analysisPane :: forall p. FrontendState -> HTML p Query
+analysisPane :: forall p. FrontendState -> HTML p HAction
 analysisPane state =
  div [ class_ $ ClassName "full-width-card" ]
      [ paneHeader "Static analysis"
@@ -703,7 +699,7 @@ analysisPane state =
                  , btnPrimary
                  , ClassName "transaction-btn"
                  ]
-             , onClick $ Just <<< HQ.action <<< const AnalyseContract
+             , onClick $ const $ Just $ AnalyseContract
              , enabled $ state ^. _analysisState <<< to (not isLoading)
              ] [ loading
                , text btnText
@@ -719,18 +715,18 @@ analysisPane state =
             Loading -> span [ classes [ ClassName "spinner-border"
                                       , ClassName "spinner-border-sm"
                                       ]
-                            , prop (PropName "role") "status" 
-                            , prop (PropName "aria-hidden") "true" 
-                            ] 
+                            , prop (PropName "role") "status"
+                            , prop (PropName "aria-hidden") "true"
+                            ]
                             []
             _ -> empty
 
-analysisResultPane :: forall p. FrontendState -> HTML p Query
+analysisResultPane :: forall p. FrontendState -> HTML p HAction
 analysisResultPane state =
   let
     result = state ^. _analysisState
   in
-    
+
     case result of
       NotAsked -> div [ classes [ ClassName "padded-explanation" ] ]
                       [ text "Press the button below to analyse the contract for runtime warnings." ]
@@ -769,7 +765,7 @@ analysisResultPane state =
                              ]
       _ -> empty
 
-displayTransactionList :: forall p. String -> HTML p Query
+displayTransactionList :: forall p. String -> HTML p HAction
 displayTransactionList transactionList =
   case runParser transactionList transactionInputList of
     Right pTL -> ol_ (do (TransactionInput{ interval : SlotInterval (Slot from) (Slot to)
@@ -788,11 +784,11 @@ displayTransactionList transactionList =
                                    ]))
     Left _ -> code_ [ text transactionList ]
 
-displayInputList :: forall p. List Input -> HTML p Query
+displayInputList :: forall p. List Input -> HTML p HAction
 displayInputList inputList = ol_ ( do input <- (toUnfoldable inputList)
                                       pure (li_ (displayInput input)) )
 
-displayInput :: forall p. Input -> Array (HTML p Query)
+displayInput :: forall p. Input -> Array (HTML p HAction)
 displayInput (IDeposit (AccountId accNum owner) party (Lovelace money)) =
   [ b_ [text "IDeposit"]
   , text " - Party "
@@ -819,14 +815,14 @@ displayInput (INotify) =
   , b_ [text "True"]
   ]
 
-displayWarningList :: forall p. String -> HTML p Query
+displayWarningList :: forall p. String -> HTML p HAction
 displayWarningList transactionWarnings =
   case runParser transactionWarnings transactionWarningList of
     Right pWL -> ol_ (do warning <- ((toUnfoldable pWL) :: Array TransactionWarning)
                          pure (li_ (displayWarning warning)))
     Left _ -> code_ [ text transactionWarnings ]
 
-displayWarning :: forall p. TransactionWarning -> Array (HTML p Query)
+displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
 displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Lovelace amount)) =
   [ b_ [text "TransactionNonPositiveDeposit"]
   , text " - Party "

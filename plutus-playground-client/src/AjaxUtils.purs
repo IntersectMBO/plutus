@@ -1,10 +1,13 @@
 module AjaxUtils where
 
+import Prelude hiding (div)
+
 import Bootstrap (alertDanger_)
+import Data.Foldable (intercalate)
+import Foreign (MultipleErrors, renderForeignError)
 import Halogen.HTML (ClassName(..), HTML, br_, div, text)
 import Halogen.HTML.Properties (class_)
 import Playground.Server (SPParams_(..))
-import Prelude (($), (<>), (>>>))
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 
@@ -31,3 +34,6 @@ ajaxErrorPane error =
         , text "Please try again or contact support for assistance."
         ]
     ]
+
+renderForeignErrors :: MultipleErrors -> String
+renderForeignErrors = intercalate "\n" <<< map renderForeignError

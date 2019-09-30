@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import AjaxUtils (ajaxSettings)
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Control.Monad.Reader.Trans (runReaderT)
@@ -15,12 +16,13 @@ import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame (mainFrame)
+import Types (HAction(..))
 
 main :: Effect Unit
 main =
   runHalogenAff do
     body <- awaitBody
-    driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
+    driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) Mounted body
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit

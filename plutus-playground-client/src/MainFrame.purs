@@ -1,6 +1,6 @@
 module MainFrame
   ( mainFrame
-  , eval
+  , handleAction
   , initialState
   ) where
 
@@ -8,12 +8,13 @@ import Types
 
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
+import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
-import Chain.Eval (eval) as Chain
+import Chain.Eval as Chain
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..))
-import Control.Bind (bindFlipped)
-import Control.Comonad (extract)
-import Control.Monad.Except (runExcept)
+import Control.Monad.Except.Extra (noteT)
+import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
@@ -24,6 +25,7 @@ import Cursor as Cursor
 import Data.Array (catMaybes, (..))
 import Data.Array (deleteAt, snoc) as Array
 import Data.Array.Extra (move) as Array
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
@@ -35,6 +37,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
+import Data.Newtype (unwrap)
 import Data.Ord (Ordering(..))
 import Data.String as String
 import Effect (Effect)
@@ -54,7 +57,8 @@ import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
 import Playground.Types (KnownCurrency, SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
+import Prelude (Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
+import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import View as View
@@ -100,28 +104,32 @@ mainFrame ::
   forall m.
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  Component HTML Query Unit Void m
+  Component HTML Query HAction Void m
 mainFrame =
-  H.lifecycleParentComponent
+  H.mkComponent
     { initialState: const initialState
     , render: View.render
-    , eval: evalWithAnalyticsTracking
-    , receiver: const Nothing
-    , initializer: Just $ H.action $ CheckAuthStatus
-    , finalizer: Nothing
+    , eval:
+      H.mkEval
+        { handleAction: handleActionWithAnalyticsTracking
+        , handleQuery: const $ pure Nothing
+        , initialize: Just CheckAuthStatus
+        , receive: const Nothing
+        , finalize: Nothing
+        }
     }
 
-evalWithAnalyticsTracking ::
+handleActionWithAnalyticsTracking ::
   forall m.
   MonadEffect m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadAff m =>
-  Query ~> HalogenM State Query ChildQuery ChildSlot Void m
-evalWithAnalyticsTracking query = do
+  HAction -> HalogenM State HAction ChildSlots Void m Unit
+handleActionWithAnalyticsTracking query = do
   liftEffect $ analyticsTracking query
-  runHalogenApp $ eval query
+  runHalogenApp $ handleAction query
 
-analyticsTracking :: forall a. Query a -> Effect Unit
+analyticsTracking :: HAction -> Effect Unit
 analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
@@ -129,180 +137,169 @@ analyticsTracking query = do
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
-toEvent :: forall a. Query a -> Maybe Event
-toEvent (HandleEditorMessage _ _) = Nothing
+toEvent :: HAction -> Maybe Event
+toEvent Mounted = Just $ defaultEvent "Mounted"
 
-toEvent (HandleDragEvent _ _) = Nothing
+toEvent (HandleEditorMessage _) = Nothing
 
-toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
+toEvent (HandleDragEvent _) = Nothing
 
-toEvent (HandleBalancesChartMessage _ _) = Nothing
+toEvent (HandleDropEvent _) = Just $ defaultEvent "DropScript"
 
-toEvent (CheckAuthStatus _) = Nothing
+toEvent (HandleBalancesChartMessage _) = Nothing
 
-toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+toEvent CheckAuthStatus = Nothing
 
-toEvent (SetGistUrl _ _) = Nothing
+toEvent PublishGist = Just $ (defaultEvent "Publish") { category = Just "Gist" }
 
-toEvent (LoadGist _) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+toEvent (SetGistUrl _) = Nothing
 
-toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view }
+toEvent LoadGist = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script }
+toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
 
-toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
+toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
 
-toEvent (ScrollTo _ _) = Nothing
+toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
 
-toEvent (AddSimulationSlot _) = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
+toEvent (ScrollTo _) = Nothing
 
-toEvent (SetSimulationSlot _ _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
+toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 
-toEvent (RemoveSimulationSlot _ _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
+toEvent (SetSimulationSlot _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
 
-toEvent (ModifyWallets AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (RemoveSimulationSlot _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
 
-toEvent (ModifyWallets (RemoveWallet _) _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (ModifyWallets AddWallet) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
 
-toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _)) _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (ModifyWallets (RemoveWallet _)) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
 
-toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _))) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
 
-toEvent (ActionDragAndDrop _ eventType _ _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
+toEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 
-toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+toEvent (ActionDragAndDrop _ eventType _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
 
-toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
 
-toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
+toEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
 
-toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
+toEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
+
+toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
-toEvent (SetChainFocus (Just (FocusTx _)) _) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
+toEvent (SetChainFocus (Just (FocusTx _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
 
-toEvent (SetChainFocus Nothing _) = Nothing
+toEvent (SetChainFocus Nothing) = Nothing
 
-eval ::
+handleAction ::
   forall m.
   MonadState State m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadApp m =>
-  Query ~> m
-eval (HandleEditorMessage (TextChanged text) next) = do
-  saveBuffer text
-  pure next
+  HAction -> m Unit
+handleAction Mounted = pure unit
 
-eval (ActionDragAndDrop index DragStart event next) = do
+handleAction (HandleEditorMessage (TextChanged text)) = saveBuffer text
+
+handleAction (ActionDragAndDrop index DragStart event) = do
   setDataTransferData event textPlain (show index)
   assign _actionDrag (Just index)
-  pure next
 
-eval (ActionDragAndDrop _ DragEnd event next) = do
-  assign _actionDrag Nothing
-  pure next
+handleAction (ActionDragAndDrop _ DragEnd event) = assign _actionDrag Nothing
 
-eval (ActionDragAndDrop _ DragEnter event next) = do
+handleAction (ActionDragAndDrop _ DragEnter event) = do
   preventDefault event
   setDropEffect DataTransfer.Move event
-  pure next
 
-eval (ActionDragAndDrop _ DragOver event next) = do
+handleAction (ActionDragAndDrop _ DragOver event) = do
   preventDefault event
   setDropEffect DataTransfer.Move event
-  pure next
 
-eval (ActionDragAndDrop _ DragLeave event next) = do
-  pure next
+handleAction (ActionDragAndDrop _ DragLeave event) = pure unit
 
-eval (ActionDragAndDrop destination Drop event next) = do
+handleAction (ActionDragAndDrop destination Drop event) = do
   use _actionDrag
     >>= case _ of
         Just source -> modifying (_simulations <<< _current <<< _actions) (Array.move source destination)
         _ -> pure unit
   preventDefault event
   assign _actionDrag Nothing
-  pure next
 
-eval (HandleDragEvent event next) = do
-  preventDefault event
-  pure next
+handleAction (HandleDragEvent event) = preventDefault event
 
-eval (HandleDropEvent event next) = do
+handleAction (HandleDropEvent event) = do
   preventDefault event
   contents <- readFileFromDragEvent event
   editorSetContents contents (Just 1)
   saveBuffer contents
-  pure next
 
 -- We just ignore most Chartist events.
-eval (HandleBalancesChartMessage _ next) = pure next
+handleAction (HandleBalancesChartMessage _) = pure unit
 
-eval (CheckAuthStatus next) = do
+handleAction CheckAuthStatus = do
   assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult
-  pure next
 
-eval (PublishGist next) = do
-  mContents <- editorGetContents
-  simulations <- use _simulations
-  case mkNewGist { source: mContents, simulations } of
-    Nothing -> pure next
-    Just newGist -> do
-      mGist <- use _createGistResult
-      assign _createGistResult Loading
-      newResult <- case preview (_Success <<< gistId) mGist of
-        Nothing -> postGist newGist
-        Just gistId -> patchGistByGistId newGist gistId
-      assign _createGistResult newResult
-      case preview (_Success <<< gistId <<< _GistId) newResult of
-        Nothing -> pure unit
-        Just gistId -> assign _gistUrl (Just gistId)
-      pure next
+handleAction PublishGist = do
+  void $ runMaybeT
+    $ do
+        mContents <- lift $ editorGetContents
+        simulations <- use _simulations
+        newGist <- hoistMaybe $ mkNewGist { source: mContents, simulations }
+        mGist <- use _createGistResult
+        assign _createGistResult Loading
+        newResult <-
+          lift
+            $ case preview (_Success <<< gistId) mGist of
+                Nothing -> postGist newGist
+                Just existingGistId -> patchGistByGistId newGist existingGistId
+        assign _createGistResult newResult
+        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
+        assign _gistUrl (Just gistId)
 
-eval (SetGistUrl newGistUrl next) = do
-  assign _gistUrl (Just newGistUrl)
-  pure next
+handleAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
-eval (LoadGist next) = do
-  eGistId <- (bindFlipped Gists.parseGistUrl <<< note "Gist Url not set.") <$> use _gistUrl
-  case eGistId of
-    Left err -> pure unit
-    Right gistId -> do
-      assign _createGistResult Loading
-      aGist <- getGistByGistId gistId
-      assign _createGistResult aGist
-      case aGist of
-        Success gist -> do
-          -- Load the source, if available.
-          case preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist) of
-            Nothing -> pure unit
-            Just content -> do
-              editorSetContents content (Just 1)
-              saveBuffer content
-              assign _simulations Cursor.empty
-              assign _evaluationResult NotAsked
-          -- Load the simulation, if available.
-          case preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist) of
-            Nothing -> pure unit
-            Just simulationString -> do
-              case runExcept (decodeJSON simulationString) of
-                Left err -> pure unit
-                Right simulations -> do
-                  assign _simulations simulations
-                  assign _evaluationResult NotAsked
-        _ -> pure unit
-  pure next
+handleAction LoadGist =
+  void $ runExceptT
+    $ do
+        mGistId <- ExceptT (note "Gist Url not set." <$> use _gistUrl)
+        eGistId <- except $ Gists.parseGistUrl mGistId
+        --
+        assign _createGistResult Loading
+        aGist <- lift $ getGistByGistId eGistId
+        assign _createGistResult aGist
+        gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
+        --
+        -- Load the source, if available.
+        content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
+        lift $ editorSetContents content (Just 1)
+        lift $ saveBuffer content
+        assign _simulations Cursor.empty
+        assign _evaluationResult NotAsked
+        --
+        -- Load the simulation, if available.
+        simulationString <- noteT "Simulation not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist)
+        simulations <- mapExceptT (pure <<< unwrap) $ withExceptT renderForeignErrors $ decodeJSON simulationString
+        assign _simulations simulations
+  where
+  toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
+  toEither _ (Success a) = Right a
 
-eval (ChangeView view next) = do
-  assign _currentView view
-  pure next
+  toEither _ (Failure e) = Left e
 
-eval (LoadScript key next) = do
+  toEither x Loading = x
+
+  toEither x NotAsked = x
+
+handleAction (ChangeView view) = assign _currentView view
+
+handleAction (LoadScript key) = do
   case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure next
+    Nothing -> pure unit
     Just contents -> do
       editorSetContents contents (Just 1)
       saveBuffer contents
@@ -310,12 +307,11 @@ eval (LoadScript key next) = do
       assign _compilationResult NotAsked
       assign _evaluationResult NotAsked
       assign _simulations Cursor.empty
-      pure next
 
-eval (CompileProgram next) = do
+handleAction CompileProgram = do
   mContents <- editorGetContents
   case mContents of
-    Nothing -> pure next
+    Nothing -> pure unit
     Just contents -> do
       assign _compilationResult Loading
       result <- postContract contents
@@ -344,57 +340,45 @@ eval (CompileProgram next) = do
             )
             (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
         _ -> pure unit
-      pure next
 
-eval (ScrollTo { row, column } next) = do
-  editorGotoLine row (Just column)
-  pure next
+handleAction (ScrollTo { row, column }) = editorGotoLine row (Just column)
 
-eval (ModifyActions actionEvent next) = do
-  modifying (_simulations <<< _current <<< _actions) (evalActionEvent actionEvent)
-  pure next
+handleAction (ModifyActions actionEvent) = modifying (_simulations <<< _current <<< _actions) (handleActionActionEvent actionEvent)
 
-eval (EvaluateActions next) = do
-  _ <-
-    runMaybeT
-      $ do
-          evaluation <-
-            MaybeT do
-              contents <- editorGetContents
-              simulation <- peruse (_simulations <<< _current)
-              pure $ join $ toEvaluation <$> contents <*> simulation
-          assign _evaluationResult Loading
-          result <- lift $ postEvaluation evaluation
-          assign _evaluationResult result
-          -- If we got a successful result, switch tab.
-          case result of
-            Success (JsonEither (Left _)) -> pure unit
-            _ -> replaceViewOnSuccess result Simulations Transactions
-          pure unit
-  pure next
+handleAction EvaluateActions =
+  void
+    $ runMaybeT
+    $ do
+        evaluation <-
+          MaybeT do
+            contents <- editorGetContents
+            simulation <- peruse (_simulations <<< _current)
+            pure $ join $ toEvaluation <$> contents <*> simulation
+        assign _evaluationResult Loading
+        result <- lift $ postEvaluation evaluation
+        assign _evaluationResult result
+        -- If we got a successful result, switch tab.
+        case result of
+          Success (JsonEither (Left _)) -> pure unit
+          _ -> replaceViewOnSuccess result Simulations Transactions
+        pure unit
 
-eval (AddSimulationSlot next) = do
+handleAction AddSimulationSlot = do
   knownCurrencies <- getKnownCurrencies
   mSignatures <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
   case mSignatures of
     Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies signatures))
     Nothing -> pure unit
-  pure next
 
-eval (SetSimulationSlot index next) = do
-  modifying _simulations (Cursor.setIndex index)
-  pure next
+handleAction (SetSimulationSlot index) = modifying _simulations (Cursor.setIndex index)
 
-eval (RemoveSimulationSlot index next) = do
-  modifying _simulations (Cursor.deleteAt index)
-  pure next
+handleAction (RemoveSimulationSlot index) = modifying _simulations (Cursor.deleteAt index)
 
-eval (ModifyWallets action next) = do
+handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
-  modifying (_simulations <<< _current <<< _wallets) (evalWalletEvent (mkSimulatorWallet knownCurrencies) action)
-  pure next
+  modifying (_simulations <<< _current <<< _wallets) (handleActionWalletEvent (mkSimulatorWallet knownCurrencies) action)
 
-eval (PopulateAction n l event) = do
+handleAction (PopulateAction n l event) = do
   knownCurrencies <- getKnownCurrencies
   let
     initialValue = mkInitialValue knownCurrencies 0
@@ -409,17 +393,15 @@ eval (PopulateAction n l event) = do
         <<< _argumentSchema
         <<< ix l
     )
-    (evalForm initialValue event)
-  pure $ extract event
+    (handleActionForm initialValue event)
 
-eval (SetChainFocus newFocus next) = do
-  mAnnotatedBlockchain
-    <- peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+handleAction (SetChainFocus newFocus) = do
+  mAnnotatedBlockchain <-
+    peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+  zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain
 
-  zoomStateT _blockchainVisualisationState $ Chain.eval newFocus mAnnotatedBlockchain next
-
-evalWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
-evalWalletEvent mkWallet AddWallet wallets =
+handleActionWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+handleActionWalletEvent mkWallet AddWallet wallets =
   let
     maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
 
@@ -427,33 +409,32 @@ evalWalletEvent mkWallet AddWallet wallets =
   in
     Array.snoc wallets newWallet
 
-evalWalletEvent _ (RemoveWallet index) wallets = fromMaybe wallets $ Array.deleteAt index wallets
+handleActionWalletEvent _ (RemoveWallet index) wallets = fromMaybe wallets $ Array.deleteAt index wallets
 
-evalWalletEvent _ (ModifyBalance walletIndex action) wallets =
+handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
   over
     (ix walletIndex <<< _simulatorWalletBalance)
-    (evalValueEvent action)
+    (handleActionValueEvent action)
     wallets
 
-evalValueEvent :: ValueEvent -> Value -> Value
-evalValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
+handleActionValueEvent :: ValueEvent -> Value -> Value
+handleActionValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
 
-evalActionEvent :: ActionEvent -> Array Action -> Array Action
-evalActionEvent (AddAction action) = flip Array.snoc action
+handleActionActionEvent :: ActionEvent -> Array Action -> Array Action
+handleActionActionEvent (AddAction action) = flip Array.snoc action
 
-evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
+handleActionActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
 
-evalActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
+handleActionActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
 
-evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
+handleActionActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
 
-evalForm ::
-  forall a.
+handleActionForm ::
   Value ->
-  FormEvent a ->
+  FormEvent ->
   FormArgument ->
   FormArgument
-evalForm initialValue = rec
+handleActionForm initialValue = rec
   where
   evalField (SetIntField n) (FormInt _) = FormInt n
 
@@ -465,13 +446,13 @@ evalForm initialValue = rec
 
   evalField (SetRadioField s) (FormRadio options _) = FormRadio options (Just s)
 
-  evalField (SetValueField valueEvent) (FormValue value) = FormValue $ evalValueEvent valueEvent value
+  evalField (SetValueField valueEvent) (FormValue value) = FormValue $ handleActionValueEvent valueEvent value
 
   evalField (SetSlotRangeField newInterval) arg@(FormSlotRange _) = FormSlotRange newInterval
 
   evalField _ arg = arg
 
-  rec (SetField field subEvent) arg = evalField field arg
+  rec (SetField field) arg = evalField field arg
 
   rec (SetSubField 1 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _1) (rec subEvent) fields
 
@@ -483,18 +464,14 @@ evalForm initialValue = rec
 
   rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  rec (AddSubField _) (FormArray schema fields) =
-    -- As the code stands, this is the only guarantee we get that every
-    -- value in the array will conform to the schema: the fact that we
-    -- create the 'empty' version from the same schema template.
-    --
+  rec AddSubField (FormArray schema fields) =  -- As the code stands, this is the only guarantee we get that every -- value in the array will conform to the schema: the fact that we -- create the 'empty' version from the same schema template. --
     -- Is more type safety than that possible? Probably.
     -- Is it worth the research effort? Perhaps. :thinking_face:
     FormArray schema $ Array.snoc fields (toArgument initialValue schema)
 
-  rec (AddSubField _) arg = arg
+  rec AddSubField arg = arg
 
-  rec (RemoveSubField n subEvent) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
+  rec (RemoveSubField n) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
 
   rec _ arg = arg
 

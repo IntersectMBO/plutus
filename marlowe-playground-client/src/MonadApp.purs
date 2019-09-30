@@ -14,6 +14,7 @@ import Data.Array (fromFoldable)
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
+import Data.Json.JsonEither (JsonEither)
 import Data.Lens (assign, modifying, over, set, to, use, (^.))
 import Data.List as List
 import Data.List.NonEmpty as NEL
@@ -22,7 +23,6 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Json.JsonEither (JsonEither)
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect (Effect)
@@ -32,7 +32,7 @@ import FileEvents as FileEvents
 import Foreign.Class (encode)
 import Gist (Gist, GistId, NewGist)
 import Global.Unsafe (unsafeStringify)
-import Halogen (HalogenM, liftAff, liftEffect, query', raise)
+import Halogen (HalogenM, liftAff, liftEffect, query, raise)
 import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage as LocalStorage
@@ -46,7 +46,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, BlocklySlot(..), ChildQuery, ChildSlot, EditorSlot(EditorSlot), FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweState, Message(..), Query, WebData, _Head, _contract, _currentMarloweState, _editorErrors, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, cpBlockly, cpEditor, cpMarloweEditor, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorSlot, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
 
@@ -79,7 +79,7 @@ class
   checkContractForWarnings :: String -> m Unit
 
 newtype HalogenApp m a
-  = HalogenApp (HalogenM FrontendState Query ChildQuery ChildSlot Message m a)
+  = HalogenApp (HalogenM FrontendState HAction ChildSlots WebsocketMessage m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
@@ -144,8 +144,8 @@ instance monadAppHalogenApp ::
   postGist newGist = runAjax $ Server.postGists newGist
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContractHaskell source = runAjax $ Server.postContractHaskell source
-  resizeBlockly = wrap $ query' cpBlockly BlocklySlot (Resize unit)
-  setBlocklyCode source = wrap $ void $ query' cpBlockly BlocklySlot (SetCode source unit)
+  resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
+  setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
   checkContractForWarnings contract = do
     let msgString = unsafeStringify <<< encode $ CheckForWarnings contract
     wrap $ raise (WebsocketMessage msgString)
@@ -193,12 +193,12 @@ marloweEditorGetValueImpl = withMarloweEditor AceEditor.getValue
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
 
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState Query ChildQuery ChildSlot Message m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState HAction ChildSlots WebsocketMessage m a
 runHalogenApp = unwrap
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState Query ChildQuery ChildSlot Message m) a ->
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots WebsocketMessage m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
@@ -207,14 +207,14 @@ withHaskellEditor ::
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withHaskellEditor = HalogenApp <<< Editor.withEditor cpEditor EditorSlot
+withHaskellEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
 
 withMarloweEditor ::
   forall m a.
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withMarloweEditor = HalogenApp <<< Editor.withEditor cpMarloweEditor MarloweEditorSlot
+withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case runParser text contract of
@@ -292,4 +292,3 @@ stateToTxInput ms = let slot = ms ^. _slot
 -- | Apply a function to the head of a non-empty list and cons the result on
 extendWith :: forall a. (a -> a) -> NonEmptyList a -> NonEmptyList a
 extendWith f l = NEL.cons ((f <<< NEL.head) l) l
-

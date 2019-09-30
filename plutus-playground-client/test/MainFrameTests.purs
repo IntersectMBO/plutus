@@ -5,7 +5,6 @@ module MainFrameTests
 import Prelude
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Except (runExcept)
-import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
@@ -14,6 +13,7 @@ import Cursor as Cursor
 import Data.Array as Array
 import Data.Either (Either(Right, Left))
 import Data.Identity (Identity)
+import Data.Json.JsonEither (JsonEither)
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -22,28 +22,28 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Newtype (class Newtype, unwrap)
-import Data.Json.JsonEither (JsonEither)
 import Data.Symbol (SProxy(..))
+import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
-import MainFrame (eval, initialState)
+import MainFrame (handleAction, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
-import Playground.Types (CompilationResult, EvaluationResult)
 import Playground.Server (SPParams_(..))
+import Playground.Types (CompilationResult, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (Query(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (HAction(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: TestSuite
 all =
@@ -68,7 +68,7 @@ _editorContents = prop (SProxy :: SProxy "editorContents")
 _localStorage :: forall r a. Lens' { localStorage :: a | r } a
 _localStorage = prop (SProxy :: SProxy "localStorage")
 
--- | A dummy implementation of `MonadApp`, for testing the main eval loop.
+-- | A dummy implementation of `MonadApp`, for testing the main handleAction loop.
 newtype MockApp m a
   = MockApp (RWST (SPSettings_ SPParams_) Unit (Tuple World State) m a)
 
@@ -132,18 +132,14 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
       Loop cont -> tailRecM step cont
       Done result -> pure result
 
-execMockApp :: forall m a. Monad m => World -> Free Query a -> m (Tuple World State)
-execMockApp world query = do
+execMockApp :: forall m. Monad m => World -> Array HAction -> m (Tuple World State)
+execMockApp world queries = do
   RWSResult state result writer <-
     runRWST
-      (unwrap (foldFree eval query :: MockApp m a))
+      (unwrap (traverse_ handleAction queries :: MockApp m Unit))
       (defaultSettings (SPParams_ { baseURL: "/" }))
       (Tuple world initialState)
   pure state
-
--- | Simulate dispatching a Query.
-send :: forall f a. (Unit -> f a) -> Free f a
-send f = liftF $ f unit
 
 ------------------------------------------------------------
 mockWorld :: World
@@ -157,28 +153,29 @@ mockWorld =
 
 evalTests :: TestSuite
 evalTests =
-  suite "eval" do
+  suite "handleAction" do
     test "CheckAuthStatus" do
-      Tuple _ finalState <- execMockApp mockWorld $ send CheckAuthStatus
+      Tuple _ finalState <- execMockApp mockWorld [ CheckAuthStatus ]
       assert "Auth Status loaded." $ isSuccess (view _authStatus finalState)
     test "ChangeView" do
       quickCheck \aView -> do
         let
-          Tuple _ finalState = unwrap (execMockApp mockWorld (send $ ChangeView aView) :: Identity (Tuple World State))
+          Tuple _ finalState = unwrap (execMockApp mockWorld [ ChangeView aView ] :: Identity (Tuple World State))
         aView == view _currentView finalState
     suite "LoadGist" do
       test "Bad URL" do
         Tuple _ finalState <-
-          execMockApp mockWorld do
-            send $ SetGistUrl "9cfe"
-            send $ LoadGist
+          execMockApp mockWorld
+            [ SetGistUrl "9cfe"
+            , LoadGist
+            ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Invalid URL" do
         Tuple _ finalState <-
           execMockApp mockWorld
-            $ do
-                send $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                send $ LoadGist
+            [ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            , LoadGist
+            ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Successfully" do
         contents <- liftEffect $ FS.readTextFile UTF8 "test/gist1.json"
@@ -188,9 +185,9 @@ evalTests =
             Tuple finalWorld finalState <-
               execMockApp
                 (set (_gists <<< at (view gistId gist)) (Just gist) mockWorld)
-                $ do
-                    send $ SetGistUrl (unwrap (view gistId gist))
-                    send $ LoadGist
+                [ SetGistUrl (unwrap (view gistId gist))
+                , LoadGist
+                ]
             assert "Gist gets loaded." $ isSuccess (view _createGistResult finalState)
             equal'
               "Simulation gets loaded."
@@ -207,8 +204,8 @@ evalTests =
                   (preview (_localStorage <<< ix (unwrap bufferLocalStorageKey)) finalWorld)
     test "Loading a script works." do
       Tuple finalWorld finalState <-
-        execMockApp (set _editorContents Nothing mockWorld) do
-          send $ LoadScript "Game"
+        execMockApp (set _editorContents Nothing mockWorld)
+          [ LoadScript "Game" ]
       equal' "Script gets loaded."
         (Map.lookup "Game" StaticData.demoFiles)
         finalWorld.editorContents
@@ -218,16 +215,18 @@ evalTests =
             Left err -> failure err
             Right compilationResult -> do
               Tuple _ intermediateState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ ChangeView Simulations
-                  send $ LoadScript "Game"
-                  send $ CompileProgram
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ ChangeView Simulations
+                  , LoadScript "Game"
+                  , CompileProgram
+                  ]
               assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
               Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ LoadScript "Game"
-                  send $ CompileProgram
-                  send $ LoadScript "Game"
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ LoadScript "Game"
+                  , CompileProgram
+                  , LoadScript "Game"
+                  ]
               assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
               assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
               assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
@@ -237,9 +236,10 @@ evalTests =
             Left err -> failure err
             Right compilationResult -> do
               Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ ChangeView Simulations
-                  send $ LoadScript "Game"
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ ChangeView Simulations
+                  , LoadScript "Game"
+                  ]
               equal' "View is reset." Editor $ view _currentView finalState
 
 loadCompilationResponse1 ::

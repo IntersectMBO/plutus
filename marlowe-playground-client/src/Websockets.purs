@@ -10,9 +10,9 @@ import Data.Either (hush)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Foreign (Foreign, F, readString)
-import Halogen (action, liftEffect)
-import Types (Message(..), Query(..))
+import Types (HQuery(..), WebsocketMessage(..))
 import Web.Event.EventTarget (addEventListener, eventListener)
 import Web.Socket.Event.EventTypes (onMessage)
 import Web.Socket.Event.MessageEvent as MessageEvent
@@ -30,13 +30,13 @@ wsProducer socket = produce \emitter -> do
     readHelper :: forall a. (Foreign -> F a) -> Foreign -> Maybe a
     readHelper reader = hush <<< runExcept <<< reader
 
-wsConsumer :: (forall a. Query a -> Aff a) -> Consumer String Aff Unit
+wsConsumer :: (forall a. HQuery a -> Aff (Maybe a)) -> Consumer String Aff Unit
 wsConsumer query = CR.consumer \msg -> do
-  void <<< query <<< action $ RecieveWebsocketMessage msg
+  void $ query $ ReceiveWebsocketMessage msg unit
   pure Nothing
 
-wsSender :: WebSocket -> Consumer Message Aff Unit
-wsSender socket = CR.consumer \msg -> do
+wsSender :: WebSocket -> Consumer WebsocketMessage Aff Unit
+wsSender socket = CR.consumer $ \msg -> do
   case msg of
-    WebsocketMessage contents -> liftEffect $ WS.sendString socket contents
+    WebsocketMessage contents -> void $ liftEffect $ WS.sendString socket contents
   pure Nothing

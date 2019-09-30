@@ -1,6 +1,7 @@
 module Chain.View (chainView) where
 
 import Prelude hiding (div)
+
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
@@ -23,7 +24,6 @@ import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested ((/\))
-import Halogen (action)
 import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small_, span, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
@@ -35,11 +35,11 @@ import Ledger.Tx (AddressOf(..), TxOutOf(..))
 import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
-import Types (Query(..), _value)
+import Types (HAction(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
-chainView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p (Query Unit)
+chainView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p HAction
 chainView state walletKeys annotatedBlockchain =
   div
     [ classes
@@ -78,14 +78,14 @@ forgeClass = ClassName "forge"
 amountClass :: ClassName
 amountClass = ClassName "amount"
 
-chainSlotView :: forall p. State -> Array AnnotatedTx -> HTML p (Query Unit)
+chainSlotView :: forall p. State -> Array AnnotatedTx -> HTML p HAction
 chainSlotView state [] = empty
 
 chainSlotView state chainSlot =
   div [ classes [ col2, slotClass ] ]
     (blockView state <$> chainSlot)
 
-blockView :: forall p. State -> AnnotatedTx -> HTML p (Query Unit)
+blockView :: forall p. State -> AnnotatedTx -> HTML p HAction
 blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   div
     [ classes ([ card, clickable, ClassName "transaction" ] <> if isActive then [ active ] else [])
@@ -95,14 +95,14 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   where
   isActive = has (_chainFocus <<< _Just <<< _FocusTx <<< filtered (eq txId)) state
 
-detailView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p (Query Unit)
+detailView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p HAction
 detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
   Just annotatedTx -> transactionDetailView walletKeys annotatedBlockchain annotatedTx
   Nothing -> empty
 
 detailView state@{ chainFocus: Nothing } _ _ = empty
 
-transactionDetailView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p (Query Unit)
+transactionDetailView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p HAction
 transactionDetailView walletKeys annotatedBlockchain annotatedTx =
   div_
     [ row_
@@ -270,7 +270,7 @@ sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
 formatSequenceId :: SequenceId -> String
 formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
-dereferencedInputView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p (Query Unit)
+dereferencedInputView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p HAction
 dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
   txOutOfView true walletKeys refersTo
     $ case originatingTx of
@@ -289,7 +289,7 @@ dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { origin
   originatingTx :: Maybe AnnotatedTx
   originatingTx = preview (_findTx txId) annotatedBlockchain
 
-outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> AnnotatedBlockchain -> Int -> TxOutOf String -> HTML p (Query Unit)
+outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> AnnotatedBlockchain -> Int -> TxOutOf String -> HTML p HAction
 outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   txOutOfView false walletKeys txOut
     $ case consumedInTx of
@@ -306,7 +306,7 @@ outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   consumedInTx :: Maybe AnnotatedTx
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
-txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> Maybe (HTML p (Query Unit)) -> HTML p (Query Unit)
+txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> Maybe (HTML p HAction) -> HTML p HAction
 txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
@@ -391,12 +391,11 @@ showToken (TokenName { unTokenName: "" }) = "Lovelace"
 
 showToken (TokenName { unTokenName: name }) = name
 
-onClickFocusTx :: forall p. TxId -> IProp ( onClick :: MouseEvent | p ) (Query Unit)
+onClickFocusTx :: forall p. TxId -> IProp ( onClick :: MouseEvent | p ) HAction
 onClickFocusTx txId =
   onClick
     $ const
     $ Just
-    $ action
     $ SetChainFocus
     $ Just
     $ FocusTx

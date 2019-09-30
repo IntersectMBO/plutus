@@ -16,7 +16,7 @@ import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
 import Data.List (List)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
 import Data.Semiring (zero)
 import Data.Set (Set)
@@ -24,19 +24,17 @@ import Data.Set as Set
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HTML)
+import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
-import Halogen.HTML.Events (input)
+import Halogen.HTML (ClassName(ClassName), HTML, br_, div, div_, h2_, slot, text)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxIdOf(TxIdOf))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (map, show, ($), (<$>), (<<<), (<>))
-import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, Query(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, cpBalancesChart)
+import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
+import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 
 evaluationPane ::
@@ -44,7 +42,7 @@ evaluationPane ::
   MonadAff m =>
   State ->
   EvaluationResult ->
-  ParentHTML Query ChildQuery ChildSlot m
+  ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
   div_
     [ chainView
@@ -64,12 +62,12 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     , br_
     , div_
         [ h2_ [ text "Final Balances" ]
-        , slot'
-            cpBalancesChart
-            BalancesChartSlot
+        , slot
+            _balancesChartSlot
+            unit
             (chartist balancesChartOptions)
             (balancesToChartistData fundsDistribution)
-            (input HandleBalancesChartMessage)
+            (Just <<< HandleBalancesChartMessage)
         ]
     ]
 

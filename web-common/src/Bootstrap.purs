@@ -314,7 +314,7 @@ empty :: forall p i. HTML p i
 empty = text ""
 
 nbsp :: forall p i. HTML p i
-nbsp = text "\160"
+nbsp = text "\x00A0"
 
 badge :: ClassName
 badge = ClassName "badge"

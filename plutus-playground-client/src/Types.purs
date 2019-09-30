@@ -1,19 +1,16 @@
 module Types where
 
 import Prelude
+
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
-import Control.Comonad (class Comonad, extract)
-import Control.Extend (class Extend, extend)
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
-import Data.Either.Nested (Either2)
 import Data.Foldable (fold, foldMap)
-import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonEither (JsonEither)
@@ -34,12 +31,12 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Foreign (Foreign)
 import Foreign.Class (class Decode, class Encode, encode)
-import Foreign.Generic (aesonSumEncoding, defaultOptions, encodeJSON, genericDecode, genericEncode)
-import Foreign.Generic.Types (Options)
+import Foreign.Generic (defaultOptions, encodeJSON, genericDecode, genericEncode)
+import Foreign.Generic.Class (Options, aesonSumEncoding)
 import Foreign.Object as FO
 import Gist (Gist)
-import Halogen.Chartist (ChartistMessage, ChartistQuery)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
+import Halogen as H
+import Halogen.Chartist as Chartist
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, _PubKey)
@@ -182,35 +179,38 @@ toEvaluation sourceCode (Simulation { actions, wallets }) = do
 
 ------------------------------------------------------------
 data Query a
+
+data HAction
+  = Mounted
   -- SubEvents.
-  = HandleEditorMessage AceMessage a
-  | HandleDragEvent DragEvent a
-  | ActionDragAndDrop Int DragAndDropEventType DragEvent a
-  | HandleDropEvent DragEvent a
-  | HandleBalancesChartMessage ChartistMessage a
+  | HandleEditorMessage AceMessage
+  | HandleDragEvent DragEvent
+  | ActionDragAndDrop Int DragAndDropEventType DragEvent
+  | HandleDropEvent DragEvent
+  | HandleBalancesChartMessage Chartist.Message
   -- Gist support.
-  | CheckAuthStatus a
-  | PublishGist a
-  | SetGistUrl String a
-  | LoadGist a
+  | CheckAuthStatus
+  | PublishGist
+  | SetGistUrl String
+  | LoadGist
   -- Tabs.
-  | ChangeView View a
+  | ChangeView View
   -- Editor.
-  | LoadScript String a
-  | CompileProgram a
-  | ScrollTo { row :: Int, column :: Int } a
+  | LoadScript String
+  | CompileProgram
+  | ScrollTo { row :: Int, column :: Int }
   -- Simulations
-  | AddSimulationSlot a
-  | SetSimulationSlot Int a
-  | RemoveSimulationSlot Int a
+  | AddSimulationSlot
+  | SetSimulationSlot Int
+  | RemoveSimulationSlot Int
   -- Wallets.
-  | ModifyWallets WalletEvent a
+  | ModifyWallets WalletEvent
   -- Actions.
-  | ModifyActions ActionEvent a
-  | EvaluateActions a
-  | PopulateAction Int Int (FormEvent a)
+  | ModifyActions ActionEvent
+  | EvaluateActions
+  | PopulateAction Int Int FormEvent
   -- Chain.
-  | SetChainFocus (Maybe ChainFocus) a
+  | SetChainFocus (Maybe ChainFocus)
 
 data WalletEvent
   = AddWallet
@@ -251,52 +251,23 @@ data FieldEvent
   | SetValueField ValueEvent
   | SetSlotRangeField (Interval Slot)
 
-data FormEvent a
-  = SetField FieldEvent a
-  | SetSubField Int (FormEvent a)
-  | AddSubField a
-  | RemoveSubField Int a
-
-derive instance functorFormEvent :: Functor FormEvent
-
-instance extendFormEvent :: Extend FormEvent where
-  extend f event@(SetField fieldEvent a) = SetField fieldEvent (f event)
-  extend f event@(SetSubField n _) = SetSubField n $ extend f event
-  extend f event@(AddSubField _) = AddSubField $ f event
-  extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
-
-instance comonadFormEvent :: Comonad FormEvent where
-  extract (SetField _ a) = a
-  extract (SetSubField _ subEvent) = extract subEvent
-  extract (AddSubField a) = a
-  extract (RemoveSubField _ a) = a
+data FormEvent
+  = SetField FieldEvent
+  | SetSubField Int FormEvent
+  | AddSubField
+  | RemoveSubField Int
 
 ------------------------------------------------------------
-type ChildQuery
-  = Coproduct2 AceQuery ChartistQuery
+type ChildSlots =
+  ( editorSlot :: H.Slot AceQuery AceMessage Unit
+  , balancesChartSlot :: H.Slot Chartist.Query Chartist.Message Unit
+  )
 
-type ChildSlot
-  = Either2 EditorSlot BalancesChartSlot
+_editorSlot :: SProxy "editorSlot"
+_editorSlot = SProxy
 
-data EditorSlot
-  = EditorSlot
-
-derive instance eqComponentEditorSlot :: Eq EditorSlot
-
-derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data BalancesChartSlot
-  = BalancesChartSlot
-
-derive instance eqComponentBalancesChartSlot :: Eq BalancesChartSlot
-
-derive instance ordComponentBalancesChartSlot :: Ord BalancesChartSlot
-
-cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
-cpEditor = cp1
-
-cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlot
-cpBalancesChart = cp2
+_balancesChartSlot :: SProxy "balancesChartSlot"
+_balancesChartSlot = SProxy
 
 -----------------------------------------------------------
 type ChainSlot

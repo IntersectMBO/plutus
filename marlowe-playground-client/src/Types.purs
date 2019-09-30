@@ -8,10 +8,9 @@ import Blockly.Types (BlocklyState)
 import Data.Array (uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
-import Data.Either.Nested (Either3)
-import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonEither (JsonEither)
 import Data.Lens (Lens, Lens', lens, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -20,13 +19,12 @@ import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
-import Data.Json.JsonEither (JsonEither)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Gist (Gist)
+import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Observation, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
@@ -40,79 +38,60 @@ _Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a
 _Head = lens NEL.head (\l new -> let { head, tail } = NEL.uncons l in NEL.cons' new tail)
 
 ------------------------------------------------------------
-data Query a
-  -- Haskell Editor
-  = HandleEditorMessage AceMessage a
-  | HandleDragEvent DragEvent a
-  | HandleDropEvent DragEvent a
-  | MarloweHandleEditorMessage AceMessage a
-  | MarloweHandleDragEvent DragEvent a
-  | MarloweHandleDropEvent DragEvent a
-  -- Gist support.
-  | CheckAuthStatus a
-  | PublishGist a
-  | SetGistUrl String a
-  | LoadGist a
-  -- haskell actions
-  | ChangeView View a
-  | LoadScript String a
-  | CompileProgram a
-  | SendResult a
-  | ScrollTo { row :: Int, column :: Int } a
-  | LoadMarloweScript String a
-  -- marlowe actions
-  | ApplyTransaction a
-  | NextSlot a
-  | AddInput PubKey Input (Array Bound) a
-  | RemoveInput PubKey Input a
-  | SetChoice ChoiceId ChosenNum a
-  | ResetSimulator a
-  | Undo a
-  -- blockly
-  | HandleBlocklyMessage BlocklyMessage a
-  | SetBlocklyCode a
-  -- websocket
-  | AnalyseContract a
-  | RecieveWebsocketMessage String a
+data HQuery a
+  = ReceiveWebsocketMessage String a
 
-data Message = WebsocketMessage String
+data HAction
+  -- Haskell Editor
+  = HandleEditorMessage AceMessage
+  | HandleDragEvent DragEvent
+  | HandleDropEvent DragEvent
+  | MarloweHandleEditorMessage AceMessage
+  | MarloweHandleDragEvent DragEvent
+  | MarloweHandleDropEvent DragEvent
+  -- Gist support.
+  | CheckAuthStatus
+  | PublishGist
+  | SetGistUrl String
+  | LoadGist
+  -- haskell actions
+  | ChangeView View
+  | LoadScript String
+  | CompileProgram
+  | SendResult
+  | ScrollTo { row :: Int, column :: Int }
+  | LoadMarloweScript String
+  -- marlowe actions
+  | ApplyTransaction
+  | NextSlot
+  | AddInput PubKey Input (Array Bound)
+  | RemoveInput PubKey Input
+  | SetChoice ChoiceId ChosenNum
+  | ResetSimulator
+  | Undo
+  -- blockly
+  | HandleBlocklyMessage BlocklyMessage
+  | SetBlocklyCode
+  -- websocket
+  | AnalyseContract
+
+data WebsocketMessage = WebsocketMessage String
 
 ------------------------------------------------------------
-type ChildQuery
-  = Coproduct3 AceQuery AceQuery BlocklyQuery
+type ChildSlots =
+  ( editorSlot :: H.Slot AceQuery AceMessage Unit
+  , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
+  , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
+  )
 
-type ChildSlot
-  = Either3 EditorSlot MarloweEditorSlot BlocklySlot
+_editorSlot :: SProxy "editorSlot"
+_editorSlot = SProxy
 
-data EditorSlot
-  = EditorSlot
+_marloweEditorSlot :: SProxy "marloweEditorSlot"
+_marloweEditorSlot = SProxy
 
-derive instance eqComponentEditorSlot :: Eq EditorSlot
-
-derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data MarloweEditorSlot
-  = MarloweEditorSlot
-
-derive instance eqComponentMarloweEditorSlot :: Eq MarloweEditorSlot
-
-derive instance ordComponentMarloweEditorSlot :: Ord MarloweEditorSlot
-
-data BlocklySlot
-  = BlocklySlot
-
-derive instance eqBlocklySlot :: Eq BlocklySlot
-
-derive instance ordBlocklySlot :: Ord BlocklySlot
-
-cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
-cpEditor = cp1
-
-cpMarloweEditor :: ChildPath AceQuery ChildQuery MarloweEditorSlot ChildSlot
-cpMarloweEditor = cp2
-
-cpBlockly :: ChildPath BlocklyQuery ChildQuery BlocklySlot ChildSlot
-cpBlockly = cp3
+_blocklySlot :: SProxy "blocklySlot"
+_blocklySlot = SProxy
 
 -----------------------------------------------------------
 data View
@@ -275,8 +254,8 @@ minimumBound bnds =
     Nothing -> zero
 
 actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
-actionToActionInput state (Deposit accountId party value) = 
-  let minSlot = state ^. _minSlot 
+actionToActionInput state (Deposit accountId party value) =
+  let minSlot = state ^. _minSlot
       env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
   in Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
