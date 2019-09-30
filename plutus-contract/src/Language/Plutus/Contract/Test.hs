@@ -53,9 +53,11 @@ import qualified Language.Plutus.Contract.Resumable    as State
 import           Language.Plutus.Contract.Tx           (UnbalancedTx)
 import           Language.PlutusTx.Lattice
 
+import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoints
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
+import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
 import qualified Ledger.Ada                            as Ada
@@ -167,7 +169,7 @@ interestingAddress w addr = PredF $ \(_, r) -> do
 
 tx
     :: forall s.
-       ( HasType "tx" WriteTx.PendingTransactions (Output s)
+       ( HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup)
@@ -233,7 +235,7 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
 
 waitingForSlot
     :: forall s.
-       ( HasType "slot" AwaitSlot.WaitingForSlot (Output s)
+       ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
@@ -269,7 +271,7 @@ emulatorLog f nm = PredF $ \(_, r) ->
 
 anyTx
     :: forall s.
-       ( HasType "tx" WriteTx.PendingTransactions (Output s)
+       ( HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup

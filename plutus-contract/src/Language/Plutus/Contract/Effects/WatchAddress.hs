@@ -30,12 +30,14 @@ import           Language.Plutus.Contract.Request           (Contract, ContractR
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Util              (loopM)
 
+type AddressSymbol = "address"
+
 type HasWatchAddress s =
-    ( HasType "address" (Address, Tx) (Input s)
-    , HasType "address" (Set Address) (Output s)
+    ( HasType AddressSymbol (Address, Tx) (Input s)
+    , HasType AddressSymbol (Set Address) (Output s)
     , ContractRow s)
 
-type WatchAddress = "address" .== ((Address, Tx), Set Address)
+type WatchAddress = AddressSymbol .== ((Address, Tx), Set Address)
 
 newtype InterestingAddresses =
     InterestingAddresses  { unInterestingAddresses :: Set Address }
@@ -49,7 +51,7 @@ nextTransactionAt addr =
         check :: (Address, Tx) -> Maybe Tx
         check (addr', tx) = if addr == addr' then Just tx else Nothing
     in
-    requestMaybe @"address" @_ @_ @s s check
+    requestMaybe @AddressSymbol @_ @_ @s s check
 
 -- | Watch an address until the given slot, then return all known outputs
 --   at the address.
@@ -82,7 +84,7 @@ fundsAtAddressGt addr' vl = loopM go mempty where
 
 events
     :: forall s.
-       ( HasType "address" (Address, Tx) (Input s)
+       ( HasType AddressSymbol (Address, Tx) (Input s)
        , AllUniqueLabels (Input s)
        )
     => AddressMap
@@ -90,12 +92,12 @@ events
     -> Map Address (Event s)
 events utxo tx =
     Map.fromSet
-        (\addr -> Event $ IsJust (Label @"address") (addr, tx))
+        (\addr -> Event $ IsJust (Label @AddressSymbol) (addr, tx))
         (AM.addressesTouched utxo tx)
 
 addresses
     :: forall s.
-    ( HasType "address" (Set Address) (Output s))
+    ( HasType AddressSymbol (Set Address) (Output s))
     => Handlers s
     -> Set Address
-addresses (Handlers r) = r .! Label @"address"
+addresses (Handlers r) = r .! Label @AddressSymbol

@@ -24,9 +24,11 @@ import           Language.Plutus.Contract.Util    (foldMaybe, selectEither)
 
 import           Ledger.Slot                      (Slot)
 
+type SlotSymbol = "slot"
+
 type HasAwaitSlot s =
-  ( HasType "slot" Slot (Input s)
-  , HasType "slot" WaitingForSlot (Output s)
+  ( HasType SlotSymbol Slot (Input s)
+  , HasType SlotSymbol WaitingForSlot (Output s)
   , ContractRow s
   )
 
@@ -36,7 +38,7 @@ newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Maybe Slot }
   deriving Semigroup via Maybe (Min Slot)
   deriving Monoid via Maybe (Min Slot)
 
-type AwaitSlot = "slot" .== (Slot, WaitingForSlot)
+type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 
 -- | A contract that waits until the slot is reached, then returns the
 --   current slot.
@@ -50,11 +52,11 @@ awaitSlot sl =
       check :: Slot -> Maybe Slot
       check sl' = if sl' >= sl then Just sl' else Nothing
   in
-  requestMaybe @"slot" @_ @_ @s s check
+  requestMaybe @SlotSymbol @_ @_ @s s check
 
 event
     :: forall s.
-    ( HasType "slot" Slot (Input s)
+    ( HasType SlotSymbol Slot (Input s)
     , AllUniqueLabels (Input s))
     => Slot
     -> Event s
@@ -62,7 +64,7 @@ event = Event . IsJust #slot
 
 nextSlot
     :: forall s.
-    ( HasType "slot" WaitingForSlot (Output s))
+    ( HasType SlotSymbol WaitingForSlot (Output s))
     => Handlers s
     -> Maybe Slot
 nextSlot (Handlers r) = unWaitingForSlot (r .! #slot)
