@@ -21,6 +21,7 @@ cabal-dev
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
+cabal.project.local
 
 # Stack
 .stack-work
