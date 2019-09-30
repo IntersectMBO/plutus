@@ -44,10 +44,6 @@ module Language.PlutusTx.Prelude (
     dropByteString,
     concatenate,
     emptyByteString,
-    -- * Sealed
-    Sealed,
-    seal,
-    unseal,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
@@ -57,9 +53,9 @@ module Language.PlutusTx.Prelude (
 
 import           Language.PlutusTx.Applicative as Applicative
 import           Language.PlutusTx.Bool        as Bool
-import           Language.PlutusTx.Builtins    (ByteString, Sealed, concatenate, dropByteString, emptyByteString,
-                                                equalsByteString, greaterThanByteString, lessThanByteString, seal,
-                                                sha2_256, sha3_256, takeByteString, unseal, verifySignature)
+import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString,
+                                                equalsByteString, greaterThanByteString, lessThanByteString, sha2_256,
+                                                sha3_256, takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins    as Builtins
 import           Language.PlutusTx.Eq          as Eq
 import           Language.PlutusTx.Functor     as Functor

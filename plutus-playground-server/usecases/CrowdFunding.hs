@@ -27,6 +27,7 @@ import           Ledger                    (Address, DataScript (DataScript), Pe
                                             scriptAddress, valueSpent)
 import qualified Ledger.Interval           as Interval
 import           Ledger.Slot               (Slot, SlotRange)
+import           Ledger.Typed.Scripts      (wrapValidator)
 import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
@@ -81,6 +82,15 @@ refundRange cmp =
 data CampaignAction = Collect | Refund
     deriving (Generic, ToJSON, FromJSON, ToSchema)
 
+instance PlutusTx.IsData CampaignAction where
+    toData Collect = PlutusTx.Constr 0 []
+    toData Refund = PlutusTx.Constr 1 []
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [])
+        | i == 0 = Just Collect
+        | i == 1 = Just Refund
+    fromData _ = Nothing
+
 PlutusTx.makeLift ''CampaignAction
 
 -- | The validator script is a function of three arguments:
@@ -131,9 +141,9 @@ mkValidator c con act p = case act of
 --
 contributionScript :: Campaign -> ValidatorScript
 contributionScript cmp  = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted cmp
+    $$(Ledger.compileScript [|| \c -> wrap (mkValidator c) ||])
+        `Ledger.applyScript` Ledger.lifted cmp
+    where wrap = wrapValidator @PubKey @CampaignAction
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
@@ -145,7 +155,7 @@ contribute :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> Value -> m ()
 contribute deadline target collectionDeadline ownerWallet value = do
     let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     ownPK <- ownPubKey
-    let ds = DataScript (Ledger.lifted ownPK)
+    let ds = DataScript (PlutusTx.toData ownPK)
         range = W.interval 1 (campaignDeadline cmp)
 
     -- `payToScript` is a function of the wallet API. It takes a campaign
@@ -174,7 +184,7 @@ scheduleCollection deadline target collectionDeadline ownerWallet = do
     let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
-        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+        let redeemerScript = Ledger.RedeemerScript (PlutusTx.toData Collect)
             range = collectionRange cmp
         collectFromScript range (contributionScript cmp) redeemerScript))
 
@@ -196,7 +206,7 @@ refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
 refundHandler txid cmp = EventHandler (\_ -> do
     logMsg "Claiming refund"
     let validatorScript = contributionScript cmp
-        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted Refund)
+        redeemerScript  = Ledger.RedeemerScript (PlutusTx.toData Refund)
 
     -- `collectFromScriptTxn` generates a transaction that spends the unspent
     -- transaction outputs at the address of the validator scripts, *but* only

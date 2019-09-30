@@ -79,11 +79,11 @@ gameValidator =
 
 gameDataScript :: String -> DataScript
 gameDataScript =
-    Ledger.DataScript . Ledger.lifted . PlutusTx.toData . HashedString . Ledger.plcSHA2_256 . C.pack
+    Ledger.DataScript . PlutusTx.toData . HashedString . Ledger.plcSHA2_256 . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =
-    Ledger.RedeemerScript . Ledger.lifted . PlutusTx.toData . ClearString . C.pack
+    Ledger.RedeemerScript . PlutusTx.toData . ClearString . C.pack
 
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator

@@ -1,7 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -25,7 +27,8 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
                                              RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
-                                             compileScript, scriptAddress, lifted)
+                                             compileScript, scriptAddress)
+import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
 import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
@@ -33,10 +36,10 @@ import           Wallet                     (MonadWallet, WalletAPI, WalletDiagn
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-data DataValue = DataValue Integer
+newtype DataValue = DataValue Integer deriving newtype PlutusTx.IsData
 PlutusTx.makeLift ''DataValue
 
-data RedeemerValue = RedeemerValue Integer
+newtype RedeemerValue = RedeemerValue Integer deriving newtype PlutusTx.IsData
 PlutusTx.makeLift ''RedeemerValue
 
 -- | This method is the spending validator (which gets lifted to
@@ -48,17 +51,18 @@ validateSpend _dataValue _redeemerValue _ = error () -- Please provide an implem
 --   the on-chain representation.
 contractValidator :: ValidatorScript
 contractValidator =
-    ValidatorScript ($$(Ledger.compileScript [|| validateSpend ||]))
+    ValidatorScript ($$(Ledger.compileScript [|| wrap validateSpend ||]))
+    where wrap = wrapValidator @DataValue @RedeemerValue
 
 -- | Helper function used to build the DataScript.
 mkDataScript :: Integer -> DataScript
 mkDataScript =
-    DataScript . lifted . DataValue
+    DataScript . PlutusTx.toData . DataValue
 
 -- | Helper function used to build the RedeemerScript.
 mkRedeemerScript :: Integer -> RedeemerScript
 mkRedeemerScript =
-    RedeemerScript . lifted . RedeemerValue
+    RedeemerScript . PlutusTx.toData . RedeemerValue
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address

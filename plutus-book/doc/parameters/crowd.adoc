@@ -2,8 +2,10 @@
 ----
 {-# LANGUAGE DataKinds                       #-}
 {-# LANGUAGE DeriveAnyClass                  #-} -- <1>
+{-# LANGUAGE DerivingStrategies              #-}
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
+{-# LANGUAGE TypeApplications                #-}
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
@@ -13,6 +15,7 @@ import Language.PlutusTx
 import Language.PlutusTx.Prelude
 import Ledger
 import Ledger.Ada
+import Ledger.Typed.Scripts             (wrapValidator)
 import Playground.Contract
 import Wallet
 
@@ -47,6 +50,16 @@ We therefore will use the following type for the redeemer scripts:
 [source,haskell]
 ----
 data CampaignAction = Collect | Refund
+
+instance IsData CampaignAction where
+    toData Collect = Constr 0 []
+    toData Refund = Constr 1 []
+    {-# INLINABLE fromData #-}
+    fromData (Constr i [])
+        | i == 0 = Just Collect
+        | i == 1 = Just Refund
+    fromData _ = Nothing
+
 makeLift ''CampaignAction
 ----
 
@@ -69,6 +82,7 @@ So for our data scripts we will use:
 [source,haskell]
 ----
 newtype Contributor = Contributor {getContributor :: PubKey} -- <1>
+    deriving newtype IsData
 makeLift ''Contributor
 ----
 
@@ -81,10 +95,10 @@ scripts:
 [source,haskell]
 ----
 mkRedeemerScript :: CampaignAction -> RedeemerScript
-mkRedeemerScript = RedeemerScript . lifted
+mkRedeemerScript = RedeemerScript . toData
 
 mkDataScript :: PubKey -> DataScript
-mkDataScript = DataScript . lifted . Contributor
+mkDataScript = DataScript . toData . Contributor
 ----
 
 Let us turn our attention to the validator script now! As in the last example,
@@ -164,7 +178,7 @@ this:
 ----
 toContributor :: Contributor -> PendingTxOut -> Bool
 toContributor (Contributor key) o = case pendingTxOutData o of
-    DataTxOut        -> False       -- <1>
+    DataTxOut _      -> False       -- <1>
     PubKeyTxOut key' -> key' == key -- <2>
 ----
 
@@ -218,7 +232,8 @@ parameters.
 ----
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript $
-    $$(compileScript [|| validate ||]) `applyScript` lifted campaign
+    $$(compileScript [|| \c -> wrap (validate c) ||]) `applyScript` lifted campaign
+    where wrap = wrapValidator @Contributor @CampaignAction
 ----
 
 This is all we have to do for the on-chain code, so let us now turn our

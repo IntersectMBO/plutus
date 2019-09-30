@@ -1,17 +1,20 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 module Language.PlutusTx.Data where
 
-import           Prelude              hiding (fail)
+import           Prelude                   hiding (fail)
 
-import           Data.Bifunctor       (bimap)
-import           Data.Bitraversable   (bitraverse)
-import           Data.ByteString.Lazy as BSL
+import           Data.Bifunctor            (bimap)
+import           Data.Bitraversable        (bitraverse)
+import           Data.ByteString.Lazy      as BSL
 
 import           Control.Monad.Fail
 
-import qualified Codec.CBOR.Term      as CBOR
-import qualified Codec.Serialise      as Serialise
+import qualified Codec.CBOR.Term           as CBOR
+import qualified Codec.Serialise           as Serialise
 
+import           Data.Text.Prettyprint.Doc
 
 -- | A generic "data" type.
 --
@@ -24,7 +27,14 @@ data Data =
     | Map [(Data, Data)]
     | I Integer
     | B ByteString
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord)
+
+instance Pretty Data where
+    pretty = \case
+        Constr _ ds -> brackets (sep (punctuate comma (fmap pretty ds)))
+        Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
+        I i -> pretty i
+        B b -> viaShow b
 
 type CBORToDataError = String
 

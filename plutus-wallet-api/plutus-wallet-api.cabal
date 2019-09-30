@@ -73,6 +73,7 @@ library
         Ledger.Index,
         Ledger.Interval,
         Ledger.Value,
+        Ledger.Typed.Scripts,
         Ledger.Typed.Tx,
         LedgerBytes
     default-language: Haskell2010
@@ -121,6 +122,7 @@ library plutus-ledger
         Ledger.Interval
         Ledger.Value
         LedgerBytes
+        Ledger.Typed.Scripts
         Ledger.Typed.Tx
         Ledger.Typed.TypeUtils
     build-depends:

@@ -20,6 +20,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.Vesting where
 
@@ -32,6 +33,7 @@ import           Ledger                    (Address, DataScript(..), RedeemerScr
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
+import           Ledger.Typed.Scripts      (wrapValidator)
 import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
@@ -124,9 +126,9 @@ That gives our validator script the signature: `Vesting -> () -> () -> PendingTx
 ----
 vestingValidatorScript :: Vesting -> ValidatorScript
 vestingValidatorScript v = ValidatorScript $
-    $$(L.compileScript [|| vestingValidator ||]) `L.applyScript` L.lifted v
+    $$(L.compileScript [|| \vd -> wrapValidator (vestingValidator vd) ||]) `L.applyScript` L.lifted v
 
-vestingValidator :: Vesting -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+vestingValidator :: Vesting -> () -> () -> PendingTx -> Bool
 vestingValidator v@(Vesting {vestingTranche1, vestingTranche2, vestingOwner}) _ _ p@PendingTx{pendingTxValidRange = range} =
     let
         -- We need the hash of this validator script in order to ensure
@@ -188,7 +190,7 @@ vestFunds :: MonadWallet m => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (L.lifted (PlutusTx.toData ()))
+        dataScript = DataScript (PlutusTx.toData ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: MonadWallet m =>  Vesting -> m ()
@@ -222,7 +224,7 @@ withdraw vst vl = do
 
     let
         -- the redeemer script containing the unit value ()
-        redeemer  = RedeemerScript (L.lifted (PlutusTx.toData ()))
+        redeemer  = RedeemerScript (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
@@ -253,7 +255,7 @@ that keeps the remaining value.
 
         otherOutputs = if Value.isZero remaining
                        then []
-                       else [L.scriptTxOut remaining validator (DataScript (L.lifted (PlutusTx.toData ())))]
+                       else [L.scriptTxOut remaining validator (DataScript (PlutusTx.toData ()))]
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)

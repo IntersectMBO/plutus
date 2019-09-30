@@ -32,6 +32,7 @@ import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Typed.Tx              as Typed
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import           Wallet
@@ -199,8 +200,8 @@ valuePaid (Payment vl pk _) ptx = vl == (Validation.valuePaidTo ptx pk)
 --   @state@ and the input.
 --   'step' does not perform any checks of the preconditions. This is done in
 --   'check' below.
-step :: PlutusTx.Data -> PlutusTx.Data -> Maybe PlutusTx.Data
-step (PlutusTx.fromData -> Just s) (PlutusTx.fromData -> Just i) = PlutusTx.toData <$> case (s, i) of
+step :: State -> Input -> Maybe State
+step s i = case (s, i) of
     (Holding vl, ProposePayment pmt) ->
         Just $ CollectingSignatures vl pmt []
     (CollectingSignatures vl pmt pks, AddSignature pk) ->
@@ -211,14 +212,13 @@ step (PlutusTx.fromData -> Just s) (PlutusTx.fromData -> Just i) = PlutusTx.toDa
         let vl' = vl - vp in
         Just $ Holding vl'
     _ -> Nothing
-step _ _ = Nothing
 
 {-# INLINABLE check #-}
 -- | @check params ptx state input@ checks whether the pending
 --   transaction @ptx@ pays the expected amounts to script and public key
 --   addresses.
-check :: Params -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-check p (PlutusTx.fromData -> Just s) (PlutusTx.fromData -> Just i) ptx = case (s, i) of
+check :: Params -> State -> Input -> PendingTx -> Bool
+check p s i ptx = case (s, i) of
     (Holding vl, ProposePayment pmt) ->
         isValidProposal vl pmt && valuePreserved vl ptx
     (CollectingSignatures vl _ pks, AddSignature pk) ->
@@ -235,36 +235,37 @@ check p (PlutusTx.fromData -> Just s) (PlutusTx.fromData -> Just i) ptx = case (
             valuePreserved vl' ptx &&
             valuePaid pmt ptx
     _ -> False
-check _ _ _ _ = False
 
 {-# INLINABLE final #-}
 -- | The machine is in a final state if we are holding no money.
-final :: PlutusTx.Data -> Bool
-final (PlutusTx.fromData -> Just (Holding v)) = Value.isZero v
+final :: State -> Bool
+final (Holding v) = Value.isZero v
 final _ = False
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Params -> Typed.ValidatorType MultiSigSym
+mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
-validatorCode :: Params -> PlutusTx.CompiledCode (Typed.ValidatorType MultiSigSym)
+validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
-type MultiSigSym = StateMachine PlutusTx.Data PlutusTx.Data
-scriptInstance :: Params -> Typed.ScriptInstance MultiSigSym
-scriptInstance params = Typed.Validator $ validatorCode params
+type MultiSigSym = StateMachine State Input
+scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
+scriptInstance params = Scripts.Validator @MultiSigSym
+    (validatorCode params)
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator @State @Input
 
-machineInstance :: Params -> SM.StateMachineInstance PlutusTx.Data PlutusTx.Data
+machineInstance :: Params -> SM.StateMachineInstance State Input
 machineInstance params =
     SM.StateMachineInstance
     (StateMachine step (check params) final)
     (scriptInstance params)
-    stepRedeemerCode
-    haltRedeemerCode
 
 -- | Start watching the contract address
 initialise :: WalletAPI m => Params -> m ()
-initialise = WAPI.startWatching . Typed.scriptAddress . scriptInstance
+initialise = WAPI.startWatching . Scripts.scriptAddress . scriptInstance
 
 -- | Lock some funds in a multisig contract.
 lock
@@ -276,13 +277,11 @@ lock
     -> m State
     -- ^ The initial state of the contract
 lock prms vl = do
-    (tx, state) <- SM.mkInitialise (machineInstance prms) (PlutusTx.toData $ Holding vl) vl
+    (tx, state) <- SM.mkInitialise (machineInstance prms) (Holding vl) vl
 
     void $ WAPITyped.signTxAndSubmit tx
 
-    case PlutusTx.fromData state of
-        Just s -> pure s
-        Nothing -> WAPI.throwOtherError "Cannot decode state"
+    pure state
 
 -- | Propose a payment from funds that are locked up in a state-machine based
 --   multisig contract.
@@ -331,32 +330,15 @@ makePayment prms currentState = do
                 withPubKeyOut = tx { Typed.tyTxPubKeyTxOuts = [pkOut] }
             void $ WAPITyped.signTxAndSubmit withPubKeyOut
 
-    st <- if Value.isZero valueLeft
-          then do
-              (scriptTx, newState) <- SM.mkHalt
-                  (machineInstance prms)
-                  (PlutusTx.toData currentState)
-                  (PlutusTx.toData Pay)
-              addOutAndPay scriptTx
-              pure newState
-          else do
-              (scriptTx, newState) <- SM.mkStep
-                  (machineInstance prms)
-                  (PlutusTx.toData currentState)
-                  (PlutusTx.toData Pay)
-                  (const valueLeft)
-              addOutAndPay scriptTx
-              pure newState
-
-    case PlutusTx.fromData st of
-        Just s -> pure s
-        Nothing -> WAPI.throwOtherError "Cannot decode state"
-
-stepRedeemerCode :: PlutusTx.CompiledCode (PlutusTx.Data -> Typed.RedeemerFunctionType '[MultiSigSym] MultiSigSym)
-stepRedeemerCode = $$(PlutusTx.compile [|| SM.mkStepRedeemer @PlutusTx.Data @PlutusTx.Data ||])
-
-haltRedeemerCode :: PlutusTx.CompiledCode (PlutusTx.Data -> Typed.RedeemerFunctionType '[] MultiSigSym)
-haltRedeemerCode = $$(PlutusTx.compile [|| SM.mkHaltRedeemer @PlutusTx.Data @PlutusTx.Data ||])
+    if Value.isZero valueLeft
+    then do
+        (scriptTx, newState) <- SM.mkHalt (machineInstance prms) currentState Pay
+        addOutAndPay scriptTx
+        pure newState
+    else do
+        (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState Pay (const valueLeft)
+        addOutAndPay scriptTx
+        pure newState
 
 -- | Advance a running multisig contract. This applies the transition function
 --   'SM.transition' to the current contract state and uses the result to unlock
@@ -374,19 +356,13 @@ runStep
     -> m State
     -- ^ New state after applying the input
 runStep prms currentState input = do
-    (scriptTx, newState) <- SM.mkStep
-        (machineInstance prms)
-        (PlutusTx.toData currentState)
-        (PlutusTx.toData input)
-        id
+    (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState input id
 
     -- Need to match to get the existential type out
     case scriptTx of
         (Typed.TypedTxSomeIns tx) -> void $ WAPITyped.signTxAndSubmit tx
 
-    case PlutusTx.fromData newState of
-        Just s -> pure s
-        Nothing -> WAPI.throwOtherError "Cannot decode state"
+    pure newState
 
 {- Note [Current state of the contract]
 

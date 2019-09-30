@@ -13,6 +13,7 @@ module NonFungible.NonFungible3 where
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -51,13 +52,11 @@ validateNonFungible nf () name tx =
             1
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
 mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . lifted
 
 nonFungibleAddress :: NonFungible -> Address

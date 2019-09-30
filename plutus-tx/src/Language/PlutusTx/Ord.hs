@@ -1,9 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Ord (Ord(..)) where
+module Language.PlutusTx.Ord (Ord(..), Max (..), Min (..)) where
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins  as Builtins
+import           Language.PlutusTx.Data
 import           Language.PlutusTx.Eq
-import           Prelude                    hiding (Eq (..), Ord (..))
+import           Language.PlutusTx.Semigroup
+import           Prelude                     hiding (Eq (..), Ord (..), Semigroup (..))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -61,9 +63,7 @@ instance Ord a => Ord [a] where
     compare []     []     = EQ
     compare []     (_:_)  = LT
     compare (_:_)  []     = GT
-    compare (x:xs) (y:ys) = case compare x y of
-                                EQ    -> compare xs ys
-                                other -> other
+    compare (x:xs) (y:ys) = compare x y <> compare xs ys
 
 instance Ord Bool where
     {-# INLINABLE compare #-}
@@ -95,7 +95,37 @@ instance Ord () where
 
 instance (Ord a, Ord b) => Ord (a, b) where
     {-# INLINABLE compare #-}
-    compare (a, b) (a', b') = case compare a a' of
-        LT -> LT
-        GT -> GT
-        EQ -> compare b b'
+    compare (a, b) (a', b') = compare a a' <> compare b b'
+
+instance Ord Data where
+    {-# INLINABLE compare #-}
+    compare (Constr i args) (Constr i' args') = compare i i' <> compare args args'
+    compare Constr{} _                        = LT
+    compare _ Constr {}                       = GT
+    compare (Map entries) (Map entries')      = compare entries entries'
+    compare Map{} _                           = LT
+    compare _ Map{}                           = GT
+    compare (I i) (I i')                      = compare i i'
+    compare I{} _                             = LT
+    compare _ I{}                             = GT
+    compare (B b) (B b')                      = compare b b'
+
+newtype Max a = Max { getMax :: a }
+
+instance Functor Max where
+    {-# INLINABLE fmap #-}
+    fmap f (Max a) = Max (f a)
+
+instance Ord a => Semigroup (Max a) where
+    {-# INLINABLE (<>) #-}
+    (Max a1) <> (Max a2) = Max (max a1 a2)
+
+newtype Min a = Min { getMin :: a }
+
+instance Functor Min where
+    {-# INLINABLE fmap #-}
+    fmap f (Min a) = Min (f a)
+
+instance Ord a => Semigroup (Min a) where
+    {-# INLINABLE (<>) #-}
+    (Min a1) <> (Min a2) = Min (min a1 a2)

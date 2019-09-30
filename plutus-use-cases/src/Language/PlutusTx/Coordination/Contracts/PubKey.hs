@@ -35,8 +35,8 @@ pkValidator pk = ValidatorScript $
 lock :: (WalletAPI m, WalletDiagnostics m) => PubKey -> Value -> m (Address, TxIn)
 lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
     addr = Ledger.scriptAddress (pkValidator pk)
-    pkDataScript = DataScript $ Ledger.lifted $ PlutusTx.toData ()
-    pkRedeemer = RedeemerScript $ Ledger.lifted $ PlutusTx.toData ()
+    pkDataScript = DataScript $ PlutusTx.toData ()
+    pkRedeemer = RedeemerScript $ PlutusTx.toData ()
 
     getRef tx = do
         let scriptOuts = listToMaybe

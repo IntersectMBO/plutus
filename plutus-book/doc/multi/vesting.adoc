@@ -13,6 +13,7 @@ import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
 import           Ledger.Ada
+import           Ledger.Typed.Scripts       (wrapValidator)
 import           Playground.Contract
 import           Wallet
 
@@ -74,15 +75,11 @@ So we can choose `()` for the redeemer scripts, too.
 [source,haskell]
 ----
 dataScript :: DataScript
-dataScript = DataScript $ lifted ()
+dataScript = DataScript $ toData ()
 
-redeemerScript1 :: RedeemerScript
-redeemerScript1 = RedeemerScript $
-    -- The redeemer is passed the data script (unit), which it just ignores.
-    $$(Ledger.compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
-
-redeemerScript0 :: RedeemerScript
-redeemerScript0 = RedeemerScript $ $$(Ledger.compileScript [|| () ||])
+-- The redeemer is passed the data script (unit), which it just ignores.
+redeemerScript :: RedeemerScript
+redeemerScript = RedeemerScript $ toData ()
 ----
 
 We are now in a position to define the validator script.
@@ -109,7 +106,7 @@ validate v () () tx =
 
 mkValidatorScript :: Vesting -> ValidatorScript
 mkValidatorScript = ValidatorScript
-                  . applyScript $$(compileScript [|| validate ||])
+                  . applyScript $$(compileScript [|| \v -> wrapValidator (validate v) ||])
                   . lifted
 ----
 
@@ -187,8 +184,7 @@ withdraw t1 t2 ada = do
     let o = pubKeyTxOut (toValue ada) key
 
     let change = locked utxos - ada         -- <2>
-        fundsRemaining = change > 0
-        outs = if fundsRemaining
+        outs = if change > 0
             then [ o
                  , scriptTxOut
                     (toValue change)
@@ -199,19 +195,18 @@ withdraw t1 t2 ada = do
 
     void $ createTxAndSubmit
         range
-        (ins v utxos fundsRemaining)
+        (ins v utxos)
         outs
 
   where
     ins :: Vesting                                -- <3>
         -> Map TxOutRef TxOut
-        -> Bool
         -> Set TxIn
-    ins v utxos outputsUseDataScript = Set.fromList
+    ins v utxos = Set.fromList
         [ scriptTxIn
             r
             (mkValidatorScript v)
-            (if outputsUseDataScript then redeemerScript1 else redeemerScript0)
+            redeemerScript
         | r <- Map.keys utxos
         ]
 

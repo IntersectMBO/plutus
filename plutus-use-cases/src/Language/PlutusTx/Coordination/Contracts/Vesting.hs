@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
@@ -35,8 +35,9 @@ import           Ledger                       (DataScript (..), Slot(..), PubKey
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
-import           Ledger.Scripts               (ValidatorHash, HashedDataScript)
+import           Ledger.Scripts               (ValidatorHash)
 import qualified Ledger.Scripts               as Scripts
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
@@ -113,19 +114,15 @@ vestFunds vst value = do
     _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange (value + transactionFee)
     let vs = validatorScript vst
-        o = scriptTxOut value vs (DataScript $  Ledger.lifted $ PlutusTx.toData vd)
+        o = scriptTxOut value vs (DataScript $ PlutusTx.toData vd)
         vd =  VestingData (validatorScriptHash vst) zero
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
-
-redeemerScript :: RedeemerScript
-redeemerScript = RedeemerScript $ $$(Ledger.compileScript [|| \(_ :: Sealed (HashedDataScript PlutusTx.Data)) -> PlutusTx.toData () ||])
 
 -- | Retrieve some of the vested funds.
 retrieveFunds :: (
     Monad m,
     WalletAPI m)
-
     => Vesting
     -- ^ Definition of vesting scheme
     -> VestingData
@@ -139,10 +136,10 @@ retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     currentSlot <- slot
     let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ Ledger.lifted $ PlutusTx.toData vd')
+        o   = scriptTxOut remaining val (DataScript $ PlutusTx.toData vd')
         remaining = totalAmount vs - vnow
         vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
-        inp = scriptTxIn r val redeemerScript
+        inp = scriptTxIn r val (RedeemerScript $ PlutusTx.toData ())
         range = W.intervalFrom currentSlot
     (fee, change) <- createPaymentWithChange transactionFee
     _ <- createTxAndSubmit range (Set.insert inp fee) ([oo, o] ++ maybeToList change)
@@ -156,8 +153,8 @@ validatorScriptHash =
     . validatorScript
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Vesting -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-mkValidator d@Vesting{..} (PlutusTx.fromData -> Just (VestingData{..})) _ ptx@PendingTx{pendingTxValidRange = range} =
+mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool
+mkValidator d@Vesting{..} VestingData{..} _ ptx@PendingTx{pendingTxValidRange = range} =
     let
         -- The locked funds which are returned?
         payBack :: Value
@@ -190,10 +187,10 @@ mkValidator d@Vesting{..} (PlutusTx.fromData -> Just (VestingData{..})) _ ptx@Pe
             remaining == (totalAmount d - newAmount)
 
     in amountsValid && txnOutputsValid
-mkValidator _ _ _ _ = False
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
+    $$(Ledger.compileScript [|| \vd -> wrap (mkValidator vd) ||])
         `Ledger.applyScript`
             Ledger.lifted v
+    where wrap = Scripts.wrapValidator @VestingData @()

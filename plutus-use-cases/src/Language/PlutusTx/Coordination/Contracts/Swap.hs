@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE ViewPatterns   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -17,6 +18,7 @@ import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                    as Ledger
+import qualified Ledger.Typed.Scripts      as Scripts
 import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
@@ -97,8 +99,8 @@ PlutusTx.makeLift ''SwapOwners
 
 type SwapOracle = OracleValue (Ratio Integer)
 
-mkValidator :: Swap -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-mkValidator Swap{..} (PlutusTx.fromData -> Just (SwapOwners{..})) (PlutusTx.fromData -> Just redeemer) p =
+mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
+mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
         extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
         extractVerifyAt = error ()
@@ -190,7 +192,6 @@ mkValidator Swap{..} (PlutusTx.fromData -> Just (SwapOwners{..})) (PlutusTx.from
         outConditions = (ol1 o1 && ol2 o2) || (ol1 o2 && ol2 o1)
 
     in inConditions && outConditions
-mkValidator _ _ _ _ = False
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]
@@ -198,9 +199,10 @@ mkValidator _ _ _ _ = False
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
 swapValidator swp = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
+    $$(Ledger.compileScript [|| \s -> wrap (mkValidator s) ||])
         `Ledger.applyScript`
             Ledger.lifted swp
+    where wrap = Scripts.wrapValidator @SwapOwners @SwapOracle
 
 {- Note [Swap Transactions]
 

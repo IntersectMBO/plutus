@@ -5,7 +5,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -40,7 +40,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
-import           Ledger.Scripts               (HashedDataScript)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            (OracleValue (..), PendingTx, PendingTx' (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
@@ -93,7 +93,7 @@ initialise long short f = do
     let
         im = futureInitialMargin f
         o  = scriptTxOut (Ada.toValue im) (validatorScript f) ds
-        ds = DataScript $ Ledger.lifted $ PlutusTx.toData $ FutureData long short im im
+        ds = DataScript $ PlutusTx.toData $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange (Ada.toValue im)
     void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
@@ -115,7 +115,7 @@ settle refs ft fd ov = do
         delta = (Ada.lovelaceOf $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = Ada.toValue ((futureDataMarginLong fd) + delta)
         shortOut = Ada.toValue ((futureDataMarginShort fd) - delta)
-        red = redeemerScript0 $ Settle ov
+        red = RedeemerScript $ PlutusTx.toData $ Settle ov
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
@@ -137,7 +137,7 @@ settleEarly refs ft fd ov = do
     let totalVal = Ada.toValue ((futureDataMarginLong fd) + (futureDataMarginShort fd))
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = redeemerScript0 $ Settle ov
+        red = RedeemerScript $ PlutusTx.toData $ Settle ov
     void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs
 
 adjustMargin :: (
@@ -157,8 +157,8 @@ adjustMargin refs ft fd vl = do
                 | otherwise = throwOtherError "Private key is not part of futures contrat"
             in fd''
     let
-        red = redeemerScript AdjustMargin
-        ds  = DataScript $ Ledger.lifted $ PlutusTx.toData fd'
+        red = RedeemerScript $ PlutusTx.toData AdjustMargin
+        ds  = DataScript $ PlutusTx.toData fd'
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = Ada.toValue (vl + futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
@@ -225,18 +225,9 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
     in
         pnlty + delta
 
-redeemerScript :: FutureRedeemer -> RedeemerScript
-redeemerScript fr = RedeemerScript $
-    $$(Ledger.compileScript [|| \(d :: PlutusTx.Data) -> \(_ :: Sealed (HashedDataScript PlutusTx.Data)) -> d ||])
-        `Ledger.applyScript`
-            Ledger.lifted (PlutusTx.toData fr)
-
-redeemerScript0 :: FutureRedeemer -> RedeemerScript
-redeemerScript0 fr = RedeemerScript $ Ledger.lifted $ PlutusTx.toData fr
-
 {-# INLINABLE mkValidator #-}
-mkValidator :: Future -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-mkValidator ft@Future{..} (PlutusTx.fromData -> Just FutureData{..}) (PlutusTx.fromData -> Just r) p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
+mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
+mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
     let
 
         isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
@@ -306,13 +297,13 @@ mkValidator ft@Future{..} (PlutusTx.fromData -> Just FutureData{..}) (PlutusTx.f
                     vl = Validation.adaLockedBy p ownHash
                 in
                     vl > (futureDataMarginShort + futureDataMarginLong)
-mkValidator _ _ _ _ = False
 
 validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
+    $$(Ledger.compileScript [|| \f -> wrap (mkValidator f) ||])
         `Ledger.applyScript`
             Ledger.lifted ft
+    where wrap = Scripts.wrapValidator @FutureData @FutureRedeemer
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData

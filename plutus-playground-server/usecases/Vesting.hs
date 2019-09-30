@@ -23,7 +23,7 @@ import           Ledger                    (Address, DataScript(..),
                                             RedeemerScript(..),  Slot,
                                             TxOutRef, TxIn, ValidatorScript(..), compileScript)
 import qualified Ledger                    as Ledger
-import           Ledger.Scripts            (HashedDataScript)
+import           Ledger.Typed.Scripts      (wrapValidator)
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
 import qualified Ledger.Interval           as Interval
@@ -162,7 +162,7 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
+    $$(Ledger.compileScript [|| \vd -> wrapValidator (mkValidator vd) ||])
         `Ledger.applyScript`
             Ledger.lifted v
 
@@ -188,7 +188,7 @@ vestFunds tranche1 tranche2 ownerWallet = do
     let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
         amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (Ledger.lifted ())
+        dataScript = DataScript (PlutusTx.toData ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: (WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
@@ -250,17 +250,13 @@ withdraw tranche1 tranche2 ownerWallet vl = do
         remaining = currentlyLocked - vl
 
         lockedOutput =
-            Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))
+            Ledger.scriptTxOut remaining validator (DataScript (PlutusTx.toData ()))
         otherOutputs =
             if Value.isZero remaining
             then []
             else [lockedOutput]
 
-        redeemer =
-            if Value.isZero remaining
-            then RedeemerScript $ Ledger.lifted () -- Nothing more to do
-            else RedeemerScript $ $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
-                                  -- Discard the data script for the output containing the remaining funds
+        redeemer = RedeemerScript $ PlutusTx.toData ()
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn

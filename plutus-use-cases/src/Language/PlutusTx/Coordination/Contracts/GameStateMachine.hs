@@ -17,8 +17,8 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
       startGame
     , guess
     , lock
+    , scriptInstance
     , gameTokenVal
-    , gameValidator
     , mkValidator
     ) where
 
@@ -34,7 +34,7 @@ import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Typed.Tx              as Typed
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Wallet
 import qualified Wallet                       as WAPI
 
@@ -98,16 +98,15 @@ instance PlutusTx.IsData GameInput where
 PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE step #-}
-step :: PlutusTx.Data -> PlutusTx.Data -> Maybe PlutusTx.Data
-step (PlutusTx.fromData -> Just state) (PlutusTx.fromData -> Just input) = case (state, input) of
-    (Initialised s, ForgeToken tn) -> Just $ PlutusTx.toData $ Locked tn s
-    (Locked tn _, Guess _ nextSecret) -> Just $ PlutusTx.toData $ Locked tn nextSecret
+step :: GameState -> GameInput -> Maybe GameState
+step state input = case (state, input) of
+    (Initialised s, ForgeToken tn) -> Just $ Locked tn s
+    (Locked tn _, Guess _ nextSecret) -> Just $ Locked tn nextSecret
     _ -> Nothing
-step _ _ = Nothing
 
 {-# INLINABLE check #-}
-check :: PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-check (PlutusTx.fromData -> Just state) (PlutusTx.fromData -> Just input) ptx = case (state, input) of
+check :: GameState -> GameInput -> PendingTx -> Bool
+check state input ptx = case (state, input) of
     (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
     (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge zero
     _ -> False
@@ -129,20 +128,24 @@ check (PlutusTx.fromData -> Just state) (PlutusTx.fromData -> Just input) ptx = 
         --   equal to the argument.
         checkForge :: Value -> Bool
         checkForge vl = vl == (Validation.pendingTxForge ptx)
-check _ _ _ = False
+
+{-# INLINABLE machine #-}
+machine :: SM.StateMachine GameState GameInput
+machine = SM.StateMachine step check (const False)
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Typed.ValidatorType (SM.StateMachine PlutusTx.Data PlutusTx.Data)
+mkValidator :: Scripts.ValidatorType (SM.StateMachine GameState GameInput)
 mkValidator = SM.mkValidator (SM.StateMachine step check (const False))
 
-gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(Ledger.compileScript [|| mkValidator ||])
+scriptInstance :: Scripts.ScriptInstance (SM.StateMachine GameState GameInput)
+scriptInstance = Scripts.Validator @(SM.StateMachine GameState GameInput)
+    $$(PlutusTx.compile [|| mkValidator ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator @GameState @GameInput
 
-mkRedeemer :: GameInput -> RedeemerScript
-mkRedeemer i = RedeemerScript $
-    $$(Ledger.compileScript [|| SM.mkStepRedeemer @PlutusTx.Data @PlutusTx.Data ||])
-        `Ledger.applyScript`
-            (Ledger.lifted $ PlutusTx.toData i)
+machineInstance :: SM.StateMachineInstance GameState GameInput
+machineInstance = SM.StateMachineInstance machine scriptInstance
 
 gameToken :: TokenName
 gameToken = "guess"
@@ -152,7 +155,7 @@ gameTokenVal :: Value
 gameTokenVal =
     let
         -- see note [Obtaining the currency symbol]
-        cur = plcCurrencySymbol (Ledger.scriptAddress gameValidator)
+        cur = plcCurrencySymbol (Scripts.scriptAddress scriptInstance)
     in
         V.singleton cur gameToken 1
 
@@ -171,16 +174,16 @@ guess ::
     -> m ()
 guess gss new keepVal restVal = do
 
-    let addr = Ledger.scriptAddress gameValidator
+    let addr = Scripts.scriptAddress scriptInstance
         guessedSecret = ClearString (C.pack gss)
         newSecret = HashedString (plcSHA2_256 (C.pack new))
         input = Guess guessedSecret newSecret
         newState = Locked gameToken newSecret
-        redeemer = mkRedeemer input
-    ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
+        redeemer = RedeemerScript $ PlutusTx.toData input
+    ins <- WAPI.spendScriptOutputs addr (Scripts.validatorScript scriptInstance) redeemer
     ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut restVal gameValidator (DataScript (Ledger.lifted $ PlutusTx.toData newState))
+    let scriptOut = scriptTxOut restVal (Scripts.validatorScript scriptInstance) (DataScript $ PlutusTx.toData newState)
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
@@ -200,9 +203,9 @@ guess gss new keepVal restVal = do
 lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
 lock initialWord vl = do
     let secret = HashedString (plcSHA2_256 (C.pack initialWord))
-        addr = Ledger.scriptAddress gameValidator
+        addr = Scripts.scriptAddress scriptInstance
         state = Initialised secret
-        ds   = DataScript (Ledger.lifted $ PlutusTx.toData state)
+        ds   = DataScript $ PlutusTx.toData state
 
     -- 1. Create a transaction output with the value and the secret
     payToScript_ defaultSlotRange addr vl ds
@@ -218,9 +221,9 @@ lock initialWord vl = do
             ownOutput <- WAPI.ownPubKeyTxOut gameTokenVal
             let input = ForgeToken gameToken
                 newState = Locked gameToken secret
-                redeemer = mkRedeemer input
-                scriptOut = scriptTxOut vl gameValidator (DataScript (Ledger.lifted $ PlutusTx.toData newState))
-            ins <- WAPI.spendScriptOutputs addr gameValidator redeemer
+                redeemer = RedeemerScript $ PlutusTx.toData input
+                scriptOut = scriptTxOut vl (Scripts.validatorScript scriptInstance) (DataScript $ PlutusTx.toData newState)
+            ins <- WAPI.spendScriptOutputs addr (Scripts.validatorScript scriptInstance) redeemer
 
             let tx = Ledger.Tx
                         { txInputs = Set.fromList (fmap fst ins)
@@ -240,4 +243,4 @@ lock initialWord vl = do
 
 -- | Tell the wallet to start watching the address of the game script
 startGame :: WalletAPI m => m ()
-startGame = startWatching (Ledger.scriptAddress gameValidator)
+startGame = startWatching (Scripts.scriptAddress scriptInstance)

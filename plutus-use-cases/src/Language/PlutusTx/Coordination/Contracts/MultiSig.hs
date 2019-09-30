@@ -37,8 +37,8 @@ data MultiSig = MultiSig
                 }
 PlutusTx.makeLift ''MultiSig
 
-validate :: MultiSig -> () -> () -> PendingTx -> Bool
-validate (MultiSig keys num) () () p =
+validate :: MultiSig -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+validate (MultiSig keys num) _ _ p =
     let present = length (filter (V.txSignedBy p) keys)
     in present >= num
 
@@ -50,11 +50,11 @@ msValidator sig = ValidatorScript $
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
-msDataScript = DataScript $ Ledger.lifted ()
+msDataScript = DataScript $ PlutusTx.toData ()
 
 -- | Multisig redeemer (unit value).
 msRedeemer :: RedeemerScript
-msRedeemer = RedeemerScript $ Ledger.lifted ()
+msRedeemer = RedeemerScript $ PlutusTx.toData ()
 
 -- | The address of a 'MultiSig' contract.
 msAddress :: MultiSig -> Address

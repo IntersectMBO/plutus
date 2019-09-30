@@ -28,7 +28,9 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
@@ -43,6 +45,7 @@ import           Ledger                       (Address, DataScript(..), PubKey(.
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
+import           Ledger.Typed.Scripts         (wrapValidator)
 import           Ledger.Validation            (PendingTx, PendingTx'(..), PendingTxIn'(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (MonadWallet, EventHandler(..), EventTrigger)
@@ -104,6 +107,16 @@ We can encode the two possible actions in a data type called `Action`.
 [source,haskell]
 ----
 data CampaignAction = Collect | Refund
+
+instance PlutusTx.IsData CampaignAction where
+    toData Collect = PlutusTx.Constr 0 []
+    toData Refund = PlutusTx.Constr 1 []
+    {-# INLINABLE fromData #-}
+    fromData (PlutusTx.Constr i [])
+        | i == 0 = Just Collect
+        | i == 1 = Just Refund
+    fromData _ = Nothing
+
 PlutusTx.makeLift ''CampaignAction
 ----
 
@@ -116,7 +129,8 @@ contribution.
 
 [source,haskell]
 ----
-data Contributor = Contributor PubKey
+newtype Contributor = Contributor PubKey
+    deriving newtype PlutusTx.IsData
 PlutusTx.makeLift ''Contributor
 ----
 
@@ -167,9 +181,10 @@ which we do in `mkValidatorScript`.
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val =
-      $$(L.compileScript [|| mkValidator ||])
+      $$(L.compileScript [|| \c -> wrap (mkValidator c) ||])
       `L.applyScript` -- <1>
       L.lifted campaign -- <2>
+  wrap = wrapValidator @Contributor @CampaignAction
 
 mkValidator :: Campaign -> CampaignValidator
 ----
@@ -383,7 +398,7 @@ Contributors put their public key in a data script:
 [source,haskell]
 ----
 mkDataScript :: PubKey -> DataScript
-mkDataScript pk = DataScript (L.lifted (Contributor pk))
+mkDataScript pk = DataScript (PlutusTx.toData (Contributor pk))
 ----
 
 When we want to spend the contributions we need to provide a
@@ -393,7 +408,7 @@ value. In our case this is just the `CampaignAction`:
 [source,haskell]
 ----
 mkRedeemer :: CampaignAction -> RedeemerScript
-mkRedeemer action = RedeemerScript (L.lifted (action))
+mkRedeemer action = RedeemerScript (PlutusTx.toData action)
 ----
 
 ==== The `collect` endpoint

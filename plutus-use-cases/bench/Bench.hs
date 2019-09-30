@@ -192,8 +192,8 @@ validators = bgroup "validators" [ trivial, multisig ]
 -- | The trivial validator script that just returns 'True'.
 trivial :: Benchmark
 trivial = bgroup "trivial" [
-        bench "nocheck" $ nf runScriptNoCheck (validationData1, [], validator, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, [], validator, unitData, unitRedeemer)
+        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitData, unitRedeemer),
+        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
     ]
     where
         validator = ValidatorScript $$(Ledger.compileScript [|| \() () (_::PendingTx) -> True ||])
@@ -204,25 +204,21 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
-            , []
             , MS.msValidator msScen1of1
             , MS.msDataScript
             , MS.msRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
-            , []
             , MS.msValidator msScen1of2
             , MS.msDataScript
             , MS.msRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
-            , []
             , MS.msValidator msScen2of2
             , MS.msDataScript
             , MS.msRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
-            , []
             , MS.msValidator msScen1of1
             , MS.msDataScript
             , MS.msRedeemer)
@@ -237,10 +233,10 @@ multisig = bgroup "multisig" [
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (plcDigest m) s
 
-runScriptNoCheck :: (ValidationData, [DataScript], ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
-runScriptNoCheck (vd, ds, v, d, r) = runScript DontCheck vd ds v d r
-runScriptCheck :: (ValidationData, [DataScript], ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
-runScriptCheck (vd, ds, v, d, r) = runScript Typecheck vd ds v d r
+runScriptNoCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
+runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
+runScriptCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
+runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey
 privk1 = Crypto.knownPrivateKeys !! 0

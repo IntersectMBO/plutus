@@ -29,6 +29,7 @@ typeclasses = testNested "Typeclasses" [
     , goldenPir "sizedPair" sizedPair
     , goldenPir "multiFunction" multiFunction
     , goldenPir "defaultMethods" defaultMethods
+    , goldenPir "partialApplication" partialApplication
   ]
 
 class Sized a where
@@ -83,3 +84,6 @@ defaultMethods = plc @"defaultMethods" (
         f :: (DefaultMethods a) => a -> Integer
         f a = method2 a
     in \(a::Integer) -> f a)
+
+partialApplication :: CompiledCode (Integer -> Integer -> Ordering)
+partialApplication = plc @"partialApplication" (P.compare @Integer)

@@ -1,7 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
@@ -22,7 +24,8 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
                                              RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
-                                             compileScript, lifted, plcSHA2_256, scriptAddress)
+                                             compileScript, plcSHA2_256, scriptAddress)
+import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
 import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
@@ -30,11 +33,11 @@ import           Wallet                     (MonadWallet, WalletAPI, WalletDiagn
 
 import qualified Data.ByteString.Lazy.Char8 as C
 
-data HashedString = HashedString ByteString
+newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedString
 
-data ClearString = ClearString ByteString
+newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
@@ -49,19 +52,20 @@ validateGuess dataScript redeemerScript _ =
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
 gameValidator =
-    ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
+    ValidatorScript ($$(Ledger.compileScript [|| wrap validateGuess ||]))
+    where wrap = wrapValidator @HashedString @ClearString
 
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation
 gameDataScript :: String -> DataScript
 gameDataScript =
-    DataScript . Ledger.lifted . HashedString . plcSHA2_256 . C.pack
+    DataScript . PlutusTx.toData . HashedString . plcSHA2_256 . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =
-    RedeemerScript . Ledger.lifted . ClearString . C.pack
+    RedeemerScript . PlutusTx.toData . ClearString . C.pack
 
 -- | The address of the game (the hash of its validator script)
 gameAddress :: Address

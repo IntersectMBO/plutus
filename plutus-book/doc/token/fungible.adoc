@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass                  #-}
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
+{-# LANGUAGE TypeApplications                #-}
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
@@ -12,6 +13,7 @@ module Token.Fungible where
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -55,7 +57,7 @@ validateFungible :: Fungible -> FungibleValidator
 validateFungible f () n tx =
     case pendingTxOutputs tx of
         [o] -> case pendingTxOutData o of
-            DataTxOut       -> False
+            DataTxOut _     -> False
             PubKeyTxOut key ->
                    key == issuer f          -- <1>
                 && txSignedBy tx (issuer f) -- <2>
@@ -88,14 +90,14 @@ and addresses:
 [source,haskell]
 ----
 fungibleDataScript :: DataScript
-fungibleDataScript = DataScript $ lifted ()
+fungibleDataScript = DataScript $ toData ()
 
 mkFungibleRedeemerScript :: Integer -> RedeemerScript
-mkFungibleRedeemerScript = RedeemerScript . lifted
+mkFungibleRedeemerScript = RedeemerScript . toData
 
 mkFungibleValidator :: Fungible -> ValidatorScript
 mkFungibleValidator = ValidatorScript
-                    . applyScript $$(compileScript [|| validateFungible ||])
+                    . applyScript $$(compileScript [|| \f -> wrapValidator (validateFungible f) ||])
                     . lifted
 
 fungibleAddress :: Fungible -> Address
@@ -238,6 +240,15 @@ trade:
 data TradeAction = Execute | Reclaim
     deriving Show
 
+instance IsData TradeAction where
+    toData Execute = Constr 0 []
+    toData Reclaim = Constr 1 []
+    {-# INLINABLE fromData #-}
+    fromData (Constr i [])
+        | i == 0 = Just Execute
+        | i == 1 = Just Reclaim
+    fromData _ = Nothing
+
 makeLift ''TradeAction
 
 type TradeValidator = () -> TradeAction -> PendingTx -> Bool
@@ -290,14 +301,15 @@ We write the usual helper functions and have completed the on-chain part:
 mkTradeValidator :: Trade -> ValidatorScript
 mkTradeValidator =
       ValidatorScript
-    . applyScript $$(compileScript [|| validateTrade ||])
+    . applyScript $$(compileScript [|| \t -> wrap (validateTrade t) ||])
     . lifted
+    where wrap = wrapValidator @() @TradeAction
 
 tradeDataScript :: DataScript
-tradeDataScript = DataScript $ lifted ()
+tradeDataScript = DataScript $ toData ()
 
 mkTradeRedeemerScript :: TradeAction -> RedeemerScript
-mkTradeRedeemerScript = RedeemerScript . lifted
+mkTradeRedeemerScript = RedeemerScript . toData
 
 tradeAddress :: Trade -> Address
 tradeAddress = scriptAddress . mkTradeValidator

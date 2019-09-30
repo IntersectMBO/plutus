@@ -55,7 +55,7 @@ import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Interval                as Interval
 import           Ledger.Slot                    (SlotRange)
-import qualified Ledger.Typed.Tx                as Typed
+import qualified Ledger.Typed.Scripts           as Scripts
 import           Ledger.Validation              as V
 import           Ledger.Value                   (Value)
 import qualified Ledger.Value                   as VTH
@@ -121,12 +121,16 @@ refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
 data CrowdFunding
-instance Typed.ScriptType CrowdFunding where
-    type instance RedeemerType CrowdFunding = PlutusTx.Data --CampaignAction
-    type instance DataType CrowdFunding = PlutusTx.Data --PubKey
+instance Scripts.ScriptType CrowdFunding where
+    type instance RedeemerType CrowdFunding = CampaignAction
+    type instance DataType CrowdFunding = PubKey
 
-scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
-scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp
+scriptInstance :: Campaign -> Scripts.ScriptInstance CrowdFunding
+scriptInstance cmp = Scripts.Validator @CrowdFunding
+    ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator @PubKey @CampaignAction
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
@@ -142,21 +146,20 @@ validCollection campaign p =
     && (p `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Campaign -> (PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool)
-mkValidator c (PlutusTx.fromData -> Just con) (PlutusTx.fromData -> Just act) p = case act of
+mkValidator :: Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool
+mkValidator c con act p = case act of
     Refund  -> validRefund c con p
     Collect -> validCollection c p
-mkValidator _ _ _ _ = False
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript = Typed.validatorScript . scriptInstance
+contributionScript = Scripts.validatorScript . scriptInstance
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
-campaignAddress = Typed.scriptAddress . scriptInstance
+campaignAddress = Scripts.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
 crowdfunding :: Campaign -> Contract CrowdfundingSchema ()
@@ -178,7 +181,7 @@ theCampaign = Campaign
 contribute :: Campaign -> Contract CrowdfundingSchema ()
 contribute cmp = do
     (ownPK, contribution) <- endpoint @"contribute"
-    let ds = Ledger.DataScript (Ledger.lifted $ PlutusTx.toData ownPK)
+    let ds = Ledger.DataScript (PlutusTx.toData ownPK)
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     writeTx tx
@@ -192,7 +195,7 @@ contribute cmp = do
     -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
     -- outputs whose data script is our own public key (in 'ds')
     let flt _ txOut = Ledger.txOutData txOut == Just ds
-        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.liftCode $ PlutusTx.toData Refund)
+        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
@@ -215,7 +218,7 @@ scheduleCollection cmp = do
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) (PlutusTx.liftCode $ PlutusTx.toData Collect)
+    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) Collect
             & validityRange .~ collectionRange cmp
     writeTx tx
 
