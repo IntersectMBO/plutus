@@ -36,6 +36,10 @@ particular shows how to exercise a contract using the semantics given earlier.
 This tutorial introduces the Marlowe Playground, an online tool for
 creating embedded Marlowe contracts and interactively stepping through
 their execution.
+. xref:static-analysis#static-analysis[]
+Marlowe contracts can be analysed without running them, and so, for instance, we 
+can verify that a contract will always make the payments that it is required to, irrespective
+of the inputs that it receives. This tutoiral explains this, and how to run an analysis in the playground.
 . xref:actus-marlowe#actus-marlowe[]
 This tutorial gives an introduction to the general idea of the ACTUS
 taxonomy, plus examples implemented in Marlowe.
