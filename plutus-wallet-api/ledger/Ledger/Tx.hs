@@ -231,6 +231,8 @@ deriving instance Serialise TxOutRef
 deriving instance ToJSON TxOutRef
 deriving instance FromJSON TxOutRef
 deriving instance ToSchema TxOutRef
+deriving instance ToJSONKey TxOutRef
+deriving instance FromJSONKey TxOutRef
 
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
 txOutRefs :: Tx -> [(TxOut, TxOutRef)]

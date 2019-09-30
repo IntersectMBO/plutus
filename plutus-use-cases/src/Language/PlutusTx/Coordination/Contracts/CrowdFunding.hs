@@ -202,17 +202,12 @@ scheduleCollection cmp = do
     -- 'trg' describes the conditions for a successful campaign. It returns a
     -- tuple with the unspent outputs at the campaign address, and the current
     -- slot.
-    let trg = both
-                (fundsAtAddressGt (campaignAddress cmp) (campaignTarget cmp))
-                (awaitSlot (campaignDeadline cmp))
+    _ <- awaitSlot (campaignDeadline cmp)
+    unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    -- We can only collect the contributions if 'trg' returns before the
-    -- campaign collection deadline, so we use the 'timeout' combinator.
-    void $ timeout (campaignCollectionDeadline cmp) $ do
-        (outxo, _) <- trg
-        let tx = Typed.collectFromScriptFilter (\_ _ -> True) outxo (scriptInstance cmp) (PlutusTx.liftCode Collect)
-                    & validityRange .~ collectionRange cmp
-        writeTx tx
+    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) (PlutusTx.liftCode Collect)
+            & validityRange .~ collectionRange cmp
+    writeTx tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
@@ -244,4 +239,5 @@ successfulCampaign =
         >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
         >> Trace.addBlocks 18
         >> Trace.notifySlot (Trace.Wallet 1)
+        >> Trace.handleUtxoQueries (Trace.Wallet 1)
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)

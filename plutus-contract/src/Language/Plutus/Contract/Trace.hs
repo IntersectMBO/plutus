@@ -25,6 +25,7 @@ module Language.Plutus.Contract.Trace(
     , getHooks
     , callEndpoint
     , handleBlockchainEvents
+    , handleUtxoQueries
     , addBlocks
     , addEvent
     , addEventAll
@@ -55,7 +56,7 @@ import           Data.Sequence                                   (Seq)
 import qualified Data.Sequence                                   as Seq
 import qualified Data.Set                                        as Set
 
-import           Language.Plutus.Contract                        (Contract, HasWatchAddress, HasWriteTx)
+import           Language.Plutus.Contract                        (Contract, HasUtxoAt, HasWatchAddress, HasWriteTx)
 import           Language.Plutus.Contract.Resumable              (ResumableError)
 import qualified Language.Plutus.Contract.Resumable              as State
 import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
@@ -64,6 +65,8 @@ import qualified Language.Plutus.Contract.Wallet                 as Wallet
 
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
+import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
+import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
@@ -235,6 +238,17 @@ unbalancedTransactions
     -> ContractTrace s m [UnbalancedTx]
 unbalancedTransactions w = WriteTx.transactions . either (const mempty) id <$> getHooks w
 
+-- | Get the address that the contract has requested the unspent outputs for.
+utxoQueryAddresses
+    :: forall s m.
+       ( MonadEmulator m
+       , HasUtxoAt s
+       )
+    => Wallet
+    -> ContractTrace s m (Set.Set Address)
+utxoQueryAddresses =
+    fmap (UtxoAt.addresses . either (const mempty) id) . getHooks
+
 -- | Get the addresses that are of interest to the wallet's contract instance
 interestingAddresses
     :: ( MonadEmulator m
@@ -268,10 +282,12 @@ addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
 -- | Submit the wallet's pending transactions to the blockchain
---   and inform all wallets about new transactions
+--   and inform all wallets about new transactions and respond to
+--   UTXO queries
 handleBlockchainEvents
     :: ( MonadEmulator m
        , HasWatchAddress s
+       , HasUtxoAt s
        , HasWriteTx s
        )
     => Wallet
@@ -279,6 +295,21 @@ handleBlockchainEvents
 handleBlockchainEvents wllt = do
     utxs <- unbalancedTransactions wllt
     traverse_ (submitUnbalancedTx wllt >=> traverse_ addTxEvent) utxs
+    handleUtxoQueries wllt
+
+-- | Look at the "utxo-at" requests of the contract and respond to all of them
+--   with the current UTXO set at the given address.
+handleUtxoQueries
+    :: ( MonadEmulator m
+       , HasUtxoAt s
+       )
+    => Wallet
+    -> ContractTrace s m ()
+handleUtxoQueries wllt = do
+    addresses <- utxoQueryAddresses wllt
+    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . AM.fromUtxoIndex . view EM.index))
+    let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
+    traverse_ (addEvent wllt . UtxoAt.event) events
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses
