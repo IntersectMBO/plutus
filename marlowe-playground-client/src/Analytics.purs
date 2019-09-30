@@ -7,7 +7,6 @@ import Data.Undefinable (Undefinable, toUndefinable)
 import Data.Unit (Unit)
 
 foreign import trackEvent_ ::
-  forall eff.
   Fn4 String (Undefinable String) (Undefinable String) (Undefinable Number) (Effect Unit)
 
 type Event
@@ -24,7 +23,6 @@ defaultEvent action =
   }
 
 trackEvent ::
-  forall eff.
   Event ->
   Effect Unit
 trackEvent { action, category, label, value } = runFn4 trackEvent_ action (toUndefinable category) (toUndefinable label) (toUndefinable value)

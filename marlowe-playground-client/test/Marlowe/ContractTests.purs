@@ -102,8 +102,7 @@ all =
             choice = ChoiceId "choice"
             choice1 = IChoice (choice alice) (fromIntegral 0)
             choice2 = IChoice (choice bob) (fromIntegral 0)
-            (Tuple _ finalState) = runTests $
-            do
+            (Tuple _ finalState) = runTests $ do
                 updateContractInState Contracts.escrow
                 updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit alice)))
                 applyTransactions

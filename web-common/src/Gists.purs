@@ -16,14 +16,13 @@ import Data.String.Regex (Regex, match, regex)
 import Data.String.Regex.Flags (ignoreCase)
 import Gist (Gist, GistFile, GistId(GistId), gistFileFilename, gistFiles, gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
-import Halogen.HTML.Events (input_, onClick, onValueInput)
-import Halogen.HTML.Events as HE
+import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (Unit, bind, ($), (<$>), (<<<), (<>), (=<<), (==))
+import Prelude (bind, const, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Ajax (AjaxError)
-import Types (Query(SetGistUrl, LoadGist, PublishGist))
+import Types (HAction(SetGistUrl, LoadGist, PublishGist))
 
 idPublishGist :: forall r i. IProp ( id :: String | r ) i
 idPublishGist = id_ "publish-gist"
@@ -38,7 +37,7 @@ gistControls ::
   , gistUrl :: Maybe String
   | a
   } ->
-  HTML p (Query Unit)
+  HTML p HAction
 gistControls { authStatus, createGistResult, gistUrl } =
   div [ classes [ ClassName "gist-controls" ] ]
     [ authButton
@@ -57,7 +56,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
                                     Nothing -> []
                             )
                         , placeholder "Load Gist ID"
-                        , onValueInput $ HE.input SetGistUrl
+                        , onValueInput $ Just <<< SetGistUrl
                         ]
                     ]
                 , col6_ [ publishButton ]
@@ -120,7 +119,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
       button
         [ idPublishGist
         , classes [ btn, btnBlock, btnSmall, btnPrimary ]
-        , onClick $ input_ PublishGist
+        , onClick $ const $ Just PublishGist
         ]
         [ icon Github, nbsp, text "Republish" ]
     Loading ->
@@ -134,7 +133,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
       button
         [ idPublishGist
         , classes [ btn, btnBlock, btnSmall, btnPrimary ]
-        , onClick $ input_ PublishGist
+        , onClick $ const $ Just PublishGist
         ]
         [ icon Github, nbsp, text "Publish" ]
 
@@ -154,7 +153,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
                 Just (Right url) -> btnPrimary
                 Nothing -> btnInfo
             ]
-        , onClick $ input_ LoadGist
+        , onClick $ const $ Just LoadGist
         , disabled
             $ case parsedGistId of
                 Just (Left url) -> true

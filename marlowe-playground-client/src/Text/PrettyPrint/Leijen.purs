@@ -15,7 +15,6 @@ import Data.Int as Int
 import Data.List as List
 import Data.List.Lazy as LL
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
 import Data.String (split)
 import Data.String.CodeUnits (fromCharArray)
 import Data.String as String

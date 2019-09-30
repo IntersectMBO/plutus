@@ -55,12 +55,14 @@ module.exports = {
                             src: [
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
+                                '.spago/*/*/src/**/*.purs',
                                 '../web-common/src/**/*.purs'
                             ],
-                            psc: 'psa',
+                            psc: null,
                             bundle: !(isWebpackDevServer || isWatch),
+                            warnings: true,
                             watch: isWebpackDevServer || isWatch,
-                            pscPackage: true,
+                            pscPackage: false,
                             pscIde: false
                         }
                     }
@@ -83,8 +85,7 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules',
-            'bower_components'
+            'node_modules'
         ],
         extensions: [ '.purs', '.js']
     },

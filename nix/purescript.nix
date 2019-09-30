@@ -2,12 +2,13 @@
 , pkgs
 , fetchurl
 , psSrc
+, easyPS
 , yarn2nix
-, pp2nSrc
-, haskellPackages
+, nodejsHeaders
 , src
 , webCommonPath
 , packages
+, spagoPackages
 , name
 , packageJSON
 , yarnLock
@@ -28,52 +29,58 @@ let
   };
   webCommon = pkgs.copyPathToStore webCommonPath;
 
-  mkCopyHook = import "${pp2nSrc}/nix/mkCopyHook.nix";
-  installPackages = builtins.toString (builtins.map (mkCopyHook packages) (builtins.attrValues packages.inputs));
   packagesJson = "${src}/packages.json";
 
 in yarn2nix.mkYarnPackage {
   inherit name src packageJSON yarnLock yarnNix;
-  nodejs = nodejs-10_x; 
+  nodejs = nodejs-10_x;
 
-  buildInputs = [ git cacert python2 webCommon ];
-  nativeBuildInputs = [ psc-package haskellPackages.purescript ];
+  pkgConfig = {
+    "libxmljs" = {
+      buildInputs = [ nodejs-10_x nodePackages_10_x.node-gyp python2 ];
+      postInstall = ''
+        node-gyp --tarball ${nodejsHeaders} rebuild
+      '';
+    };
+  };
+
+  buildInputs = [ cacert webCommon ];
+
+  nativeBuildInputs = [ git easyPS.purs easyPS.spago easyPS.psc-package nodePackages_10_x.node-gyp nodejs-10_x python2 ];
 
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
     export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
 
     # mkYarnPackage moves everything into deps/${name}
-    cd deps/${name}
+    shopt -s extglob
+    mkdir deps
+    mv !(deps) deps/
+    cd deps
 
     # move everything into its correct place
     cp -R ${psSrc} generated
     cp -R ${webCommon} ../web-common
+    sh ${spagoPackages.installSpagoStyle}
 
-    # do all the psc-package stuff
-    ${installPackages}
-    mkdir -p .psc-package/local/.set
-    cp ${packagesJson} .psc-package/local/.set/packages.json
+    # Compile everything.
+    # This should just be `spago --no-psa build`, but there's a bug in spago that means it would go to the internet.
+    # When that changes, update.
+    purs compile \
+      'src/**/*.purs' \
+      'test/**/*.purs' \
+      'generated/**/*.purs' \
+      '../web-common/**/*.purs' \
+      '.spago/*/*/src/**/*.purs'
 
-    # for some reason, mkYarnPackage creates an empty node_modules in deps/${name}.
-    rm -Rf ./node_modules
-
-    # Everything is correctly in the top level node_modules though so we link it
-    ln -s ../../node_modules
-    
-    # We have to use nix patched purs and yarn will look in node_modules/.bin first so we have to delete the bad one
-    rm ./node_modules/.bin/purs
-    
-    # we also need to use the nix installed psc-package so don't do yarn run psc-package
-    psc-package install
-
-    yarn --offline run webpack
+    # Build the frontend.
+    yarn --offline webpack
   '';
 
   doCheck = true;
 
   checkPhase = ''
-    yarn --offline test
+    node -e 'require("./output/Test.Main").main()'
   '';
 
   distPhase = ''

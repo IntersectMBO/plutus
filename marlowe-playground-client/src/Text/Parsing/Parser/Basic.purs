@@ -1,6 +1,6 @@
 module Text.Parsing.Parser.Basic where
 
-import Prelude
+import Prelude hiding (between)
 import Control.Alternative ((<|>))
 import Data.Array ((:), many)
 import Data.String.CodeUnits (fromCharArray)

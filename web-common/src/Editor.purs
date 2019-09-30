@@ -4,9 +4,9 @@ module Editor
   , withEditor
   ) where
 
-import Ace.Editor as Editor
 import Ace.EditSession as Session
-import Ace.Halogen.Component (Autocomplete(Live), aceComponent, AceQuery(..))
+import Ace.Editor as Editor
+import Ace.Halogen.Component (AceMessage, AceQuery(..), Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
@@ -17,23 +17,23 @@ import Data.Lens (_Right, preview, to, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.String as String
+import Data.Symbol (class IsSymbol, SProxy)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Halogen (HalogenM, HTML, action, liftEffect, query', request)
-import Halogen.Component (ParentHTML)
-import Halogen.Component.ChildPath (ChildPath)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
-import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
+import Halogen (HalogenM, Slot, liftEffect, query, request)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, br_, button, code_, div, div_, h3_, pre_, slot, small, strong_, text)
+import Halogen.HTML.Events (onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), Warning, _Warning, InterpreterResult, _InterpreterResult)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Prelude (class Eq, Unit, Void, join, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>), map)
+import Prelude (class Ord, Unit, bind, const, discard, join, map, pure, show, unit, void, ($), (<$>), (<<<), (<>))
+import Prim.Row as Row
 import Servant.PureScript.Ajax (AjaxError)
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, EditorSlot(EditorSlot), Query(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), cpEditor, _warnings)
+import Types (ChildSlots, HAction(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), _editorSlot, _warnings)
 
 loadBuffer :: Effect (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
@@ -61,22 +61,27 @@ type CompilationState a
 editorPane ::
   forall m a.
   MonadAff m =>
-  Maybe String -> CompilationState a -> ParentHTML Query ChildQuery ChildSlot m
+  Maybe String -> CompilationState a -> ComponentHTML HAction ChildSlots m
 editorPane initialContents state =
   div_
     [ div
         [ id_ "editor"
-        , onDragOver $ Just <<< action <<< HandleDragEvent
-        , onDrop $ Just <<< action <<< HandleDropEvent
+        , onDragOver $ Just <<< HandleDragEvent
+        , onDrop $ Just <<< HandleDropEvent
         ]
-        [ slot' cpEditor EditorSlot (aceComponent (initEditor initialContents) (Just Live)) unit (input HandleEditorMessage)
+        [ slot
+            _editorSlot
+            unit
+            (aceComponent (initEditor initialContents) (Just Live))
+            unit
+            (Just <<< HandleEditorMessage)
         ]
     , br_
     , div_
         [ button
             [ id_ "compile"
             , classes [ btn, btnClass ]
-            , onClick $ input_ CompileProgram
+            , onClick $ const $ Just $ CompileProgram
             , disabled (isLoading state)
             ]
             [ btnText ]
@@ -113,56 +118,58 @@ editorPane initialContents state =
           )
           state
 
-demoScriptsPane :: forall p. HTML p Query
+demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =
   div [ id_ "demos" ]
     ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
     )
 
-demoScriptButton :: forall p. String -> HTML p Query
+demoScriptButton :: forall p. String -> HTML p HAction
 demoScriptButton key =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ input_ $ LoadScript key
+    , onClick $ const $ Just $ LoadScript key
     ]
     [ text key ]
 
-interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Query)
+interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p HAction)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]
 
 interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
 
-compilationErrorPane :: forall p. CompilationError -> HTML p Query
+compilationErrorPane :: forall p. CompilationError -> HTML p HAction
 compilationErrorPane (RawError error) = div_ [ text error ]
 
 compilationErrorPane (CompilationError error) =
   div
     [ class_ $ ClassName "compilation-error"
-    , onClick $ input_ $ ScrollTo { row: error.row, column: error.column }
+    , onClick $ const $ Just $ ScrollTo { row: error.row, column: error.column }
     ]
     [ small [ class_ pullRight ] [ text "jump" ]
     , h3_ [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
     , code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
 
-compilationWarningsPane :: forall p. Array Warning -> HTML p Query
+compilationWarningsPane :: forall p. Array Warning -> HTML p HAction
 compilationWarningsPane warnings = listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
-compilationWarningPane :: forall p. Warning -> HTML p Query
+compilationWarningPane :: forall p. Warning -> HTML p HAction
 compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text $ view _Warning warning ]
 
 -- | Handles the messy business of running an editor command if the
 -- editor is up and running.
 withEditor ::
-  forall m a cq slot cs query state msg.
-  Eq cs =>
+  forall label slotIndex _1 state action slots output m a.
+  Row.Cons label (Slot AceQuery AceMessage slotIndex) _1 slots =>
+  Ord slotIndex =>
   MonadEffect m =>
-  ChildPath AceQuery cq slot cs ->
-  slot ->
+  IsSymbol label =>
+  SProxy label ->
+  slotIndex ->
   (Editor -> Effect a) ->
-  HalogenM state query cq cs msg m (Maybe a)
-withEditor cp slot action = do
-  mEditor <- query' cp slot $ request GetEditor
+  HalogenM state action slots output m (Maybe a)
+withEditor label slotIndex action = do
+  mEditor <- query label slotIndex $ request GetEditor
   case join mEditor of
     Just editor -> Just <$> (liftEffect $ action editor)
     _ -> pure Nothing

@@ -1,6 +1,7 @@
 module View (render) where
 
 import Types
+
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
@@ -18,20 +19,18 @@ import Data.Tuple.Nested ((/\))
 import Editor (demoScriptsPane, editorPane)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
-import Halogen (action)
-import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, ComponentHTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-import Prelude (Unit, const, show, ($), (<$>), (<>), (==))
+import Prelude (const, show, ($), (<$>), (<>), (==))
 import StaticData as StaticData
 
 render ::
   forall m.
   MonadAff m =>
-  State -> ParentHTML Query ChildQuery ChildSlot m
+  State -> ComponentHTML HAction ChildSlots m
 render state@(State { currentView, blockchainVisualisationState }) =
   div_
     [ bannerMessage
@@ -110,7 +109,7 @@ viewContainer currentView targetView =
   else
     div [ classes [ container, hidden ] ]
 
-mainHeader :: forall p. HTML p (Query Unit)
+mainHeader :: forall p. HTML p HAction
 mainHeader =
   div_
     [ div [ classes [ btnGroup, floatRight ] ]
@@ -134,7 +133,7 @@ mainHeader =
       ]
       [ text name ]
 
-mainTabBar :: forall p. View -> HTML p (Query Unit)
+mainTabBar :: forall p. View -> HTML p HAction
 mainTabBar activeView = navTabs_ (mkTab <$> tabs)
   where
   tabs =
@@ -143,13 +142,13 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
     , Transactions /\ "Transactions"
     ]
 
-  mkTab :: Tuple View String -> HTML p (Query Unit)
+  mkTab :: Tuple View String -> HTML p HAction
   mkTab (link /\ title) =
     navItem_
       [ a
           [ id_ $ "tab-" <> String.toLower (show link)
           , classes $ [ navLink ] <> activeClass
-          , onClick $ const $ Just $ action $ ChangeView link
+          , onClick $ const $ Just $ ChangeView link
           ]
           [ text title ]
       ]

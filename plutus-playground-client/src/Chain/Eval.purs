@@ -1,4 +1,4 @@
-module Chain.Eval (eval) where
+module Chain.Eval (handleAction) where
 
 import Chain.Types (AnnotatedBlockchain, ChainFocus, State, TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Monad.State.Trans (class MonadState)
@@ -7,10 +7,10 @@ import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (wrap)
 import MonadApp (class MonadApp, delay)
 import Playground.Types (SequenceId(..))
-import Prelude (Ordering(..), bind, compare, discard, pure, ($), (<<<), (<>))
+import Prelude (Ordering(..), Unit, bind, compare, discard, pure, ($), (<<<), (<>))
 
-eval :: forall m a. MonadState State m => MonadApp m => Maybe ChainFocus -> Maybe AnnotatedBlockchain -> a -> m a
-eval newFocus mAnnotatedBlockchain next = do
+handleAction :: forall m. MonadState State m => MonadApp m => Maybe ChainFocus -> Maybe AnnotatedBlockchain -> m Unit
+handleAction newFocus mAnnotatedBlockchain = do
   oldFocus <- use _chainFocus
   let
     relativeAge =
@@ -30,7 +30,6 @@ eval newFocus mAnnotatedBlockchain next = do
   delay $ wrap 10.0
   assign _chainFocusAppearing false
 
-  pure next
   where
   compareSequenceIds (SequenceId old) (SequenceId new) =
     compare old.slotIndex new.slotIndex

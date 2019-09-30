@@ -68,7 +68,7 @@ initializeConnection pending = do
     uuid <- nextRandom
     pure (uuid, connection)
 
--- | Run an IO function that keeps being applied to new messages being recieved
+-- | Run an IO function that keeps being applied to new messages being received
 --   This function terminates when the connection is closed
 runWithConnection :: (WebSocketsData a) => Connection -> (a -> IO ()) -> IO ()
 runWithConnection connection f = handle disconnect . forever $ do

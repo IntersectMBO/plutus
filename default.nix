@@ -75,22 +75,24 @@ let
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
 
-  pp2nSrc = nativePkgs.fetchFromGitHub {
+  nixGitIgnore = import (nativePkgs.fetchFromGitHub {
+    owner = "siers";
+    repo = "nix-gitignore";
+    rev = "686b057f6c24857c8862c0ef15a6852caab809c7";
+    sha256 = "1hv8jl7ppv0f8lnfx2qi2jmzc7b5yiy12yvd4waq9xmxhip1k7rb";
+  }) { inherit (pkgs) lib runCommand; };
+
+  nodejsHeaders = nativePkgs.fetchurl {
+    url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
+    sha256 = "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a";
+  };
+
+  easyPS = import (nativePkgs.fetchFromGitHub {
     owner = "justinwoo";
-    repo = "psc-package2nix";
-    rev = "6e8f6dc6dea896c71b30cc88a2d95d6d1e48a6f0";
-    sha256 = "0fa6zaxxmqxva1xmnap9ng7b90zr9a55x1l5xk8igdw2nldqfa46";
-  };
-
-  yarn2nixSrc = nativePkgs.fetchFromGitHub {
-    owner = "moretea";
-    repo = "yarn2nix";
-    rev = "780e33a07fd821e09ab5b05223ddb4ca15ac663f";
-    sha256 = "1f83cr9qgk95g3571ps644rvgfzv2i4i7532q8pg405s4q5ada3h";
-  };
-
-  pp2n = import pp2nSrc { inherit pkgs; };
-  yarn2nix = import yarn2nixSrc { inherit pkgs; };
+    repo = "easy-purescript-nix";
+    rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
+    sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
+  }) { pkgs = pkgs // { nix-gitignore = nixGitIgnore; }; };
 
   packages = self: (rec {
     inherit pkgs localLib;
@@ -223,9 +225,10 @@ let
           mkdir $out
           ${playground-exe}/bin/plutus-playground-server psgenerator $out
         '';
+
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit pkgs yarn2nix pp2nSrc haskellPackages;
+          inherit easyPS nodejsHeaders;
           psSrc = generated-purescript;
           src = ./plutus-playground-client;
           webCommonPath = ./web-common;
@@ -233,6 +236,7 @@ let
           yarnLock = ./plutus-playground-client/yarn.lock;
           yarnNix = ./plutus-playground-client/yarn.nix;
           packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
+          spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -263,7 +267,7 @@ let
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit pkgs yarn2nix pp2nSrc haskellPackages;
+          inherit easyPS nodejsHeaders;
           psSrc = generated-purescript;
           src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
@@ -271,6 +275,7 @@ let
           yarnLock = ./marlowe-playground-client/yarn.lock;
           yarnNix = ./marlowe-playground-client/yarn.nix;
           packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
+          spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -304,8 +309,8 @@ let
 
       development = pkgs.dockerTools.buildImage {
         name = "plutus-development";
-        contents =         
-          let runtimeGhc = 
+        contents =
+          let runtimeGhc =
                 haskellPackages.ghcWithPackages (ps: [
                   haskellPackages.language-plutus-core
                   haskellPackages.plutus-core-interpreter
@@ -316,13 +321,13 @@ let
                   haskellPackages.plutus-ir
                   haskellPackages.plutus-contract
                 ]);
-          in  [ 
+          in  [
                 runtimeGhc
                 pkgs.binutils-unwrapped
                 pkgs.coreutils
                 pkgs.bash
                 pkgs.git # needed by cabal-install
-                haskellPackages.cabal-install 
+                haskellPackages.cabal-install
               ];
         config = {
           Cmd = ["bash"];
@@ -366,7 +371,7 @@ let
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.0.1";
-        src = pkgs.fetchFromGitHub {
+        src = nativePkgs.fetchFromGitHub {
           owner = "agda";
           repo = "agda-stdlib";
           rev = "v1.0.1";
@@ -396,10 +401,15 @@ let
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
       };
+
       scripts = {
         inherit (localLib) regeneratePackages;
 
-        fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
+        fixStylishHaskell = pkgs.writeScriptBin "fix-stylish-haskell" ''
+          #!${pkgs.runtimeShell}
+
+          set -eou pipefail
+
           ${pkgs.git}/bin/git diff > pre-stylish.diff
           ${pkgs.fd}/bin/fd \
             --extension hs \
@@ -441,9 +451,20 @@ let
         updateClientDeps = pkgs.writeScript "update-client-deps" ''
           #!${pkgs.runtimeShell}
 
-          export PATH=''$PATH:${pkgs.stdenv.lib.makeBinPath [ pkgs.nodejs-10_x ]}
+          set -eou pipefail
 
-          set -e
+          export PATH=${pkgs.stdenv.lib.makeBinPath [
+            pkgs.coreutils
+            pkgs.git
+            pkgs.nodejs-10_x
+            pkgs.nodePackages_10_x.node-gyp
+            pkgs.yarn
+            pkgs.yarn2nix
+            easyPS.purs
+            easyPS.psc-package
+            easyPS.spago
+            # easyPS.spago2nix
+          ]}
 
           if [ ! -f package.json ]
           then
@@ -452,20 +473,29 @@ let
           fi
 
           echo Installing JavaScript Dependencies
-          ${pkgs.yarn}/bin/yarn
-          echo Generating psc-package config
-          ${pkgs.yarn}/bin/yarn spago psc-package-insdhall
-          echo Installing PureScript Dependencies
-          ${pkgs.yarn}/bin/yarn psc-package install
-          echo Generating nix config
-          ${pp2n}/bin/pp2n psc-package2nix
-          ${yarn2nix.yarn2nix}/bin/yarn2nix > yarn.nix
-          cp .psc-package/local/.set/packages.json packages.json
+          yarn
+
+          echo Generating nix configs.
+          yarn2nix > yarn.nix
+          # spago2nix generate
+
           echo Done
         '';
       };
 
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install pkgs.git pkgs.cacert ]; });
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ 
+                                                                        [ packages.cabal-install 
+                                                                          pkgs.git 
+                                                                          pkgs.cacert 
+                                                                          pkgs.nodejs-10_x
+                                                                          pkgs.nodePackages_10_x.node-gyp
+                                                                          pkgs.yarn 
+                                                                          pkgs.yarn2nix
+                                                                          easyPS.purs
+                                                                          easyPS.psc-package
+                                                                          easyPS.spago
+                                                                          easyPS.spago2nix
+                                                                          ]; });
     };
   });
 

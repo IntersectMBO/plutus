@@ -6,14 +6,12 @@
     "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
-    "purs:compile": "purs compile 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/src/**/*.purs'",
-    "purs:ide": "purs ide server --log-level=debug 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/src/**/*.purs'",
-    "purs:bundle": "purs bundle output/**/*.js",
-    "start": "node bundle.js",
-    "test": "pulp test -I generated:../web-common",
-    "test:watch": "pulp -w test -I generated:../web-common",
-    "docs": "pulp docs -I generated:../web-common -- --format html",
-    "repl": "pulp repl -I generated:../web-common"
+    "purs:compile": "spago build",
+    "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/src/**/*.purs'",
+    "test": "spago --no-psa test",
+    "test:watch": "spago test --no-psa --watch",
+    "docs": "spago docs",
+    "repl": "spago repl"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",
@@ -27,23 +25,20 @@
     "html-webpack-plugin": "^3.2.0",
     "jquery": "^3.3.1",
     "node-blockly": "^1.0.36",
-    "node-sass": "^4.10.0",
+    "node-sass": "^4.12.0",
     "popper.js": "^1.14.4",
-    "psc-package": "3.0.1",
-    "pulp": "^12.3.0",
-    "purescript": "0.12.5",
-    "purescript-psa": "^0.7.2",
-    "purs-loader": "3.2.0",
-    "purty": "^3.0.7",
+    "purs-loader": "^3.6.0",
     "sass-loader": "^7.1.0",
-    "spago": "^0.7.7",
     "style-loader": "^0.23.1",
     "url-loader": "^1.1.2",
-    "webpack": "^4.16.5",
+    "webpack": "^4.41.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10",
-    "xhr2": "^0.1.4",
-    "xmldom": "^0.1.27"
+    "xhr2": "^0.1.4"
+  },
+  "resolutions": {
+    "events": "2.1.0",
+    "execa": "<=2.0.0"
   },
   "license": "Apache-2.0"
 }
