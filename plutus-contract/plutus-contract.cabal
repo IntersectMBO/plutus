@@ -46,6 +46,7 @@ library
         Language.Plutus.Contract.App
         Language.Plutus.Contract.Effects.AwaitSlot
         Language.Plutus.Contract.Effects.ExposeEndpoint
+        Language.Plutus.Contract.Effects.UtxoAt
         Language.Plutus.Contract.Effects.WatchAddress
         Language.Plutus.Contract.Effects.WriteTx
         Language.Plutus.Contract.Request

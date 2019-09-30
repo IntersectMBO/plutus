@@ -59,6 +59,10 @@ Smart contracts often involve multiple participants that synchronise their actio
 
 Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract s AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
 
+=== Unspent outputs
+
+The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Contract s AddressMap`,  lets us query the node client for all unspent outputs at an address. The difference between `utxoAt` and `nextTransactionAt` is that the former returns right away with the current UTXO set at the address, and the latter only returns when the set of unspent outputs at the address has been changed (so it may not return at all, if there are no transactions that touch the address).
+
 === Transactions
 
 Contracts write transactions using `writeTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s ()`. The transactions produced that way are unbalanced and unsigned. When executing a `writeTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `writeTx` returns when the transaction has been submitted to the blockchain.

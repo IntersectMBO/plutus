@@ -265,7 +265,7 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
         traverse_ (uncurry (flip runEventHandler)) trueConditions
 
     -- Remove spent outputs and add unspent ones, for the addresses that we care about
-    update t = over addressMap (AM.updateAddresses t)
+    update t = over addressMap (\am -> AM.fromTxOutputs t <> AM.updateAddresses t am )
 
 -- Make a transaction output from a positive value.
 mkChangeOutput :: PubKey -> Value -> Maybe TxOut

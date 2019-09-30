@@ -34,6 +34,9 @@ module Language.Plutus.Contract(
     , nextTransactionAt
     , watchAddressUntil
     , fundsAtAddressGt
+    -- * UTXO set
+    , HasUtxoAt
+    , utxoAt
     -- * Transactions
     , module Tx
     -- * Row-related things
@@ -48,6 +51,7 @@ import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
+import           Language.Plutus.Contract.Effects.UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 import           Language.Plutus.Contract.Util                   (both, selectEither)
@@ -58,14 +62,17 @@ import           Language.Plutus.Contract.Tx                     as Tx
 
 import           Prelude                                         hiding (until)
 
--- | Schema for contracts that can interact with the blockchain (via a wallet)
+-- | Schema for contracts that can interact with the blockchain (via a node 
+--   client & signing process)
 type BlockchainActions =
   AwaitSlot
   .\/ WatchAddress
   .\/ WriteTx
+  .\/ UtxoAt
 
 type HasBlockchainActions s =
   ( HasAwaitSlot s
   , HasWatchAddress s
   , HasWriteTx s
+  , HasUtxoAt s
   )
