@@ -443,7 +443,7 @@ evalValue env state value =
       Constant integer -> integer
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
-      SubValue lhs rhs -> eval lhs + eval rhs
+      SubValue lhs rhs -> eval lhs - eval rhs
       ChoiceValue choiceId defVal -> fromMaybe (eval defVal) $ Map.lookup choiceId (unwrap state).choices
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env
