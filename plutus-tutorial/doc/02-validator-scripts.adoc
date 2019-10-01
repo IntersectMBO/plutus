@@ -26,13 +26,15 @@ We need some language extensions and imports:
 ----
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# LANGUAGE ScopedTypeVariables #-} -- <.>
 {-# LANGUAGE DeriveGeneric       #-} -- <.>
 {-# LANGUAGE OverloadedStrings   #-} -- <.>
 {-# LANGUAGE NoImplicitPrelude   #-} -- <.>
 module Tutorial.ValidatorScripts where
 
-import           Language.PlutusTx.Prelude -- <.>
+import           Language.PlutusTx.Prelude    hiding (Applicative (..)) -- <.>
 
 import qualified Language.PlutusTx            as PlutusTx -- <.>
 
@@ -86,8 +88,10 @@ Both the hashed secret and the cleartext guess are represented as
 
 [source,haskell]
 ----
-data HashedText = HashedText ByteString
-data ClearText = ClearText ByteString -- <.>
+newtype HashedText = HashedText ByteString
+    deriving newtype PlutusTx.IsData
+newtype ClearText = ClearText ByteString -- <.>
+    deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedText
 PlutusTx.makeLift ''ClearText -- <.>
@@ -95,12 +99,12 @@ PlutusTx.makeLift ''ClearText -- <.>
 mkDataScript :: String -> DataScript
 mkDataScript word =
     let hashedWord = L.plcSHA2_256 (C.pack word)
-    in  DataScript (L.lifted (HashedText hashedWord)) -- <.>
+    in  DataScript (L.lifted (PlutusTx.toData (HashedText hashedWord))) -- <.>
 
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
     let clearWord = C.pack word
-    in RedeemerScript (L.lifted (ClearText clearWord)) -- <.>
+    in RedeemerScript (L.lifted (PlutusTx.toData (ClearText clearWord))) -- <.>
 ----
 <.> To avoid any confusion between cleartext and hash we wrap them in data
 types called `HashedText` and `ClearText`, respectively.
@@ -112,6 +116,8 @@ the string and lifting the hash to its on-chain representation.
 lifting the string to its on-chain representation.
 
 === The validator script
+
+-- TODO: Update for Data
 
 The general form of a validator script is
 `Data -> Redeemer -> PendingTx -> Bool`. That is, the validator
@@ -131,8 +137,8 @@ In our case, the data script is a `HashedText`, and the redeemer is a
 ----
 -- | The validator script of the game.
 validator
-  :: HashedText
-  -> ClearText
+  :: PlutusTx.Data
+  -> PlutusTx.Data
   -> PendingTx
   -> Bool
 ----
@@ -143,10 +149,11 @@ or not they match.
 
 [source,haskell]
 ----
-validator (HashedText actual) (ClearText guessed) _ =
+validator (PlutusTx.fromData -> Just (HashedText actual)) (PlutusTx.fromData -> Just (ClearText guessed)) _ =
     if actual == (sha2_256 guessed) -- <.>
     then traceH "RIGHT!" True -- <.>
     else traceH "WRONG!" False
+validator _ _ _ = False
 ----
 <.> We have an instance of `Eq` for `ByteString`, so we can just use `==` here to compare for equality.
 <.> `traceH {2c} String -> a -> a` returns its second argument after adding

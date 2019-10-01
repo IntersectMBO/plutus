@@ -22,7 +22,7 @@ module Starter where
 --   * redeem
 
 import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
                                              RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
                                              compileScript, scriptAddress, lifted)

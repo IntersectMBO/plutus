@@ -31,6 +31,8 @@ module Language.PlutusTx.Builtins (
                                 , equalsInteger
                                 -- * Error
                                 , error
+                                -- * Data
+                                , Data (..)
                                 -- * Sealed
                                 , Sealed
                                 , seal
@@ -50,6 +52,7 @@ import qualified Data.ByteString.Lazy.Hash as Hash
 import           Data.Maybe                (fromMaybe)
 import           Prelude                   hiding (String, error)
 
+import           Language.PlutusTx.Data
 import           Language.PlutusTx.Sealed
 import           Language.PlutusTx.Utils   (mustBeReplaced)
 

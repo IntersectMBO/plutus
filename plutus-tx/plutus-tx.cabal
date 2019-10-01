@@ -43,7 +43,9 @@ library
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
+        Language.PlutusTx.Applicative
         Language.PlutusTx.Bool
+        Language.PlutusTx.IsData
         Language.PlutusTx.Eq
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
@@ -77,6 +79,7 @@ library plutus-tx-compiler
         Language.PlutusTx.Plugin
         Language.PlutusTx.Builtins
         Language.PlutusTx.Sealed
+        Language.PlutusTx.Data
         Language.PlutusTx.PLCTypes
         Language.PlutusTx.PIRTypes
         Language.PlutusTx.Utils
@@ -100,6 +103,7 @@ library plutus-tx-compiler
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cborg -any,
         containers -any,
         extra -any,
         ghc >=8.6 && <8.7,

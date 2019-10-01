@@ -21,8 +21,8 @@ import           Ledger                       as Ledger hiding (initialise, to)
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
-mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
-mkValidator pk' () () p = V.txSignedBy p pk'
+mkValidator :: PubKey -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+mkValidator pk' _ _ p = V.txSignedBy p pk'
 
 pkValidator :: PubKey -> ValidatorScript
 pkValidator pk = ValidatorScript $
@@ -35,8 +35,8 @@ pkValidator pk = ValidatorScript $
 lock :: (WalletAPI m, WalletDiagnostics m) => PubKey -> Value -> m (Address, TxIn)
 lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
     addr = Ledger.scriptAddress (pkValidator pk)
-    pkDataScript = DataScript $ Ledger.lifted ()
-    pkRedeemer = RedeemerScript $ Ledger.lifted ()
+    pkDataScript = DataScript $ Ledger.lifted $ PlutusTx.toData ()
+    pkRedeemer = RedeemerScript $ Ledger.lifted $ PlutusTx.toData ()
 
     getRef tx = do
         let scriptOuts = listToMaybe

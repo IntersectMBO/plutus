@@ -11,8 +11,10 @@
 
 module Auction.English where
 
+import           Prelude                        (Applicative (..))
+
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude      hiding (Applicative (..))
 import           Language.PlutusTx.StateMachine
 import           Ledger
 import qualified Ledger.Ada                     as A

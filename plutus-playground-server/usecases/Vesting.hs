@@ -13,7 +13,7 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import qualified Prelude                   as Haskell
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
@@ -117,7 +117,7 @@ availableFrom (VestingTranche d v) range =
 
     `Vesting -> Signature -> () -> PendingTx -> ()`
 
-    This isn't completely implemented yet:  `mkValidator` below just takes 
+    This isn't completely implemented yet:  `mkValidator` below just takes
     () in place of a signature.
 -}
 
@@ -261,17 +261,17 @@ withdraw tranche1 tranche2 ownerWallet vl = do
             then RedeemerScript $ Ledger.lifted () -- Nothing more to do
             else RedeemerScript $ $$(Ledger.compileScript [|| \(_::Sealed(HashedDataScript ())) -> () ||])
                                   -- Discard the data script for the output containing the remaining funds
-                     
+
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
         mkIn r = Ledger.scriptTxIn r validator redeemer
 
         ins = Set.map mkIn (Map.keysSet utxos)
-                 
+
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
 
-    pure ()
+    Haskell.pure ()
 
 $(mkFunctions ['vestFunds, 'registerVestingScheme, 'withdraw])
 $(mkIotsDefinitions ['vestFunds, 'registerVestingScheme, 'withdraw])

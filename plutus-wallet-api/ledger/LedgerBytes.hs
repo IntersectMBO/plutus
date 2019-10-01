@@ -26,6 +26,7 @@ import qualified Data.Text                  as Text
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType (iotsDefinition))
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import qualified Language.PlutusTx.Prelude  as P
@@ -62,7 +63,7 @@ fromHex = LedgerBytes . asBSLiteral
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving (Eq, Ord, Serialise, Generic)
-    deriving newtype (P.Eq, P.Ord)
+    deriving newtype (P.Eq, P.Ord, PlutusTx.IsData)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes

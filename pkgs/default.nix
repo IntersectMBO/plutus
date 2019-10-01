@@ -54219,10 +54219,12 @@ cryptonite
 exceptions
 file-embed
 filepath
+hspec
 http-client
 http-client-tls
 http-conduit
 http-types
+insert-ordered-containers
 iots-export
 jwt
 lens
@@ -54354,6 +54356,7 @@ license = stdenv.lib.licenses.asl20;
   mkDerivation
 , base
 , bytestring
+, cborg
 , containers
 , doctest
 , extra
@@ -54381,6 +54384,7 @@ src = .././plutus-tx;
 libraryHaskellDepends = [
 base
 bytestring
+cborg
 containers
 extra
 ghc
