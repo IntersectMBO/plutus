@@ -150,6 +150,7 @@ executable plutus-playground-server
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
+        plutus-tx -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
         plutus-playground-usecases -any,

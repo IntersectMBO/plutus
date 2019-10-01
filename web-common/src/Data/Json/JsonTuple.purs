@@ -17,6 +17,8 @@ derive instance newtypeJsonTuple :: Newtype (JsonTuple a b) _
 
 derive instance eqJsonTuple :: (Eq a, Eq b) => Eq (JsonTuple a b)
 
+derive instance ordJsonTuple :: (Ord a, Ord b) => Ord (JsonTuple a b)
+
 derive instance genericJsonTuple :: Generic (JsonTuple a b) _
 
 derive instance functorJsonTuple :: Functor (JsonTuple a)

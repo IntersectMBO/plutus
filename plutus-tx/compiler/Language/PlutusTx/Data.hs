@@ -16,6 +16,8 @@ import qualified Codec.Serialise           as Serialise
 
 import           Data.Text.Prettyprint.Doc
 
+import           GHC.Generics
+
 -- | A generic "data" type.
 --
 -- The main constructor 'Constr' represents a datatype value in sum-of-products
@@ -27,7 +29,7 @@ data Data =
     | Map [(Data, Data)]
     | I Integer
     | B ByteString
-    deriving stock (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord, Generic)
 
 instance Pretty Data where
     pretty = \case

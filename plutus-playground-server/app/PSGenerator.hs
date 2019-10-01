@@ -29,6 +29,7 @@ import qualified Data.Text                                  as T ()
 import qualified Data.Text.Encoding                         as T (encodeUtf8)
 import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Language.PlutusTx                          (Data)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
@@ -253,6 +254,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @ScriptError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
     , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Data)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
