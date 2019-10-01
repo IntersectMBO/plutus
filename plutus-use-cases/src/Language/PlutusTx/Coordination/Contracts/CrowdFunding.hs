@@ -181,7 +181,7 @@ contribute cmp = do
     let ds = Ledger.DataScript (Ledger.lifted $ PlutusTx.toData ownPK)
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
-    writeTx tx
+    void (writeTx tx)
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
     -- 'utxo' is the set of unspent outputs at the campaign address at the
@@ -217,7 +217,7 @@ scheduleCollection cmp = do
 
     let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) (PlutusTx.liftCode $ PlutusTx.toData Collect)
             & validityRange .~ collectionRange cmp
-    writeTx tx
+    void $ writeTx tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.

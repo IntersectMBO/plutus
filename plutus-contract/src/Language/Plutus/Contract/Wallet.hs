@@ -121,9 +121,9 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: MonadWallet m => UnbalancedTx -> m ()
+handleTx :: MonadWallet m => UnbalancedTx -> m Tx
 handleTx utx =
-    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit_
+    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
 
 -- | Add signatures of the private keys belonging to the given
 --   public keys to the transaction, provided that they are

@@ -17,6 +17,7 @@ When you have a `PlutusContract` you can compile it to a contract bundle (a form
 {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE MonoLocalBinds   #-}
 module ContractAPI where
+import           Control.Monad               (void)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import           Ledger.AddressMap           (AddressMap)
@@ -65,9 +66,7 @@ The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Co
 
 === Transactions
 
-Contracts write transactions using `writeTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s ()`. The transactions produced that way are unbalanced and unsigned. When executing a `writeTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `writeTx` returns when the transaction has been submitted to the blockchain.
-
-NOTE: In the future, `writeTx` will return some information about the transaction (status, gas fee, etc).
+Contracts write transactions using `writeTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s WriteTxResponse`. The transactions produced that way are unbalanced and unsigned. When executing a `writeTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `writeTx` returns the final transaction's ID once it has been submitted to the blockchain (or an error if the balancing or signing failed).
 
 === Endpoints
 
@@ -123,7 +122,7 @@ mkTx = undefined
 spend :: HasBlockchainActions s => Contract s ()
 spend = do -- <1>
     (ins, pk) <- collectRec
-    writeTx (mkTx ins pk)
+    void (writeTx (mkTx ins pk))
 ----
 <1> We use Haskell's do notation to signal the start of a sequence of actions
 

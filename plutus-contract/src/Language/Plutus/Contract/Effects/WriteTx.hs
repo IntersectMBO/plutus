@@ -17,28 +17,34 @@ import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Tx      (UnbalancedTx)
 
+import           Ledger.TxId                      (TxId)
+import           Wallet.API                       (WalletAPIError)
+
 type TxSymbol = "tx"
+type WriteTxResponse = Either WalletAPIError TxId
 
 type HasWriteTx s =
-    ( HasType TxSymbol () (Input s)
+    ( HasType TxSymbol WriteTxResponse (Input s)
     , HasType TxSymbol PendingTransactions (Output s)
     , ContractRow s)
 
-type WriteTx = TxSymbol .== ((), PendingTransactions)
+type WriteTx = TxSymbol .== (WriteTxResponse, PendingTransactions)
 
 newtype PendingTransactions =
   PendingTransactions { unPendingTransactions :: [UnbalancedTx] }
     deriving stock (Eq, Generic, Show)
     deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
---  | Send an unbalanced transaction to the wallet.
-writeTx :: forall s. HasWriteTx s => UnbalancedTx -> Contract s ()
+--  | Send an unbalanced transaction to be balanced and signed. Returns the ID
+--    of the final transaction, or an error.
+writeTx :: forall s. HasWriteTx s => UnbalancedTx -> Contract s WriteTxResponse
 writeTx t = request @TxSymbol @_ @_ @s (PendingTransactions [t])
 
 event
-  :: forall s. (HasType TxSymbol () (Input s), AllUniqueLabels (Input s))
-  => Event s
-event = Event (IsJust #tx ())
+  :: forall s. (HasType TxSymbol WriteTxResponse (Input s), AllUniqueLabels (Input s))
+  => WriteTxResponse
+  -> Event s
+event r = Event (IsJust #tx r)
 
 transactions
   :: forall s. ( HasType TxSymbol PendingTransactions (Output s) )

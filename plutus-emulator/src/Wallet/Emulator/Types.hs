@@ -682,12 +682,12 @@ execTraceTxPool pl = snd . runTraceTxPool pl
 
 -- | Run an action as a wallet, subsequently process any pending transactions
 --   and notify wallets. Returns the new block
-runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m a -> Trace m ([Tx], Either WalletAPIError a)
 runWalletActionAndProcessPending wallets wallet action = do
-    _ <- runWalletAction wallet action
+    (result, _) <- runWalletAction wallet action
     block <- processPending
     _ <- walletsNotifyBlock wallets block
-    pure block
+    pure (block, result)
 
 allWallets :: [Wallet]
 allWallets = Wallet <$> [1..10]
