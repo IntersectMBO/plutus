@@ -100,12 +100,6 @@ ledgerBytesBridge = do
     typeModule ^== "LedgerBytes"
     pure psString
 
-scientificBridge :: BridgePart
-scientificBridge = do
-    typeName ^== "Scientific"
-    typeModule ^== "Data.Scientific"
-    pure psInt
-
 aesonBridge :: BridgePart
 aesonBridge = do
     typeName ^== "Value"
@@ -134,29 +128,10 @@ digestBridge = do
     typeModule ^== "Crypto.Hash.Types"
     pure psString
 
-sha256Bridge :: BridgePart
-sha256Bridge = do
-    typeName ^== "SHA256"
-    typeModule ^== "Crypto.Hash.Types" <|> typeModule ^== "Crypto.Hash" <|>
-        typeModule ^== "Crypto.Hash.SHA256"
-    pure psString
-
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
     typeModule ^== "Ledger.Scripts"
-    pure psString
-
-redeemerBridge :: BridgePart
-redeemerBridge = do
-    typeName ^== "Redeemer"
-    typeModule ^== "Ledger.Script"
-    pure psString
-
-validatorBridge :: BridgePart
-validatorBridge = do
-    typeName ^== "Validator"
-    typeModule ^== "Ledger.Script"
     pure psString
 
 validatorHashBridge :: BridgePart
@@ -205,13 +180,9 @@ myBridge :: BridgePart
 myBridge =
     eitherBridge <|> tupleBridge <|> defaultBridge <|> integerBridge <|>
     assocMapBridge <|>
-    scientificBridge <|>
     aesonBridge <|>
     setBridge <|>
     digestBridge <|>
-    sha256Bridge <|>
-    redeemerBridge <|>
-    validatorBridge <|>
     scriptBridge <|>
     headersBridge <|>
     headerBridge <|>
