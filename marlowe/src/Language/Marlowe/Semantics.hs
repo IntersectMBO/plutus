@@ -187,7 +187,7 @@ evalValue env state value = let
         Constant integer     -> integer
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
-        SubValue lhs rhs     -> eval lhs + eval rhs
+        SubValue lhs rhs     -> eval lhs - eval rhs
         ChoiceValue choiceId defVal ->
             Map.findWithDefault (eval defVal) choiceId (choices state)
         SlotIntervalStart    -> (getSlot . ivFrom . slotInterval) env
