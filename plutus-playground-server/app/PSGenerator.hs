@@ -29,9 +29,9 @@ import qualified Data.Text                                  as T ()
 import qualified Data.Text.Encoding                         as T (encodeUtf8)
 import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.PlutusTx                          (Data)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
+import           Language.PlutusTx                          (Data)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
                                                              TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
                                                              genericShow, haskType, isTuple, mkSumType, order,
