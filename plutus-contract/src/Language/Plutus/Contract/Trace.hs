@@ -69,15 +69,16 @@ import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
+import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol, WriteTxResponse)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
 import           Ledger.Ada                                      (Ada)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.AddressMap                               as AM
 import           Ledger.Slot                                     (Slot)
-import           Ledger.Tx                                       (Address, Tx)
+import           Ledger.Tx                                       (Address, Tx, hashTx)
 
+import           Wallet.API                                      (WalletAPIError)
 import           Wallet.Emulator                                 (AssertionError, EmulatorAction, EmulatorState,
                                                                   MonadEmulator, Wallet)
 import qualified Wallet.Emulator                                 as EM
@@ -180,12 +181,12 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator m )
     => Wallet
-    -> EM.MockWallet ()
-    -> m [Tx]
+    -> EM.MockWallet a
+    -> m ([Tx], Either WalletAPIError a)
 runWallet w t = do
-    tx <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
+    (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
     _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
-    pure tx
+    pure (tx, result)
 
 -- | Call the endpoint on the contract
 callEndpoint
@@ -204,14 +205,16 @@ callEndpoint w = addEvent w . Endpoint.event @l @_ @s
 submitUnbalancedTx
     :: forall s m.
       ( MonadEmulator m
-      , HasType TxSymbol () (Input s)
+      , HasType TxSymbol WriteTxResponse (Input s)
       , AllUniqueLabels (Input s)
       )
     => Wallet
     -> UnbalancedTx
     -> ContractTrace s m [Tx]
-submitUnbalancedTx wllt tx =
-    addEvent wllt WriteTx.event >> lift (runWallet wllt (Wallet.handleTx tx))
+submitUnbalancedTx wllt tx = do
+    (txns, res) <- lift (runWallet wllt (Wallet.handleTx tx))
+    addEvent wllt (WriteTx.event $ fmap hashTx res)
+    pure txns
 
 -- | Add the 'LedgerUpdate' event for the given transaction to
 --   the traces of all wallets.
