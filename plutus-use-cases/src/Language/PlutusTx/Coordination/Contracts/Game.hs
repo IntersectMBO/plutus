@@ -44,6 +44,7 @@ import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                         (Ada, Address, DataScript, PendingTx, RedeemerScript, ValidatorScript)
+import           Ledger.Typed.Scripts           (wrapValidator)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.AddressMap              as AM
@@ -65,17 +66,13 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
-correctGuess :: HashedString -> ClearString -> Bool
-correctGuess (HashedString actual) (ClearString guess') = actual == sha2_256 guess'
-
 -- | The validator (datascript -> redeemer -> PendingTx -> Bool)
-validateGuess :: PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
-validateGuess (PlutusTx.fromData -> Just dataScript) (PlutusTx.fromData -> Just redeemerScript) _ = correctGuess dataScript redeemerScript
-validateGuess _ _ _ = False
+validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 gameValidator :: ValidatorScript
-gameValidator =
-    Ledger.ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
+gameValidator = Ledger.ValidatorScript ($$(Ledger.compileScript [|| validator ||]))
+    where validator = wrapValidator validateGuess
 
 gameDataScript :: String -> DataScript
 gameDataScript =

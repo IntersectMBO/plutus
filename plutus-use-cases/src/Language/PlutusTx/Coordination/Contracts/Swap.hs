@@ -199,10 +199,10 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
 swapValidator swp = ValidatorScript $
-    $$(Ledger.compileScript [|| \s -> wrap (mkValidator s) ||])
+    $$(Ledger.compileScript [|| validatorParam ||])
         `Ledger.applyScript`
             Ledger.lifted swp
-    where wrap = Scripts.wrapValidator @SwapOwners @SwapOracle
+    where validatorParam s = Scripts.wrapValidator (mkValidator s)
 
 {- Note [Swap Transactions]
 

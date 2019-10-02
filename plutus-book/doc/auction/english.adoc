@@ -6,7 +6,6 @@
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
 {-# LANGUAGE TemplateHaskell                 #-}
-{-# LANGUAGE TypeApplications                #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Auction.English where
@@ -551,12 +550,8 @@ eaStateMachine ea = StateMachine
     }
 
 mkEAValidator :: EnglishAuction -> ValidatorScript
-mkEAValidator ea = ValidatorScript $
-    $$(compileScript [|| \(ea' :: EnglishAuction) ->
-        wrap (mkValidator (eaStateMachine ea')) ||])
-    `applyScript`
-    lifted ea
-    where wrap = wrapValidator @EAState @EAAction
+mkEAValidator ea = ValidatorScript $ $$(compileScript [|| v ||]) `applyScript` lifted ea
+    where v ea' = wrapValidator (mkValidator (eaStateMachine ea'))
 
 eaAddress :: EnglishAuction -> Address
 eaAddress = scriptAddress . mkEAValidator

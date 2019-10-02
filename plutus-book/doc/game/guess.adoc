@@ -2,7 +2,6 @@
 ----
 {-# LANGUAGE DataKinds                       #-} -- <1>
 {-# LANGUAGE DerivingStrategies              #-}
-{-# LANGUAGE TypeApplications                #-}
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -72,8 +71,8 @@ validate (HashedText hashed) (ClearText clear) _ =
     equalsByteString hashed (sha2_256 clear)
 
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(compileScript [|| wrap validate ||])
-    where wrap = wrapValidator @HashedText @ClearText
+gameValidator = ValidatorScript $$(compileScript [|| v ||])
+    where v = wrapValidator validate
 ----
 
 So we turn `validate` into a `TExp GameValidator`

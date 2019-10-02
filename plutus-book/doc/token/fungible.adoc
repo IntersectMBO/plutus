@@ -4,7 +4,6 @@
 {-# LANGUAGE DeriveAnyClass                  #-}
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
-{-# LANGUAGE TypeApplications                #-}
 {-# LANGUAGE TemplateHaskell                 #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
@@ -301,9 +300,9 @@ We write the usual helper functions and have completed the on-chain part:
 mkTradeValidator :: Trade -> ValidatorScript
 mkTradeValidator =
       ValidatorScript
-    . applyScript $$(compileScript [|| \t -> wrap (validateTrade t) ||])
+    . applyScript $$(compileScript [|| v ||])
     . lifted
-    where wrap = wrapValidator @() @TradeAction
+    where v t = wrapValidator (validateTrade t)
 
 tradeDataScript :: DataScript
 tradeDataScript = DataScript $ toData ()

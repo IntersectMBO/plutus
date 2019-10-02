@@ -1283,17 +1283,17 @@
                                                                 (strict)
                                                                 (vardecl
                                                                   validate
-                                                                  (fun MultiSig (fun Data (fun Data (fun [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]] Bool))))
+                                                                  (fun MultiSig (fun Unit (fun Unit (fun [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]] Bool))))
                                                                 )
                                                                 (lam
                                                                   w
                                                                   MultiSig
                                                                   (lam
                                                                     w
-                                                                    Data
+                                                                    Unit
                                                                     (lam
                                                                       w
-                                                                      Data
+                                                                      Unit
                                                                       (lam
                                                                         w
                                                                         [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]

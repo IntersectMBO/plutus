@@ -181,10 +181,10 @@ which we do in `mkValidatorScript`.
 mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val =
-      $$(L.compileScript [|| \c -> wrap (mkValidator c) ||])
+      $$(L.compileScript [|| v ||])
       `L.applyScript` -- <1>
       L.lifted campaign -- <2>
-  wrap = wrapValidator @Contributor @CampaignAction
+  v c = wrapValidator (mkValidator c)
 
 mkValidator :: Campaign -> CampaignValidator
 ----

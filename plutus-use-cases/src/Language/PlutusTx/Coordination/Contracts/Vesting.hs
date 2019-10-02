@@ -190,7 +190,7 @@ mkValidator d@Vesting{..} VestingData{..} _ ptx@PendingTx{pendingTxValidRange = 
 
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| \vd -> wrap (mkValidator vd) ||])
+    $$(Ledger.compileScript [|| validatorParam ||])
         `Ledger.applyScript`
             Ledger.lifted v
-    where wrap = Scripts.wrapValidator @VestingData @()
+    where validatorParam vd = Scripts.wrapValidator (mkValidator vd)

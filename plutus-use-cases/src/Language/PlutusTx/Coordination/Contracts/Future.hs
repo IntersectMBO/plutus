@@ -300,10 +300,10 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
 
 validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript $
-    $$(Ledger.compileScript [|| \f -> wrap (mkValidator f) ||])
+    $$(Ledger.compileScript [|| validatorParam ||])
         `Ledger.applyScript`
             Ledger.lifted ft
-    where wrap = Scripts.wrapValidator @FutureData @FutureRedeemer
+    where validatorParam f = Scripts.wrapValidator (mkValidator f)
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData

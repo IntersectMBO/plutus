@@ -167,8 +167,8 @@ Finally, we can compile this into on-chain code.
 ----
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(L.compileScript [|| wrap validator ||]) -- <.>
-    where wrap = wrapValidator @HashedText @ClearText
+gameValidator = ValidatorScript $$(L.compileScript [|| v ||]) -- <.>
+    where v = wrapValidator validator
 ----
 <.> The reference to the validator script that we defined
 is wrapped in Template Haskell quotes, and then the
