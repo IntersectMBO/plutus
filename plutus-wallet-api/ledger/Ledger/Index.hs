@@ -302,14 +302,12 @@ validationData tx = do
 
 -- | Create the data about a transaction output which will be passed to a validator script.
 mkOut :: TxOut -> Validation.PendingTxOut
-mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
-    (d, tp) = case txOutType t of
+mkOut t = Validation.PendingTxOut (txOutValue t) tp where
+    tp = case txOutType t of
         PayToScript scrpt ->
-            let
-                validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
-            in
-                (Just validatorHash, Validation.DataTxOut scrpt)
-        PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
+            let validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
+            in Validation.ScriptTxOut validatorHash scrpt
+        PayToPubKey pk -> Validation.PubKeyTxOut pk
 
 pendingTxInScript
     :: ValidationMonad m

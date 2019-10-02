@@ -55,9 +55,9 @@ validateNonFungible nf () name tx =
                 && pendingTxOutValue o
                     == (inValue + v2)                -- <4>
                 && V.valueOf inValue s name == 0            -- <5>
-                && case pendingTxOutHashes o of
-                    Just vh -> vh == ownHash tx        -- <6>
-                    Nothing -> False
+                && case pendingTxOutType o of
+                    ScriptTxOut vh _ -> vh == ownHash tx        -- <6>
+                    _                -> False
         _                 -> False
   where
     s :: CurrencySymbol

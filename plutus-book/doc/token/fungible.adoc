@@ -55,8 +55,8 @@ monetary policy of our currency:
 validateFungible :: Fungible -> FungibleValidator
 validateFungible f () n tx =
     case pendingTxOutputs tx of
-        [o] -> case pendingTxOutData o of
-            DataTxOut _     -> False
+        [o] -> case pendingTxOutType o of
+            ScriptTxOut _ _ -> False
             PubKeyTxOut key ->
                    key == issuer f          -- <1>
                 && txSignedBy tx (issuer f) -- <2>
@@ -254,7 +254,7 @@ type TradeValidator = () -> TradeAction -> PendingTx -> Bool
 
 validateTrade :: Trade -> TradeValidator
 validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
-    [o1, o2] -> case (pendingTxOutData o1, pendingTxOutData o2) of -- <2>
+    [o1, o2] -> case (pendingTxOutType o1, pendingTxOutType o2) of -- <2>
         (PubKeyTxOut key1, PubKeyTxOut key2) ->                    -- <3>
                intervalTo (deadline t)                             -- <4>
                     `contains` pendingTxValidRange tx
@@ -265,7 +265,7 @@ validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
         _                                    -> False
     _        -> False
 validateTrade t () Reclaim tx = case pendingTxOutputs tx of
-    [o] -> case pendingTxOutData o of
+    [o] -> case pendingTxOutType o of
         PubKeyTxOut key ->
                intervalFrom (deadline t)
                     `contains` pendingTxValidRange tx

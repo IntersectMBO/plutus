@@ -236,7 +236,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
         --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
         paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
         paidOutTo vl pk txo =
-            let PendingTxOut vl' _ _ = txo
+            let PendingTxOut vl' _ = txo
                 adaVl' = Ada.fromValue vl'
             in
             isPubKeyOutput txo pk && vl == adaVl'
