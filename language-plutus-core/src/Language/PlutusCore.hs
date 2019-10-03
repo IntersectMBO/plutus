@@ -1,4 +1,3 @@
-
 module Language.PlutusCore
     (
       -- * Parser

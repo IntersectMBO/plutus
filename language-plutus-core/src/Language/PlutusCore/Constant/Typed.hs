@@ -263,21 +263,6 @@ embedNameMeanings
     :: (NameMeaning uni -> NameMeaning uni') -> NameMeanings uni -> NameMeanings uni'
 embedNameMeanings emb (NameMeanings means) = NameMeanings $ fmap emb means
 
-
-{-i\
-> I.e. instead of requiring each type to be liftable and unliftable we can require each type to be in the current universe. Then the burden of turning a term into an unliftable one is on the user, but the user can just use functions or a type class that we'll provide (i.e. we probably can make exactly the same API as with internal unlifting).
-
-Unfortunately, this is troubling. Consider unlifting of products: we have a PLC's `pair integer bool` and need to get a Haskell's `(Integer, Bool)` from it. With unlifting that we have currently, the entire structure is unlifted at once: we do not need to require neither `Integer` nor `Bool` to be in the current universe. We just extend the universe with a single type, `(Integer, Bool)`, and unlift directly into it. But with explicit unlifting we'd have to unlift `Integer` and `Bool` separately and then combine the resulting values together into a tuple. But this means that we have to add not only `(Integer, Bool)` to the universe, but also both `Integer` and `Bool`.
-
-And from what I see this is not only the problem of unlifting into specialized polymorphic types. For a type of trees with integers in leafs, we'll have to either require integers to be in the current universe or to hardcode the logic of "unlift an integer and immediately wrap it as a leaf, so that there is no need to add integers to the current universe". This monorphic case might be solvable, but the polymorphic one does look irritating.
-
-And note that adding several new types to the current universe is not something that can be done easily. In `(a, b)` the types, `a` and `b`, are independent of each other and so we want to unlift them separately, but that means that we extend the universe in two distinct incompatible ways: with the `a` type to unlift into `a` and with the `b` type to unlift into `b`. And then we need to unify those two differently extended universes, which is hard technically. Constraints might sometimes help in cases like that, but see the problems with `Includes` and `Extend` described above.
-
-In general, whenever the user wants to unlift a data structure, they do not really care about pieces of the data structure. "Just do the right thing".
-
-Except, as described above, there are now two ways to embed Haskell values: deeply into a Scott-encoded data structure and shallowly as a `Constant` wrapper around a Haskell value. And therefore we can unlift from a deeply or shallowly embedded value. So the user might actually want to specify which way to unlift values to use in each particular situation.
--}
-
 {-
 One possible option is to continue using the current way to unlift things, but do not use it in the contant application machinery, where those implicit conversions between PLC and Haskell only complicate things and do not seem to be useful at all. Separating unlifting and evaluation makes perfect sense, but that also means that we'll have to define two distinct `TypeScheme` types: one for unlifting (with `KnownType` under the hood) and one for constant application machinery (with the recently described `TypeGround` under the hood), but what about dynamic builtin names then? We need to use them with both the `TypeScheme`s, because we need them generally (which covers the `TypeGround` case) and because we need to add new dynamic builtin types during unlifting (which covers the `KnownType` case).
 
@@ -289,7 +274,3 @@ Maybe two distinct `TypeScheme` types is not much of a problem. The one used for
 
 Need to think & play more.
 -}
-
-
--- unlift . PLC.mapTuple unlift unlift
--- Haskell.mapTuple unlift unlift . unlift
