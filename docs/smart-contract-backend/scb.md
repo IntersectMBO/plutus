@@ -24,7 +24,7 @@ Note that steps 2 and 3 introduce concurrency by acting on whichever event is re
 
 ### 1.2 Message Format
 
-The format of messages handled by the SCB is JSON. For each Plutus contract there exists a schema in form of an IOTS type definition that specifies the message types accepted and produced by the contract. (IOTS is a TypeScript library for describing types and validating JSON objects against them). 
+The format of messages handled by the SCB is JSON. For each Plutus contract there exists a schema in form of an IOTS type definition that specifies the message types accepted and produced by the contract. (IOTS is a TypeScript library for describing types and validating JSON objects against them).
 
 If a Plutus contract has the type `(s,i) -> s` in Haskell, then its IOTS schema describes the JSON representation of the two top-level types `(s,i)` and `s`, and of all their constituents.
 
@@ -59,7 +59,7 @@ The SCB design enables an API consumer to generate UI elements for contract endp
 
 #### 1.3.2 Signing
 
-The transactions produced by Plutus contracts are unbalanced and unsigned (represented by the `UnbalancedTx` type). When the SCB encounters an unbalanced transaction during step (1) of the process, it needs to send it to several places. First, the transaction has to be balanced (incl. coin selection) and signed. Both tasks are performed by the signing process. Then the SCB informs the contract of the transaction ID and routes the transaction to a node client that in turn submits it to the blockchain. 
+The transactions produced by Plutus contracts are unbalanced and unsigned (represented by the `UnbalancedTx` type). When the SCB encounters an unbalanced transaction during step (1) of the process, it needs to send it to several places. First, the transaction has to be balanced (incl. coin selection) and signed. Both tasks are performed by the signing process. Then the SCB informs the contract of the transaction ID and routes the transaction to a node client that in turn submits it to the blockchain.
 
 #### 1.3.3 Node Client
 
@@ -68,6 +68,38 @@ The node client is a process that talks to a Cardano node. It can submit transac
 1. Stream all blocks to the SCB, including the `n` most recent blocks (where `n` is smaller than or equal to `k`, the number of blocks that may be rolled back (blockchain constant)). In practice, the SCB will maintain a connection to the node client throughout, and inspect every new block to check for triggers that have been registered by the contracts (see 1.2.1.4).
 2. Ask for all unspent outputs at an address (see 1.2.1.5)
 3. Ask for the current slot number (see 1.2.1.1)
+
+We communicate with the node client using a REST API, and the listener will establish a web sockets connection and be updated regularly with accepted transactions.
+
+The mock will implement the following endpoints (which will also be exposed by the real node):
+
+```
+--| Notations
+    <-   Client sends to Server.
+    ->   Server sends to Client.
+    <d>  Datum `d` is JSON encoded.
+
+data Update = Rollback Slot <Block>
+            | NewBlock Slot <Block>
+
+-- API
+GET /utxo/:addr
+-> <[(TxOutRef, TxOut)]>
+
+GET /currentSlot
+-> <Slot>
+
+GET /chain/:slot -- Web sockets stream.
+-> <Update> ..   -- A stream of updates.
+(Possible error: `Specified slot outside of K range`)
+
+POST /tx
+<- <Tx>
+(Lots of possible errors during transaction validation)
+```
+
+Notes:
+1. If the node will try to sync beyond the K transactions limit, it will be impossible. If the node cannot properly sync, then it *may* make running contracts impossible.
 
 #### 1.3.4 Endpoints
 
