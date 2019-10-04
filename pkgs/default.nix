@@ -53510,19 +53510,15 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , cookie
 , cryptonite
-, Diff
 , directory
 , exceptions
 , file-embed
 , filepath
 , hashable
-, hspec
-, hspec-discover
 , http-client
 , http-client-tls
 , http-conduit
 , http-types
-, HUnit
 , jwt
 , lens
 , monad-logger
@@ -53537,6 +53533,8 @@ license = stdenv.lib.licenses.bsd3;
 , servant-purescript
 , servant-server
 , stdenv
+, tasty
+, tasty-hunit
 , template-haskell
 , temporary
 , text
@@ -53601,14 +53599,10 @@ base
 bytestring
 containers
 cryptonite
-Diff
-hspec
-HUnit
+tasty
+tasty-hunit
 text
 wl-pprint-text
-];
-testToolDepends = [
-hspec-discover
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.asl20;
