@@ -54147,17 +54147,14 @@ license = stdenv.lib.licenses.asl20;
 , cookie
 , cryptonite
 , data-default-class
-, Diff
 , exceptions
 , file-embed
 , filepath
 , hspec
-, hspec-discover
 , http-client
 , http-client-tls
 , http-conduit
 , http-types
-, HUnit
 , insert-ordered-containers
 , iots-export
 , jwt
@@ -54183,6 +54180,9 @@ license = stdenv.lib.licenses.asl20;
 , servant-purescript
 , servant-server
 , stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
 , template-haskell
 , temporary
 , text
@@ -54281,9 +54281,6 @@ testHaskellDepends = [
 aeson
 base
 bytestring
-Diff
-hspec
-HUnit
 insert-ordered-containers
 iots-export
 mtl
@@ -54291,12 +54288,12 @@ playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-wallet-api
+tasty
+tasty-golden
+tasty-hunit
 text
 time-units
 transformers
-];
-testToolDepends = [
-hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";

@@ -1,50 +1,51 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ViewPatterns      #-}
 
 module Playground.Rollup.RenderSpec
-    ( spec
+    ( tests
     ) where
 
-import           Control.Monad.Except           (runExceptT)
-import qualified Data.Aeson                     as JSON
-import qualified Data.Aeson.Text                as JSON
-import           Data.Aeson.Types               (object, (.=))
-import           Data.Algorithm.Diff            (Diff, getGroupedDiff)
-import           Data.Algorithm.DiffOutput      (ppDiff)
-import           Data.Function                  (on)
-import           Data.Text                      (Text)
-import qualified Data.Text                      as Text
-import qualified Data.Text.IO                   as Text
-import qualified Data.Text.Lazy                 as TL
-import           Data.Time.Units                (Microsecond, fromMicroseconds)
-import           Language.Haskell.Interpreter   (SourceCode (SourceCode))
-import qualified Ledger.Ada                     as Ada
-import           Ledger.Value                   (Value)
-import qualified Ledger.Value                   as Value
-import           Paths_plutus_playground_server (getDataFileName)
-import qualified Playground.Interpreter         as PI
-import           Playground.Rollup.Render       (showBlockchain)
-import           Playground.Server              (postProcessEvaluation)
-import           Playground.Types               (Evaluation (Evaluation), EvaluationResult, Expression (Action, Wait),
-                                                 Fn (Fn), SimulatorWallet (SimulatorWallet), simulatorWalletBalance,
-                                                 simulatorWalletWallet)
-import           Playground.Usecases            (crowdfunding, vesting)
-import           Test.Hspec                     (Spec, expectationFailure, it)
-import           Test.HUnit                     (Assertion, assertBool)
-import           Wallet.Emulator.Types          (Wallet (Wallet))
+import           Control.Monad.Except         (runExceptT)
+import qualified Data.Aeson                   as JSON
+import qualified Data.Aeson.Text              as JSON
+import           Data.Aeson.Types             (object, (.=))
+import           Data.ByteString.Lazy         (ByteString)
+import qualified Data.ByteString.Lazy         as LBS
+import           Data.Text.Encoding           (encodeUtf8)
+import qualified Data.Text.Lazy               as TL
+import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Language.Haskell.Interpreter (SourceCode (SourceCode))
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Value                 (Value)
+import qualified Ledger.Value                 as Value
+import qualified Playground.Interpreter       as PI
+import           Playground.Rollup.Render     (showBlockchain)
+import           Playground.Server            (postProcessEvaluation)
+import           Playground.Types             (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn),
+                                               SimulatorWallet (SimulatorWallet), simulatorWalletBalance,
+                                               simulatorWalletWallet)
+import           Playground.Usecases          (crowdfunding, vesting)
+import           Test.Tasty                   (TestTree, testGroup)
+import           Test.Tasty.Golden            (goldenVsString)
+import           Test.Tasty.HUnit             (assertFailure)
+import           Wallet.Emulator.Types        (Wallet (Wallet))
 
-spec :: Spec
-spec = showBlockchainSpec
+tests :: TestTree
+tests = testGroup "Playground.Rollup.Render" [showBlockchainTest]
 
-showBlockchainSpec :: Spec
-showBlockchainSpec = do
-    it "renders a vest-funds scenario sensibly" $
-        vestFundsEval `shouldEvaluateTo`
-        "test/Playground/Rollup/renderVestFunds.txt"
-    it "renders a crowdfunding scenario sensibly" $
-        crowdfundingEval `shouldEvaluateTo`
-        "test/Playground/Rollup/renderCrowdfunding.txt"
+showBlockchainTest :: TestTree
+showBlockchainTest =
+    testGroup
+        "showBlockchain"
+        [ goldenVsString
+              "renders a vest-funds scenario sensibly"
+              "test/Playground/Rollup/renderVestFunds.txt"
+              (render vestFundsEval)
+        , goldenVsString
+              "renders a crowdfunding scenario sensibly"
+              "test/Playground/Rollup/renderCrowdfunding.txt"
+              (render crowdfundingEval)
+        ]
   where
     initialBalance = Ada.adaValueOf 10
     vestFundsEval =
@@ -127,28 +128,15 @@ toJSONString :: JSON.ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
 
 ------------------------------------------------------------
-shouldEvaluateTo :: Evaluation -> FilePath -> IO ()
-shouldEvaluateTo scenario filename = do
+render :: Evaluation -> IO ByteString
+render scenario = do
     result <- runExceptT $ PI.runFunction maxInterpretationTime scenario
     case postProcessEvaluation result of
-        Left err               -> expectationFailure $ show err
-        Right evaluationResult -> rendersAs evaluationResult filename
+        Left err -> assertFailure $ show err
+        Right evaluationResult ->
+            case showBlockchain evaluationResult of
+                Left err       -> assertFailure $ show err
+                Right rendered -> pure . LBS.fromStrict . encodeUtf8 $ rendered
   where
     maxInterpretationTime :: Microsecond
     maxInterpretationTime = fromMicroseconds 100 * 1000 * 1000
-
-rendersAs :: EvaluationResult -> FilePath -> IO ()
-rendersAs evaluationResult filename = do
-    file <- Text.readFile =<< getDataFileName filename
-    case showBlockchain evaluationResult of
-        Left err     -> expectationFailure $ show err
-        Right output -> output `shouldBePrettyDiff` file
-  where
-    shouldBePrettyDiff :: Text -> Text -> Assertion
-    shouldBePrettyDiff (stripTrailingWhitespace -> a) (stripTrailingWhitespace -> b) =
-        assertBool (formatError (ppDiff (diffLines a b))) (a == b)
-    diffLines :: Text -> Text -> [Diff [String]]
-    diffLines = getGroupedDiff `on` lines . Text.unpack
-    formatError err = unlines [filename, "Render failed with:", err]
-    stripTrailingWhitespace =
-        Text.stripEnd . Text.unlines . fmap Text.stripEnd . Text.lines
