@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 module Spec.Lib
     ( reasonable
     , goldenPir
@@ -24,7 +25,7 @@ import           Ledger.Value              (Value)
 -- | Assert that the size of a 'ValidatorScript' is below
 --   the maximum.
 reasonable :: ValidatorScript -> Integer -> Assertion
-reasonable (Ledger.ValidatorScript s) maxSize = do
+reasonable (Ledger.unValidatorScript -> s) maxSize = do
     let sz = Ledger.scriptSize s
         msg = "Script too big! Max. size: " <> show maxSize <> ". Actual size: " <> show sz
     -- so the actual size is visible in the log

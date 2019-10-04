@@ -196,7 +196,7 @@ trivial = bgroup "trivial" [
         bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
     ]
     where
-        validator = ValidatorScript $$(Ledger.compileScript [|| \() () (_::PendingTx) -> True ||])
+        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PendingTx) -> True ||])
 
 -- | The multisig contract is one of the simplest ones that we have. This runs a number of different scenarios.
 -- Note that multisig also does some signature verification!
@@ -258,10 +258,10 @@ sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
 validationData1 :: ValidationData
-validationData1 = ValidationData $ lifted $ mockPendingTx
+validationData1 = ValidationData $ fromCompiledCode $ PlutusTx.liftCode $ mockPendingTx
 
 validationData2 :: ValidationData
-validationData2 = ValidationData $ lifted $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
+validationData2 = ValidationData $ fromCompiledCode $ PlutusTx.liftCode $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx

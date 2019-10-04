@@ -16,7 +16,7 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Slot, PubKey, ValidatorScript (..))
+import           Ledger                    (Slot, PubKey, ValidatorScript)
 import qualified Ledger                    as Ledger
 import qualified Ledger.Typed.Scripts      as Scripts
 import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
@@ -198,10 +198,10 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
-swapValidator swp = ValidatorScript $
-    $$(Ledger.compileScript [|| validatorParam ||])
-        `Ledger.applyScript`
-            Ledger.lifted swp
+swapValidator swp = Ledger.mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode swp
     where validatorParam s = Scripts.wrapValidator (mkValidator s)
 
 {- Note [Swap Transactions]

@@ -39,6 +39,7 @@ import qualified Data.Map                  as Map
 import           Data.Semigroup            (Semigroup)
 import qualified Data.Set                  as Set
 import           GHC.Generics              (Generic)
+import           Language.PlutusTx         (liftCode)
 import qualified Language.PlutusTx.Numeric as P
 import qualified Ledger.Ada                as Ada
 import           Ledger.Blockchain
@@ -244,7 +245,7 @@ checkMatch pendingTx = \case
             pTxIn <- pendingTxInScript (txInRef txin) vl r
             let
                 ptx' = pendingTx { pendingTxIn = pTxIn }
-                vd = ValidationData (lifted ptx')
+                vd = ValidationData (fromCompiledCode $ liftCode ptx')
             case runExcept $ runScript Typecheck vd vl d r of
                 Left e  -> throwError $ ScriptFailure e
                 Right _ -> pure ()

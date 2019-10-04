@@ -28,6 +28,7 @@ import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Numeric  as P
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
@@ -236,7 +237,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ $$(compileScript [|| wrapValidator validator ||])
+        failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
         validator :: () -> () -> PendingTx -> Bool
         validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
 

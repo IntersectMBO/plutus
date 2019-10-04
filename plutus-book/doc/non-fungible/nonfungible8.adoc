@@ -74,9 +74,9 @@ adminRedeemer :: RedeemerScript
 adminRedeemer = RedeemerScript $ toData ()
 
 mkAdminValidator :: Admin -> ValidatorScript
-mkAdminValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| \a -> wrapValidator (validateAdmin a) ||])
-                       . lifted
+mkAdminValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \a -> wrapValidator (validateAdmin a) ||])
+                       . liftCode
 
 adminAddress :: Admin -> Address
 adminAddress = scriptAddress . mkAdminValidator
@@ -157,9 +157,9 @@ mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
-mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
-                       . lifted
+mkNonFungibleValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
+                       . liftCode
 
 nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator

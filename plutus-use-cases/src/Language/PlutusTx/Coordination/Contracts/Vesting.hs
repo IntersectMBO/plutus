@@ -31,7 +31,7 @@ import           Language.PlutusTx.Prelude    hiding (Applicative (..))
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Applicative as PlutusTx
 import qualified Ledger                       as Ledger
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
@@ -189,8 +189,8 @@ mkValidator d@Vesting{..} VestingData{..} _ ptx@PendingTx{pendingTxValidRange = 
     in amountsValid && txnOutputsValid
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| validatorParam ||])
-        `Ledger.applyScript`
-            Ledger.lifted v
+validatorScript v = Ledger.mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode v
     where validatorParam vd = Scripts.wrapValidator (mkValidator vd)

@@ -44,7 +44,7 @@ scriptAddress = Tx.scriptAddress . validatorScript
 
 -- | Get the validator script for a script instance.
 validatorScript :: ScriptInstance a -> ValidatorScript
-validatorScript (Validator vc wrapper) = ValidatorScript $ fromCompiledCode $ wrapper `applyCode` vc
+validatorScript (Validator vc wrapper) = mkValidatorScript $ wrapper `applyCode` vc
 
 {-# INLINABLE wrapValidator #-}
 wrapValidator

@@ -6,8 +6,9 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE RankNTypes  #-}
@@ -20,15 +21,15 @@ module Ledger.Scripts(
     Script (..),
     scriptSize,
     fromCompiledCode,
-    compileScript,
-    lifted,
-    applyScript,
     Checking (..),
     ScriptError (..),
     evaluateScript,
     runScript,
+    applyScript,
     -- * Script wrappers
-    ValidatorScript(..),
+    mkValidatorScript,
+    ValidatorScript,
+    unValidatorScript,
     RedeemerScript(..),
     DataScript(..),
     DataScripts,
@@ -64,19 +65,18 @@ import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.String
 import           GHC.Generics                             (Generic)
-import qualified Language.Haskell.TH                      as TH
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (liftCode)
-import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift, IsData (..), Data)
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Crypto
+import {-# SOURCE #-} Ledger.Validation                   (PendingTx)
 import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -142,10 +142,6 @@ fromCompiledCode = fromPlc . getPlc
 fromPlc :: PLC.Program PLC.TyName PLC.Name () -> Script
 fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 
--- | Compile a quoted Haskell expression to a 'Script'.
-compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
-compileScript a = [|| fromCompiledCode $$(compile a) ||]
-
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
@@ -183,17 +179,17 @@ instance ToJSON Script where
 instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
 
--- See Note [Normalized types in Scripts]
--- | Lift a Haskell value into the corresponding 'Script'. This allows you to create
--- 'Script's at runtime, whereas 'compileScript' allows you to do so at compile time.
-lifted :: Lift a => a -> Script
-lifted = fromCompiledCode . liftCode
-
 instance ToJSON Data where
     toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
+
+mkValidatorScript :: CompiledCode (Data -> Data -> PendingTx -> Bool) -> ValidatorScript
+mkValidatorScript = ValidatorScript . fromCompiledCode
+
+unValidatorScript :: ValidatorScript -> Script
+unValidatorScript = getValidator
 
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
@@ -302,7 +298,7 @@ runScript
     -> RedeemerScript
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
-    let appliedValidator = ((validator `applyScript` lifted dataScript) `applyScript` lifted redeemer) `applyScript` valData
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` valData
     -- See Note [Scripts returning Bool]
     let appliedChecker = checker `applyScript` appliedValidator
     evaluateScript checking appliedChecker

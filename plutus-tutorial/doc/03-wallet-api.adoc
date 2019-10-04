@@ -41,7 +41,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as I
 import           Ledger                       (Address, DataScript(..), PubKey(..),
                                                RedeemerScript(..), Slot(..),
-                                               TxId, ValidatorScript(..))
+                                               TxId, ValidatorScript, mkValidatorScript)
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
@@ -170,26 +170,25 @@ type CampaignValidator =
 If we want to implement `CampaignValidator` we need to have access to
 the parameters of the campaign, so that we can check if the selected
 `CampaignAction` is allowed. In Haskell we can do this by writing a
-function `mkValidator {2c} Campaign -> CampaignValidator` that takes a
+function `validator {2c} Campaign -> CampaignValidator` that takes a
 `Campaign` and produces a `CampaignValidator`.
 
-We then need to compile this into on-chain code using `L.compileScript`,
-which we do in `mkValidatorScript`.
+We then need to compile this into on-chain code using `PlutusTx.compile`,
+which we do in `mkValidator`.
 
 [source,haskell]
 ----
-mkValidatorScript :: Campaign -> ValidatorScript
-mkValidatorScript campaign = ValidatorScript val where
-  val =
-      $$(L.compileScript [|| v ||])
-      `L.applyScript` -- <1>
-      L.lifted campaign -- <2>
-  v c = wrapValidator (mkValidator c)
+mkValidator :: Campaign -> ValidatorScript
+mkValidator campaign = mkValidatorScript $
+  $$(PlutusTx.compile [|| v ||])
+  `PlutusTx.applyCode` -- <1>
+  PlutusTx.liftCode campaign -- <2>
+  where v c = wrapValidator (validator c)
 
-mkValidator :: Campaign -> CampaignValidator
+validator :: Campaign -> CampaignValidator
 ----
-<1> `applyScript` applies one `Script` to another.
-<2> `Ledger.lifted campaign` gives us the on-chain representation of `campaign`.
+<1> `applyCode` applies one `CompiledCode` to another.
+<2> `liftCode campaign` gives us the on-chain representation of `campaign`.
 
 [NOTE]
 .Parameterizing validators
@@ -198,10 +197,10 @@ You may wonder why we have to use `L.applyScript` to supply the `Campaign`
 argument. Why can we not write `L.lifted campaign` inside the
 validator script? The reason is that `campaign` is not known at the time
 the validator script is compiled. The names of `lifted` and `compile`
-indicate their chronological order: `mkValidator` is compiled (via a
+indicate their chronological order: `validator` is compiled (via a
 compiler plugin) to Plutus Core when GHC compiles the contract module,
 and the `campaign` value is lifted to Plutus Core at runtime, when the
-contract module is executed. But we know that `mkValidator` is a
+contract module is executed. But we know that `validator` is a
 function, and that is why we can apply it to the campaign definition.
 ====
 
@@ -215,7 +214,7 @@ to get the information we care about:
 
 [source,haskell]
 ----
-mkValidator
+validator
     Campaign {fundingTarget, endDate, collectionDeadline, campaignOwner} -- <.>
     con
     act
@@ -385,12 +384,12 @@ link:{wallet-api-haddock}/Wallet-API.html#v:notT[`notT`]
 to describe more complex conditions.
 
 We will need to know the address of a campaign, which amounts to hashing
-the output of `mkValidatorScript`:
+the output of `mkValidator`:
 
 [source,haskell]
 ----
 campaignAddress :: Campaign -> Address
-campaignAddress cmp = L.scriptAddress (mkValidatorScript cmp)
+campaignAddress cmp = L.scriptAddress (mkValidator cmp)
 ----
 
 Contributors put their public key in a data script:
@@ -467,7 +466,7 @@ immediately.
     W.logMsg "Collecting funds"
     let redeemerScript = mkRedeemer Collect
         range          = W.interval (endDate cmp) (collectionDeadline cmp)
-    W.collectFromScript range (mkValidatorScript cmp) redeemerScript -- <.>
+    W.collectFromScript range (mkValidator cmp) redeemerScript -- <.>
 ----
 <.> To collect the funds we use
 link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`],
@@ -541,7 +540,7 @@ refundHandler txid cmp = EventHandler $ \_ -> do
     W.logMsg "Claiming refund"
     let redeemer  = mkRedeemer Refund
         range     = W.intervalFrom (collectionDeadline cmp)
-    W.collectFromScriptTxn range (mkValidatorScript cmp) redeemer txid
+    W.collectFromScriptTxn range (mkValidator cmp) redeemer txid
 ----
 
 Now we can register the refund handler when we make the contribution.

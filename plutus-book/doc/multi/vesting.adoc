@@ -104,10 +104,10 @@ validate v () () tx =
     in     (remaining >= unreleased)
         && (tx `txSignedBy` owner v)
 
-mkValidatorScript :: Vesting -> ValidatorScript
-mkValidatorScript = ValidatorScript
-                  . applyScript $$(compileScript [|| \v -> wrapValidator (validate v) ||])
-                  . lifted
+mkValidator :: Vesting -> ValidatorScript
+mkValidator = mkValidatorScript
+                  . applyCode $$(compile [|| \v -> wrapValidator (validate v) ||])
+                  . liftCode
 ----
 
 <1> Our validator hash.
@@ -127,7 +127,7 @@ Now we are ready to define our wallet endpoints, of which we need three:
 [source,haskell]
 ----
 vestingAddress :: Vesting -> Address
-vestingAddress = scriptAddress . mkValidatorScript
+vestingAddress = scriptAddress . mkValidator
 
 registerScheme :: MonadWallet m => Tranche -> Tranche -> m ()
 registerScheme t1 t2 = do
@@ -188,7 +188,7 @@ withdraw t1 t2 ada = do
             then [ o
                  , scriptTxOut
                     (toValue change)
-                    (mkValidatorScript v)
+                    (mkValidator v)
                     dataScript
                  ]
             else [o]
@@ -205,7 +205,7 @@ withdraw t1 t2 ada = do
     ins v utxos = Set.fromList
         [ scriptTxIn
             r
-            (mkValidatorScript v)
+            (mkValidator v)
             redeemerScript
         | r <- Map.keys utxos
         ]

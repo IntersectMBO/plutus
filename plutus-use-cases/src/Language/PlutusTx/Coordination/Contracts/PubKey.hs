@@ -26,10 +26,10 @@ mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy p pk'
 
 pkValidator :: PubKey -> ValidatorScript
-pkValidator pk = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validatorParam ||])
-        `Ledger.applyScript`
-            Ledger.lifted pk
+pkValidator pk = mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode pk
     where validatorParam k = Scripts.wrapValidator (mkValidator k)
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
