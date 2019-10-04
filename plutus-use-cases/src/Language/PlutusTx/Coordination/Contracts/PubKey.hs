@@ -18,25 +18,27 @@ import qualified Data.Text  as Text
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
-mkValidator :: PubKey -> PlutusTx.Data -> PlutusTx.Data -> PendingTx -> Bool
+mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy p pk'
 
 pkValidator :: PubKey -> ValidatorScript
 pkValidator pk = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| mkValidator ||])
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validatorParam ||])
         `Ledger.applyScript`
             Ledger.lifted pk
+    where validatorParam k = Scripts.wrapValidator (mkValidator k)
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
 lock :: (WalletAPI m, WalletDiagnostics m) => PubKey -> Value -> m (Address, TxIn)
 lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
     addr = Ledger.scriptAddress (pkValidator pk)
-    pkDataScript = DataScript $ Ledger.lifted $ PlutusTx.toData ()
-    pkRedeemer = RedeemerScript $ Ledger.lifted $ PlutusTx.toData ()
+    pkDataScript = DataScript $ PlutusTx.toData ()
+    pkRedeemer = RedeemerScript $ PlutusTx.toData ()
 
     getRef tx = do
         let scriptOuts = listToMaybe

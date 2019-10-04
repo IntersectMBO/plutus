@@ -54267,6 +54267,7 @@ optparse-applicative
 playground-common
 plutus-emulator
 plutus-playground-lib
+plutus-tx
 plutus-wallet-api
 prometheus
 purescript-bridge

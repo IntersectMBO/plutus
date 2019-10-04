@@ -192,12 +192,15 @@ mkRunScript script expr =
 runghcOpts :: [String]
 runghcOpts =
     [ "-XDataKinds"
+    , "-XDerivingStrategies"
     , "-XDeriveAnyClass"
     , "-XDeriveFoldable"
     , "-XDeriveFunctor"
     , "-XDeriveGeneric"
     , "-XDeriveLift"
     , "-XDeriveTraversable"
+    , "-XGeneralizedNewtypeDeriving"
+    , "-XTypeApplications"
     , "-XExplicitForAll"
     , "-XFlexibleContexts"
     , "-XOverloadedStrings"

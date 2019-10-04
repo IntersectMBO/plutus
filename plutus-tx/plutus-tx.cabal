@@ -78,7 +78,6 @@ library plutus-tx-compiler
     exposed-modules:
         Language.PlutusTx.Plugin
         Language.PlutusTx.Builtins
-        Language.PlutusTx.Sealed
         Language.PlutusTx.Data
         Language.PlutusTx.PLCTypes
         Language.PlutusTx.PIRTypes

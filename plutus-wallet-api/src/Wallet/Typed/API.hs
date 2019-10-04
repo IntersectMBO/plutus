@@ -12,9 +12,9 @@
 module Wallet.Typed.API where
 
 import qualified Language.PlutusTx    as PlutusTx
-import qualified Ledger               as L
 import           Ledger.AddressMap
 import           Ledger.Tx
+import qualified Ledger.Typed.Scripts as Scripts
 import qualified Ledger.Typed.Tx      as Typed
 import           Ledger.Value
 import           Wallet.API           (SlotRange, WalletAPI, WalletAPIError)
@@ -40,11 +40,11 @@ signTxAndSubmit tx = do
 
 makeScriptPayment
     :: forall a m .
-    (Monad m, WalletAPI m, MonadError WalletAPIError m)
-    => Typed.ScriptInstance a
+    (Monad m, WalletAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
+    => Scripts.ScriptInstance a
     -> SlotRange
     -> Value
-    -> PlutusTx.CompiledCode (Typed.DataType a)
+    -> Scripts.DataType a
     -> m (Typed.TypedTx '[] '[a])
 makeScriptPayment ct range v ds = do
     (i, ownChange) <- WAPI.createPaymentWithChange v
@@ -58,34 +58,34 @@ makeScriptPayment ct range v ds = do
 
 payToScript
     :: forall a m .
-    (WalletAPI m, MonadError WalletAPIError m)
-    => Typed.ScriptInstance a
+    (WalletAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
+    => Scripts.ScriptInstance a
     -> SlotRange
     -> Value
-    -> PlutusTx.CompiledCode (Typed.DataType a)
+    -> Scripts.DataType a
     -> m (Typed.TypedTx '[] '[a])
 payToScript ct range v ds = makeScriptPayment ct range v ds >>= signTxAndSubmit
 
 payToScript_
     :: forall a m .
-    (WalletAPI m, MonadError WalletAPIError m)
-    => Typed.ScriptInstance a
+    (WalletAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
+    => Scripts.ScriptInstance a
     -> SlotRange
     -> Value
-    -> PlutusTx.CompiledCode (Typed.DataType a)
+    -> Scripts.DataType a
     -> m ()
 payToScript_ ct range v ds = void $ payToScript ct range v ds
 
 spendScriptOutputs
     :: forall a outs m
-    . (Monad m, WalletAPI m, PlutusTx.Typeable (Typed.DataType a))
-    => Typed.ScriptInstance a
-    -> PlutusTx.CompiledCode (Typed.RedeemerFunctionType outs a)
+    . (Monad m, WalletAPI m, PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
+    => Scripts.ScriptInstance a
+    -> Scripts.RedeemerType a
     -> m [(Typed.TypedScriptTxIn outs a, Value)]
 spendScriptOutputs ct red = do
     am <- WAPI.watchedAddresses
     let
-        addr = Typed.scriptAddress ct
+        addr = Scripts.scriptAddress ct
         utxo :: Map.Map TxOutRef TxOut
         utxo = fromMaybe Map.empty $ am ^. at addr
         refs :: [(TxOutRef, TxOut)]
@@ -105,14 +105,14 @@ spendScriptOutputs ct red = do
 --   all the outputs that match a predicate, using the 'RedeemerScript'.
 collectFromScriptFilter ::
     forall a
-    . (PlutusTx.Typeable (Typed.DataType a))
+    . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
     => (TxOutRef -> TxOut -> Bool)
     -> AddressMap
-    -> Typed.ScriptInstance a
-    -> PlutusTx.CompiledCode (Typed.RedeemerType a)
+    -> Scripts.ScriptInstance a
+    -> Scripts.RedeemerType a
     -> Typed.TypedTxSomeIns '[]
-collectFromScriptFilter flt am si@(Typed.Validator vls) red =
-    let adr     = L.scriptAddress $ L.ValidatorScript $ L.fromCompiledCode vls
+collectFromScriptFilter flt am si red =
+    let adr     = Scripts.scriptAddress si
         utxo :: Map.Map TxOutRef TxOut
         utxo    = fromMaybe Map.empty $ am ^. at adr
         ourUtxo :: [(TxOutRef, TxOut)]

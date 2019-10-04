@@ -26,7 +26,6 @@ module Ledger.Validation
     , PendingTxIn
     , PendingTxInScript
     , PendingTxOutType(..)
-    , findDataScriptOutputs
     , findContinuingOutputs
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
@@ -92,13 +91,13 @@ redeemer and data scripts of all of its inputs and outputs.
 -- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
-    | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    | DataTxOut DataScript -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
     deriving (Generic)
 
 -- | An output of a pending transaction.
 data PendingTxOut = PendingTxOut
     { pendingTxOutValue  :: Value
-    , pendingTxOutHashes :: Maybe (ValidatorHash, DataScriptHash) -- ^ Hashes of validator script and data script.
+    , pendingTxOutHashes :: Maybe ValidatorHash -- ^ Hash of validator script.
     , pendingTxOutData   :: PendingTxOutType
     } deriving (Generic)
 
@@ -144,28 +143,19 @@ instance Functor PendingTx' where
 
 type PendingTx = PendingTx' PendingTxInScript
 
-{-# INLINABLE findDataScriptOutputs #-}
--- | Look up a 'DataScriptHash' in the transaction outputs, returning the indexs of the outputs that have
--- that hash, if there are any.
-findDataScriptOutputs :: DataScriptHash -> PendingTx -> [Integer]
-findDataScriptOutputs hsh PendingTx{pendingTxOutputs=outs} = findIndices f outs
-    where
-        f PendingTxOut{pendingTxOutHashes=(Just (_, dsh))} = dsh == hsh
-        f _ = False
-
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: PendingTx -> [Integer]
 findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
+        f PendingTxOut{pendingTxOutHashes=(Just outHsh)} = outHsh == inpHsh
         f _ = False
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: PendingTx -> [PendingTxOut]
 getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
+        f PendingTxOut{pendingTxOutHashes=(Just outHsh)} = outHsh == inpHsh
         f _ = False
 
 {- Note [Oracles]
@@ -294,14 +284,14 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'PendingTxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
+scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScript, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
-            case pendingTxOutHashes ptxo of
-                Just (h', ds) -> if h == h'
+            case (pendingTxOutHashes ptxo, pendingTxOutData ptxo) of
+                (Just h', DataTxOut ds) -> if h == h'
                                  then Just (ds, pendingTxOutValue ptxo)
                                  else Nothing
-                Nothing -> Nothing
+                _ -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
 {-# INLINABLE valueLockedBy #-}

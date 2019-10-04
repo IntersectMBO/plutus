@@ -15,6 +15,7 @@ import qualified Language.PlutusTx as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
 import qualified Ledger.Ada                                                as Ada
 import           Ledger.Value                                              (Value)
+import qualified Ledger.Typed.Scripts                                      as Scripts
 import qualified Wallet.API                                                as W
 import qualified Wallet.Emulator                                           as EM
 
@@ -31,7 +32,7 @@ tests =
                     _ <- step (show err)
                     HUnit.assertFailure "own funds not equal"
                 Right _ ->
-                    Lib.reasonable G.gameValidator 55000
+                    Lib.reasonable (Scripts.validatorScript G.scriptInstance) 55000
     in
         testGroup "state machine tests" [
             HUnit.testCaseSteps "run a successful game trace"

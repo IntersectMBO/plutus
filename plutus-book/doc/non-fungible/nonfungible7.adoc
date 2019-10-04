@@ -14,6 +14,7 @@ import           Language.PlutusTx
 import qualified Language.PlutusTx.AssocMap as AM
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -51,8 +52,8 @@ validateNonFungible nf () name tx =
                     == (inValue + v2)
                 && V.valueOf inValue s name == 0
                 && case pendingTxOutHashes o of
-                    Just (vh, _) -> vh == ownHash tx
-                    Nothing      -> False
+                    Just vh -> vh == ownHash tx
+                    Nothing -> False
         _                 -> False
   where
     s :: CurrencySymbol
@@ -64,13 +65,11 @@ validateNonFungible nf () name tx =
     v3 = v2 + v
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
 mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . lifted
 
 nonFungibleAddress :: NonFungible -> Address

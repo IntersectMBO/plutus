@@ -11,6 +11,7 @@ import qualified Language.PlutusTx           as PlutusTx
 import           Ledger                      (TxOut, TxOutRef)
 import qualified Ledger                      as L
 import           Ledger.AddressMap           (AddressMap)
+import qualified Ledger.Typed.Scripts        as Scripts
 import qualified Ledger.Typed.Tx             as Typed
 
 import qualified Wallet.Typed.API            as Typed
@@ -19,11 +20,11 @@ import qualified Wallet.Typed.API            as Typed
 --   all the outputs that match a predicate, using the 'RedeemerScript'.
 collectFromScriptFilter ::
     forall a
-    . (PlutusTx.Typeable (Typed.DataType a))
+    . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
     => (TxOutRef -> TxOut -> Bool)
     -> AddressMap
-    -> Typed.ScriptInstance a
-    -> PlutusTx.CompiledCode (Typed.RedeemerType a)
+    -> Scripts.ScriptInstance a
+    -> Scripts.RedeemerType a
     -> Contract.UnbalancedTx
 collectFromScriptFilter flt am si red =
     let typed = Typed.collectFromScriptFilter flt am si red

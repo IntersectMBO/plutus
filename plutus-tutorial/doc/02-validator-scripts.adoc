@@ -27,7 +27,7 @@ We need some language extensions and imports:
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ScopedTypeVariables #-} -- <.>
 {-# LANGUAGE DeriveGeneric       #-} -- <.>
 {-# LANGUAGE OverloadedStrings   #-} -- <.>
@@ -43,6 +43,7 @@ import           Ledger                       (Address, DataScript(..), Redeemer
 import qualified Ledger                       as L -- <.>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
+import           Ledger.Typed.Scripts         (wrapValidator)
 import           Ledger.Validation            as V -- <.>
 
 import           Wallet                       (MonadWallet)
@@ -99,12 +100,12 @@ PlutusTx.makeLift ''ClearText -- <.>
 mkDataScript :: String -> DataScript
 mkDataScript word =
     let hashedWord = L.plcSHA2_256 (C.pack word)
-    in  DataScript (L.lifted (PlutusTx.toData (HashedText hashedWord))) -- <.>
+    in  DataScript (PlutusTx.toData (HashedText hashedWord)) -- <.>
 
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
     let clearWord = C.pack word
-    in RedeemerScript (L.lifted (PlutusTx.toData (ClearText clearWord))) -- <.>
+    in RedeemerScript (PlutusTx.toData (ClearText clearWord)) -- <.>
 ----
 <.> To avoid any confusion between cleartext and hash we wrap them in data
 types called `HashedText` and `ClearText`, respectively.
@@ -137,8 +138,8 @@ In our case, the data script is a `HashedText`, and the redeemer is a
 ----
 -- | The validator script of the game.
 validator
-  :: PlutusTx.Data
-  -> PlutusTx.Data
+  :: HashedText
+  -> ClearText
   -> PendingTx
   -> Bool
 ----
@@ -149,11 +150,10 @@ or not they match.
 
 [source,haskell]
 ----
-validator (PlutusTx.fromData -> Just (HashedText actual)) (PlutusTx.fromData -> Just (ClearText guessed)) _ =
+validator (HashedText actual) (ClearText guessed) _ =
     if actual == (sha2_256 guessed) -- <.>
     then traceH "RIGHT!" True -- <.>
     else traceH "WRONG!" False
-validator _ _ _ = False
 ----
 <.> We have an instance of `Eq` for `ByteString`, so we can just use `==` here to compare for equality.
 <.> `traceH {2c} String -> a -> a` returns its second argument after adding
@@ -167,7 +167,8 @@ Finally, we can compile this into on-chain code.
 ----
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(L.compileScript [|| validator ||]) -- <.>
+gameValidator = ValidatorScript $$(L.compileScript [|| v ||]) -- <.>
+    where v = wrapValidator validator
 ----
 <.> The reference to the validator script that we defined
 is wrapped in Template Haskell quotes, and then the

@@ -15,6 +15,7 @@ import           Prelude                    (Applicative (..))
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -70,11 +71,11 @@ We add some standard helpers:
 [source,haskell]
 ----
 adminRedeemer :: RedeemerScript
-adminRedeemer = RedeemerScript $$(compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
+adminRedeemer = RedeemerScript $ toData ()
 
 mkAdminValidator :: Admin -> ValidatorScript
 mkAdminValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateAdmin ||])
+                       . applyScript $$(compileScript [|| \a -> wrapValidator (validateAdmin a) ||])
                        . lifted
 
 adminAddress :: Admin -> Address
@@ -133,8 +134,8 @@ validateNonFungible nf () name tx =
                     adminTokenName
                    == 1
                 && case pendingTxOutHashes o of
-                    Just (vh, _) -> vh == ownHash tx
-                    Nothing      -> False
+                    Just vh -> vh == ownHash tx
+                    Nothing -> False
         _                 -> False
   where
     s :: CurrencySymbol
@@ -153,13 +154,11 @@ validateNonFungible nf () name tx =
 [source,haskell]
 ----
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
 mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . lifted
 
 nonFungibleAddress :: NonFungible -> Address

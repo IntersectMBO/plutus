@@ -31,6 +31,7 @@ import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Scripts             (ValidatorScript(..))
 import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
+import qualified Ledger.Typed.Scripts       as Scripts
 import           Ledger                     as Ledger hiding (to)
 import           Ledger.Value               (TokenName, Value)
 import           Wallet.API                 as WAPI
@@ -63,7 +64,7 @@ mkCurrency (TxOutRefOf h i) amts =
         , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)
         }
 
-validate :: Currency -> PlutusTx.Data -> PlutusTx.Data -> V.PendingTx -> Bool
+validate :: Currency -> () -> () -> V.PendingTx -> Bool
 validate c@(Currency (refHash, refIdx) _) _ _ p =
     let
         -- see note [Obtaining the currency symbol]
@@ -88,7 +89,7 @@ validate c@(Currency (refHash, refIdx) _) _ _ p =
 
 curValidator :: Currency -> ValidatorScript
 curValidator cur = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
         `Ledger.applyScript`
             Ledger.lifted cur
 
@@ -150,7 +151,7 @@ forge amounts = do
             am <- WAPI.watchedAddresses
 
             let inputs' = am ^. at curAddr . to (Map.toList . fromMaybe Map.empty)
-                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ Ledger.lifted $ PlutusTx.toData ())
+                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ PlutusTx.toData ())
                 ins        = con <$> inputs'
 
             let tx = Ledger.Tx
@@ -173,7 +174,7 @@ forge amounts = do
     -- 3. When trg1 fires we submit a transaction that creates a
     --    pay-to-script output locked by the monetary policy
     registerOnce trg1 (EventHandler $ const $ do
-        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ Ledger.lifted $ PlutusTx.toData ()))
+        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ PlutusTx.toData ()))
 
     -- Return the currency definition so that we can use the symbol
     -- in other places

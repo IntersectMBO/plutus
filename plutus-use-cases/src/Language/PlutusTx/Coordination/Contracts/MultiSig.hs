@@ -25,6 +25,7 @@ import qualified Data.Set                     as Set
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
@@ -38,23 +39,24 @@ data MultiSig = MultiSig
 PlutusTx.makeLift ''MultiSig
 
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
-validate (MultiSig keys num) () () p =
+validate (MultiSig keys num) _ _ p =
     let present = length (filter (V.txSignedBy p) keys)
     in present >= num
 
 msValidator :: MultiSig -> ValidatorScript
 msValidator sig = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
+    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validatorParam ||])
         `Ledger.applyScript`
             Ledger.lifted sig
+    where validatorParam s = Scripts.wrapValidator (validate s)
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
-msDataScript = DataScript $ Ledger.lifted ()
+msDataScript = DataScript $ PlutusTx.toData ()
 
 -- | Multisig redeemer (unit value).
 msRedeemer :: RedeemerScript
-msRedeemer = RedeemerScript $ Ledger.lifted ()
+msRedeemer = RedeemerScript $ PlutusTx.toData ()
 
 -- | The address of a 'MultiSig' contract.
 msAddress :: MultiSig -> Address

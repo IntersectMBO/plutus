@@ -6,7 +6,6 @@
 {-# LANGUAGE NoImplicitPrelude               #-}
 {-# LANGUAGE ScopedTypeVariables             #-}
 {-# LANGUAGE TemplateHaskell                 #-}
-{-# LANGUAGE TypeApplications                #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Auction.English where
@@ -14,9 +13,11 @@ module Auction.English where
 import           Prelude                        (Applicative (..))
 
 import           Language.PlutusTx
+import qualified Language.PlutusTx.Applicative  as PlutusTx
 import           Language.PlutusTx.Prelude      hiding (Applicative (..))
 import           Language.PlutusTx.StateMachine
 import           Ledger
+import           Ledger.Typed.Scripts           (wrapValidator)
 import qualified Ledger.Ada                     as A
 import qualified Ledger.Value                   as V
 import           Playground.Contract
@@ -57,11 +58,11 @@ validateAdmin (h, i) () () tx =
         []      -> False
 
 adminRedeemer :: RedeemerScript
-adminRedeemer = RedeemerScript $$(compileScript [|| \(_ :: Sealed ()) -> () ||])
+adminRedeemer = RedeemerScript $ toData ()
 
 mkAdminValidator :: Admin -> ValidatorScript
 mkAdminValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateAdmin ||])
+                       . applyScript $$(compileScript [|| \a -> wrapValidator (validateAdmin a) ||])
                        . lifted
 
 adminAddress :: Admin -> Address
@@ -108,7 +109,7 @@ validateNonFungible nf () name tx =
                     adminTokenName
                    == 1
                 && case pendingTxOutHashes o of
-                    Just (vh, _) -> vh == ownHash tx
+                    Just vh -> vh == ownHash tx
                     Nothing      -> False
         _                 -> False
   where
@@ -120,13 +121,11 @@ validateNonFungible nf () name tx =
     v2 = v + v
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
 mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
+                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . lifted
 
 nonFungibleAddress :: NonFungible -> Address
@@ -209,7 +208,7 @@ This leads us to use:
 type EAState = ([(PubKey, Ada)], Bool)
 
 initialEAData :: DataScript
-initialEAData = DataScript $ lifted (([], False) :: EAState)
+initialEAData = DataScript $ toData (([], False) :: EAState)
 ----
 Script `initialEAData` describes the _initial_ state, before any bids have been
 placed.
@@ -226,6 +225,20 @@ data EAAction =
     | EAReclaimBid PubKey Ada -- <4>
     | EAReclaimToken          -- <5>
 
+instance IsData EAAction where
+    toData (EABid key v) = Constr 0 [toData key, toData v]
+    toData (EAClaimBid) = Constr 1 []
+    toData (EAClaimToken) = Constr 2 []
+    toData (EAReclaimBid key v) = Constr 3 [toData key, toData v]
+    toData (EAReclaimToken) = Constr 4 []
+    {-# INLINABLE fromData #-}
+    fromData (Constr i [k, v]) | i == 0 = EABid <$> fromData k PlutusTx.<*> fromData v
+    fromData (Constr i []) | i == 1 = Just EAClaimBid
+    fromData (Constr i []) | i == 2 = Just EAClaimToken
+    fromData (Constr i [k, v]) | i == 3 = EAReclaimBid <$> fromData k PlutusTx.<*> fromData v
+    fromData (Constr i []) | i == 4 = Just EAReclaimToken
+    fromData _ = Nothing
+
 makeLift ''EAAction
 ----
 <1> Placing a bid. The arguments describe _who_ made the bid and how high it
@@ -237,7 +250,7 @@ makeLift ''EAAction
 <3> Claiming the token after a successful auction. This should be done by the
     highest bidder.
 
-<4> Reclaiming a bid after the bidder has been outbid. The arguments describe
+<4> Reclaiming a bid after the bidder has been outbid. The arguments describe do
     the bidder and how much she reclaims.
 
 <5> Reclaiming the token after a failed auction. This should be done by the
@@ -365,20 +378,19 @@ to write a function that takes
 the auction, the action, and the data script of the unique script input as
 arguments and computes the correct data script for the unique script output:
 
+// TODO: Replace with state machine lib
+
 [source,haskell]
 ----
 updateEAData :: EnglishAuction
              -> EAAction
              -> DataScript
-             -> DataScript
-updateEAData ea a (DataScript script) = DataScript $
-    $$(compileScript [|| \ea' s a' ->
-        case eaTransit ea' s a' of
-            Nothing -> traceErrorH "invalid action"
-            Just s' -> s' ||])
-    `applyScript` lifted ea
-    `applyScript` script
-    `applyScript` lifted a
+             -> Maybe DataScript
+updateEAData ea a (DataScript d) = case fromData d of
+    Just state -> case eaTransit ea state a of
+        Just state' -> Just $ DataScript $ toData state'
+        Nothing -> Nothing
+    Nothing -> Nothing
 ----
 
 Next we write the checking part of our state machine.
@@ -538,27 +550,19 @@ eaStateMachine ea = StateMachine
     }
 
 mkEAValidator :: EnglishAuction -> ValidatorScript
-mkEAValidator ea = ValidatorScript $
-    $$(compileScript [|| \(ea' :: EnglishAuction) ->
-        mkValidator (eaStateMachine ea') ||])
-    `applyScript`
-    lifted ea
+mkEAValidator ea = ValidatorScript $ $$(compileScript [|| v ||]) `applyScript` lifted ea
+    where v ea' = wrapValidator (mkValidator (eaStateMachine ea'))
 
 eaAddress :: EnglishAuction -> Address
 eaAddress = scriptAddress . mkEAValidator
 ----
 
-We use `mkStepRedeemer` from module `Language.PlutusTx.StateMachine` to build
-redeemer scripts.
+The redeemer is just the action.
 
 [source,haskell]
 ----
 mkEARedeemer :: EAAction -> RedeemerScript
-mkEARedeemer a = RedeemerScript $
-    $$(compileScript [||
-        (mkStepRedeemer @EAState @EAAction) ||])
-    `applyScript`
-    lifted a
+mkEARedeemer a = RedeemerScript $ toData a
 ----
 
 ////
@@ -826,27 +830,24 @@ bid :: MonadWallet m
     -> Ada
     -> m ()
 bid ea ada = do
-    logMsg $ T.pack $
-        "bidding " ++ show ada ++ " in " ++ show ea
-    withAuctionOutput ea $ \ref o ds -> do                   -- <1>
-        (ins, mo) <- createPaymentWithChange (A.toValue ada) -- <2>
-        pk        <- ownPubKey
-        let a   = EABid pk ada
-            ds' = updateEAData ea a ds                       -- <3>
-            v   = mkEAValidator ea
-            i   = scriptTxIn ref v $ mkEARedeemer a          -- <4>
-            o'  = scriptTxOut                                -- <5>
-                    (txOutValue o + A.toValue ada)
-                    v
-                    ds'
-        signTxAndSubmit_ Tx
-            { txInputs     = Set.insert i ins
-            , txOutputs    = o' : maybeToList mo
-            , txForge      = zero
-            , txFee        = zero
-            , txValidRange = intervalTo $ eaEndBid ea        -- <6>
-            , txSignatures = Map.empty
-            }
+    logMsg $ T.pack $ "bidding " ++ show ada ++ " in " ++ show ea
+    pk <- ownPubKey
+    let a = EABid pk ada
+    withAuctionOutput ea $ \ref o ds -> case updateEAData ea a ds of -- <1> <3>
+        Just ds' -> do
+            (ins, mo) <- createPaymentWithChange (A.toValue ada) -- <2>
+            let v   = mkEAValidator ea
+                i   = scriptTxIn ref v $ mkEARedeemer a          -- <4>
+                o'  = scriptTxOut (txOutValue o + A.toValue ada) v ds' -- <5>
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.insert i ins
+                , txOutputs    = o' : maybeToList mo
+                , txForge      = zero
+                , txFee        = zero
+                , txValidRange = intervalTo $ eaEndBid ea        -- <6>
+                , txSignatures = Map.empty
+                }
+        Nothing -> pure ()
 ----
 
 <1> Here we put our `withAuctionOutput` helper to work.
@@ -887,24 +888,24 @@ claimBid s n b inc e f ada = do
                 , eaEndBid = e
                 , eaFinish = f
                 }
+        a = EAClaimBid
     logMsg $ T.pack $ "claiming bid in " ++ show ea
-    withAuctionOutput ea $ \ref o ds -> do
-        let a    = EAClaimBid
-            ada' = A.toValue ada
-            v    = mkEAValidator ea
-            i    = scriptTxIn ref v $ mkEARedeemer a
-            ds'  = updateEAData ea a ds
-            o1   = scriptTxOut
-                    (txOutValue o - ada') v ds' -- <2>
-            o2   = pubKeyTxOut ada' pk                  -- <3>
-        signTxAndSubmit_ Tx
-            { txInputs     = Set.singleton i
-            , txOutputs    = [o1, o2]
-            , txForge      = zero
-            , txFee        = zero
-            , txValidRange = intervalFrom $ eaEndBid ea -- <4>
-            , txSignatures = Map.empty
-            }
+    withAuctionOutput ea $ \ref o ds -> case updateEAData ea a ds of
+        Just ds' -> do
+            let ada' = A.toValue ada
+                v    = mkEAValidator ea
+                i    = scriptTxIn ref v $ mkEARedeemer a
+                o1   = scriptTxOut (txOutValue o - ada') v ds' -- <2>
+                o2   = pubKeyTxOut ada' pk                     -- <3>
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton i
+                , txOutputs    = [o1, o2]
+                , txForge      = zero
+                , txFee        = zero
+                , txValidRange = intervalFrom $ eaEndBid ea -- <4>
+                , txSignatures = Map.empty
+                }
+        Nothing -> pure ()
 ----
 
 <1> The highest bid being claimed.
@@ -923,24 +924,24 @@ after a successful auction.
 claimToken :: MonadWallet m => EnglishAuction -> m ()
 claimToken ea = do
     logMsg $ T.pack $ "claiming token in " ++ show ea
-    withAuctionOutput ea $ \ref o ds -> do
-        pk <- ownPubKey
-        let a   = EAClaimToken
-            v   = mkEAValidator ea
-            i   = scriptTxIn ref v $ mkEARedeemer a
-            ds' = updateEAData ea a ds
-            t   = tokenValue ea
-            o1  = scriptTxOut
-                    (txOutValue o - t) v ds'     -- <1>
-            o2  = pubKeyTxOut t pk                       -- <2>
-        signTxAndSubmit_ Tx
-            { txInputs     = Set.singleton i
-            , txOutputs    = [o1, o2]
-            , txForge      = zero
-            , txFee        = zero
-            , txValidRange = intervalFrom $ eaFinish ea  -- <3>
-            , txSignatures = Map.empty
-            }
+    let a = EAClaimToken
+    withAuctionOutput ea $ \ref o ds -> case updateEAData ea a ds of
+        Just ds' -> do
+            pk <- ownPubKey
+            let v   = mkEAValidator ea
+                i   = scriptTxIn ref v $ mkEARedeemer a
+                t   = tokenValue ea
+                o1  = scriptTxOut (txOutValue o - t) v ds'     -- <1>
+                o2  = pubKeyTxOut t pk                       -- <2>
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton i
+                , txOutputs    = [o1, o2]
+                , txForge      = zero
+                , txFee        = zero
+                , txValidRange = intervalFrom $ eaFinish ea  -- <3>
+                , txSignatures = Map.empty
+                }
+        Nothing -> pure ()
 ----
 
 <1> The token is taken out of the script.
@@ -961,24 +962,24 @@ reclaimBid :: MonadWallet m
 reclaimBid ea ada = do
     logMsg $ T.pack $
         "reclaiming " ++ show ada ++ " from " ++ show ea
-    withAuctionOutput ea $ \ref o ds -> do
-        pk <- ownPubKey
-        let a    = EAReclaimBid pk ada
-            ada' = A.toValue ada
-            v    = mkEAValidator ea
-            i    = scriptTxIn ref v $ mkEARedeemer a
-            ds'  = updateEAData ea a ds
-            o1   = scriptTxOut
-                    (txOutValue o - ada') v ds'  -- <1>
-            o2   = pubKeyTxOut ada' pk                   -- <2>
-        signTxAndSubmit_ Tx
-            { txInputs     = Set.singleton i
-            , txOutputs    = [o1, o2]
-            , txForge      = zero
-            , txFee        = zero
-            , txValidRange = defaultSlotRange            -- <3>
-            , txSignatures = Map.empty
-            }
+    pk <- ownPubKey
+    let a = EAReclaimBid pk ada
+    withAuctionOutput ea $ \ref o ds -> case updateEAData ea a ds of
+        Just ds' -> do
+            let ada' = A.toValue ada
+                v    = mkEAValidator ea
+                i    = scriptTxIn ref v $ mkEARedeemer a
+                o1   = scriptTxOut (txOutValue o - ada') v ds'  -- <1>
+                o2   = pubKeyTxOut ada' pk                   -- <2>
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton i
+                , txOutputs    = [o1, o2]
+                , txForge      = zero
+                , txFee        = zero
+                , txValidRange = defaultSlotRange            -- <3>
+                , txSignatures = Map.empty
+                }
+        Nothing -> pure ()
 ----
 
 <1> The old bid is taken out of the script.
@@ -1013,22 +1014,23 @@ reclaimToken s n b inc e f = do
                 , eaEndBid = e
                 , eaFinish = f
                 }
+        a = EAReclaimToken
     logMsg $ T.pack $ "reclaiming token from " ++ show ea
-    withAuctionOutput ea $ \ref o ds -> do
-        let a    = EAReclaimToken
-            v    = mkEAValidator ea
-            i    = scriptTxIn ref v $ mkEARedeemer a
-            ds'  = updateEAData ea a ds
-            o1   = scriptTxOut zero v ds'               -- <1>
-            o2   = pubKeyTxOut (txOutValue o) pk          -- <2>
-        signTxAndSubmit_ Tx
-            { txInputs     = Set.singleton i
-            , txOutputs    = [o1, o2]
-            , txForge      = zero
-            , txFee        = zero
-            , txValidRange = intervalFrom $ eaEndBid ea   -- <3>
-            , txSignatures = Map.empty
-            }
+    withAuctionOutput ea $ \ref o ds -> case updateEAData ea a ds of
+        Just ds' -> do
+            let v    = mkEAValidator ea
+                i    = scriptTxIn ref v $ mkEARedeemer a
+                o1   = scriptTxOut zero v ds'               -- <1>
+                o2   = pubKeyTxOut (txOutValue o) pk          -- <2>
+            signTxAndSubmit_ Tx
+                { txInputs     = Set.singleton i
+                , txOutputs    = [o1, o2]
+                , txForge      = zero
+                , txFee        = zero
+                , txValidRange = intervalFrom $ eaEndBid ea   -- <3>
+                , txSignatures = Map.empty
+                }
+        Nothing -> pure ()
 ----
 
 <1> State machine contracts demand that there will always be exactly one new
@@ -1200,45 +1202,7 @@ A bidder should be able to simply state the auction she wants to bid in
 and the highest bid she is willing to make
 and let her wallet take care of the rest.
 
-This is very tricky, though, even with our `trackAuction` helper.
-The reason is that even if the current highest bid is as high as the last bid
-we made ourselves, some other bidder could have made the same bid and managed
-to get her transaction validated before ours. Just tracking script values will
-not be able to help us here.
-
-Luckily, even though unlifting of scripts has not yet been implemented in
-Plutus, we can define a very limited version of it directly, a version that
-allows us to unlift `Bool`:
-
-[source,haskell]
-----
-unliftedBool :: Script -> Bool
-unliftedBool s = case evaluateScript Typecheck b of -- <1>
-    Right _ -> True
-    Left _  -> False
-  where
-    b :: Script
-    b = $$(compileScript [|| \(x :: Bool) ->
-            if x then () else error () ||])       -- <2>
-        `applyScript` s
-----
-
-<1> Function `evaluteScript` from module `Ledger.Scripts`
-    will evaluate a script and return a `Left` if there
-    has been an error during evaluation.
-
-<2> The `if`-statement will simply return `()` for the
-    `True` case, but throw an error for the `False` case.
-
-Note that because we deliberately throw an error
-to identify `False`, we can not distinguish `False` from a genuine
-error in the script. Our `unliftedBool` will therefore only work correctly
-if it is applied to scripts that are actually of type `Bool` and do not contain
-any errors.
-
-Just being able to unlift Booleans seems extremely limited
-(and it is), but it allows us to "ask" simple questions
-of arbitrary scripts:
+We can inspect the current state as follows:
 
 [source,haskell]
 ----
@@ -1250,18 +1214,15 @@ isHighestBidder pk s = case highestBid s of
 isHighestBidderM :: MonadWallet m
                  => DataScript
                  -> m Bool
-isHighestBidderM (DataScript ds) = do
-    pk <- ownPubKey
-    return $ unliftedBool $
-        $$(compileScript [|| isHighestBidder ||])
-        `applyScript` lifted pk
-        `applyScript` ds
+isHighestBidderM (DataScript ds) = case fromData ds of
+    Just s -> do
+        pk <- ownPubKey
+        return $ isHighestBidder pk s
+    Nothing -> throwError $ OtherError $ T.pack "invalid state"
 ----
 
 Function `isHighestBidderM` allows a wallet to
-find out whether it is currently the highest bidder,
-even though the data script itself is opaque and can not be inspected
-directly.
+find out whether it is currently the highest bidder.
 
 Using that and `trackAuction`, we are able to automate auctions for bidders
 as well:

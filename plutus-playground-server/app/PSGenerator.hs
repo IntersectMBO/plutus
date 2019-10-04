@@ -31,6 +31,7 @@ import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
+import           Language.PlutusTx                          (Data)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
                                                              TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
                                                              genericShow, haskType, isTuple, mkSumType, order,
@@ -253,6 +254,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @ScriptError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
     , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Data)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)

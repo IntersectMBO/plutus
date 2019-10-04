@@ -36,7 +36,6 @@ import           Crypto.Hash               (Digest, SHA256)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Foldable             (fold, foldl', traverse_)
 import qualified Data.Map                  as Map
-import           Data.Maybe                (mapMaybe)
 import           Data.Semigroup            (Semigroup)
 import qualified Data.Set                  as Set
 import           GHC.Generics              (Generic)
@@ -236,8 +235,8 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => (PendingTxNoIn, [DataScript]) -> InOutMatch -> m ()
-checkMatch (pendingTx, dataScripts) = \case
+checkMatch :: ValidationMonad m => PendingTxNoIn -> InOutMatch -> m ()
+checkMatch pendingTx = \case
     ScriptMatch txin vl r d a
         | a /= scriptAddress vl ->
                 throwError $ InvalidScriptHash d
@@ -246,7 +245,7 @@ checkMatch (pendingTx, dataScripts) = \case
             let
                 ptx' = pendingTx { pendingTxIn = pTxIn }
                 vd = ValidationData (lifted ptx')
-            case runExcept $ runScript Typecheck vd dataScripts vl d r of
+            case runExcept $ runScript Typecheck vd vl d r of
                 Left e  -> throwError $ ScriptFailure e
                 Right _ -> pure ()
     PubKeyMatch msg pk sig ->
@@ -286,7 +285,7 @@ checkTransactionFee tx =
 type PendingTxNoIn = Validation.PendingTx' ()
 
 -- | Create the data about the transaction which will be passed to a validator script.
-validationData :: ValidationMonad m => Tx -> m (PendingTxNoIn, DataScripts)
+validationData :: ValidationMonad m => Tx -> m PendingTxNoIn
 validationData tx = do
     txins <- traverse mkIn $ Set.toList $ txInputs tx
     let ptx = PendingTx
@@ -299,8 +298,7 @@ validationData tx = do
             , pendingTxSignatures = Map.toList (tx ^. signatures)
             , pendingTxHash = Validation.plcTxHash $ hashTx tx
             }
-        ds = mapMaybe txOutData $ txOutputs tx
-    pure (ptx, ds)
+    pure ptx
 
 -- | Create the data about a transaction output which will be passed to a validator script.
 mkOut :: TxOut -> Validation.PendingTxOut
@@ -308,10 +306,9 @@ mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
     (d, tp) = case txOutType t of
         PayToScript scrpt ->
             let
-                dataScriptHash = Scripts.plcDataScriptHash scrpt
                 validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
             in
-                (Just (validatorHash, dataScriptHash), Validation.DataTxOut)
+                (Just validatorHash, Validation.DataTxOut scrpt)
         PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
 
 pendingTxInScript

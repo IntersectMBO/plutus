@@ -35,6 +35,7 @@ import           Language.PlutusTx.AssocMap as AssocMap
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Value               as Value
 import           Ledger.Value               (CurrencySymbol, Value (Value))
 import           LedgerBytes                as LedgerBytes
@@ -235,7 +236,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ $$(compileScript [|| validator ||])
+        failValidator = ValidatorScript $ $$(compileScript [|| wrapValidator validator ||])
         validator :: () -> () -> PendingTx -> Bool
         validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
 

@@ -33,10 +33,6 @@ module Language.PlutusTx.Builtins (
                                 , error
                                 -- * Data
                                 , Data (..)
-                                -- * Sealed
-                                , Sealed
-                                , seal
-                                , unseal
                                 -- * Strings
                                 , String
                                 , appendString
@@ -53,7 +49,6 @@ import           Data.Maybe                (fromMaybe)
 import           Prelude                   hiding (String, error)
 
 import           Language.PlutusTx.Data
-import           Language.PlutusTx.Sealed
 import           Language.PlutusTx.Utils   (mustBeReplaced)
 
 {- Note [Builtin name definitions]
@@ -191,4 +186,4 @@ charToString = mustBeReplaced "charToString"
 {-# NOINLINE trace #-}
 -- | Logs the given 'String' to the evaluation log.
 trace :: String -> ()
-trace = mustBeReplaced "trace"
+trace _ = () --mustBeReplaced "trace"

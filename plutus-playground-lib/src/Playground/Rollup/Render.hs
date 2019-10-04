@@ -29,6 +29,7 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
                                                         parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
 import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn,
@@ -119,6 +120,9 @@ instance Render TokenName where
 
 instance Render Builtins.ByteString where
     render = pure . pretty . JSON.encodeByteString . BSL.toStrict
+
+instance Render PlutusTx.Data where
+    render = pure . pretty
 
 instance Render Value where
     render value = render (getValue value)

@@ -1,6 +1,5 @@
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE EmptyCase                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -8,14 +7,12 @@
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE Rank2Types                #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
-{-# LANGUAGE ViewPatterns              #-}
-{-# LANGUAGE Rank2Types              #-}
 -- | Typed transactions. This module defines typed versions of various ledger types. The ultimate
 -- goal is to make sure that the script types attached to inputs and outputs line up, to avoid
 -- type errors at validation time.
@@ -26,8 +23,7 @@ import qualified Ledger.Interval              as Interval
 import           Ledger.Scripts
 import           Ledger.Slot
 import           Ledger.Tx                    hiding (scriptAddress)
-import qualified Ledger.Tx                    as Tx
-import qualified Ledger.Validation            as Validation
+import           Ledger.Typed.Scripts
 import qualified Ledger.Value                 as Value
 
 import           Ledger.Typed.TypeUtils
@@ -36,7 +32,6 @@ import qualified Language.PlutusCore          as PLC
 import qualified Language.PlutusCore.Pretty   as PLC
 
 import           Language.PlutusTx
-import qualified Language.PlutusTx.Builtins   as PlutusTx
 import           Language.PlutusTx.Lift       as Lift
 import           Language.PlutusTx.Lift.Class as Lift
 import           Language.PlutusTx.Numeric
@@ -51,93 +46,19 @@ import qualified Data.Set                     as Set
 
 import           Control.Monad.Except
 
--- | A class that associates a type standing for a connection type with two types, the type of the redeemer
--- and the data script for that connection type.
-class ScriptType (a :: Type) where
-    -- | The type of the redeemers of this connection type.
-    type RedeemerType a :: Type
-    -- | The type of the data of this connection type.
-    type DataType a :: Type
-
-    -- Defaults
-    type instance RedeemerType a = ()
-    type instance DataType  a = ()
-
--- | The type of validators for the given connection type.
-type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.PendingTx -> Bool
-
--- | The type of a connection.
-data ScriptInstance (a :: Type) where
-    Validator :: ScriptType a => CompiledCode (ValidatorType a) -> ScriptInstance a
-
--- | Get the address for a script instance.
-scriptAddress :: ScriptInstance a -> Address
-scriptAddress = Tx.scriptAddress . validatorScript
-
--- | Get the validator script for a script instance.
-validatorScript :: ScriptInstance a -> ValidatorScript
-validatorScript (Validator vc) = ValidatorScript $ fromCompiledCode vc
-
--- | Defunctionalized symbol for use with 'Apply'.
-data SealedDataTypeSym :: Type ~> Type
-type instance Apply SealedDataTypeSym a = PlutusTx.Sealed (HashedDataScript (DataType a))
--- | Defunctionalized symbol for use with 'Apply'.
-data DataTypeSym :: Type ~> Type
-type instance Apply DataTypeSym a = DataType a
-
--- | The type of a redeemer function for the given output types and input type.
-type RedeemerFunctionType (outs :: [Type]) (inn :: Type) = Uncurry (Map SealedDataTypeSym outs) (RedeemerType inn)
-
--- | Given code for a value of the simple redeemer type, constructs code of the redeemer function type by
--- ignoring all the data script arguments.
---
--- Requires a witness for the list of outputs. This should be automatically provided if it is a concrete list.
-ignoreDataScripts
-    :: forall (outs :: [Type]) (inn :: Type)
-    . (All Typeable (Map SealedDataTypeSym outs), KnownSpine outs)
-    => Proxy outs
-    -> Proxy inn
-    -> CompiledCode (RedeemerType inn)
-    -> CompiledCode (RedeemerFunctionType outs inn)
-ignoreDataScripts _ = ignoreDataScripts' (spine @outs)
-
--- | As 'ignoreDataScripts', but takes the witness explicitly.
-ignoreDataScripts'
-    :: forall (outs :: [Type]) (inn :: Type)
-    . (All Typeable (Map SealedDataTypeSym outs))
-    => Spine outs
-    -> Proxy inn
-    -> CompiledCode (RedeemerType inn)
-    -> CompiledCode (RedeemerFunctionType outs inn)
-ignoreDataScripts' wit _ =
-    ignoreArgs
-    (mapSpine (Proxy @SealedDataTypeSym) wit)
-    (Proxy @(RedeemerType inn))
-
--- | Given code for a value of a result type, constructs code for a function that ignores
--- a list of arguments of the given types to produce the original code.
-ignoreArgs
-    :: forall (args :: [Type]) (r :: Type)
-    . (All Typeable args)
-    => Spine args
-    -> Proxy r
-    -> CompiledCode r
-    -> CompiledCode (Uncurry args r)
-ignoreArgs NilSpine _ c = c
-ignoreArgs (ConsSpine tspine) p c = Lift.constCode Proxy $ ignoreArgs tspine p c
-
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 newtype TypedScriptTxIn (outs :: [Type]) a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn (outs :: [Type])
-    . ScriptInstance inn
-    -> CompiledCode (RedeemerFunctionType outs inn)
+    . (IsData (RedeemerType inn))
+    => ScriptInstance inn
+    -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn outs inn
 makeTypedScriptTxIn si r (TypedScriptTxOutRef ref) =
     let vs = validatorScript si
-        rs = RedeemerScript (fromCompiledCode r)
+        rs = RedeemerScript (toData r)
         txInType = ConsumeScriptAddress vs rs
     in TypedScriptTxIn @outs @inn $ TxInOf ref txInType
 
@@ -152,12 +73,13 @@ newtype TypedScriptTxOut a = TypedScriptTxOut { unTypedScriptTxOut :: TxOut }
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
-    . ScriptInstance out
-    -> CompiledCode (DataType out)
+    . (IsData (DataType out))
+    => ScriptInstance out
+    -> DataType out
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = PayToScript (DataScript (fromCompiledCode d))
+    let outTy = PayToScript (DataScript (toData d))
     in TypedScriptTxOut @out $ TxOutOf (scriptAddress ct) value outTy
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
@@ -288,8 +210,8 @@ data ConnectionError =
     | WrongOutType TxOutType
     | WrongInType TxInType
     | WrongValidatorType String
-    | WrongRedeemerType String
-    | WrongDataType String
+    | WrongRedeemerType
+    | WrongDataType
     | UnknownRef
     deriving (Show, Eq, Ord)
 
@@ -315,35 +237,34 @@ checkValidatorScript _ (ValidatorScript (Script prog)) =
 
 -- | Checks that the given redeemer script has the right type.
 checkRedeemerScript
-    :: forall inn (outs :: [Type]) m
-    . ( Lift.Typeable (RedeemerFunctionType outs inn)
-      , MonadError ConnectionError m)
+    :: forall inn m
+    . (IsData (RedeemerType inn), MonadError ConnectionError m)
     => ScriptInstance inn
-    -> Proxy outs
     -> RedeemerScript
-    -> m (CompiledCode (RedeemerFunctionType outs inn))
-checkRedeemerScript _ _ (RedeemerScript (Script prog)) =
-    case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @(RedeemerFunctionType outs inn)) prog of
-        Right code -> pure code
-        Left e     -> throwError $ WrongRedeemerType $ show $ PLC.prettyPlcDef e
+    -> m (RedeemerType inn)
+checkRedeemerScript _ (RedeemerScript d) =
+    case fromData d of
+        Just v  -> pure v
+        Nothing -> throwError WrongRedeemerType
 
 -- | Checks that the given data script has the right type.
 checkDataScript
-    :: forall a m . (Lift.Typeable (DataType a), MonadError ConnectionError m)
+    :: forall a m . (IsData (DataType a), MonadError ConnectionError m)
     => ScriptInstance a
     -> DataScript
-    -> m (CompiledCode (DataType a))
-checkDataScript _ (DataScript (Script prog)) =
-    case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @(DataType a)) prog of
-        Right code -> pure code
-        Left e     -> throwError $ WrongDataType $ show $ PLC.prettyPlcDef e
+    -> m (DataType a)
+checkDataScript _ (DataScript d) =
+    case fromData d of
+        Just v  -> pure v
+        Nothing -> throwError WrongDataType
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
     :: forall inn (outs :: [Type]) m
-    . ( Lift.Typeable (DataType inn)
+    . ( IsData (RedeemerType inn)
+      , IsData (DataType inn)
+      , Lift.Typeable (DataType inn)
       , Lift.Typeable (RedeemerType inn)
-      , Lift.Typeable (RedeemerFunctionType outs inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOut)
     -> ScriptInstance inn
@@ -354,10 +275,10 @@ typeScriptTxIn lookupRef si TxInOf{txInRef,txInType} = do
         ConsumeScriptAddress vs rs -> pure (vs, rs)
         x                          -> throwError $ WrongInType x
     _ <- checkValidatorScript si vs
-    rsCode <- checkRedeemerScript si (Proxy @outs) rs
+    rsVal <- checkRedeemerScript si rs
     -- If this succeeds we're okay
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef
-    pure $ makeTypedScriptTxIn si rsCode typedOut
+    pure $ makeTypedScriptTxIn si rsVal typedOut
 
 -- | Create a 'PubKeyTxIn' from an existing 'TxIn' by checking that it has the right payment type.
 typePubKeyTxIn
@@ -374,7 +295,7 @@ typePubKeyTxIn inn@TxInOf{txInType} = do
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
 typeScriptTxOut
     :: forall out m
-    . ( Lift.Typeable (DataType out)
+    . ( IsData (DataType out)
       , MonadError ConnectionError m)
     => ScriptInstance out
     -> TxOut
@@ -384,15 +305,15 @@ typeScriptTxOut si TxOutOf{txOutAddress=AddressOf addrHash,txOutValue,txOutType}
         PayToScript ds -> pure ds
         x              -> throwError $ WrongOutType x
     checkValidatorHash si (plcValidatorDigest addrHash)
-    dsCode <- checkDataScript si ds
-    pure $ makeTypedScriptTxOut si dsCode txOutValue
+    dsVal <- checkDataScript si ds
+    pure $ makeTypedScriptTxOut si dsVal txOutValue
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts. To do this we
 -- need to cross-reference against the validator script and be able to look up the 'TxOut' to which this
 -- reference points.
 typeScriptTxOutRef
     :: forall out m
-    . ( Lift.Typeable (DataType out)
+    . ( IsData (DataType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOut)
     -> ScriptInstance out

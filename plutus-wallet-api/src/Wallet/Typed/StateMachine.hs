@@ -10,6 +10,7 @@ import qualified Data.Text                      as T
 
 import qualified Language.PlutusTx              as PlutusTx
 import qualified Language.PlutusTx.StateMachine as SM
+import qualified Ledger.Typed.Scripts           as Scripts
 import qualified Ledger.Typed.Tx                as Typed
 import           Ledger.Value
 import qualified Wallet.API                     as WAPI
@@ -17,7 +18,7 @@ import qualified Wallet.Typed.API               as WAPITyped
 
 mkInitialise
     :: forall s i m
-    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.Lift s)
+    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s)
     => SM.StateMachineInstance s i
     -- ^ Signatories and required signatures
     -> s
@@ -26,10 +27,8 @@ mkInitialise
     -- ^ The funds we want to lock.
     -> m (Typed.TypedTx '[] '[SM.StateMachine s i], s)
     -- ^ The initalizing transaction and the initial state of the contract.
-mkInitialise (SM.StateMachineInstance _ si _ _) state vl = do
-    let dataScript = PlutusTx.liftCode state
-
-    tx <- WAPITyped.makeScriptPayment si WAPI.defaultSlotRange vl dataScript
+mkInitialise (SM.StateMachineInstance _ si) state vl = do
+    tx <- WAPITyped.makeScriptPayment si WAPI.defaultSlotRange vl state
 
     pure (tx, state)
 
@@ -40,7 +39,7 @@ mkInitialise (SM.StateMachineInstance _ si _ _) state vl = do
 --
 mkStep
     :: forall s i m
-    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.Lift s, PlutusTx.Typeable s, PlutusTx.Lift i)
+    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
     => SM.StateMachineInstance s i
     -- ^ The parameters of the contract instance
     -> s
@@ -51,14 +50,14 @@ mkStep
     -- ^ Function determining how much of the total incoming value to the outgoing script output.
     -> m (Typed.TypedTxSomeIns '[SM.StateMachine s i], s)
     -- ^ The advancing transaction, which consumes all the outputs at the script address, and the new state after applying the input
-mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si stepRedeemer _) currentState input valueAllocator = do
+mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState input valueAllocator = do
     newState <- case step currentState input of
         Just s  -> pure s
         Nothing -> WAPI.throwOtherError "Invalid transition"
-    let redeemer :: PlutusTx.CompiledCode (Typed.RedeemerFunctionType '[SM.StateMachine s i] (SM.StateMachine s i))
-        redeemer = stepRedeemer `PlutusTx.applyCode` PlutusTx.liftCode input
-        dataScript :: PlutusTx.CompiledCode s
-        dataScript = PlutusTx.liftCode newState
+    let redeemer :: Scripts.RedeemerType (SM.StateMachine s i)
+        redeemer = input
+        dataScript :: Scripts.DataType (SM.StateMachine s i)
+        dataScript = newState
 
     -- TODO: This needs to check that all the inputs have exactly the state we specify as the argument here,
     -- otherwise you can poison the contract by adding a state machine output that's not in the same state.
@@ -79,7 +78,7 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si stepRedeemer _) cu
 --
 mkHalt
     :: forall s i m
-    . (Show s, WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.Typeable s, PlutusTx.Lift i)
+    . (Show s, WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
     => SM.StateMachineInstance s i
     -- ^ The parameters of the contract instance
     -> s
@@ -88,13 +87,13 @@ mkHalt
     -- ^ Input to be applied to the contract
     -> m (Typed.TypedTxSomeIns '[], s)
     -- ^ The advancing transaction, which consumes all the outputs at the script address.
-mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si _ haltRedeemer) currentState input = do
+mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si) currentState input = do
     newState <- case step currentState input of
         Just s  -> pure s
         Nothing -> WAPI.throwOtherError "Invalid transition"
     unless (final newState) $ WAPI.throwOtherError $ "Cannot halt when transitioning to a non-final state: " <> (T.pack $ show newState)
-    let redeemer :: PlutusTx.CompiledCode (Typed.RedeemerFunctionType '[] (SM.StateMachine s i))
-        redeemer = haltRedeemer `PlutusTx.applyCode` PlutusTx.liftCode input
+    let redeemer :: Scripts.RedeemerType (SM.StateMachine s i)
+        redeemer = input
 
     -- TODO: This needs to check that all the inputs have exactly the state we specify as the argument here,
     -- otherwise you can poison the contract by adding a state machine output that's not in the same state.
