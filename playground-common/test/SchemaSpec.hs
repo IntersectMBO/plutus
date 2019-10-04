@@ -5,37 +5,50 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module SchemaSpec where
+module SchemaSpec
+    ( tests
+    ) where
 
-import           Data.Text    (Text)
-import           GHC.Generics (Generic)
-import           Schema       (FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple),
-                               ToSchema (toSchema))
-import           Test.Hspec   (Spec, describe, it, shouldBe)
+import           Data.Text        (Text)
+import           GHC.Generics     (Generic)
+import           Schema           (FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple),
+                                   ToSchema (toSchema))
+import           Test.Tasty       (TestTree, testGroup)
+import           Test.Tasty.HUnit (assertEqual, testCase)
 
-spec :: Spec
-spec = toSchemaSpec
+tests :: TestTree
+tests = testGroup "Schema" [toSchemaTests]
 
-toSchemaSpec :: Spec
-toSchemaSpec =
-    describe "toSchema" $ do
-        it "Int" $ toSchema @Int `shouldBe` FormSchemaInt
-        it "Integer" $ toSchema @Integer `shouldBe` FormSchemaInt
-        it "String" $ toSchema @String `shouldBe` FormSchemaString
-        it "Text" $ toSchema @Text `shouldBe` FormSchemaString
-        it "[Int]" $ toSchema @[Int] `shouldBe` FormSchemaArray FormSchemaInt
-        it "(Int, String)" $
-            toSchema @(Int, String) `shouldBe`
-            FormSchemaTuple FormSchemaInt FormSchemaString
-        it "Maybe String" $
-            toSchema @(Maybe String) `shouldBe` FormSchemaMaybe FormSchemaString
-        it "User" $
-            toSchema @User `shouldBe`
-            FormSchemaObject
-                [ ("userName", FormSchemaString)
-                , ("userAge", FormSchemaInt)
-                , ("userAlive", FormSchemaBool)
-                ]
+toSchemaTests :: TestTree
+toSchemaTests =
+    testGroup
+        "toSchema"
+        [ testCase "Encoding of various types" $ do
+              assertEqual "Int" (toSchema @Int) FormSchemaInt
+              assertEqual "Integer" (toSchema @Integer) FormSchemaInt
+              assertEqual "String" (toSchema @String) FormSchemaString
+              assertEqual "Text" (toSchema @Text) FormSchemaString
+              assertEqual
+                  "[Int]"
+                  (toSchema @[Int])
+                  (FormSchemaArray FormSchemaInt)
+              assertEqual
+                  "(Int, String)"
+                  (toSchema @(Int, String))
+                  (FormSchemaTuple FormSchemaInt FormSchemaString)
+              assertEqual
+                  "Maybe String"
+                  (toSchema @(Maybe String))
+                  (FormSchemaMaybe FormSchemaString)
+              assertEqual
+                  "User"
+                  (toSchema @User)
+                  (FormSchemaObject
+                       [ ("userName", FormSchemaString)
+                       , ("userAge", FormSchemaInt)
+                       , ("userAlive", FormSchemaBool)
+                       ])
+        ]
 
 data User =
     User

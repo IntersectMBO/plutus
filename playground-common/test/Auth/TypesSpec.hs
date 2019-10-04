@@ -3,30 +3,37 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Auth.TypesSpec
-  ( spec
-  ) where
+    ( tests
+    ) where
 
 import           Auth.Types              (OAuthToken (OAuthToken), Token (Token), TokenProvider (Github),
                                           oAuthTokenAccessToken, oAuthTokenScope, oAuthTokenTokenType)
 import           Data.Aeson              (eitherDecode)
 import qualified Data.ByteString.Lazy    as LBS
 import           Paths_playground_common (getDataFileName)
-import           Test.Hspec              (Spec, describe, it, shouldBe)
+import           Test.Tasty              (TestTree, testGroup)
+import           Test.Tasty.HUnit        (assertEqual, testCase)
 
-spec :: Spec
-spec = oAuthTokenJsonHandlingSpec
+tests :: TestTree
+tests = testGroup "Auth.TypesSpec" [oAuthTokenJsonHandlingSpec]
 
-oAuthTokenJsonHandlingSpec :: Spec
+oAuthTokenJsonHandlingSpec :: TestTree
 oAuthTokenJsonHandlingSpec =
-  describe "OAuthToken JSON handling" $
-  it "should be able to parse a github response" $ do
-    input1 <- LBS.readFile =<< getDataFileName "test/oAuthToken1.json"
-    let decoded :: Either String (OAuthToken 'Github) = eitherDecode input1
-    decoded `shouldBe`
-      Right
-        (OAuthToken
-           { oAuthTokenAccessToken =
-               Token "ee3d47a281b8540a2d970a4bf5eb93cdaeb0ed52"
-           , oAuthTokenScope = "gist"
-           , oAuthTokenTokenType = "bearer"
-           })
+    testGroup
+        "OAuthToken JSON handling"
+        [ testCase "should be able to parse a github response" $ do
+              input1 <- LBS.readFile =<< getDataFileName "test/oAuthToken1.json"
+              let decoded :: Either String (OAuthToken 'Github) =
+                      eitherDecode input1
+              assertEqual
+                  "AuthToken response."
+                  decoded
+                  (Right
+                       (OAuthToken
+                            { oAuthTokenAccessToken =
+                                  Token
+                                      "ee3d47a281b8540a2d970a4bf5eb93cdaeb0ed52"
+                            , oAuthTokenScope = "gist"
+                            , oAuthTokenTokenType = "bearer"
+                            }))
+        ]
