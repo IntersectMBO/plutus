@@ -179,11 +179,11 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 
         -- True if the output is the payment of the fixed leg.
         ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn v <= fixedRemainder
+        ol1 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn v <= fixedRemainder
 
         -- True if the output is the payment of the floating leg.
         ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && adaValueIn v <= floatRemainder
+        ol2 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFloating && adaValueIn v <= floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is

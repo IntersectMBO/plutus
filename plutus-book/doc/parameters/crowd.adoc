@@ -176,8 +176,8 @@ this:
 [source,haskell]
 ----
 toContributor :: Contributor -> PendingTxOut -> Bool
-toContributor (Contributor key) o = case pendingTxOutData o of
-    DataTxOut _      -> False       -- <1>
+toContributor (Contributor key) o = case pendingTxOutType o of
+    ScriptTxOut _ _  -> False       -- <1>
     PubKeyTxOut key' -> key' == key -- <2>
 ----
 

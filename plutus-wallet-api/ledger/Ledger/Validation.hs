@@ -91,14 +91,13 @@ redeemer and data scripts of all of its inputs and outputs.
 -- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
-    | DataTxOut DataScript -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    | ScriptTxOut ValidatorHash DataScript -- ^ The hash of the validator script and the data script (see note [Script types in pending transactions])
     deriving (Generic)
 
 -- | An output of a pending transaction.
 data PendingTxOut = PendingTxOut
     { pendingTxOutValue  :: Value
-    , pendingTxOutHashes :: Maybe ValidatorHash -- ^ Hash of validator script.
-    , pendingTxOutData   :: PendingTxOutType
+    , pendingTxOutType   :: PendingTxOutType
     } deriving (Generic)
 
 -- | A reference to a transaction output in a pending transaction.
@@ -148,14 +147,14 @@ type PendingTx = PendingTx' PendingTxInScript
 findContinuingOutputs :: PendingTx -> [Integer]
 findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just outHsh)} = outHsh == inpHsh
+        f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _ = False
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: PendingTx -> [PendingTxOut]
 getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just outHsh)} = outHsh == inpHsh
+        f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _ = False
 
 {- Note [Oracles]
@@ -261,7 +260,7 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
 {-# INLINABLE pubKeyOutput #-}
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: PendingTxOut -> Maybe PubKey
-pubKeyOutput o = case pendingTxOutData o of
+pubKeyOutput o = case pendingTxOutType o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
 
@@ -287,10 +286,8 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScript, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
-            case (pendingTxOutHashes ptxo, pendingTxOutData ptxo) of
-                (Just h', DataTxOut ds) -> if h == h'
-                                 then Just (ds, pendingTxOutValue ptxo)
-                                 else Nothing
+            case pendingTxOutType ptxo of
+                ScriptTxOut h' ds | h == h' -> Just (ds, pendingTxOutValue ptxo)
                 _ -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
@@ -306,11 +303,8 @@ valueLockedBy ptx h =
 pubKeyOutputsAt :: PubKey -> PendingTx -> [Value]
 pubKeyOutputsAt pk p =
     let flt ptxo =
-            case pendingTxOutData ptxo of
-                PubKeyTxOut pk' ->
-                    if pk' == pk
-                    then Just (pendingTxOutValue ptxo)
-                    else Nothing
+            case pendingTxOutType ptxo of
+                PubKeyTxOut pk' | pk' == pk -> Just (pendingTxOutValue ptxo)
                 _ -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 

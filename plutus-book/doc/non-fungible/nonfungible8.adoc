@@ -133,9 +133,9 @@ validateNonFungible nf () name tx =
                     (adminCurrency nf)                     -- <2>
                     adminTokenName
                    == 1
-                && case pendingTxOutHashes o of
-                    Just vh -> vh == ownHash tx
-                    Nothing -> False
+                && case pendingTxOutType o of
+                    ScriptTxOut vh _ -> vh == ownHash tx
+                    _                -> False
         _                 -> False
   where
     s :: CurrencySymbol

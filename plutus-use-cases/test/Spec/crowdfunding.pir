@@ -3715,12 +3715,12 @@
                                                                                       
                                                                                       PendingTxOutType_match
                                                                                       (vardecl
-                                                                                        DataTxOut
-                                                                                        (fun Data PendingTxOutType)
-                                                                                      )
-                                                                                      (vardecl
                                                                                         PubKeyTxOut
                                                                                         (fun (con bytestring) PendingTxOutType)
+                                                                                      )
+                                                                                      (vardecl
+                                                                                        ScriptTxOut
+                                                                                        (fun (con bytestring) (fun Data PendingTxOutType))
                                                                                       )
                                                                                     )
                                                                                   )
@@ -3737,7 +3737,7 @@
                                                                                         PendingTxOut_match
                                                                                         (vardecl
                                                                                           PendingTxOut
-                                                                                          (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] (fun PendingTxOutType PendingTxOut)))
+                                                                                          (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun PendingTxOutType PendingTxOut))
                                                                                         )
                                                                                       )
                                                                                     )

@@ -56,7 +56,7 @@ mkValidator (StateMachine step check final) currentState input ptx =
                     (True, outs) -> traceIfFalseH "There must be no ongoing output from a final state" (null outs)
                     -- It's fine to duplicate the data script - only the one on the continuing output matters.
                     -- So we just check that the unique continuing output is one of the ones with this data script.
-                    (False, [PendingTxOut{pendingTxOutData=DataTxOut (DataScript (PlutusTx.fromData -> Just givenState))}]) ->
+                    (False, [PendingTxOut{pendingTxOutType=(ScriptTxOut _ (DataScript (PlutusTx.fromData -> Just givenState)))}]) ->
                         traceIfFalseH "State transition invalid - 'givenState' not equal to 'newState'" (givenState == newState)
                     (False, [_]) -> traceH "Data didn't decode properly" False
                     -- It is *not* okay to have multiple outputs with the current validator script, that allows "spliting" the machine.
