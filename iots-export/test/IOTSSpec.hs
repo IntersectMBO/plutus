@@ -2,90 +2,86 @@
 {-# LANGUAGE DeriveAnyClass   #-}
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ViewPatterns     #-}
 
 module IOTSSpec where
 
-import           Data.Algorithm.Diff       (Diff, getGroupedDiff)
-import           Data.Algorithm.DiffOutput (ppDiff)
-import           Data.Function             (on)
-import           Data.Map                  (Map)
-import           Data.Proxy                (Proxy (Proxy))
-import           Data.Text                 (Text)
-import qualified Data.Text                 as Text
-import qualified Data.Text.IO              as Text
-import           GHC.Generics              (Generic)
-import           IOTS                      (HList (HCons, HNil), IotsExportable, IotsType, Tagged (Tagged), export)
-import           Paths_iots_export         (getDataFileName)
-import           Test.Hspec                (Spec, describe, it)
-import           Test.HUnit                (Assertion, assertBool)
+import           Data.ByteString.Lazy (ByteString, fromStrict)
+import           Data.Map             (Map)
+import           Data.Proxy           (Proxy (Proxy))
+import           Data.Text            (Text)
+import           Data.Text.Encoding   (encodeUtf8)
+import           GHC.Generics         (Generic)
+import           IOTS                 (HList (HCons, HNil), IotsExportable, IotsType, Tagged (Tagged), export)
+import           Test.Tasty           (TestTree, testGroup)
+import           Test.Tasty.Golden    (goldenVsString)
 
-spec :: Spec
-spec = toIOTSSpec
-
-toIOTSSpec :: Spec
-toIOTSSpec =
-    describe "Export to IOTS format" $ do
-        it "Should export a single, fieldless constructor" $
-            exportsAs (Proxy @SingleFieldless) "test/IOTS/singleFieldless.ts"
-        it "Should export a simple sum type" $
-            exportsAs (Proxy @SimpleSum) "test/IOTS/simpleSum.ts"
-        it "Should export a sample user" $
-            exportsAs (Proxy @User) "test/IOTS/user.ts"
-        it "Should export a more interesting sum type" $
-            exportsAs (Proxy @(Response String)) "test/IOTS/response.ts"
-        it "Should export a function with tuples." $ do
-            let someFunction :: (CurrencySymbol, TokenName) -> String
-                someFunction _ = "Anything."
-            exportsAs
-                (Tagged @"tupleFunction" someFunction)
-                "test/IOTS/functionTuple.ts"
-        it "Should export a function with maybes." $ do
-            let someFunction :: Maybe Slot -> String
-                someFunction _ = "Anything."
-            exportsAs
-                (Tagged @"maybeFunction" someFunction)
-                "test/IOTS/functionMaybe.ts"
-        it "Should export a function with lists." $ do
-            let someFunction :: [User] -> String
-                someFunction _ = "Anything."
-            exportsAs
-                (Tagged @"listFunction" someFunction)
-                "test/IOTS/functionList.ts"
-        let functionA ::
-                   (CurrencySymbol, TokenName)
-                -> Maybe Value
-                -> Interval Slot
-                -> [VestingTranche]
-                -> String
-            functionA _ _ _ _ = "Anything."
-            functionB :: Interval Slot -> [CurrencySymbol] -> String
-            functionB _ _ = "Anything."
-        it "Should export a complex example" $ do
-            exportsAs
-                (Tagged @"functionA" functionA)
-                "test/IOTS/vestingTranche.ts"
-            exportsAs
-                (HCons (Tagged @"functionA" functionA) HNil)
-                "test/IOTS/vestingTranche.ts"
-        it "Should export a mixed example" $
-            exportsAs
-                (HCons
-                     (Tagged @"functionA" functionA)
-                     (HCons (Tagged @"functionB" functionB) HNil))
-                "test/IOTS/fullContract.ts"
-
-exportsAs :: (IotsExportable a) => a -> FilePath -> IO ()
-exportsAs exportable filename = do
-    file <- Text.readFile =<< getDataFileName filename
-    export exportable `shouldBePrettyDiff` file
+tests :: TestTree
+tests =
+    testGroup
+        "Export to IOTS format"
+        [ goldenVsString
+              "Should export a single, fieldless constructor"
+              "test/IOTS/singleFieldless.ts"
+              (exportAs (Proxy @SingleFieldless))
+        , goldenVsString
+              "Should export a simple sum type"
+              "test/IOTS/simpleSum.ts"
+              (exportAs (Proxy @SimpleSum))
+        , goldenVsString
+              "Should export a sample user"
+              "test/IOTS/user.ts"
+              (exportAs (Proxy @User))
+        , goldenVsString
+              "Should export a more interesting sum type"
+              "test/IOTS/response.ts"
+              (exportAs (Proxy @(Response String)))
+        , goldenVsString
+              "Should export a function with tuples."
+              "test/IOTS/functionTuple.ts"
+              (let someFunction :: (CurrencySymbol, TokenName) -> String
+                   someFunction _ = "Anything."
+                in exportAs (Tagged @"tupleFunction" someFunction))
+        , goldenVsString
+              "Should export a function with maybes."
+              "test/IOTS/functionMaybe.ts"
+              (let someFunction :: Maybe Slot -> String
+                   someFunction _ = "Anything."
+                in exportAs (Tagged @"maybeFunction" someFunction))
+        , goldenVsString
+              "Should export a function with lists."
+              "test/IOTS/functionList.ts"
+              (let someFunction :: [User] -> String
+                   someFunction _ = "Anything."
+                in exportAs (Tagged @"listFunction" someFunction))
+        , goldenVsString
+              "Should export a complex example"
+              "test/IOTS/vestingTranche.ts"
+              (exportAs (Tagged @"functionA" functionA))
+        , goldenVsString
+              "Should export a complex example"
+              "test/IOTS/vestingTranche.ts"
+              (exportAs (HCons (Tagged @"functionA" functionA) HNil))
+        , goldenVsString
+              "Should export a mixed example"
+              "test/IOTS/fullContract.ts"
+              (exportAs
+                   (HCons
+                        (Tagged @"functionA" functionA)
+                        (HCons (Tagged @"functionB" functionB) HNil)))
+        ]
   where
-    shouldBePrettyDiff :: Text -> Text -> Assertion
-    shouldBePrettyDiff (Text.stripEnd -> a) (Text.stripEnd -> b) =
-        assertBool (formatError (ppDiff (diffLines a b))) (a == b)
-    diffLines :: Text -> Text -> [Diff [String]]
-    diffLines = getGroupedDiff `on` lines . Text.unpack
-    formatError err = unlines [filename, "Export failed with:", err]
+    functionA ::
+           (CurrencySymbol, TokenName)
+        -> Maybe Value
+        -> Interval Slot
+        -> [VestingTranche]
+        -> String
+    functionA _ _ _ _ = "Anything."
+    functionB :: Interval Slot -> [CurrencySymbol] -> String
+    functionB _ _ = "Anything."
+
+exportAs :: IotsExportable a => a -> IO ByteString
+exportAs = pure . fromStrict . encodeUtf8 . export
 
 data SingleFieldless =
     VeryDull

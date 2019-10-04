@@ -39228,12 +39228,12 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
-, Diff
-, hspec
-, HUnit
 , mtl
 , stdenv
+, tasty
+, tasty-golden
 , text
 , wl-pprint-text
 }:
@@ -39252,11 +39252,11 @@ wl-pprint-text
 ];
 testHaskellDepends = [
 base
+bytestring
 containers
-Diff
-hspec
-HUnit
 mtl
+tasty
+tasty-golden
 text
 wl-pprint-text
 ];

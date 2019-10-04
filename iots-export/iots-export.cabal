@@ -37,7 +37,6 @@ library
   other-modules:
       IOTS.Leijen
       IOTS.Tree
-      Paths_iots_export
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists -Wredundant-constraints
@@ -52,19 +51,19 @@ library
 test-suite iots-export-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
+  hs-source-dirs: test
   other-modules:
       IOTSSpec
-      Paths_iots_export
-  hs-source-dirs:
-      test
-  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists -Wredundant-constraints -fprint-potential-instances -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+               -Wincomplete-uni-patterns -Wincomplete-record-updates
+               -Wredundant-constraints -Widentities
   build-depends:
-      Diff
-    , HUnit
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
-    , hspec
+    , tasty
+    , tasty-golden
     , iots-export
+    , bytestring
     , mtl
     , text
     , wl-pprint-text
