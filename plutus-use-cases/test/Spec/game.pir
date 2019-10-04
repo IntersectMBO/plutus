@@ -41,6 +41,7 @@
               (vardecl Constr (fun (con integer) (fun [List Data] Data)))
               (vardecl I (fun (con integer) Data))
               (vardecl Map (fun [List [[Tuple2 Data] Data]] Data))
+              (vardecl Seq (fun [List Data] Data))
             )
           )
           (let

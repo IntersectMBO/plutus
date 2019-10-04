@@ -1953,6 +1953,9 @@
                                                     Map
                                                     (fun [List [[Tuple2 Data] Data]] Data)
                                                   )
+                                                  (vardecl
+                                                    Seq (fun [List Data] Data)
+                                                  )
                                                 )
                                               )
                                               (let

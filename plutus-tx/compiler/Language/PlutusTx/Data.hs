@@ -27,14 +27,16 @@ import           GHC.Generics
 data Data =
       Constr Integer [Data]
     | Map [(Data, Data)]
+    | Seq [Data]
     | I Integer
     | B ByteString
     deriving stock (Show, Eq, Ord, Generic)
 
 instance Pretty Data where
     pretty = \case
-        Constr _ ds -> brackets (sep (punctuate comma (fmap pretty ds)))
+        Constr _ ds -> angles (sep (punctuate comma (fmap pretty ds)))
         Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
+        Seq ds -> brackets (sep (punctuate comma (fmap pretty ds)))
         I i -> pretty i
         B b -> viaShow b
 
@@ -48,6 +50,7 @@ fromTerm = \case
     CBOR.TInteger i -> pure $ I i
     CBOR.TBytes b -> pure $ B $ BSL.fromStrict b
     CBOR.TMap entries -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
+    CBOR.TList ts -> Seq <$> traverse fromTerm ts
     CBOR.TTagged i (CBOR.TList entries) -> Constr (fromIntegral i) <$> traverse fromTerm entries
     t -> Left $ "Unsupported CBOR term: " ++ show t
 
@@ -56,6 +59,7 @@ toTerm = \case
     I i -> CBOR.TInteger i
     B b -> CBOR.TBytes $ BSL.toStrict b
     Map entries -> CBOR.TMap (fmap (bimap toTerm toTerm) entries)
+    Seq ts -> CBOR.TList (fmap toTerm ts)
     Constr i entries -> CBOR.TTagged (fromIntegral i) $ CBOR.TList $ fmap toTerm entries
 
 instance Serialise.Serialise Data where

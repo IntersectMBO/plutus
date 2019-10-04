@@ -6,6 +6,7 @@
 module Language.PlutusTx.IsData where
 
 import           Data.ByteString.Lazy as BSL
+import           Data.Traversable
 
 import Prelude (Maybe(..), Either(..), Bool(..), Integer)
 
@@ -78,12 +79,9 @@ instance (IsData a, IsData b) => IsData (Either a b) where
     fromData (Constr i [bd]) | i == 1 = Left <$> fromData bd
     fromData _               = Nothing
 
--- TODO: maybe this should actually be encoded as a list!
 instance IsData a => IsData [a] where
     {-# INLINABLE toData #-}
-    toData [] = Constr 0 []
-    toData (x:xs) = Constr 1 [toData x, toData xs]
+    toData xs = Seq (fmap toData xs)
     {-# INLINABLE fromData #-}
-    fromData (Constr i []) | i == 0 = Just []
-    fromData (Constr i [hd, td]) | i == 1 = (:) <$> fromData hd <*> fromData td
-    fromData _             = Nothing
+    fromData (Seq ds) = traverse fromData ds
+    fromData _        = Nothing
