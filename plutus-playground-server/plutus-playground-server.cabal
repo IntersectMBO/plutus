@@ -173,7 +173,6 @@ executable plutus-playground-server
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
         Playground.UsecasesSpec
@@ -184,13 +183,14 @@ test-suite plutus-playground-server-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists -Wredundant-constraints
+                 -fprint-potential-instances
     build-depends:
         aeson -any,
         base >=4.7 && <5,
         bytestring -any,
-        hspec -any,
-        HUnit -any,
-        Diff -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-golden -any,
         insert-ordered-containers -any,
         playground-common -any,
         iots-export -any,

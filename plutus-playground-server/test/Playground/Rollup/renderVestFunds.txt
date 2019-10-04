@@ -3,7 +3,7 @@ TxId:       7a68cea098afed859383feaee49a5ac8d6c17a811e787026d3c65a7973032f79
 Fee:        -
 Forge:      Ada:      Lovelace:  10000000
 Inputs:
-
+  
 
 
 Outputs:
@@ -38,7 +38,7 @@ Outputs:
   Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
     Ada:      Lovelace:  8000000
-
+  
   ---- Output 1 ----
   Destination:  Script: 9f18e70818571822185c18f8182b18a2185218dd...
   Value:
@@ -49,7 +49,7 @@ Balances Carried Forward:
   PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
   Value:
     Ada:      Lovelace:  8000000
-
+  
   Script: 9f18e70818571822185c18f8182b18a2185218dd...
   Value:
     Ada:      Lovelace:  2000000

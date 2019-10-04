@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Playground.UsecasesSpec
-    ( spec
+    ( tests
     ) where
 
 import           Control.Monad.Except         (runExceptT)
@@ -28,16 +28,20 @@ import           Playground.Types             (CompilationResult (CompilationRes
                                                functionName, simulatorWalletBalance, simulatorWalletWallet)
 import           Playground.Usecases          (crowdfunding, game, messages, vesting)
 import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
-import           Test.Hspec                   (Spec, describe, it, shouldBe, shouldSatisfy)
+import           Test.Tasty                   (TestTree, testGroup)
+import           Test.Tasty.HUnit             (Assertion, assertBool, assertEqual, assertFailure, testCase)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
 
-spec :: Spec
-spec = do
-    vestingSpec
-    gameSpec
-    messagesSpec
-    crowdfundingSpec
-    knownCurrencySpec
+tests :: TestTree
+tests =
+    testGroup
+        "Playground.Usecases"
+        [ vestingTest
+        , gameTest
+        , messagesTest
+        , crowdfundingTest
+        , knownCurrencyTest
+        ]
 
 maxInterpretationTime :: Microsecond
 maxInterpretationTime = fromMicroseconds 100000000
@@ -57,83 +61,87 @@ mkSimulatorWallet :: Wallet -> Value -> SimulatorWallet
 mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
     SimulatorWallet {..}
 
-vestingSpec :: Spec
-vestingSpec =
-    describe "vesting" $ do
-        compilationChecks vesting
-        it "should compile with the expected schema" $ do
-            Right (InterpreterResult _ (CompilationResult result _ _)) <-
-                compile vesting
-            result `shouldBe`
-                [ FunctionSchema
-                      { functionName = Fn "vestFunds"
-                      , argumentSchema =
-                            [ FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject [("getWallet", FormSchemaInt)]
-                            ]
-                      }
-                , FunctionSchema
-                      { functionName = Fn "registerVestingScheme"
-                      , argumentSchema =
-                            [ FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject [("getWallet", FormSchemaInt)]
-                            ]
-                      }
-                , FunctionSchema
-                      { functionName = Fn "withdraw"
-                      , argumentSchema =
-                            [ FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject
-                                  [ ( "vestingTrancheDate"
-                                    , FormSchemaObject
-                                          [("getSlot", FormSchemaInt)])
-                                  , ("vestingTrancheAmount", FormSchemaValue)
-                                  ]
-                            , FormSchemaObject [("getWallet", FormSchemaInt)]
-                            , FormSchemaValue
-                            ]
-                      }
-                , FunctionSchema
-                      { functionName = Fn "payToWallet_"
-                      , argumentSchema =
-                            [ FormSchemaValue
-                            , FormSchemaObject [("getWallet", FormSchemaInt)]
-                            ]
-                      }
-                ]
-        it "should run simple evaluation" $
-            evaluate simpleEvaluation >>= (`shouldSatisfy` isRight)
-        it "should run simple wait evaluation" $
-            evaluate simpleWaitEval >>= (`shouldSatisfy` isRight)
-        it "should run vest funds evaluation" $
-            evaluate vestFundsEval >>= (`shouldSatisfy` isRight)
+vestingTest :: TestTree
+vestingTest =
+    testGroup
+        "vesting"
+        [ compilationChecks vesting
+        , testCase "should compile with the expected schema" $ do
+              Right (InterpreterResult _ (CompilationResult result _ _)) <-
+                  compile vesting
+              assertEqual
+                  ""
+                  result
+                  [ FunctionSchema
+                        { functionName = Fn "vestFunds"
+                        , argumentSchema =
+                              [ FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject [("getWallet", FormSchemaInt)]
+                              ]
+                        }
+                  , FunctionSchema
+                        { functionName = Fn "registerVestingScheme"
+                        , argumentSchema =
+                              [ FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject [("getWallet", FormSchemaInt)]
+                              ]
+                        }
+                  , FunctionSchema
+                        { functionName = Fn "withdraw"
+                        , argumentSchema =
+                              [ FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject
+                                    [ ( "vestingTrancheDate"
+                                      , FormSchemaObject
+                                            [("getSlot", FormSchemaInt)])
+                                    , ("vestingTrancheAmount", FormSchemaValue)
+                                    ]
+                              , FormSchemaObject [("getWallet", FormSchemaInt)]
+                              , FormSchemaValue
+                              ]
+                        }
+                  , FunctionSchema
+                        { functionName = Fn "payToWallet_"
+                        , argumentSchema =
+                              [ FormSchemaValue
+                              , FormSchemaObject [("getWallet", FormSchemaInt)]
+                              ]
+                        }
+                  ]
+        , testCase "should run simple evaluation" $
+          evaluate simpleEvaluation >>= assertBool "" . isRight
+        , testCase "should run simple wait evaluation" $
+          evaluate simpleWaitEval >>= assertBool "" . isRight
+        , testCase "should run vest funds evaluation" $
+          evaluate vestFundsEval >>= assertBool "" . isRight
+        ]
   where
     ten = Ada.adaValueOf 10
     simpleEvaluation =
@@ -158,36 +166,39 @@ vestingSpec =
             ]
     theVestingOwner = toJSONString $ JSON.toJSON w1
 
-gameSpec :: Spec
-gameSpec =
-    describe "game" $ do
-        compilationChecks game
-        it "should unlock the funds" $
-            evaluate gameEvalSuccess >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w1 (Ada.adaValueOf 12)
-                                 , mkSimulatorWallet w2 (Ada.adaValueOf 8)
-                                 ])
-        it "should keep the funds" $
-            evaluate gameEvalFailure >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w1 ten
-                                 , mkSimulatorWallet w2 (Ada.adaValueOf 8)
-                                 ])
-        it "Sequential fund transfer - deleting wallets 'payToWallet_' action" $
-            evaluate (payAll w3 w4 w5) >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w3 ten
-                                 , mkSimulatorWallet w4 ten
-                                 , mkSimulatorWallet w5 ten
-                                 ])
-        it "Sequential fund transfer - 'payToWallet_' action" $
-            evaluate (payAll w1 w2 w3) >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w1 ten
-                                 , mkSimulatorWallet w2 ten
-                                 , mkSimulatorWallet w3 ten
-                                 ])
+gameTest :: TestTree
+gameTest =
+    testGroup
+        "game"
+        [ compilationChecks game
+        , testCase "should unlock the funds" $
+          evaluate gameEvalSuccess >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 (Ada.adaValueOf 12)
+              , mkSimulatorWallet w2 (Ada.adaValueOf 8)
+              ]
+        , testCase "should keep the funds" $
+          evaluate gameEvalFailure >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 ten
+              , mkSimulatorWallet w2 (Ada.adaValueOf 8)
+              ]
+        , testCase
+              "Sequential fund transfer - deleting wallets 'payToWallet_' action" $
+          evaluate (payAll w3 w4 w5) >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w3 ten
+              , mkSimulatorWallet w4 ten
+              , mkSimulatorWallet w5 ten
+              ]
+        , testCase "Sequential fund transfer - 'payToWallet_' action" $
+          evaluate (payAll w1 w2 w3) >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 ten
+              , mkSimulatorWallet w2 ten
+              , mkSimulatorWallet w3 ten
+              ]
+        ]
   where
     ten = Ada.adaValueOf 10
     gameEvalFailure =
@@ -226,32 +237,34 @@ gameSpec =
 hasFundsDistribution ::
        [SimulatorWallet]
     -> Either PlaygroundError (InterpreterResult TraceResult)
-    -> Bool
-hasFundsDistribution _ (Left _) = False
+    -> Assertion
+hasFundsDistribution _ (Left err) = assertFailure $ show err
 hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution, _))) =
-    requiredDistribution == actualDistribution
+    assertEqual "" requiredDistribution actualDistribution
 
-messagesSpec :: Spec
-messagesSpec = describe "messages" $ compilationChecks messages
+messagesTest :: TestTree
+messagesTest = testGroup "messages" [compilationChecks messages]
 
-crowdfundingSpec :: Spec
-crowdfundingSpec =
-    describe "crowdfunding" $ do
-        compilationChecks crowdfunding
-        it "should run successful campaign" $
-            evaluate successfulCampaign >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w1 (Ada.adaValueOf 26)
-                                 , mkSimulatorWallet w2 (Ada.adaValueOf 2)
-                                 , mkSimulatorWallet w3 (Ada.adaValueOf 2)
-                                 ])
-        it "should run failed campaign" $
-            evaluate failedCampaign >>=
-            (`shouldSatisfy` hasFundsDistribution
-                                 [ mkSimulatorWallet w1 ten
-                                 , mkSimulatorWallet w2 ten
-                                 , mkSimulatorWallet w3 ten
-                                 ])
+crowdfundingTest :: TestTree
+crowdfundingTest =
+    testGroup
+        "crowdfunding"
+        [ compilationChecks crowdfunding
+        , testCase "should run successful campaign" $
+          evaluate successfulCampaign >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 (Ada.adaValueOf 26)
+              , mkSimulatorWallet w2 (Ada.adaValueOf 2)
+              , mkSimulatorWallet w3 (Ada.adaValueOf 2)
+              ]
+        , testCase "should run failed campaign" $
+          evaluate failedCampaign >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 ten
+              , mkSimulatorWallet w2 ten
+              , mkSimulatorWallet w3 ten
+              ]
+        ]
   where
     ten = Ada.adaValueOf 10
     failedCampaign =
@@ -315,12 +328,11 @@ crowdfundingSpec =
     theWallet = toJSONString w1
     theContribution = toJSONString $ Ada.adaValueOf 8
 
-knownCurrencySpec :: Spec
-knownCurrencySpec =
-    describe "mkKnownCurrencies" $
-    it "should return registered known currencies" $
-    (runExceptT . PI.compile maxInterpretationTime) code >>=
-    (`shouldSatisfy` hasKnownCurrency)
+knownCurrencyTest :: TestTree
+knownCurrencyTest =
+    testCase "should return registered known currencies" $ do
+        currencies <- runExceptT $ PI.compile maxInterpretationTime code
+        assertBool "" (hasKnownCurrency currencies)
   where
     code =
         SourceCode $
@@ -356,9 +368,11 @@ evaluate ::
 evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
-compilationChecks :: Text.Text -> Spec
-compilationChecks f =
-    it "should compile" $ compile f >>= (`shouldSatisfy` isRight)
+compilationChecks :: Text.Text -> TestTree
+compilationChecks source =
+    testCase "should compile" $ do
+        compiled <- compile source
+        assertBool "compiled" (isRight compiled)
 
 mkI :: Int -> JSON.Value
 mkI = JSON.toJSON
