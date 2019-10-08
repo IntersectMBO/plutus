@@ -1,11 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Spec.Currency(tests) where
 
-import           Control.Monad                                     (replicateM_, void)
+import           Control.Monad                                     (replicateM_)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
 import qualified Ledger
 
 import           Wallet.Emulator                                   (walletPubKey)

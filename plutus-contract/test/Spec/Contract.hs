@@ -89,7 +89,7 @@ tests =
             (let l = endpoint @"1" >> endpoint @"2"
                  r = endpoint @"3" >> endpoint @"4"
             in (void $ selectEither l r))
-            (assertOutcome w1 ((==) Done) "left branch should finish")
+            (assertDone w1 (const True) "left branch should finish")
             (callEndpoint @"3" w1 3 >> callEndpoint @"1" w1 1 >> callEndpoint @"2" w1 2)
 
         , cp "loopM"
