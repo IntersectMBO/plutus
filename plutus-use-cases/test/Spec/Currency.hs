@@ -24,7 +24,7 @@ tests = testGroup "currency"
 
     , checkPredicate "script size is reasonable"
         theContract
-        (assertDone w1 ((50000 >=) . Ledger.scriptSize . Ledger.getValidator . Cur.curValidator) "script too large")
+        (assertDone w1 ((50000 >=) . Ledger.scriptSize . Ledger.unValidatorScript . Cur.curValidator) "script too large")
         (replicateM_ 6 (handleBlockchainEvents (Wallet 1)))
 
     ]
