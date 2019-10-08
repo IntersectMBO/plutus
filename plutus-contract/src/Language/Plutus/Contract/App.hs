@@ -59,7 +59,7 @@ runWithTraces
     :: forall s.
        ( AppSchema s )
     => Contract s ()
-    -> [(String, (Wallet, ContractTrace s EmulatorAction ()))]
+    -> [(String, (Wallet, ContractTrace s EmulatorAction () ()))]
     -> IO ()
 runWithTraces con traces = do
     let mp = Map.fromList traces
@@ -92,7 +92,7 @@ printTrace
        , Forall (Input s) ToJSON )
     => Contract s ()
     -> Wallet
-    -> ContractTrace s EmulatorAction ()
+    -> ContractTrace s EmulatorAction () ()
     -> IO ()
 printTrace con wllt ctr = do
     let events = Map.findWithDefault [] wllt $ execTrace con ctr

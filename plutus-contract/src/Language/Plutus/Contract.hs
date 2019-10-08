@@ -31,12 +31,14 @@ module Language.Plutus.Contract(
     , HasWriteTx
     , WriteTx
     , writeTx
+    , writeTxSuccess
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
     , nextTransactionAt
     , watchAddressUntil
     , fundsAtAddressGt
+    , awaitTransactionConfirmed
     -- * UTXO set
     , HasUtxoAt
     , utxoAt

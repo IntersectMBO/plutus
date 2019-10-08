@@ -1,8 +1,10 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
@@ -10,31 +12,31 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
     , curValidator
     -- * Actions etc
-    , forge
+    , forgeContract
     , forgedValue
     ) where
 
-import           Control.Applicative          (Applicative (..))
-import           Control.Lens               ((^.), at, to)
+import           Control.Lens               ((&), (.~), (%~))
 import           Data.Bifunctor             (Bifunctor(first))
 import qualified Data.Set                   as Set
-import qualified Data.Map                   as Map
-import           Data.Maybe                 (fromMaybe)
 import           Data.String                (IsString(fromString))
-import qualified Data.Text                  as Text
 
-import           Language.PlutusTx.Prelude  hiding (Applicative (..))
+import           Language.PlutusTx.Prelude
 
 import qualified Ledger.Ada                 as Ada
+import qualified Ledger.AddressMap          as AM
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Scripts             (ValidatorScript(..))
 import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
+import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     as Ledger hiding (to)
+import           Ledger                     (CurrencySymbol, PubKey, TxHash, TxOutRef, TxOutRefOf(..), plcCurrencySymbol, txInRef)
+import qualified Ledger                     as Ledger
 import           Ledger.Value               (TokenName, Value)
-import           Wallet.API                 as WAPI
+
+import           Language.Plutus.Contract     as Contract
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 
@@ -118,64 +120,26 @@ forgedValue cur =
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
 --   If @k == 0@ then no value is forged.
-forge :: (WalletAPI m, WalletDiagnostics m) => [(String, Integer)] -> m Currency
-forge amounts = do
-    pk <- WAPI.ownPubKey
-
-    -- 1. We need to create the reference transaction output using the
-    --    'PublicKey' contract. That way we get an output that behaves
-    --    like a normal public key output, but is not selected by the
-    --    wallet during coin selection. This ensures that the output still
-    --    exists when we spend it in our forging transaction.
-    (refAddr, refTxIn) <- PK.lock pk (Ada.adaValueOf 1)
-
-    let
-
-         -- With that we can define the currency
-        theCurrency = mkCurrency (txInRef refTxIn) amounts
-        curAddr     = Ledger.scriptAddress (curValidator theCurrency)
+forgeContract
+    :: forall s.
+    ( HasWatchAddress s
+    , HasWriteTx s)
+    => PubKey
+    -> [(String, Integer)]
+    -> Contract s Currency
+forgeContract pk amounts = do
+    refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
+    let theCurrency = mkCurrency (txInRef refTxIn) amounts
+        curAddr     = Ledger.scriptAddress curVali
         forgedVal   = forgedValue theCurrency
+        curRedeemer = RedeemerScript $ PlutusTx.toData ()
+        curVali     = curValidator theCurrency
 
-        -- trg1 fires when 'refTxIn' can be spent by our forging transaction
-        trg1 = fundsAtAddressGtT refAddr zero
-
-        -- trg2 fires when the pay-to-script output locked by 'curValidator'
-        -- is ready to be spent.
-        trg2 = fundsAtAddressGtT curAddr zero
-
-        -- The 'forge_' action creates a transaction that spends the contract
-        -- output, forging the currency in the process.
-        forge_ :: (WalletAPI m, WalletDiagnostics m) => m ()
-        forge_ = do
-            ownOutput <- WAPI.ownPubKeyTxOut (forgedVal <> Ada.adaValueOf 2)
-            am <- WAPI.watchedAddresses
-
-            let inputs' = am ^. at curAddr . to (Map.toList . fromMaybe Map.empty)
-                con (r, _) = scriptTxIn r (curValidator theCurrency) (RedeemerScript $ PlutusTx.toData ())
-                ins        = con <$> inputs'
-
-            let tx = Ledger.Tx
-                        { txInputs = Set.fromList (refTxIn:ins)
-                        , txOutputs = [ownOutput]
-                        , txForge = forgedVal
-                        , txFee   = zero
-                        , txValidRange = defaultSlotRange
-                        , txSignatures = Map.empty
-                        }
-
-            WAPI.logMsg $ Text.pack $ "Forging transaction: " <> show (Ledger.hashTx tx)
-            WAPI.signTxAndSubmit_  tx
-
-    -- 2. We start watching the contract address, ready to forge
-    --    our currency once the monetary policy script has been
-    --    placed on the chain.
-    registerOnce trg2 (EventHandler $ const forge_)
-
-    -- 3. When trg1 fires we submit a transaction that creates a
-    --    pay-to-script output locked by the monetary policy
-    registerOnce trg1 (EventHandler $ const $ do
-        payToScript_ defaultSlotRange curAddr (Ada.adaValueOf 1) (DataScript $ PlutusTx.toData ()))
-
-    -- Return the currency definition so that we can use the symbol
-    -- in other places
+        -- the transaction that creates the script output
+        scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr (DataScript $ PlutusTx.toData ())
+    scriptTxOuts <- AM.fromTxOutputs <$> (writeTxSuccess scriptTx >>= awaitTransactionConfirmed curAddr)
+    let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
+                    & inputs %~ Set.insert refTxIn
+                    & forge .~ forgedVal
+    _ <- writeTxSuccess forgeTx
     pure theCurrency

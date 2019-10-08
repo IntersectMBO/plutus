@@ -127,7 +127,7 @@ game = guess <|> lock
 
 lockTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m ()
+    => ContractTrace GameSchema m () ()
 lockTrace =
     let w1 = Trace.Wallet 1
         w2 = Trace.Wallet 2 in
@@ -137,7 +137,7 @@ lockTrace =
 
 guessTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m ()
+    => ContractTrace GameSchema m () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace
@@ -146,7 +146,7 @@ guessTrace =
 
 guessWrongTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m ()
+    => ContractTrace GameSchema m () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace

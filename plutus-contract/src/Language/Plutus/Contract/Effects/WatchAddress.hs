@@ -19,7 +19,7 @@ import           Data.Row
 import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
 import           GHC.Generics                               (Generic)
-import           Ledger                                     (Address, Slot, Value)
+import           Ledger                                     (Address, Slot, TxId, Value, hashTx)
 import           Ledger.AddressMap                          (AddressMap)
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx)
@@ -81,6 +81,22 @@ fundsAtAddressGt addr' vl = loopM go mempty where
             presentVal = fromMaybe mempty (AM.values cur' ^. at addr')
         if presentVal `V.gt` vl
         then pure (Right cur') else pure (Left cur')
+
+-- | Watch the address until the transaction with the given 'TxId' appears
+--   on the ledger. Warning: If the transaction does not touch the address,
+--   or is invalid, then 'awaitTransactionConfirmed' will not return.
+awaitTransactionConfirmed
+    :: forall s.
+       ( HasWatchAddress s )
+    => Address
+    -> TxId
+    -> Contract s Tx
+awaitTransactionConfirmed addr txid =
+    flip loopM () $ \_ -> do
+        tx' <- nextTransactionAt addr
+        if hashTx tx' == txid
+        then pure $ Right tx'
+        else pure $ Left ()
 
 events
     :: forall s.

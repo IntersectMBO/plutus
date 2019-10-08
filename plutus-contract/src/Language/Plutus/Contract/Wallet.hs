@@ -53,14 +53,16 @@ balanceWallet utx = do
 computeBalance :: WAPI.MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
-    left = foldM go P.zero (tx ^. Tx.inputs)
-    go cur inp = do
+    left = do
+        inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
+        pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
+    lookupValue outputRef = do
         am <- WAPI.watchedAddresses
-        let txout = AM.outRefMap am ^. at (Tx.txInRef inp)
+        let txout = AM.outRefMap am ^. at (Tx.txInRef outputRef)
         case txout of
-            Just vl -> pure (cur P.+ Tx.txOutValue vl)
+            Just vl -> pure $ Tx.txOutValue vl
             Nothing ->
-                WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show inp)
+                WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
 
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.

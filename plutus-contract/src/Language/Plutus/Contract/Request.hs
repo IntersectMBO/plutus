@@ -28,6 +28,10 @@ import           Language.Plutus.Contract.Resumable
 import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
 import qualified Language.Plutus.Contract.Schema    as Events
 
+import qualified Language.PlutusTx.Applicative      as PlutusTx
+import qualified Language.PlutusTx.Functor          as PlutusTx
+import           Prelude                            as Haskell
+
 -- | A list of errors produced by a `Contract`
 newtype ContractError = ContractError { unContractError :: Text }
   deriving stock (Eq, Ord, Show, Generic)
@@ -42,6 +46,13 @@ throwContractError = throwError . ContractError
 --
 newtype Contract s a = Contract { unContract :: Resumable ContractError (Step (Maybe (Event s)) (Handlers s)) a }
   deriving newtype (Functor, Applicative, Monad, MonadError ContractError, Alternative, MonadPlus)
+
+instance PlutusTx.Functor (Contract s) where
+  fmap = Haskell.fmap
+
+instance PlutusTx.Applicative (Contract s) where
+  (<*>) = (Haskell.<*>)
+  pure  = Haskell.pure
 
 -- | Constraints on the contract schema, ensuring that the requests produced
 --   by the contracts are 'Monoid's (so that we can produce a record with

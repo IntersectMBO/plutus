@@ -226,7 +226,7 @@ scheduleCollection cmp = do
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
     :: ( MonadEmulator m  )
-    => ContractTrace CrowdfundingSchema m ()
+    => ContractTrace CrowdfundingSchema m () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
         >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
@@ -236,7 +236,7 @@ makeContribution
     :: ( MonadEmulator m )
     => Wallet
     -> Value
-    -> ContractTrace CrowdfundingSchema m ()
+    -> ContractTrace CrowdfundingSchema m () ()
 makeContribution w v =
     Trace.callEndpoint @"contribute" w (Trace.walletPubKey w, v)
         >> Trace.handleBlockchainEvents w
@@ -244,7 +244,7 @@ makeContribution w v =
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
     :: ( MonadEmulator m )
-    => ContractTrace CrowdfundingSchema m ()
+    => ContractTrace CrowdfundingSchema m () ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
