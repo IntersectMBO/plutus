@@ -39,7 +39,7 @@ import           Language.PlutusTx.Prelude    hiding (Applicative (..)) -- <.>
 import qualified Language.PlutusTx            as PlutusTx -- <.>
 
 import           Ledger                       (Address, DataScript(..), RedeemerScript(..),
-                                               ValidatorScript(..))
+                                               ValidatorScript, mkValidatorScript)
 import qualified Ledger                       as L -- <.>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
@@ -167,12 +167,12 @@ Finally, we can compile this into on-chain code.
 ----
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(L.compileScript [|| v ||]) -- <.>
+gameValidator = mkValidatorScript $$(PlutusTx.compile [|| v ||]) -- <.>
     where v = wrapValidator validator
 ----
 <.> The reference to the validator script that we defined
 is wrapped in Template Haskell quotes, and then the
-result of `L.compileScript` is spliced in (see xref:01-plutus-tx#plutus-tx[PlutusTx tutorial] for further explanation of this pattern).
+result of `PlutusTx.compile` is spliced in (see xref:01-plutus-tx#plutus-tx[PlutusTx tutorial] for further explanation of this pattern).
 
 === Contract endpoints
 

@@ -74,9 +74,9 @@ mkNonFungibleRedeemer :: String -> RedeemerScript
 mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
-mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| \nf -> wrapValidator (validateNonFungible nf) ||])
-                       . lifted
+mkNonFungibleValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
+                       . liftCode
 
 nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator

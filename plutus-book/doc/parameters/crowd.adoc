@@ -229,9 +229,9 @@ parameters.
 
 [source,haskell]
 ----
-mkValidatorScript :: Campaign -> ValidatorScript
-mkValidatorScript campaign = ValidatorScript $
-    $$(compileScript [|| v ||]) `applyScript` lifted campaign
+mkValidator :: Campaign -> ValidatorScript
+mkValidator campaign = mkValidatorScript $
+    $$(compile [|| v ||]) `applyCode` liftCode campaign
     where v c = wrapValidator (validate c)
 ----
 
@@ -242,7 +242,7 @@ the script address for a campaign:
 [source,haskell]
 ----
 campaignAddress :: Campaign -> Address
-campaignAddress = scriptAddress . mkValidatorScript
+campaignAddress = scriptAddress . mkValidator
 ----
 
 Our first endpoint, `startCampaign`, will be run by the campaign owner.
@@ -280,7 +280,7 @@ startCampaign ft ed cd = do
         logMsg $ pack $ "collecting from " ++ show campaign
         collectFromScript
             (collectionRange campaign)
-            (mkValidatorScript campaign)
+            (mkValidator campaign)
             (mkRedeemerScript Collect)                      -- <3>
 ----
 
@@ -322,7 +322,7 @@ contribute campaign ada = do
             ++ " from " ++ show campaign
         collectFromScriptTxn                                     -- <5>
             range
-            (mkValidatorScript campaign)
+            (mkValidator campaign)
             (mkRedeemerScript Refund)                            -- <6>
             txId
 

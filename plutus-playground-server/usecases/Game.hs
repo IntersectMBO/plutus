@@ -23,8 +23,8 @@ module Game where
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
-                                             RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
-                                             compileScript, plcSHA2_256, scriptAddress)
+                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
+                                             plcSHA2_256, scriptAddress)
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
@@ -52,7 +52,7 @@ validateGuess dataScript redeemerScript _ =
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
 gameValidator =
-    ValidatorScript ($$(Ledger.compileScript [|| wrap validateGuess ||]))
+    mkValidatorScript $$(PlutusTx.compile [|| wrap validateGuess ||])
     where wrap = wrapValidator @HashedString @ClearString
 
 -- create a data script for the guessing game by hashing the string

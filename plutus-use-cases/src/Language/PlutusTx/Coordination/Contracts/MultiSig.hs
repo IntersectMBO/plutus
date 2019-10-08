@@ -44,10 +44,10 @@ validate (MultiSig keys num) _ _ p =
     in present >= num
 
 msValidator :: MultiSig -> ValidatorScript
-msValidator sig = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validatorParam ||])
-        `Ledger.applyScript`
-            Ledger.lifted sig
+msValidator sig = mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode sig
     where validatorParam s = Scripts.wrapValidator (validate s)
 
 -- | Multisig data script (unit value).

@@ -37,7 +37,7 @@ import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Prelude    hiding (Applicative (..))
 import qualified Language.PlutusTx.Applicative as PlutusTx
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Typed.Scripts         as Scripts
@@ -299,10 +299,10 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
                     vl > (futureDataMarginShort + futureDataMarginLong)
 
 validatorScript :: Future -> ValidatorScript
-validatorScript ft = ValidatorScript $
-    $$(Ledger.compileScript [|| validatorParam ||])
-        `Ledger.applyScript`
-            Ledger.lifted ft
+validatorScript ft = Ledger.mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode ft
     where validatorParam f = Scripts.wrapValidator (mkValidator f)
 
 PlutusTx.makeLift ''Future

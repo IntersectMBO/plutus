@@ -13,6 +13,7 @@ import           Language.Plutus.Contract              as Con
 import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
 import           Language.PlutusTx.Lattice
+import qualified Language.PlutusTx                     as PlutusTx
 import           Ledger                                (Address)
 import qualified Ledger                                as Ledger
 import qualified Ledger.Ada                            as Ada
@@ -22,7 +23,7 @@ import qualified Wallet.Emulator                       as EM
 import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 
 tests :: TestTree
-tests = 
+tests =
     let cp = checkPredicate @Schema in
     testGroup "contracts"
         [ cp "awaitSlot"
@@ -112,15 +113,11 @@ w1 :: EM.Wallet
 w1 = EM.Wallet 1
 
 someAddress :: Address
-someAddress =
-    -- this isn't the address of a valid validator script,
-    -- but it doesn't matter because we only need the address,
-    -- not the script
-    Ledger.scriptAddress $
-        Ledger.ValidatorScript $$(Ledger.compileScript [|| \(i :: Integer) -> i ||])
+someAddress = Ledger.scriptAddress $
+    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: Ledger.PendingTx) -> True ||])
 
-type Schema = 
-    BlockchainActions 
+type Schema =
+    BlockchainActions
         .\/ Endpoint "1" Int
         .\/ Endpoint "2" Int
         .\/ Endpoint "3" Int

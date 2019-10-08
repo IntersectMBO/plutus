@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE ViewPatterns              #-}
 -- | Typed transactions. This module defines typed versions of various ledger types. The ultimate
 -- goal is to make sure that the script types attached to inputs and outputs line up, to avoid
 -- type errors at validation time.
@@ -227,7 +228,7 @@ checkValidatorScript
     => ScriptInstance a
     -> ValidatorScript
     -> m (CompiledCode WrappedValidatorType)
-checkValidatorScript _ (ValidatorScript (Script prog)) =
+checkValidatorScript _ (unValidatorScript -> (Script prog)) =
     case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
         Right code -> pure code
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e

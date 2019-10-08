@@ -21,7 +21,7 @@ import           IOTS
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..),
                                             RedeemerScript(..),  Slot,
-                                            TxOutRef, TxIn, ValidatorScript(..), compileScript)
+                                            TxOutRef, TxIn, ValidatorScript, mkValidatorScript)
 import qualified Ledger                    as Ledger
 import           Ledger.Typed.Scripts      (wrapValidator)
 import           Ledger.Value              (Value)
@@ -161,10 +161,10 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
     in con1 && con2
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| \vd -> wrapValidator (mkValidator vd) ||])
-        `Ledger.applyScript`
-            Ledger.lifted v
+validatorScript v = mkValidatorScript $
+    $$(PlutusTx.compile [|| \vd -> wrapValidator (mkValidator vd) ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode v
 
 contractAddress :: Vesting -> Address
 contractAddress vst = Ledger.scriptAddress (validatorScript vst)

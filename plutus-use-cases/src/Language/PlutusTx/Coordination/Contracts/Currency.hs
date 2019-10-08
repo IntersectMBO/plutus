@@ -27,7 +27,7 @@ import qualified Ledger.Ada                 as Ada
 import qualified Ledger.AddressMap          as AM
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.AssocMap as AssocMap
-import           Ledger.Scripts             (ValidatorScript(..))
+import           Ledger.Scripts             (ValidatorScript, mkValidatorScript)
 import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
@@ -90,10 +90,10 @@ validate c@(Currency (refHash, refIdx) _) _ _ p =
     in forgeOK && txOutputSpent
 
 curValidator :: Currency -> ValidatorScript
-curValidator cur = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
-        `Ledger.applyScript`
-            Ledger.lifted cur
+curValidator cur = mkValidatorScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode cur
 
 {- note [Obtaining the currency symbol]
 

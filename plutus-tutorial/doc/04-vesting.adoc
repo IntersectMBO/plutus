@@ -29,7 +29,7 @@ import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
+import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript, mkValidatorScript)
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
@@ -125,8 +125,8 @@ That gives our validator script the signature: `Vesting -> () -> () -> PendingTx
 [source,haskell]
 ----
 vestingValidatorScript :: Vesting -> ValidatorScript
-vestingValidatorScript v = ValidatorScript $
-    $$(L.compileScript [|| \vd -> wrapValidator (vestingValidator vd) ||]) `L.applyScript` L.lifted v
+vestingValidatorScript v = mkValidatorScript $
+    $$(PlutusTx.compile [|| \vd -> wrapValidator (vestingValidator vd) ||]) `PlutusTx.applyCode` PlutusTx.liftCode v
 
 vestingValidator :: Vesting -> () -> () -> PendingTx -> Bool
 vestingValidator v@(Vesting {vestingTranche1, vestingTranche2, vestingOwner}) _ _ p@PendingTx{pendingTxValidRange = range} =

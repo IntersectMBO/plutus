@@ -71,7 +71,7 @@ validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 gameValidator :: ValidatorScript
-gameValidator = Ledger.ValidatorScript ($$(Ledger.compileScript [|| validator ||]))
+gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
     where validator = wrapValidator validateGuess
 
 gameDataScript :: String -> DataScript

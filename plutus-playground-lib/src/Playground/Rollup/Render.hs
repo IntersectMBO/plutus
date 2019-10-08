@@ -41,8 +41,8 @@ import           Ledger                                (Address, PubKey, Tx (Tx)
                                                         txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataScript (getDataScript), Script,
-                                                        ValidatorScript (getValidator))
+import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
+                                                        unValidatorScript)
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
@@ -200,7 +200,7 @@ instance Render Script where
          in "Script:" <+> pretty (abbreviate 40 v)
 
 instance Render ValidatorScript where
-    render = render . getValidator
+    render = render . unValidatorScript
 
 instance Render DataScript where
     render = render . getDataScript

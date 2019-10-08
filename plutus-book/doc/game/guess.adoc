@@ -71,7 +71,7 @@ validate (HashedText hashed) (ClearText clear) _ =
     equalsByteString hashed (sha2_256 clear)
 
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(compileScript [|| v ||])
+gameValidator = mkValidatorScript $$(compile [|| v ||])
     where v = wrapValidator validate
 ----
 

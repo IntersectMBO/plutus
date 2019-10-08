@@ -26,8 +26,8 @@ module Starter where
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
-                                             RedeemerScript (RedeemerScript), ValidatorScript (ValidatorScript),
-                                             compileScript, scriptAddress)
+                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
+                                             scriptAddress)
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
@@ -51,7 +51,7 @@ validateSpend _dataValue _redeemerValue _ = error () -- Please provide an implem
 --   the on-chain representation.
 contractValidator :: ValidatorScript
 contractValidator =
-    ValidatorScript ($$(Ledger.compileScript [|| wrap validateSpend ||]))
+    mkValidatorScript $$(PlutusTx.compile [|| wrap validateSpend ||])
     where wrap = wrapValidator @DataValue @RedeemerValue
 
 -- | Helper function used to build the DataScript.

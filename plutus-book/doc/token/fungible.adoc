@@ -95,9 +95,9 @@ mkFungibleRedeemerScript :: Integer -> RedeemerScript
 mkFungibleRedeemerScript = RedeemerScript . toData
 
 mkFungibleValidator :: Fungible -> ValidatorScript
-mkFungibleValidator = ValidatorScript
-                    . applyScript $$(compileScript [|| \f -> wrapValidator (validateFungible f) ||])
-                    . lifted
+mkFungibleValidator = mkValidatorScript
+                    . applyCode $$(compile [|| \f -> wrapValidator (validateFungible f) ||])
+                    . liftCode
 
 fungibleAddress :: Fungible -> Address
 fungibleAddress = scriptAddress . mkFungibleValidator
@@ -299,9 +299,9 @@ We write the usual helper functions and have completed the on-chain part:
 ----
 mkTradeValidator :: Trade -> ValidatorScript
 mkTradeValidator =
-      ValidatorScript
-    . applyScript $$(compileScript [|| v ||])
-    . lifted
+      mkValidatorScript
+    . applyCode $$(compile [|| v ||])
+    . liftCode
     where v t = wrapValidator (validateTrade t)
 
 tradeDataScript :: DataScript

@@ -22,9 +22,8 @@ module CrowdFunding where
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
-                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript (ValidatorScript),
-                                            applyScript, compileScript, hashTx, lifted, pendingTxValidRange,
-                                            scriptAddress, valueSpent)
+                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript, mkValidatorScript,
+                                            hashTx, pendingTxValidRange, scriptAddress, valueSpent)
 import qualified Ledger.Interval           as Interval
 import           Ledger.Slot               (Slot, SlotRange)
 import           Ledger.Typed.Scripts      (wrapValidator)
@@ -140,9 +139,9 @@ mkValidator c con act p = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript $
-    $$(Ledger.compileScript [|| \c -> wrap (mkValidator c) ||])
-        `Ledger.applyScript` Ledger.lifted cmp
+contributionScript cmp  = mkValidatorScript $
+    $$(PlutusTx.compile [|| \c -> wrap (mkValidator c) ||])
+        `PlutusTx.applyCode` PlutusTx.liftCode cmp
     where wrap = wrapValidator @PubKey @CampaignAction
 
 -- | The address of a [[Campaign]]
