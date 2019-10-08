@@ -53,7 +53,7 @@ balanceWallet utx = do
 computeBalance :: WAPI.MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
-    left = foldM go P.zero (tx ^. Tx.inputs)
+    left = (P.+) (L.txForge tx) <$> foldM go P.zero (tx ^. Tx.inputs)
     go cur inp = do
         am <- WAPI.watchedAddresses
         let txout = AM.outRefMap am ^. at (Tx.txInRef inp)
