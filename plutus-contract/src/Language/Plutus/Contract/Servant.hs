@@ -29,8 +29,8 @@ import           GHC.Generics                       (Generic)
 import           Servant                            ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
 import           Servant.Server                     (Application, ServantErr, Server, serve)
 
-import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Record
+import           Language.Plutus.Contract.Request   (Contract (..), ContractError)
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import qualified Language.Plutus.Contract.Resumable as Resumable
 import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
@@ -74,7 +74,10 @@ contractServer con = initialise :<|> run where
     initialise = servantResp (initialResponse con)
     run req = servantResp (runUpdate con req)
 
-servantResp :: MonadError ServantErr m => Either ResumableError (Response s) -> m (Response s)
+servantResp
+    :: MonadError ServantErr m
+    => Either (ResumableError ContractError) (Response s)
+    -> m (Response s)
 servantResp = \case
         Left err ->
             let bd = "'insertAndUpdate' failed. " in
@@ -100,10 +103,12 @@ runUpdate
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
-    => Contract s () -> Request s -> Either ResumableError (Response s)
+    => Contract s ()
+    -> Request s
+    -> Either (ResumableError ContractError) (Response s)
 runUpdate con (Request o e) =
     (\(r, h) -> Response (State r) h)
-    <$> Resumable.insertAndUpdate con (record o) e
+    <$> Resumable.insertAndUpdate (unContract con) (record o) e
 
 initialResponse
     :: forall s.
@@ -112,9 +117,10 @@ initialResponse
        , Forall (Output s) Semigroup
        )
     => Contract s ()
-    -> Either ResumableError (Response s)
+    -> Either (ResumableError ContractError) (Response s)
 initialResponse =
     fmap (uncurry Response . first (State . fmap fst))
     . runExcept
     . runWriterT
     . Resumable.initialise
+    . unContract

@@ -3,7 +3,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators    #-}
 module Language.Plutus.Contract(
-      Contract
+      Contract(..)
+    , ContractError(..)
     , HasBlockchainActions
     , BlockchainActions
     , both
@@ -11,6 +12,8 @@ module Language.Plutus.Contract(
     , select
     , (>>)
     , (<|>)
+    , checkpoint
+    , throwContractError
     -- * Dealing with time
     , HasAwaitSlot
     , AwaitSlot
@@ -56,7 +59,7 @@ import           Language.Plutus.Contract.Effects.WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 import           Language.Plutus.Contract.Util                   (both, selectEither)
 
-import           Language.Plutus.Contract.Request                (Contract, ContractRow, select)
+import           Language.Plutus.Contract.Request                (Contract(..), ContractError(..), ContractRow, select, checkpoint, throwContractError)
 
 import           Language.Plutus.Contract.Tx                     as Tx
 

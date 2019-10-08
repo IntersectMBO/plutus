@@ -56,7 +56,8 @@ import           Data.Sequence                                   (Seq)
 import qualified Data.Sequence                                   as Seq
 import qualified Data.Set                                        as Set
 
-import           Language.Plutus.Contract                        (Contract, HasUtxoAt, HasWatchAddress, HasWriteTx)
+import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx)
+import           Language.Plutus.Contract.Request                (ContractError)
 import           Language.Plutus.Contract.Resumable              (ResumableError)
 import qualified Language.Plutus.Contract.Resumable              as State
 import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
@@ -119,9 +120,10 @@ getHooks
        , Forall (Output s) Semigroup
        , AllUniqueLabels (Output s)
        )
-    => Wallet -> ContractTrace s m (Either ResumableError (Handlers s))
+    => Wallet
+    -> ContractTrace s m (Either (ResumableError ContractError) (Handlers s))
 getHooks w = do
-    contract <- use ctsContract
+    contract <- unContract <$> use ctsContract
     evts <- gets (foldMap toList . view (at w) . _ctsEvents)
     return $ State.execResumable evts contract
 

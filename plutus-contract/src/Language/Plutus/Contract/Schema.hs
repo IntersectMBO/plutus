@@ -65,6 +65,7 @@ deriving via (JsonRec (Output s)) instance Forall (Output s) ToJSON => ToJSON (H
 deriving via (JsonRec (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)
 
 deriving newtype instance Forall (Output s) Show => Show (Handlers s)
+deriving newtype instance Forall (Output s) Eq   => Eq (Handlers s)
 
 deriving via (MonoidRec (Output s)) instance (Forall (Output s) Semigroup) => Semigroup (Handlers s)
 
