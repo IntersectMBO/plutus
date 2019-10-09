@@ -1,0 +1,81 @@
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
+module StdLib.Spec where
+
+import           Common
+import           Data.Ratio               ((%))
+import           GHC.Real                 (reduce)
+import           Hedgehog                 (Property)
+import qualified Hedgehog
+import qualified Hedgehog.Gen             as Gen
+import qualified Hedgehog.Range           as Range
+import           PlcTestUtils
+import           Test.Tasty               (TestName)
+import           Test.Tasty.Hedgehog      (testProperty)
+
+import qualified Language.PlutusTx.Ord    as PlutusTx
+import qualified Language.PlutusTx.Ratio  as Ratio
+
+import           Language.PlutusTx.Code
+import qualified Language.PlutusTx.Lift   as Lift
+import           Language.PlutusTx.Plugin
+
+{-# ANN module ("HLint: ignore"::String) #-}
+
+roundPlc :: CompiledCode (Ratio.Rational -> Integer)
+roundPlc = plc @"roundPlc" Ratio.round
+
+tests :: TestNested
+tests =
+  testNested "StdLib"
+    [ goldenEval "ratioInterop" [ getPlc roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
+    , testRatioProperty "round" Ratio.round round
+    , testRatioProperty "truncate" Ratio.truncate truncate
+    , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
+    , pure $ testProperty "ord" testOrd
+    , pure $ testProperty "quotRem" testQuotRem
+    , pure $ testProperty "reduce" testReduce
+    ]
+
+testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
+testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.property $ do
+    rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
+    let ghcResult = ghcFunc rat
+        plutusResult = plutusFunc $ Ratio.fromGHC rat
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
+
+testQuotRem :: Property
+testQuotRem = Hedgehog.property $ do
+    let gen = Gen.integral (Range.linear (-10000) 100000)
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let ghcResult = quotRem n1 n2
+        plutusResult = Ratio.quotRem n1 n2
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
+
+testReduce :: Property
+testReduce = Hedgehog.property $ do
+    let gen = Gen.integral (Range.linear (-10000) 100000)
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let ghcResult = reduce n1 n2
+        plutusResult = Ratio.toGHC $ Ratio.reduce n1 n2
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
+
+testOrd :: Property
+testOrd = Hedgehog.property $ do
+    let gen = Gen.integral (Range.linear (-10000) 100000)
+    n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+    n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+    let ghcResult = n1 <= n2
+        plutusResult = (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
