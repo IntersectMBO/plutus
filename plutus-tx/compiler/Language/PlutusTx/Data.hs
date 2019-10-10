@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE ViewPatterns  #-}
+{-# LANGUAGE ViewPatterns       #-}
 module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
 
 import           Prelude                   hiding (fail)
@@ -44,19 +44,19 @@ instance Pretty Data where
 type CBORToDataError = String
 
 viewList :: CBOR.Term -> Maybe [CBOR.Term]
-viewList (CBOR.TList l) = Just l
+viewList (CBOR.TList l)  = Just l
 viewList (CBOR.TListI l) = Just l
-viewList _ = Nothing
+viewList _               = Nothing
 
 viewMap :: CBOR.Term -> Maybe [(CBOR.Term, CBOR.Term)]
-viewMap (CBOR.TMap m) = Just m
+viewMap (CBOR.TMap m)  = Just m
 viewMap (CBOR.TMapI m) = Just m
-viewMap _ = Nothing
+viewMap _              = Nothing
 
 viewBytes :: CBOR.Term -> Maybe ByteString
-viewBytes (CBOR.TBytes b) = Just (BSL.fromStrict b)
+viewBytes (CBOR.TBytes b)  = Just (BSL.fromStrict b)
 viewBytes (CBOR.TBytesI b) = Just b
-viewBytes _ = Nothing
+viewBytes _                = Nothing
 
 -- TODO: try and make this match the serialization of Haskell types using derived 'Serialise'?
 -- Would at least need to handle special cases with Null etc.
