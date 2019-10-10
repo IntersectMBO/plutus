@@ -176,6 +176,18 @@ We handle this by simply let-binding that variable outside our generated case. I
 where it's not used, the PIR dead-binding pass will remove it.
 -}
 
+{- Note [Default-only cases]
+GHC sometimes generates case expressions where there is only a single alternative, which is a default
+alternative. It can do this even if the argument is a type variable (i.e. not known to be a datatype).
+What this amounts to is ensuring the expression is evaluated - hence once place this appears is bang
+patterns.
+
+We can't actually compile this as a pattern match, since we need to know the actual type to do that.
+But in the case where the only alternative is a default alternative, we don't *need* to, because it
+doesn't actually inspect the contents of the datatype. So we can just compile this by returning
+the body of the alternative.
+-}
+
 {- Note [Coercions and newtypes]
 GHC is keen to put coercions in, they're usually great for it. However, this is a pain for us, since
 you can have all kinds of fancy coercions, like coercions between functions where some of the arguments
@@ -363,18 +375,25 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.Rec binds body'
+        -- See Note [Default-only cases]
+        GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
+            -- See Note [At patterns]
+            scrutinee' <- compileExpr scrutinee
+            withVarScoped b $ \v -> do
+                body' <- compileExpr body
+                -- See Note [At patterns]
+                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
+                pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             let scrutineeType = GHC.varType b
-            -- This is something of a stop-gap error, we should use Integer everywhere
-            when (scrutineeType `GHC.eqType` GHC.intTy) $ throwPlain $ UnsupportedError "Case on Int"
 
             -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
             withVarScoped b $ \v -> do
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
+                    Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
                 -- See Note [Case expressions and laziness]

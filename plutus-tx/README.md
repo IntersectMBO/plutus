@@ -35,7 +35,6 @@ The things that don't work broadly fall into a few categories:
 - Incompatible with the design of Plutus Core
     - `PolyKinds`, `DataKinds`, anything that moves towards "Dependent Haskell"
     - Literal patterns
-    - `StrictData` and bang patterns (may be allowed in future)
 - Requires access to function definitions
     - Normal function usage requires `INLINEABLE` or `-fexpose-all-unfoldings`
     - Typeclass dictionaries
