@@ -367,14 +367,12 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             let scrutineeType = GHC.varType b
-            -- This is something of a stop-gap error, we should use Integer everywhere
-            when (scrutineeType `GHC.eqType` GHC.intTy) $ throwPlain $ UnsupportedError "Case on Int"
 
             -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
             withVarScoped b $ \v -> do
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
+                    Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
                 -- See Note [Case expressions and laziness]

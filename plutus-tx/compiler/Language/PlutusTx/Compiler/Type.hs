@@ -246,6 +246,9 @@ mkConstructorType dc =
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
             pure $ PIR.mkIterTyFun () args resultType
 
+ghcStrictnessNote :: GHC.SDoc
+ghcStrictnessNote = "Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', or '-fno-spec-constr'"
+
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: Compiling m => GHC.TyCon -> m [PIRTerm]
 getConstructors tc = do
@@ -254,7 +257,7 @@ getConstructors tc = do
     maybeConstrs <- PIR.lookupConstructors () (LexName $ GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
-        Nothing      -> throwSd CompilationError $ "Constructors have not been compiled for:" GHC.<+> GHC.ppr tc
+        Nothing      -> throwSd UnsupportedError $ "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
 -- the type constructor argument types.
@@ -267,7 +270,7 @@ getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated
             args' <- mapM compileTypeNorm args
             pure $ PIR.mkIterInst () c args'
     -- must be a TC app
-    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
+    _ -> throwSd CompilationError $ "Cannot construct a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Compiling m => GHC.TyCon -> m PIRTerm
@@ -277,7 +280,7 @@ getMatch tc = do
     maybeMatch <- PIR.lookupDestructor () (LexName $ GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
-        Nothing    -> throwSd CompilationError $ "Match has not been compiled for:" GHC.<+> GHC.ppr tc
+        Nothing    -> throwSd UnsupportedError $ "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
@@ -289,4 +292,4 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         args' <- mapM compileTypeNorm args
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
-    _ -> throwSd CompilationError $ "Type was not a type constructor application:" GHC.<+> GHC.ppr t
+    _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
