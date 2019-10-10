@@ -1,7 +1,8 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-module Language.PlutusTx.Data where
+{-# LANGUAGE ViewPatterns  #-}
+module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
 
 import           Prelude                   hiding (fail)
 
@@ -42,16 +43,30 @@ instance Pretty Data where
 
 type CBORToDataError = String
 
--- TODO: handle indefinite versions, use view-patterns or something
+viewList :: CBOR.Term -> Maybe [CBOR.Term]
+viewList (CBOR.TList l) = Just l
+viewList (CBOR.TListI l) = Just l
+viewList _ = Nothing
+
+viewMap :: CBOR.Term -> Maybe [(CBOR.Term, CBOR.Term)]
+viewMap (CBOR.TMap m) = Just m
+viewMap (CBOR.TMapI m) = Just m
+viewMap _ = Nothing
+
+viewBytes :: CBOR.Term -> Maybe ByteString
+viewBytes (CBOR.TBytes b) = Just (BSL.fromStrict b)
+viewBytes (CBOR.TBytesI b) = Just b
+viewBytes _ = Nothing
+
 -- TODO: try and make this match the serialization of Haskell types using derived 'Serialise'?
 -- Would at least need to handle special cases with Null etc.
 fromTerm :: CBOR.Term -> Either CBORToDataError Data
 fromTerm = \case
     CBOR.TInteger i -> pure $ I i
-    CBOR.TBytes b -> pure $ B $ BSL.fromStrict b
-    CBOR.TMap entries -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
-    CBOR.TList ts -> Seq <$> traverse fromTerm ts
-    CBOR.TTagged i (CBOR.TList entries) -> Constr (fromIntegral i) <$> traverse fromTerm entries
+    (viewBytes -> Just b) -> pure $ B b
+    (viewMap -> Just entries) -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
+    (viewList -> Just ts) -> Seq <$> traverse fromTerm ts
+    CBOR.TTagged i (viewList -> Just entries) -> Constr (fromIntegral i) <$> traverse fromTerm entries
     t -> Left $ "Unsupported CBOR term: " ++ show t
 
 toTerm :: Data -> CBOR.Term
