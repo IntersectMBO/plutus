@@ -3074,30 +3074,7 @@
                                                                                                                         (lam
                                                                                                                           thunk
                                                                                                                           Unit
-                                                                                                                          [
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                {
-                                                                                                                                  [
-                                                                                                                                    Bool_match
-                                                                                                                                    ww
-                                                                                                                                  ]
-                                                                                                                                  (fun Unit Bool)
-                                                                                                                                }
-                                                                                                                                (lam
-                                                                                                                                  thunk
-                                                                                                                                  Unit
-                                                                                                                                  j
-                                                                                                                                )
-                                                                                                                              ]
-                                                                                                                              (lam
-                                                                                                                                thunk
-                                                                                                                                Unit
-                                                                                                                                j
-                                                                                                                              )
-                                                                                                                            ]
-                                                                                                                            Unit
-                                                                                                                          ]
+                                                                                                                          j
                                                                                                                         )
                                                                                                                       ]
                                                                                                                       (lam
@@ -3197,30 +3174,7 @@
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        {
-                                                                                                                          [
-                                                                                                                            Bool_match
-                                                                                                                            ww
-                                                                                                                          ]
-                                                                                                                          (fun Unit Bool)
-                                                                                                                        }
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          j
-                                                                                                                        )
-                                                                                                                      ]
-                                                                                                                      (lam
-                                                                                                                        thunk
-                                                                                                                        Unit
-                                                                                                                        j
-                                                                                                                      )
-                                                                                                                    ]
-                                                                                                                    Unit
-                                                                                                                  ]
+                                                                                                                  j
                                                                                                                 )
                                                                                                               ]
                                                                                                               (lam
@@ -3437,44 +3391,12 @@
                                                                                                           [
                                                                                                             [
                                                                                                               [
-                                                                                                                {
-                                                                                                                  [
-                                                                                                                    Bool_match
-                                                                                                                    ww
-                                                                                                                  ]
-                                                                                                                  (fun Unit Bool)
-                                                                                                                }
-                                                                                                                (lam
-                                                                                                                  thunk
-                                                                                                                  Unit
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        wtxSignedBy
-                                                                                                                        ww
-                                                                                                                      ]
-                                                                                                                      ww
-                                                                                                                    ]
-                                                                                                                    w
-                                                                                                                  ]
-                                                                                                                )
+                                                                                                                wtxSignedBy
+                                                                                                                ww
                                                                                                               ]
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      wtxSignedBy
-                                                                                                                      ww
-                                                                                                                    ]
-                                                                                                                    ww
-                                                                                                                  ]
-                                                                                                                  w
-                                                                                                                ]
-                                                                                                              )
+                                                                                                              ww
                                                                                                             ]
-                                                                                                            Unit
+                                                                                                            w
                                                                                                           ]
                                                                                                         )
                                                                                                       ]
@@ -3523,30 +3445,7 @@
                                                                                                               (lam
                                                                                                                 thunk
                                                                                                                 Unit
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      {
-                                                                                                                        [
-                                                                                                                          Bool_match
-                                                                                                                          ww
-                                                                                                                        ]
-                                                                                                                        (fun Unit Bool)
-                                                                                                                      }
-                                                                                                                      (lam
-                                                                                                                        thunk
-                                                                                                                        Unit
-                                                                                                                        j
-                                                                                                                      )
-                                                                                                                    ]
-                                                                                                                    (lam
-                                                                                                                      thunk
-                                                                                                                      Unit
-                                                                                                                      j
-                                                                                                                    )
-                                                                                                                  ]
-                                                                                                                  Unit
-                                                                                                                ]
+                                                                                                                j
                                                                                                               )
                                                                                                             ]
                                                                                                             (lam

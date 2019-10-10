@@ -176,6 +176,18 @@ We handle this by simply let-binding that variable outside our generated case. I
 where it's not used, the PIR dead-binding pass will remove it.
 -}
 
+{- Note [Default-only cases]
+GHC sometimes generates case expressions where there is only a single alternative, which is a default
+alternative. It can do this even if the argument is a type variable (i.e. not known to be a datatype).
+What this amounts to is ensuring the expression is evaluated - hence once place this appears is bang
+patterns.
+
+We can't actually compile this as a pattern match, since we need to know the actual type to do that.
+But in the case where the only alternative is a default alternative, we don't *need* to, because it
+doesn't actually inspect the contents of the datatype. So we can just compile this by returning
+the body of the alternative.
+-}
+
 {- Note [Coercions and newtypes]
 GHC is keen to put coercions in, they're usually great for it. However, this is a pain for us, since
 you can have all kinds of fancy coercions, like coercions between functions where some of the arguments
@@ -363,6 +375,15 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.Rec binds body'
+        -- See Note [Default-only cases]
+        GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
+            -- See Note [At patterns]
+            scrutinee' <- compileExpr scrutinee
+            withVarScoped b $ \v -> do
+                body' <- compileExpr body
+                -- See Note [At patterns]
+                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
+                pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee

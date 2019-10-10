@@ -42,6 +42,7 @@ monoData = testNested "monomorphic" [
   , goldenPir "monoRecord" monoRecord
   , goldenPir "recordNewtype" recordNewtype
   , goldenPir "nonValueCase" nonValueCase
+  , goldenPir "strictPattern" strictPattern
   , goldenPir "synonym" synonym
   ]
 
@@ -88,6 +89,11 @@ recordNewtype = plc @"recordNewtype" (\(x :: RecordNewtype) -> x)
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Integer)
 nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Integer ; Enum2 -> Builtins.error (); })
+
+data StrictPattern a = StrictPattern !a !a
+
+strictPattern :: CompiledCode (StrictPattern Integer)
+strictPattern = plc @"strictPattern" (StrictPattern 1 2)
 
 type Synonym = Integer
 
