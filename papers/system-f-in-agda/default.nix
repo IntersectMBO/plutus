@@ -35,6 +35,11 @@ stdenv.mkDerivation {
 
     latexmk -view=pdf paper;
   '';
-  installPhase = "install -Dt $out *.pdf";
+  installPhase = ''
+    install -Dt $out *.pdf
+
+    mkdir -p $out/nix-support
+    echo "doc-pdf pdf paper.pdf" >> $out/nix-support/hydra-build-products
+  '';
 }
 

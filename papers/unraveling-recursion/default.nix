@@ -40,6 +40,9 @@ stdenv.mkDerivation {
     install -Dt $out *.pdf
     cp ${artifacts}/* $out
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
+
+    mkdir -p $out/nix-support
+    echo "doc-pdf pdf compiling-to-fomega.pdf" >> $out/nix-support/hydra-build-products
   '';
 }
 
