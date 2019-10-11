@@ -10,7 +10,7 @@ let
 in
 latex.buildLatex {
   name = "unraveling-recursion";
-  texFiles = ["compiling-to-fomega.tex"];
+  texFiles = ["unraveling-recursion.tex"];
   texInputs = {
     # more than we need at the moment, but doesn't cost much to include it
     inherit (texlive)
