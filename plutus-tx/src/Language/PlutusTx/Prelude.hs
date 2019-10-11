@@ -48,6 +48,11 @@ module Language.PlutusTx.Prelude (
     sha2_256,
     sha3_256,
     verifySignature,
+    -- * Rational numbers
+    Rational,
+    (%),
+    fromInteger,
+    round,
     module Prelude
     ) where
 
@@ -65,12 +70,13 @@ import           Language.PlutusTx.Maybe       as Maybe
 import           Language.PlutusTx.Monoid      as Monoid
 import           Language.PlutusTx.Numeric     as Numeric
 import           Language.PlutusTx.Ord         as Ord
+import           Language.PlutusTx.Ratio       as Ratio
 import           Language.PlutusTx.Semigroup   as Semigroup
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
-                                                           Num (..), Ord (..), Semigroup (..), all, any, const, elem,
-                                                           error, filter, foldMap, foldl, foldr, fst, id, length, map,
-                                                           max, maybe, min, not, null, snd, (!!), ($), (&&), (++),
-                                                           (<$>), (||))
+                                                           Num (..), Ord (..), Rational, Semigroup (..), all, any,
+                                                           const, elem, error, filter, foldMap, foldl, foldr, fst, id,
+                                                           length, map, max, maybe, min, not, null, round, snd, (!!),
+                                                           ($), (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

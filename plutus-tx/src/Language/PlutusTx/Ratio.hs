@@ -9,6 +9,7 @@ module Language.PlutusTx.Ratio(
     Ratio
     , Rational
     , (%)
+    , fromInteger
     , numerator
     , denominator
     , round
@@ -104,6 +105,10 @@ instance P.Ord (Ratio Integer) where
 -- | Forms the ratio of two integral numbers.
 (%) :: Integer -> Integer -> Ratio Integer
 x % y = reduce (x P.* signum y) (abs y)
+
+-- | Convert an 'Interger' to a 'Rational'
+fromInteger :: Integer -> Ratio Integer
+fromInteger n = n :% 1
 
 -- | Convert a 'Data.Ratio.Rational' to a
 --   Plutus-compatible 'Language.PlutusTx.Ratio.Rational'
