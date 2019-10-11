@@ -355,16 +355,22 @@ validatorScriptHash =
     . scriptAddress
 
 makeLift ''PendingTxOutType
+makeIsData ''PendingTxOutType
 
 makeLift ''PendingTxOut
+makeIsData ''PendingTxOut
 
 makeLift ''PendingTxOutRef
+makeIsData ''PendingTxOutRef
 
 makeLift ''PendingTxIn'
+makeIsData ''PendingTxIn'
 
 makeLift ''PendingTx'
+makeIsData ''PendingTx'
 
 makeLift ''OracleValue
 makeIsData ''OracleValue
 
 makeLift ''TxHash
+makeIsData ''TxHash

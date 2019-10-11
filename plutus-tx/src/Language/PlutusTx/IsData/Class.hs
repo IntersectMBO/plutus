@@ -25,6 +25,12 @@ class IsData (a :: Type) where
     -- TODO: this should probably provide some kind of diagnostics
     fromData :: Data -> Maybe a
 
+instance IsData Data where
+    {-# INLINABLE toData #-}
+    toData d = d
+    {-# INLINABLE fromData #-}
+    fromData d = Just d
+
 instance IsData Integer where
     {-# INLINABLE toData #-}
     toData = I

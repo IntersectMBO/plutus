@@ -81,7 +81,7 @@ instance FromHttpApiData PrivateKey where
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema)
-    deriving newtype (P.Eq, P.Ord, Serialise)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 instance ToJSON Signature where
   toJSON signature =
