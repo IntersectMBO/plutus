@@ -54353,6 +54353,7 @@ license = stdenv.lib.licenses.asl20;
 , doctest
 , extra
 , ghc
+, hedgehog
 , language-plutus-core
 , lens
 , mtl
@@ -54362,6 +54363,7 @@ license = stdenv.lib.licenses.asl20;
 , serialise
 , stdenv
 , tasty
+, tasty-hedgehog
 , tasty-hunit
 , template-haskell
 , text
@@ -54398,12 +54400,14 @@ doctest
 testHaskellDepends = [
 base
 bytestring
+hedgehog
 language-plutus-core
 mtl
 plutus-core-interpreter
 plutus-ir
 prettyprinter
 tasty
+tasty-hedgehog
 tasty-hunit
 template-haskell
 ];
