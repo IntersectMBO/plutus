@@ -293,45 +293,9 @@ version.
 of type \s{TxId}: in an implementation this would probably be the
 hash of the transaction.
 
-\subsection{The \Data{} type}
-We also define a type \Data{} which can be used to pass information
-into scripts in a type-safe manner: see Figure~\ref{fig:data-defn}. The
-definition is given here in EBNF form, but can easily be translated to
-a Haskell type, for instance.
-
-\begin{ruledfigure}{H}
-\begin{alltt}
-  \Data =
-      "I" \(\N\)
-    | "B" \(\H\)
-    | "Constr" \(\N (\List{\Data})\)
-    | "List" \(\List{\Data}\)
-    | "Map" \(\List{\Data\times\Data}\)
-\end{alltt}
-\caption{The \Data{} type}
-\label{fig:data-defn}
-\end{ruledfigure}
-
-\noindent Thus values of type \Data{} are nested sums and products built up
-recursively from the base types of integers and bytestrings. This
-allows one to encode a large variety of first-order data structures:
-for example, we could encode the list [11,22,33] as \texttt{Constr 1
-  (I 11, Constr 1 (I 22, Constr 1 (I 33, Constr 0)))}, using
-\texttt{Constr 0} to represent the \texttt{Nil} constructor of a list
-type, and \texttt{Constr 1} to represent the \texttt{Cons}
-constructor.
-
-The \texttt{List} and \texttt{Map} constructors are strictly
-redundant, but are included for convenience to allow straightforward
-encoding of lists and records.
-
-We assume that the scripting language has the ability to parse values
-of type \Data{}, converting them into a suitable internal representation.
-
-\subsection{Further notation}
-Figure~\ref{fig:basic-notation} presents some further notation for use in the
-sequel. 
-\todokwxm{Split this over the page break once things have stabilised.}
+\subsection{Basic notation}
+Figure~\ref{fig:basic-notation} describes some notation and
+conventions used in the remainder of the document.
 \begin{ruledfigure}{H}
   \begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
@@ -404,6 +368,41 @@ sequel.
 \caption{Basic notation}
 \label{fig:basic-notation}
 \end{ruledfigure}
+
+\subsection{The \Data{} type}
+We also define a type \Data{} which can be used to pass information
+into scripts in a type-safe manner: see Figure~\ref{fig:data-defn}. The
+definition is given here in EBNF form, but can easily be translated to
+a Haskell type, for instance.
+
+\begin{ruledfigure}{H}
+\begin{alltt}
+  \Data =
+      "I" \(\N\)
+    | "B" \(\H\)
+    | "Constr" \(\N (\List{\Data})\)
+    | "List" \(\List{\Data}\)
+    | "Map" \(\List{\Data\times\Data}\)
+\end{alltt}
+\caption{The \Data{} type}
+\label{fig:data-defn}
+\end{ruledfigure}
+
+\noindent Thus values of type \Data{} are nested sums and products
+built up recursively from the base types of integers and
+bytestrings. This allows one to encode a large variety of first-order
+data structures: for example, we could encode values of Haskell's
+\verb|Maybe Integer| type using \verb|Constr 0| to represent
+\verb|Nothing| and \verb|Constr 1 [I 41]| to encode \verb|Just 41|.
+
+
+The \texttt{List} and \texttt{Map} constructors are strictly
+redundant, but are included for convenience to allow straightforward
+encoding of lists and records.
+
+We assume that the scripting language has the ability to parse values
+of type \Data{}, converting them into a suitable internal representation.
+
 
 
 
