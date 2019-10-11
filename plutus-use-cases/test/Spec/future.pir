@@ -2005,6 +2005,10 @@
                                                                   (fun (con integer) Data)
                                                                 )
                                                                 (vardecl
+                                                                  List
+                                                                  (fun [List Data] Data)
+                                                                )
+                                                                (vardecl
                                                                   Map
                                                                   (fun [List [[Tuple2 Data] Data]] Data)
                                                                 )
