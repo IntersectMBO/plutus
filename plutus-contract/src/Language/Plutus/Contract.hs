@@ -30,6 +30,7 @@ module Language.Plutus.Contract(
     -- * Transactions
     , HasWriteTx
     , WriteTx
+    , WalletAPIError
     , writeTx
     , writeTxSuccess
     -- * Blockchain events
@@ -66,6 +67,7 @@ import           Language.Plutus.Contract.Request                (Contract(..), 
 import           Language.Plutus.Contract.Tx                     as Tx
 
 import           Prelude                                         hiding (until)
+import           Wallet.API                                      (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node 
 --   client & signing process)
