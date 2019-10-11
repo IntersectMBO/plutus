@@ -78,12 +78,12 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 ==== Specifications
 
-- https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/pdf[Plutus Core Specification]
+- https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
 
 ==== Academic papers
 
-- https://hydra.iohk.io/job/Cardano/plutus/papers.unraveling-recursion.x86_64-linux/latest/download-by-type/doc-pdf/pdf[Unraveling Recursion]
-- https://hydra.iohk.io/job/Cardano/plutus/papers.system-f-in-agda.x86_64-linux/latest/download-by-type/doc-pdf/pdf[System F in Agda]
+- https://hydra.iohk.io/job/Cardano/plutus/papers.unraveling-recursion.x86_64-linux/latest/download-by-type/doc-pdf/compiling-to-fomega[Unraveling Recursion]
+- https://hydra.iohk.io/job/Cardano/plutus/papers.system-f-in-agda.x86_64-linux/latest/download-by-type/doc-pdf/paper[System F in Agda]
 
 == Where to go next
 
