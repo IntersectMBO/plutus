@@ -4,7 +4,7 @@
 \title{Formal Specification of the Extended UTXO Model (\red{\textsf{DRAFT}})}
 
 \pagestyle{plain}
-\date{9th October 2019}
+\date{11th October 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -35,8 +35,9 @@
 \usepackage{xcolor}
 \usepackage{verbatim}
 \usepackage{alltt}
-\usepackage{todonotes}
-%\usepackage[disable]{todonotes}
+
+%\usepackage{todonotes}
+\usepackage[disable]{todonotes}
 
 \usepackage{hyperref}  % This has to go at the end of the packages.
 
@@ -268,7 +269,8 @@ These are shown in Figure~\ref{fig:basic-types}.
 
 \noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
 natural numbers and non-negative integers.  A bytestring is a sequence
-of 8-bit bytes.
+of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
+presented as sequences of hexadecimal digits.
 
 \medskip
 \noindent In practice an \textsf{Address} will be a
@@ -303,6 +305,7 @@ a Haskell type, for instance.
       "I" \(\N\)
     | "B" \(\H\)
     | "Constr" \(\N (\List{\Data})\)
+    | "List" \(\List{\Data}\)
     | "Map" \(\List{\Data\times\Data}\)
 \end{alltt}
 \caption{The \Data{} type}
@@ -318,8 +321,9 @@ for example, we could encode the list [11,22,33] as \texttt{Constr 1
 type, and \texttt{Constr 1} to represent the \texttt{Cons}
 constructor.
 
-The \texttt{Map} constructor is strictly redundant, but is included for
-convenience to allow a straightforward encoding of records.
+The \texttt{List} and \texttt{Map} constructors are strictly
+redundant, but are included for convenience to allow straightforward
+encoding of lists and records.
 
 We assume that the scripting language has the ability to parse values
 of type \Data{}, converting them into a suitable internal representation.
@@ -438,11 +442,12 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   script with the redeemer and validation data as input; the validator
   is also provided with information about the pending transaction (ie,
   the transaction which is just about to take place, assuming that
-  validation succeeds); this information is contained in a structure
-  which we call \ptx{} which contains data such as the validity
-  interval of the pending transaction and information about the inputs
-  and outputs.  See Section~\ref{sec:pendingtx} for more information
-  on the $\ptx$ structure.
+  validation succeeds). This information is contained in a structure
+  (also encoded as \Data) which we call \ptx{}: this contains data
+  such as the validity interval of the pending transaction and
+  information about the inputs and outputs.  See
+  Section~\ref{sec:pendingtx} for more information on the $\ptx$
+  structure.
   
 \end{itemize}
 
@@ -457,7 +462,8 @@ expect these objects to have some specific form (a single bytestring
 or a list of integers, for example) and if it is supplied with data
 with an incorrect format it should fail and return \false.
 
-\todokwxm{Fix the stuff above.}
+\todokwxm{There's the issue about whether validators return
+  \texttt{true/false} or \texttt{()/Error}. Remember to fix this when things have settled down.}
 
 \subsection{A Formal Description of the EUTXO-1 Model}
 \label{section:eutxo-spec}
@@ -599,8 +605,10 @@ inputs to the pending transaction, but provides only the hashes of the
 validator and redeemer scripts for the inputs.  The \i{thisInput}
 field is an index pointing to the element of \i{inputInfo}
 relating to the input currently undergoing validation.
-\todokwxm{In the code at the moment, the hashes of the validator
-and redeemer scripts in \i{inputInfo} are allowed to be absent.  Why?}
+% Note: in the code at the moment, the hashes of the validator
+% and redeemer scripts in inputInfo are allowed to be absent
+% when we have pubkey inputs.  We're ignoring that special case here.
+
 \medskip
 \noindent We also require a function
 $$
@@ -620,6 +628,7 @@ discuss it further.
 
 \medskip\todokwxm{But with the advent of \Data{} we \textit{can}
   specify $\delta$.  Maybe we should?}
+\todokwxm{... or even just do the whole translation in one step.}
 
 \paragraph{Determinism.}  The information provided in the $\ptx$
 structure is sufficiently limited that the validation process
