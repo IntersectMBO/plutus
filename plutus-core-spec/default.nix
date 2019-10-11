@@ -2,7 +2,6 @@
 
 latex.buildLatex {
   name = "plutus-core-spec";
-  texFileName = "plutus-core-specification.tex";
   texInputs = {
     inherit (texlive)
     scheme-small
