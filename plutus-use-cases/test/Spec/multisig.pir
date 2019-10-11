@@ -882,11 +882,11 @@
                                                 I (fun (con integer) Data)
                                               )
                                               (vardecl
-                                                Map
-                                                (fun [List [[Tuple2 Data] Data]] Data)
+                                                List (fun [List Data] Data)
                                               )
                                               (vardecl
-                                                Seq (fun [List Data] Data)
+                                                Map
+                                                (fun [List [[Tuple2 Data] Data]] Data)
                                               )
                                             )
                                           )

@@ -105,9 +105,9 @@ instance Ord Data where
     compare (Map entries) (Map entries')      = compare entries entries'
     compare Map{} _                           = LT
     compare _ Map{}                           = GT
-    compare (Seq ds) (Seq ds')                = compare ds ds'
-    compare Seq{} _                           = LT
-    compare _ Seq{}                           = GT
+    compare (List ds) (List ds')              = compare ds ds'
+    compare List{} _                          = LT
+    compare _ List{}                          = GT
     compare (I i) (I i')                      = compare i i'
     compare I{} _                             = LT
     compare _ I{}                             = GT

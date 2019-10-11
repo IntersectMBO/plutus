@@ -81,7 +81,7 @@ instance (IsData a, IsData b) => IsData (Either a b) where
 
 instance IsData a => IsData [a] where
     {-# INLINABLE toData #-}
-    toData xs = Seq (fmap toData xs)
+    toData xs = List (fmap toData xs)
     {-# INLINABLE fromData #-}
-    fromData (Seq ds) = traverse fromData ds
+    fromData (List ds) = traverse fromData ds
     fromData _        = Nothing

@@ -2404,12 +2404,12 @@
                                                         (fun (con integer) Data)
                                                       )
                                                       (vardecl
-                                                        Map
-                                                        (fun [List [[Tuple2 Data] Data]] Data)
+                                                        List
+                                                        (fun [List Data] Data)
                                                       )
                                                       (vardecl
-                                                        Seq
-                                                        (fun [List Data] Data)
+                                                        Map
+                                                        (fun [List [[Tuple2 Data] Data]] Data)
                                                       )
                                                     )
                                                   )
@@ -2810,7 +2810,7 @@
                                                                             ]
                                                                             (lam
                                                                               default_arg0
-                                                                              [List [[Tuple2 Data] Data]]
+                                                                              [List Data]
                                                                               (lam
                                                                                 thunk
                                                                                 Unit
@@ -2823,7 +2823,7 @@
                                                                           ]
                                                                           (lam
                                                                             default_arg0
-                                                                            [List Data]
+                                                                            [List [[Tuple2 Data] Data]]
                                                                             (lam
                                                                               thunk
                                                                               Unit
@@ -3147,7 +3147,7 @@
                                                                               ]
                                                                               (lam
                                                                                 default_arg0
-                                                                                [List [[Tuple2 Data] Data]]
+                                                                                [List Data]
                                                                                 (lam
                                                                                   thunk
                                                                                   Unit
@@ -3160,7 +3160,7 @@
                                                                             ]
                                                                             (lam
                                                                               default_arg0
-                                                                              [List Data]
+                                                                              [List [[Tuple2 Data] Data]]
                                                                               (lam
                                                                                 thunk
                                                                                 Unit
@@ -3268,7 +3268,7 @@
                                                                                   ]
                                                                                   (lam
                                                                                     default_arg0
-                                                                                    [List [[Tuple2 Data] Data]]
+                                                                                    [List Data]
                                                                                     (lam
                                                                                       thunk
                                                                                       Unit
@@ -3281,7 +3281,7 @@
                                                                                 ]
                                                                                 (lam
                                                                                   default_arg0
-                                                                                  [List Data]
+                                                                                  [List [[Tuple2 Data] Data]]
                                                                                   (lam
                                                                                     thunk
                                                                                     Unit
@@ -3481,160 +3481,160 @@
                                                                                               )
                                                                                             ]
                                                                                             (lam
-                                                                                              default_arg0
-                                                                                              [List [[Tuple2 Data] Data]]
+                                                                                              ds
+                                                                                              [List Data]
                                                                                               (lam
                                                                                                 thunk
                                                                                                 Unit
-                                                                                                {
-                                                                                                  Nothing
-                                                                                                  [List a]
-                                                                                                }
+                                                                                                (let
+                                                                                                  (nonrec
+                                                                                                  )
+                                                                                                  (termbind
+                                                                                                    (nonstrict
+                                                                                                    )
+                                                                                                    (vardecl
+                                                                                                      f
+                                                                                                      (fun Data [Maybe a])
+                                                                                                    )
+                                                                                                    [
+                                                                                                      {
+                                                                                                        fromData
+                                                                                                        a
+                                                                                                      }
+                                                                                                      dIsData
+                                                                                                    ]
+                                                                                                  )
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        {
+                                                                                                          {
+                                                                                                            foldr
+                                                                                                            Data
+                                                                                                          }
+                                                                                                          [Maybe [List a]]
+                                                                                                        }
+                                                                                                        (lam
+                                                                                                          x
+                                                                                                          Data
+                                                                                                          (lam
+                                                                                                            ys
+                                                                                                            [Maybe [List a]]
+                                                                                                            [
+                                                                                                              [
+                                                                                                                [
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      {
+                                                                                                                        Maybe_match
+                                                                                                                        a
+                                                                                                                      }
+                                                                                                                      [
+                                                                                                                        f
+                                                                                                                        x
+                                                                                                                      ]
+                                                                                                                    ]
+                                                                                                                    (fun Unit [Maybe [List a]])
+                                                                                                                  }
+                                                                                                                  (lam
+                                                                                                                    x
+                                                                                                                    a
+                                                                                                                    (lam
+                                                                                                                      thunk
+                                                                                                                      Unit
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            {
+                                                                                                                              [
+                                                                                                                                {
+                                                                                                                                  Maybe_match
+                                                                                                                                  [List a]
+                                                                                                                                }
+                                                                                                                                ys
+                                                                                                                              ]
+                                                                                                                              (fun Unit [Maybe [List a]])
+                                                                                                                            }
+                                                                                                                            (lam
+                                                                                                                              y
+                                                                                                                              [List a]
+                                                                                                                              (lam
+                                                                                                                                thunk
+                                                                                                                                Unit
+                                                                                                                                [
+                                                                                                                                  {
+                                                                                                                                    Just
+                                                                                                                                    [List a]
+                                                                                                                                  }
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      {
+                                                                                                                                        Cons
+                                                                                                                                        a
+                                                                                                                                      }
+                                                                                                                                      x
+                                                                                                                                    ]
+                                                                                                                                    y
+                                                                                                                                  ]
+                                                                                                                                ]
+                                                                                                                              )
+                                                                                                                            )
+                                                                                                                          ]
+                                                                                                                          (lam
+                                                                                                                            thunk
+                                                                                                                            Unit
+                                                                                                                            {
+                                                                                                                              Nothing
+                                                                                                                              [List a]
+                                                                                                                            }
+                                                                                                                          )
+                                                                                                                        ]
+                                                                                                                        Unit
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  )
+                                                                                                                ]
+                                                                                                                (lam
+                                                                                                                  thunk
+                                                                                                                  Unit
+                                                                                                                  {
+                                                                                                                    Nothing
+                                                                                                                    [List a]
+                                                                                                                  }
+                                                                                                                )
+                                                                                                              ]
+                                                                                                              Unit
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
+                                                                                                      ]
+                                                                                                      [
+                                                                                                        {
+                                                                                                          Just
+                                                                                                          [List a]
+                                                                                                        }
+                                                                                                        {
+                                                                                                          Nil
+                                                                                                          a
+                                                                                                        }
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                    ds
+                                                                                                  ]
+                                                                                                )
                                                                                               )
                                                                                             )
                                                                                           ]
                                                                                           (lam
-                                                                                            ds
-                                                                                            [List Data]
+                                                                                            default_arg0
+                                                                                            [List [[Tuple2 Data] Data]]
                                                                                             (lam
                                                                                               thunk
                                                                                               Unit
-                                                                                              (let
-                                                                                                (nonrec
-                                                                                                )
-                                                                                                (termbind
-                                                                                                  (nonstrict
-                                                                                                  )
-                                                                                                  (vardecl
-                                                                                                    f
-                                                                                                    (fun Data [Maybe a])
-                                                                                                  )
-                                                                                                  [
-                                                                                                    {
-                                                                                                      fromData
-                                                                                                      a
-                                                                                                    }
-                                                                                                    dIsData
-                                                                                                  ]
-                                                                                                )
-                                                                                                [
-                                                                                                  [
-                                                                                                    [
-                                                                                                      {
-                                                                                                        {
-                                                                                                          foldr
-                                                                                                          Data
-                                                                                                        }
-                                                                                                        [Maybe [List a]]
-                                                                                                      }
-                                                                                                      (lam
-                                                                                                        x
-                                                                                                        Data
-                                                                                                        (lam
-                                                                                                          ys
-                                                                                                          [Maybe [List a]]
-                                                                                                          [
-                                                                                                            [
-                                                                                                              [
-                                                                                                                {
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      Maybe_match
-                                                                                                                      a
-                                                                                                                    }
-                                                                                                                    [
-                                                                                                                      f
-                                                                                                                      x
-                                                                                                                    ]
-                                                                                                                  ]
-                                                                                                                  (fun Unit [Maybe [List a]])
-                                                                                                                }
-                                                                                                                (lam
-                                                                                                                  x
-                                                                                                                  a
-                                                                                                                  (lam
-                                                                                                                    thunk
-                                                                                                                    Unit
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        [
-                                                                                                                          {
-                                                                                                                            [
-                                                                                                                              {
-                                                                                                                                Maybe_match
-                                                                                                                                [List a]
-                                                                                                                              }
-                                                                                                                              ys
-                                                                                                                            ]
-                                                                                                                            (fun Unit [Maybe [List a]])
-                                                                                                                          }
-                                                                                                                          (lam
-                                                                                                                            y
-                                                                                                                            [List a]
-                                                                                                                            (lam
-                                                                                                                              thunk
-                                                                                                                              Unit
-                                                                                                                              [
-                                                                                                                                {
-                                                                                                                                  Just
-                                                                                                                                  [List a]
-                                                                                                                                }
-                                                                                                                                [
-                                                                                                                                  [
-                                                                                                                                    {
-                                                                                                                                      Cons
-                                                                                                                                      a
-                                                                                                                                    }
-                                                                                                                                    x
-                                                                                                                                  ]
-                                                                                                                                  y
-                                                                                                                                ]
-                                                                                                                              ]
-                                                                                                                            )
-                                                                                                                          )
-                                                                                                                        ]
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          {
-                                                                                                                            Nothing
-                                                                                                                            [List a]
-                                                                                                                          }
-                                                                                                                        )
-                                                                                                                      ]
-                                                                                                                      Unit
-                                                                                                                    ]
-                                                                                                                  )
-                                                                                                                )
-                                                                                                              ]
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                {
-                                                                                                                  Nothing
-                                                                                                                  [List a]
-                                                                                                                }
-                                                                                                              )
-                                                                                                            ]
-                                                                                                            Unit
-                                                                                                          ]
-                                                                                                        )
-                                                                                                      )
-                                                                                                    ]
-                                                                                                    [
-                                                                                                      {
-                                                                                                        Just
-                                                                                                        [List a]
-                                                                                                      }
-                                                                                                      {
-                                                                                                        Nil
-                                                                                                        a
-                                                                                                      }
-                                                                                                    ]
-                                                                                                  ]
-                                                                                                  ds
-                                                                                                ]
-                                                                                              )
+                                                                                              {
+                                                                                                Nothing
+                                                                                                [List a]
+                                                                                              }
                                                                                             )
                                                                                           )
                                                                                         ]
@@ -3716,7 +3716,7 @@
                                                                                               xs
                                                                                               [List [[Tuple2 k] v]]
                                                                                               [
-                                                                                                Seq
+                                                                                                List
                                                                                                 [
                                                                                                   [
                                                                                                     {
@@ -4174,7 +4174,7 @@
                                                                                                                                                                                               ]
                                                                                                                                                                                               (lam
                                                                                                                                                                                                 default_arg0
-                                                                                                                                                                                                [List [[Tuple2 Data] Data]]
+                                                                                                                                                                                                [List Data]
                                                                                                                                                                                                 (lam
                                                                                                                                                                                                   thunk
                                                                                                                                                                                                   Unit
@@ -4187,7 +4187,7 @@
                                                                                                                                                                                             ]
                                                                                                                                                                                             (lam
                                                                                                                                                                                               default_arg0
-                                                                                                                                                                                              [List Data]
+                                                                                                                                                                                              [List [[Tuple2 Data] Data]]
                                                                                                                                                                                               (lam
                                                                                                                                                                                                 thunk
                                                                                                                                                                                                 Unit
@@ -4235,7 +4235,7 @@
                                                                                                                                                                               ]
                                                                                                                                                                               (lam
                                                                                                                                                                                 default_arg0
-                                                                                                                                                                                [List [[Tuple2 Data] Data]]
+                                                                                                                                                                                [List Data]
                                                                                                                                                                                 (lam
                                                                                                                                                                                   thunk
                                                                                                                                                                                   Unit
@@ -4248,7 +4248,7 @@
                                                                                                                                                                             ]
                                                                                                                                                                             (lam
                                                                                                                                                                               default_arg0
-                                                                                                                                                                              [List Data]
+                                                                                                                                                                              [List [[Tuple2 Data] Data]]
                                                                                                                                                                               (lam
                                                                                                                                                                                 thunk
                                                                                                                                                                                 Unit
@@ -4346,7 +4346,7 @@
                                                                                                       ]
                                                                                                       (lam
                                                                                                         default_arg0
-                                                                                                        [List [[Tuple2 Data] Data]]
+                                                                                                        [List Data]
                                                                                                         (lam
                                                                                                           thunk
                                                                                                           Unit
@@ -4359,7 +4359,7 @@
                                                                                                     ]
                                                                                                     (lam
                                                                                                       default_arg0
-                                                                                                      [List Data]
+                                                                                                      [List [[Tuple2 Data] Data]]
                                                                                                       (lam
                                                                                                         thunk
                                                                                                         Unit
@@ -4412,7 +4412,7 @@
                                                                                                     xs
                                                                                                     [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                                                                                                     [
-                                                                                                      Seq
+                                                                                                      List
                                                                                                       [
                                                                                                         [
                                                                                                           {
@@ -5007,7 +5007,7 @@
                                                                                                                 ]
                                                                                                                 (lam
                                                                                                                   default_arg0
-                                                                                                                  [List [[Tuple2 Data] Data]]
+                                                                                                                  [List Data]
                                                                                                                   (lam
                                                                                                                     thunk
                                                                                                                     Unit
@@ -5020,7 +5020,7 @@
                                                                                                               ]
                                                                                                               (lam
                                                                                                                 default_arg0
-                                                                                                                [List Data]
+                                                                                                                [List [[Tuple2 Data] Data]]
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
@@ -5107,7 +5107,7 @@
                                                                                                                                       [
                                                                                                                                         c
                                                                                                                                         [
-                                                                                                                                          Seq
+                                                                                                                                          List
                                                                                                                                           [
                                                                                                                                             [
                                                                                                                                               {
