@@ -25,37 +25,6 @@ import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
 import           Ledger.Value              (Value)
 
-data Ratio a = a :% a
-
-instance PlutusTx.IsData a => PlutusTx.IsData (Ratio a) where
-    {-# INLINABLE toData #-}
-    toData (n :% d) = PlutusTx.Constr 0 [PlutusTx.toData n, PlutusTx.toData d]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [n, d]) | i == 0 = (:%) <$> PlutusTx.fromData n PlutusTx.<*> PlutusTx.fromData d
-    fromData _ = Nothing
-
-instance Eq a => Eq (Ratio a) where
-    {-# INLINABLE (==) #-}
-    (n1 :% d1) == (n2 :% d2) = n1 == n2 && d1 == d2
-
-instance AdditiveSemigroup (Ratio Integer) where
-    {-# INLINABLE (+) #-}
-    (x :% y) + (x' :% y') = ((x * y') + (x' * y)) :% (y * y')
-
-instance AdditiveMonoid (Ratio Integer) where
-    {-# INLINABLE zero #-}
-    zero = zero :% one
-
-instance AdditiveGroup (Ratio Integer) where
-    {-# INLINABLE (-) #-}
-    (x :% y) - (x' :% y') = ((x * y') - (x' * y)) :% (y * y')
-
-instance MultiplicativeSemigroup (Ratio Integer) where
-    {-# INLINABLE (*) #-}
-    (x :% y) * (x' :% y') = (x * x') :% (y * y')
-
-PlutusTx.makeLift ''Ratio
-
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
 --  interest payments on the same principal amount but with two different
@@ -69,8 +38,8 @@ PlutusTx.makeLift ''Ratio
 data Swap = Swap
     { swapNotionalAmt     :: !Ada
     , swapObservationTime :: !Slot
-    , swapFixedRate       :: !(Ratio Integer) -- ^ Interest rate fixed at the beginning of the contract
-    , swapFloatingRate    :: !(Ratio Integer) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
+    , swapFixedRate       :: !Rational -- ^ Interest rate fixed at the beginning of the contract
+    , swapFloatingRate    :: !Rational -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Ada -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
     , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.PlutusTx.Coordination.Contracts]])
     }
@@ -97,19 +66,15 @@ instance PlutusTx.IsData SwapOwners where
 
 PlutusTx.makeLift ''SwapOwners
 
-type SwapOracle = OracleValue (Ratio Integer)
+type SwapOracle = OracleValue Rational
 
 mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
 mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
-        extractVerifyAt :: OracleValue (Ratio Integer) -> PubKey -> Ratio Integer -> Slot -> Ratio Integer
+        extractVerifyAt :: OracleValue Rational -> PubKey -> Rational -> Slot -> Rational
         extractVerifyAt = error ()
-
-        round_ :: Ratio Integer -> Integer
-        round_ = error ()
-
-        -- | Convert an [[Integer]] to a [[Ratio Integer]]
-        fromInt :: Integer -> Ratio Integer
+        -- | Convert an [[Integer]] to a [[Rational]]
+        fromInt :: Integer -> Rational
         fromInt = error ()
 
         adaValueIn :: Value -> Integer
@@ -122,23 +87,23 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- the payments.
         rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
 
-        rtDiff :: Ratio Integer
+        rtDiff :: Rational
         rtDiff = rt - swapFixedRate
 
         amt    = Ada.getLovelace swapNotionalAmt
         margin = Ada.getLovelace swapMargin
 
-        amt' :: Ratio Integer
+        amt' :: Rational
         amt' = fromInt amt
 
-        delta :: Ratio Integer
+        delta :: Rational
         delta = amt' * rtDiff
 
         fixedPayment :: Integer
-        fixedPayment = round_ (amt' + delta)
+        fixedPayment = round (amt' + delta)
 
         floatPayment :: Integer
-        floatPayment = round_ (amt' + delta)
+        floatPayment = round (amt' + delta)
 
         -- Compute the payouts (initial margin +/- the sum of the two
         -- payments), ensuring that it is at least 0 and does not exceed
