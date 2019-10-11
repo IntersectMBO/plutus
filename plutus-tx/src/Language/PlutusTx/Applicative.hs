@@ -1,8 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Applicative where
 
 import           Language.PlutusTx.Functor
 import           Prelude                   (Maybe (..))
+
+{-# ANN module "HLint: ignore" #-}
 
 infixl 4 <*>, <*, *>
 
@@ -29,7 +32,15 @@ a1 *> a2 = (id <$ a1) <*> a2
 (<*) :: Applicative f => f a -> f b -> f a
 (<*) = liftA2 const
 
+{-# INLINABLE sequence #-}
+-- | Sequence a list of applicative actions.
+sequence :: Applicative f => [f a] -> f [a]
+sequence []    = pure []
+sequence (h:t) = (:) <$> h <*> sequence t
+
 instance Applicative Maybe where
+    {-# INLINABLE pure #-}
     pure = Just
+    {-# INLINABLE (<*>) #-}
     Just f <*> Just x = Just (f x)
     _ <*> _ = Nothing

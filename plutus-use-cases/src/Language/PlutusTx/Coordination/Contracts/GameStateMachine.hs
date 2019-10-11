@@ -6,7 +6,9 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word
@@ -28,7 +30,6 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as Text
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude    hiding (check, Applicative (..))
 import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
@@ -65,14 +66,7 @@ instance Eq GameState where
     (Locked (V.TokenName n) (HashedString s)) == (Locked (V.TokenName n') (HashedString s')) = s == s' && n == n'
     _ == _ = traceIfFalseH "states not equal" False
 
-instance PlutusTx.IsData GameState where
-    toData (Initialised s) = PlutusTx.Constr 0 [PlutusTx.toData s]
-    toData (Locked n s) = PlutusTx.Constr 1 [PlutusTx.toData n, PlutusTx.toData s]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [s]) | i == 0 = Initialised <$> PlutusTx.fromData s
-    fromData (PlutusTx.Constr i [n, s]) | i == 1 = Locked <$> PlutusTx.fromData n PlutusTx.<*> PlutusTx.fromData s
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState
 
 -- | Check whether a 'ClearString' is the preimage of a
@@ -87,14 +81,7 @@ data GameInput =
     | Guess ClearString HashedString
     -- ^ Make a guess and lock the remaining funds using a new secret word.
 
-instance PlutusTx.IsData GameInput where
-    toData (ForgeToken n) = PlutusTx.Constr 0 [PlutusTx.toData n]
-    toData (Guess g h) = PlutusTx.Constr 1 [PlutusTx.toData g, PlutusTx.toData h]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [n]) | i == 0 = ForgeToken <$> PlutusTx.fromData n
-    fromData (PlutusTx.Constr i [g, h]) | i == 1 = Guess <$> PlutusTx.fromData g PlutusTx.<*> PlutusTx.fromData h
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''GameInput
 PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE step #-}

@@ -3,6 +3,9 @@
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE ScopedTypeVariables         #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Spec.MultiSigStateMachine(tests) where
 
 import           Control.Monad                                                 (foldM, foldM_, void, (>=>))

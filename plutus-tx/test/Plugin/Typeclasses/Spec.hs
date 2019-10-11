@@ -30,6 +30,8 @@ typeclasses = testNested "Typeclasses" [
     , goldenPir "multiFunction" multiFunction
     , goldenPir "defaultMethods" defaultMethods
     , goldenPir "partialApplication" partialApplication
+    , goldenPir "sequenceTest" sequenceTest
+    , goldenPir "compareTest" compareTest
   ]
 
 class Sized a where
@@ -87,3 +89,15 @@ defaultMethods = plc @"defaultMethods" (
 
 partialApplication :: CompiledCode (Integer -> Integer -> Ordering)
 partialApplication = plc @"partialApplication" (P.compare @Integer)
+
+sequenceTest :: CompiledCode (Maybe [Integer])
+sequenceTest = plc @"sequenceTests" (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
+
+opCompare :: P.Ord a => a -> a -> Ordering
+opCompare a b = case P.compare a b of
+    LT -> GT
+    EQ -> EQ
+    GT -> LT
+
+compareTest :: CompiledCode (Ordering)
+compareTest = plc @"compareTest" (opCompare (1::Integer) (2::Integer))

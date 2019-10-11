@@ -69,29 +69,10 @@ data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
 
-instance PlutusTx.IsData a => PlutusTx.IsData (Extended a) where
-    toData NegInf     = PlutusTx.Constr 0 []
-    toData (Finite a) = PlutusTx.Constr 1 [PlutusTx.toData a]
-    toData PosInf     = PlutusTx.Constr 2 []
-    fromData (PlutusTx.Constr 0 [])   = Just NegInf
-    fromData (PlutusTx.Constr 1 [ad]) = Finite <$> PlutusTx.fromData ad
-    fromData (PlutusTx.Constr 2 [])   = Just PosInf
-    fromData _                        = Nothing
-
-instance PlutusTx.IsData a => PlutusTx.IsData (UpperBound a) where
-    toData (UpperBound e c) = PlutusTx.Constr 0 [PlutusTx.toData e, PlutusTx.toData c]
-    fromData (PlutusTx.Constr 0 [ed, cd]) = UpperBound <$> PlutusTx.fromData ed <*> PlutusTx.fromData cd
-    fromData _                            = Nothing
-
-instance PlutusTx.IsData a => PlutusTx.IsData (LowerBound a) where
-    toData (LowerBound e c) = PlutusTx.Constr 0 [PlutusTx.toData e, PlutusTx.toData c]
-    fromData (PlutusTx.Constr 0 [ed, cd]) = LowerBound <$> PlutusTx.fromData ed <*> PlutusTx.fromData cd
-    fromData _                            = Nothing
-
-instance PlutusTx.IsData a => PlutusTx.IsData (Interval a) where
-    toData (Interval lb ub) = PlutusTx.Constr 0 [PlutusTx.toData lb, PlutusTx.toData ub]
-    fromData (PlutusTx.Constr 0 [lb, ub]) = Interval <$> PlutusTx.fromData lb <*> PlutusTx.fromData ub
-    fromData _                            = Nothing
+PlutusTx.makeIsData ''Extended
+PlutusTx.makeIsData ''UpperBound
+PlutusTx.makeIsData ''LowerBound
+PlutusTx.makeIsData ''Interval
 
 makeLift ''Extended
 makeLift ''LowerBound

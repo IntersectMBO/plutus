@@ -8,8 +8,8 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 -- | A multisig contract written as a state machine.
 --   $multisig
 module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
@@ -40,7 +40,6 @@ import qualified Wallet                       as WAPI
 import qualified Wallet.Typed.API             as WAPITyped
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude     hiding (check, Applicative (..))
 import           Language.PlutusTx.StateMachine (StateMachine(..))
 import qualified Language.PlutusTx.StateMachine as SM
@@ -75,13 +74,7 @@ instance Eq Payment where
     {-# INLINABLE (==) #-}
     (Payment vl pk sl) == (Payment vl' pk' sl') = vl == vl' && pk == pk' && sl == sl'
 
-instance PlutusTx.IsData Payment where
-    {-# INLINABLE toData #-}
-    toData (Payment amt key s) = PlutusTx.Constr 0 [PlutusTx.toData amt, PlutusTx.toData key, PlutusTx.toData s]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [amt, key, s]) | i == 0 = Payment <$> PlutusTx.fromData amt PlutusTx.<*> PlutusTx.fromData key PlutusTx.<*> PlutusTx.fromData s
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''Payment
 PlutusTx.makeLift ''Payment
 
 data Params = Params
@@ -110,15 +103,7 @@ instance Eq State where
         vl == vl' && pmt == pmt' && pks == pks'
     _ == _ = False
 
-instance PlutusTx.IsData State where
-    {-# INLINABLE toData #-}
-    toData (Holding v) = PlutusTx.Constr 0 [PlutusTx.toData v]
-    toData (CollectingSignatures v pm keys) = PlutusTx.Constr 1 [PlutusTx.toData v, PlutusTx.toData pm, PlutusTx.toData keys]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [v]) | i == 0 = Holding <$> PlutusTx.fromData v
-    fromData (PlutusTx.Constr i [v, pm, keys]) | i == 1 = CollectingSignatures <$> PlutusTx.fromData v PlutusTx.<*> PlutusTx.fromData pm PlutusTx.<*> PlutusTx.fromData keys
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''State
 PlutusTx.makeLift ''State
 
 data Input =
@@ -136,21 +121,8 @@ data Input =
     | Pay
     -- ^ Make the payment.
 
-instance PlutusTx.IsData Input where
-    {-# INLINABLE toData #-}
-    toData (ProposePayment pm) = PlutusTx.Constr 0 [PlutusTx.toData pm]
-    toData (AddSignature key) = PlutusTx.Constr 1 [PlutusTx.toData key]
-    toData (Cancel) = PlutusTx.Constr 2 []
-    toData (Pay) = PlutusTx.Constr 3 []
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [pm]) | i == 0 = ProposePayment <$> PlutusTx.fromData pm
-    fromData (PlutusTx.Constr i [key]) | i == 1 = AddSignature <$> PlutusTx.fromData key
-    fromData (PlutusTx.Constr i []) | i == 2 = Just Cancel
-    fromData (PlutusTx.Constr i []) | i == 3 = Just Pay
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''Input
 PlutusTx.makeLift ''Input
-
 
 {-# INLINABLE isSignatory #-}
 -- | Check if a public key is one of the signatories of the multisig contract.

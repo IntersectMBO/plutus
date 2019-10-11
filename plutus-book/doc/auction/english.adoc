@@ -225,20 +225,7 @@ data EAAction =
     | EAReclaimBid PubKey Ada -- <4>
     | EAReclaimToken          -- <5>
 
-instance IsData EAAction where
-    toData (EABid key v) = Constr 0 [toData key, toData v]
-    toData (EAClaimBid) = Constr 1 []
-    toData (EAClaimToken) = Constr 2 []
-    toData (EAReclaimBid key v) = Constr 3 [toData key, toData v]
-    toData (EAReclaimToken) = Constr 4 []
-    {-# INLINABLE fromData #-}
-    fromData (Constr i [k, v]) | i == 0 = EABid <$> fromData k PlutusTx.<*> fromData v
-    fromData (Constr i []) | i == 1 = Just EAClaimBid
-    fromData (Constr i []) | i == 2 = Just EAClaimToken
-    fromData (Constr i [k, v]) | i == 3 = EAReclaimBid <$> fromData k PlutusTx.<*> fromData v
-    fromData (Constr i []) | i == 4 = Just EAReclaimToken
-    fromData _ = Nothing
-
+makeIsData ''EAAction
 makeLift ''EAAction
 ----
 <1> Placing a bid. The arguments describe _who_ made the bid and how high it

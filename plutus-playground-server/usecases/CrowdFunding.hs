@@ -81,15 +81,7 @@ refundRange cmp =
 data CampaignAction = Collect | Refund
     deriving (Generic, ToJSON, FromJSON, ToSchema)
 
-instance PlutusTx.IsData CampaignAction where
-    toData Collect = PlutusTx.Constr 0 []
-    toData Refund = PlutusTx.Constr 1 []
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [])
-        | i == 0 = Just Collect
-        | i == 1 = Just Refund
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 -- | The validator script is a function of three arguments:
