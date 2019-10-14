@@ -12,12 +12,12 @@ contract = When [ Case
         (Pay "investor" (Party "issuer") (Constant 850)
             (When
                 [ Case (Deposit "investor" "issuer" (Constant 1000))
-                        (Pay "investor" (Party "investor" ) (Constant 1000) Refund)
+                        (Pay "investor" (Party "investor" ) (Constant 1000) Close)
                 ]
                 (Slot 20)
-                Refund
+                Close
             )
         )
     ]
     (Slot 10)
-    Refund
+    Close

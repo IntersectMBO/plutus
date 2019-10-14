@@ -225,7 +225,7 @@ updateContractInStateP text state = case runParser text contract of
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =
-  let contract = oldState ^. (_contract <<< to (fromMaybe Refund))
+  let contract = oldState ^. (_contract <<< to (fromMaybe Close))
       state = oldState ^. _state
       txInput = stateToTxInput oldState
       (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
@@ -248,7 +248,7 @@ updatePossibleActions oldState =
   actionPerson (ChoiceInput choiceId _ _) = (choiceOwner choiceId)
   -- We have a special person for notifications
   actionPerson (NotifyInput _) = "Notifications"
-  
+
   appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
   appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
 
@@ -271,11 +271,11 @@ updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
   txInput = stateToTxInput oldState
-  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Refund)) of
+  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
 
     (TransactionOutput {txOutWarnings, txOutPayments, txOutState, txOutContract}) ->
-      (set _transactionError Nothing 
-      <<< set _pendingInputs mempty 
+      (set _transactionError Nothing
+      <<< set _pendingInputs mempty
       <<< set _state txOutState
       <<< set _contract (Just txOutContract)
       <<< set _moneyInContract (moneyInContract txOutState)

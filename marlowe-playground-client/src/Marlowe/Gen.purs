@@ -199,7 +199,7 @@ genContract' size
 
         genNewContract = genContract' newSize
       in
-        oneOf $ pure Refund
+        oneOf $ pure Close
           :| [ Pay <$> genAccountId <*> genPayee <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContract <*> genNewContract
             , When <$> genCases newSize <*> genTimeout <*> genNewContract
@@ -209,4 +209,4 @@ genContract' size
     where
     genLeaf ::
       m Contract
-    genLeaf = pure Refund
+    genLeaf = pure Close

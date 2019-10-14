@@ -19,7 +19,7 @@ contract :: Contract
 
 contract = When [Case (Deposit "alice" "alice" price) inner]
                 10
-                Refund
+                Close
 
 inner :: Contract
 
@@ -40,7 +40,7 @@ inner =
                     arbitrate)
         ]
         40
-        Refund
+        Close
 
 -- The contract to follow when Alice and Bob have made the same choice.
 
@@ -48,8 +48,8 @@ agreement :: Contract
 agreement =
   If
     (aliceChosen `ValueEQ` Constant 0)
-    (Pay "alice" (Party "bob") price Refund)
-    Refund
+    (Pay "alice" (Party "bob") price Close)
+    Close
 
 -- The contract to follow when Alice and Bob disagree, or if
 -- Carol has to intervene after a single choice from Alice or Bob.
@@ -57,10 +57,10 @@ agreement =
 arbitrate :: Contract
 
 arbitrate =
-  When  [ Case carolRefund Refund,
-          Case carolPay (Pay "alice" (Party "bob") price Refund) ]
+  When  [ Case carolRefund Close,
+          Case carolPay (Pay "alice" (Party "bob") price Close) ]
         100
-        Refund
+        Close
 
 -- Names for choices
 

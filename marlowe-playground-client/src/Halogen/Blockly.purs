@@ -123,7 +123,7 @@ eval (SetCode code next) = do
   let
     contract = case runParser code Parser.contract of
       Right c -> c
-      Left _ -> Refund
+      Left _ -> Close
   case blocklyState of
     Nothing -> pure unit
     Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)
