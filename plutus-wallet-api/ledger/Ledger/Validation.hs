@@ -355,7 +355,7 @@ validatorScriptHash =
     . scriptAddress
 
 makeLift ''PendingTxOutType
-makeIsData ''PendingTxOutType
+makeIsDataIndexed ''PendingTxOutType [('PubKeyTxOut,0),('ScriptTxOut,1)]
 
 makeLift ''PendingTxOut
 makeIsData ''PendingTxOut

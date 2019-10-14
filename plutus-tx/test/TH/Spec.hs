@@ -21,6 +21,7 @@ import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Evaluation
+import           Language.PlutusTx
 
 import qualified Language.PlutusIR          as PIR
 
@@ -67,6 +68,8 @@ tests = testNested "TH" [
     , goldenEvalCekLog "traceDirect" [traceDirect]
     , goldenEvalCekLog "tracePrelude" [tracePrelude]
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
+    -- want to see the raw structure, so using Show
+    , nestedGoldenVsDoc "someData" (pretty $ show someData)
   ]
 
 simple :: CompiledCode (Bool -> Integer)
@@ -99,3 +102,10 @@ traceRepeatedly = $$(compile
                    i3 = traceH "Adding them up" (i1 + i2)
               in i3
     ||])
+
+data SomeType = One Integer | Two | Three ()
+
+someData :: (Data, Data, Data)
+someData = (toData (One 1), toData Two, toData (Three ()))
+
+makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]

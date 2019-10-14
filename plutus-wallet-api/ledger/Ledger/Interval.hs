@@ -69,7 +69,7 @@ data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
 
-PlutusTx.makeIsData ''Extended
+PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
 PlutusTx.makeIsData ''UpperBound
 PlutusTx.makeIsData ''LowerBound
 PlutusTx.makeIsData ''Interval

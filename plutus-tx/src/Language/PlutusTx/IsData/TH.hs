@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.PlutusTx.IsData.TH (makeIsData) where
+module Language.PlutusTx.IsData.TH (makeIsData, makeIsDataIndexed) where
 
 import           Data.Foldable
 import           Data.Traversable
@@ -13,19 +13,19 @@ import qualified Language.PlutusTx.Eq           as PlutusTx
 
 import           Language.PlutusTx.IsData.Class
 
-toDataClause :: Int -> TH.ConstructorInfo -> TH.Q TH.Clause
-toDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
+toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
+toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
     let pat = TH.conP name (fmap TH.varP argNames)
     let argsToData = fmap (\v -> [| toData $(TH.varE v) |]) argNames
     let app = [| Constr index $(TH.listE argsToData) |]
     TH.clause [pat] (TH.normalB app) []
 
-toDataClauses :: TH.DatatypeInfo -> [TH.Q TH.Clause]
-toDataClauses dt = zipWith toDataClause [0..] (TH.datatypeCons dt)
+toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
+toDataClauses indexedCons = toDataClause <$> indexedCons
 
-fromDataClause :: Int -> TH.ConstructorInfo -> TH.Q TH.Clause
-fromDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
+fromDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
+fromDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
     indexName <- TH.newName "i"
     let pat = TH.conP 'Constr [TH.varP indexName , TH.listP (fmap TH.varP argNames)]
@@ -34,23 +34,39 @@ fromDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorF
     let guard = [| $(TH.varE indexName) PlutusTx.== index |]
     TH.clause [pat] (TH.guardedB [TH.normalGE guard app]) []
 
-fromDataClauses :: TH.DatatypeInfo -> [TH.Q TH.Clause]
-fromDataClauses dt =
-    let mainClauses = zipWith fromDataClause [0..] (TH.datatypeCons dt)
+fromDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
+fromDataClauses indexedCons =
+    let mainClauses = fromDataClause <$> indexedCons
         catchallClause = TH.clause [TH.wildP] (TH.normalB [| Nothing |]) []
     in mainClauses ++ [ catchallClause ]
 
+defaultIndex :: TH.Name -> TH.Q [(TH.Name, Int)]
+defaultIndex name = do
+    info <- TH.reifyDatatype name
+    pure $ zip (TH.constructorName <$> TH.datatypeCons info) [0..]
+
+-- | Generate an 'IsData' instance for a type. This may not be stable in the face of constructor additions, renamings,
+-- etc. Use 'makeIsDataIndexed' if you need stability.
 makeIsData :: TH.Name -> TH.Q [TH.Dec]
-makeIsData name = do
+makeIsData name = makeIsDataIndexed name =<< defaultIndex name
+
+-- | Generate an 'IsData' instance for a type, using an explicit mapping of constructor names to indices. Use
+-- this for types where you need to keep the representation stable.
+makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
+makeIsDataIndexed name indices = do
 
     info <- TH.reifyDatatype name
     let appliedType = TH.datatypeType info
         constraints = fmap (\t -> TH.classPred ''IsData [stripSig t]) (TH.datatypeVars info)
 
-    toDataDecl <- TH.funD 'toData (toDataClauses info)
+    indexedCons <- for (TH.datatypeCons info) $ \c -> case lookup (TH.constructorName c) indices of
+            Just i -> pure (c, i)
+            Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
+
+    toDataDecl <- TH.funD 'toData (toDataClauses indexedCons)
     toDataPrag <- TH.pragInlD 'toData TH.Inlinable TH.FunLike TH.AllPhases
 
-    fromDataDecl <- TH.funD 'fromData (fromDataClauses info)
+    fromDataDecl <- TH.funD 'fromData (fromDataClauses indexedCons)
     fromDataPrag <- TH.pragInlD 'fromData TH.Inlinable TH.FunLike TH.AllPhases
 
     pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl]]
