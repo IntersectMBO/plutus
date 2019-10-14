@@ -144,3 +144,6 @@ variable "zerotier_network_id" {}
 variable "zerotier_subnet_cidrs" {
   default = []
 }
+
+variable "lambda_filename" {
+}
