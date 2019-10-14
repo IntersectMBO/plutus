@@ -2,6 +2,8 @@
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE ViewPatterns              #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts where
 
 import           Language.PlutusTx
@@ -28,7 +30,7 @@ class ScriptType (a :: Type) where
 -- | The type of validators for the given connection type.
 type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.PendingTx -> Bool
 
-type WrappedValidatorType = Data -> Data -> Validation.PendingTx -> Bool
+type WrappedValidatorType = Data -> Data -> Data -> Bool
 
 -- | The type of a connection.
 data ScriptInstance (a :: Type) where
@@ -51,6 +53,6 @@ wrapValidator
     :: forall d r
     . (IsData d, IsData r)
     => (d -> r -> Validation.PendingTx -> Bool)
-    -> (Data -> Data -> Validation.PendingTx -> Bool)
-wrapValidator f (fromData -> Just d) (fromData -> Just r) p = f d r p
+    -> WrappedValidatorType
+wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = f d r p
 wrapValidator _ _ _ _ = False

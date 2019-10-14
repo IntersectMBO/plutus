@@ -14,6 +14,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE DerivingVia  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
@@ -32,7 +33,6 @@ module Ledger.Scripts(
     unValidatorScript,
     RedeemerScript(..),
     DataScript(..),
-    DataScripts,
     ValidationData(..),
     -- * Hashes
     DataScriptHash(..),
@@ -76,7 +76,6 @@ import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Crypto
-import {-# SOURCE #-} Ledger.Validation                   (PendingTx)
 import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -185,7 +184,7 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode (Data -> Data -> PendingTx -> Bool) -> ValidatorScript
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> Bool) -> ValidatorScript
 mkValidatorScript = ValidatorScript . fromCompiledCode
 
 unValidatorScript :: ValidatorScript -> Script
@@ -278,15 +277,13 @@ plcRedeemerHash :: RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
 
 -- | Information about the state of the blockchain and about the transaction
---   that is currently being validated, represented as a value in a 'Script'.
-newtype ValidationData = ValidationData Script
+--   that is currently being validated, represented as a value in 'Data'.
+newtype ValidationData = ValidationData Data
     deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
-
-type DataScripts = [DataScript]
 
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
 runScript
@@ -298,7 +295,7 @@ runScript
     -> RedeemerScript
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
-    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` valData
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
     -- See Note [Scripts returning Bool]
     let appliedChecker = checker `applyScript` appliedValidator
     evaluateScript checking appliedChecker
