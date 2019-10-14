@@ -60,7 +60,7 @@ makeIsDataIndexed name indices = do
         constraints = fmap (\t -> TH.classPred ''IsData [stripSig t]) (TH.datatypeVars info)
 
     indexedCons <- for (TH.datatypeCons info) $ \c -> case lookup (TH.constructorName c) indices of
-            Just i -> pure (c, i)
+            Just i  -> pure (c, i)
             Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
 
     toDataDecl <- TH.funD 'toData (toDataClauses indexedCons)
