@@ -13,6 +13,7 @@ packages: language-plutus-core
           plutus-book
           playground-common
           marlowe-playground-server
+          marlowe-symbolic
           plutus-contract
           deployment-server
           iots-export
