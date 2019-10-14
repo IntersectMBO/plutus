@@ -21,11 +21,11 @@ To achieve fungibility we have removed timeouts from individual constructs, and 
 
 We do, however, include _accounts_ to organise the money deposited into the contract. This makes it more transparent how money flows within the contract, and in particular identifies to whom money is _refunded_ when the contract terminates. 
 
-Each account is identifier by a pair of a number (account number) and a participant; the participant indicates who will get the money in the account by default when Refund is reached.
+Each account is identifier by a pair of a number (account number) and a participant; the participant indicates who will get the money in the account by default when `Close` is reached.
 
 The reason we chose to include accounts is that without them we found that we were essentially keeping track of the accounts manually. Additionally, in every leaf of the AST, we found ourselves calculating how much we must return to every participant, cluttering the tree with repetitious “boilerplate”. Thus, having money organised in accounts can make contracts easier to reason about and less prone to error.
 
-Note that we can provide full fungibility by using a single account. We only need to write the appropriate `Pay` commands in the leaves of the contract. If all the money is paid to participants, then `Refund` has no effect.footnote:[We can potentially provide a way of statically analysing the contract to check whether there can possibly be any money left in any account when `Refund` is reached.]
+Note that we can provide full fungibility by using a single account. We only need to write the appropriate `Pay` commands in the leaves of the contract. If all the money is paid to participants, then `Close` has no effect.footnote:[We can potentially provide a way of statically analysing the contract to check whether there can possibly be any money left in any account when `Close` is reached.]
 
 ===== Discussion: Implicit vs Explicit Accounts
 
@@ -44,11 +44,11 @@ Examples of multiple accounts for one person:
 
 * Examples of underwriting would fit here. A person underwrites first-level risk, and second-level risk using different accounts. Only when the first level underwriting of all participants is spent will second level spending occur.
 
-=== `Refund` replaces `Null` / `Pay`
+=== `Close` replaces `Null` / `Pay`
 
-Since all contracts are sequential now, we can easily tell when a contract terminates, i.e: when only `Null` is left. We use this opportunity to refund any money remaining in the accounts; for this reason we have renamed `Null` to `Refund` (aiding comprehensibility). 
+Since all contracts are sequential now, we can easily tell when a contract terminates, i.e: when only `Null` is left. We use this opportunity to _close_ the contract and to refund any money remaining in the accounts; for this reason we have renamed `Null` to `Close` (aiding comprehensibility). 
 
-As noted earlier, there is no longer any explicit timeout in the accounts, since all contracts will eventually reduce to `Refund`. In fact, we can statically and efficiently calculate an upper bound for when this will happen, making this aspect of Marlowe analysable.
+As noted earlier, there is no longer any explicit timeout in the accounts, since all contracts will eventually reduce to `Close`. In fact, we can statically and efficiently calculate an upper bound for when this will happen, making this aspect of Marlowe analysable.
 
 === Pay
 
@@ -105,14 +105,14 @@ For example, in the following contract we can see that the first occurrence of `
 ----
 When [ Case (Choice (ChoiceId 1 Alice) [(1,1)])
             (If (ChoseSomething (ChoiceId 1 Alice))
-                Refund
-                Refund)
+                Close
+                Close)
      , Case (Choice (ChoiceId 2 Bob) [(2,2)])
             (If (ChoseSomething (ChoiceId 1 Alice))
-                Refund
-                Refund)]
+                Close
+                Close)]
      0
-     Refund
+     Close
 ----
 
 Nevertheless, we have chosen to keep the construct for two reasons:
@@ -121,15 +121,15 @@ Nevertheless, we have chosen to keep the construct for two reasons:
 [source,haskell]
 ----
   let chosen1 = If (ChoseSomething (ChoiceId 1 1))
-                   Refund
-                   Refund 
+                   Close
+                   Close 
   in
   When [ Case (Choice (ChoiceId 1 1) [(1,1)]) 
               chosen1
        , Case (Choice (ChoiceId 2 2) [(2,2)])
               chosen1]
        0
-       Refund
+       Close
 ----
 But this would not be possible if we did not have the construct `ChoseSomething`, since the value to which it reduces depends on the context.
 

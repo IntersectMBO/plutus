@@ -1,15 +1,15 @@
 ﻿[#marlowe-step-by-step]
 == Marlowe step by step  
 
-Marlowe has five ways of building contracts. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Refund`, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too. 
+Marlowe has five ways of building contracts. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Close`, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too. 
 
 In explaining these contracts we will also explain Marlowe _values_, _observations_ and _actions_, which are used to supply external information and inputs to a running contract to control how it will evolve.
 
 === Pay
-A payment contract `Pay a p v cont` will make a payment of value `v` from the account `a` to a payee `p`, which will be one of the contract participants or another account in the contract. Warnings will be generated if the value `v` is negative, or if there is not enough in the account to make the payment in full. In that case a partial payment (of all the money available) is made. The continuation contract is the one given in the contract: cont.
+A payment contract `Pay a p v cont` will make a payment of value `v` from the account `a` to a payee `p`, which will be one of the contract participants or another account in the contract. Warnings will be generated if the value `v` is negative, or if there is not enough in the account to make the payment in full. In that case a partial payment (of all the money available) is made. The continuation contract is the one given in the contract: `cont`.
 
-=== Refund
-A refund contract `Refund` will provide refunds to the owners of accounts that contain a positive balance. This is performed one account per step, but all accounts will be refunded in a single transaction.
+=== Close
+A contract `Close` provides for the contract to be closed (or terminated). The only action that is performs is to provide refunds to the owners of accounts that contain a positive balance. This is performed one account per step, but all accounts will be refunded in a single transaction.
 
 Before discussing other forms of contracts, we need to describe values, observations and actions.
 

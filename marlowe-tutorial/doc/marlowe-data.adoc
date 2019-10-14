@@ -13,7 +13,7 @@ types in Haskell, with contracts being given by the `Contract` type:
 
 [source,haskell]
 ----
-data Contract = Refund
+data Contract = Close
               | Pay AccountId Payee Value Contract
               | If Observation Contract Contract
               | When [Case] Timeout Contract
@@ -190,15 +190,15 @@ infrastructure in which it is run.
 * It is assumed that cryptographic functions and operations are provided
 by a layer external to Marlowe, and so they need not be modelled
 explicitly.
-* We assume that time is ``coarse grained'' and measured by block or
+* We assume that time is “coarse grained” and measured by block or
 slot number, so that, in particular, timeouts are delimited using
 block/slot numbers.
 * Making a deposit is not something that a contract can perform;
 rather, it can request that a deposit is made, but that then has to
 be established externally: hence the input of (a collection of) deposits for
 each transaction.
-* The model manages the refund of funds back to the person owning a particular account when a
-contract reaches the point of `Refund`.
+* The model manages the refund of funds back to the owner of a particular account when a
+contract reaches the point of `Close`.
 
 For ease of reading, in the `+data+` type definition at the start of
 this section, we omit the `+!+` symbol before every field of all

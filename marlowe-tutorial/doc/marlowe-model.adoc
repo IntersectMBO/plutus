@@ -13,7 +13,7 @@ Running a contract will also produce external _effects_, by making payments to p
 
 ==== Accounts
 
-The Marlowe model allows for a contract to control money in a number of disjoint _accounts_: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a _refund_ of any remaining funds in the account on termination of the contract.footnote:[A fully “fungible” model is supported by a contract with a single account, and with explicit allocation of any remaining funds on contract termination.] These accounts are _local_, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
+The Marlowe model allows for a contract to control money in a number of disjoint _accounts_: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a _refund_ of any remaining funds in the account when the contract is closed.footnote:[A fully “fungible” model is supported by a contract with a single account, and with explicit allocation of any remaining funds on contract termination.] These accounts are _local_, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
 
 ==== Steps and states
 
