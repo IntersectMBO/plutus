@@ -11,6 +11,6 @@ terraform {
 
 provider "aws" {
   region  = "${var.aws_region}"
-  version = "~> 1.33.0"
+  version = "~> 2.0.0"
   profile = "plutus-playground"
 }

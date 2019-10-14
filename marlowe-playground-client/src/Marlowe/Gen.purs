@@ -31,7 +31,7 @@ genTimeout :: forall m. MonadGen m => MonadRec m => m Timeout
 genTimeout = genSlot
 
 genValueId :: forall m. MonadGen m => MonadRec m => m ValueId
-genValueId = ValueId <$> genBigInteger
+genValueId = ValueId <$> genString
 
 genAlphaNum :: forall m. MonadGen m => MonadRec m => m Char
 genAlphaNum = oneOf $ genAlpha :| [ genDigitChar ]

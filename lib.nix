@@ -12,7 +12,7 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      }) { inherit config system; };
+      }) { inherit system config; };
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
@@ -47,15 +47,29 @@ let
     "marlowe"
     "marlowe-playground-server"
     "deployment-server"
+    "marlowe-symbolic"
   ];
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
-  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-05-28T09:58:14Z"; };
+  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-09-12T00:02:45Z"; };
 
   unfreePredicate = pkg: (builtins.parseDrvName pkg.name).name == "kindlegen";
 
+  packageOverrides = pkgs: {
+      python36 = pkgs.python36.override {
+              packageOverrides = self: super: {
+                      cython = super.cython.overridePythonAttrs (old: rec {
+                              # TODO Cython tests for unknown reason hang with musl. Remove when that's fixed.
+                              # See https://github.com/nh2/static-haskell-nix/issues/6#issuecomment-421852854
+                              doCheck = false;
+                      });
+              };
+      };
+  };
+
   comp = f: g: (v: f(g v));
+
 in lib // {
   inherit
   getPackages
@@ -66,6 +80,7 @@ in lib // {
   plutusPkgList
   regeneratePackages
   unfreePredicate
+  packageOverrides
   nixpkgs
   pkgs
   comp;

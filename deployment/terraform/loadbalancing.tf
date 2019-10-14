@@ -175,7 +175,7 @@ resource "aws_alb_target_group" "marlowe" {
 resource "aws_alb_listener_rule" "marlowe" {
   depends_on   = ["aws_alb_target_group.marlowe"]
   listener_arn = "${aws_alb_listener.playground.arn}"
-  priority     = 101
+  priority     = 122
   action {
     type             = "forward"
     target_group_arn = "${aws_alb_target_group.marlowe.id}"
@@ -193,6 +193,82 @@ resource "aws_alb_target_group_attachment" "marlowe_a" {
 }
 resource "aws_alb_target_group_attachment" "marlowe_b" {
   target_group_arn = "${aws_alb_target_group.marlowe.arn}"
+  target_id        = "${aws_instance.marlowe_b.id}"
+  port             = "80"
+}
+
+## ALB rule for machine a
+resource "aws_alb_target_group" "marlowe_a" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/api/health"
+  }
+  stickiness = {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe_a" {
+  depends_on   = ["aws_alb_target_group.marlowe_a"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 111
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.marlowe_a.id}"
+  }
+  condition {
+    field  = "host-header"
+    values = ["${local.marlowe_domain_name}"]
+  }
+  condition {
+    field  = "path-pattern"
+    values = ["/machine-a/*"]
+  }
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_a_a" {
+  target_group_arn = "${aws_alb_target_group.marlowe_a.arn}"
+  target_id        = "${aws_instance.marlowe_a.id}"
+  port             = "80"
+}
+
+## ALB rule for machine b
+resource "aws_alb_target_group" "marlowe_b" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/api/health"
+  }
+  stickiness = {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe_b" {
+  depends_on   = ["aws_alb_target_group.marlowe_b"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 112
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.marlowe_b.id}"
+  }
+  condition {
+    field  = "host-header"
+    values = ["${local.marlowe_domain_name}"]
+  }
+  condition {
+    field  = "path-pattern"
+    values = ["/machine-b/*"]
+  }
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_b_b" {
+  target_group_arn = "${aws_alb_target_group.marlowe_b.arn}"
   target_id        = "${aws_instance.marlowe_b.id}"
   port             = "80"
 }
@@ -225,7 +301,7 @@ resource "aws_alb_target_group" "monitoring" {
 resource "aws_alb_listener_rule" "monitoring" {
   depends_on   = ["aws_alb_target_group.monitoring"]
   listener_arn = "${aws_alb_listener.playground.arn}"
-  priority     = 102
+  priority     = 103
   action {
     type             = "forward"
     target_group_arn = "${aws_alb_target_group.monitoring.id}"

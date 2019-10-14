@@ -822,11 +822,11 @@
     }
 
     {
-      name = "bootstrap___bootstrap_4.1.3.tgz";
+      name = "bootstrap___bootstrap_4.3.1.tgz";
       path = fetchurl {
-        name = "bootstrap___bootstrap_4.1.3.tgz";
-        url  = "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.1.3.tgz";
-        sha1 = "0eb371af2c8448e8c210411d0cb824a6409a12be";
+        name = "bootstrap___bootstrap_4.3.1.tgz";
+        url  = "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.3.1.tgz";
+        sha1 = "280ca8f610504d99d7b6b4bfc4b68cec601704ac";
       };
     }
 

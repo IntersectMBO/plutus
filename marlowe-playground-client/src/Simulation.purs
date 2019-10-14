@@ -9,36 +9,39 @@ import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
 import Control.Alternative (map, (<|>))
-import Data.Array (catMaybes, foldMap, mapWithIndex, null)
+import Data.Array (catMaybes, foldMap, mapWithIndex)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Either (Either(..), hush)
+import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (intercalate)
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Lens (to, view, (^.))
+import Data.List (List, toUnfoldable, null)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Newtype (unwrap, wrap)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen (HTML, action)
+import Halogen (HTML, PropName(..), action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, pre_, slot', span, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
+import Halogen.HTML (ClassName(ClassName), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, prop, slot', span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
 import Halogen.HTML.Events (input_, onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Events as Events
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, type_, value)
 import Halogen.Query as HQ
 import LocalStorage as LocalStorage
-import Marlowe.Parser as Parser
+import Marlowe.Parser (transactionInputList, transactionWarningList)
+import Marlowe.Symbolic.Types.Response as R
+import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (+))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ChildQuery, ChildSlot, FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, Query(..), _Head, _contract, _editorErrors, _marloweCompileResult, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, cpMarloweEditor)
+import Types (ActionInput(..), ActionInputId, ChildQuery, ChildSlot, FrontendState, MarloweEditorSlot(MarloweEditorSlot), MarloweError(MarloweError), MarloweState, Query(..), _Head, _analysisState, _contract, _editorErrors, _marloweCompileResult, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, cpMarloweEditor)
 
 paneHeader :: forall p. String -> HTML p Query
 paneHeader s = h2 [class_ $ ClassName "pane-header"] [text s]
@@ -83,6 +86,7 @@ simulationPane state =
             ]
         , br_
         , errorList
+        , analysisPane state
         ]
       ]
     )
@@ -168,17 +172,20 @@ onEmpty alt [] = alt
 
 onEmpty _ arr = arr
 
-inputComposer :: forall p. Boolean -> Map PubKey (Array ActionInput) -> Array (HTML p Query)
+inputComposer :: forall p. Boolean -> Map PubKey (Map ActionInputId ActionInput) -> Array (HTML p Query)
 inputComposer isEnabled actionInputs =
-  onEmpty 
-    [text "No valid inputs can be added to the transaction"]
-    $ actionsForPeople actionInputs
+    if (Map.isEmpty actionInputs) 
+    then [text "No valid inputs can be added to the transaction"]
+    else (actionsForPeople actionInputs)
   where
   kvs :: forall k v. Map k v -> Array (Tuple k v)
   kvs = Map.toUnfoldable
 
-  actionsForPeople :: forall q. Map PubKey (Array ActionInput) -> Array (HTML q Query)
-  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k v) (kvs m)
+  vs :: forall k v. Map k v -> Array v
+  vs m = map snd (kvs m)
+
+  actionsForPeople :: forall q. Map PubKey (Map ActionInputId ActionInput) -> Array (HTML q Query)
+  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v)) (kvs m)
 
 inputComposerPerson ::
   forall p.
@@ -682,3 +689,189 @@ renderPayment (Payment party money) =
         [ text (show money)
         ]
     ]
+
+analysisPane :: forall p. FrontendState -> HTML p Query
+analysisPane state =
+ div [ class_ $ ClassName "full-width-card" ]
+     [ paneHeader "Static analysis"
+     , card_
+       [ cardBody_
+           [ analysisResultPane state
+           , button
+             [ classes
+                 [ btn
+                 , btnPrimary
+                 , ClassName "transaction-btn"
+                 ]
+             , onClick $ Just <<< HQ.action <<< const AnalyseContract
+             , enabled $ state ^. _analysisState <<< to (not isLoading)
+             ] [ loading
+               , text btnText
+               ]
+           ]
+       ]
+     ]
+  where
+    btnText = case state ^. _analysisState of
+            Loading -> "  Analysing..."
+            _ -> "Analyse Contract"
+    loading = case state ^. _analysisState of
+            Loading -> span [ classes [ ClassName "spinner-border"
+                                      , ClassName "spinner-border-sm"
+                                      ]
+                            , prop (PropName "role") "status" 
+                            , prop (PropName "aria-hidden") "true" 
+                            ] 
+                            []
+            _ -> empty
+
+analysisResultPane :: forall p. FrontendState -> HTML p Query
+analysisResultPane state =
+  let
+    result = state ^. _analysisState
+  in
+    
+    case result of
+      NotAsked -> div [ classes [ ClassName "padded-explanation" ] ]
+                      [ text "Press the button below to analyse the contract for runtime warnings." ]
+      Success (R.Valid) -> div [ classes [ ClassName "padded-explanation" ] ]
+                               [ h3_ [ text "Analysis Result: Pass" ]
+                               , text "Static analysis could not find any execution that results in any warning."
+                               ]
+      Success (R.CounterExample {initialSlot, transactionList, transactionWarning}) ->
+         div [ classes [ ClassName "padded-explanation" ] ]
+             [ h3_ [ text "Analysis Result: Fail" ]
+             , text "Static analysis found the following counterexample:"
+             , ul_ [ li_ [ spanText "Initial slot: "
+                         , b_ [spanText (show initialSlot)]
+                         ]
+                   , li_ [ spanText "Offending transaction list: "
+                         , displayTransactionList transactionList
+                         ]
+                   , li_ [ spanText "Warnings issued: "
+                         , displayWarningList transactionWarning
+                         ]
+                   ]
+             ]
+      Success (R.Error str) -> div [ classes [ ClassName "padded-explanation" ] ]
+                                   [ h3_ [ text "Error during analysis" ]
+                                   , text "Analysis failed for the following reason:"
+                                   , ul_ [ li_ [ b_ [spanText str]
+                                               ]
+                                         ]
+                                   ]
+      Failure failure -> div [ classes [ ClassName "padded-explanation" ] ]
+                             [ h3_ [ text "Error during analysis" ]
+                             , text "Analysis failed for the following reason:"
+                             , ul_ [ li_ [ b_ [spanText failure]
+                                         ]
+                                   ]
+                             ]
+      _ -> empty
+
+displayTransactionList :: forall p. String -> HTML p Query
+displayTransactionList transactionList =
+  case runParser transactionList transactionInputList of
+    Right pTL -> ol_ (do (TransactionInput{ interval : SlotInterval (Slot from) (Slot to)
+                                          , inputs : inputList
+                                          }) <- ((toUnfoldable pTL) :: Array TransactionInput)
+                         pure (li_ [ span_ [ b_ [text "Transaction"]
+                                           , text " with slot interval "
+                                           , b_ [text $ (show from <> " to " <> show to)]
+                                           , if null inputList
+                                             then text " and no inputs (empty transaction)."
+                                             else text " and inputs:"
+                                           ]
+                                   , if null inputList
+                                     then empty
+                                     else displayInputList inputList
+                                   ]))
+    Left _ -> code_ [ text transactionList ]
+
+displayInputList :: forall p. List Input -> HTML p Query
+displayInputList inputList = ol_ ( do input <- (toUnfoldable inputList)
+                                      pure (li_ (displayInput input)) )
+
+displayInput :: forall p. Input -> Array (HTML p Query)
+displayInput (IDeposit (AccountId accNum owner) party (Lovelace money)) =
+  [ b_ [text "IDeposit"]
+  , text " - Party "
+  , b_ [text $ show party]
+  , text " deposits "
+  , b_ [text ((show money) <> " Lovelace")]
+  , text " into account "
+  , b_ [text ((show accNum) <> " of " <> (show owner))]
+  , text "."
+  ]
+displayInput (IChoice (ChoiceId choiceId party) chosenNum) =
+  [ b_ [text "IChoice"]
+  , text " - Party "
+  , b_ [text $ show party]
+  , text " chooses number "
+  , b_ [text $ show chosenNum]
+  , text " for choice "
+  , b_ [text $ show choiceId]
+  , text "."
+  ]
+displayInput (INotify) =
+  [ b_ [text "INotify"]
+  , text " - The contract is notified that an observation became "
+  , b_ [text "True"]
+  ]
+
+displayWarningList :: forall p. String -> HTML p Query
+displayWarningList transactionWarnings =
+  case runParser transactionWarnings transactionWarningList of
+    Right pWL -> ol_ (do warning <- ((toUnfoldable pWL) :: Array TransactionWarning)
+                         pure (li_ (displayWarning warning)))
+    Left _ -> code_ [ text transactionWarnings ]
+
+displayWarning :: forall p. TransactionWarning -> Array (HTML p Query)
+displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Lovelace amount)) =
+  [ b_ [text "TransactionNonPositiveDeposit"]
+  , text " - Party "
+  , b_ [text $ show party]
+  , text " is asked to deposit "
+  , b_ [text ((show amount) <> " Lovelace")]
+  , text " into account "
+  , b_ [text ((show accNum) <> " of " <> (show owner))]
+  , text "."
+  ]
+displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovelace amount)) =
+  [ b_ [text "TransactionNonPositivePay"]
+  , text " - The contract is suppoused to make a payment of "
+  , b_ [text ((show amount) <> " Lovelace")]
+  , text " from account "
+  , b_ [text ((show accNum) <> " of " <> (show owner))]
+  , text " to "
+  , b_ [text case payee of
+               (Account (AccountId accNum2 owner2)) -> ("account" <> (show accNum2) <> " of " <> (show owner2))
+               (Party dest) -> ("party " <> (show dest))
+       ]
+  , text "."
+  ]
+displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace amount) (Lovelace expected)) =
+  [ b_ [text "TransactionPartialPay"]
+  , text " - The contract is suppoused to make a payment of "
+  , b_ [text ((show expected) <> " Lovelace")]
+  , text " from account "
+  , b_ [text ((show accNum) <> " of " <> (show owner))]
+  , text " to "
+  , b_ [text case payee of
+               (Account (AccountId accNum2 owner2)) -> ("account" <> (show accNum2) <> " of " <> (show owner2))
+               (Party dest) -> ("party " <> (show dest))
+       ]
+  , text " but there is only "
+  , b_ [text ((show amount) <> " Lovelace")]
+  , text "."
+  ]
+displayWarning (TransactionShadowing valId oldVal newVal) =
+  [ b_ [text "TransactionShadowing"]
+  , text " - The contract defined the value with id "
+  , b_ [text (show valId)]
+  , text " before, it was assigned the value "
+  , b_ [text (show oldVal)]
+  , text " and now it is being assigned the value "
+  , b_ [text (show newVal)]
+  , text "."
+  ]

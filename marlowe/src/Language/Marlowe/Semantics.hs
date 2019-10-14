@@ -18,7 +18,9 @@ newtype Slot = Slot { getSlot :: Integer }
   deriving newtype (Pretty)
 
 instance Show Slot where
-    show (Slot n) = show n
+  showsPrec p (Slot n) = showsPrec p n
+instance Read Slot where
+  readsPrec p x = [(Slot v, s) | (v, s) <- readsPrec p x]
 
 instance Num Slot where
     Slot l + Slot r = Slot (l + r)
@@ -33,7 +35,9 @@ newtype Ada = Lovelace { getLovelace :: Integer }
   deriving anyclass Pretty
 
 instance Show Ada where
-    show (Lovelace n) = show n
+    showsPrec p (Lovelace n) = showsPrec p n
+instance Read Ada where
+    readsPrec p x = [(Lovelace v, s) | (v, s) <- readsPrec p x]
 
 instance Num Ada where
     Lovelace l + Lovelace r = Lovelace (l + r)
@@ -50,54 +54,63 @@ instance Pretty PubKey where
   prettyFragment = text . show
 
 instance Show PubKey where
-  show (PubKey txt) = show (T.unpack txt)
+  showsPrec p (PubKey txt) = showsPrec p (T.unpack txt)
+instance Read PubKey where
+  readsPrec p x = [(PubKey (T.pack v), s) | (v, s) <- readsPrec p x]
 
 type Party = PubKey
-type ChoiceName = Text
+type ChoiceName = Text     -- Needs to be updated in playground.
 type NumAccount = Integer
 type Timeout = Slot
 type Money = Ada
 type ChosenNum = Integer
 
 data AccountId = AccountId NumAccount Party
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 accountOwner :: AccountId -> Party
 accountOwner (AccountId _ party) = party
 
 data ChoiceId = ChoiceId ChoiceName Party
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
-newtype ValueId = ValueId Integer
-  deriving stock (Eq,Ord,Show,Generic)
-  deriving anyclass Pretty
+newtype ValueId = ValueId Text
+  deriving stock (Eq,Ord,Generic)
+
+instance Pretty ValueId where
+  prettyFragment = text . show
+
+instance Show ValueId where
+  showsPrec p (ValueId txt) = showsPrec p (T.unpack txt)
+instance Read ValueId where
+  readsPrec p x = [(ValueId (T.pack v), s) | (v, s) <- readsPrec p x]
 
 data Value = AvailableMoney AccountId
-            | Constant Integer
-            | NegValue Value
-            | AddValue Value Value
-            | SubValue Value Value
-            | ChoiceValue ChoiceId Value
-            | SlotIntervalStart
-            | SlotIntervalEnd
-            | UseValue ValueId
-  deriving (Eq,Ord,Show,Generic,Pretty)
+           | Constant Integer
+           | NegValue Value
+           | AddValue Value Value
+           | SubValue Value Value
+           | ChoiceValue ChoiceId Value
+           | SlotIntervalStart
+           | SlotIntervalEnd
+           | UseValue ValueId
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 data Observation = AndObs Observation Observation
-                  | OrObs Observation Observation
-                  | NotObs Observation
-                  | ChoseSomething ChoiceId
-                  | ValueGE Value Value
-                  | ValueGT Value Value
-                  | ValueLT Value Value
-                  | ValueLE Value Value
-                  | ValueEQ Value Value
-                  | TrueObs
-                  | FalseObs
-  deriving (Eq,Ord,Show,Generic,Pretty)
+                 | OrObs Observation Observation
+                 | NotObs Observation
+                 | ChoseSomething ChoiceId
+                 | ValueGE Value Value
+                 | ValueGT Value Value
+                 | ValueLT Value Value
+                 | ValueLE Value Value
+                 | ValueEQ Value Value
+                 | TrueObs
+                 | FalseObs
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 data SlotInterval = SlotInterval Slot Slot
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 ivFrom, ivTo :: SlotInterval -> Slot
 
@@ -105,7 +118,7 @@ ivFrom (SlotInterval from _) = from
 ivTo   (SlotInterval _ to)   = to
 
 data Bound = Bound Integer Integer
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 inBounds :: ChosenNum -> [Bound] -> Bool
 inBounds num = any (\(Bound l u) -> num >= l && num <= u)
@@ -113,27 +126,27 @@ inBounds num = any (\(Bound l u) -> num >= l && num <= u)
 data Action = Deposit AccountId Party Value
             | Choice ChoiceId [Bound]
             | Notify Observation
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 data Payee = Account AccountId
-            | Party Party
-  deriving (Eq,Ord,Show,Generic,Pretty)
+           | Party Party
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 data Case = Case Action Contract
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
 data Contract = Refund
               | Pay AccountId Payee Value Contract
               | If Observation Contract Contract
               | When [Case] Timeout Contract
               | Let ValueId Value Contract
-  deriving (Eq,Ord,Show,Generic,Pretty)
+  deriving (Eq,Ord,Show,Read,Generic,Pretty)
 
-data State = State { accounts     :: Map AccountId Money
-                    , choices     :: Map ChoiceId ChosenNum
-                    , boundValues :: Map ValueId Integer
-                    , minSlot     :: Slot }
-  deriving (Eq,Ord,Show)
+data State = State { accounts    :: Map AccountId Money
+                   , choices     :: Map ChoiceId ChosenNum
+                   , boundValues :: Map ValueId Integer
+                   , minSlot     :: Slot }
+  deriving (Eq,Ord,Show,Read)
 
 emptyState :: Slot -> State
 emptyState sn = State { accounts = Map.empty
@@ -142,22 +155,22 @@ emptyState sn = State { accounts = Map.empty
                       , minSlot = sn }
 
 newtype Environment = Environment { slotInterval :: SlotInterval }
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 data Input = IDeposit AccountId Party Money
-            | IChoice ChoiceId ChosenNum
-            | INotify
-  deriving (Eq,Ord,Show)
+           | IChoice ChoiceId ChosenNum
+           | INotify
+  deriving (Eq,Ord,Show,Read)
 
 
 -- Processing of slot interval
 data IntervalError = InvalidInterval SlotInterval
-                    | IntervalInPastError Slot SlotInterval
-  deriving (Eq,Ord,Show)
+                   | IntervalInPastError Slot SlotInterval
+  deriving (Eq,Ord,Show,Read)
 
 data IntervalResult = IntervalTrimmed Environment State
                     | IntervalError IntervalError
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 fixInterval :: SlotInterval -> State -> IntervalResult
@@ -167,7 +180,7 @@ fixInterval interval state = let
     -- newLow is both new "low" and new "minSlot" (the lower bound for slotNum)
     newLow = max low curMinSlot
     -- We know high is greater or equal than newLow (prove)
-    curInterval = SlotInterval  newLow high
+    curInterval = SlotInterval newLow high
     env = Environment { slotInterval = curInterval }
     newState = state { minSlot = newLow }
     in if high < low then IntervalError (InvalidInterval interval)
@@ -224,11 +237,11 @@ refundOne accounts = do
 
 
 data Payment = Payment Party Money
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 data ReduceEffect = ReduceWithPayment Payment
                   | ReduceNoPayment
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 -- | Obtains the amount of money available an account
@@ -266,18 +279,18 @@ giveMoney payee money accounts = case payee of
 -- REDUCE
 
 data ReduceWarning = ReduceNoWarning
-                    | ReduceNonPositivePay AccountId Payee Integer
-                    | ReducePartialPay AccountId Payee Money Money
+                   | ReduceNonPositivePay AccountId Payee Integer
+                   | ReducePartialPay AccountId Payee Money Money
                                     -- ^ src    ^ dest ^ paid ^ expected
-                    | ReduceShadowing ValueId Integer Integer
-                                      -- oldVal ^  newVal ^
-  deriving (Eq,Ord,Show)
+                   | ReduceShadowing ValueId Integer Integer
+                                     -- oldVal ^  newVal ^
+  deriving (Eq,Ord,Show,Read)
 
 
 data ReduceStepResult = Reduced ReduceWarning ReduceEffect State Contract
                       | NotReduced
                       | AmbiguousSlotIntervalReductionError
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 -- | Carry a step of the contract with no inputs
@@ -332,7 +345,7 @@ reduceContractStep env state contract = case contract of
 
 data ReduceResult = ContractQuiescent [ReduceWarning] [Payment] State Contract
                   | RRAmbiguousSlotIntervalError
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 -- | Reduce a contract until it cannot be reduced more
 reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
@@ -354,27 +367,32 @@ reduceContractUntilQuiescent env state contract = let
 
     in reductionLoop env state contract [] []
 
+data ApplyWarning = ApplyNoWarning
+                  | ApplyNonPositiveDeposit Party AccountId Integer
+  deriving (Eq,Ord,Show,Read)
 
-data ApplyResult = Applied State Contract
-                  | ApplyNoMatchError
-  deriving (Eq,Ord,Show)
-
+data ApplyResult = Applied ApplyWarning State Contract
+                 | ApplyNoMatchError
+  deriving (Eq,Ord,Show,Read)
 
 -- Apply a single Input to the contract (assumes the contract is reduced)
 applyCases :: Environment -> State -> Input -> [Case] -> ApplyResult
 applyCases env state input cases = case (input, cases) of
     (IDeposit accId1 party1 money, Case (Deposit accId2 party2 val) cont : rest) -> let
         amount = evalValue env state val
+        warning = if amount > 0
+                  then ApplyNoWarning
+                  else ApplyNonPositiveDeposit party1 accId2 amount
         newState = state { accounts = addMoneyToAccount accId1 money (accounts state) }
         in if accId1 == accId2 && party1 == party2 && getLovelace money == amount
-        then Applied newState cont
+        then Applied warning newState cont
         else applyCases env state input rest
     (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) -> let
         newState = state { choices = Map.insert choId1 choice (choices state) }
         in if choId1 == choId2 && inBounds choice bounds
-        then Applied newState cont
+        then Applied ApplyNoWarning newState cont
         else applyCases env state input rest
-    (INotify, Case (Notify obs) cont : _) | evalObservation env state obs -> Applied state cont
+    (INotify, Case (Notify obs) cont : _) | evalObservation env state obs -> Applied ApplyNoWarning state cont
     (_, _ : rest) -> applyCases env state input rest
     (_, []) -> ApplyNoMatchError
 
@@ -385,7 +403,37 @@ applyInput _ _ _ _                          = ApplyNoMatchError
 
 -- APPLY ALL
 
-data ApplyAllResult = ApplyAllSuccess [ReduceWarning] [Payment] State Contract
+data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Integer
+                        | TransactionNonPositivePay AccountId Payee Integer
+                        | TransactionPartialPay AccountId Payee Money Money
+                                               -- ^ src    ^ dest ^ paid ^ expected
+                        | TransactionShadowing ValueId Integer Integer
+                                                -- oldVal ^  newVal ^
+  deriving (Eq,Ord,Show,Read)
+
+convertReduceWarnings :: [ReduceWarning] -> [TransactionWarning]
+convertReduceWarnings =
+  foldr (\ first ->
+           (++)
+             (case first of
+                  ReduceNoWarning -> []
+                  ReduceNonPositivePay accId payee
+                    amount -> [TransactionNonPositivePay accId payee amount]
+                  ReducePartialPay accId payee paid
+                    expected -> [TransactionPartialPay accId payee paid expected]
+                  ReduceShadowing valId oldVal newVal -> [TransactionShadowing valId
+                                                            oldVal
+                                                            newVal])) []
+
+
+convertApplyWarning :: ApplyWarning -> [TransactionWarning]
+convertApplyWarning warn =
+  case warn of
+    ApplyNoWarning -> []
+    ApplyNonPositiveDeposit party accId amount ->
+           [TransactionNonPositiveDeposit party accId amount]
+
+data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contract
                     | ApplyAllNoMatchError
                     | ApplyAllAmbiguousSlotIntervalError
   deriving (Eq,Ord,Show)
@@ -399,42 +447,43 @@ applyAllInputs env state contract inputs = let
         -> State
         -> Contract
         -> [Input]
-        -> [ReduceWarning]
+        -> [TransactionWarning]
         -> [Payment]
         -> ApplyAllResult
     applyAllLoop env state contract inputs warnings payments =
         case reduceContractUntilQuiescent env state contract of
             RRAmbiguousSlotIntervalError -> ApplyAllAmbiguousSlotIntervalError
-            ContractQuiescent warns pays curState cont -> case inputs of
-                [] -> ApplyAllSuccess (warnings ++ warns) (payments ++ pays) curState cont
+            ContractQuiescent reduceWarns pays curState cont -> case inputs of
+                [] -> ApplyAllSuccess (warnings ++ convertReduceWarnings reduceWarns)
+                                                   (payments ++ pays) curState cont
                 (input : rest) -> case applyInput env curState input cont of
-                    Applied newState cont ->
-                        applyAllLoop env newState cont rest (warnings ++ warns) (payments ++ pays)
+                    Applied applyWarn newState cont ->
+                        applyAllLoop env newState cont rest
+                                     (warnings ++ convertReduceWarnings reduceWarns
+                                               ++ convertApplyWarning applyWarn)
+                                     (payments ++ pays)
                     ApplyNoMatchError -> ApplyAllNoMatchError
     in applyAllLoop env state contract inputs [] []
-
 
 data TransactionError = TEAmbiguousSlotIntervalError
                       | TEApplyNoMatchError
                       | TEIntervalError IntervalError
                       | TEUselessTransaction
-  deriving (Eq,Ord,Show)
-
+  deriving (Eq,Ord,Show,Read)
 
 data TransactionOutput =
     TransactionOutput
-        { txOutWarnings :: [ReduceWarning]
+        { txOutWarnings :: [TransactionWarning]
         , txOutPayments :: [Payment]
         , txOutState    :: State
         , txOutContract :: Contract }
     | Error TransactionError
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving (Eq,Ord,Show)
-
+  deriving (Eq,Ord,Show,Read)
 
 -- | Try to compute outputs of a transaction give its input
 computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
@@ -446,9 +495,9 @@ computeTransaction tx state contract = let
                 in  if contract == cont
                     then Error TEUselessTransaction
                     else TransactionOutput { txOutWarnings = warnings
-                                            , txOutPayments = payments
-                                            , txOutState = newState
-                                            , txOutContract = cont }
+                                           , txOutPayments = payments
+                                           , txOutState = newState
+                                           , txOutContract = cont }
             ApplyAllNoMatchError -> Error TEApplyNoMatchError
             ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
         IntervalError error -> Error (TEIntervalError error)
@@ -465,3 +514,4 @@ contractLifespanUpperBound contract = case contract of
         contractsLifespans = fmap (\(Case _ cont) -> contractLifespanUpperBound cont) cases
         in maximum (getSlot timeout : contractLifespanUpperBound subContract : contractsLifespans)
     Let _ _ cont -> contractLifespanUpperBound cont
+

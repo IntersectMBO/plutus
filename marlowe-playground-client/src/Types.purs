@@ -5,6 +5,7 @@ import Ace (Annotation)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
+import Data.Array (uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
@@ -20,15 +21,17 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Json.JsonEither (JsonEither)
+import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple(..))
 import Gist (Gist)
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
-import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Observation, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, emptyState, evalValue)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Observation, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
-import Prelude (class Eq, class Ord, class Show, Unit, mempty, zero, (<<<))
+import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -68,6 +71,11 @@ data Query a
   -- blockly
   | HandleBlocklyMessage BlocklyMessage a
   | SetBlocklyCode a
+  -- websocket
+  | AnalyseContract a
+  | RecieveWebsocketMessage String a
+
+data Message = WebsocketMessage String
 
 ------------------------------------------------------------
 type ChildQuery
@@ -130,6 +138,7 @@ newtype FrontendState
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
+  , analysisState :: RemoteData String Result
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -164,6 +173,9 @@ _oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
+_analysisState :: Lens' FrontendState (RemoteData String Result)
+_analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
+
 -- editable
 _timestamp ::
   forall s a.
@@ -173,8 +185,17 @@ _timestamp = prop (SProxy :: SProxy "timestamp")
 _value :: forall s a. Lens' { value :: a | s } a
 _value = prop (SProxy :: SProxy "value")
 
+data ActionInputId
+  = DepositInputId AccountId Party
+  | ChoiceInputId ChoiceId (Array Bound)
+  | NotifyInputId Observation
+
+derive instance eqActionInputId :: Eq ActionInputId
+
+derive instance ordActionInputId :: Ord ActionInputId
+
 type MarloweState
-  = { possibleActions :: Map PubKey (Array ActionInput)
+  = { possibleActions :: Map PubKey (Map ActionInputId ActionInput)
     , pendingInputs :: Array (Tuple Input PubKey)
     , transactionError :: Maybe TransactionError
     , state :: State
@@ -247,10 +268,16 @@ data ActionInput
   | ChoiceInput ChoiceId (Array Bound) ChosenNum
   | NotifyInput Observation
 
-actionToActionInput :: State -> Action -> ActionInput
+minimumBound :: Array Bound -> ChosenNum
+minimumBound bnds =
+  case uncons (map boundFrom bnds) of
+    Just { head, tail } -> foldl1 min (head :| tail)
+    Nothing -> zero
+
+actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
 actionToActionInput state (Deposit accountId party value) = 
   let minSlot = state ^. _minSlot 
       env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
-  in DepositInput accountId party (evalValue env state value)
-actionToActionInput _ (Choice choiceId bounds) = ChoiceInput choiceId bounds zero
-actionToActionInput _ (Notify observation) = NotifyInput observation
+  in Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
+actionToActionInput _ (Notify observation) = Tuple (NotifyInputId observation) (NotifyInput observation)

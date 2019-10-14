@@ -21,6 +21,9 @@
         , "simple-json"
         , "psci-support"
         , "debug"
+        , "web-socket"
+        , "coroutines"
+        , "aff-coroutines"
         ],
     "name": "marlowe-playground-client",
     "source": ""

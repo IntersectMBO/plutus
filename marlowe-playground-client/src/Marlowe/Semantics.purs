@@ -134,7 +134,7 @@ choiceOwner :: ChoiceId -> PubKey
 choiceOwner (ChoiceId _ owner) = owner
 
 newtype ValueId
-  = ValueId BigInteger
+  = ValueId String
 
 derive instance genericValueId :: Generic ValueId _
 
@@ -144,9 +144,11 @@ derive instance eqValueId :: Eq ValueId
 
 derive instance ordValueId :: Ord ValueId
 
-derive newtype instance showValueId :: Show ValueId
+instance showValueId :: Show ValueId where
+  show (ValueId valueId) = show valueId
 
-derive newtype instance prettyValueId :: Pretty ValueId
+instance prettyValueId :: Pretty ValueId where
+  prettyFragment a = text (show a)
 
 data Value
   = AvailableMoney AccountId
@@ -238,6 +240,12 @@ instance prettyBound :: Pretty Bound where
 
 inBounds :: ChosenNum -> Array Bound -> Boolean
 inBounds num = any (\(Bound l u) -> num >= l && num <= u)
+
+boundFrom :: Bound -> BigInteger
+boundFrom (Bound from _) = from
+
+boundTo :: Bound -> BigInteger
+boundTo (Bound _ to) = to
 
 data Action
   = Deposit AccountId Party Value
@@ -664,8 +672,21 @@ reduceContractUntilQuiescent startEnv startState startContract =
   in
     reductionLoop startEnv startState startContract mempty mempty
 
+data ApplyWarning
+  = ApplyNoWarning
+  | ApplyNonPositiveDeposit Party AccountId Money
+
+derive instance genericApplyWarning :: Generic ApplyWarning _
+
+derive instance eqApplyWarning :: Eq ApplyWarning
+
+derive instance ordApplyWarning :: Ord ApplyWarning
+
+instance showApplyWarning :: Show ApplyWarning where
+  show = genericShow
+
 data ApplyResult
-  = Applied State Contract
+  = Applied ApplyWarning State Contract
   | ApplyNoMatchError
 
 derive instance genericApplyResult :: Generic ApplyResult _
@@ -682,11 +703,13 @@ applyCases env state input cases = case input, cases of
   IDeposit accId1 party1 money, ((Case (Deposit accId2 party2 val) cont) : rest) ->
     let
       amount = evalValue env state val
-
+      warning = if amount > zero
+                then ApplyNoWarning
+                else ApplyNonPositiveDeposit party1 accId2 (Lovelace amount)
       newState = over _accounts (addMoneyToAccount accId1 money) state
     in
       if accId1 == accId2 && party1 == party2 && unwrap money == amount then
-        Applied newState cont
+        Applied warning newState cont
       else
         applyCases env state input rest
   IChoice choId1 choice, ((Case (Choice choId2 bounds) cont) : rest) ->
@@ -694,11 +717,11 @@ applyCases env state input cases = case input, cases of
       newState = over _choices (Map.insert choId1 choice) state
     in
       if choId1 == choId2 && inBounds choice bounds then
-        Applied newState cont
+        Applied ApplyNoWarning newState cont
       else
         applyCases env state input rest
   INotify, ((Case (Notify obs) cont) : _)
-    | evalObservation env state obs -> Applied state cont
+    | evalObservation env state obs -> Applied ApplyNoWarning state cont
   _, (_ : rest) -> applyCases env state input rest
   _, Nil -> ApplyNoMatchError
 
@@ -707,8 +730,44 @@ applyInput env state input (When cases _ _) = applyCases env state input (fromFo
 
 applyInput _ _ _ _ = ApplyNoMatchError
 
+data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Money
+                        | TransactionNonPositivePay AccountId Payee Money
+                        | TransactionPartialPay AccountId Payee Money Money
+                                               -- ^ src    ^ dest ^ paid ^ expected
+                        | TransactionShadowing ValueId BigInteger BigInteger
+                                                -- oldVal ^  newVal ^
+
+derive instance genericTransactionWarning :: Generic TransactionWarning _
+
+derive instance eqTransactionWarning :: Eq TransactionWarning
+
+derive instance ordTransactionWarning :: Ord TransactionWarning
+
+instance showTransactionWarning :: Show TransactionWarning where
+  show = genericShow
+                                                
+convertReduceWarnings :: List ReduceWarning -> List TransactionWarning
+convertReduceWarnings Nil = Nil
+convertReduceWarnings (first : rest) =
+  (case first of
+    ReduceNoWarning -> Nil
+    ReduceNonPositivePay accId payee amount ->
+           (TransactionNonPositivePay accId payee amount) : Nil
+    ReducePartialPay accId payee paid expected ->
+           (TransactionPartialPay accId payee paid expected) : Nil
+    ReduceShadowing valId oldVal newVal ->
+           (TransactionShadowing valId oldVal newVal) : Nil)
+  <> convertReduceWarnings rest
+
+convertApplyWarning :: ApplyWarning -> List TransactionWarning
+convertApplyWarning warn =
+  case warn of
+    ApplyNoWarning -> Nil
+    ApplyNonPositiveDeposit party accId amount ->
+           (TransactionNonPositiveDeposit party accId amount) : Nil
+
 data ApplyAllResult
-  = ApplyAllSuccess (List ReduceWarning) (List Payment) State Contract
+  = ApplyAllSuccess (List TransactionWarning) (List Payment) State Contract
   | ApplyAllNoMatchError
   | ApplyAllAmbiguousSlotIntervalError
 
@@ -721,6 +780,7 @@ derive instance ordApplyAllResult :: Ord ApplyAllResult
 instance showApplyAllResult :: Show ApplyAllResult where
   show = genericShow
 
+
 -- | Apply a list of Inputs to the contract
 applyAllInputs :: Environment -> State -> Contract -> (List Input) -> ApplyAllResult
 applyAllInputs startEnv startState startContract startInputs =
@@ -730,15 +790,20 @@ applyAllInputs startEnv startState startContract startInputs =
       State ->
       Contract ->
       List Input ->
-      List ReduceWarning ->
+      List TransactionWarning ->
       List Payment ->
       ApplyAllResult
     applyAllLoop env state contract inputs warnings payments = case reduceContractUntilQuiescent env state contract of
       RRAmbiguousSlotIntervalError -> ApplyAllAmbiguousSlotIntervalError
-      ContractQuiescent warns pays curState cont -> case inputs of
-        Nil -> ApplyAllSuccess (warnings <> warns) (payments <> pays) curState cont
+      ContractQuiescent reduceWarns pays curState cont -> case inputs of
+        Nil -> ApplyAllSuccess (warnings <> (convertReduceWarnings reduceWarns))
+                                            (payments <> pays) curState cont
         (input : rest) -> case applyInput env curState input cont of
-          Applied newState nextContract -> applyAllLoop env newState nextContract rest (warnings <> warns) (payments <> pays)
+          Applied applyWarn newState nextContract ->
+            applyAllLoop env newState nextContract rest
+                         (warnings <> (convertReduceWarnings reduceWarns)
+                                   <> (convertApplyWarning applyWarn))
+                         (payments <> pays)
           ApplyNoMatchError -> ApplyAllNoMatchError
   in
     applyAllLoop startEnv startState startContract startInputs mempty mempty
@@ -764,7 +829,7 @@ instance showTransactionError :: Show TransactionError where
 
 data TransactionOutput
   = TransactionOutput
-    { txOutWarnings :: List ReduceWarning
+    { txOutWarnings :: List TransactionWarning
     , txOutPayments :: List Payment
     , txOutState :: State
     , txOutContract :: Contract
@@ -833,11 +898,8 @@ extractRequiredActionsWithTxs txInput state contract = case computeTransaction t
 
 extractRequiredActions :: Contract -> Array Action
 extractRequiredActions contract = case contract of
-  Refund -> mempty
-  (Pay accId payee val nextContract) -> extractRequiredActions nextContract
   (When cases _ _) -> map (\(Case action _) -> action) cases
-  (If observation contract1 contract2) -> extractRequiredActions contract1 <> extractRequiredActions contract2
-  (Let valId val nextContract) -> extractRequiredActions nextContract
+  _ -> mempty
 
 moneyInContract :: State -> Money
 moneyInContract state = foldl (+) zero $ Map.values (unwrap state).accounts

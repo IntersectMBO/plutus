@@ -9,6 +9,7 @@ import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped, map, void, when)
 import Control.Monad ((*>))
+import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
@@ -29,6 +30,8 @@ import Editor (editorPane)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
+import Foreign.Class (decode)
+import Foreign.JSON (parseJSON)
 import Gist (gistFileContent, gistId)
 import Gists (parseGistUrl, gistControls)
 import Halogen (Component, action)
@@ -45,13 +48,14 @@ import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
-import Network.RemoteData (RemoteData(Success, Loading, NotAsked), _Success, isLoading, isSuccess)
-import Prelude (type (~>), Unit, Void, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
+import Prelude (type (~>), Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
-import Types (ActionInput(..), BlocklySlot(BlocklySlot), ChildQuery, ChildSlot, FrontendState(FrontendState), Query(..), View(..), _authStatus, _compilationResult, _createGistResult, _currentContract, _gistUrl, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _slot, _view, cpBlockly, emptyMarloweState)
+import Types (ActionInput(..), BlocklySlot(BlocklySlot), ChildQuery, ChildSlot, FrontendState(FrontendState), Message, Query(..), View(..), _analysisState, _authStatus, _compilationResult, _createGistResult, _currentContract, _gistUrl, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _slot, _view, cpBlockly, emptyMarloweState)
+import WebSocket (WebSocketResponseMessage(..))
 
 initialState :: FrontendState
 initialState =
@@ -65,6 +69,7 @@ initialState =
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
+    , analysisState: NotAsked
     }
 
 ------------------------------------------------------------
@@ -72,7 +77,7 @@ mainFrame ::
   forall m.
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  Component HTML Query Unit Void m
+  Component HTML Query Unit Message m
 mainFrame =
   H.lifecycleParentComponent
     { initialState: const initialState
@@ -88,7 +93,7 @@ evalWithAnalyticsTracking ::
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   Query
-    ~> HalogenM FrontendState Query ChildQuery ChildSlot Void m
+    ~> HalogenM FrontendState Query ChildQuery ChildSlot Message m
 evalWithAnalyticsTracking query = do
   liftEffect $ analyticsTracking query
   runHalogenApp $ evalF query
@@ -157,6 +162,10 @@ toEvent (Undo _) = Just $ defaultEvent "Undo"
 toEvent (HandleBlocklyMessage _ _) = Nothing
 
 toEvent (SetBlocklyCode _) = Nothing
+
+toEvent (AnalyseContract _) = Nothing
+
+toEvent (RecieveWebsocketMessage _ _) = Nothing
 
 evalF ::
   forall m.
@@ -380,6 +389,25 @@ evalF (SetBlocklyCode next) = runMaybeT f *> pure next
       setBlocklyCode source
       assign _view BlocklyEditor 
     MaybeT resizeBlockly
+
+evalF (AnalyseContract next) = do
+  currContract <- use _currentContract
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      checkContractForWarnings (show contract)
+      assign _analysisState Loading
+  pure next
+
+evalF (RecieveWebsocketMessage msg next) = do
+  let msgDecoded = unwrap <<< runExceptT $ do
+                                            f <- parseJSON msg
+                                            decode f
+  case msgDecoded of
+    Left err -> assign _analysisState <<< Failure $ show $ msg
+    Right (OtherError err) -> assign _analysisState $ Failure err
+    Right (CheckForWarningsResult result) -> assign _analysisState $ Success result
+  pure next
 
 ------------------------------------------------------------
 showCompilationErrorAnnotations ::

@@ -64,6 +64,7 @@ library
         servant-client -any,
         servant-purescript -any,
         servant-server -any,
+        servant-websockets -any,
         temporary -any,
         template-haskell -any,
         text -any,
