@@ -29,6 +29,8 @@ module Ledger.Interval(
     , isEmpty
     , before
     , after
+    , strictLowerBound
+    , strictUpperBound
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
@@ -121,6 +123,14 @@ instance Ord a => Ord (LowerBound a) where
         -- An open lower bound is bigger than a closed lower bound. This corresponds
         -- to the *reverse* of the normal order on Bool.
         EQ -> in2 `compare` in1
+
+{-# INLINABLE strictUpperBound #-}
+strictUpperBound :: a -> UpperBound a
+strictUpperBound a = UpperBound (Finite a) False
+
+{-# INLINABLE strictLowerBound #-}
+strictLowerBound :: a -> LowerBound a
+strictLowerBound a = LowerBound (Finite a) False
 
 {-# INLINABLE lowerBound #-}
 lowerBound :: a -> LowerBound a

@@ -18,6 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , escrowAddress
     , escrowScript
     , targetValue
+    , escrowContract
     -- * Actions
     , pay
     , payEp
@@ -33,17 +34,18 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
 
 import           Control.Applicative            (Applicative (..))
 import           Control.Lens                   ((&), (^.), (.~), at, folded)
+import           Control.Monad                  (void)
 import qualified Data.Set                       as Set
 import qualified Ledger
 import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, TxOutRefOf(..), ValidatorScript, TxOut, pubKeyTxOut, scriptTxOut')
+                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOut, pubKeyTxOut, scriptTxOut')
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import           Ledger.AddressMap              (values)
 import qualified Ledger.Typed.Scripts           as Scripts
 import qualified Ledger.Scripts                 as Scripts
 import           Ledger.Validation              (PendingTx, PendingTx' (..))
-import           Ledger.Value                   (Value, lt)
+import           Ledger.Value                   (Value, lt, geq)
 
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract
@@ -68,16 +70,16 @@ type EscrowSchema =
 -- contract have not been spent by the deadline. (Compared to the crowdfunding
 -- contract, the refund policy is simpler because here because there is no
 -- "collection period" during which the outputs may be spent after the deadline
--- has passed. This is because we're assuming that the participants in the escrow
--- contract will make their deposits as quickly as possible after agreeing on a
--- deal)
+-- has passed. This is because we're assuming that the participants in the 
+-- escrow contract will make their deposits as quickly as possible after 
+-- agreeing on a deal)
 -- 
 -- The contract supports two modes of operation, manual and automatic. In 
 -- manual mode, all actions are driven by endpoints that exposed via 'payEp'
--- 'redeemEp' and 'refundEp'. In automatic mode, the 'pay', 'redeem' and 'refund'
--- actions start immediately. This mode is useful when the escrow is called from
--- within another contract, for example during setup (collection of the initial
--- deposits).
+-- 'redeemEp' and 'refundEp'. In automatic mode, the 'pay', 'redeem' and 
+-- 'refund'actions start immediately. This mode is useful when the escrow is 
+-- called from within another contract, for example during setup (collection of
+-- the initial deposits).
 
 -- | Defines where the money should go.
 data EscrowTarget =
@@ -106,6 +108,8 @@ data EscrowParams =
         --   transaction.
         }
 
+PlutusTx.makeLift ''EscrowParams
+
 -- | The total 'Value' that must be paid into the escrow contract
 --   before it can be unlocked
 targetValue :: EscrowParams -> Value
@@ -120,29 +124,20 @@ mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
     ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.AddressOf (Scripts.unsafePlcAddress hsh)) ds
 
-PlutusTx.makeLift ''EscrowParams
 
 data Action = Redeem | Refund
 
-instance PlutusTx.IsData Action where
-    toData Redeem = PlutusTx.Constr 0 []
-    toData Refund = PlutusTx.Constr 1 []
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [])
-        | i == 0 = Just Redeem
-        | i == 1 = Just Refund
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''Action
 PlutusTx.makeLift ''Action
 
 {-# INLINABLE meetsTarget #-}
 meetsTarget :: PendingTx -> EscrowTarget -> Bool
 meetsTarget ptx = \case
     PubKeyTarget pk vl ->
-        valuePaidTo ptx pk == vl
+        valuePaidTo ptx pk `geq` vl
     ScriptTarget validatorHash dataScript vl ->
         case scriptOutputsAt validatorHash ptx of
-            [(dataScript', vl')] -> dataScript' == dataScript && vl' == vl
+            [(dataScript', vl')] -> dataScript' == dataScript && vl' `geq` vl
             _ -> False
 
 {-# INLINABLE validate #-}
@@ -174,6 +169,15 @@ scriptInstance escrow = Scripts.Validator @Escrow
 -- | The address of an escrow contract
 escrowAddress :: EscrowParams -> Ledger.Address
 escrowAddress = Scripts.scriptAddress . scriptInstance
+
+escrowContract :: EscrowParams -> Contract EscrowSchema ()
+escrowContract escrow = 
+    let payAndRefund = do
+            (ownPubKey, vl) <- endpoint @"pay-escrow"
+            _ <- pay escrow ownPubKey vl
+            _ <- awaitSlot (escrowDeadline escrow)
+            refund escrow ownPubKey
+    in void payAndRefund <|> void (redeemEp escrow)
 
 -- | 'pay' with an endpoint that gets the owner's public key and the
 --   contribution.
@@ -240,9 +244,7 @@ redeem escrow = do
     let addr = escrowAddress escrow
         valRange = 
             let itvl = Interval.from 1
-                -- an upper bound that does not include the escrow 
-                -- deadline
-                upperBound = Interval.UpperBound (Interval.Finite $ escrowDeadline escrow) False
+                upperBound = Interval.strictUpperBound (escrowDeadline escrow)
             in itvl { Interval.ivTo = upperBound }
         tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance escrow) Redeem
             & validityRange .~ valRange
@@ -264,7 +266,7 @@ refundEp
     , HasEndpoint "refund-escrow" () s
     )
     => EscrowParams
-    -> TxId
+    -> PubKey
     -> Contract s RefundResult
 refundEp escrow txid = endpoint @"refund-escrow" >> refund escrow txid
 
@@ -273,11 +275,11 @@ refund
     :: ( HasUtxoAt s
        , HasWriteTx s )
     => EscrowParams 
-    -> TxId
+    -> PubKey
     -> Contract s RefundResult
-refund escrow txId = do
+refund escrow pk = do
     unspentOutputs <- utxoAt (escrowAddress escrow)
-    let flt TxOutRefOf{txOutRefId} _ = txId Haskell.== txOutRefId
+    let flt _ txOut = Ledger.txOutData txOut == Just (DataScript (PlutusTx.toData pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 & validityRange .~ from (succ $ escrowDeadline escrow)
     if not . Set.null $ tx' ^. inputs

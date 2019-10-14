@@ -45,7 +45,7 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents (Wallet 2))
 
     , checkPredicate @EscrowSchema "can refund"
-        (payEp escrowParams >>= refundEp escrowParams)
+        (payEp escrowParams >> refundEp escrowParams (walletPubKey w1))
         ( walletFundsChange w1 mempty
           /\ assertDone w1 (\case { RefundOK _ -> True; _ -> False}) "refund should succeed")
         ( callEndpoint @"pay-escrow" (Wallet 1) (walletPubKey w1, Ada.lovelaceValueOf 20)
