@@ -14,7 +14,6 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     ) where
 
 import qualified Language.PlutusTx         as PlutusTx
-import qualified Language.PlutusTx.Applicative as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, ValidatorScript)
 import qualified Ledger                    as Ledger
@@ -57,13 +56,7 @@ data SwapOwners = SwapOwners {
     swapOwnersFloating :: PubKey
     }
 
-instance PlutusTx.IsData SwapOwners where
-    {-# INLINABLE toData #-}
-    toData (SwapOwners fixed floating) = PlutusTx.Constr 0 [PlutusTx.toData fixed, PlutusTx.toData floating]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [fixed, floating]) | i == 0 = SwapOwners <$> PlutusTx.fromData fixed PlutusTx.<*> PlutusTx.fromData floating
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''SwapOwners
 PlutusTx.makeLift ''SwapOwners
 
 type SwapOracle = OracleValue Rational

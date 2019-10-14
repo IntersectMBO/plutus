@@ -209,7 +209,7 @@ instance BA.ByteArrayAccess ValidatorScript where
 -- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype DataScript = DataScript { getDataScript :: Data  }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show DataScript where

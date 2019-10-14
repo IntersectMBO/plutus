@@ -29,7 +29,6 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Prelude    hiding (Applicative (..))
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Applicative as PlutusTx
 import qualified Ledger                       as Ledger
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
 import qualified Ledger.Ada                   as Ada
@@ -90,13 +89,7 @@ instance Eq VestingData where
     {-# INLINABLE (==) #-}
     (VestingData h1 v1) == (VestingData h2 v2) = h1 == h2 && v1 == v2
 
-instance PlutusTx.IsData VestingData where
-    {-# INLINABLE toData #-}
-    toData (VestingData h v) = PlutusTx.Constr 0 [PlutusTx.toData h, PlutusTx.toData v]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [h, v]) | i == 0 = VestingData <$> PlutusTx.fromData h PlutusTx.<*> PlutusTx.fromData v
-    fromData _ = Nothing
-
+PlutusTx.makeIsData ''VestingData
 PlutusTx.makeLift ''VestingData
 
 transactionFee :: Value

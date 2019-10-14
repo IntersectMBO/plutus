@@ -25,20 +25,17 @@ module Language.PlutusTx.Ratio(
     , reduce
     ) where
 
-import qualified Language.PlutusTx.Applicative as P
-import qualified Language.PlutusTx.Bool        as P
-import qualified Language.PlutusTx.Data        as P
-import qualified Language.PlutusTx.Eq          as P
-import qualified Language.PlutusTx.IsData      as P
-import qualified Language.PlutusTx.Lift        as P
-import qualified Language.PlutusTx.Numeric     as P
-import qualified Language.PlutusTx.Ord         as P
+import qualified Language.PlutusTx.Bool     as P
+import qualified Language.PlutusTx.Eq       as P
+import qualified Language.PlutusTx.IsData   as P
+import qualified Language.PlutusTx.Lift     as P
+import qualified Language.PlutusTx.Numeric  as P
+import qualified Language.PlutusTx.Ord      as P
 
-import qualified Language.PlutusTx.Builtins    as Builtins
-import           Language.PlutusTx.Functor
+import qualified Language.PlutusTx.Builtins as Builtins
 
-import qualified GHC.Real                      as Ratio
-import           Prelude                       (Bool (True), Integer, Maybe (..))
+import qualified GHC.Real                   as Ratio
+import           Prelude                    (Bool (True), Integer)
 
 data Ratio a = a :% a
 
@@ -65,13 +62,6 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 -}
 
 type Rational = Ratio Integer
-
-instance P.IsData a => P.IsData (Ratio a) where
-    {-# INLINABLE toData #-}
-    toData (n :% d) = P.Constr 0 [P.toData n, P.toData d]
-    {-# INLINABLE fromData #-}
-    fromData (P.Constr i [n, d]) | i P.== 0 = (:%) <$> P.fromData n P.<*> P.fromData d
-    fromData _                   = Nothing
 
 instance P.Eq a => P.Eq (Ratio a) where
     {-# INLINABLE (==) #-}
@@ -231,3 +221,4 @@ round x
           sig    = signumR (abs r P.- half)
 
 P.makeLift ''Ratio
+P.makeIsData ''Ratio

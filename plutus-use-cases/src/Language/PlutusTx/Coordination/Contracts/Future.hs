@@ -35,7 +35,6 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Prelude    hiding (Applicative (..))
-import qualified Language.PlutusTx.Applicative as PlutusTx
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
@@ -77,6 +76,47 @@ The current value of the underlying asset is determined by an oracle. See note
 [Oracles] in Language.PlutusTx.Coordination.Contracts.
 
 -}
+
+-- | Basic data of a futures contract. `Future` contains all values that do not
+--   change during the lifetime of the contract.
+--
+data Future = Future {
+    futureDeliveryDate  :: Slot,
+    futureUnits         :: Integer,
+    futureUnitPrice     :: Ada,
+    futureInitialMargin :: Ada,
+    futurePriceOracle   :: PubKey,
+    futureMarginPenalty :: Ada
+    -- ^ How much a participant loses if they fail to make the required margin
+    --   payments.
+    } deriving Generic
+
+-- | The current "state" of the futures contract. `FutureData` contains values
+--   that may change during the lifetime of the contract. This is the data
+--   script.
+--
+data FutureData = FutureData {
+    futureDataLong        :: PubKey,
+    -- ^ Holder of the long position (buyer)
+    futureDataShort       :: PubKey,
+    -- ^ Holder of the short position (seller)
+    futureDataMarginLong  :: Ada,
+    -- ^ Current balance of the margin account of the long position
+    futureDataMarginShort :: Ada
+    -- ^ Current balance of the margin account of the short position
+    } deriving Generic
+
+PlutusTx.makeIsData ''FutureData
+
+-- | Actions that either participant may take. This is the redeemer script.
+data FutureRedeemer =
+      AdjustMargin
+    -- ^ Make a margin payment
+    | Settle (OracleValue Ada)
+    -- ^ Settle the contract
+    deriving Generic
+
+PlutusTx.makeIsData ''FutureRedeemer
 
 -- | Initialise the futures contract by paying the initial margin.
 --
@@ -164,57 +204,6 @@ adjustMargin refs ft fd vl = do
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
     void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change)
 
-
--- | Basic data of a futures contract. `Future` contains all values that do not
---   change during the lifetime of the contract.
---
-data Future = Future {
-    futureDeliveryDate  :: Slot,
-    futureUnits         :: Integer,
-    futureUnitPrice     :: Ada,
-    futureInitialMargin :: Ada,
-    futurePriceOracle   :: PubKey,
-    futureMarginPenalty :: Ada
-    -- ^ How much a participant loses if they fail to make the required margin
-    --   payments.
-    } deriving Generic
-
--- | The current "state" of the futures contract. `FutureData` contains values
---   that may change during the lifetime of the contract. This is the data
---   script.
---
-data FutureData = FutureData {
-    futureDataLong        :: PubKey,
-    -- ^ Holder of the long position (buyer)
-    futureDataShort       :: PubKey,
-    -- ^ Holder of the short position (seller)
-    futureDataMarginLong  :: Ada,
-    -- ^ Current balance of the margin account of the long position
-    futureDataMarginShort :: Ada
-    -- ^ Current balance of the margin account of the short position
-    } deriving Generic
-
-instance PlutusTx.IsData FutureData where
-    toData (FutureData dl ds ml ms) = PlutusTx.Constr 0 [PlutusTx.toData dl, PlutusTx.toData ds, PlutusTx.toData ml, PlutusTx.toData ms]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i [dl, ds, ml, ms]) | i == 0 = FutureData <$> PlutusTx.fromData dl PlutusTx.<*> PlutusTx.fromData ds PlutusTx.<*> PlutusTx.fromData ml PlutusTx.<*> PlutusTx.fromData ms
-    fromData _ = Nothing
-
--- | Actions that either participant may take. This is the redeemer script.
-data FutureRedeemer =
-      AdjustMargin
-    -- ^ Make a margin payment
-    | Settle (OracleValue Ada)
-    -- ^ Settle the contract
-    deriving Generic
-
-instance PlutusTx.IsData FutureRedeemer where
-    toData AdjustMargin = PlutusTx.Constr 0 []
-    toData (Settle o) = PlutusTx.Constr 1 [PlutusTx.toData o]
-    {-# INLINABLE fromData #-}
-    fromData (PlutusTx.Constr i []) | i == 0 = Just AdjustMargin
-    fromData (PlutusTx.Constr i [o]) | i == 1 = Settle <$> PlutusTx.fromData o
-    fromData _ = Nothing
 
 -- | Compute the required margin from the current price of the
 --   underlying asset.

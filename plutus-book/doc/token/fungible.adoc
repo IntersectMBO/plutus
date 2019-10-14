@@ -239,15 +239,7 @@ trade:
 data TradeAction = Execute | Reclaim
     deriving Show
 
-instance IsData TradeAction where
-    toData Execute = Constr 0 []
-    toData Reclaim = Constr 1 []
-    {-# INLINABLE fromData #-}
-    fromData (Constr i [])
-        | i == 0 = Just Execute
-        | i == 1 = Just Reclaim
-    fromData _ = Nothing
-
+makeIsData ''TradeAction
 makeLift ''TradeAction
 
 type TradeValidator = () -> TradeAction -> PendingTx -> Bool

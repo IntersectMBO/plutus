@@ -5,7 +5,6 @@
 {-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -13,6 +12,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Validation
     (
@@ -187,12 +187,6 @@ data OracleValue a = OracleValue {
     }
     deriving (Generic)
 
-instance IsData a => IsData (OracleValue a) where
-    toData (OracleValue sig s v) = Constr 0 [toData sig, toData s, toData v]
-    {-# INLINABLE fromData #-}
-    fromData (Constr i [sig, s, v]) | i == 0 = OracleValue <$> fromData sig <*> fromData s <*> fromData v
-    fromData _ = Nothing
-
 {- Note [Hashes in validator scripts]
 
 We need to deal with hashes of four different things in a validator script:
@@ -361,15 +355,22 @@ validatorScriptHash =
     . scriptAddress
 
 makeLift ''PendingTxOutType
+makeIsDataIndexed ''PendingTxOutType [('PubKeyTxOut,0),('ScriptTxOut,1)]
 
 makeLift ''PendingTxOut
+makeIsData ''PendingTxOut
 
 makeLift ''PendingTxOutRef
+makeIsData ''PendingTxOutRef
 
 makeLift ''PendingTxIn'
+makeIsData ''PendingTxIn'
 
 makeLift ''PendingTx'
+makeIsData ''PendingTx'
 
 makeLift ''OracleValue
+makeIsData ''OracleValue
 
 makeLift ''TxHash
+makeIsData ''TxHash

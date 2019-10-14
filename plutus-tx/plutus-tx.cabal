@@ -46,6 +46,7 @@ library
         Language.PlutusTx.Applicative
         Language.PlutusTx.Bool
         Language.PlutusTx.IsData
+        Language.PlutusTx.IsData.Class
         Language.PlutusTx.Eq
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
@@ -58,6 +59,9 @@ library
         Language.PlutusTx.Monoid
         Language.PlutusTx.AssocMap
         Language.PlutusTx.These
+    other-modules:
+        Language.PlutusTx.IsData.Instances
+        Language.PlutusTx.IsData.TH
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
@@ -69,6 +73,7 @@ library
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
+        th-abstraction -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx-compiler -any

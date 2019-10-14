@@ -50,15 +50,7 @@ We therefore will use the following type for the redeemer scripts:
 ----
 data CampaignAction = Collect | Refund
 
-instance IsData CampaignAction where
-    toData Collect = Constr 0 []
-    toData Refund = Constr 1 []
-    {-# INLINABLE fromData #-}
-    fromData (Constr i [])
-        | i == 0 = Just Collect
-        | i == 1 = Just Refund
-    fromData _ = Nothing
-
+makeIsData ''CampaignAction
 makeLift ''CampaignAction
 ----
 
