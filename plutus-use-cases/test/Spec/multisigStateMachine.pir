@@ -1608,7 +1608,7 @@
                                                         (fun Unit [Maybe b])
                                                       }
                                                       (lam
-                                                        f
+                                                        ipv
                                                         (fun a b)
                                                         (lam
                                                           thunk
@@ -1627,14 +1627,16 @@
                                                                   (fun Unit [Maybe b])
                                                                 }
                                                                 (lam
-                                                                  x
+                                                                  ipv
                                                                   a
                                                                   (lam
                                                                     thunk
                                                                     Unit
                                                                     [
                                                                       { Just b }
-                                                                      [ f x ]
+                                                                      [
+                                                                        ipv ipv
+                                                                      ]
                                                                     ]
                                                                   )
                                                                 )
@@ -2881,7 +2883,7 @@
                                                                                                                                           (fun Unit [Maybe [[Tuple2 a] b]])
                                                                                                                                         }
                                                                                                                                         (lam
-                                                                                                                                          x
+                                                                                                                                          ipv
                                                                                                                                           a
                                                                                                                                           (lam
                                                                                                                                             thunk
@@ -2909,7 +2911,7 @@
                                                                                                                                                     (fun Unit [Maybe [[Tuple2 a] b]])
                                                                                                                                                   }
                                                                                                                                                   (lam
-                                                                                                                                                    x
+                                                                                                                                                    ipv
                                                                                                                                                     b
                                                                                                                                                     (lam
                                                                                                                                                       thunk
@@ -2928,9 +2930,9 @@
                                                                                                                                                               }
                                                                                                                                                               b
                                                                                                                                                             }
-                                                                                                                                                            x
+                                                                                                                                                            ipv
                                                                                                                                                           ]
-                                                                                                                                                          x
+                                                                                                                                                          ipv
                                                                                                                                                         ]
                                                                                                                                                       ]
                                                                                                                                                     )
@@ -4378,7 +4380,7 @@
                                                                                                                                                                                           (fun Unit [Maybe Payment])
                                                                                                                                                                                         }
                                                                                                                                                                                         (lam
-                                                                                                                                                                                          x
+                                                                                                                                                                                          ipv
                                                                                                                                                                                           [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                                                                           (lam
                                                                                                                                                                                             thunk
@@ -4460,7 +4462,7 @@
                                                                                                                                                                                                                             [
                                                                                                                                                                                                                               [
                                                                                                                                                                                                                                 Payment
-                                                                                                                                                                                                                                x
+                                                                                                                                                                                                                                ipv
                                                                                                                                                                                                                               ]
                                                                                                                                                                                                                               b
                                                                                                                                                                                                                             ]
@@ -5045,7 +5047,7 @@
                                                                                                                                                                               (fun Unit [Maybe State])
                                                                                                                                                                             }
                                                                                                                                                                             (lam
-                                                                                                                                                                              x
+                                                                                                                                                                              ipv
                                                                                                                                                                               [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                                                               (lam
                                                                                                                                                                                 thunk
@@ -5057,7 +5059,7 @@
                                                                                                                                                                                   }
                                                                                                                                                                                   [
                                                                                                                                                                                     Holding
-                                                                                                                                                                                    x
+                                                                                                                                                                                    ipv
                                                                                                                                                                                   ]
                                                                                                                                                                                 ]
                                                                                                                                                                               )
@@ -5278,7 +5280,7 @@
                                                                                                                                                                                                   (fun Unit [Maybe State])
                                                                                                                                                                                                 }
                                                                                                                                                                                                 (lam
-                                                                                                                                                                                                  x
+                                                                                                                                                                                                  ipv
                                                                                                                                                                                                   [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                                                                                   (lam
                                                                                                                                                                                                     thunk
@@ -5300,7 +5302,7 @@
                                                                                                                                                                                                             (fun Unit [Maybe State])
                                                                                                                                                                                                           }
                                                                                                                                                                                                           (lam
-                                                                                                                                                                                                            x
+                                                                                                                                                                                                            ipv
                                                                                                                                                                                                             Payment
                                                                                                                                                                                                             (lam
                                                                                                                                                                                                               thunk
@@ -5399,7 +5401,7 @@
                                                                                                                                                                                                                                 (fun Unit [Maybe State])
                                                                                                                                                                                                                               }
                                                                                                                                                                                                                               (lam
-                                                                                                                                                                                                                                x
+                                                                                                                                                                                                                                ipv
                                                                                                                                                                                                                                 [List (con bytestring)]
                                                                                                                                                                                                                                 (lam
                                                                                                                                                                                                                                   thunk
@@ -5413,11 +5415,11 @@
                                                                                                                                                                                                                                       [
                                                                                                                                                                                                                                         [
                                                                                                                                                                                                                                           CollectingSignatures
-                                                                                                                                                                                                                                          x
+                                                                                                                                                                                                                                          ipv
                                                                                                                                                                                                                                         ]
-                                                                                                                                                                                                                                        x
+                                                                                                                                                                                                                                        ipv
                                                                                                                                                                                                                                       ]
-                                                                                                                                                                                                                                      x
+                                                                                                                                                                                                                                      ipv
                                                                                                                                                                                                                                     ]
                                                                                                                                                                                                                                   ]
                                                                                                                                                                                                                                 )

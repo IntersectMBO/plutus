@@ -45,7 +45,7 @@
                           [ { Maybe_match (fun a b) } ds ] (fun Unit [Maybe b])
                         }
                         (lam
-                          f
+                          ipv
                           (fun a b)
                           (lam
                             thunk
@@ -58,7 +58,9 @@
                                     (fun Unit [Maybe b])
                                   }
                                   (lam
-                                    x a (lam thunk Unit [ { Just b } [ f x ] ])
+                                    ipv
+                                    a
+                                    (lam thunk Unit [ { Just b } [ ipv ipv ] ])
                                   )
                                 ]
                                 (lam thunk Unit { Nothing b })
