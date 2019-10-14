@@ -149,16 +149,16 @@ sumB = bgroup "sum" [
 tailB :: Benchmark
 tailB = bgroup "tail" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), ()] ||])),
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 5 ()),
             bench "scott" $ nf tailScott (Scott.replicate 5 ()),
             bench "combinator" $ nf tailRec (replicate 5 ()),
             bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 20 ()),
             bench "scott" $ nf tailScott (Scott.replicate 20 ()),
             bench "combinator" $ nf tailRec (replicate 20 ()),
@@ -196,7 +196,7 @@ trivial = bgroup "trivial" [
         bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
     ]
     where
-        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PendingTx) -> True ||])
+        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> True ||])
 
 -- | The multisig contract is one of the simplest ones that we have. This runs a number of different scenarios.
 -- Note that multisig also does some signature verification!
@@ -258,10 +258,10 @@ sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
 validationData1 :: ValidationData
-validationData1 = ValidationData $ fromCompiledCode $ PlutusTx.liftCode $ mockPendingTx
+validationData1 = ValidationData $ PlutusTx.toData $ mockPendingTx
 
 validationData2 :: ValidationData
-validationData2 = ValidationData $ fromCompiledCode $ PlutusTx.liftCode $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
+validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
