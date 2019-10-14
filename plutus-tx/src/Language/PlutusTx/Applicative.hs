@@ -32,11 +32,16 @@ a1 *> a2 = (id <$ a1) <*> a2
 (<*) :: Applicative f => f a -> f b -> f a
 (<*) = liftA2 const
 
+{-# INLINABLE traverse #-}
+-- | Run an applicative function over a list of inputs.
+traverse :: Applicative f => (a -> f b) -> [a] -> f [b]
+traverse _ []    = pure []
+traverse f (h:t) = (:) <$> f h <*> traverse f t
+
 {-# INLINABLE sequence #-}
 -- | Sequence a list of applicative actions.
 sequence :: Applicative f => [f a] -> f [a]
-sequence []    = pure []
-sequence (h:t) = (:) <$> h <*> sequence t
+sequence = traverse id
 
 instance Applicative Maybe where
     {-# INLINABLE pure #-}

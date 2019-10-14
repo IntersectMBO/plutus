@@ -41,13 +41,13 @@ goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlcCek values = do
-     ps <- traverse getProgram values
+     ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
      ExceptT $ try @SomeException $ evaluate $ evaluateCek p
 
 runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResultDef)
 runPlcCekTrace values = do
-     ps <- traverse getProgram values
+     ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
      ExceptT $ try @SomeException $ evaluate $ evaluateCekTrace p
 

@@ -75,7 +75,7 @@ import           Language.PlutusTx.Semigroup   as Semigroup
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
                                                            Num (..), Ord (..), Rational, Semigroup (..), all, any,
                                                            const, elem, error, filter, foldMap, foldl, foldr, fst, id,
-                                                           length, map, max, maybe, min, not, null, round, sequence,
+                                                           length, map, max, maybe, min, not, null, round, sequence, traverse,
                                                            snd, (!!), ($), (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately

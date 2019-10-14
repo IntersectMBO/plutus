@@ -49,5 +49,5 @@ instance IsData a => IsData [a] where
     {-# INLINABLE toData #-}
     toData xs = List (fmap toData xs)
     {-# INLINABLE fromData #-}
-    fromData (List ds) = sequence (fmap fromData ds)
+    fromData (List ds) = traverse fromData ds
     fromData _        = Nothing

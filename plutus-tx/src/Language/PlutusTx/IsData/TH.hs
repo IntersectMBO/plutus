@@ -22,7 +22,7 @@ toDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFie
     TH.clause [pat] (TH.normalB app) []
 
 toDataClauses :: TH.DatatypeInfo -> [TH.Q TH.Clause]
-toDataClauses dt = uncurry toDataClause <$> zip [0..] (TH.datatypeCons dt)
+toDataClauses dt = zipWith toDataClause [0..] (TH.datatypeCons dt)
 
 fromDataClause :: Int -> TH.ConstructorInfo -> TH.Q TH.Clause
 fromDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
@@ -36,7 +36,7 @@ fromDataClause index TH.ConstructorInfo{TH.constructorName=name, TH.constructorF
 
 fromDataClauses :: TH.DatatypeInfo -> [TH.Q TH.Clause]
 fromDataClauses dt =
-    let mainClauses = uncurry fromDataClause <$> zip [0..] (TH.datatypeCons dt)
+    let mainClauses = zipWith fromDataClause [0..] (TH.datatypeCons dt)
         catchallClause = TH.clause [TH.wildP] (TH.normalB [| Nothing |]) []
     in mainClauses ++ [ catchallClause ]
 
