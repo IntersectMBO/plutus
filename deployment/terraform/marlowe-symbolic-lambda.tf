@@ -26,7 +26,7 @@ resource "aws_security_group" "marlowe_symbolic_lambda" {
 }
 
 resource "aws_iam_role" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda"
+  name = "marlowe_symbolic_lambda_${var.env}"
 
   assume_role_policy = <<EOF
 {
@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "marlowe_symbolic_lambda" {
 }
 
 resource "aws_lambda_function" "marlowe_symbolic" {
-  function_name = "marlowe_symbolic"
+  function_name = "marlowe_symbolic_${var.env}"
   role          = "${aws_iam_role.marlowe_symbolic_lambda.arn}"
   handler       = "src/App.handler"
 
@@ -59,9 +59,9 @@ resource "aws_lambda_function" "marlowe_symbolic" {
 
   layers = ["arn:aws:lambda:${var.aws_region}:785355572843:layer:aws-haskell-runtime:2"]
 
-  s3_bucket = "plutus-playground-tf"
-  s3_key = "marlowe-symbolic-lambda/marlowe-symbolic.zip"
-  s3_object_version = "B0qIsXOTNafm5AY20LebS64u2hZv0PIM"
+  # The lambda zip needs to be built and placed on your local filesystem
+  # TODO: This is only a temporary requirement and will be moved to the CD server soon
+  filename = "${var.lambda_filename}"
   
   memory_size = 3008
   timeout = 120
@@ -79,7 +79,7 @@ resource "aws_lambda_function" "marlowe_symbolic" {
 ## API Gateway
 
 resource "aws_api_gateway_rest_api" "marlowe_symbolic_lambda" {
-  name        = "marlowe_symbolic_lambda"
+  name        = "marlowe_symbolic_lambda_${var.env}"
   description = "API Gateway for the Marlowe Symbolic Lambda"
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -153,7 +153,7 @@ resource "aws_lambda_permission" "marlowe_symbolic_lambda_api_gw" {
 }
 
 resource "aws_api_gateway_usage_plan" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda"
+  name = "marlowe_symbolic_lambda_${var.env}"
 
   api_stages {
     api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
@@ -162,7 +162,7 @@ resource "aws_api_gateway_usage_plan" "marlowe_symbolic_lambda" {
 }
 
 resource "aws_api_gateway_api_key" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda"
+  name = "marlowe_symbolic_lambda_${var.env}"
 }
 
 resource "aws_api_gateway_usage_plan_key" "marlowe_symbolic_lambda" {
