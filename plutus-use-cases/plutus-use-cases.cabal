@@ -28,6 +28,7 @@ library
         Language.PlutusTx.Coordination.Contracts
         Language.PlutusTx.Coordination.Contracts.CrowdFunding
         Language.PlutusTx.Coordination.Contracts.Currency
+        Language.PlutusTx.Coordination.Contracts.Escrow
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.GameStateMachine
@@ -72,6 +73,7 @@ test-suite plutus-use-cases-test
     other-modules:
         Spec.Crowdfunding
         Spec.Currency
+        Spec.Escrow
         Spec.Future
         Spec.Game
         Spec.GameStateMachine

@@ -8,6 +8,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -49,7 +50,7 @@ import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), Applicative (..))
+import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), (<$>), Applicative (..))
 import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
@@ -61,6 +62,7 @@ import           Ledger.Value                   (Value)
 import qualified Ledger.Value                   as VTH
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as Emulator
+import qualified Prelude                        as Haskell
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -176,17 +178,14 @@ contribute cmp = do
     let ds = Ledger.DataScript (PlutusTx.toData ownPK)
         tx = payToScript contribution (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
-    void (writeTx tx)
+    txId <- writeTxSuccess tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
 
-    -- Finding "our" output is a bit fiddly since we don't know the transaction
-    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
-    -- outputs whose data script is our own public key (in 'ds')
-    let flt _ txOut = Ledger.txOutData txOut == Just ds
+    let flt Ledger.TxOutRefOf{txOutRefId} _ = txId Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs

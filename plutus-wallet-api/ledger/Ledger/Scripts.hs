@@ -42,6 +42,8 @@ module Ledger.Scripts(
     plcValidatorDigest,
     plcValidatorHash,
     plcRedeemerHash,
+    plcAddress,
+    unsafePlcAddress,
     -- * Example scripts
     unitRedeemer,
     unitData
@@ -55,7 +57,7 @@ import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Monad                            (unless)
 import           Control.Monad.Except                     (MonadError(..), runExcept)
 import           Control.DeepSeq                          (NFData)
-import           Crypto.Hash                              (Digest, SHA256)
+import           Crypto.Hash                              (Digest, SHA256, digestFromByteString)
 import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson                               as JSON
 import qualified Data.Aeson.Extras                        as JSON
@@ -63,6 +65,7 @@ import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
+import           Data.Maybe                               (fromJust)
 import           Data.String
 import           GHC.Generics                             (Generic)
 import qualified Language.PlutusCore                      as PLC
@@ -265,6 +268,19 @@ plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
 -- | Compute the hash of a validator script.
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
+
+{-# INLINABLE plcAddress #-}
+-- | Get the SHA256 hash (for use in off-chain code) from a 'ValidatorHash'
+--   (on-chain)
+plcAddress :: ValidatorHash -> Maybe (Digest SHA256)
+plcAddress (ValidatorHash hsh) = digestFromByteString $ BSL.toStrict hsh
+
+{-# INLINABLE unsafePlcAddress #-}
+-- | Get the SHA256 hash (for use in off-chain code) from a 'ValidatorHash'
+--   (on-chain). Should be safe if 'ValidatorHash' was constructed using 
+--   'plcValidatorDigest' or 'plcValidatorHash'.
+unsafePlcAddress :: ValidatorHash -> Digest SHA256
+unsafePlcAddress = fromJust . plcAddress
 
 -- TODO: Is this right? Make it obvious
 {-# INLINABLE plcValidatorHash #-}
