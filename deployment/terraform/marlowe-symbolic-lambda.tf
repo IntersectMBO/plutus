@@ -62,6 +62,7 @@ resource "aws_lambda_function" "marlowe_symbolic" {
   # The lambda zip needs to be built and placed on your local filesystem
   # TODO: This is only a temporary requirement and will be moved to the CD server soon
   filename = "${var.lambda_filename}"
+  source_code_hash = "${base64sha256(file(var.lambda_filename))}"
   
   memory_size = 3008
   timeout = 120
