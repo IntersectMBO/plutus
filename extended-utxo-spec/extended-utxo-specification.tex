@@ -114,6 +114,7 @@
 \newcommand{\extended}[1]{#1^\updownarrow}
 \newcommand{\FinSup}[2]{\ensuremath{\s{FinSup}[#1,#2]}}
 \newcommand{\support}{\ensuremath{\mathrm{sup}}}
+\newcommand{\strictsupport}{\ensuremath{\mathrm{strictsup}}}
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
@@ -128,9 +129,6 @@
 \newcommand{\fee}{\mi{fee}}
 \newcommand{\addr}{\mi{addr}}
 \newcommand{\val}{\mi{value}}  %% \value is already defined
-\newcommand{\nativeval}{\mi{nativeValue}}
-\newcommand{\customvals}{\mi{customValues}}
-\newcommand{\customforge}{\mi{customForge}}
 
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
@@ -155,9 +153,12 @@
 \newcommand{\newqtytype}{\ensuremath{\s{Quantity}^{\prime}}}
 \newcommand{\token}{\ensuremath{\s{Token}}}
 \newcommand{\currency}{\ensuremath{\s{CurrencyId}}}
+\newcommand{\nativeCur}{\ensuremath{\mathrm{nativeC}}}
+\newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
+\newcommand{\injectNative}{\ensuremath{\mathrm{inject}}}
 
 \newcommand{\qtymap}{\ensuremath{\s{QuantityMap}}}
-\newcommand{\tokenmap}{\ensuremath{\s{TokenMap}}}
+\newcommand{\qtymappm}{\ensuremath{\s{QuantityMap}^{\pm}}}
 
 \newcommand\B{\ensuremath{\mathbb{B}}}
 \newcommand\N{\ensuremath{\mathbb{N}}}
@@ -344,6 +345,11 @@ conventions used in the remainder of the document.
       pointwise equality except that it is computationally tractable.}
     \[
       f = g \Leftrightarrow \forall a \in \support(f) \cup \support(g) . f(a) = g(a)
+    \]
+    The \textit{strict support} $\strictsupport : \FinSup{K}{V} \rightarrow
+    \FinSet{K}$ of a finitely supported function is defined as:
+    \[
+      \strictsupport(f) = \{ f(x) \neq 0 \mid x \in \support(f) \}
     \]
 
   \item If the type $M$ is a monoid with binary operation $+$ (for
@@ -799,16 +805,20 @@ with the sub-currency for each token limited to a supply of one.
 \begin{ruledfigure}{H}
   \center{
   \begin{tabular}{rll}
-  \currency&: & an identifier for a custom currency. This is an alias
-  for the \s{Address} type\\
-                & & from Figure~\ref{fig:basic-types}.\\
+    \currency &: & an identifier for a custom currency. This is an alias
+                for the \s{Address} type\\
+             &  & from Figure~\ref{fig:basic-types}.\\
     \\
-    \token&:& a type consisting of identifiers for individual tokens.  These will probably\\
-               & &be hashes in practice.\\
-\\
-    \qtymap &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
+    \nativeCur &: & a distinguished \currency representing the native currency of the ledger.\\
     \\
-  $\qtymap^{\pm}$ &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
+    \token   &: & a type consisting of identifiers for individual tokens.  These will probably\\
+             &  & be hashes in practice.\\
+    \\
+    \nativeTok &: & a distinguished \token representing the currency token of the native currency.\\
+    \\
+    \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
+    \\
+    \qtymappm &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
   \end{tabular}
   }
   \caption{Extra basic types for the EUTXO-2 model}
@@ -824,8 +834,7 @@ negative quantities are allowed.
   \[
   \begin{arraydefs}{rll}
     \s{Output}_2 &= (&\addr: \s{Address},\\
-    && \val: \qty\\
-    && \customvals: \qtymap,\\
+    && \val: \qtymap\\
     && \valdata: \Data)\\
     \\
     \s{OutputRef}_2 &= (&\i{id}: \s{TxId}, \idx: \s{Int})\\
@@ -833,13 +842,12 @@ negative quantities are allowed.
     \s{Input}_2 &= (& \i{outputRef}: \sf{OutputRef}_2,\\
                      && \i{validator}: \script,\\
                      & & \i{redeemer}: \Data)\\
-\\
+    \\
     \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
     &&\outputs: \List{\s{Output}_2},\\
     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
     &&\fee: \qty,\\
-    &&\forge: \qty,\\
-    &&\customforge: \qtymap^{\pm})\\
+    &&\forge: \qtymap^{\pm})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
 \end{arraydefs}
@@ -849,41 +857,43 @@ negative quantities are allowed.
 \end{ruledfigure}
 
 \noindent The changes to the basic EUTXO-1 types are now quite simple:
-see Figure~\ref{fig:eutxo-2-types}.  We add a \qtymap{} to the
-\s{Output} type, representing values of custom currencies; we also add
-a \customforge{} field of type $\qtymap^{\pm}$ to transactions to
-allow the creation and destruction of funds in custom currencies; the
-supply of a custom currency can be reduced by forging a negative
-amount of that currency.
+see Figure~\ref{fig:eutxo-2-types}.  We change the type of the $\val$ field
+in the \s{Output} type to be \qtymap{}, representing values of all currencies;
+we also change the type of the \forge{} field on transactions to \qtymappm{}, to
+allow the creation and destruction of funds in all currencies; the
+supply of a currency can be reduced by forging a negative amount of that
+currency, as in EUTXO-1.
 
-The fields \val, \fee, and \forge{} all represent quantities of the
-native currency, as in the EUTXO-1 model.
+Quantities of the native currency are represented just like any other currency,
+using \qtymap{}s with the \nativeCur{} identifier. The one exception is the
+\fee{} field, which continues to be a simple \qty{}. This represents a quantity
+in the native currency, as fees can only be paid in that.
 
 \subsection{The \ptx type for EUTXO-2}
 \label{sec:pendingtx-2}
 The \ptx type must be also be updated for the EUTXO-2 model.  All
-that is required is to replace $\qty$ by $\tokenmap$ everywhere in
+that is required is to replace $\qty$ by $\qtymap$ everywhere in
 Figure~\ref{fig:ptx-1-types} except for the $\fee$ field: for reference
 the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
 
-    \s{OutputInfo}_2\s{ } &= (& \i{value}: \tokenmap,\\
+    \s{OutputInfo}_2\s{ } &= (& \i{value}: \qtymap,\\
     && \i{validatorHash}: \s{Address},\\
     &&  \i{datascriptHash}: \s{Address})\\
     \\
     \s{InputInfo}_2\s{ }& = (&\i{inputRef}: \s{OutputRef},\\
                  && \i{validatorHash}: \s{Address},\\
                  && \i{redeemerHash}: \s{Address}),\\
-                 && \i{value}: \tokenmap)\\
+                 && \i{value}: \qtymap)\\
      \\
      \ptx_2\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}_2},\\
      &&\i{thisInput}: \N,\\
      &&\i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
      &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      &&\fee: \qty,\\
-     &&\forge: \tokenmap)
+     &&\forge: \qtymap)
    \end{arraydefs}
  \]
   \caption{The \ptx type for the EUTXO-2 model}
@@ -911,13 +921,16 @@ of multiple currencies.
 
 We use the definitions of \unspent{}  and
 \getvalue{} from Section~\ref{sec:eutxo-1-validity} unchanged,
-but we also require a function to retrieve the values of
-custom currencies from inputs. If $t$ is a transaction in a ledger
-$\lambda$ and $i \in t.\inputs$, then we define
-$$
-\s{getCustomValues}(i,\lambda) = \lambda\langle i.\outputref.\txid
-\rangle.\outputs[i.\outputref.\idx].\customvals
-$$
+but we also require a function to inject a \qty{} of the native currency
+into \qtymap{}. We define:
+\begin{displaymath}
+  \injectNative(q)(c)(t) = \left\{
+    \begin{array}{ll}
+      q & \mbox{if $c = \nativeCur$ and $t = \nativeTok$ }\\
+      0 & \mbox{otherwise}
+    \end{array}
+  \right\}
+\end{displaymath}
 
 We can now adapt the definition of validity for EUTXO-1
 (Figure~\ref{fig:eutxo-1-validity}) to obtain a definition of validity for
@@ -932,36 +945,24 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
       \]
     \item\textbf{Forging:}\\\\
       \begin{minipage}{0.85\textwidth}
-          \begin{enumerate}
-          \item
-              A transaction with a non-zero \forge{} field is only
-            valid if the ledger $\lambda$ is empty
-            (that is, if it is the initial
-            transaction).
+        A transaction with a non-zero \forge{} field is only
+        valid if either:
+        \begin{enumerate}
+          \item the ledger $\lambda$ is empty (that is, if it is the initial transaction).
           \item \label{rule:custom-forge}
-            A transaction with a non-empty \customforge{} field is
-            only valid if for every key $h$ in $t.\customforge$, there
+            for every key $h$ in $\strictsupport(t.\forge)$, there
             exists $i \in t.\inputs$ and $(a,v,d) \in i.\outputs$ with
             $a =h$; in other words, some input must spend an output
             whose address is $h$.
-          \end{enumerate}
-          \end{minipage}
+        \end{enumerate}
+      \end{minipage}
     \item \textbf{Values are preserved}\\
       \begin{minipage}{0.85\textwidth}
-          \begin{enumerate}
-          \item\label{rule:native-value-is-preserved-2}
+          \label{rule:value-is-preserved-2}
             \[
-            t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\val
+            t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
             \]
-
-          \item\label{rule:custom-values-are-preserved-2}
-            \[
-              \mu\left(t.\customforge\, + \sum_{i \in t.\inputs} \s{getCustomValues}(i, \lambda)\right) =
-              \mu\left(\sum_{o \in t.\outputs} o.\customvals\right)
-            \]
-          \end{enumerate}
-
-          \end{minipage}
+      \end{minipage}
     \item \label{rule:no-double-spending-2} \textbf{No output is double spent:}
     \[
      \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\mathit{outputRef} = i_2.\mathit{outputRef}
@@ -985,13 +986,13 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 \noindent If any of the indexing operations here fail then the
 transaction is invalid.
 
-\paragraph{Note.} In rule~\ref{rule:custom-values-are-preserved-2},
+\paragraph{Note.} In rule~\ref{rule:value-is-preserved-2},
 $+$ and $\sum$ are the sum of finitely-supported functions as defined in
 Figure~\ref{fig:basic-notation}. Essentially we require that the
 quantities of each of the individual custom currencies involved in the
-transaction are preserved.  Recall that values in $\customforge$ can
+transaction are preserved. Recall that values in $\forge$ can
 be negative whereas values in outputs must be non-negative.  Thus
-rule~\ref{rule:custom-values-are-preserved-2} implies that a
+rule~\ref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
 
