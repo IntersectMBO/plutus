@@ -124,7 +124,7 @@ the money to Bob, as is reflected in the state of the Playground in the followin
 * the choices made by Alice and Bob are recorded in the state, and
 * the payment to Bob has been made.
 
-Moreover the current contract is now `Refund`, which has no effect since all the money in the contract has been spent.
+Moreover the current contract is now `Close`, which has no effect since all the money in the contract has been spent.
 
 image:step4.png[Simulation step 4]
 

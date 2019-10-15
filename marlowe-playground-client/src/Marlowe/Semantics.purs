@@ -298,7 +298,7 @@ instance prettyCase :: Pretty Case where
   prettyFragment (Case action contract) = appendWithSoftbreak (text "Case " <> prettyFragment action <> text " ") (prettyFragment contract)
 
 data Contract
-  = Refund
+  = Close
   | Pay AccountId Payee Value Contract
   | If Observation Contract Contract
   | When (Array Case) Timeout Contract
@@ -576,14 +576,14 @@ instance showReduceStepResult :: Show ReduceStepResult where
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
 reduceContractStep env state contract = case contract of
-  Refund -> case refundOne (unwrap state).accounts of
+  Close -> case refundOne (unwrap state).accounts of
     Just (Tuple (Tuple party money) newAccounts) ->
       let
         oldState = unwrap state
 
         newState = wrap (oldState { accounts = newAccounts })
       in
-        Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Refund
+        Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
     Nothing -> NotReduced
   Pay accId payee val nextContract ->
     let
@@ -745,7 +745,7 @@ derive instance ordTransactionWarning :: Ord TransactionWarning
 
 instance showTransactionWarning :: Show TransactionWarning where
   show = genericShow
-                                                
+
 convertReduceWarnings :: List ReduceWarning -> List TransactionWarning
 convertReduceWarnings Nil = Nil
 convertReduceWarnings (first : rest) =

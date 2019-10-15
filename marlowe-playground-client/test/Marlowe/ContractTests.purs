@@ -90,7 +90,7 @@ initialState =
 
 runTests :: forall a. MockApp a -> Tuple a FrontendState
 runTests app = runState (unwrap app) initialState
-    
+
 all :: TestSuite
 all =
   suite "Contract Tests" do
@@ -113,5 +113,5 @@ all =
             finalContract = finalState ^. _marloweState <<< _Head <<< _contract
             txError = finalState ^. _marloweState <<< _Head <<< _transactionError
         equal Nothing txError
-        equal (Just Refund) finalContract
+        equal (Just Close) finalContract
         pure unit

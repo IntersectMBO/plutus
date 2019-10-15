@@ -179,7 +179,7 @@ mkSymbolicDatatype ''Payee
 data Case = Case Action Contract
   deriving (Eq,Ord,Show,Read)
 
-data Contract = Refund
+data Contract = Close
               | Pay AccountId Payee Value Contract
               | If Observation Contract Contract
               | When [Case] Timeout Contract
@@ -434,7 +434,7 @@ data DetReduceResult = DRRContractOver
 -- Carry a step of the contract with no inputs
 reduce :: SymVal a => Bounds -> SEnvironment -> SState -> Contract
        -> (SReduceResult -> DetReduceResult -> SBV a) -> SBV a
-reduce bnds _ state Refund f = f sNotReduced DRRContractOver
+reduce bnds _ state Close f = f sNotReduced DRRContractOver
 reduce bnds env state (Pay accId payee val nc) f =
   ite (mon .<= 0)
       (f (sReduced (sReduceNonPositivePay (literalAccountId accId)
@@ -641,7 +641,7 @@ applyAllAux n bnds numPays numInps env state c l wa ef f
         contFunReduce sr DRARContractOver =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
           ite (SL.null l)
-              (f (sAppliedAll nwa nef nstate) $ DAARNormal Refund numPays numInps)
+              (f (sAppliedAll nwa nef nstate) $ DAARNormal Close numPays numInps)
               (f (sAAApplyError sApplyNoMatch) DAARError)
         contFunReduce sr (DRARNormal nc p) =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
@@ -982,7 +982,7 @@ convertCaseList (MS.Case action cont : rest) maps =
         (newRest, actionsWithRest, mapsWithRest) = convertCaseList rest mapsWithCont
 
 convertContract :: MS.Contract -> Mappings -> (Contract, MaxActions, Mappings)
-convertContract MS.Refund maps = (Refund, 0, maps)
+convertContract MS.Close maps = (Close, 0, maps)
 convertContract (MS.Pay accId payee value cont) maps =
     (Pay newAccId newPayee newValue newCont, actionsWithCont, mapsWithContract)
   where (newAccId, mapsWithAccId) = convertAccId accId maps

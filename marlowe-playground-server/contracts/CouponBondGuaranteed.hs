@@ -18,9 +18,9 @@ contract = When [Case (Deposit "investor" "guarantor" (Constant 1030))
                         (Pay "investor" (Party "guarantor") (Constant 10)
                             (When [Case (Deposit "investor" "issuer" (Constant 1010))
                                 (Pay "investor" (Party "investor" ) (Constant 1010)
-                                (Pay "investor" (Party "guarantor") (Constant 1010) Refund))]
-                            (Slot 20) Refund)))]
-                    (Slot 15) Refund)))]
-            (Slot 10) Refund))]
-    (Slot 5) Refund)]
-    (Slot 5) Refund
+                                (Pay "investor" (Party "guarantor") (Constant 1010) Close))]
+                            (Slot 20) Close)))]
+                    (Slot 15) Close)))]
+            (Slot 10) Close))]
+    (Slot 5) Close)]
+    (Slot 5) Close

@@ -188,7 +188,7 @@ cases :: Parser String (Array Case)
 cases = array case'
 
 atomContract :: Parser String Contract
-atomContract = pure Refund <* string "Refund"
+atomContract = pure Close <* string "Close"
 
 recContract :: Parser String Contract
 recContract =
@@ -248,12 +248,12 @@ testString = """When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund) Refund)
+                             (Constant 450) Close) Close)
                        (When [
                              (Case
                                 (Choice
                                    (ChoiceId "1" "carol") [
-                                   (Bound 1 1)]) Refund)
+                                   (Bound 1 1)]) Close)
                              ,
                              (Case
                                 (Choice
@@ -262,12 +262,12 @@ testString = """When [
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
-                                   (Constant 450) Refund))] 100 Refund)))] 60
+                                   (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
                           (Choice
                              (ChoiceId "1" "carol") [
-                             (Bound 1 1)]) Refund)
+                             (Bound 1 1)]) Close)
                        ,
                        (Case
                           (Choice
@@ -276,7 +276,7 @@ testString = """When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund))] 100 Refund)))
+                             (Constant 450) Close))] 100 Close)))
            ,
            (Case
               (Choice
@@ -304,12 +304,12 @@ testString = """When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund) Refund)
+                             (Constant 450) Close) Close)
                        (When [
                              (Case
                                 (Choice
                                    (ChoiceId "1" "carol") [
-                                   (Bound 1 1)]) Refund)
+                                   (Bound 1 1)]) Close)
                              ,
                              (Case
                                 (Choice
@@ -318,12 +318,12 @@ testString = """When [
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
-                                   (Constant 450) Refund))] 100 Refund)))] 60
+                                   (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
                           (Choice
                              (ChoiceId "1" "carol") [
-                             (Bound 1 1)]) Refund)
+                             (Bound 1 1)]) Close)
                        ,
                        (Case
                           (Choice
@@ -332,10 +332,10 @@ testString = """When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund))] 100 Refund)))] 40 Refund))] 10 Refund"""
+                             (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close"""
 
 input :: Parser String Input
-input = 
+input =
    (IDeposit <$> (string "IDeposit" **> accountId) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
    <|> (IChoice <$> (string "IChoice" **> choiceId) <**> (maybeParens bigInteger))
    <|> ((const INotify) <$> (string "INotify"))
@@ -347,7 +347,7 @@ slotInterval :: Parser String SlotInterval
 slotInterval = (SlotInterval <$> (string "SlotInterval" **> slot) <**> slot)
 
 transactionInput :: Parser String TransactionInput
-transactionInput = 
+transactionInput =
    do void $ string "TransactionInput"
       void maybeSpaces
       void $ string "{"

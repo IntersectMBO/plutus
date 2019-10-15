@@ -55,12 +55,12 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund) Refund)
+                             (Constant 450) Close) Close)
                        (When [
                              (Case
                                 (Choice
                                    (ChoiceId "choice" "carol") [
-                                   (Bound 1 1)]) Refund)
+                                   (Bound 1 1)]) Close)
                              ,
                              (Case
                                 (Choice
@@ -69,12 +69,12 @@ runBasicSpec = describe "Basic Contract" $
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
-                                   (Constant 450) Refund))] 100 Refund)))] 60
+                                   (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
                           (Choice
                              (ChoiceId "choice" "carol") [
-                             (Bound 1 1)]) Refund)
+                             (Bound 1 1)]) Close)
                        ,
                        (Case
                           (Choice
@@ -83,7 +83,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund))] 100 Refund)))
+                             (Constant 450) Close))] 100 Close)))
            ,
            (Case
               (Choice
@@ -111,12 +111,12 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund) Refund)
+                             (Constant 450) Close) Close)
                        (When [
                              (Case
                                 (Choice
                                    (ChoiceId "choice" "carol") [
-                                   (Bound 1 1)]) Refund)
+                                   (Bound 1 1)]) Close)
                              ,
                              (Case
                                 (Choice
@@ -125,12 +125,12 @@ runBasicSpec = describe "Basic Contract" $
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
-                                   (Constant 450) Refund))] 100 Refund)))] 60
+                                   (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
                           (Choice
                              (ChoiceId "choice" "carol") [
-                             (Bound 1 1)]) Refund)
+                             (Bound 1 1)]) Close)
                        ,
                        (Case
                           (Choice
@@ -139,7 +139,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund))] 100 Refund)))] 40 Refund))] 10 Refund
+                             (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close
 |]
 
 runHaskell :: ByteString -> IO (Either InterpreterError (InterpreterResult RunResult))

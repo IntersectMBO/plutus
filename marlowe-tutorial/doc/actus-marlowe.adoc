@@ -59,19 +59,19 @@ When [
                  (AccountId 0 "investor")
                  (Party "investor")
                  (Constant 1000) 
-                 Refund))
+                 Close))
             ] 
             20 
-            Refund)))
+            Close)))
      ] 
      10 
-     Refund
+     Close
 ----
 
 This contract has a significant drawback. Once the `investor` has deposited the 850 Lovelace, it will be immediately paid to the `issuer` (if the `investor` does not invest in time, the contract ends). After that, two outcomes are possible
 
 * the `issuer` deposits 1000 Lovelace in the `investor`{empty}'s account, and that is then immediately paid to the `investor` in full;
-* if the `investor` doesn't make the deposit, then all the money in the contract is refunded, but there is _no_ money in the contract at this point, so the `investor` loses her money. 
+* if the `investor` doesn't make the deposit, then the contract is closed and all the money in the contract is refunded, but there is _no_ money in the contract at this point, so the `investor` loses her money. 
 
 How can we avoid this problem of the `issuer` defaulting?
 
@@ -117,15 +117,15 @@ couponBondFor3Month12Percent =
                             -- after maturity date investor
                             -- expects to receive notional + interest payment
                             (When [ Case (Deposit "investor" "issuer" (Constant 1010))
-                                (Pay "investor" (Party "investor" ) (Constant 1010) Refund)]
+                                (Pay "investor" (Party "investor" ) (Constant 1010) Close)]
                             (Slot 40)
-                            Refund))]
+                            Close))]
                     (Slot 30)
-                    Refund))]
+                    Close))]
             (Slot 20)
-            Refund))]
+            Close))]
     (Slot 10)
-    Refund
+    Close
 ----
 
 ____

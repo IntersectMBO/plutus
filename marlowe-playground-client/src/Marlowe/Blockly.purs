@@ -393,7 +393,7 @@ toDefinition (ContractType RefundContractType) =
   BlockDefinition
     $ merge
         { type: show RefundContractType
-        , message0: "Refund"
+        , message0: "Close"
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
         }
@@ -872,7 +872,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType Payee where
 
 
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract where
-  blockDefinition RefundContractType _ _ = pure Refund
+  blockDefinition RefundContractType _ _ = pure Close
   blockDefinition PayContractType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- getFieldValue block "account_owner"
@@ -1110,7 +1110,7 @@ instance toBlocklyCases :: ToBlockly (Array Case) where
         nextCase newBlock workspace fromConnection tail
 
 instance toBlocklyContract :: ToBlockly Contract where
-  toBlockly newBlock workspace input Refund = do
+  toBlockly newBlock workspace input Close = do
     block <- newBlock workspace (show RefundContractType)
     connectToPrevious block input
   toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee value contract) = do

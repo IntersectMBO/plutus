@@ -104,7 +104,7 @@ In the next state the contract is waiting for input, and if both Alice and Bob a
 *Lang...V2> txPay2
 [Payment "bob" 450]
 *Lang...V2> con2
-Refund
+Close
 *Lang...V2> state2
 State {accounts = fromList [], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",0)], boundValues = fromList [], minSlot = 0}
 ----
@@ -128,7 +128,7 @@ An alternative execution of the contract is given by
 ----
 *Lang...V2> let (TransactionOutput txWarn2 txPay2 state2 con2) = computeTransaction (TransactionInput (SlotInterval 0 0) [IChoice (ChoiceId "choice" "alice") 0, IChoice (ChoiceId "choice" "bob") 1]) state1 con1
 *Lang...V2> con2
-When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Refund,Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay (AccountId 0 "alice") (Party "bob") (Constant 450) Refund)] 100 Refund
+When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Close,Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay (AccountId 0 "alice") (Party "bob") (Constant 450) Close)] 100 Close
 *Lang...V2> state2
 State {accounts = fromList [(AccountId 0 "alice",450)], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",1)], boundValues = fromList [] , minSlot = 0}
 ----
@@ -143,12 +143,12 @@ This shows that we're now in a contract where the choice is up to Carol, and tha
 *Lang...V2> txPay3
 [Payment "alice" 450]
 *Lang...V2> con3
-Refund
+Close
 *Lang...V2> state3
 State {accounts = fromList [], choices = fromList [(ChoiceId "choice" "alice",0), (ChoiceId "choice" "bob",1),(ChoiceId "choice" "carol",1)], boundValues = fromList [], minSlot = 0}
 ----
 
-So now the contract is ready to `Refund`, but it is clear from `state3` that there are no accounts containing non-zero balances, and so the contract is terminated.
+So now the contract is ready to `Close`, and so to refund any remaining money, but it is clear from `state3` that there are no accounts containing non-zero balances, and so the contract is terminated.
 
 Why is single stepping useful? It is the equivalent of debugging, and we
 are able to see the internal state of the contract at each stage, the

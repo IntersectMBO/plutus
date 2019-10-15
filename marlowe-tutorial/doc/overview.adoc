@@ -16,7 +16,7 @@ first example of a Marlowe contract.
 . xref:marlowe-model#marlowe-model[]
 In this tutorial we look at our general approach to modelling contracts in Marlowe, and the context in which Marlowe contracts are executed: the Cardano blockchain. In doing this we also introduce some of the standard terminology that we will use in describing Marlowe.
 . xref:marlowe-step-by-step#marlowe-step-by-step[]
-This tutorial explains the five ways of building contracts in Marlowe. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Refund`, is a simple contract. 
+This tutorial explains the five ways of building contracts in Marlowe. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Close`, is a simple contract. 
 In explaining these contracts we will also explain Marlowe _values_, _observations_ and _actions_, which are used to supply external information and inputs to a running contract to control how it will evolve.
 . xref:playground-blockly#playground-blockly[]
 Marlowe contracts can  be built using the Blockly visual programming environment, as described in a series of videos making up this tutorial.

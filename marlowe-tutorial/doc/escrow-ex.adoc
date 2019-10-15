@@ -34,7 +34,7 @@ contract is activated.
 The second contract is itself another `When` – asking for a decision from `+bob+` – but inside that, there is a _choice_: `If` 
 `+alice+` and `+bob+` agree on what to do, it is done; if not,  `+carol+` is asked to arbitrate and make a decision.
 
-In fact, we can allow for the option of `+bob+` making the first choice, rather than `+alice+`, and so in general `When` offers= a _list of cases_,footnote:[Lists in Marlowe are included in square brackets, as in `[2,3,4\]`.] each with an action and a corresponding contract that is triggered when that action happens:
+In fact, we can allow for the option of `+bob+` making the first choice, rather than `+alice+`, and so in general `When` offers a _list of cases_,footnote:[Lists in Marlowe are included in square brackets, as in `[2,3,4\]`.] each with an action and a corresponding contract that is triggered when that action happens:
 
 
 [source,haskell]
@@ -96,12 +96,12 @@ the case that the condition of the `+When+` never becomes true. So, we  add time
                     arbitrate)    -- ADDED
         ]
         40            -- ADDED
-        Refund        -- ADDED
+        Close        -- ADDED
 ----
 
-The outermost `When` calls for the first choice to be made by Alice or Bob: if neither of them has made a choice by time `40`, all the funds in the contract are refunded. 
+The outermost `When` calls for the first choice to be made by Alice or Bob: if neither of them has made a choice by time `40`, the contract is closed and all the funds in the contract are refunded. 
 
-`Refund` is typically the last step in every “path” through a Marlowe contract, and its effect is to refund the money in the contract to the participants; we will describe this in more detail in a later tutorial. In this particular case, refund will happen after `40` slots.
+`Close` is typically the last step in every “path” through a Marlowe contract, and its effect is to refund the money in the contract to the participants; we will describe this in more detail in a later tutorial. In this particular case, refund will happen after `40` slots.
 
 Looking at the inner constructs, if a choice has been made, then we wait for a second one. If that is not forthcoming by slot `60`, then Carol is called upon to arbitrate.footnote:[Again, we will describe how `arbitrate` and `agreement` work in a later tutorial.]
 
@@ -129,15 +129,15 @@ contract.
                     arbitrate)   
         ]
         40 
-        Refund)
+        Close)
     ]                                        
     10                                       -- ADDED
-    Refund                                   -- ADDED
+    Close                                   -- ADDED
 ----
 
 A deposit of `price` is requested from `"alice"`: if it is given, then it is held in an account, also called `"alice"`. Accounts like this exist for the life of the contract only; each account belongs to a single contract. 
 
-There is a timeout of `10` slots on making the deposit; if that is reached without a deposit being made, then all the money already in the contract is refunded. In this case, that is simply the end of the contract.
+There is a timeout of `10` slots on making the deposit; if that is reached without a deposit being made, the contract is closed and all the money already in the contract is refunded. In this case, that is simply the end of the contract.
 
 
 === Definitions

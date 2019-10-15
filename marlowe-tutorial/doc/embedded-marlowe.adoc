@@ -20,7 +20,7 @@ While we presented it there as a “monolothic” contract, we can use Haskell d
 contract :: Contract
 contract = When [Case (Deposit "alice" "alice" price) inner]
                 10
-                Refund
+                Close
 
 inner :: Contract
 inner =
@@ -40,7 +40,7 @@ inner =
                     arbitrate)
         ]
         40
-        Refund                             
+        Close                             
 ----
 Many of the terms here are themselves defined within Haskell. Principally, we have the two contracts that deal with what happens when there is `agreement` between Alice and Bob, and if not, how Carol should `arbitrate` between them:
 
@@ -50,15 +50,15 @@ agreement :: Contract
 agreement = 
   If 
     (aliceChosen `ValueEQ` (Constant 0))
-    (Pay "alice" (Party "bob") price Refund)
-    Refund
+    (Pay "alice" (Party "bob") price Close)
+    Close
 
 arbitrate :: Contract
 arbitrate =
-  When  [ Case carolRefund Refund,
-          Case carolPay (Pay "alice" (Party "bob") price Refund) ]
+  When  [ Case carolClose Close,
+          Case carolPay (Pay "alice" (Party "bob") price Close) ]
         100
-        Refund
+        Close
 ----
 Within these contracts we are also using simple abbreviations such as 
 
@@ -148,12 +148,12 @@ When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund) Refund)
+                             (Constant 450) Close) Close)
                        (When [
                              (Case
                                 (Choice
                                    (ChoiceId "choice" "carol") [
-                                   (Bound 1 1)]) Refund)
+                                   (Bound 1 1)]) Close)
                              ,
                              (Case
                                 (Choice
@@ -162,12 +162,12 @@ When [
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
-                                   (Constant 450) Refund))] 100 Refund)))] 60
+                                   (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
                           (Choice
                              (ChoiceId "choice" "carol") [
-                             (Bound 1 1)]) Refund)
+                             (Bound 1 1)]) Close)
                        ,
                        (Case
                           (Choice
@@ -176,7 +176,7 @@ When [
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
-                             (Constant 450) Refund))] 100 Refund)))
+                             (Constant 450) Close))] 100 Close)))
            ,
            (Case
               (Choice
