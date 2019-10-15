@@ -270,7 +270,8 @@ These are shown in Figure~\ref{fig:basic-types}.
 \end{ruledfigure}
 
 \noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
-natural numbers and non-negative integers.  A bytestring is a sequence
+natural numbers and non-negative integers (hence also \qty{} and \qtypm{}).
+A bytestring is a sequence
 of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
 presented as sequences of hexadecimal digits.
 
@@ -816,7 +817,8 @@ with the sub-currency for each token limited to a supply of one.
 \noindent The \qtymap{} type represents a collection of funds from a
 number of currencies and their subcurrencies, with all quantities
 being non-negative.  The \qtymappm{} type is similar, but
-negative quantities are allowed.
+negative quantities are allowed.  As with \qty{} and \qtypm{}, we regard
+\qtymap{} as a subtype of \qtymappm{} and convert freely between them.
 
 \begin{ruledfigure}{H}
   \[
