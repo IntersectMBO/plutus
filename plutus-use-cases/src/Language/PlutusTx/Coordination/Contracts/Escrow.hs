@@ -17,7 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , payToPubKeyTarget
     , escrowAddress
     , escrowScript
-    , targetValue
+    , targetTotal
     , escrowContract
     -- * Actions
     , pay
@@ -112,11 +112,14 @@ PlutusTx.makeLift ''EscrowParams
 
 -- | The total 'Value' that must be paid into the escrow contract
 --   before it can be unlocked
-targetValue :: EscrowParams -> Value
-targetValue = foldl (\vl tgt -> vl + targetVal tgt) mempty . escrowTargets where
-    targetVal = \case
-        PubKeyTarget _ vl -> vl
-        ScriptTarget _ _ vl -> vl
+targetTotal :: EscrowParams -> Value
+targetTotal = foldl (\vl tgt -> vl + targetValue tgt) mempty . escrowTargets where
+
+-- | The 'Value' specified by an 'EscrowTarget'
+targetValue :: EscrowTarget -> Value
+targetValue = \case
+    PubKeyTarget _ vl -> vl
+    ScriptTarget _ _ vl -> vl
 
 -- | Create a 'Ledger.TxOut' value for the target
 mkTxOutput :: EscrowTarget -> TxOut
@@ -124,13 +127,21 @@ mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
     ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.AddressOf (Scripts.unsafePlcAddress hsh)) ds
 
-
 data Action = Redeem | Refund
 
 PlutusTx.makeIsData ''Action
 PlutusTx.makeLift ''Action
 
 {-# INLINABLE meetsTarget #-}
+-- | @ptx `meetsTarget` tgt@ if @ptx@ pays at least @targetValue tgt@ to the
+--   target address.
+--
+--   The reason why this does not require the target amount to be equal
+--   to the actual amount is to enable any excess funds consumed by the
+--   spending transaction to be paid to target addresses. This may happen if
+--   the target address is also used as a change address for the spending
+--   transaction, and allowing the target to be exceed prevents outsiders from
+--   poisoning the contract by adding arbitrary outputs to the script address.
 meetsTarget :: PendingTx -> EscrowTarget -> Bool
 meetsTarget ptx = \case
     PubKeyTarget pk vl ->
@@ -242,16 +253,13 @@ redeem escrow = do
     currentSlot <- awaitSlot 0
     unspentOutputs <- utxoAt (escrowAddress escrow)
     let addr = escrowAddress escrow
-        valRange = 
-            let itvl = Interval.from 1
-                upperBound = Interval.strictUpperBound (escrowDeadline escrow)
-            in itvl { Interval.ivTo = upperBound }
+        valRange = Interval.to (pred $ escrowDeadline escrow)
         tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance escrow) Redeem
             & validityRange .~ valRange
             & outputs .~ fmap mkTxOutput (escrowTargets escrow)
     if currentSlot >= escrowDeadline escrow
     then pure $ RedeemFail DeadlinePassed
-    else if (values unspentOutputs ^. at addr . folded) `lt` targetValue escrow
+    else if (values unspentOutputs ^. at addr . folded) `lt` targetTotal escrow
          then pure $ RedeemFail NotEnoughFundsAtAddress
          else RedeemSuccess <$> writeTxSuccess tx
 
