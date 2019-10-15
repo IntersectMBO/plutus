@@ -845,7 +845,7 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovela
   , b_ [text ((show accNum) <> " of " <> (show owner))]
   , text " to "
   , b_ [text case payee of
-               (Account (AccountId accNum2 owner2)) -> ("account" <> (show accNum2) <> " of " <> (show owner2))
+               (Account (AccountId accNum2 owner2)) -> ("account " <> (show accNum2) <> " of " <> (show owner2))
                (Party dest) -> ("party " <> (show dest))
        ]
   , text "."
@@ -858,7 +858,7 @@ displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace a
   , b_ [text ((show accNum) <> " of " <> (show owner))]
   , text " to "
   , b_ [text case payee of
-               (Account (AccountId accNum2 owner2)) -> ("account" <> (show accNum2) <> " of " <> (show owner2))
+               (Account (AccountId accNum2 owner2)) -> ("account " <> (show accNum2) <> " of " <> (show owner2))
                (Party dest) -> ("party " <> (show dest))
        ]
   , text " but there is only "
