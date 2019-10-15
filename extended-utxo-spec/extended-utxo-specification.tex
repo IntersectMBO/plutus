@@ -307,9 +307,9 @@ conventions used in the remainder of the document.
   \begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
 
-\item All scripts are of type \script.
+\item All scripts are of type \script{}.
 
-\item The only operation on \script from the ledger's
+\item The only operation on \script{} from the ledger's
   perspective is applying a validator script to three arguments,
   which is denoted by $\llbracket \cdots \rrbracket :
   \script \rightarrow \Data \times \Data
@@ -460,7 +460,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   (also encoded as \Data) which we call \ptx{}: this contains data
   such as the validity interval of the pending transaction and
   information about the inputs and outputs.  See
-  Section~\ref{sec:pendingtx} for more information on the \ptx
+  Section~\ref{sec:pendingtx} for more information on the \ptx{}
   structure.
 
 \end{itemize}
@@ -471,7 +471,7 @@ $
 \Data \times \Data \times \Data \rightarrow \B
 $. At the Plutus level in Cardano, the validator is a program which
 consumes the redeemer, the validation data, and a \Data{} encoding
-of the \ptx structure as arguments.  The validator may
+of the \ptx{} structure as arguments.  The validator may
 expect these objects to have some specific form (a single bytestring
 or a list of integers, for example) and if it is supplied with data
 with an incorrect format it should fail and return \false.
@@ -493,8 +493,8 @@ The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
 \citep{Zahnentferner18-UTxO}, except that we have added the new
 features mentioned above (the validity interval, the validation data
-and the \ptx structure) and changed the type of the redeemer from
-\script to \Data{}.
+and the \ptx{} structure) and changed the type of the redeemer from
+\script{} to \Data{}.
 
 Figure~\ref{fig:eutxo-1-types} lists the types which
 describe transactions in the basic EUTXO model.
@@ -565,12 +565,12 @@ than this, but the only property that we really require is that
 transactions in the ledger have some kind of address which allows them
 to be uniquely identified and retrieved.
 
-\subsubsection{The \ptx type}
+\subsubsection{The \ptx{} type}
 \label{sec:pendingtx}
 Recall from the introduction to Section~\ref{sec:eutxo-1} that when a
 transaction input is being validated, the validator script is supplied
-with an object of type \ptx which contains information about the
-pending transaction.  The \ptx type for the current version of
+with an object of type \ptx{} which contains information about the
+pending transaction.  The \ptx{} type for the current version of
 EUTXO-1 is defined in Figure~\ref{fig:ptx-1-types}, along with some
 related types.
 
@@ -595,13 +595,13 @@ related types.
      &&\forge: \qty)
    \end{arraydefs}
  \]
-  \caption{The \ptx type for the EUTXO-1 model}
+  \caption{The \ptx{} type for the EUTXO-1 model}
   \label{fig:ptx-1-types}
 \end{ruledfigure}
 %%
-\noindent The \ptx type is essentially a summary of the information
+\noindent The \ptx{} type is essentially a summary of the information
 contained in the $\eutxotx$ type in
-Figure~\ref{fig:eutxo-1-types}. The \fee, \forge, and
+Figure~\ref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
 \i{validityInterval} fields are copied directly from the pending
 transaction.  The \i{outputInfo} field contains information about the
 outputs which will be produced if the pending transaction validates
@@ -622,12 +622,12 @@ relating to the input currently undergoing validation.
 $$
 \tau: \eutxotx \times \N \rightarrow \ptx
 $$
-which produces the relevant \ptx for a transaction $t$ and an input
+which produces the relevant \ptx{} for a transaction $t$ and an input
 $i$, and a function
 $$
 \delta: \ptx \rightarrow \Data
 $$
-which translates a \ptx object into a \Data{} value containing
+which translates a \ptx{} object into a \Data{} value containing
 exactly the same information, encoded in some standard way enabling it
 to be accessed by a validator script.  Assuming we have an
 appropriate hashing function, it is straightforward to define $\tau$.
@@ -638,7 +638,7 @@ discuss it further.
   specify $\delta$.  Maybe we should?}
 \todokwxm{... or even just do the whole translation in one step.}
 
-\paragraph{Determinism.}  The information provided in the \ptx
+\paragraph{Determinism.}  The information provided in the \ptx{}
 structure is sufficiently limited that the validation process
 becomes \textit{deterministic},  which has important implications
 for fee calculations.  See Note~\ref{note:validation-determinism}
@@ -750,7 +750,7 @@ $\lambda^{\prime}$ valid and $t$ valid for $\lambda^{\prime}$.
 
 
 In practice, validity imposes a limit on the size of the
-\script values of the $\validator$, $\redeemer$ and
+\script{} values of the $\validator$, $\redeemer$ and
 $\valdata$ fields and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
@@ -809,12 +809,12 @@ with the sub-currency for each token limited to a supply of one.
                 for the \s{Address} type\\
              &  & from Figure~\ref{fig:basic-types}.\\
     \\
-    \nativeCur &: & a distinguished \currency representing the native currency of the ledger.\\
+    \nativeCur &: & a distinguished \currency{} representing the native currency of the ledger.\\
     \\
     \token   &: & a type consisting of identifiers for individual tokens.  These will probably\\
              &  & be hashes in practice.\\
     \\
-    \nativeTok &: & a distinguished \token representing the currency token of the native currency.\\
+    \nativeTok &: & a distinguished \token{} representing the currency token of the native currency.\\
     \\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
     \\
@@ -825,9 +825,9 @@ with the sub-currency for each token limited to a supply of one.
   \label{fig:more-basic-types}
 \end{ruledfigure}
 
-\noindent The $\qtymap$ type represents a collection of funds from a
+\noindent The \qtymap{} type represents a collection of funds from a
 number of currencies and their subcurrencies, with all quantities
-being non-negative.  The $\qtymap^{\pm}$ type is similar, but
+being non-negative.  The \qtymappm{} type is similar, but
 negative quantities are allowed.
 
 \begin{ruledfigure}{H}
@@ -869,11 +869,11 @@ using \qtymap{}s with the \nativeCur{} identifier. The one exception is the
 \fee{} field, which continues to be a simple \qty{}. This represents a quantity
 in the native currency, as fees can only be paid in that.
 
-\subsection{The \ptx type for EUTXO-2}
+\subsection{The \ptx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
-The \ptx type must be also be updated for the EUTXO-2 model.  All
-that is required is to replace $\qty$ by $\qtymap$ everywhere in
-Figure~\ref{fig:ptx-1-types} except for the $\fee$ field: for reference
+The \ptx{} type must be also be updated for the EUTXO-2 model.  All
+that is required is to replace \qty{} by \qtymap{} everywhere in
+Figure~\ref{fig:ptx-1-types} except for the \fee{} field: for reference
 the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \[
@@ -896,7 +896,7 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
      &&\forge: \qtymap)
    \end{arraydefs}
  \]
-  \caption{The \ptx type for the EUTXO-2 model}
+  \caption{The \ptx{} type for the EUTXO-2 model}
   \label{fig:ptx-2-types}
 \end{ruledfigure}
 
@@ -1084,7 +1084,7 @@ This strategy is not applied to validation data since, as the name
 would suggest, we expect these to be small pieces of data (public
 keys, for example) which would not incur large storage charges.
 
-\note{Validation data in \ptx}
+\note{Validation data in \ptx{}}
 \label{note:validation-data}
 In Figures~\ref{fig:ptx-1-types} and~\ref{fig:ptx-2-types} the
 \textsf{OutputInfo} type includes the validation data for the outputs
@@ -1098,13 +1098,13 @@ later transactions.  See~\cite{Plutus-book} for examples of this.
 
 
 \note{Determinism of the validation process.}
-\label{note:validation-determinism} The \ptx type is the only
+\label{note:validation-determinism} The \ptx{} type is the only
 information about the ``outside world'' available to a validator
 script at the time of validation.  Allowing the validator access to
 this information gives the EUTXO models a considerable amount of
 power, as can be seen from the example contracts
 in~\cite{Plutus-book}.  However, it is important not to make too much
-information available to the validator.  The choice of the \ptx type
+information available to the validator.  The choice of the \ptx{} type
 above means that the information available to the validator is
 essentially independent of the state of the blockchain, and in
 particular, it is independent of time (note that the check that the
@@ -1141,7 +1141,7 @@ Whenever a new quantity of the currency is forged,
 rules~\ref{rule:custom-forge}, \ref{rule:all-inputs-validate-2}, and
 \ref{rule:validator-scripts-hash-2} imply that $H$ must be executed;
 $H$ is provided with the \forge{} field of the transaction via the
-\ptx object, and so it knows how much of the currency is to be
+\ptx{} object, and so it knows how much of the currency is to be
 forged and can respond appropriately.
 
 The advantage of this scheme is that custom currencies can be handled
@@ -1190,14 +1190,14 @@ Note~\ref{note:monetary-policies} allow us to implement fungible
 states'':
 \begin{itemize}
 \item Standard (fungible) currencies are implemented by issuing
-  currencies with a single $\token$.
+  currencies with a single \token{}.
 \item Non-fungible token currencies are implemented by only ever
-  issuing single quantities of many unique $\token$s.
+  issuing single quantities of many unique \token{}s.
 \item Note that there is nothing in this model which enforces
-  uniqueness: having multiples of a single $\token$ merely means that
+  uniqueness: having multiples of a single \token{} merely means that
   those can be used fungibly. If a currency wants to make sure it only
   issues unique tokens it must track this itself.  These ``mixed'' token
-  currencies can have many $\token$s, but these can have more than unit
+  currencies can have many \token{}s, but these can have more than unit
   quantities in circulation.  These can be useful to model distinct
   categories of thing where there are fungible quantities within
   those, for example share classes. \red{Eh?}
@@ -1220,10 +1220,10 @@ harder to maintain though.
 \smallskip  Another optimisation would be possible if one wished to
 implement custom currencies but not NFTs: since in this case every
 currency would only have a single token, the tokens could be omitted
-and the $\qtymap$ replaced with a map from currency ids to quantities.
+and the \qtymap{} replaced with a map from currency ids to quantities.
 
 \smallskip A more significant cost may be that we can no longer use
-\verb|{-# UNPACK #-}| when our $\qty$ type stops being a simple
+\verb|{-# UNPACK #-}| when our \qty{} type stops being a simple
 combination of wrappers and products around primitives, but this is
 again an issue with any multi-currency proposal.
 
