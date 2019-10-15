@@ -70,7 +70,7 @@
 %% A version of ^{\prime} for use in text mode
 \makeatletter
 \DeclareTextCommand{\textprime}{\encodingdefault}{%
-  \mbox{$\m@th'\kern-\scriptspace$}% 
+  \mbox{$\m@th'\kern-\scriptspace$}%
 }
 \makeatother
 
@@ -115,6 +115,8 @@
 \newcommand{\FinSet}[1]{\ensuremath{\s{FinSet}[#1]}}
 \newcommand{\Map}[2]{\ensuremath{\s{Map}[#1,#2]}}
 \newcommand{\dom}{\ensuremath{\mathop{\mathrm{dom}}}}
+\newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
+\newcommand{\extended}[1]{#1^\updownarrow}
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
@@ -258,7 +260,11 @@ These are shown in Figure~\ref{fig:basic-types}.
       \H&: the type of \textit{bytestrings}, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$\\
       $\qty = \N$&: an amount of currency, always non-negative\\
       $\qtypm = \Z$&: a possibly negative amount of currency\\
-      $\s{SlotNumber} = \N$&: a slot number\\
+      $\slotnum = \N$&: a slot number\footnote{A \textit{slot} is the
+      opportunity to create a new block, occurring approximately every
+      20 seconds in Cardano.  The slot number is a useful measure of
+      time on the blockchain, avoiding difficulties with synchronisation
+      and accuracy.}\\
       $\s{Address} = \N$&: the address of an object in the blockchain\\
       $\s{TxId} = \N$&: the identifier of a previous transaction on the chain\\
     \end{tabular}
@@ -316,7 +322,7 @@ conventions used in the remainder of the document.
 
 \item If $T$ is a type then $\FinSet{T}$ is the type of finite sets
   with elements of type $T$.
-  
+
 \item A list $\lambda$ of type $\List{T}$ is either the empty list
   $[]$ or a list $e :: \lambda'$ with $head$ $e$ of type $T$ and
   $tail$ $\lambda'$ of type $\List{T}$. A list has only a finite
@@ -337,7 +343,7 @@ conventions used in the remainder of the document.
     Equality for maps is defined in the obvious way: $m_1 = m_2$ if
     and only if $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$ for all
     $k \in \dom m_1$ (assuming we have decidable equality in $V$).
-    
+
   \item If the type $M$ is a monoid with binary operation $+$ (for
     example, a numeric type) the we define the sum of two maps
     $f, g \in \Map{K}{M}$ to be the map $f+g \in \Map{K}{M}$ with
@@ -359,10 +365,17 @@ conventions used in the remainder of the document.
       operation $+$ which we have just defined, with the empty map $\{\}$ as
       identity element.
 
-    \item $x \mapsto f(x)$ denotes an anonymous function.
+  \item $x \mapsto f(x)$ denotes an anonymous function.
 
   \item A cryptographic
     collision-resistant hash of a value $c$ is denoted $c^{\#}$.
+
+  \item For a type $A$ which forms a partial order, $\extended{A}$ is the same
+    type extended with a top element $\infty$ and a bottom element $-\infty$.
+
+  \item For a type $A$ which forms a total order,  $\Interval{A}$ is the type
+    of intervals over that type, whose endpoints may be either closed or open.
+    The type $\Interval{A}$ forms a lattice.
 
 \end{itemize}
 \caption{Basic notation}
@@ -410,16 +423,12 @@ of type \Data{}, converting them into a suitable internal representation.
 
 \section{EUTXO-1: Enhanced scripting}
 \label{sec:eutxo-1}
-The EUTXO-1 model adds the following new features to the model 
+The EUTXO-1 model adds the following new features to the model
 proposed in~\citep{Zahnentferner18-UTxO}:
 
 \begin{itemize}
-\item Every transaction has a \textit{validity interval}, consisting
-  of a range of slot numbers:\footnote{A \textit{slot} is the
-    opportunity to create a new block, occurring approximately every
-    20 seconds in Cardano.  The slot number is a useful measure of
-    time on the blockchain, avoiding difficulties with synchronisation
-    and accuracy.} a core node will only process the transaction if
+\item Every transaction has a \textit{validity interval}, of type $\Interval{\extended{\slotnum}}$.
+  A core node will only process the transaction if
   the current slot number lies within the transaction's validity
   interval.
 
@@ -436,7 +445,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data.
-  
+
 \item Validation of an output is performed by running the validator
   script with the redeemer and validation data as input; the validator
   is also provided with information about the pending transaction (ie,
@@ -447,7 +456,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   information about the inputs and outputs.  See
   Section~\ref{sec:pendingtx} for more information on the $\ptx$
   structure.
-  
+
 \end{itemize}
 
 
@@ -487,7 +496,7 @@ describe transactions in the basic EUTXO model.
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
-    
+
     \s{Output } &= (&\addr: \s{Address},\\
     && \i{value}: \qty,\\
     &&  \valdata: \Data)\\
@@ -500,7 +509,7 @@ describe transactions in the basic EUTXO model.
      \\
      \eutxotx\s{ } &= (&\inputs: \FinSet{\s{Input}},\\
      &&\outputs: \List{\s{Output}},\\
-     &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      && \fee: \qty,\\
      &&\forge: \qty) \\
      \\
@@ -529,12 +538,6 @@ output of the transaction is required.
 of outputs, but validator scripts as components of inputs, even though
 a validator is conceptually part of an output.  The reasons for this
 are explained in Note~\ref{note:scripts}.
-
-\paragraph{Validity intervals.} We allow the second component of a
-validity interval to take the value $\infty$ to indicate that there is
-no upper bound on the validity of a transaction.  Slot numbers start
-at 0, so if the first component of the validity interval is 0
-then there is no lower bound on the transaction's validity.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -568,7 +571,7 @@ related types.
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
-    
+
     \s{OutputInfo } &= (& \i{value}: \qty,\\
     && \i{validatorHash}: \s{Address},\\
     &&  \valdata: \Data)\\
@@ -581,7 +584,7 @@ related types.
      \ptx\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}},\\
      &&\i{thisInput}: \N,\\
      &&\i{outputInfo}: \List{\s{OutputInfo}},\\
-     &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      && \fee: \qty,\\
      &&\forge: \qty)
    \end{arraydefs}
@@ -646,9 +649,9 @@ Firstly, following~\citep{Zahnentferner18-UTxO} we define
 $$
   \txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}
   $$
-% 
+%
   by
-% 
+%
 $$
 \txunspent(t) = \{(id,1), \ldots, (\mathit{id},\left|t.outputs\right|)\}
 $$
@@ -659,7 +662,7 @@ $$
 \]
 %
 by
-% 
+%
 \begin{align*}
    \unspent([]) &=\emptymap \\
    \unspent(t::\lambda) &= (\unspent(\lambda) \setminus t.\inputs) \cup \txunspent(t).
@@ -708,7 +711,7 @@ the latter in condition \ref{rule:all-inputs-validate}.
           field is only valid if the ledger $\lambda$ is empty (that
           is, if it is the initial transaction).}
     \end{center}
-      
+
     \item \label{rule:value-is-preserved} \textbf{Value is preserved}:
     \[
       t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\val.
@@ -833,7 +836,7 @@ negative quantities are allowed.
 \\
     \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
     &&\outputs: \List{\s{Output}_2},\\
-    &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+    &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
     &&\fee: \qty,\\
     &&\forge: \qty,\\
     &&\customforge: \qtymap^{\pm})\\
@@ -865,7 +868,7 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \[
   \begin{arraydefs}{rll}
-    
+
     \s{OutputInfo}_2\s{ } &= (& \i{value}: \tokenmap,\\
     && \i{validatorHash}: \s{Address},\\
     &&  \i{datascriptHash}: \s{Address})\\
@@ -878,7 +881,7 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
      \ptx_2\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}_2},\\
      &&\i{thisInput}: \N,\\
      &&\i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
-     &&\i{validityInterval}: \slotnum \times (\slotnum \cup \{\infty\}),\\
+     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      &&\fee: \qty,\\
      &&\forge: \tokenmap)
    \end{arraydefs}
@@ -947,7 +950,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
               A transaction with a non-zero \forge{} field is only
             valid if the ledger $\lambda$ is empty
             (that is, if it is the initial
-            transaction). 
+            transaction).
           \item \label{rule:custom-forge}
             A transaction with a non-empty \customforge{} field is
             only valid if for every key $h$ in $t.\customforge$, there
@@ -970,7 +973,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
               \mu\left(\sum_{o \in t.\outputs} o.\customvals\right)
             \]
           \end{enumerate}
-          
+
           \end{minipage}
     \item \label{rule:no-double-spending-2} \textbf{No output is double spent:}
     \[
@@ -1132,7 +1135,7 @@ also avoids overpayment due to overestimating the fees).
   contributions will be made, or whether a campaign will succeed or
   fail.  Thus we won't know how much the final transaction will cost
   until just before it happens.}
-  
+
 \note{Zero quantities.}
 \label{note:zero-quantities}
 We require currency quantities to be non-negative, but we do not
@@ -1172,7 +1175,7 @@ tokens left.  If we put $\mprime = \mu(M)$ then it is guaranteed that
 $\mprime[c] \ne \{\}$ for all $c \in \dom{\mprime}$ and that
 $M^{\prime}[c][t] \ne 0$ for all $c \in \dom{M^{\prime}}$ and
 $t \in \dom{M^{\prime}[c]}$,
-  
+
 
 \medskip
 \todokwxm{Maybe this is getting out of hand.  Another way to do this
@@ -1181,7 +1184,7 @@ $t \in \dom{M^{\prime}[c]}$,
   otherwise.  For validity we'd then have to assert that $\kappa(k)$
   balances up for every $k$ in the union of the domains of the various
   maps involved.  This could get typographically messy.}
-  
+
 
 
 \note{Monetary policies for custom currencies.}
@@ -1230,7 +1233,7 @@ output is spent at the same time, so it can only be forged once.
 \smallskip
 \todokwxm{The use of the term ``forging'' is a bit confusing here,
   since it also means ``counterfeiting''.}
-  
+
 % \todojm{I think there are two different concerns:
 %  (1) Using the same monetary policy multiple times;
 %   (2) Preventing unauthorised forging of a currency.
@@ -1292,5 +1295,3 @@ again an issue with any multi-currency proposal.
 
 
 \end{document}
-
-
