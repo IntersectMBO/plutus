@@ -302,6 +302,10 @@ conventions used in the remainder of the document.
   \begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
 
+\item If a type $M$ is a monoid, we use $+$ for the monoidal operation and $0$
+  for the unit of the monoid. If $M$ is a group, we use $-$ for the group
+  inverse operation. This should never be ambiguous.
+
 \item All scripts are of type \script{}.
 
 \item The only operation on \script{} from the ledger's
@@ -309,6 +313,7 @@ conventions used in the remainder of the document.
   which is denoted by $\llbracket \cdots \rrbracket :
   \script \rightarrow \Data \times \Data
     \times \Data \rightarrow \B$.
+
 \item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
   \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
 
@@ -333,21 +338,20 @@ conventions used in the remainder of the document.
     $k \in \support(f) \Leftrightarrow f(k) \neq 0$.
     Equality on finitely-supported functions is defined as pointwise equality.
 
-  \item If the type $M$ is a monoid with binary operation $+$ (for
-    example, a numeric type) the we define the sum of two finitely-supported
+  \item If the type $M$ is a monoid then we define the sum of two finitely-supported
     functions
     $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
     support $\support (f+g) = \support f \cup \support g$ given by
     \[(f+g)(k) = f(k) + g(k) \]
     We generalise this to the sum of a finite number of maps using
-    the $\sum$ notation in the usual way; care is required if the
-    operation $+$ is non-commutative, since then the sum of a number of
+    the $\sum$ notation in the usual way; care is required if
+    $+$ is non-commutative, since then the sum of a number of
     functions will depend on the order in which they appear. Note that
     the type $\FinSup{K}{M}$ itself becomes a monoid under the
     operation $+$ which we have just defined, with the empty function as
     identity element.
 
-  \item If the type $M$ is a group with inverse operation $-$, then we can
+  \item If the type $M$ is a group, then we can
     similarly define the inverse of a finitely-supported function $f$ as
     the function $(-f)$ with the same support, given by
     \[ (-f)(k) = -f(k) \]
