@@ -77,6 +77,8 @@
 \renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
 \renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
 \newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
+\newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
 
 \newenvironment{arraydefs}[1]{\setlength{\arraycolsep}{0pt}\begin{array}{#1}}{\end{array}}
 %
@@ -102,7 +104,6 @@
 \newcommand\rfskip{7pt}
 \newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
 
-
 %% Various text macros
 \newcommand{\true}{\textsf{true}}
 \newcommand{\false}{\textsf{false}}
@@ -113,14 +114,17 @@
 \newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
 \newcommand{\extended}[1]{#1^\updownarrow}
 \newcommand{\FinSup}[2]{\ensuremath{\s{FinSup}[#1,#2]}}
-\newcommand{\support}{\ensuremath{\mathrm{support}}}
+\newcommand{\support}{\msf{support}}
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
+\newcommand{\scriptAddr}{\msf{scriptAddr}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
 
 % Macros for eutxo things.
-\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
-\newcommand{\txid}{\mi{txid}}
+\newcommand{\TxId}{\ensuremath{\s{TxId}}}
+\newcommand{\txId}{\msf{txid}}
+\newcommand{\txrefid}{\mi{id}}
+\newcommand{\Address}{\ensuremath{\s{Address}}}
 \newcommand{\idx}{\mi{index}}
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
@@ -132,7 +136,7 @@
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
 \newcommand{\valdata}{\mi{valdata}}
-\newcommand{\Data}{\ensuremath{\mathsf{Data}}}
+\newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
 \newcommand{\txin}{\mi{in}}
@@ -140,8 +144,7 @@
 \newcommand{\id}{\mi{id}}
 \newcommand{\getvalue}{\msf{getvalue}}
 
-\newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
-\newcommand{\slotnum}{\msf{SlotNumber}}
+\newcommand{\slotnum}{\ensuremath{\s{SlotNumber}}}
 \newcommand{\spent}{\msf{spentOutputs}}
 \newcommand{\unspent}{\msf{unspentOutputs}}
 \newcommand{\txunspent}{\msf{unspentTxOutputs}}
@@ -247,78 +250,27 @@ notation established by \citep{Zahnentferner18-UTxO}, except that we make use
 of finitely-supported functions in most places that \citep{Zahnentferner18-UTxO}
 use maps.
 
-\subsection{Basic types}
-\noindent Throughout the document we assume a number of basic types.
-These are shown in Figure~\ref{fig:basic-types}.
-
-\begin{ruledfigure}{H}
-  \center{
-    \begin{tabular}{rl}
-      \B&: the type of booleans, $\{\false, \true\}$\\
-      \N&: the type of natural numbers, $\{0, 1, 2, \ldots\}$\\
-      \Z&: the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$\\
-      \H&: the type of \textit{bytestrings}, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$\\
-      $\qty = \N$&: an amount of currency, always non-negative\\
-      $\qtypm = \Z$&: a possibly negative amount of currency\\
-      $\slotnum = \N$&: a slot number\\
-      $\s{Address} = \N$&: the address of an object in the blockchain\\
-      $\s{TxId} = \N$&: the identifier of a previous transaction on the chain\\
-    \end{tabular}
-  }
-  \caption{Basic types}
-  \label{fig:basic-types}
-\end{ruledfigure}
-
-\noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
-natural numbers and non-negative integers (hence also \qty{} and \qtypm{}).
-A bytestring is a sequence
-of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
-presented as sequences of hexadecimal digits.
-
-\medskip
-\noindent In practice an \textsf{Address} will be a
-collision-resistant hash of some object (so the address of an object
-$X$ is $X^{\#}$ in the notation of Figure~\ref{fig:basic-notation}),
-and the blockchain will provide an efficient way to retrieve the
-original object given its hash.  Compiled Plutus Core scripts are
-stored and transmitted in a serialised form, and when we talk about
-the hash of a Plutus Core script we mean the hash of the serialised
-version.
-
-% Accessing objects indirectly via addresses is helpful because it can
-% help to reduce memory and disk usage: for example, there may be
-% scripts for common validation scenarios used in many transactions, and
-% it is more efficient to store single copies of such scripts rather
-% than having hundreds of transactions each with their own copy.
-
-\medskip
-\noindent We assume that every transaction in a ledger has a unique identifier
-of type \s{TxId}: in an implementation this would probably be the
-hash of the transaction.
-
-\subsection{Basic notation}
-Figure~\ref{fig:basic-notation} describes some notation and
+\subsection{Basic types and operations}
+Figure~\ref{fig:basic-notation} describes some types, notation, and
 conventions used in the remainder of the document.
+
 \begin{ruledfigure}{H}
   \begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
+
+\item \B{} denotes the type of booleans, $\{\false, \true\}$.
+\item \N{} denotes the type of natural numbers, $\{0, 1, 2, \ldots\}$.
+\item \Z{} denotes the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$.
+\item \H{} denotes the type of \textit{bytestrings}, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$.
 
 \item If a type $M$ is a monoid, we use $+$ for the monoidal operation and $0$
   for the unit of the monoid. If $M$ is a group, we use $-$ for the group
   inverse operation. This should never be ambiguous.
 
-\item All scripts are of type \script{}.
-
-\item The only operation on \script{} from the ledger's
-  perspective is applying a validator script to three arguments,
-  which is denoted by $\llbracket \cdots \rrbracket :
-  \script \rightarrow \Data \times \Data
-    \times \Data \rightarrow \B$.
-
 \item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
   \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
 
-\item If $t$ is a value of a record type $T$ and $\phi$ is the name
+  If $t$ is a value of a record type $T$ and $\phi$ is the name
   of a field of $T$ then $t.\phi$ denotes the value of $\phi$ for
   $t$.
 
@@ -333,46 +285,51 @@ conventions used in the remainder of the document.
 %The concatenation of two lists $\lambda_1$ and $\lambda_2$
 %  is denoted $\lambda_1 ::: \lambda_2$.
 
-  \item For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the type of
-    \textit{finitely-supported functions} from $K$ to $V$. That is, there is a
-    function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
-    $k \in \support(f) \Leftrightarrow f(k) \neq 0$.
-    Equality on finitely-supported functions is defined as pointwise equality.
+\item For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the type of
+  \textit{finitely-supported functions} from $K$ to $V$. That is, there is a
+  function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
+  $k \in \support(f) \Leftrightarrow f(k) \neq 0$.
 
-  \item If the type $M$ is a monoid then we define the sum of two finitely-supported
-    functions
-    $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-    support $\support (f+g) = \support(f) \cup \support(g)$ given by
-    \[(f+g)(k) = f(k) + g(k) \]
-    We generalise this to the sum of a finite number of maps using
-    the $\sum$ notation in the usual way; care is required if
-    $+$ is non-commutative, since then the sum of a number of
-    functions will depend on the order in which they appear. Note that
-    the type $\FinSup{K}{M}$ itself becomes a monoid under the
-    operation $+$ which we have just defined, with the empty function as
-    identity element.
+  Equality on finitely-supported functions is defined as pointwise equality.
 
-  \item If the type $M$ is a group, then we can
-    similarly define the inverse of a finitely-supported function $f$ as
-    the function $(-f)$ with the same support, given by
-    \[ (-f)(k) = -f(k) \]
+  If the type $M$ is a monoid then we define the sum of two finitely-supported
+  functions
+  $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
+  support $\support (f+g) = \support(f) \cup \support(g)$ given by
+  \[(f+g)(k) = f(k) + g(k) \]
+  We generalise this to the sum of a finite number of maps using
+  the $\sum$ notation in the usual way; care is required if
+  $+$ is non-commutative, since then the sum of a number of
+  functions will depend on the order in which they appear. Note that
+  the type $\FinSup{K}{M}$ itself becomes a monoid under the
+  operation $+$ which we have just defined, with the empty function as
+  identity element.
 
-  \item $x \mapsto f(x)$ denotes an anonymous function.
+  If the type $M$ is a group, then we can
+  similarly define the inverse of a finitely-supported function $f$ as
+  the function $(-f)$ with the same support, given by
+  \[ (-f)(k) = -f(k) \]
 
-  \item A cryptographic
-    collision-resistant hash of a value $c$ is denoted $c^{\#}$.
+\item $x \mapsto f(x)$ denotes an anonymous function.
 
-  \item For a type $A$ which forms a partial order, $\extended{A}$ is the same
-    type extended with a top element $\infty$ and a bottom element $-\infty$.
+\item A cryptographic collision-resistant hash of a value $c$ is denoted $c^{\#}$.
 
-  \item For a type $A$ which forms a total order,  $\Interval{A}$ is the type
-    of intervals over that type, whose endpoints may be either closed or open.
-    The type $\Interval{A}$ forms a lattice.
+\item For a type $A$ which forms a partial order, $\extended{A}$ is the same
+  type extended with a top element $\infty$ and a bottom element $-\infty$.
 
+\item For a type $A$ which forms a total order,  $\Interval{A}$ is the type
+  of intervals over that type, whose endpoints may be either closed or open.
+  The type $\Interval{A}$ forms a lattice.
 \end{itemize}
 \caption{Basic notation}
 \label{fig:basic-notation}
 \end{ruledfigure}
+
+\noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
+natural numbers and non-negative integers (hence also \qty{} and \qtypm{}).
+A bytestring is a sequence
+of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
+presented as sequences of hexadecimal digits.
 
 See note~\ref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
@@ -412,14 +369,13 @@ We assume that the scripting language has the ability to parse values
 of type \Data{}, converting them into a suitable internal representation.
 
 
-
-
-
-
 \section{EUTXO-1: Enhanced scripting}
 \label{sec:eutxo-1}
 The EUTXO-1 model adds the following new features to the model
 proposed in~\citep{Zahnentferner18-UTxO}:
+
+
+
 
 \begin{itemize}
 \item Every transaction has a \textit{validity interval}, of type $\Interval{\extended{\slotnum}}$.
@@ -485,18 +441,31 @@ features mentioned above (the validity interval, the validation data
 and the \ptx{} structure) and changed the type of the redeemer from
 \script{} to \Data{}.
 
-Figure~\ref{fig:eutxo-1-types} lists the types which
-describe transactions in the basic EUTXO model.
+Figure~\ref{fig:eutxo-1-types} lists the types and operations used in the
+the basic EUTXO model. Some of these are defined, the others must be provided by
+the ledger.
 %%
 \begin{ruledfigure}{H}
-  \[
-  \begin{arraydefs}{rll}
-
+  \begin{displaymath}
+  \begin{array}{rll}
+    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
+    \qty{} &=& \mbox{an amount of currency, always non-negative}\\
+    \qtypm &=& \mbox{a possibly negative amount of currency}\\
+    \slotnum &=& \mbox{a slot number}\\
+    \Address &=& \mbox{the address of an object in the blockchain}\\
+    \TxId &=& \mbox{the identifier of a transaction}\\
+    \txId : \eutxotx \rightarrow \TxId &=& \mbox{a function computing the identifier of a transaction}\\
+    \script &=& \mbox{the (opaque) type of scripts}\\
+    \scriptAddr : \script \rightarrow \Address &=& \mbox{the address of a script}\\
+    \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
+    \Data \rightarrow \B &=& \mbox{applying a script to its arguments}\\
+    \\
+    \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &= (&\addr: \s{Address},\\
     && \i{value}: \qty,\\
     &&  \valdata: \Data)\\
     \\
-    \s{OutputRef } &= (&\i{id}: \s{TxId}, \idx: \s{Int})\\
+    \s{OutputRef } &= (&\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input } & = (&\i{outputRef}: \s{OutputRef},\\
                  && \i{validator}: \script,\\
@@ -509,13 +478,29 @@ describe transactions in the basic EUTXO model.
      &&\forge: \qty) \\
      \\
      \s{Ledger } &=&\!\List{\eutxotx}\\
-  \end{arraydefs}
-  \]
+  \end{array}
+  \end{displaymath}
   \caption{Types for the EUTXO-1 model}
   \label{fig:eutxo-1-types}
 \end{ruledfigure}
 
+\noindent A simple model of these primitives takes:
+\begin{itemize}
+  \item $\qty = \N$
+  \item $\qtypm = \Z$
+  \item $\slotnum = \N$
+  \item $\Address = \H$
+  \item $\TxId = \H$
+  \item $\txId = \textrm{the hash of the transaction}$
+  \item $\scriptAddr = \textrm{the hash of the script}$
+\end{itemize}
+
 \subsubsection{Remarks}
+\paragraph{Quantities. }
+The \qty{} type represents a non-negative quantity of funds.  The \qtypm{} type
+is similar, but negative quantities are allowed.  As with \N{} and \Z{}, we regard
+\qty{} as a subtype of \qtypm{} and convert freely between them.
+
 \paragraph{Inputs and outputs. } Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. We use a list
 because any subsequent transaction attempting to use an unspent output
@@ -564,9 +549,8 @@ EUTXO-1 is defined in Figure~\ref{fig:ptx-1-types}, along with some
 related types.
 
 \begin{ruledfigure}{H}
-  \[
-  \begin{arraydefs}{rll}
-
+  \begin{displaymath}
+  \begin{array}{rll}
     \s{OutputInfo } &= (& \i{value}: \qty,\\
     && \i{validatorHash}: \s{Address},\\
     &&  \valdata: \Data)\\
@@ -581,9 +565,12 @@ related types.
      &&\i{outputInfo}: \List{\s{OutputInfo}},\\
      &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      && \fee: \qty,\\
-     &&\forge: \qty)
-   \end{arraydefs}
- \]
+     &&\forge: \qty)\\
+     \\
+     \tau: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction}\\
+     \delta: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{}}
+  \end{array}
+  \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-1 model}
   \label{fig:ptx-1-types}
 \end{ruledfigure}
@@ -607,18 +594,7 @@ relating to the input currently undergoing validation.
 % when we have pubkey inputs.  We're ignoring that special case here.
 
 \medskip
-\noindent We also require a function
-$$
-\tau: \eutxotx \times \N \rightarrow \ptx
-$$
-which produces the relevant \ptx{} for a transaction $t$ and an input
-$i$, and a function
-$$
-\delta: \ptx \rightarrow \Data
-$$
-which translates a \ptx{} object into a \Data{} value containing
-exactly the same information, encoded in some standard way enabling it
-to be accessed by a validator script.  Assuming we have an
+Assuming we have an
 appropriate hashing function, it is straightforward to define $\tau$.
 The function $\delta$ is implementation-dependent and we will not
 discuss it further.
@@ -650,7 +626,7 @@ $$
 $$
 \txunspent(t) = \{(id,1), \ldots, (\mathit{id},\left|t.outputs\right|)\}
 $$
-\noindent (where $\mathit{id}$ is $t$'s unique $\s{TxId}$), and
+\noindent (where $\mathit{id}$ is $t$'s unique \TxId{}), and
 %
 \[
   \unspent : \mathsf{Ledger} \rightarrow \FinSet{\s{OutputRef}}
@@ -669,7 +645,7 @@ the set of previously unspent outputs which were spent by $t$.
 \medskip
 \noindent Given a ledger $\lambda$ and a transaction id $\id$, we
 denote by $\lambda\langle\id\rangle$ the unique transaction $T$ in
-$\lambda$ with $T.\txid = \id$, if it exists. In our abstract model
+$\lambda$ with $\txId(T) = \id$, if it exists. In our abstract model
 where $\lambda$ consists of a list of transactions it would suffice to
 take $id$ to be the position of $T$ in $\lambda$, but in an
 implementation we would probably have $id = T^{\#}$.
@@ -678,7 +654,7 @@ implementation we would probably have $id = T^{\#}$.
 \noindent Now given an input $i$ to some transaction in a ledger
 $\lambda$ we define
 $$
-\getvalue(i,\lambda) = \lambda\langle i.\outputref.\txid \rangle.\outputs[i.\outputref.\idx].\val
+\getvalue(i,\lambda) = \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx].\val
 $$
 This function simply returns the value of the input.
 
@@ -787,34 +763,57 @@ basic idea is that ordinary currencies have a single token whose
 sub-currency has an unlimited supply and NFTs have a number of tokens
 with the sub-currency for each token limited to a supply of one.
 
-
-\newcommand{\emspace}{\hspace{1em}}
-\newcommand{\espace}{\hspace{1en}}
-
+The changes to the basic EUTXO-1 types are now quite simple:
+see Figure~\ref{fig:eutxo-2-types}.  We change the type of the $\val$ field
+in the \s{Output} type to be \qtymap{}, representing values of all currencies;
+we also change the type of the \forge{} field on transactions to \qtymappm{}, to
+allow the creation and destruction of funds in all currencies; the
+supply of a currency can be reduced by forging a negative amount of that
+currency, as in EUTXO-1.
 \begin{ruledfigure}{H}
-  \center{
-  \begin{tabular}{rll}
-    \currency &: & an identifier for a custom currency. This is an alias
-                for the \s{Address} type\\
-             &  & from Figure~\ref{fig:basic-types}.\\
+  \begin{displaymath}
+    \begin{array}{rll}
+    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
+    \currency &=& \mbox{an identifier for a custom currency}\\
+    \nativeCur &=& \mbox{a distinguished \currency{} representing the native currency of the ledger}\\
+    \token   &=& \mbox{a type consisting of identifiers for individual tokens}\\
+    \nativeTok &=& \mbox{a distinguished \token{} representing the currency token of the native currency}\\
     \\
-    \nativeCur &: & a distinguished \currency{} representing the native currency of the ledger.\\
-    \\
-    \token   &: & a type consisting of identifiers for individual tokens.  These will probably\\
-             &  & be hashes in practice.\\
-    \\
-    \nativeTok &: & a distinguished \token{} representing the currency token of the native currency.\\
-    \\
+    \multicolumn{3}{l}{\textsc{Defined types}}\\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
-    \\
     \qtymappm &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
-  \end{tabular}
-  }
-  \caption{Extra basic types for the EUTXO-2 model}
-  \label{fig:more-basic-types}
+    \\
+    \s{Output}_2 &= (&\addr: \s{Address},\\
+            && \val: \qtymap\\
+            && \valdata: \Data)\\
+    \s{OutputRef}_2 &= (&\txrefid: \s{TxId}, \idx: \s{Int})\\
+    \s{Input}_2 &= (& \i{outputRef}: \sf{OutputRef}_2,\\
+            && \i{validator}: \script,\\
+            & & \i{redeemer}: \Data)\\
+    \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
+            &&\outputs: \List{\s{Output}_2},\\
+            &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
+            &&\fee: \qty,\\
+            &&\forge: \qtymap^{\pm})\\
+    \\
+    \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
+    \end{array}
+  \end{displaymath}
+  \caption{Extra types for the EUTXO-2 model}
+  \label{fig:eutxo-2-types}
 \end{ruledfigure}
 
-\noindent The \qtymap{} type represents a collection of funds from a
+A simple implementation would take:
+\begin{itemize}
+\item $\currency = \H$
+\item $\token = \H$
+\item $\nativeCur = \textrm{empty bytestring}$
+\item $\nativeTok = \textrm{empty bytestring}$
+\end{itemize}
+
+\subsubsection{Remarks}
+\paragraph{Quantity maps. }
+The \qtymap{} type represents a collection of funds from a
 number of currencies and their subcurrencies, with all quantities
 being non-negative.  The \qtymappm{} type is similar, but
 negative quantities are allowed.  As with \qty{} and \qtypm{}, we regard
@@ -823,40 +822,7 @@ negative quantities are allowed.  As with \qty{} and \qtypm{}, we regard
 \qtymap{} is a finitely-supported function \emph{to} another finitely-supported
 function. This is well-defined, since finitely-supported functions form a monoid.
 
-\begin{ruledfigure}{H}
-  \[
-  \begin{arraydefs}{rll}
-    \s{Output}_2 &= (&\addr: \s{Address},\\
-    && \val: \qtymap\\
-    && \valdata: \Data)\\
-    \\
-    \s{OutputRef}_2 &= (&\i{id}: \s{TxId}, \idx: \s{Int})\\
-    \\
-    \s{Input}_2 &= (& \i{outputRef}: \sf{OutputRef}_2,\\
-                     && \i{validator}: \script,\\
-                     & & \i{redeemer}: \Data)\\
-    \\
-    \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
-    &&\outputs: \List{\s{Output}_2},\\
-    &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
-    &&\fee: \qty,\\
-    &&\forge: \qtymap^{\pm})\\
-    \\
-    \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
-\end{arraydefs}
-  \]
-  \caption{Types for the EUTXO-2 model}
-  \label{fig:eutxo-2-types}
-\end{ruledfigure}
-
-\noindent The changes to the basic EUTXO-1 types are now quite simple:
-see Figure~\ref{fig:eutxo-2-types}.  We change the type of the $\val$ field
-in the \s{Output} type to be \qtymap{}, representing values of all currencies;
-we also change the type of the \forge{} field on transactions to \qtymappm{}, to
-allow the creation and destruction of funds in all currencies; the
-supply of a currency can be reduced by forging a negative amount of that
-currency, as in EUTXO-1.
-
+\paragraph{Native currency. }
 Quantities of the native currency are represented just like any other currency,
 using \qtymap{}s with the \nativeCur{} identifier. The one exception is the
 \fee{} field, which continues to be a simple \qty{}. This represents a quantity
@@ -869,9 +835,8 @@ that is required is to replace \qty{} by \qtymap{} everywhere in
 Figure~\ref{fig:ptx-1-types} except for the \fee{} field: for reference
 the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
-  \[
-  \begin{arraydefs}{rll}
-
+  \begin{displaymath}
+  \begin{array}{rll}
     \s{OutputInfo}_2\s{ } &= (& \i{value}: \qtymap,\\
     && \i{validatorHash}: \s{Address},\\
     &&  \i{datascriptHash}: \s{Address})\\
@@ -887,8 +852,8 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
      &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
      &&\fee: \qty,\\
      &&\forge: \qtymap)
-   \end{arraydefs}
- \]
+  \end{array}
+  \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-2 model}
   \label{fig:ptx-2-types}
 \end{ruledfigure}
