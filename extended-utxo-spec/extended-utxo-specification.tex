@@ -113,10 +113,10 @@
 \newcommand{\List}[1]{\ensuremath{\s{List}[#1]}}
 \newcommand{\Set}[1]{\ensuremath{\s{Set}[#1]}}
 \newcommand{\FinSet}[1]{\ensuremath{\s{FinSet}[#1]}}
-\newcommand{\Map}[2]{\ensuremath{\s{Map}[#1,#2]}}
-\newcommand{\dom}{\ensuremath{\mathop{\mathrm{dom}}}}
 \newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
 \newcommand{\extended}[1]{#1^\updownarrow}
+\newcommand{\FinSup}[2]{\ensuremath{\s{FinSup}[#1,#2]}}
+\newcommand{\support}{\ensuremath{\mathrm{sup}}}
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
@@ -157,6 +157,7 @@
 \newcommand{\qtypm}{\ensuremath{\s{Quantity}^{\pm}}}
 \newcommand{\newqtytype}{\ensuremath{\s{Quantity}^{\prime}}}
 \newcommand{\token}{\ensuremath{\s{Token}}}
+\newcommand{\currency}{\ensuremath{\s{CurrencyId}}}
 
 \newcommand{\qtymap}{\ensuremath{\s{QuantityMap}}}
 \newcommand{\tokenmap}{\ensuremath{\s{TokenMap}}}
@@ -245,7 +246,9 @@ book~\citep{Plutus-book}.
 
 \section{Notation}
 This section defines some basic notation.  We generally follow the
-notation established by \citep{Zahnentferner18-UTxO}.
+notation established by \citep{Zahnentferner18-UTxO}, except that we make use
+of finitely-supported functions in most places that \citep{Zahnentferner18-UTxO}
+use maps.
 
 \subsection{Basic types}
 \noindent Throughout the document we assume a number of basic types.
@@ -331,39 +334,39 @@ conventions used in the remainder of the document.
 %The concatenation of two lists $\lambda_1$ and $\lambda_2$
 %  is denoted $\lambda_1 ::: \lambda_2$.
 
-  \item For two types $K$ and $V$, $\Map{K}{V}$ denotes the type of
-    partial functions from \textit{keys} in $K$ to \textit{values} in
-    $V$, and the result of looking up a key $k$ in a map $m$ is
-    denoted by $m[k]$.  If $m$ is such map then the \textit{domain} of
-    $m$ is $\dom m = \{k \in K: f[k] \mbox{ is defined}\}$; we can
-    regard $m$ as a \textit{total} function from $\dom m$ to $V$, and
-    for expository purposes we will sometimes regard $m$ as a subset
-    of $\dom m \times V$ in the usual way.
-
-    Equality for maps is defined in the obvious way: $m_1 = m_2$ if
-    and only if $\dom m_1 = \dom m_2$ and $m_1[k] = m_2[k]$ for all
-    $k \in \dom m_1$ (assuming we have decidable equality in $V$).
+  \item For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the type of
+    \textit{finitely-supported functions} from $K$ to $V$. That is, there is a
+    function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
+    $k \in \support(f) \Leftarrow f(k) \neq 0$.\footnote{Note that we only
+      require the support to be a \textit{superset} of the set of non-zero
+      points, rather than equal to it. This simplifies implementations as
+      it does not require minimizing the support when new zero points are
+      introduced.}
+    Equality on finitely-supported functions is defined as pointwise equality
+    over their joint support.\footnote{This is exactly the same as normal
+      pointwise equality except that it is computationally tractable.}
+    \[
+      f = g \Leftrightarrow \forall a \in \support(f) \cup \support(g) . f(a) = g(a)
+    \]
 
   \item If the type $M$ is a monoid with binary operation $+$ (for
-    example, a numeric type) the we define the sum of two maps
-    $f, g \in \Map{K}{M}$ to be the map $f+g \in \Map{K}{M}$ with
-    domain $\dom (f+g) = \dom f \cup \dom g$ given by
-    \[
-    (f+g)[k] =
-    \left\{ \begin{array}{ll}
-        f[k] + g[k] & \mbox{if $k \in \dom f \cap \dom g$}\\
-        f[k] & \mbox{if $k \in \dom f \setminus \dom g$}\\
-        g[k] & \mbox{if $k \in \dom g \setminus \dom f$}
-      \end{array}
-      \right.
-      \]
-      We generalise this to the sum of a finite number of maps using
-      the $\sum$ notation in the usual way; care is required if the
-      operation $+$ is non-commutative, since then the sum of a number of
-      maps will depend on the order in which they appear. Note that
-      the type $\Map{K}{M}$ itself becomes a monoid under the
-      operation $+$ which we have just defined, with the empty map $\{\}$ as
-      identity element.
+    example, a numeric type) the we define the sum of two finitely-supported
+    functions
+    $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
+    support $\support (f+g) = \support f \cup \support g$ given by
+    \[(f+g)(k) = f(k) + g(k) \]
+    We generalise this to the sum of a finite number of maps using
+    the $\sum$ notation in the usual way; care is required if the
+    operation $+$ is non-commutative, since then the sum of a number of
+    functions will depend on the order in which they appear. Note that
+    the type $\FinSup{K}{M}$ itself becomes a monoid under the
+    operation $+$ which we have just defined, with the empty function as
+    identity element.
+
+  \item If the type $M$ is a group with inverse operation $-$, then we can
+    similarly define the inverse of a finitely-supported function $f$ as
+    the function $(-f)$ with the same support, given by
+    \[ (-f)(k) = -f(k) \]
 
   \item $x \mapsto f(x)$ denotes an anonymous function.
 
@@ -799,16 +802,16 @@ with the sub-currency for each token limited to a supply of one.
 \begin{ruledfigure}{H}
   \center{
   \begin{tabular}{rll}
-  \s{CurrencyID}&: & an identifier for a custom currency. This is an alias
+  \currency&: & an identifier for a custom currency. This is an alias
   for the \s{Address} type\\
                 & & from Figure~\ref{fig:basic-types}.\\
     \\
-    \s{Token}&:& a type consisting of identifiers for individual tokens.  These will probably\\
+    \token&:& a type consisting of identifiers for individual tokens.  These will probably\\
                & &be hashes in practice.\\
 \\
-    \qtymap &=& \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Quantity}}}\\
+    \qtymap &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
     \\
-  $\qtymap^{\pm}$ &=& \Map{\s{CurrencyId}}{\Map{\s{Token}}{\s{Quantity}^{\pm}}}\\
+  $\qtymap^{\pm}$ &=& \FinSup{\s{CurrencyId}}{\FinSup{\token}{\qtypm}}\\
   \end{tabular}
   }
   \caption{Extra basic types for the EUTXO-2 model}
@@ -907,20 +910,7 @@ and the index of an input.
 \bigskip
 \noindent The validity conditions from
 Figure~\ref{fig:eutxo-1-validity} must also be updated to take account
-of multiple currencies.  For this we require operations which minimise
-a $\qtymap$ by discarding tokens which occur with value 0 and currencies
-which have no tokens.  See Note~\ref{note:zero-quantities} for an explanation
-of why this is needed.
-
-\begin{gather*}
-  \mu_1: \Map{\token}{\qty} \rightarrow \Map{\token}{\qty} \\
-  \mu_1(M) = \{(t,v) \in M: v \ne 0\}\\
-  \\
-  \mu: \qtymap  \rightarrow \qtymap\\
-  \mu(Q) = \{(c,\mu_1(M)): (c,M) \in Q \mbox{ and } \mu_1(M) \ne \{\}\}\\
-\end{gather*}
-
-\newcommand{\mprime}{M^{\prime}}
+of multiple currencies.
 
 We use the definitions of \unspent{}  and
 \getvalue{} from Section~\ref{sec:eutxo-1-validity} unchanged,
@@ -999,7 +989,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 transaction is invalid.
 
 \paragraph{Note.} In rule~\ref{rule:custom-values-are-preserved-2},
-$+$ and $\sum$ are the sum of maps as defined in
+$+$ and $\sum$ are the sum of finitely-supported functions as defined in
 Figure~\ref{fig:basic-notation}. Essentially we require that the
 quantities of each of the individual custom currencies involved in the
 transaction are preserved.  Recall that values in $\customforge$ can
@@ -1135,57 +1125,6 @@ also avoids overpayment due to overestimating the fees).
   contributions will be made, or whether a campaign will succeed or
   fail.  Thus we won't know how much the final transaction will cost
   until just before it happens.}
-
-\note{Zero quantities.}
-\label{note:zero-quantities}
-We require currency quantities to be non-negative, but we do not
-insist that they are strictly positive.  Thus an output can contain 0
-units of any (sub)currency, including the native currency.  With the
-introduction of custom currencies, this presents a problem: should we
-distinguish between a $\qtymap$ which explicitly has 0 units of some
-currency $C$ and one which does not mention $C$ at all?  The answer
-depends on the context: if we are adding together quantities of
-currencies then it is sensible to regard the two as being ``the
-same'', but we may wish to distinguish the two when talking about
-outputs for instance, since an output whose quantity map is
-$Q_1 = \{(A,{(t,0)}), (B,\{(u,0)\}), (C,\{(v,5), (w,0)\})\}$ will take
-up more space than one whose quantity map is
-$Q_2 = \{(C,\{(v,5)\})\}$.  In Figure~\ref{fig:more-basic-types} we
-defined equality pointwise, so $Q_1$ and $Q_2$ are not equal even
-though they arguably represent the same amounts of currency.  To deal
-with this we can use an equivalence relation which considers two
-quantity maps to be equivalent if they differ only by zero
-values. Using this equivalence relation directly is somewhat tricky,
-but fortunately each equivalence class has a canonical representative,
-one which has no zero values at all. This motivates the minimisation
-operations which we introduced in Section~\ref{sec:eutxo-2-validity}:
-
-\begin{gather*}
-  \mu_1: \Map{\token}{\qty} \rightarrow \Map{\token}{\qty} \\
-  \mu_1(M) = \{(t,v) \in M: v \ne 0\}\\
-  \\
-  \mu: \qtymap  \rightarrow \qtymap\\
-  \mu(Q) = \{(c,\mu_1(M)): (c,M) \in Q \mbox{ and } \mu_1(M) \ne \{\}\}\\
-\end{gather*}
-
-\noindent For each currency in a $\qtymap$ $Q$, the auxiliary
-operation $\mu_1$ firstly discards all tokens which occur with value
-0; the operation $\mu$ then discards all currencies which have no
-tokens left.  If we put $\mprime = \mu(M)$ then it is guaranteed that
-$\mprime[c] \ne \{\}$ for all $c \in \dom{\mprime}$ and that
-$M^{\prime}[c][t] \ne 0$ for all $c \in \dom{M^{\prime}}$ and
-$t \in \dom{M^{\prime}[c]}$,
-
-
-\medskip
-\todokwxm{Maybe this is getting out of hand.  Another way to do this
-  would be to define a function $\kappa: K \times \Map{K}{V} \rightarrow V$ with
-  $\kappa(k,m) = m[k]$ if $k \in \dom m$ and $\kappa(k) = 0$
-  otherwise.  For validity we'd then have to assert that $\kappa(k)$
-  balances up for every $k$ in the union of the domains of the various
-  maps involved.  This could get typographically messy.}
-
-
 
 \note{Monetary policies for custom currencies.}
 \label{note:monetary-policies}
