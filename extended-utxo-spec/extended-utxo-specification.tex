@@ -1025,13 +1025,13 @@ In order to deal with this complexity, an output can be locked by a
 requiring another script to unlock it.  In the basic model, each input
 to a transaction comes with a \i{validator} script which checks that
 the transaction is allowed to spend the output. In order to spend an
-output, the transaction supplies another script, called the
+output, the transaction supplies a value, called the
 \i{redeemer}, which provides evidence that the transaction has the
 authority to do so;\footnote{The validator plays a role similar to
   that of BitCoin's \texttt{scriptPubKey} and the redeemer to
   \texttt{scriptSig}.  } a process called \i{validation} is then
 performed which checks that the redeemer satisfies the conditions
-required by the redeemer. Before a transaction can proceed, all inputs
+required by the validator. Before a transaction can proceed, all inputs
 must be successfully validated: if one or more inputs fails to
 validate then the transaction is rejected.
 
