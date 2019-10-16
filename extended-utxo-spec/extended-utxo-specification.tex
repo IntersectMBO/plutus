@@ -149,6 +149,7 @@
 \newcommand\Z{\ensuremath{\mathbb{Z}}}
 \renewcommand\H{\ensuremath{\mathbb{H}}}
 %% \H is usually the Hungarian double acute accent
+\newcommand{\emptyBs}{\ensuremath{\emptyset}}
 
 \newcommand{\emptymap}{\ensuremath{\{\}}}
 
@@ -246,7 +247,11 @@ conventions used in the remainder of the document.
 \item \Z{} denotes the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$.
 \item We regard $\N$ as a subtype of $\Z$ and convert freely between
   natural numbers and non-negative integers.
-\item \H{} denotes the type of bytestrings, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$.
+\item \H{} denotes the type of bytestrings,
+  $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$.
+
+  \emptyBs{} denotes the empty bytestring.
+
   A bytestring is a sequence of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
   presented as sequences of hexadecimal digits.
 
@@ -782,9 +787,9 @@ Fig.~\ref{fig:eutxo-2-types-cardano}.
   \begin{displaymath}
     \begin{array}{rll}
       \currency  &=& \H\\
-      \nativeCur &=& \mbox{the empty bytestring}\\
+      \nativeCur &=& \emptyBs\\
       \token     &=& \H\\
-      \nativeTok &=& \mbox{the empty bytestring}\\
+      \nativeTok &=& \emptyBs\\
     \end{array}
   \end{displaymath}
   \caption{Cardano primitives for the EUTXO-2 model}
