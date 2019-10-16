@@ -550,8 +550,10 @@ related types.
   \caption{The \ptx{} type for the EUTXO-1 model}
   \label{fig:ptx-1-types}
 \end{ruledfigure}
-%%
-\noindent The \ptx{} type is essentially a summary of the information
+
+\subsection{Remarks}
+\paragraph{The contents of \ptx{}.}
+The \ptx{} type is essentially a summary of the information
 contained in the $\eutxotx$ type in
 Figure~\ref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
 \i{validityInterval} fields are copied directly from the pending
@@ -569,17 +571,18 @@ relating to the input currently undergoing validation.
 % and redeemer scripts in inputInfo are allowed to be absent
 % when we have pubkey inputs.  We're ignoring that special case here.
 
-\medskip
+\paragraph{Defining $\tau$ and $\delta$.}
 Assuming we have an
 appropriate hashing function, it is straightforward to define $\tau$.
 The function $\delta$ is implementation-dependent and we will not
 discuss it further.
 
-\medskip\todokwxm{But with the advent of \Data{} we \textit{can}
+\todokwxm{But with the advent of \Data{} we \textit{can}
   specify $\delta$.  Maybe we should?}
 \todokwxm{... or even just do the whole translation in one step.}
 
-\paragraph{Determinism.}  The information provided in the \ptx{}
+\paragraph{Determinism.}
+The information provided in the \ptx{}
 structure is sufficiently limited that the validation process
 becomes \textit{deterministic},  which has important implications
 for fee calculations.  See Note~\ref{note:validation-determinism}
