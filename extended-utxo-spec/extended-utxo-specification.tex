@@ -88,6 +88,8 @@
 \newcommand{\true}{\textsf{true}}
 \newcommand{\false}{\textsf{false}}
 
+\newcommand{\hash}[1]{\ensuremath{#1^{\#}}}
+
 \newcommand{\List}[1]{\ensuremath{\s{List}[#1]}}
 \newcommand{\Set}[1]{\ensuremath{\s{Set}[#1]}}
 \newcommand{\FinSet}[1]{\ensuremath{\s{FinSet}[#1]}}
@@ -272,7 +274,7 @@ conventions used in the remainder of the document.
 
 \item $x \mapsto f(x)$ denotes an anonymous function.
 
-\item A cryptographic collision-resistant hash of a value $c$ is denoted $c^{\#}$.
+\item A cryptographic collision-resistant hash of a value $c$ is denoted $\hash{c}$.
 
 \item For a type $A$ which forms a partial order, $\extended{A}$ is the same
   type extended with a top element $\infty$ and a bottom element $-\infty$.
