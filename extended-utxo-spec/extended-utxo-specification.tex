@@ -353,52 +353,33 @@ of type \Data{}, converting them into a suitable internal representation.
 The EUTXO-1 model adds the following new features to the model
 proposed in~\citep{Zahnentferner18-UTxO}:
 
-
-
-
 \begin{itemize}
 \item Every transaction has a \textit{validity interval}, of type $\Interval{\extended{\slotnum}}$.
   A core node will only process the transaction if
   the current slot number lies within the transaction's validity
   interval.
 
-\item Each unspent output now has a (possibly empty) object $\valdata$ of type
+\item Each unspent output now has an object $\valdata$ of type
   \Data{} associated with it: we (\red{provisionally}) call this the output's
-  \textit{validation data}.  The introduction of the validation data
-  increases the expressivity of the model considerably. For example,
-  one can use the validation data to propagate state between
-  transactions, and this can be used to give a contract the structure
-  of a finite state machine; the fact that the validation data is part
-  of the output and not the transaction means that the state can
-  change without the transaction changing, which makes it easier to
-  have an ``identity'' for an ongoing contract.
+  \textit{validation data} (see note~\ref{note:valdata}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a redeemer object of type \Data.
+  replaced with a redeemer object of type \Data{}.
+
+\item Validator scripts make use of information about the pending
+  transaction (ie, the transaction which is just about to take place, assuming that
+  validation succeeds). This information is contained in a structure
+  which we call \ptx{} (see Section~\ref{sec:pendingtx} for its definition).
 
 \item Validation of an output is performed by running the validator
-  script with the redeemer and validation data as input; the validator
-  is also provided with information about the pending transaction (ie,
-  the transaction which is just about to take place, assuming that
-  validation succeeds). This information is contained in a structure
-  (also encoded as \Data) which we call \ptx{}: this contains data
-  such as the validity interval of the pending transaction and
-  information about the inputs and outputs.  See
-  Section~\ref{sec:pendingtx} for more information on the \ptx{}
-  structure.
+  script with three inputs:
+  \begin{enumerate}
+  \item the validation data,
+  \item the redeemer,
+  \item the \ptx{}, encoded as \Data{}.
+  \end{enumerate}
 
 \end{itemize}
-
-
-\noindent At the ledger level, validator scripts now have the type
-$
-\Data \times \Data \times \Data \rightarrow \B
-$. At the Plutus level in Cardano, the validator is a program which
-consumes the redeemer, the validation data, and a \Data{} encoding
-of the \ptx{} structure as arguments.  The validator may
-expect these objects to have some specific form (a single bytestring
-or a list of integers, for example) and if it is supplied with data
-with an incorrect format it should fail and return \false.
 
 \todokwxm{There's the issue about whether validators return
   \texttt{true/false} or \texttt{()/Error}. Remember to fix this when things have settled down.}
@@ -1026,6 +1007,17 @@ signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
 
+
+\note{Validation data}
+\label{note:valdata}
+The introduction of the validation data
+increases the expressivity of the model considerably. For example,
+one can use the validation data to propagate state between
+transactions, and this can be used to give a contract the structure
+of a finite state machine; the fact that the validation data is part
+of the output and not the transaction means that the state can
+change without the transaction changing, which makes it easier to
+have an ``identity'' for an ongoing contract.
 
 \note{Fees and Costs.}
 \label{note:fees}
