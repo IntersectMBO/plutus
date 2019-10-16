@@ -120,9 +120,8 @@
 
 \newcommand{\outputref}{\mi{outputRef}}
 \newcommand{\txin}{\mi{in}}
-\newcommand{\txout}{\mi{out}}
 \newcommand{\id}{\mi{id}}
-\newcommand{\getvalue}{\msf{getValue}}
+\newcommand{\getSpent}{\msf{getSpentOutput}}
 
 \newcommand{\slotnum}{\ensuremath{\s{SlotNumber}}}
 \newcommand{\spent}{\msf{spentOutputs}}
@@ -605,8 +604,8 @@ Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in v
   \unspent([]) &=& \emptymap \\
   \unspent(t::\lambda) &=& (\unspent(\lambda) \setminus t.\inputs) \cup \txunspent(t)\\
   \\
-  \multicolumn{3}{l}{\getvalue : \s{Input} \times \s{Ledger} \rightarrow \qty}\\
-  \getvalue(i,\lambda) &=& \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx].\val
+  \multicolumn{3}{l}{\getSpent : \s{Input} \times \s{Ledger} \rightarrow \s{Output}}\\
+  \getSpent(i,\lambda) &=& \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx]
   \end{array}
   \end{displaymath}
   \caption{Auxiliary functions for EUTXO-1 validation}
@@ -636,7 +635,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 
     \item \label{rule:value-is-preserved} \textbf{Value is preserved}:
     \[
-      t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = t.\fee + \sum_{o \in t.\outputs} o.\val.
+      t.\forge + \sum_{i \in t.\inputs} \getSpent(i, \lambda).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
     \]
     \item \label{rule:no-double-spending} \textbf{No output is double spent:}
     \[
@@ -646,11 +645,11 @@ the latter in rule~\ref{rule:all-inputs-validate}.
     \item\label{rule:all-inputs-validate} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator\rrbracket (\txout(i, \lambda).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (\getSpent(i, \lambda).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
       \]
     \item\label{rule:validator-scripts-hash} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \txout(i, \lambda).\addr.
+      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
     \]
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-1 model}
@@ -835,7 +834,7 @@ Figure~\ref{fig:eutxo-1-validity} must also be updated to take account
 of multiple currencies.
 
 We use the definitions of \unspent{}  and
-\getvalue{} from Figure~\ref{fig:validation-functions-1} unchanged,
+\getSpent{} from Figure~\ref{fig:validation-functions-1} unchanged,
 but we also require a function to inject a \qty{} of the native currency
 into \qtymap{}. We define it in Figure~\ref{fig:validation-functions-2}.
 \begin{displaymath}
@@ -881,7 +880,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
       \begin{minipage}{0.85\textwidth}
           \label{rule:value-is-preserved-2}
             \[
-            t.\forge + \sum_{i \in t.\inputs} \getvalue(i, \lambda) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
+            t.\forge + \sum_{i \in t.\inputs} \getSpent(i, \lambda) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
             \]
       \end{minipage}
     \item \label{rule:no-double-spending-2} \textbf{No output is double spent:}
@@ -892,11 +891,11 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
     \item\label{rule:all-inputs-validate-2} \textbf{All inputs validate:}
     \[
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator\rrbracket(\txout(i,\lambda).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true.
+    i.\validator\rrbracket(\getSpent(i,\lambda).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
       \]
     \item\label{rule:validator-scripts-hash-2} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \txout(i, \lambda).\addr.
+      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
     \]
   \end{enumerate}
   \caption{Validity of a transaction $t$ in the EUTXO-2 model}
