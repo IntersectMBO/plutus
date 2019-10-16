@@ -102,7 +102,7 @@
 
 % Macros for eutxo things.
 \newcommand{\TxId}{\ensuremath{\s{TxId}}}
-\newcommand{\txId}{\msf{txid}}
+\newcommand{\txId}{\msf{txId}}
 \newcommand{\txrefid}{\mi{id}}
 \newcommand{\Address}{\ensuremath{\s{Address}}}
 \newcommand{\idx}{\mi{index}}
@@ -115,14 +115,14 @@
 
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
-\newcommand{\valdata}{\mi{valdata}}
+\newcommand{\valdata}{\mi{valData}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
 \newcommand{\txin}{\mi{in}}
 \newcommand{\txout}{\mi{out}}
 \newcommand{\id}{\mi{id}}
-\newcommand{\getvalue}{\msf{getvalue}}
+\newcommand{\getvalue}{\msf{getValue}}
 
 \newcommand{\slotnum}{\ensuremath{\s{SlotNumber}}}
 \newcommand{\spent}{\msf{spentOutputs}}
@@ -422,15 +422,15 @@ the ledger.
     \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
-    \s{Output } &=&(\addr: \s{Address},\\
-                & &\ \i{value}: \qty,\\
+    \s{Output } &=&(\addr: Address,\\
+                & &\ \val: \qty,\\
                 & &\ \valdata: \Data)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
-    \s{Input } &=&(\i{outputRef}: \s{OutputRef},\\
-               & &\ \i{validator}: \script,\\
-               & &\ \i{redeemer}: \Data)\\
+    \s{Input } &=&(\outputref: \s{OutputRef},\\
+               & &\ \validator: \script,\\
+               & &\ \redeemer: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
@@ -523,14 +523,14 @@ related types.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \s{OutputInfo } &=&(\i{value}: \qty,\\
-                    & &\ \i{validatorHash}: \s{Address},\\
+    \s{OutputInfo } &=&(\val: \qty,\\
+                    & &\ \i{validatorHash}: \Address,\\
                     & &\ \valdata: \Data)\\
     \\
-    \s{InputInfo } &=&(\i{inputRef}: \s{OutputRef},\\
+    \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
                    & &\ \i{validatorHash}: \s{Address},\\
                    & &\ \i{redeemerHash}: \s{Address},\\
-                   & &\ \i{value}: \qty)\\
+                   & &\ \val: \qty)\\
      \\
      \ptx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
                & &\ \i{thisInput}: \N,\\
@@ -661,7 +661,7 @@ the latter in condition \ref{rule:all-inputs-validate}.
     \]
     \item \label{rule:no-double-spending} \textbf{No output is double spent:}
     \[
-     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\mathit{outputRef} = i_2.\mathit{outputRef}
+     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\outputref = i_2.\outputref
      \textrm{ then } i_1 = i_2.
     \]
     \item\label{rule:all-inputs-validate} \textbf{All inputs validate:}
@@ -755,15 +755,15 @@ currency, as in EUTXO-1.
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
     \qtymappm &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
     \\
-    \s{Output}_2 &=&(\addr: \s{Address},\\
+    \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
                  & &\ \valdata: \Data)\\
     \\
-    \s{OutputRef}_2 &= &(\txrefid: \s{TxId}, \idx: \s{Int})\\
+    \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
-    \s{Input}_2 &=&( \i{outputRef}: \sf{OutputRef}_2,\\
-                & &\ \i{validator}: \script,\\
-                & &\ \i{redeemer}: \Data)\\
+    \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
+                & &\ \validator: \script,\\
+                & &\ \redeemer: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
@@ -823,14 +823,14 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \s{OutputInfo}_2\s{ } &=&(\i{value}: \qtymap,\\
+    \s{OutputInfo}_2\s{ } &=&(\val: \qtymap,\\
                           & &\ \i{validatorHash}: \s{Address},\\
                           & &\ \i{datascriptHash}: \s{Address})\\
     \\
-    \s{InputInfo}_2\s{ } &=& (\i{inputRef}: \s{OutputRef},\\
+    \s{InputInfo}_2\s{ } &=& (\outputref: \s{OutputRef},\\
                          & &\ \i{validatorHash}: \s{Address},\\
                          & &\ \i{redeemerHash}: \s{Address}),\\
-                         & &\ \i{value}: \qtymap)\\
+                         & &\ \val: \qtymap)\\
      \\
      \ptx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
                  & &\ \i{thisInput}: \N,\\
@@ -901,7 +901,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
       \end{minipage}
     \item \label{rule:no-double-spending-2} \textbf{No output is double spent:}
     \[
-     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\mathit{outputRef} = i_2.\mathit{outputRef}
+     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\outputref = i_2.\outputref
      \textrm{ then } i_1 = i_2.
     \]
     \item\label{rule:all-inputs-validate-2} \textbf{All inputs validate:}
