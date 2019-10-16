@@ -231,17 +231,22 @@ of finitely-supported functions in most places that \citep{Zahnentferner18-UTxO}
 use maps.
 
 \subsection{Basic types and operations}
-Figure~\ref{fig:basic-notation} describes some types, notation, and
+\label{sec:basic-notation}
+
+This section describes some types, notation, and
 conventions used in the remainder of the document.
 
-\begin{ruledfigure}{H}
-  \begin{itemize}
+\begin{itemize}
 \item Types are typeset in $\mathsf{sans~serif}$.
 
 \item \B{} denotes the type of booleans, $\{\false, \true\}$.
 \item \N{} denotes the type of natural numbers, $\{0, 1, 2, \ldots\}$.
 \item \Z{} denotes the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$.
-\item \H{} denotes the type of \textit{bytestrings}, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$.
+\item We regard $\N$ as a subtype of $\Z$ and convert freely between
+  natural numbers and non-negative integers.
+\item \H{} denotes the type of bytestrings, $\bigcup_{n=0}^{\infty}\{0,1\}^{8n}$.
+  A bytestring is a sequence of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
+  presented as sequences of hexadecimal digits.
 
 \item If a type $M$ is a monoid, we use $+$ for the monoidal operation and $0$
   for the unit of the monoid. If $M$ is a group, we use $-$ for the group
@@ -290,6 +295,9 @@ conventions used in the remainder of the document.
   the function $(-f)$ with the same support, given by
   \[ (-f)(k) = -f(k) \]
 
+  See note~\ref{note:finitely-supported-functions} for discussion of using
+  finitely-supported functions computationally.
+
 \item $x \mapsto f(x)$ denotes an anonymous function.
 
 \item A cryptographic collision-resistant hash of a value $c$ is denoted $c^{\#}$.
@@ -301,18 +309,6 @@ conventions used in the remainder of the document.
   of intervals over that type, whose endpoints may be either closed or open.
   The type $\Interval{A}$ forms a lattice.
 \end{itemize}
-\caption{Basic notation}
-\label{fig:basic-notation}
-\end{ruledfigure}
-
-\noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
-natural numbers and non-negative integers.
-A bytestring is a sequence
-of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
-presented as sequences of hexadecimal digits.
-
-See note~\ref{note:finitely-supported-functions} for discussion of using
-finitely-supported functions computationally.
 
 \subsection{The \Data{} type}
 We also define a type \Data{} which can be used to pass information
@@ -944,7 +940,7 @@ transaction is invalid.
 
 \paragraph{Note.} In rule~\ref{rule:value-is-preserved-2},
 $+$ and $\sum$ are the sum of finitely-supported functions as defined in
-Figure~\ref{fig:basic-notation}. Essentially we require that the
+Section~\ref{sec:basic-notation}. Essentially we require that the
 quantities of each of the individual custom currencies involved in the
 transaction are preserved. Recall that values in $\forge$ can
 be negative whereas values in outputs must be non-negative.  Thus
