@@ -80,26 +80,6 @@
 \newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
 \newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
 
-\newenvironment{arraydefs}[1]{\setlength{\arraycolsep}{0pt}\begin{array}{#1}}{\end{array}}
-%
-% This is just the array environment with the column separation set to 0.
-% This is to enable us to get things like
-%
-%%   X = (field1: type1,
-%         field2: type2,
-%         ...
-%
-% without a space after the ')'. Unfortunately you have to manually insert a space
-% at the end of the X so you don't get X=
-% There's presumably a better way to do this.
-%
-% You can also use something like
-%
-%    \begin{tabular}{r@{ }l@{}l} ...
-%
-% but the spacing is arguably worse.
-
-
 %% A figure with rules above and below.
 \newcommand\rfskip{7pt}
 \newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
@@ -326,7 +306,7 @@ conventions used in the remainder of the document.
 \end{ruledfigure}
 
 \noindent We regard $\N$ as a subtype of $\Z$ and convert freely between
-natural numbers and non-negative integers (hence also \qty{} and \qtypm{}).
+natural numbers and non-negative integers.
 A bytestring is a sequence
 of 8-bit bytes: the symbol $\H$ is used because bytestrings are often
 presented as sequences of hexadecimal digits.
@@ -438,8 +418,9 @@ The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
 \citep{Zahnentferner18-UTxO}, except that we have added the new
 features mentioned above (the validity interval, the validation data
-and the \ptx{} structure) and changed the type of the redeemer from
-\script{} to \Data{}.
+and the \ptx{} structure), changed the type of the redeemer from
+\script{} to \Data{}, and used finitely-supported functions in place
+of maps.
 
 Figure~\ref{fig:eutxo-1-types} lists the types and operations used in the
 the basic EUTXO model. Some of these are defined, the others must be provided by
@@ -461,21 +442,21 @@ the ledger.
     \Data \rightarrow \B &=& \mbox{applying a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
-    \s{Output } &= (&\addr: \s{Address},\\
-    && \i{value}: \qty,\\
-    &&  \valdata: \Data)\\
+    \s{Output } &=&(\addr: \s{Address},\\
+                & &\ \i{value}: \qty,\\
+                & &\ \valdata: \Data)\\
     \\
-    \s{OutputRef } &= (&\txrefid: \TxId, \idx: \s{Int})\\
+    \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
-    \s{Input } & = (&\i{outputRef}: \s{OutputRef},\\
-                 && \i{validator}: \script,\\
-                 && \i{redeemer}: \Data)\\
+    \s{Input } &=&(\i{outputRef}: \s{OutputRef},\\
+               & &\ \i{validator}: \script,\\
+               & &\ \i{redeemer}: \Data)\\
      \\
-     \eutxotx\s{ } &= (&\inputs: \FinSet{\s{Input}},\\
-     &&\outputs: \List{\s{Output}},\\
-     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
-     && \fee: \qty,\\
-     &&\forge: \qty) \\
+     \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
+                   & &\ \outputs: \List{\s{Output}},\\
+                   & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                   & &\ \fee: \qty,\\
+                   & &\ \forge: \qty) \\
      \\
      \s{Ledger } &=&\!\List{\eutxotx}\\
   \end{array}
@@ -551,21 +532,21 @@ related types.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \s{OutputInfo } &= (& \i{value}: \qty,\\
-    && \i{validatorHash}: \s{Address},\\
-    &&  \valdata: \Data)\\
+    \s{OutputInfo } &=&(\i{value}: \qty,\\
+                    & &\ \i{validatorHash}: \s{Address},\\
+                    & &\ \valdata: \Data)\\
     \\
-    \s{InputInfo } & = (&\i{inputRef}: \s{OutputRef},\\
-                 && \i{validatorHash}: \s{Address},\\
-                 && \i{redeemerHash}: \s{Address},\\
-                 && \i{value}: \qty)\\
+    \s{InputInfo } &=&(\i{inputRef}: \s{OutputRef},\\
+                   & &\ \i{validatorHash}: \s{Address},\\
+                   & &\ \i{redeemerHash}: \s{Address},\\
+                   & &\ \i{value}: \qty)\\
      \\
-     \ptx\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}},\\
-     &&\i{thisInput}: \N,\\
-     &&\i{outputInfo}: \List{\s{OutputInfo}},\\
-     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
-     && \fee: \qty,\\
-     &&\forge: \qty)\\
+     \ptx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
+               & &\ \i{thisInput}: \N,\\
+               & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
+               & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \fee: \qty,\\
+               & &\ \forge: \qty)\\
      \\
      \tau: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction}\\
      \delta: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{}}
@@ -774,27 +755,27 @@ currency, as in EUTXO-1.
   \begin{displaymath}
     \begin{array}{rll}
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
-    \currency &=& \mbox{an identifier for a custom currency}\\
+    \currency  &=& \mbox{an identifier for a custom currency}\\
     \nativeCur &=& \mbox{a distinguished \currency{} representing the native currency of the ledger}\\
-    \token   &=& \mbox{a type consisting of identifiers for individual tokens}\\
+    \token     &=& \mbox{a type consisting of identifiers for individual tokens}\\
     \nativeTok &=& \mbox{a distinguished \token{} representing the currency token of the native currency}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
     \qtymappm &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
     \\
-    \s{Output}_2 &= (&\addr: \s{Address},\\
-            && \val: \qtymap\\
-            && \valdata: \Data)\\
-    \s{OutputRef}_2 &= (&\txrefid: \s{TxId}, \idx: \s{Int})\\
-    \s{Input}_2 &= (& \i{outputRef}: \sf{OutputRef}_2,\\
-            && \i{validator}: \script,\\
-            & & \i{redeemer}: \Data)\\
-    \eutxotx_2 &= ( &\inputs: \FinSet{\s{Input}_2},\\
-            &&\outputs: \List{\s{Output}_2},\\
-            &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
-            &&\fee: \qty,\\
-            &&\forge: \qtymap^{\pm})\\
+    \s{Output}_2 &=&(\addr: \s{Address},\\
+                 & &\ \val: \qtymap\\
+                 & &\ \valdata: \Data)\\
+    \s{OutputRef}_2 &= &(\txrefid: \s{TxId}, \idx: \s{Int})\\
+    \s{Input}_2 &=&( \i{outputRef}: \sf{OutputRef}_2,\\
+                & &\ \i{validator}: \script,\\
+                & &\ \i{redeemer}: \Data)\\
+    \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
+               & &\ \outputs: \List{\s{Output}_2},\\
+               & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \fee: \qty,\\
+               & &\ \forge: \qtymap^{\pm})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -837,21 +818,21 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \s{OutputInfo}_2\s{ } &= (& \i{value}: \qtymap,\\
-    && \i{validatorHash}: \s{Address},\\
-    &&  \i{datascriptHash}: \s{Address})\\
+    \s{OutputInfo}_2\s{ } &=&(\i{value}: \qtymap,\\
+                          & &\ \i{validatorHash}: \s{Address},\\
+                          & &\ \i{datascriptHash}: \s{Address})\\
     \\
-    \s{InputInfo}_2\s{ }& = (&\i{inputRef}: \s{OutputRef},\\
-                 && \i{validatorHash}: \s{Address},\\
-                 && \i{redeemerHash}: \s{Address}),\\
-                 && \i{value}: \qtymap)\\
+    \s{InputInfo}_2\s{ } &=& (\i{inputRef}: \s{OutputRef},\\
+                         & &\ \i{validatorHash}: \s{Address},\\
+                         & &\ \i{redeemerHash}: \s{Address}),\\
+                         & &\ \i{value}: \qtymap)\\
      \\
-     \ptx_2\s{ } &= (&\i{inputInfo}: \List{\s{InputInfo}_2},\\
-     &&\i{thisInput}: \N,\\
-     &&\i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
-     &&\i{validityInterval}: \Interval{\extended{\slotnum}},\\
-     &&\fee: \qty,\\
-     &&\forge: \qtymap)
+     \ptx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
+                 & &\ \i{thisInput}: \N,\\
+                 & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
+                 & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                 & &\ \fee: \qty,\\
+                 & &\ \forge: \qtymap)
   \end{array}
   \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-2 model}
