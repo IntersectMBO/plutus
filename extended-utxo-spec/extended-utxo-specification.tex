@@ -461,20 +461,31 @@ the ledger.
      \s{Ledger } &=&\!\List{\eutxotx}\\
   \end{array}
   \end{displaymath}
-  \caption{Types for the EUTXO-1 model}
+  \caption{Primitives for the EUTXO-1 model}
   \label{fig:eutxo-1-types}
 \end{ruledfigure}
 
-\noindent A simple model of these primitives takes:
-\begin{itemize}
-  \item $\qty = \N$
-  \item $\qtypm = \Z$
-  \item $\slotnum = \N$
-  \item $\Address = \H$
-  \item $\TxId = \H$
-  \item $\txId = \textrm{the hash of the transaction}$
-  \item $\scriptAddr = \textrm{the hash of the script}$
-\end{itemize}
+The Cardano implementation of EUTXO-1 uses the primitives given in
+Fig.~\ref{fig:eutxo-1-types-cardano}.
+
+\begin{ruledfigure}{H}
+  \begin{displaymath}
+  \begin{array}{rll}
+    \qty{} &=& \N\\
+    \qtypm &=& \Z\\
+    \slotnum &=& \N\\
+    \Address &=& \H\\
+    \TxId &=& \H\\
+    \txId : \eutxotx \rightarrow \TxId &=& \mbox{the hash of the transaction}\\
+    \script &=& \mbox{a Plutus Core program}\\
+    \scriptAddr : \script \rightarrow \Address &=& \mbox{the hash of the program}\\
+    \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
+    \Data \rightarrow \B &=& \mbox{running the Plutus Core interpreter}\\
+  \end{array}
+  \end{displaymath}
+  \caption{Cardano primitives for the EUTXO-1 model}
+  \label{fig:eutxo-1-types-cardano}
+\end{ruledfigure}
 
 \subsubsection{Remarks}
 \paragraph{Quantities. }
@@ -548,7 +559,7 @@ related types.
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
-     \tau: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction}\\
+     \tau: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction in the context of an input}\\
      \delta: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{}}
   \end{array}
   \end{displaymath}
@@ -784,13 +795,20 @@ currency, as in EUTXO-1.
   \label{fig:eutxo-2-types}
 \end{ruledfigure}
 
-A simple implementation would take:
-\begin{itemize}
-\item $\currency = \H$
-\item $\token = \H$
-\item $\nativeCur = \textrm{empty bytestring}$
-\item $\nativeTok = \textrm{empty bytestring}$
-\end{itemize}
+The Cardano implementation of EUTXO-2 uses the primitives given in
+Fig.~\ref{fig:eutxo-2-types-cardano}.
+\begin{ruledfigure}{H}
+  \begin{displaymath}
+    \begin{array}{rll}
+      \currency  &=& \H\\
+      \nativeCur &=& \mbox{the empty bytestring}\\
+      \token     &=& \H\\
+      \nativeTok &=& \mbox{the empty bytestring}\\
+    \end{array}
+  \end{displaymath}
+  \caption{Cardano primitives for the EUTXO-1 model}
+  \label{fig:eutxo-2-types-cardano}
+\end{ruledfigure}
 
 \subsubsection{Remarks}
 \paragraph{Quantity maps. }
@@ -808,6 +826,10 @@ Quantities of the native currency are represented just like any other currency,
 using \qtymap{}s with the \nativeCur{} identifier. The one exception is the
 \fee{} field, which continues to be a simple \qty{}. This represents a quantity
 in the native currency, as fees can only be paid in that.
+
+It may be desirable to choose \nativeCur{} outside the range
+of \scriptAddr{}, since this will prevent forging of the native currency
+except in the initial transaction (see rule~\ref{rule:forging-2}).
 
 \subsection{The \ptx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
@@ -832,23 +854,15 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
                  & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
                  & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
                  & &\ \fee: \qty,\\
-                 & &\ \forge: \qtymap)
+                 & &\ \forge: \qtymap)\\
+    \\
+    \tau_2: \eutxotx_2 \times \N \rightarrow \ptx_2 &=& \mbox{summarises a transaction in the context of an input}\\
+    \delta_2: \ptx_2 \rightarrow \Data &=& \mbox{encodes a $\ptx_2$}
   \end{array}
   \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-2 model}
   \label{fig:ptx-2-types}
 \end{ruledfigure}
-
-\noindent Again we require functions
-$$
-\tau_2: \eutxotx_2 \times \N \rightarrow \ptx_2
-$$
-and
-$$
-\delta_2: \ptx_2 \rightarrow \Data
-$$
-which can be used to produce an appropriate script from a transaction
-and the index of an input.
 
 \subsection{Validity of EUTXO-2 transactions}
 \label{sec:eutxo-2-validity}
@@ -882,7 +896,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
       \[
         t.\inputs \subseteq \unspent(\lambda).
       \]
-    \item\textbf{Forging:}\\\\
+    \item \label{rule:forging-2} \textbf{Forging:}\\\\
       \begin{minipage}{0.85\textwidth}
         A transaction with a non-zero \forge{} field is only
         valid if either:
