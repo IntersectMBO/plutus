@@ -481,17 +481,8 @@ is similar, but negative quantities are allowed.  As with \N{} and \Z{}, we rega
 \qty{} as a subtype of \qtypm{} and convert freely between them.
 
 \paragraph{Inputs and outputs. } Note that a transaction has a
-\textsf{Set} of inputs but a \textsf{List} of outputs. We use a list
-because any subsequent transaction attempting to use an unspent output
-$O$ as an input will have to be able to determine exactly where $O$
-came from: thus each input of a transaction refers to the output which
-it is trying to spend via an \s{OutputRef} which specifies the
-transaction which produced the output and an index which says which
-output of the transaction is required.
-
-%\todompj{Can we just cite one of the previous descriptions for this?
-%  Also: we should check this is still how they do it in the new ledger
-%  specs.}
+\textsf{Set} of inputs but a \textsf{List} of outputs. See
+note~\ref{note:inputs-and-outputs} for a discussion of why.
 
 \paragraph{Scripts.} Note that validation data are modelled as components
 of outputs, but validator scripts as components of inputs, even though
@@ -1025,6 +1016,23 @@ signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
 
+\note{Inputs and outputs}
+\label{note:inputs-and-outputs}
+A transaction has a \textsf{Set} of inputs but a \textsf{List} of outputs.
+This is for two reasons:
+\begin{itemize}
+  \item We need a way to uniquely identify a transaction output, so
+  that it can be referred to by a transaction input that spends it. The pair of
+  a transaction id and an output index is sufficient for this, but other schemes
+  are conceivable.
+  \item Equality of transaction outputs is defined structurally. But that means
+    that if we had two outputs paying $X$ to address $A$, then they would be
+    equal and therefore if we kept them in a \s{Set} one would be lost.
+\end{itemize}
+
+An alternative design would be to include a unique nonce in transaction outputs
+(effectively: their index in the list), and then we could use this to identify
+them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
 \note{Validation data}
 \label{note:valdata}
