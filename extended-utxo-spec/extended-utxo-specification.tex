@@ -452,6 +452,8 @@ the ledger.
   \label{fig:eutxo-1-types}
 \end{ruledfigure}
 
+\subsubsection{Remarks}
+\paragraph{ETUXO-1 on Cardano.}
 The Cardano implementation of EUTXO-1 uses the primitives given in
 Fig.~\ref{fig:eutxo-1-types-cardano}.
 
@@ -467,14 +469,14 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
     \script &=& \mbox{a Plutus Core program}\\
     \scriptAddr : \script \rightarrow \Address &=& s \mapsto \hash{s}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B &=& \mbox{typechecking the program and running the Plutus Core interpreter}\\
+    \Data \rightarrow \B &=& \mbox{typechecking the program and running}\\
+                             &&\mbox{the Plutus Core interpreter}\\
   \end{array}
   \end{displaymath}
   \caption{Cardano primitives for the EUTXO-1 model}
   \label{fig:eutxo-1-types-cardano}
 \end{ruledfigure}
 
-\subsubsection{Remarks}
 \paragraph{Quantities. }
 The \qty{} type represents a non-negative quantity of funds.  The \qtypm{} type
 is similar, but negative quantities are allowed.  As with \N{} and \Z{}, we regard
@@ -772,6 +774,8 @@ currency, as in EUTXO-1.
   \label{fig:eutxo-2-types}
 \end{ruledfigure}
 
+\subsubsection{Remarks}
+\paragraph{ETUXO-2 on Cardano.}
 The Cardano implementation of EUTXO-2 uses the primitives given in
 Fig.~\ref{fig:eutxo-2-types-cardano}.
 \begin{ruledfigure}{H}
@@ -787,7 +791,6 @@ Fig.~\ref{fig:eutxo-2-types-cardano}.
   \label{fig:eutxo-2-types-cardano}
 \end{ruledfigure}
 
-\subsubsection{Remarks}
 \paragraph{Quantity maps. }
 The \qtymap{} type represents a collection of funds from a
 number of currencies and their subcurrencies, with all quantities
