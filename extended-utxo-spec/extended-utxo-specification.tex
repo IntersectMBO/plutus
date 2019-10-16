@@ -778,10 +778,13 @@ currency, as in EUTXO-1.
     \s{Output}_2 &=&(\addr: \s{Address},\\
                  & &\ \val: \qtymap\\
                  & &\ \valdata: \Data)\\
+    \\
     \s{OutputRef}_2 &= &(\txrefid: \s{TxId}, \idx: \s{Int})\\
+    \\
     \s{Input}_2 &=&( \i{outputRef}: \sf{OutputRef}_2,\\
                 & &\ \i{validator}: \script,\\
                 & &\ \i{redeemer}: \Data)\\
+    \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
