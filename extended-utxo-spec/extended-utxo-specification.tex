@@ -650,7 +650,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
       \]
     \item\label{rule:validator-scripts-hash} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace i.\validator^{\#} = \txout(i, \lambda).\addr.
+      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \txout(i, \lambda).\addr.
     \]
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-1 model}
@@ -896,7 +896,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
       \]
     \item\label{rule:validator-scripts-hash-2} \textbf{Validator scripts hash to their output addresses:}
     \[
-      \textrm{For all } i \in t.\inputs,\enspace i.\validator^{\#} = \txout(i, \lambda).\addr.
+      \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \txout(i, \lambda).\addr.
     \]
   \end{enumerate}
   \caption{Validity of a transaction $t$ in the EUTXO-2 model}
