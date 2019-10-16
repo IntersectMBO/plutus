@@ -460,7 +460,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
     \script &=& \mbox{a Plutus Core program}\\
     \scriptAddr : \script \rightarrow \Address &=& \mbox{the hash of the program}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B &=& \mbox{running the Plutus Core interpreter}\\
+    \Data \rightarrow \B &=& \mbox{typechecking the program and running the Plutus Core interpreter}\\
   \end{array}
   \end{displaymath}
   \caption{Cardano primitives for the EUTXO-1 model}
@@ -690,8 +690,6 @@ $\valdata$ fields and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
-\todokwxm{We should probably point out somewhere that the validating node
-  typechecks scripts during validation.}
 
 %%\newpage
 \section{EUTXO-2: multicurrency support and non-fungible tokens}
