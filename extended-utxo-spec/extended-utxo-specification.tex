@@ -270,34 +270,6 @@ conventions used in the remainder of the document.
 %The concatenation of two lists $\lambda_1$ and $\lambda_2$
 %  is denoted $\lambda_1 ::: \lambda_2$.
 
-\item For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the type of
-  \textit{finitely-supported functions} from $K$ to $V$. That is, there is a
-  function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
-  $k \in \support(f) \Leftrightarrow f(k) \neq 0$.
-
-  Equality on finitely-supported functions is defined as pointwise equality.
-
-  If the type $M$ is a monoid then we define the sum of two finitely-supported
-  functions
-  $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-  support $\support (f+g) = \support(f) \cup \support(g)$ given by
-  \[(f+g)(k) = f(k) + g(k) \]
-  We generalise this to the sum of a finite number of maps using
-  the $\sum$ notation in the usual way; care is required if
-  $+$ is non-commutative, since then the sum of a number of
-  functions will depend on the order in which they appear. Note that
-  the type $\FinSup{K}{M}$ itself becomes a monoid under the
-  operation $+$ which we have just defined, with the empty function as
-  identity element.
-
-  If the type $M$ is a group, then we can
-  similarly define the inverse of a finitely-supported function $f$ as
-  the function $(-f)$ with the same support, given by
-  \[ (-f)(k) = -f(k) \]
-
-  See note~\ref{note:finitely-supported-functions} for discussion of using
-  finitely-supported functions computationally.
-
 \item $x \mapsto f(x)$ denotes an anonymous function.
 
 \item A cryptographic collision-resistant hash of a value $c$ is denoted $c^{\#}$.
@@ -309,6 +281,37 @@ conventions used in the remainder of the document.
   of intervals over that type, whose endpoints may be either closed or open.
   The type $\Interval{A}$ forms a lattice.
 \end{itemize}
+
+\subsection {Finitely supported functions}
+\label{sec:fsfs}
+
+For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the type of
+\textit{finitely-supported functions} from $K$ to $V$. That is, there is a
+function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
+$k \in \support(f) \Leftrightarrow f(k) \neq 0$.
+
+Equality on finitely-supported functions is defined as pointwise equality.
+
+If the type $M$ is a monoid then we define the sum of two finitely-supported
+functions
+$f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
+support $\support (f+g) = \support(f) \cup \support(g)$ given by
+\[(f+g)(k) = f(k) + g(k) \]
+We generalise this to the sum of a finite number of maps using
+the $\sum$ notation in the usual way; care is required if
+$+$ is non-commutative, since then the sum of a number of
+functions will depend on the order in which they appear. Note that
+the type $\FinSup{K}{M}$ itself becomes a monoid under the
+operation $+$ which we have just defined, with the empty function as
+identity element.
+
+If the type $M$ is a group, then we can
+similarly define the inverse of a finitely-supported function $f$ as
+the function $(-f)$ with the same support, given by
+\[ (-f)(k) = -f(k) \]
+
+See note~\ref{note:finitely-supported-functions} for discussion of using
+finitely-supported functions computationally.
 
 \subsection{The \Data{} type}
 We also define a type \Data{} which can be used to pass information
@@ -940,7 +943,7 @@ transaction is invalid.
 
 \paragraph{Note.} In rule~\ref{rule:value-is-preserved-2},
 $+$ and $\sum$ are the sum of finitely-supported functions as defined in
-Section~\ref{sec:basic-notation}. Essentially we require that the
+Section~\ref{sec:fsfs}. Essentially we require that the
 quantities of each of the individual custom currencies involved in the
 transaction are preserved. Recall that values in $\forge$ can
 be negative whereas values in outputs must be non-negative.  Thus
