@@ -30,7 +30,6 @@ import qualified Language.Plutus.Contract.Tx as T
 import qualified Language.PlutusTx.Numeric   as N
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
-import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
 import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
@@ -62,7 +61,7 @@ balanceWallet utx = do
 --   unknown to the wallet.
 computeBalance :: WAPI.MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
-    right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
+    right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
         inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
         pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)

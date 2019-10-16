@@ -75,7 +75,6 @@ import           IOTS                      (IotsType)
 
 import           Language.PlutusTx.Lattice
 
-import           Ledger.Ada
 import           Ledger.Address
 import           Ledger.Crypto
 import           Ledger.Orphans            ()
@@ -116,7 +115,7 @@ data Tx = Tx {
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
     txForge      :: !Value,
     -- ^ The 'Value' forged by this transaction.
-    txFee        :: !Ada,
+    txFee        :: !Value,
     -- ^ The fee for this transaction.
     txValidRange :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
@@ -205,8 +204,9 @@ lookupData Tx{txData} h = Map.lookup h txData
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
-  = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && txFee >= 0 where
-    nonNegative i = V.geq i mempty
+  = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && nonNegative txFee
+    where
+      nonNegative i = V.geq i mempty
 
 -- | A transaction without witnesses for its inputs.
 data TxStripped = TxStripped {
@@ -216,7 +216,7 @@ data TxStripped = TxStripped {
     -- ^ The outputs of this transation.
     txStrippedForge   :: !Value,
     -- ^ The 'Value' forged by this transaction.
-    txStrippedFee     :: !Ada
+    txStrippedFee     :: !Value
     -- ^ The fee for this transaction.
     } deriving (Show, Eq, Generic, Serialise)
 

@@ -196,7 +196,7 @@ validTrace = property $ do
 invalidTrace :: Property
 invalidTrace = property $ do
     (m, txn) <- forAll genChainTxn
-    let invalidTxn = txn { txFee = 0 }
+    let invalidTxn = txn { txFee = mempty }
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
     Hedgehog.assert ([] == st ^. chainState . txPool)

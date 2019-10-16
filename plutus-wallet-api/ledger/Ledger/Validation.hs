@@ -118,7 +118,7 @@ toLedgerTxIn = fmap Just
 data PendingTx' i = PendingTx
     { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
     , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
-    , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
+    , pendingTxFee        :: Value -- ^ The fee paid by this transaction.
     , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
     , pendingTxIn         :: i -- ^ The 'PendingTxIn' being validated against currently.
     , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
