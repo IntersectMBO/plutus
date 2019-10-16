@@ -5,7 +5,6 @@ import Prelude
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(..))
-import Debug.Trace (trace)
 import Effect (Effect)
 import Effect.Aff (forkAff, Aff)
 import Effect.Class (liftEffect)
@@ -46,9 +45,9 @@ main = do
   protocol <- WL.protocol location
   hostname <- WL.hostname location
   port <- WL.port location
-  let wsProtocol = trace protocol \_ -> case protocol of
-                    "https:" -> "wss"
-                    _ -> "ws"
+  let wsProtocol = case protocol of
+                     "https:" -> "wss"
+                     _ -> "ws"
       wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
   socket <- WS.create wsPath []
   runHalogenAff do
