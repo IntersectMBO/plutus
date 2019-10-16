@@ -430,16 +430,16 @@ the ledger.
   \begin{displaymath}
   \begin{array}{rll}
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
-    \qty{} &=& \mbox{an amount of currency, always non-negative}\\
-    \qtypm &=& \mbox{a possibly negative amount of currency}\\
-    \slotnum &=& \mbox{a slot number}\\
-    \Address &=& \mbox{the address of an object in the blockchain}\\
-    \TxId &=& \mbox{the identifier of a transaction}\\
-    \txId : \eutxotx \rightarrow \TxId &=& \mbox{a function computing the identifier of a transaction}\\
-    \script &=& \mbox{the (opaque) type of scripts}\\
-    \scriptAddr : \script \rightarrow \Address &=& \mbox{the address of a script}\\
+    \qty{} && \mbox{an amount of currency, always non-negative}\\
+    \qtypm && \mbox{a possibly negative amount of currency}\\
+    \slotnum && \mbox{a slot number}\\
+    \Address && \mbox{the address of an object in the blockchain}\\
+    \TxId && \mbox{the identifier of a transaction}\\
+    \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
+    \script && \mbox{the (opaque) type of scripts}\\
+    \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B &=& \mbox{applying a script to its arguments}\\
+    \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \s{Address},\\
@@ -461,7 +461,7 @@ the ledger.
      \s{Ledger } &=&\!\List{\eutxotx}\\
   \end{array}
   \end{displaymath}
-  \caption{Primitives for the EUTXO-1 model}
+  \caption{Primitives and basic types for the EUTXO-1 model}
   \label{fig:eutxo-1-types}
 \end{ruledfigure}
 
@@ -766,10 +766,10 @@ currency, as in EUTXO-1.
   \begin{displaymath}
     \begin{array}{rll}
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
-    \currency  &=& \mbox{an identifier for a custom currency}\\
-    \nativeCur &=& \mbox{a distinguished \currency{} representing the native currency of the ledger}\\
-    \token     &=& \mbox{a type consisting of identifiers for individual tokens}\\
-    \nativeTok &=& \mbox{a distinguished \token{} representing the currency token of the native currency}\\
+    \currency  && \mbox{an identifier for a custom currency}\\
+    \nativeCur && \mbox{a distinguished \currency{} representing the native currency of the ledger}\\
+    \token     && \mbox{a type consisting of identifiers for individual tokens}\\
+    \nativeTok && \mbox{a distinguished \token{} representing the currency token of the native currency}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
@@ -791,7 +791,7 @@ currency, as in EUTXO-1.
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
   \end{displaymath}
-  \caption{Extra types for the EUTXO-2 model}
+  \caption{Extra primitives and basic types for the EUTXO-2 model}
   \label{fig:eutxo-2-types}
 \end{ruledfigure}
 
@@ -806,7 +806,7 @@ Fig.~\ref{fig:eutxo-2-types-cardano}.
       \nativeTok &=& \mbox{the empty bytestring}\\
     \end{array}
   \end{displaymath}
-  \caption{Cardano primitives for the EUTXO-1 model}
+  \caption{Cardano primitives for the EUTXO-2 model}
   \label{fig:eutxo-2-types-cardano}
 \end{ruledfigure}
 
