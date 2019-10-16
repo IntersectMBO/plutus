@@ -256,8 +256,15 @@ conventions used in the remainder of the document.
   presented as sequences of hexadecimal digits.
 
 \item If a type $M$ is a monoid, we use $+$ for the monoidal operation and $0$
-  for the unit of the monoid. If $M$ is a group, we use $-$ for the group
-  inverse operation. This should never be ambiguous.
+  for the unit of the monoid.
+
+  If $M$ is a commutative monoid, we use $\sum$ for the extension of $+$ to a finite set of elements of
+  type $M$.
+
+  If $M$ is a group, we use $-$ for the group
+  inverse operation.
+
+  This should never be ambiguous.
 
 \item A record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1,
   \ldots, T_n$ is denoted by $(\phi_1 : T_1, \ldots, \phi_n : T_n)$.
@@ -304,18 +311,15 @@ functions
 $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
 support $\support (f+g) = \support(f) \cup \support(g)$ given by
 \[(f+g)(k) = f(k) + g(k) \]
-We generalise this to the sum of a finite number of maps using
-the $\sum$ notation in the usual way; care is required if
-$+$ is non-commutative, since then the sum of a number of
-functions will depend on the order in which they appear. Note that
-the type $\FinSup{K}{M}$ itself becomes a monoid under the
-operation $+$ which we have just defined, with the empty function as
+Note that the type $\FinSup{K}{M}$ is a monoid with this
+operation, and the empty function as
 identity element.
 
 If the type $M$ is a group, then we can
 similarly define the inverse of a finitely-supported function $f$ as
 the function $(-f)$ with the same support, given by
 \[ (-f)(k) = -f(k) \]
+Again, $\FinSup{K}{M}$ is a group with this operation.
 
 See note~\ref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
