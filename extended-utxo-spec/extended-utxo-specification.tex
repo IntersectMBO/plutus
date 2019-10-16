@@ -458,9 +458,9 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
     \slotnum &=& \N\\
     \Address &=& \H\\
     \TxId &=& \H\\
-    \txId : \eutxotx \rightarrow \TxId &=& \mbox{the hash of the transaction}\\
+    \txId : \eutxotx \rightarrow \TxId &=& t \mapsto \hash{t}\\
     \script &=& \mbox{a Plutus Core program}\\
-    \scriptAddr : \script \rightarrow \Address &=& \mbox{the hash of the program}\\
+    \scriptAddr : \script \rightarrow \Address &=& s \mapsto \hash{s}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
     \Data \rightarrow \B &=& \mbox{typechecking the program and running the Plutus Core interpreter}\\
   \end{array}
@@ -1122,7 +1122,7 @@ restrict the creation of the currency to owners of particular public
 keys.
 
 The idea is that a custom currency has a monetary policy which is
-defined by some script $H$, and the hash $h = \scriptAddr(H)$ is used as the
+defined by some script $H$, and the address $h = \scriptAddr(H)$ is used as the
 identifier of the currency.
 
 Whenever a new quantity of the currency is forged,
