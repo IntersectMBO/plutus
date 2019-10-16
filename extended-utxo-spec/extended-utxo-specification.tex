@@ -113,7 +113,7 @@
 \newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
 \newcommand{\extended}[1]{#1^\updownarrow}
 \newcommand{\FinSup}[2]{\ensuremath{\s{FinSup}[#1,#2]}}
-\newcommand{\support}{\ensuremath{\mathrm{sup}}}
+\newcommand{\support}{\ensuremath{\mathrm{support}}}
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
@@ -342,7 +342,7 @@ conventions used in the remainder of the document.
   \item If the type $M$ is a monoid then we define the sum of two finitely-supported
     functions
     $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-    support $\support (f+g) = \support f \cup \support g$ given by
+    support $\support (f+g) = \support(f) \cup \support(g)$ given by
     \[(f+g)(k) = f(k) + g(k) \]
     We generalise this to the sum of a finite number of maps using
     the $\sum$ notation in the usual way; care is required if
