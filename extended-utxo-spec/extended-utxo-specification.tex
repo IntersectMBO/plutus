@@ -589,56 +589,35 @@ $t$ to be considered valid with respect to a ledger $\lambda$.  In
 order to define these we require a couple of auxiliary functions.
 Firstly, following~\citep{Zahnentferner18-UTxO} we define
 
-$$
-  \txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}
-  $$
-%
-  by
-%
-$$
-\txunspent(t) = \{(id,1), \ldots, (\mathit{id},\left|t.outputs\right|)\}
-$$
-\noindent (where $\mathit{id}$ is $t$'s unique \TxId{}), and
-%
-\[
-  \unspent : \mathsf{Ledger} \rightarrow \FinSet{\s{OutputRef}}
-\]
-%
-by
-%
-\begin{align*}
-   \unspent([]) &=\emptymap \\
-   \unspent(t::\lambda) &= (\unspent(\lambda) \setminus t.\inputs) \cup \txunspent(t).
-\end{align*}
-
-\noindent Note that for a completed transaction $t$, $t.\inputs$ is
-the set of previously unspent outputs which were spent by $t$.
-
-\medskip
-\noindent Given a ledger $\lambda$ and a transaction id $\id$, we
+Given a ledger $\lambda$ and a transaction id $\id$, we
 denote by $\lambda\langle\id\rangle$ the unique transaction $T$ in
-$\lambda$ with $\txId(T) = \id$, if it exists. In our abstract model
-where $\lambda$ consists of a list of transactions it would suffice to
-take $id$ to be the position of $T$ in $\lambda$, but in an
-implementation we would probably have $id = T^{\#}$.
+$\lambda$ with $\txId(T) = \id$, if it exists.
+\todompj{Make the failure handling explicit somehow.}
 
-\medskip
-\noindent Now given an input $i$ to some transaction in a ledger
-$\lambda$ we define
-$$
-\getvalue(i,\lambda) = \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx].\val
-$$
-This function simply returns the value of the input.
-
-
-
-\bigskip
+Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in validation.
+\begin{ruledfigure}{H}
+  \begin{displaymath}
+  \begin{array}{lll}
+  \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}}\\
+  \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
+  \\
+  \multicolumn{3}{l}{\unspent : \s{Ledger} \rightarrow \FinSet{\s{OutputRef}}}\\
+  \unspent([]) &=& \emptymap \\
+  \unspent(t::\lambda) &=& (\unspent(\lambda) \setminus t.\inputs) \cup \txunspent(t)\\
+  \\
+  \multicolumn{3}{l}{\getvalue : \TxId \times \s{Ledger} \rightarrow \eutxotx}\\
+  \getvalue(i,\lambda) &=& \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx].\val
+  \end{array}
+  \end{displaymath}
+  \caption{Auxiliary functions for EUTXO-1 validation}
+  \label{fig:validation-functions-1}
+\end{ruledfigure}
 
 \noindent We can now define what it means for a transaction $t$ of
 type $\eutxotx$ to be valid for a ledger: see
 Figure~\ref{fig:eutxo-1-validity}.  Our definition combines
 Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
-the latter in condition \ref{rule:all-inputs-validate}.
+the latter in rule~\ref{rule:all-inputs-validate}.
 \todokwxm{Check this.}
 
 \begin{ruledfigure}{H}
@@ -856,17 +835,23 @@ Figure~\ref{fig:eutxo-1-validity} must also be updated to take account
 of multiple currencies.
 
 We use the definitions of \unspent{}  and
-\getvalue{} from Section~\ref{sec:eutxo-1-validity} unchanged,
+\getvalue{} from Figure~\ref{fig:validation-functions-1} unchanged,
 but we also require a function to inject a \qty{} of the native currency
-into \qtymap{}. We define:
+into \qtymap{}. We define it in Figure~\ref{fig:validation-functions-2}.
 \begin{displaymath}
-  \injectNative(q)(c)(t) = \left\{
+\end{displaymath}
+\begin{ruledfigure}{H}
+  \begin{displaymath}
+    \injectNative(q)(c)(t) = \left\{
     \begin{array}{ll}
       q & \mbox{if $c = \nativeCur$ and $t = \nativeTok$ }\\
       0 & \mbox{otherwise}
     \end{array}
-  \right\}
-\end{displaymath}
+    \right\}
+  \end{displaymath}
+  \caption{Auxiliary functions for EUTXO-2 validation}
+  \label{fig:validation-functions-2}
+\end{ruledfigure}
 
 We can now adapt the definition of validity for EUTXO-1
 (Figure~\ref{fig:eutxo-1-validity}) to obtain a definition of validity for
