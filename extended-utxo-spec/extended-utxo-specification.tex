@@ -276,13 +276,11 @@ conventions used in the remainder of the document.
 \item If $T$ is a type then $\FinSet{T}$ is the type of finite sets
   with elements of type $T$.
 
-\item A list $\lambda$ of type $\List{T}$ is either the empty list
-  $[]$ or a list $e :: \lambda'$ with $head$ $e$ of type $T$ and
-  $tail$ $\lambda'$ of type $\List{T}$. A list has only a finite
-  number of elements.  We denote the $i$th element of a list $\lambda$ by
-  $\lambda[i]$ and the length of $\lambda$ by $\left|\lambda\right|$.
-%The concatenation of two lists $\lambda_1$ and $\lambda_2$
-%  is denoted $\lambda_1 ::: \lambda_2$.
+\item A list $l$ of type $\List{T}$ is either the empty list
+  $[]$ or a list $e :: l$ with $head$ $e$ of type $T$ and
+  $tail$ $l$ of type $\List{T}$. A list has only a finite
+  number of elements.  We denote the $i$th element of a list $l$ by
+  $l[i]$ and the length of $l$ by $\left|l\right|$.
 
 \item $x \mapsto f(x)$ denotes an anonymous function.
 
@@ -596,14 +594,14 @@ for further discussion.
 \subsection{Validity of EUTXO-1 transactions}
 \label{sec:eutxo-1-validity}
 A number of conditions must be satisfied in order for a transaction
-$t$ to be considered valid with respect to a ledger $\lambda$.
+$t$ to be considered valid with respect to a ledger $l$.
 
 Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in validation.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{lll}
   \multicolumn{3}{l}{\lookupTx{\_}{\_} : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
-  \lookupTx{\lambda}{id} &=& \textsf{find}(\lambda, tx \mapsto \txId(tx) = id)\\
+  \lookupTx{l}{id} &=& \textsf{find}(l, tx \mapsto \txId(tx) = id)\\
   \\
   \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
   \\
@@ -612,17 +610,17 @@ Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in v
   \\
   \multicolumn{3}{l}{\unspent : \s{Ledger} \rightarrow \FinSet{\s{OutputRef}}}\\
   \unspent([]) &=& \emptymap \\
-  \unspent(t::\lambda) &=& (\unspent(\lambda) \setminus t.\inputs) \cup \txunspent(t)\\
+  \unspent(t::l) &=& (\unspent(l) \setminus t.\inputs) \cup \txunspent(t)\\
   \\
   \multicolumn{3}{l}{\getSpent : \s{Input} \times \s{Ledger} \rightarrow \s{Output}}\\
-  \getSpent(i,\lambda) &=& \lambda\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx]
+  \getSpent(i,l) &=& l\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx]
   \end{array}
   \end{displaymath}
   \caption{Auxiliary functions for EUTXO-1 validation}
   \label{fig:validation-functions-1}
 \end{ruledfigure}
 
-\noindent The function $\lookupTx{\lambda}{id}$ looks up the unique transaction
+\noindent The function $\lookupTx{l}{id}$ looks up the unique transaction
 $T$ whose $\TxId$ is $id$. This can of course fail, but we will assume it does
 not, since rule~\ref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
 of the transaction inputs refer to existing unspent outputs, and hence that
@@ -642,21 +640,21 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \label{rule:all-inputs-refer-to-unspent-outputs}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
-    t.\inputs \subseteq \unspent(\lambda).
+    t.\inputs \subseteq \unspent(l).
   \end{displaymath}
 
 \item
   \label{rule:forging}
   \textbf{Forging} \\
     A transaction with a non-zero \forge{}
-    field is only valid if the ledger $\lambda$ is empty (that
+    field is only valid if the ledger $l$ is empty (that
     is, if it is the initial transaction).
 
 \item
   \label{rule:value-is-preserved}
   \textbf{Value is preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, \lambda).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
+    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -672,14 +670,14 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator\rrbracket (\getSpent(i, \lambda).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (\getSpent(i, l).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
   \label{rule:validator-scripts-hash}
   \textbf{Validator scripts match output addresses}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
+    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
 
 \end{enumerate}
@@ -690,9 +688,9 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 
 
 \noindent We say that a ledger
-$\lambda$ is \textit{valid} if either $\lambda$ is empty or
-$\lambda$ is of the form $t::\lambda^{\prime}$ with
-$\lambda^{\prime}$ valid and $t$ valid for $\lambda^{\prime}$.
+$l$ is \textit{valid} if either $l$ is empty or
+$l$ is of the form $t::l^{\prime}$ with
+$l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
 
 In practice, validity imposes a limit on the size of the
@@ -893,7 +891,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \label{rule:all-inputs-refer-to-unspent-outputs-2}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
-    t.\inputs \subseteq \unspent(\lambda).
+    t.\inputs \subseteq \unspent(l).
   \end{displaymath}
 
 \item
@@ -902,7 +900,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   A transaction with a non-zero \forge{} field is only
   valid if either:
   \begin{enumerate}
-    \item the ledger $\lambda$ is empty (that is, if it is the initial transaction).
+    \item the ledger $l$ is empty (that is, if it is the initial transaction).
     \item \label{rule:custom-forge}
       for every key $h$ in $\support(t.\forge)$, there
       exists $i \in t.\inputs$ and $(a,v,d) \in i.\outputs$ with
@@ -914,7 +912,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \label{rule:value-is-preserved-2}
   \textbf{Values are preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, \lambda) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
+    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -930,14 +928,14 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
-    i.\validator\rrbracket(\getSpent(i,\lambda).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(\getSpent(i,l).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
   \label{rule:validator-scripts-hash-2}
   \textbf{Validator scripts match output addresses}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
+    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
 
 \end{enumerate}
