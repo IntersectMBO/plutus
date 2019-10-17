@@ -976,7 +976,9 @@ aspects of the model.
 \label{note:finitely-supported-functions}
 
 We intend that finitely-supported functions are implemented as finite
-maps. However, there are two apparent difficulties:
+maps, with a failed map lookup corresponding to returning 0.
+
+However, there are two apparent difficulties:
 \begin{enumerate}
   \item The domain of a map does not correspond to the support of the function:
     values may be mapped to zero, thus appearing in the domain but not the support.
