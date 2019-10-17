@@ -640,28 +640,28 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 
 \item
   \label{rule:all-inputs-refer-to-unspent-outputs}
-  \textbf{All inputs refer to unspent outputs:}
+  \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
     t.\inputs \subseteq \unspent(\lambda).
   \end{displaymath}
 
 \item
   \label{rule:forging}
-  \textbf{Forging:} \\
+  \textbf{Forging} \\
     A transaction with a non-zero \forge{}
     field is only valid if the ledger $\lambda$ is empty (that
     is, if it is the initial transaction).
 
 \item
   \label{rule:value-is-preserved}
-  \textbf{Value is preserved}:
+  \textbf{Value is preserved}
   \begin{displaymath}
     t.\forge + \sum_{i \in t.\inputs} \getSpent(i, \lambda).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
   \label{rule:no-double-spending}
-  \textbf{No output is double spent:}
+  \textbf{No output is double spent}
   \begin{displaymath}
     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\outputref = i_2.\outputref
     \textrm{ then } i_1 = i_2.
@@ -669,7 +669,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 
 \item
   \label{rule:all-inputs-validate}
-  \textbf{All inputs validate:}
+  \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
     i.\validator\rrbracket (\getSpent(i, \lambda).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
@@ -677,7 +677,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 
 \item
   \label{rule:validator-scripts-hash}
-  \textbf{Validator scripts match output addresses:}
+  \textbf{Validator scripts match output addresses}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
   \end{displaymath}
@@ -891,14 +891,14 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:all-inputs-refer-to-unspent-outputs-2}
-  \textbf{All inputs refer to unspent outputs:}
+  \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
     t.\inputs \subseteq \unspent(\lambda).
   \end{displaymath}
 
 \item
   \label{rule:forging-2}
-  \textbf{Forging:}\\
+  \textbf{Forging}\\
   A transaction with a non-zero \forge{} field is only
   valid if either:
   \begin{enumerate}
@@ -919,7 +919,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:no-double-spending-2}
-  \textbf{No output is double spent:}
+  \textbf{No output is double spent}
   \begin{displaymath}
     \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\outputref = i_2.\outputref
     \textrm{ then } i_1 = i_2.
@@ -927,7 +927,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:all-inputs-validate-2}
-  \textbf{All inputs validate:}
+  \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \llbracket
     i.\validator\rrbracket(\getSpent(i,\lambda).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
@@ -935,7 +935,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:validator-scripts-hash-2}
-  \textbf{Validator scripts match output addresses:}
+  \textbf{Validator scripts match output addresses}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, \lambda).\addr
   \end{displaymath}
