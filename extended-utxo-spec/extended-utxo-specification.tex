@@ -133,8 +133,6 @@
 \newcommand{\eutxotx}{\msf{Tx}}
 
 \newcommand{\qty}{\ensuremath{\s{Quantity}}}
-\newcommand{\qtypm}{\ensuremath{\s{Quantity}^{\pm}}}
-\newcommand{\newqtytype}{\ensuremath{\s{Quantity}^{\prime}}}
 \newcommand{\token}{\ensuremath{\s{Token}}}
 \newcommand{\currency}{\ensuremath{\s{CurrencyId}}}
 \newcommand{\nativeCur}{\ensuremath{\mathrm{nativeC}}}
@@ -142,7 +140,6 @@
 \newcommand{\injectNative}{\ensuremath{\mathrm{inject}}}
 
 \newcommand{\qtymap}{\ensuremath{\s{QuantityMap}}}
-\newcommand{\qtymappm}{\ensuremath{\s{QuantityMap}^{\pm}}}
 
 \newcommand\B{\ensuremath{\mathbb{B}}}
 \newcommand\N{\ensuremath{\mathbb{N}}}
@@ -423,8 +420,7 @@ the ledger.
   \begin{displaymath}
   \begin{array}{rll}
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
-    \qty{} && \mbox{an amount of currency, always non-negative}\\
-    \qtypm && \mbox{a possibly negative amount of currency}\\
+    \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
     \Address && \mbox{the address of an object in the blockchain}\\
     \TxId && \mbox{the identifier of a transaction}\\
@@ -466,8 +462,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \qty{} &=& \N\\
-    \qtypm &=& \Z\\
+    \qty{} &=& \Z\\
     \slotnum &=& \N\\
     \Address &=& \H\\
     \TxId &=& \H\\
@@ -482,11 +477,6 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
   \caption{Cardano primitives for the EUTXO-1 model}
   \label{fig:eutxo-1-types-cardano}
 \end{ruledfigure}
-
-\paragraph{Quantities. }
-The \qty{} type represents a non-negative quantity of funds.  The \qtypm{} type
-is similar, but negative quantities are allowed.  As with \N{} and \Z{}, we regard
-\qty{} as a subtype of \qtypm{} and convert freely between them.
 
 \paragraph{Inputs and outputs. } Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
@@ -637,6 +627,13 @@ the latter in rule~\ref{rule:all-inputs-validate}.
 \begin{enumerate}
 
 \item
+  \label{rule:all-outputs-are-non-negative}
+  \textbf{All outputs have non-negative values}
+  \begin{displaymath}
+    \textrm{For all } o \in t.\outputs,\ o.\val \geq 0
+  \end{displaymath}
+
+\item
   \label{rule:all-inputs-refer-to-unspent-outputs}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
@@ -669,7 +666,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \label{rule:all-inputs-validate}
   \textbf{All inputs validate}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \llbracket
+    \textrm{For all } i \in t.\inputs,\ \llbracket
     i.\validator\rrbracket (\getSpent(i, l).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
@@ -677,7 +674,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \label{rule:validator-scripts-hash}
   \textbf{Validator scripts match output addresses}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, l).\addr
+    \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
 
 \end{enumerate}
@@ -743,7 +740,7 @@ with the sub-currency for each token limited to a supply of one.
 The changes to the basic EUTXO-1 types are now quite simple:
 see Figure~\ref{fig:eutxo-2-types}.  We change the type of the $\val$ field
 in the \s{Output} type to be \qtymap{}, representing values of all currencies;
-we also change the type of the \forge{} field on transactions to \qtymappm{}, to
+we also change the type of the \forge{} field on transactions to \qtymap{}, to
 allow the creation and destruction of funds in all currencies; the
 supply of a currency can be reduced by forging a negative amount of that
 currency, as in EUTXO-1.
@@ -758,7 +755,6 @@ currency, as in EUTXO-1.
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
-    \qtymappm &=& \FinSup{\currency}{\FinSup{\token}{\qtypm}}\\
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
@@ -774,7 +770,7 @@ currency, as in EUTXO-1.
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
                & &\ \fee: \qty,\\
-               & &\ \forge: \qtymap^{\pm})\\
+               & &\ \forge: \qtymap)\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -802,10 +798,7 @@ Fig.~\ref{fig:eutxo-2-types-cardano}.
 
 \paragraph{Quantity maps. }
 The \qtymap{} type represents a collection of funds from a
-number of currencies and their subcurrencies, with all quantities
-being non-negative.  The \qtymappm{} type is similar, but
-negative quantities are allowed.  As with \qty{} and \qtypm{}, we regard
-\qtymap{} as a subtype of \qtymappm{} and convert freely between them.
+number of currencies and their subcurrencies.
 
 \qtymap{} is a finitely-supported function \emph{to} another finitely-supported
 function. This is well-defined, since finitely-supported functions form a monoid.
@@ -888,6 +881,13 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 \begin{enumerate}
 
 \item
+  \label{rule:all-outputs-are-non-negative-2}
+  \textbf{All outputs have non-negative values}
+  \begin{displaymath}
+    \textrm{For all } o \in t.\outputs,\ o.\val \geq 0
+  \end{displaymath}
+
+\item
   \label{rule:all-inputs-refer-to-unspent-outputs-2}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
@@ -927,7 +927,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \label{rule:all-inputs-validate-2}
   \textbf{All inputs validate}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \llbracket
+    \textrm{For all } i \in t.\inputs,\ \llbracket
     i.\validator\rrbracket(\getSpent(i,l).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
@@ -935,7 +935,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \label{rule:validator-scripts-hash-2}
   \textbf{Validator scripts match output addresses}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\enspace \scriptAddr(i.\validator) = \getSpent(i, l).\addr
+    \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
 
 \end{enumerate}
