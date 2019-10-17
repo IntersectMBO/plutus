@@ -139,7 +139,7 @@
 \newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
 \newcommand{\injectNative}{\ensuremath{\mathrm{inject}}}
 
-\newcommand{\qtymap}{\ensuremath{\s{QuantityMap}}}
+\newcommand{\qtymap}{\ensuremath{\s{Quantities}}}
 
 \newcommand\B{\ensuremath{\mathbb{B}}}
 \newcommand\N{\ensuremath{\mathbb{N}}}
@@ -796,7 +796,7 @@ Fig.~\ref{fig:eutxo-2-types-cardano}.
   \label{fig:eutxo-2-types-cardano}
 \end{ruledfigure}
 
-\paragraph{Quantity maps. }
+\paragraph{\qtymap{}. }
 The \qtymap{} type represents a collection of funds from a
 number of currencies and their subcurrencies.
 
@@ -946,8 +946,8 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 \subsection{Remarks}
 \paragraph{Preservation of value over \qtymap{}s.}
 In rule~\ref{rule:value-is-preserved-2},
-$+$ and $\sum$ operate over \qtymap{}s, which are
-finitely-supported functions (which, with their operations,
+$+$ and $\sum$ operate over \qtymap{}, which is
+a finitely-supported function (which, with their operations,
 are defined in Section~\ref{sec:fsfs}). Preservation of value
 in this model essentially requires that the
 quantities of each of the individual currencies involved in the
