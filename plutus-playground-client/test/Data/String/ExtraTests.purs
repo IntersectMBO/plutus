@@ -3,7 +3,6 @@ module Data.String.ExtraTests
   ) where
 
 import Prelude
-
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.QuickCheck (arbitrary)
@@ -30,10 +29,11 @@ abbreviateTests = do
         String.take 5 str
           == String.take 5 (abbreviate 10 str)
     test "Repeated application gives the same result" do
-      quickCheck $ do
-        str <- arbitrary :: Gen String
-        n <- arbitrary `suchThat` (\n -> n >= 0)
-        pure $ abbreviate n (abbreviate n str) == str
+      quickCheck
+        $ do
+            str <- arbitrary :: Gen String
+            n <- arbitrary `suchThat` (\n -> n >= 0)
+            pure $ abbreviate n (abbreviate n str) == str
 
 toHexTests :: TestSuite
 toHexTests = do

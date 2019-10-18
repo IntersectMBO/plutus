@@ -1,7 +1,6 @@
 module Blockly.Generator where
 
 import Prelude
-
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.ST (ST)
 import Control.Monad.ST.Ref (STRef)
@@ -39,7 +38,6 @@ foreign import data Field :: Type
 foreign import data Connection :: Type
 
 -- Functions that mutate values always work on STRefs rather than regular values
-
 foreign import nextBlock_ :: Fn3 (Block -> Maybe Block) (Maybe Block) Block (Maybe Block)
 
 foreign import getFieldValue_ :: forall a. Fn4 (String -> Either String a) (a -> Either String a) Block String (Either String String)

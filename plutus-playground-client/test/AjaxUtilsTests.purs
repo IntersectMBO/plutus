@@ -3,7 +3,6 @@ module AjaxUtilsTests
   ) where
 
 import Prelude
-
 import Auth (AuthStatus)
 import Control.Monad.Except (runExcept)
 import Cursor (Cursor)

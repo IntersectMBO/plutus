@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(..))
@@ -45,10 +44,12 @@ main = do
   protocol <- WL.protocol location
   hostname <- WL.hostname location
   port <- WL.port location
-  let wsProtocol = case protocol of
-                     "https:" -> "wss"
-                     _ -> "ws"
-      wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
+  let
+    wsProtocol = case protocol of
+      "https:" -> "wss"
+      _ -> "ws"
+
+    wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
   socket <- WS.create wsPath []
   runHalogenAff do
     body <- awaitBody

@@ -75,14 +75,15 @@ data HAction
   -- websocket
   | AnalyseContract
 
-data WebsocketMessage = WebsocketMessage String
+data WebsocketMessage
+  = WebsocketMessage String
 
 ------------------------------------------------------------
-type ChildSlots =
-  ( editorSlot :: H.Slot AceQuery AceMessage Unit
-  , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
-  , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
-  )
+type ChildSlots
+  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+    , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
+    , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
+    )
 
 _editorSlot :: SProxy "editorSlot"
 _editorSlot = SProxy
@@ -237,6 +238,7 @@ emptyMarloweState sn =
   , editorErrors: []
   , payments: []
   }
+
 type WebData
   = RemoteData AjaxError
 
@@ -248,15 +250,19 @@ data ActionInput
   | NotifyInput Observation
 
 minimumBound :: Array Bound -> ChosenNum
-minimumBound bnds =
-  case uncons (map boundFrom bnds) of
-    Just { head, tail } -> foldl1 min (head :| tail)
-    Nothing -> zero
+minimumBound bnds = case uncons (map boundFrom bnds) of
+  Just { head, tail } -> foldl1 min (head :| tail)
+  Nothing -> zero
 
 actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
 actionToActionInput state (Deposit accountId party value) =
-  let minSlot = state ^. _minSlot
-      env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
-  in Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+  let
+    minSlot = state ^. _minSlot
+
+    env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
+  in
+    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
+
 actionToActionInput _ (Notify observation) = Tuple (NotifyInputId observation) (NotifyInput observation)

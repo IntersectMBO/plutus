@@ -94,6 +94,10 @@ let
     sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
   }) { pkgs = pkgs // { nix-gitignore = nixGitIgnore; }; };
 
+  purty = (import ./purty {
+    inherit pkgs;
+  });
+
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -165,6 +169,9 @@ let
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
+      };
+      purty = pkgs.callPackage ./purty/test.nix {
+        inherit src purty;
       };
     };
 
@@ -395,9 +402,6 @@ let
     };
 
     dev = rec {
-      purty = (import ./purty {
-        inherit pkgs;
-      });
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
       };
@@ -433,6 +437,7 @@ let
           ${pkgs.fd}/bin/fd \
             --extension purs \
             --exclude '*/.psc-package/*' \
+            --exclude '*/.spago/*' \
             --exclude '*/node_modules/*' \
             --exclude '*/generated/*' \
             --exec ${purty}/bin/purty --write {}

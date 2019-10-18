@@ -1,6 +1,5 @@
 module Marlowe.Parser where
 
-
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
 import Data.Array (fromFoldable, many)
@@ -36,16 +35,18 @@ appSpaces p q = p <*> (spaces *> q)
 infixl 4 appSpaces as <**>
 
 text :: Parser String String
-text = between (char '"') (char '"') $ fromCharArray <<< fromFoldable <$> many (choice [alphaNum, space])
+text = between (char '"') (char '"') $ fromCharArray <<< fromFoldable <$> many (choice [ alphaNum, space ])
 
 haskellList :: forall a. Parser String a -> Parser String (List a)
-haskellList p = squareParens $ do
-  void maybeSpaces
-  v <- p `sepBy` (maybeSpaces *> string "," *> maybeSpaces)
-  void maybeSpaces
-  pure v
+haskellList p =
+  squareParens
+    $ do
+        void maybeSpaces
+        v <- p `sepBy` (maybeSpaces *> string "," *> maybeSpaces)
+        void maybeSpaces
+        pure v
   where
-    squareParens = between (string "[") (string "]")
+  squareParens = between (string "[") (string "]")
 
 maybeParens :: forall a. Parser String a -> Parser String a
 maybeParens p = parens p <|> p
@@ -95,8 +96,10 @@ choiceId =
     pure $ ChoiceId first second
 
 atomValue :: Parser String Value
-atomValue = pure SlotIntervalStart <* string "SlotIntervalStart"
-    <|> pure SlotIntervalEnd <* string "SlotIntervalEnd"
+atomValue =
+  pure SlotIntervalStart <* string "SlotIntervalStart"
+    <|> pure SlotIntervalEnd
+    <* string "SlotIntervalEnd"
 
 recValue :: Parser String Value
 recValue =
@@ -114,7 +117,6 @@ recValue =
 value :: Parser String Value
 value = atomValue <|> recValue
 
-
 atomObservation :: Parser String Observation
 atomObservation =
   pure TrueObs <* string "TrueObs"
@@ -123,7 +125,7 @@ atomObservation =
 
 recObservation :: Parser String Observation
 recObservation =
-    (AndObs <$> (string "AndObs" **> observation') <**> observation')
+  (AndObs <$> (string "AndObs" **> observation') <**> observation')
     <|> (OrObs <$> (string "OrObs" **> observation') <**> observation')
     <|> (NotObs <$> (string "NotObs" **> observation'))
     <|> (ChoseSomething <$> (string "ChoseSomething" **> choiceId))
@@ -141,8 +143,9 @@ observation :: Parser String Observation
 observation = atomObservation <|> recObservation
 
 payee :: Parser String Payee
-payee = (Account <$> (string "Account" **> accountId))
-        <|> (Party <$> (string "Party" **> text))
+payee =
+  (Account <$> (string "Account" **> accountId))
+    <|> (Party <$> (string "Party" **> text))
 
 pubkey :: Parser String PubKey
 pubkey = text
@@ -164,23 +167,24 @@ bound =
 
 action :: Parser String Action
 action =
-    (Deposit <$> (string "Deposit" **> accountId) <**> party <**> value')
+  (Deposit <$> (string "Deposit" **> accountId) <**> party <**> value')
     <|> (Choice <$> (string "Choice" **> choiceId) <**> array bound)
     <|> (Notify <$> (string "Notify" **> observation'))
-    where
-      observation' = atomObservation <|> fix \p -> parens recObservation
-      value' = atomValue <|> fix (\p -> parens recValue)
+  where
+  observation' = atomObservation <|> fix \p -> parens recObservation
+
+  value' = atomValue <|> fix (\p -> parens recValue)
 
 case' :: Parser String Case
 case' = do
-    void maybeSpaces
-    void $ string "Case"
-    void spaces
-    first <- parens action
-    void spaces
-    second <- contract'
-    void maybeSpaces
-    pure $ (Case first second)
+  void maybeSpaces
+  void $ string "Case"
+  void spaces
+  first <- parens action
+  void spaces
+  second <- contract'
+  void maybeSpaces
+  pure $ (Case first second)
   where
   contract' = atomContract <|> fix \p -> parens recContract
 
@@ -192,11 +196,11 @@ atomContract = pure Close <* string "Close"
 
 recContract :: Parser String Contract
 recContract =
-    ( Pay <$> (string "Pay" **> accountId)
-          <**> parens payee
-          <**> value'
-          <**> contract'
-      )
+  ( Pay <$> (string "Pay" **> accountId)
+      <**> parens payee
+      <**> value'
+      <**> contract'
+  )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
     <|> (When <$> (string "When" **> (array (maybeParens case'))) <**> timeout <**> contract')
     <|> (Let <$> (string "Let" **> valueId) <**> value' <**> contract')
@@ -216,7 +220,8 @@ contract = do
   pure c
 
 testString :: String
-testString = """When [
+testString =
+  """When [
   (Case
      (Deposit
         (AccountId 0 "alice") "alice"
@@ -336,9 +341,9 @@ testString = """When [
 
 input :: Parser String Input
 input =
-   (IDeposit <$> (string "IDeposit" **> accountId) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
-   <|> (IChoice <$> (string "IChoice" **> choiceId) <**> (maybeParens bigInteger))
-   <|> ((const INotify) <$> (string "INotify"))
+  (IDeposit <$> (string "IDeposit" **> accountId) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (IChoice <$> (string "IChoice" **> choiceId) <**> (maybeParens bigInteger))
+    <|> ((const INotify) <$> (string "INotify"))
 
 inputList :: Parser String (List Input)
 inputList = haskellList input
@@ -347,27 +352,27 @@ slotInterval :: Parser String SlotInterval
 slotInterval = (SlotInterval <$> (string "SlotInterval" **> slot) <**> slot)
 
 transactionInput :: Parser String TransactionInput
-transactionInput =
-   do void $ string "TransactionInput"
-      void maybeSpaces
-      void $ string "{"
-      void maybeSpaces
-      void $ string "txInterval"
-      void maybeSpaces
-      void $ string "="
-      void maybeSpaces
-      interval <- slotInterval
-      void maybeSpaces
-      void $ string ","
-      void maybeSpaces
-      void $ string "txInputs"
-      void maybeSpaces
-      void $ string "="
-      void maybeSpaces
-      inputs <- inputList
-      void maybeSpaces
-      void $ string "}"
-      pure $ TransactionInput { interval, inputs }
+transactionInput = do
+  void $ string "TransactionInput"
+  void maybeSpaces
+  void $ string "{"
+  void maybeSpaces
+  void $ string "txInterval"
+  void maybeSpaces
+  void $ string "="
+  void maybeSpaces
+  interval <- slotInterval
+  void maybeSpaces
+  void $ string ","
+  void maybeSpaces
+  void $ string "txInputs"
+  void maybeSpaces
+  void $ string "="
+  void maybeSpaces
+  inputs <- inputList
+  void maybeSpaces
+  void $ string "}"
+  pure $ TransactionInput { interval, inputs }
 
 transactionInputList :: Parser String (List TransactionInput)
 transactionInputList = haskellList transactionInput
@@ -376,10 +381,11 @@ testTransactionInputParsing :: String
 testTransactionInputParsing = "[TransactionInput {txInterval = SlotInterval (-5) (-4), txInputs = [IDeposit (AccountId 1 \"Alice\") \"Bob\" 20,INotify]}]"
 
 transactionWarning :: Parser String TransactionWarning
-transactionWarning = (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountId <**> (Lovelace <$> (maybeParens bigInteger)))
-                 <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)))
-                 <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
-                 <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueId) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
+transactionWarning =
+  (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountId <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueId) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
 
 transactionWarningList :: Parser String (List TransactionWarning)
 transactionWarningList = haskellList transactionWarning

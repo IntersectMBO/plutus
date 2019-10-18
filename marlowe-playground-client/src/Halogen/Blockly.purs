@@ -55,7 +55,8 @@ data BlocklyMessage
   = Initialized
   | CurrentCode String
 
-type Slots = ()
+type Slots
+  = ()
 
 type DSL m a
   = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
@@ -65,13 +66,14 @@ blockly blockDefinitions =
   mkComponent
     { initialState: const { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
     , render
-    , eval: H.mkEval
-               { handleQuery
-               , handleAction
-               , initialize: Just $ Inject blockDefinitions
-               , finalize: Nothing
-               , receive: Just <<< SetData
-               }
+    , eval:
+      H.mkEval
+        { handleQuery
+        , handleAction
+        , initialize: Just $ Inject blockDefinitions
+        , finalize: Nothing
+        , receive: Just <<< SetData
+        }
     }
 
 handleQuery :: forall m a. MonadEffect m => BlocklyQuery a -> DSL m (Maybe a)

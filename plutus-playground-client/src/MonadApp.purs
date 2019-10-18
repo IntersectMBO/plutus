@@ -1,7 +1,6 @@
 module MonadApp where
 
 import Prelude
-
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
@@ -126,19 +125,19 @@ withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m 
 withEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
 
 instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
-   editorGetContents = lift editorGetContents
-   editorSetContents contents cursor = lift $ editorSetContents contents cursor
-   editorSetAnnotations annotations = lift $ editorSetAnnotations annotations
-   editorGotoLine row column = lift $ editorGotoLine row column
-   preventDefault event = lift $ preventDefault event
-   setDropEffect dropEffect event = lift $ setDropEffect dropEffect event
-   setDataTransferData event mimeType value = lift $ setDataTransferData event mimeType value
-   readFileFromDragEvent event = lift $ readFileFromDragEvent event
-   delay ms = lift $ delay ms
-   saveBuffer text = lift $ saveBuffer text
-   getOauthStatus = lift getOauthStatus
-   getGistByGistId gistId = lift $ getGistByGistId gistId
-   postEvaluation evaluation = lift $ postEvaluation evaluation
-   postGist newGist = lift $ postGist newGist
-   patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
-   postContract source = lift $ postContract source
+  editorGetContents = lift editorGetContents
+  editorSetContents contents cursor = lift $ editorSetContents contents cursor
+  editorSetAnnotations annotations = lift $ editorSetAnnotations annotations
+  editorGotoLine row column = lift $ editorGotoLine row column
+  preventDefault event = lift $ preventDefault event
+  setDropEffect dropEffect event = lift $ setDropEffect dropEffect event
+  setDataTransferData event mimeType value = lift $ setDataTransferData event mimeType value
+  readFileFromDragEvent event = lift $ readFileFromDragEvent event
+  delay ms = lift $ delay ms
+  saveBuffer text = lift $ saveBuffer text
+  getOauthStatus = lift getOauthStatus
+  getGistByGistId gistId = lift $ getGistByGistId gistId
+  postEvaluation evaluation = lift $ postEvaluation evaluation
+  postGist newGist = lift $ postGist newGist
+  patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
+  postContract source = lift $ postContract source

@@ -1,7 +1,6 @@
 module AjaxUtils where
 
 import Prelude hiding (div)
-
 import Bootstrap (alertDanger_)
 import Data.Foldable (intercalate)
 import Foreign (MultipleErrors, renderForeignError)

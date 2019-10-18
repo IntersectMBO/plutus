@@ -1,7 +1,6 @@
 module Marlowe.ParserTests where
 
 import Prelude
-
 import Control.Alternative ((<|>))
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen)

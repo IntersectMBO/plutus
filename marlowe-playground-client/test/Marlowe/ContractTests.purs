@@ -1,7 +1,6 @@
 module Marlowe.ContractTests where
 
 import Prelude
-
 import Control.Monad.State (class MonadState, StateT, runState)
 import Data.Array (snoc)
 import Data.Either (Either(..))
@@ -22,7 +21,8 @@ import Types (FrontendState(..), View(..), _Head, _contract, _currentMarloweStat
 
 -- | For these tests we only need to worry about the MarloweState that is being carried around
 --   However we can use similar techniques to mock other parts of the App
-newtype MockApp a = MockApp (StateT FrontendState Identity a)
+newtype MockApp a
+  = MockApp (StateT FrontendState Identity a)
 
 derive instance newtypeMockApp :: Newtype (MockApp a) _
 
@@ -95,22 +95,33 @@ all :: TestSuite
 all =
   suite "Contract Tests" do
     test "Escrow" do
-        -- A simple test that runs the Escrow contract to completion
-        let alice = "alice"
-            bob = "bob"
-            deposit = IDeposit (AccountId (fromIntegral 0) alice) alice (Lovelace (fromIntegral 450))
-            choice = ChoiceId "choice"
-            choice1 = IChoice (choice alice) (fromIntegral 0)
-            choice2 = IChoice (choice bob) (fromIntegral 0)
-            (Tuple _ finalState) = runTests $ do
+      -- A simple test that runs the Escrow contract to completion
+      let
+        alice = "alice"
+
+        bob = "bob"
+
+        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice (Lovelace (fromIntegral 450))
+
+        choice = ChoiceId "choice"
+
+        choice1 = IChoice (choice alice) (fromIntegral 0)
+
+        choice2 = IChoice (choice bob) (fromIntegral 0)
+
+        (Tuple _ finalState) =
+          runTests
+            $ do
                 updateContractInState Contracts.escrow
                 updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit alice)))
                 applyTransactions
                 updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 alice)))
                 updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 bob)))
                 applyTransactions
-            finalContract = finalState ^. _marloweState <<< _Head <<< _contract
-            txError = finalState ^. _marloweState <<< _Head <<< _transactionError
-        equal Nothing txError
-        equal (Just Close) finalContract
-        pure unit
+
+        finalContract = finalState ^. _marloweState <<< _Head <<< _contract
+
+        txError = finalState ^. _marloweState <<< _Head <<< _transactionError
+      equal Nothing txError
+      equal (Just Close) finalContract
+      pure unit

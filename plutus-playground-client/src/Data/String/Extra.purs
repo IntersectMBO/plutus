@@ -16,10 +16,13 @@ import Prelude (map, max, (-), (<>), (==), (>>>))
 
 abbreviate :: Int -> String -> String
 abbreviate n str =
-  let prefix = String.take n str
-  in if str == prefix
-     then str
-     else prefix <> "..."
+  let
+    prefix = String.take n str
+  in
+    if str == prefix then
+      str
+    else
+      prefix <> "..."
 
 toHex :: String -> String
 toHex =

@@ -1,7 +1,6 @@
 module Data.RawJson where
 
 import Prelude
-
 import Control.Alt ((<|>))
 import Data.Array as Array
 import Data.Either (Either(..))
@@ -30,7 +29,8 @@ derive instance newtypeRawJson :: Newtype RawJson _
 _RawJson :: Iso' RawJson String
 _RawJson = _Newtype
 
-instance showRawJson :: Show RawJson where show = genericShow
+instance showRawJson :: Show RawJson where
+  show = genericShow
 
 instance encodeRawJson :: Encode RawJson where
   encode (RawJson string) = unsafeToForeign string
