@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 
 module Playground.Rollup.RenderSpec
     ( tests
@@ -19,9 +20,8 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Playground.Interpreter       as PI
-import           Playground.Rollup.Render     (showBlockchain)
 import           Playground.Server            (postProcessEvaluation)
-import           Playground.Types             (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn),
+import           Playground.Types             (Evaluation (Evaluation), EvaluationResult (EvaluationResult, walletKeys, resultBlockchain), Expression (Action, Wait), Fn (Fn),
                                                SimulatorWallet (SimulatorWallet), simulatorWalletBalance,
                                                simulatorWalletWallet)
 import           Playground.Usecases          (crowdfunding, vesting)
@@ -29,6 +29,7 @@ import           Test.Tasty                   (TestTree, testGroup)
 import           Test.Tasty.Golden            (goldenVsString)
 import           Test.Tasty.HUnit             (assertFailure)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
+import           Wallet.Rollup.Render         (showBlockchain)
 
 tests :: TestTree
 tests = testGroup "Playground.Rollup.Render" [showBlockchainTest]
@@ -133,8 +134,8 @@ render scenario = do
     result <- runExceptT $ PI.runFunction maxInterpretationTime scenario
     case postProcessEvaluation result of
         Left err -> assertFailure $ show err
-        Right evaluationResult ->
-            case showBlockchain evaluationResult of
+        Right EvaluationResult{walletKeys, resultBlockchain} ->
+            case showBlockchain walletKeys resultBlockchain of
                 Left err       -> assertFailure $ show err
                 Right rendered -> pure . LBS.fromStrict . encodeUtf8 $ rendered
   where

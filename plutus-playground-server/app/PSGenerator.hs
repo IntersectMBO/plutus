@@ -52,10 +52,10 @@ import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
-import           Playground.Types                           (AnnotatedTx, BeneficialOwner, CompilationResult,
-                                                             DereferencedInput, Evaluation, EvaluationResult,
+import           Playground.Types                           (CompilationResult,
+                                                             Evaluation, EvaluationResult,
                                                              Expression, Fn, FunctionSchema, KnownCurrency,
-                                                             PlaygroundError, SequenceId, SimulatorWallet)
+                                                             PlaygroundError, SimulatorWallet)
 import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
 import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
@@ -65,6 +65,7 @@ import           Servant.PureScript                         (HasBridge, Settings
 import           System.FilePath                            ((</>))
 import           Wallet.API                                 (WalletAPIError)
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
+import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId)
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =

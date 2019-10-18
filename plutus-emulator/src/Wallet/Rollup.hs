@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 
-module Playground.Rollup
+module Wallet.Rollup
     ( doAnnotateBlockchain
     ) where
 
@@ -23,7 +23,7 @@ import           Language.PlutusTx.Monoid (inv)
 import           Ledger                   (Tx (Tx), TxId, TxIdOf (TxIdOf), TxIn, TxInOf (TxInOf), TxOut,
                                            TxOutOf (TxOutOf), Value, getTxId, outValue, txInRef, txInputs, txOutRefId,
                                            txOutRefIdx, txOutValue, txOutputs)
-import           Playground.Types         (AnnotatedTx (AnnotatedTx), BeneficialOwner,
+import           Wallet.Rollup.Types      (AnnotatedTx (AnnotatedTx), BeneficialOwner,
                                            DereferencedInput (DereferencedInput, refersTo), SequenceId (SequenceId),
                                            balances, dereferencedInputs, sequenceId, slotIndex, toBeneficialOwner, tx,
                                            txId, txIndex)

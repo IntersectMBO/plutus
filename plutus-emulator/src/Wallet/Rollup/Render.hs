@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,14 +6,12 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-module Playground.Rollup.Render
-    ( showBlockchain
-    ) where
+module Wallet.Rollup.Render where
 
 import           Control.Lens                          (preview, _2, _Just)
 import           Control.Lens.Combinators              (itraverse)
 import           Control.Monad.Except                  (MonadError, throwError)
-import           Control.Monad.State                   (StateT, evalStateT, get, gets)
+import           Control.Monad.Reader
 import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
 import qualified Data.ByteString.Lazy                  as BSL
@@ -26,7 +23,7 @@ import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
-import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
+import           Data.Text.Prettyprint.Doc             (defaultLayoutOptions, Doc, fill, indent, layoutPretty, line,
                                                         parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
@@ -46,27 +43,27 @@ import           Ledger.Scripts                        (DataScript (getDataScrip
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
-import           Playground.Rollup                     (doAnnotateBlockchain)
-import           Playground.Types                      (AnnotatedTx (AnnotatedTx),
+import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
                                                         BeneficialOwner (OwnedByPubKey, OwnedByScript),
                                                         DereferencedInput (DereferencedInput, originalInput, refersTo),
-                                                        EvaluationResult, SequenceId (SequenceId, slotIndex, txIndex),
-                                                        balances, dereferencedInputs, resultBlockchain,
-                                                        toBeneficialOwner, tx, txId, walletKeys)
+                                                        SequenceId (SequenceId, slotIndex, txIndex),
+                                                        balances, dereferencedInputs,
+                                                        toBeneficialOwner, tx, txId)
+import           Wallet.Rollup                         (doAnnotateBlockchain)
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 
-showBlockchain :: EvaluationResult -> Either Text Text
-showBlockchain evalutionResult =
-    flip evalStateT evalutionResult $ do
-        evaluationResult <- get
-        annotatedBlockchain <-
-            doAnnotateBlockchain (resultBlockchain evaluationResult)
+
+showBlockchain :: [(PubKey, Wallet)] -> [[(TxId, Tx)]]  -> Either Text Text
+showBlockchain walletKeys blockchain =
+    flip runReaderT walletKeys $ do
+        annotatedBlockchain <- doAnnotateBlockchain blockchain
         doc <- render $ reverse annotatedBlockchain
         pure . renderStrict . layoutPretty defaultLayoutOptions $ doc
 
-------------------------------------------------------------
+type RenderM = ReaderT [(PubKey, Wallet)] (Either Text)
+
 class Render a where
-    render :: a -> StateT EvaluationResult (Either Text) (Doc ann)
+    render :: a -> RenderM (Doc ann)
 
 instance Render [[AnnotatedTx]] where
     render blockchain =
@@ -170,7 +167,7 @@ instance Render Address where
 instance Render BeneficialOwner where
     render (OwnedByScript address) = ("Script:" <+>) <$> render address
     render (OwnedByPubKey pubKey) = do
-        walletKeys <- gets walletKeys
+        walletKeys <- ask
         wallet <- lookupWallet pubKey walletKeys
         w <- render wallet
         p <- render pubKey
@@ -242,7 +239,7 @@ instance Render TxOut where
             ]
 
 ------------------------------------------------------------
-indented :: Render a => a -> StateT EvaluationResult (Either Text) (Doc ann)
+indented :: Render a => a -> RenderM (Doc ann)
 indented x = indent 2 <$> render x
 
 numbered ::
@@ -250,7 +247,7 @@ numbered ::
     => Doc ann
     -> Doc ann
     -> [a]
-    -> StateT EvaluationResult (Either Text) (Doc ann)
+    -> RenderM (Doc ann)
 numbered separator title xs =
     vsep . intersperse mempty <$> itraverse numberedEntry xs
   where
