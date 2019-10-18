@@ -1,7 +1,6 @@
 module Marlowe.Pretty where
 
 import Prelude
-
 import Data.BigInt (BigInt, toString)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.List (List)

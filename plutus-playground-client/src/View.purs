@@ -1,7 +1,6 @@
 module View (render) where
 
 import Types
-
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)

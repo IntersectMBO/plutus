@@ -1,7 +1,6 @@
 module Chain.Types where
 
 import Prelude
-
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Fold', Iso', Lens', Traversal', filtered, iso, preview, traversed)
@@ -39,7 +38,7 @@ instance showChainFocus :: Show ChainFocus where
   show = genericShow
 
 newtype AnnotatedBlockchain
- = AnnotatedBlockchain (Array (Array AnnotatedTx))
+  = AnnotatedBlockchain (Array (Array AnnotatedTx))
 
 derive instance newtypeAnnotatedBlockchain :: Newtype AnnotatedBlockchain _
 

@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
@@ -258,10 +257,10 @@ data FormEvent
   | RemoveSubField Int
 
 ------------------------------------------------------------
-type ChildSlots =
-  ( editorSlot :: H.Slot AceQuery AceMessage Unit
-  , balancesChartSlot :: H.Slot Chartist.Query Chartist.Message Unit
-  )
+type ChildSlots
+  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+    , balancesChartSlot :: H.Slot Chartist.Query Chartist.Message Unit
+    )
 
 _editorSlot :: SProxy "editorSlot"
 _editorSlot = SProxy

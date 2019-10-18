@@ -28,8 +28,7 @@ data Icon
   | HourglassEnd
 
 icon :: forall p i. Icon -> HTML p i
-icon iconType =
-  i [ class_ (iconClass iconType) ] []
+icon iconType = i [ class_ (iconClass iconType) ] []
 
 iconClass :: Icon -> ClassName
 iconClass CreditCard = ClassName "fa fa-credit-card"

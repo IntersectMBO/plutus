@@ -80,7 +80,8 @@ mainFrame =
   H.mkComponent
     { initialState: const initialState
     , render
-    , eval: H.mkEval
+    , eval:
+      H.mkEval
         { handleQuery
         , handleAction: handleActionWithAnalyticsTracking
         , receive: const Nothing
@@ -121,17 +122,17 @@ toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweDropScript"
 
 toEvent CheckAuthStatus = Nothing
 
-toEvent PublishGist = Just $ (defaultEvent "Publish") {label = Just "Gist"}
+toEvent PublishGist = Just $ (defaultEvent "Publish") { label = Just "Gist" }
 
 toEvent (SetGistUrl _) = Nothing
 
-toEvent LoadGist = Just $ (defaultEvent "LoadGist") {category = Just "Gist"}
+toEvent LoadGist = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent (ChangeView view) = Just $ (defaultEvent "View") {label = Just $ show view}
+toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
 
-toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") {label = Just script}
+toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
 
-toEvent (LoadMarloweScript script) = Just $ (defaultEvent "LoadMarloweScript") {label = Just script}
+toEvent (LoadMarloweScript script) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
 toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
 
@@ -160,11 +161,13 @@ toEvent SetBlocklyCode = Nothing
 toEvent AnalyseContract = Nothing
 
 handleQuery :: forall m a. MonadState FrontendState m => HQuery a -> m (Maybe a)
-
 handleQuery (ReceiveWebsocketMessage msg next) = do
-  let msgDecoded = unwrap <<< runExceptT $ do
-                                            f <- parseJSON msg
-                                            decode f
+  let
+    msgDecoded =
+      unwrap <<< runExceptT
+        $ do
+            f <- parseJSON msg
+            decode f
   case msgDecoded of
     Left err -> assign _analysisState <<< Failure $ show $ msg
     Right (OtherError err) -> assign _analysisState $ Failure err
@@ -283,7 +286,7 @@ handleAction SendResult = do
   resetContract
   assign _view (Simulation)
 
-handleAction (ScrollTo {row, column}) = haskellEditorGotoLine row (Just column)
+handleAction (ScrollTo { row, column }) = haskellEditorGotoLine row (Just column)
 
 handleAction ApplyTransaction = do
   saveInitialState
@@ -306,9 +309,9 @@ handleAction (AddInput person input bounds) = do
       Nothing -> pure unit
       Just contract -> updateContractInState contract
   where
-    validInput = case input of
-      (IChoice _ chosenNum) -> inBounds chosenNum bounds
-      _ -> true
+  validInput = case input of
+    (IChoice _ chosenNum) -> inBounds chosenNum bounds
+    _ -> true
 
 handleAction (RemoveInput person input) = do
   updateMarloweState (over _pendingInputs (delete (Tuple input person)))
@@ -317,12 +320,12 @@ handleAction (RemoveInput person input) = do
     Nothing -> pure unit
     Just contract -> updateContractInState contract
 
-handleAction (SetChoice choiceId chosenNum) =
-  updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
+handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
   where
-    updateChoice :: ChoiceId -> ActionInput -> ActionInput
-    updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _) = if wantedChoiceId == currentChoiceId then ChoiceInput choiceId bounds chosenNum else input
-    updateChoice _ input = input
+  updateChoice :: ChoiceId -> ActionInput -> ActionInput
+  updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _) = if wantedChoiceId == currentChoiceId then ChoiceInput choiceId bounds chosenNum else input
+
+  updateChoice _ input = input
 
 handleAction ResetSimulator = do
   oldContract <- use _oldContract
@@ -345,7 +348,7 @@ handleAction Undo = do
   where
   removeState ms =
     let
-      {head, tail} = NEL.uncons ms
+      { head, tail } = NEL.uncons ms
     in
       case NEL.fromList tail of
         Nothing -> ms
@@ -354,15 +357,17 @@ handleAction Undo = do
 handleAction (HandleBlocklyMessage Initialized) = pure unit
 
 handleAction (HandleBlocklyMessage (CurrentCode code)) = do
-      marloweEditorSetValue code (Just 1)
-      assign _view Simulation
+  marloweEditorSetValue code (Just 1)
+  assign _view Simulation
 
-handleAction SetBlocklyCode = void $ runMaybeT do
-    source <- MaybeT marloweEditorGetValue
-    lift do
-      setBlocklyCode source
-      assign _view BlocklyEditor
-    MaybeT resizeBlockly
+handleAction SetBlocklyCode =
+  void
+    $ runMaybeT do
+        source <- MaybeT marloweEditorGetValue
+        lift do
+          setBlocklyCode source
+          assign _view BlocklyEditor
+        MaybeT resizeBlockly
 
 handleAction AnalyseContract = do
   currContract <- use _currentContract
@@ -389,7 +394,7 @@ toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 toAnnotation :: CompilationError -> Maybe Annotation
 toAnnotation (RawError _) = Nothing
 
-toAnnotation (CompilationError {row, column, text}) =
+toAnnotation (CompilationError { row, column, text }) =
   Just
     { "type": "error"
     , row: row - 1
@@ -406,12 +411,12 @@ render state =
   let
     stateView = view _view state
   in
-    div [class_ $ ClassName "main-frame"]
+    div [ class_ $ ClassName "main-frame" ]
       [ container_
           [ mainHeader
-          , div [classes [row, noGutters, justifyContentBetween]]
-              [ div [classes [colXs12, colSm6]] [mainTabBar stateView]
-              , div [classes [colXs12, colSm5]] [gistControls (unwrap state)]
+          , div [ classes [ row, noGutters, justifyContentBetween ] ]
+              [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar stateView ]
+              , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
               ]
           ]
       , viewContainer stateView HaskellEditor
@@ -435,31 +440,35 @@ render state =
 
 loadScriptsPane :: forall p. HTML p HAction
 loadScriptsPane =
-  div [class_ $ ClassName "mb-3"]
+  div [ class_ $ ClassName "mb-3" ]
     ( Array.cons
-      ( strong_
-        [ text "Demos: "
-        ]
-      ) (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+        ( strong_
+            [ text "Demos: "
+            ]
+        )
+        (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
     )
 
 loadScriptButton :: forall p. String -> HTML p HAction
 loadScriptButton key =
   button
-    [ classes [btn, btnInfo, btnSmall]
+    [ classes [ btn, btnInfo, btnSmall ]
     , onClick $ const $ Just $ LoadScript key
-    ] [text key]
+    ]
+    [ text key ]
 
 viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
-viewContainer currentView targetView = if currentView == targetView
-  then div [classes [container]]
-  else div [classes [container, hidden]]
+viewContainer currentView targetView =
+  if currentView == targetView then
+    div [ classes [ container ] ]
+  else
+    div [ classes [ container, hidden ] ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   div_
-    [ div [classes [btnGroup, pullRight]] (makeLink <$> links)
-    , h1 [class_ $ ClassName "main-title"] [text "Marlowe Playground"]
+    [ div [ classes [ btnGroup, pullRight ] ] (makeLink <$> links)
+    , h1 [ class_ $ ClassName "main-title" ] [ text "Marlowe Playground" ]
     ]
   where
   links =
@@ -500,11 +509,12 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
           ]
       ]
     where
-    activeClass = if link == activeView
-      then
+    activeClass =
+      if link == activeView then
         [ active
         ]
-      else []
+      else
+        []
 
 resultPane :: forall p. FrontendState -> HTML p HAction
 resultPane state =
@@ -524,9 +534,10 @@ resultPane state =
                           ]
                       , onClick $ const $ Just SendResult
                       , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
-                      ] [text "Send to Simulator"]
+                      ]
+                      [ text "Send to Simulator" ]
                   , code_
-                      [ pre [class_ $ ClassName "success-code"] [text (unwrap result.result)]
+                      [ pre [ class_ $ ClassName "success-code" ] [ text (unwrap result.result) ]
                       ]
                   ]
               ]

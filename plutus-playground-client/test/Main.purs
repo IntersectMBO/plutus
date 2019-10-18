@@ -1,7 +1,6 @@
 module Test.Main where
 
 import Prelude
-
 import AjaxUtilsTests as AjaxUtilsTests
 import ChainTests as ChainTests
 import CursorTests as CursorTests

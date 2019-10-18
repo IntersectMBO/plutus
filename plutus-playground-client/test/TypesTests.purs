@@ -3,7 +3,6 @@ module TypesTests
   ) where
 
 import Prelude
-
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.List (List(..))

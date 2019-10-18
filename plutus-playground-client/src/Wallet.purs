@@ -1,7 +1,6 @@
 module Wallet where
 
 import Types
-
 import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, pullRight, responsiveThird, row)
 import Data.Array (mapWithIndex)
 import Data.Array as Array

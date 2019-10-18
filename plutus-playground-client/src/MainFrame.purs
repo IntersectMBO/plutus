@@ -5,7 +5,6 @@ module MainFrame
   ) where
 
 import Types
-
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
 import AjaxUtils (renderForeignErrors)
@@ -464,8 +463,7 @@ handleActionForm initialValue = rec
 
   rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  rec AddSubField (FormArray schema fields) =  -- As the code stands, this is the only guarantee we get that every -- value in the array will conform to the schema: the fact that we -- create the 'empty' version from the same schema template. --
-    -- Is more type safety than that possible? Probably.
+  rec AddSubField (FormArray schema fields) =  -- As the code stands, this is the only guarantee we get that every -- value in the array will conform to the schema: the fact that we -- create the 'empty' version from the same schema template. -- -- Is more type safety than that possible? Probably.
     -- Is it worth the research effort? Perhaps. :thinking_face:
     FormArray schema $ Array.snoc fields (toArgument initialValue schema)
 

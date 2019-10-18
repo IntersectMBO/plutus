@@ -3,7 +3,6 @@ module Data.Array.ExtraTests
   ) where
 
 import Prelude
-
 import Data.Array (length, null)
 import Data.Array.Extra (move, intersperse)
 import Test.QuickCheck (arbitrary)
@@ -63,7 +62,7 @@ intersperseTests = do
       quickCheck do
         sep <- arbitrary :: Gen String
         x <- arbitrary
-        pure $ intersperse sep [x] == [x]
+        pure $ intersperse sep [ x ] == [ x ]
     test "Non-empty arrays increase their length by (2n - 1)" do
       quickCheck do
         sep <- arbitrary :: Gen String

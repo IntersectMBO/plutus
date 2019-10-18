@@ -4,7 +4,6 @@ module Data.Array.Extra
   ) where
 
 import Prelude
-
 import Data.Array (snoc, foldl)
 import Data.Array as Array
 import Data.Maybe (fromMaybe)
@@ -23,4 +22,5 @@ intersperse :: forall a. a -> Array a -> Array a
 intersperse sep = foldl reducer []
   where
   reducer [] x = [ x ]
+
   reducer acc x = snoc (snoc acc sep) x

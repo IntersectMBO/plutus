@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-
 import AjaxUtils (ajaxSettings)
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Control.Monad.Reader.Trans (runReaderT)

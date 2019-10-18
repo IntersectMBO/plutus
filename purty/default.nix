@@ -3,8 +3,8 @@
 let
     purtySrc = pkgs.fetchgit {
       url = "https://gitlab.com/joneshf/purty.git";
-      rev = "74356b0be91dc2eaaf53eb63703f64f147ccfb45";
-      sha256 = "1zccmb7vc2vwddsmdgc0xdkj06jskmh5ggf1szzb721src4v0c83";
+      rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
+      sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
     };
     packages = (import ./packages.nix { inherit pkgs; }).override {
         overrides = super: self: {

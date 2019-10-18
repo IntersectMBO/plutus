@@ -1,7 +1,6 @@
 module Marlowe.Blockly where
 
 import Prelude
-
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
 import Blockly.Types (Block, BlocklyState, Workspace)
@@ -271,16 +270,16 @@ toDefinition CaseType =
     $ merge
         { type: show CaseType
         , message0: "Action %1 %2 and Contract %3"
-        , args0: [ Statement { name: "action", check: "ActionType", align: Right }
-                 , DummyCentre
-                 , Statement { name: "contract", check: (show BaseContractType), align: Right }
-                 ]
+        , args0:
+          [ Statement { name: "action", check: "ActionType", align: Right }
+          , DummyCentre
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
+          ]
         , colour: "65"
         , previousStatement: Just (show CaseType)
         , nextStatement: Just (show CaseType)
         }
         defaultBlockDefinition
-
 
 toDefinition BoundsType =
   BlockDefinition
@@ -298,7 +297,6 @@ toDefinition BoundsType =
         defaultBlockDefinition
 
 -- Action
-
 toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
@@ -320,7 +318,6 @@ toDefinition (ActionType DepositActionType) =
         }
         defaultBlockDefinition
 
-
 toDefinition (ActionType ChoiceActionType) =
   BlockDefinition
     $ merge
@@ -339,7 +336,6 @@ toDefinition (ActionType ChoiceActionType) =
         }
         defaultBlockDefinition
 
-
 toDefinition (ActionType NotifyActionType) =
   BlockDefinition
     $ merge
@@ -354,40 +350,37 @@ toDefinition (ActionType NotifyActionType) =
         }
         defaultBlockDefinition
 
-
 -- Payee
-
 toDefinition (PayeeType AccountPayeeType) =
   BlockDefinition
     $ merge
-      { type: show AccountPayeeType
-      , message0: "Account %1 with Owner %2"
-      , args0:
+        { type: show AccountPayeeType
+        , message0: "Account %1 with Owner %2"
+        , args0:
           [ Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Input { name: "account_owner", text: "Party", spellcheck: false }
           ]
-      , colour: "210"
-      , output: Just "payee"
-      , inputsInline: Just true
-      }
-      defaultBlockDefinition
+        , colour: "210"
+        , output: Just "payee"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition (PayeeType PartyPayeeType) =
   BlockDefinition
     $ merge
-      { type: show PartyPayeeType
-      , message0: "Party %1"
-      , args0:
+        { type: show PartyPayeeType
+        , message0: "Party %1"
+        , args0:
           [ Input { name: "party", text: "Party", spellcheck: false }
           ]
-      , colour: "210"
-      , output: Just "payee"
-      , inputsInline: Just true
-      }
-      defaultBlockDefinition
-
+        , colour: "210"
+        , output: Just "payee"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
 
 -- Contracts
-
 toDefinition (ContractType RefundContractType) =
   BlockDefinition
     $ merge
@@ -469,7 +462,6 @@ toDefinition (ContractType LetContractType) =
         defaultBlockDefinition
 
 -- Observations
-
 toDefinition (ObservationType AndObservationType) =
   BlockDefinition
     $ merge
@@ -629,7 +621,6 @@ toDefinition (ObservationType FalseObservationType) =
         defaultBlockDefinition
 
 -- Values
-
 toDefinition (ValueType AvailableMoneyValueType) =
   BlockDefinition
     $ merge
@@ -760,7 +751,6 @@ toDefinition (ValueType UseValueValueType) =
         }
         defaultBlockDefinition
 
-
 toolbox :: forall a b. HTML a b
 toolbox =
   xml [ id_ "blocklyToolbox", style "display:none" ]
@@ -768,8 +758,8 @@ toolbox =
     , category [ name "Observations", colour "230" ] (map mkBlock observationTypes)
     , category [ name "Values", colour "135" ] (map mkBlock valueTypes)
     , category [ name "Payee", colour "210" ] (map mkBlock payeeTypes)
-    , category [ name "Case", colour "65" ] (map mkBlock [CaseType])
-    , category [ name "Bounds", colour "40" ] (map mkBlock [BoundsType])
+    , category [ name "Case", colour "65" ] (map mkBlock [ CaseType ])
+    , category [ name "Bounds", colour "40" ] (map mkBlock [ BoundsType ])
     , category [ name "Actions", colour "290" ] (map mkBlock actionTypes)
     ]
   where
@@ -812,9 +802,12 @@ baseContractDefinition :: Generator -> Block -> Either String Contract
 baseContractDefinition g block = parse Parser.contract =<< statementToCode g block (show BaseContractType)
 
 getAllBlocks :: Block -> Array Block
-getAllBlocks currentBlock = currentBlock : (case nextBlock currentBlock of
-  Nothing -> []
-  Just nextBlock' -> getAllBlocks nextBlock')
+getAllBlocks currentBlock =
+  currentBlock
+    : ( case nextBlock currentBlock of
+          Nothing -> []
+          Just nextBlock' -> getAllBlocks nextBlock'
+      )
 
 caseDefinition :: Generator -> Block -> Either String Case
 caseDefinition g block = do
@@ -827,9 +820,9 @@ casesDefinition g block = traverse (caseDefinition g) (getAllBlocks block)
 
 boundDefinition :: Generator -> Block -> Either String Bound
 boundDefinition g block = do
-    from <- parse Parser.bigInteger =<< getFieldValue block "from"
-    to <- parse Parser.bigInteger =<< getFieldValue block "to"
-    pure (Bound from to)
+  from <- parse Parser.bigInteger =<< getFieldValue block "from"
+  to <- parse Parser.bigInteger =<< getFieldValue block "to"
+  pure (Bound from to)
 
 boundsDefinition :: Generator -> Block -> Either String (Array Bound)
 boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
@@ -848,7 +841,8 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
     choiceOwner <- getFieldValue block "choice_owner"
     let
       choiceId = ChoiceId choiceName choiceOwner
-    let inputs = inputList block
+    let
+      inputs = inputList block
     boundsInput <- note "No Input with name \"bound\" found" $ getInputWithName inputs "bounds"
     topboundBlock <- getBlockInputConnectedTo boundsInput
     bounds <- boundsDefinition g topboundBlock
@@ -856,7 +850,6 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
   blockDefinition NotifyActionType g block = do
     observation <- parse Parser.observation =<< statementToCode g block "observation"
     pure (Notify observation)
-
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType Payee where
   blockDefinition AccountPayeeType g block = do
@@ -868,7 +861,6 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType Payee where
   blockDefinition PartyPayeeType g block = do
     party <- getFieldValue block "party"
     pure (Party party)
-
 
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract where
   blockDefinition RefundContractType _ _ = pure Close
@@ -887,9 +879,11 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract 
     contract2 <- parse Parser.contract =<< statementToCode g block "contract2"
     pure (If observation contract1 contract2)
   blockDefinition WhenContractType g block = do
-    let inputs = inputList block
+    let
+      inputs = inputList block
     casesInput <- note "No Input with name \"case\" found" $ getInputWithName inputs "case"
-    let eTopCaseBlock = getBlockInputConnectedTo casesInput
+    let
+      eTopCaseBlock = getBlockInputConnectedTo casesInput
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
       Either.Left _ -> pure []
@@ -1013,8 +1007,10 @@ setField blockRef name value = do
 getNextInput :: forall r. STRef r Block -> ST r (Maybe Input)
 getNextInput blockRef = do
   block <- STRef.read blockRef
-  let inputs = inputList block
-      nextConInputs = filter (\input -> inputType input == 5) inputs
+  let
+    inputs = inputList block
+
+    nextConInputs = filter (\input -> inputType input == 5) inputs
   pure (head nextConInputs)
 
 inputToBlockly :: forall a r. ToBlockly a => NewBlockFunction r -> (STRef r Workspace) -> STRef r Block -> String -> a -> ST r Unit
@@ -1062,7 +1058,6 @@ instance toBlocklyBounds :: ToBlockly (Array Bound) where
         connectToPrevious block input
         fromConnection <- nextConnection block
         nextBound newBlock workspace fromConnection tail
-
 
 instance toBlocklyAction :: ToBlockly Action where
   toBlockly newBlock workspace input (Deposit (AccountId accountNumber accountOwner) party value) = do

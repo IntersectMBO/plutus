@@ -29,7 +29,6 @@ handleAction newFocus mAnnotatedBlockchain = do
   assign _chainFocusAppearing true
   delay $ wrap 10.0
   assign _chainFocusAppearing false
-
   where
   compareSequenceIds (SequenceId old) (SequenceId new) =
     compare old.slotIndex new.slotIndex

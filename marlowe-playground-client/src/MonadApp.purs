@@ -1,7 +1,6 @@
 module MonadApp where
 
 import Prelude
-
 import API (RunResult)
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
@@ -147,7 +146,8 @@ instance monadAppHalogenApp ::
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
   checkContractForWarnings contract = do
-    let msgString = unsafeStringify <<< encode $ CheckForWarnings contract
+    let
+      msgString = unsafeStringify <<< encode $ CheckForWarnings contract
     wrap $ raise (WebsocketMessage msgString)
 
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
@@ -159,13 +159,13 @@ saveInitialState' = do
   oldContract <- marloweEditorGetValue'
   modifying _oldContract
     ( \x -> case x of
-      Nothing ->
-        Just
-          ( case oldContract of
-            Nothing -> ""
-            Just y -> y
-          )
-      _ -> x
+        Nothing ->
+          Just
+            ( case oldContract of
+                Nothing -> ""
+                Just y -> y
+            )
+        _ -> x
     )
 
 marloweEditorGetValue' :: forall m. MonadEffect m => HalogenApp m (Maybe String)
@@ -183,8 +183,8 @@ saveInitialStateImpl = do
   oldContract <- marloweEditorGetValueImpl
   modifying _oldContract
     ( \x -> case x of
-      Nothing -> Just $ fromMaybe "" oldContract
-      _ -> x
+        Nothing -> Just $ fromMaybe "" oldContract
+        _ -> x
     )
 
 marloweEditorGetValueImpl :: forall m. MonadEffect m => HalogenApp m (Maybe String)
@@ -218,34 +218,40 @@ withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case runParser text contract of
-    Right pcon -> set _editorErrors [] <<< set _contract (Just pcon) $ state
-    Left error -> set _editorErrors [errorToAnnotation error] state
-    where
-      errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
+  Right pcon -> set _editorErrors [] <<< set _contract (Just pcon) $ state
+  Left error -> set _editorErrors [ errorToAnnotation error ] state
+  where
+  errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =
-  let contract = oldState ^. (_contract <<< to (fromMaybe Close))
-      state = oldState ^. _state
-      txInput = stateToTxInput oldState
-      (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
-      actionInputs = foldl (\acc act -> insertTuple (actionToActionInput nextState act) acc) mempty actions
-  in over _possibleActions (updateActions actionInputs) oldState
-  where
+  let
+    contract = oldState ^. (_contract <<< to (fromMaybe Close))
 
+    state = oldState ^. _state
+
+    txInput = stateToTxInput oldState
+
+    (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
+
+    actionInputs = foldl (\acc act -> insertTuple (actionToActionInput nextState act) acc) mempty actions
+  in
+    over _possibleActions (updateActions actionInputs) oldState
+  where
   insertTuple :: forall k v. Ord k => Tuple k v -> Map k v -> Map k v
   insertTuple (Tuple k v) m = Map.insert k v m
 
   updateActions :: Map ActionInputId ActionInput -> Map PubKey (Map ActionInputId ActionInput) -> Map PubKey (Map ActionInputId ActionInput)
-  updateActions actionInputs oldInputs =
-    foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
+  updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
 
   addButPreserveActionInputs :: Map PubKey (Map ActionInputId ActionInput) -> ActionInputId -> Map PubKey (Map ActionInputId ActionInput) -> ActionInput -> Map PubKey (Map ActionInputId ActionInput)
   addButPreserveActionInputs oldInputs actionInputIdx m actionInput = appendValue m oldInputs (actionPerson actionInput) actionInputIdx actionInput
 
   actionPerson :: ActionInput -> PubKey
   actionPerson (DepositInput _ party _) = party
+
   actionPerson (ChoiceInput choiceId _ _) = (choiceOwner choiceId)
+
   -- We have a special person for notifications
   actionPerson (NotifyInput _) = "Notifications"
 
@@ -254,15 +260,15 @@ updatePossibleActions oldState =
 
   alterMap :: forall k v. Ord k => k -> v -> Maybe (Map k v) -> Maybe (Map k v)
   alterMap k v Nothing = Just $ Map.singleton k v
+
   alterMap k v (Just vs) = Just $ Map.insert k v vs
 
   findWithDefault2 :: forall k k2 v2. Ord k => Ord k2 => v2 -> k -> k2 -> Map k (Map k2 v2) -> v2
-  findWithDefault2 def k k2 m =
-    case Map.lookup k m of
-      Just m2 -> case Map.lookup k2 m2 of
-                   Just v -> v
-                   Nothing -> def
+  findWithDefault2 def k k2 m = case Map.lookup k m of
+    Just m2 -> case Map.lookup k2 m2 of
+      Just v -> v
       Nothing -> def
+    Nothing -> def
 
 updateStateImpl :: MarloweState -> MarloweState
 updateStateImpl = updatePossibleActions <<< updateStateP
@@ -271,23 +277,29 @@ updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
   txInput = stateToTxInput oldState
-  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
 
-    (TransactionOutput {txOutWarnings, txOutPayments, txOutState, txOutContract}) ->
-      (set _transactionError Nothing
-      <<< set _pendingInputs mempty
-      <<< set _state txOutState
-      <<< set _contract (Just txOutContract)
-      <<< set _moneyInContract (moneyInContract txOutState)
-      <<< over _payments (append (fromFoldable txOutPayments))
-      ) oldState
+  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
+    (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
+      ( set _transactionError Nothing
+          <<< set _pendingInputs mempty
+          <<< set _state txOutState
+          <<< set _contract (Just txOutContract)
+          <<< set _moneyInContract (moneyInContract txOutState)
+          <<< over _payments (append (fromFoldable txOutPayments))
+      )
+        oldState
     (Error txError) -> set _transactionError (Just txError) oldState
 
 stateToTxInput :: MarloweState -> TransactionInput
-stateToTxInput ms = let slot = ms ^. _slot
-                        interval = SlotInterval slot (slot + one)
-                        inputs = map fst (ms ^. _pendingInputs)
-                    in TransactionInput { interval: interval, inputs: (List.fromFoldable inputs)}
+stateToTxInput ms =
+  let
+    slot = ms ^. _slot
+
+    interval = SlotInterval slot (slot + one)
+
+    inputs = map fst (ms ^. _pendingInputs)
+  in
+    TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
 
 -- | Apply a function to the head of a non-empty list and cons the result on
 extendWith :: forall a. (a -> a) -> NonEmptyList a -> NonEmptyList a
