@@ -31,7 +31,7 @@ import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), _accounts, _choices, inBounds)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
@@ -585,7 +585,16 @@ stateTable state =
                   else
                     renderPayments payments
                 ]
+            , h3_
+                [ text "Let bindings"
             ]
+            , row_
+                [ if (Map.size bindings == 0) then
+                    text "No values have been bound"
+                  else
+                    renderBindings bindings
+        ]
+    ]
         ]
     ]
   where
@@ -594,6 +603,8 @@ stateTable state =
   choices = state ^. _marloweState <<< _Head <<< _state <<< _choices
 
   payments = state ^. _marloweState <<< _Head <<< _payments
+
+  bindings = state ^. _marloweState <<< _Head <<< _state <<< _boundValues
 
 renderAccounts :: forall p. Map AccountId Ada -> HTML p HAction
 renderAccounts accounts =
@@ -716,6 +727,44 @@ renderPayment (Payment party money) =
         [ class_ $ ClassName "left-border-column"
         ]
         [ text (show money)
+        ]
+    ]
+
+renderBindings :: forall p. Map ValueId BigInteger -> HTML p HAction
+renderBindings bindings =
+  table_
+    [ colgroup []
+        [ col []
+        , col []
+        , col []
+        ]
+    , thead_
+        [ tr []
+            [ th_
+                [ text "Identifier"
+                ]
+            , th
+                [ class_ $ ClassName "left-border-column"
+                ]
+                [ text "Value"
+                ]
+            ]
+        ]
+    , tbody_ (map renderBinding bindingList)
+    ]
+  where
+  bindingList = Map.toUnfoldable bindings :: Array (Tuple ValueId BigInteger)
+
+renderBinding :: forall p. Tuple ValueId BigInteger -> HTML p HAction
+renderBinding (Tuple (ValueId valueId) value) =
+  tr []
+    [ td_
+        [ text valueId
+        ]
+    , td
+        [ class_ $ ClassName "left-border-column"
+        ]
+        [ text (show value)
         ]
     ]
 
