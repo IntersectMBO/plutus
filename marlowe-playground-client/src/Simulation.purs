@@ -31,7 +31,7 @@ import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Observation, Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), _accounts, _choices, inBounds)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), _accounts, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
@@ -207,7 +207,7 @@ inputComposerPerson isEnabled person actionInputs =
 
   inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled person index choiceId chosenNum bounds
 
-  inputForAction index (NotifyInput observation) = Just $ inputNotify isEnabled person index observation
+  inputForAction index NotifyInput = Just $ inputNotify isEnabled person index
 
 inputDeposit ::
   forall p.
@@ -277,9 +277,8 @@ inputNotify ::
   Boolean ->
   PubKey ->
   Int ->
-  Observation ->
   HTML p HAction
-inputNotify isEnabled person index observation =
+inputNotify isEnabled person index =
   flexRow_
     [ button
         [ class_ $ ClassName "composer-add-button"
@@ -289,7 +288,7 @@ inputNotify isEnabled person index observation =
         ]
         [ text "+"
         ]
-    , text $ "Notify " <> show observation
+    , text $ "Notify contract"
     ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> HAction) -> a -> HTML p HAction

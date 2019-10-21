@@ -253,7 +253,7 @@ updatePossibleActions oldState =
   actionPerson (ChoiceInput choiceId _ _) = (choiceOwner choiceId)
 
   -- We have a special person for notifications
-  actionPerson (NotifyInput _) = "Notifications"
+  actionPerson NotifyInput = "Notifications"
 
   appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
   appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
