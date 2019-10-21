@@ -53,7 +53,7 @@ makeScriptPayment ct range v ds = do
         change <- traverse Typed.typePubKeyTxOut ownChange
         pure (ins, change)
     let out = Typed.makeTypedScriptTxOut @a ct ds v
-        tyTx = Typed.addTypedTxOut @'[] @a out (Typed.baseTx { Typed.tyTxValidRange = range, Typed.tyTxPubKeyTxIns = ins, Typed.tyTxPubKeyTxOuts = maybeToList change })
+        tyTx = Typed.addTypedTxOut @'[] @'[] @a out (Typed.baseTx { Typed.tyTxValidRange = range, Typed.tyTxPubKeyTxIns = ins, Typed.tyTxPubKeyTxOuts = maybeToList change })
     pure tyTx
 
 payToScript
@@ -77,11 +77,11 @@ payToScript_
 payToScript_ ct range v ds = void $ payToScript ct range v ds
 
 spendScriptOutputs
-    :: forall a outs m
+    :: forall a m
     . (Monad m, WalletAPI m, PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
     => Scripts.ScriptInstance a
     -> Scripts.RedeemerType a
-    -> m [(Typed.TypedScriptTxIn outs a, Value)]
+    -> m [(Typed.TypedScriptTxIn a, Value)]
 spendScriptOutputs ct red = do
     am <- WAPI.watchedAddresses
     let
@@ -96,8 +96,8 @@ spendScriptOutputs ct red = do
             pure (tyRef, view outValue out)
         typedRefs :: [(Typed.TypedScriptTxOutRef a, Value)]
         typedRefs = rights $ typeRef <$> refs
-        typedIns :: [(Typed.TypedScriptTxIn outs a, Value)]
-        typedIns = (\(ref, v) -> (Typed.makeTypedScriptTxIn @a @outs ct red ref, v)) <$> typedRefs
+        typedIns :: [(Typed.TypedScriptTxIn a, Value)]
+        typedIns = (\(ref, v) -> (Typed.makeTypedScriptTxIn @a ct red ref, v)) <$> typedRefs
 
     pure typedIns
 
@@ -123,7 +123,7 @@ collectFromScriptFilter flt am si red =
         -- TODO: we should log this, it would make debugging much easier
         typedRefs :: [Typed.TypedScriptTxOutRef a]
         typedRefs = rights $ Typed.typeScriptTxOutRef @a (\ref -> Map.lookup ref utxo) si <$> refs
-        typedIns :: [Typed.TypedScriptTxIn '[] a]
-        typedIns = Typed.makeTypedScriptTxIn @a @'[] si red <$> typedRefs
+        typedIns :: [Typed.TypedScriptTxIn a]
+        typedIns = Typed.makeTypedScriptTxIn @a si red <$> typedRefs
     -- We need to add many txins and we've done as much checking as we care to, so we switch to TypedTxSomeIns
     in Typed.addManyTypedTxIns typedIns Typed.baseTx
