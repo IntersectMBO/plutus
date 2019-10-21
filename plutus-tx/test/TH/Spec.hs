@@ -44,7 +44,6 @@ runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlcCek values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     let result = evaluateCek p
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
 runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResultDef)

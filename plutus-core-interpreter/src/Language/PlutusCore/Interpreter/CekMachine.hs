@@ -17,11 +17,11 @@ module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
     , EvaluationResult (..)
     , EvaluationResultDef
-    , evaluateCekCatch
     , evaluateCek
+    , unsafeEvaluateCek
     , readKnownCek
-    , runCekCatch
     , runCek
+    , unsafeRunCek
     ) where
 
 import           Language.PlutusCore
@@ -186,7 +186,7 @@ applyEvaluate funVarEnv _         con fun                    arg =
 evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
 evaluateInCekM a =
     ReaderT $ \cekEnv ->
-        let eval means' = evaluateCekCatchIn $ cekEnv & cekEnvMeans %~ mappend means'
+        let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
             in runEvaluateConstApp eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
@@ -198,18 +198,18 @@ applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
     evaluateInCekM $ applyBuiltinName name args
 
 -- | Evaluate a term in an environment using the CEK machine.
-evaluateCekCatchIn
+evaluateCekIn
     :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResultDef
-evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
+evaluateCekIn cekEnv = runCekM cekEnv . computeCek []
 
 -- | Evaluate a term using the CEK machine.
-evaluateCekCatch
+evaluateCek
     :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResultDef
-evaluateCekCatch means = evaluateCekCatchIn $ CekEnv means mempty
+evaluateCek means = evaluateCekIn $ CekEnv means mempty
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
-evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
-evaluateCek = either throw id .* evaluateCekCatch
+unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
+unsafeEvaluateCek = either throw id .* evaluateCek
 
 -- The implementation is a bit of a hack.
 readKnownCek
@@ -218,7 +218,7 @@ readKnownCek
     -> Term TyName Name ()
     -> Either CekMachineException (EvaluationResult a)
 readKnownCek means term = do
-    res <- runReflectT $ readKnown (evaluateCekCatch . mappend means) term
+    res <- runReflectT $ readKnown (evaluateCek . mappend means) term
     case res of
         EvaluationFailure            -> Right EvaluationFailure
         EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
@@ -227,10 +227,10 @@ readKnownCek means term = do
 
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
-runCekCatch :: DynamicBuiltinNameMeanings -> Program TyName Name () -> Either CekMachineException EvaluationResultDef
-runCekCatch means (Program _ _ term) = evaluateCekCatch means term
+runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> Either CekMachineException EvaluationResultDef
+runCek means (Program _ _ term) = evaluateCek means term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
-runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
-runCek means (Program _ _ term) = evaluateCek means term
+unsafeRunCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
+unsafeRunCek means (Program _ _ term) = unsafeEvaluateCek means term

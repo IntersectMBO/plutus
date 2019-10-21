@@ -138,7 +138,7 @@ runEval (EvalOptions inp mode) = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
             CK  -> PLC.runCk
-            CEK -> PLC.runCek mempty
+            CEK -> PLC.unsafeRunCek mempty
             L   -> PLC.runL mempty
     case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (e :: PLC.Error PLC.AlexPosn) -> do

@@ -28,7 +28,7 @@ typecheckAnd action meanings term = runQuoteT $ do
 typecheckEvaluateCek
     :: MonadError (Error ()) m
     => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResultDef
-typecheckEvaluateCek = typecheckAnd evaluateCek
+typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
