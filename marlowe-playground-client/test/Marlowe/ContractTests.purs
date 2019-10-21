@@ -113,10 +113,10 @@ all =
           runTests
             $ do
                 updateContractInState Contracts.escrow
-                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit alice)))
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit (Just alice))))
                 applyTransactions
-                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 alice)))
-                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 bob)))
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 (Just alice))))
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 (Just bob))))
                 applyTransactions
 
         finalContract = finalState ^. _marloweState <<< _Head <<< _contract

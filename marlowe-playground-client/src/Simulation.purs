@@ -5,7 +5,7 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
-import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
+import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, card_, col6, col_, empty, listGroupItem_, listGroup_, row_)
 import Control.Alternative (map, (<|>))
 import Data.Array (catMaybes)
 import Data.Array as Array
@@ -31,7 +31,7 @@ import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Observation, Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), _accounts, _choices, inBounds)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
@@ -173,7 +173,7 @@ onEmpty alt [] = alt
 
 onEmpty _ arr = arr
 
-inputComposer :: forall p. Boolean -> Map PubKey (Map ActionInputId ActionInput) -> Array (HTML p HAction)
+inputComposer :: forall p. Boolean -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML p HAction)
 inputComposer isEnabled actionInputs =
   if (Map.isEmpty actionInputs) then
     [ text "No valid inputs can be added to the transaction" ]
@@ -186,33 +186,43 @@ inputComposer isEnabled actionInputs =
   vs :: forall k v. Map k v -> Array v
   vs m = map snd (kvs m)
 
-  actionsForPeople :: forall q. Map PubKey (Map ActionInputId ActionInput) -> Array (HTML q HAction)
-  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v)) (kvs m)
+  lastKey :: Maybe (Maybe PubKey)
+  lastKey = map (\x -> x.key) (Map.findMax actionInputs)
+
+  actionsForPeople :: forall q. Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML q HAction)
+  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v) (Just k == lastKey)) (kvs m)
 
 inputComposerPerson ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Array ActionInput ->
+  Boolean ->
   Array (HTML p HAction)
-inputComposerPerson isEnabled person actionInputs =
+inputComposerPerson isEnabled maybePerson actionInputs isLast =
   [ h3_
-      [ text ("Person " <> show person)
+      [ text
+          ( case maybePerson of
+              Just person -> ("Participant " <> show person)
+              Nothing -> ("Anyone")
+          )
       ]
   ]
-    <> catMaybes (mapWithIndex inputForAction actionInputs)
+    <> [ div [ class_ $ ClassName (if isLast then "state-last-row" else "state-row") ]
+          (catMaybes (mapWithIndex inputForAction actionInputs))
+      ]
   where
   inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
-  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled person index accountId party value
+  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled maybePerson index accountId party value
 
-  inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled person index choiceId chosenNum bounds
+  inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled maybePerson index choiceId chosenNum bounds
 
-  inputForAction index (NotifyInput observation) = Just $ inputNotify isEnabled person index observation
+  inputForAction index NotifyInput = Just $ inputNotify isEnabled maybePerson index
 
 inputDeposit ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Int ->
   AccountId ->
   Party ->
@@ -244,7 +254,7 @@ renderDeposit (AccountId accountNumber accountOwner) party money =
   , b_ [ spanText party ]
   ]
 
-inputChoice :: forall p. Boolean -> PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
+inputChoice :: forall p. Boolean -> Maybe PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
 inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) chosenNum bounds =
   let
     validBounds = inBounds chosenNum bounds
@@ -275,11 +285,10 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
 inputNotify ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Int ->
-  Observation ->
   HTML p HAction
-inputNotify isEnabled person index observation =
+inputNotify isEnabled person index =
   flexRow_
     [ button
         [ class_ $ ClassName "composer-add-button"
@@ -289,7 +298,7 @@ inputNotify isEnabled person index observation =
         ]
         [ text "+"
         ]
-    , text $ "Notify " <> show observation
+    , text $ "Notify contract"
     ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> HAction) -> a -> HTML p HAction
@@ -437,15 +446,17 @@ transactionInputs state =
       [ text "Input list"
       ]
   ]
-    <> ( onEmpty [ text "No inputs in the transaction" ]
-          $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
-      )
+    <> [ div [ class_ $ ClassName "state-row" ]
+          ( onEmpty [ text "No inputs in the transaction" ]
+              $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
+          )
+      ]
   where
   isEnabled = state.contract /= Nothing || state.editorErrors /= []
 
   mapWithOneIndex f = mapWithIndex (\i a -> f (i + 1) a)
 
-inputRow :: forall p. Boolean -> Int -> Tuple Input PubKey -> HTML p HAction
+inputRow :: forall p. Boolean -> Int -> Tuple Input (Maybe PubKey) -> HTML p HAction
 inputRow isEnabled idx (Tuple INotify person) =
   row_
     [ col_
@@ -560,7 +571,8 @@ stateTable state =
             [ h3_
                 [ text "Accounts"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Map.size accounts == 0) then
                     text "There are no accounts in the state"
                   else
@@ -569,7 +581,8 @@ stateTable state =
             , h3_
                 [ text "Choices"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Map.size choices == 0) then
                     text "No choices have been recorded"
                   else
@@ -578,11 +591,22 @@ stateTable state =
             , h3_
                 [ text "Payments"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Array.length payments == 0) then
                     text "No payments have been recorded"
                   else
                     renderPayments payments
+                ]
+            , h3_
+                [ text "Let bindings"
+                ]
+            , div
+                [ class_ $ ClassName "state-last-row" ]
+                [ if (Map.size bindings == 0) then
+                    text "No values have been bound"
+                  else
+                    renderBindings bindings
                 ]
             ]
         ]
@@ -593,6 +617,8 @@ stateTable state =
   choices = state ^. _marloweState <<< _Head <<< _state <<< _choices
 
   payments = state ^. _marloweState <<< _Head <<< _payments
+
+  bindings = state ^. _marloweState <<< _Head <<< _state <<< _boundValues
 
 renderAccounts :: forall p. Map AccountId Ada -> HTML p HAction
 renderAccounts accounts =
@@ -692,12 +718,12 @@ renderPayments payments =
         ]
     , thead_
         [ tr []
-            [ th
-                [ class_ $ ClassName "middle-column"
-                ]
+            [ th_
                 [ text "Party"
                 ]
-            , th_
+            , th
+                [ class_ $ ClassName "left-border-column"
+                ]
                 [ text "Money"
                 ]
             ]
@@ -708,13 +734,51 @@ renderPayments payments =
 renderPayment :: forall p. Payment -> HTML p HAction
 renderPayment (Payment party money) =
   tr []
-    [ td
-        [ class_ $ ClassName "middle-column"
-        ]
+    [ td_
         [ text party
         ]
-    , td_
+    , td
+        [ class_ $ ClassName "left-border-column"
+        ]
         [ text (show money)
+        ]
+    ]
+
+renderBindings :: forall p. Map ValueId BigInteger -> HTML p HAction
+renderBindings bindings =
+  table_
+    [ colgroup []
+        [ col []
+        , col []
+        , col []
+        ]
+    , thead_
+        [ tr []
+            [ th_
+                [ text "Identifier"
+                ]
+            , th
+                [ class_ $ ClassName "left-border-column"
+                ]
+                [ text "Value"
+                ]
+            ]
+        ]
+    , tbody_ (map renderBinding bindingList)
+    ]
+  where
+  bindingList = Map.toUnfoldable bindings :: Array (Tuple ValueId BigInteger)
+
+renderBinding :: forall p. Tuple ValueId BigInteger -> HTML p HAction
+renderBinding (Tuple (ValueId valueId) value) =
+  tr []
+    [ td_
+        [ text valueId
+        ]
+    , td
+        [ class_ $ ClassName "left-border-column"
+        ]
+        [ text (show value)
         ]
     ]
 

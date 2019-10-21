@@ -26,7 +26,7 @@ import Gist (Gist)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
-import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Observation, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
@@ -64,8 +64,8 @@ data HAction
   -- marlowe actions
   | ApplyTransaction
   | NextSlot
-  | AddInput PubKey Input (Array Bound)
-  | RemoveInput PubKey Input
+  | AddInput (Maybe PubKey) Input (Array Bound)
+  | RemoveInput (Maybe PubKey) Input
   | SetChoice ChoiceId ChosenNum
   | ResetSimulator
   | Undo
@@ -168,15 +168,15 @@ _value = prop (SProxy :: SProxy "value")
 data ActionInputId
   = DepositInputId AccountId Party
   | ChoiceInputId ChoiceId (Array Bound)
-  | NotifyInputId Observation
+  | NotifyInputId
 
 derive instance eqActionInputId :: Eq ActionInputId
 
 derive instance ordActionInputId :: Ord ActionInputId
 
 type MarloweState
-  = { possibleActions :: Map PubKey (Map ActionInputId ActionInput)
-    , pendingInputs :: Array (Tuple Input PubKey)
+  = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
+    , pendingInputs :: Array (Tuple Input (Maybe PubKey))
     , transactionError :: Maybe TransactionError
     , state :: State
     , slot :: Slot
@@ -247,7 +247,7 @@ type WebData
 data ActionInput
   = DepositInput AccountId Party BigInteger
   | ChoiceInput ChoiceId (Array Bound) ChosenNum
-  | NotifyInput Observation
+  | NotifyInput
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -265,4 +265,4 @@ actionToActionInput state (Deposit accountId party value) =
 
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 
-actionToActionInput _ (Notify observation) = Tuple (NotifyInputId observation) (NotifyInput observation)
+actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput

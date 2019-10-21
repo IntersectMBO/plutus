@@ -241,19 +241,19 @@ updatePossibleActions oldState =
   insertTuple :: forall k v. Ord k => Tuple k v -> Map k v -> Map k v
   insertTuple (Tuple k v) m = Map.insert k v m
 
-  updateActions :: Map ActionInputId ActionInput -> Map PubKey (Map ActionInputId ActionInput) -> Map PubKey (Map ActionInputId ActionInput)
+  updateActions :: Map ActionInputId ActionInput -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Map (Maybe PubKey) (Map ActionInputId ActionInput)
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
 
-  addButPreserveActionInputs :: Map PubKey (Map ActionInputId ActionInput) -> ActionInputId -> Map PubKey (Map ActionInputId ActionInput) -> ActionInput -> Map PubKey (Map ActionInputId ActionInput)
+  addButPreserveActionInputs :: Map (Maybe PubKey) (Map ActionInputId ActionInput) -> ActionInputId -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> ActionInput -> Map (Maybe PubKey) (Map ActionInputId ActionInput)
   addButPreserveActionInputs oldInputs actionInputIdx m actionInput = appendValue m oldInputs (actionPerson actionInput) actionInputIdx actionInput
 
-  actionPerson :: ActionInput -> PubKey
-  actionPerson (DepositInput _ party _) = party
+  actionPerson :: ActionInput -> (Maybe PubKey)
+  actionPerson (DepositInput _ party _) = Just party
 
-  actionPerson (ChoiceInput choiceId _ _) = (choiceOwner choiceId)
+  actionPerson (ChoiceInput choiceId _ _) = Just (choiceOwner choiceId)
 
   -- We have a special person for notifications
-  actionPerson (NotifyInput _) = "Notifications"
+  actionPerson NotifyInput = Nothing
 
   appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
   appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
