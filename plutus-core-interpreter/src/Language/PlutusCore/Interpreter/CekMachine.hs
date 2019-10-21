@@ -20,6 +20,7 @@ module Language.PlutusCore.Interpreter.CekMachine
     , evaluateCekCatch
     , evaluateCek
     , readKnownCek
+    , runCekCatch
     , runCek
     ) where
 
@@ -223,6 +224,11 @@ readKnownCek means term = do
         EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
             appErr = ConstAppMachineError $ UnreadableBuiltinConstAppError term err
         EvaluationSuccess (Right x)  -> Right $ EvaluationSuccess x
+
+-- | Run a program using the CEK machine.
+-- Calls 'evaluateCekCatch' under the hood.
+runCekCatch :: DynamicBuiltinNameMeanings -> Program TyName Name () -> Either CekMachineException EvaluationResultDef
+runCekCatch means (Program _ _ term) = evaluateCekCatch means term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.

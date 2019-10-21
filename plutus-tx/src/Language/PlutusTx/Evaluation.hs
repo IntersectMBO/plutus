@@ -1,4 +1,4 @@
-module Language.PlutusTx.Evaluation (evaluateCek, evaluateCekTrace) where
+module Language.PlutusTx.Evaluation (evaluateCek, evaluateCekThrow, evaluateCekTrace, CekMachineException) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
@@ -16,8 +16,14 @@ stringBuiltins =
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
     :: Program TyName Name ()
+    -> Either CekMachineException EvaluationResultDef
+evaluateCek = runCekCatch stringBuiltins
+
+-- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
+evaluateCekThrow
+    :: Program TyName Name ()
     -> EvaluationResultDef
-evaluateCek = runCek stringBuiltins
+evaluateCekThrow = runCek stringBuiltins
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
 
@@ -25,10 +31,10 @@ evaluateCek = runCek stringBuiltins
 -- returning the trace output.
 evaluateCekTrace
     :: Program TyName Name ()
-    -> ([String], EvaluationResultDef)
+    -> ([String], Either CekMachineException EvaluationResultDef)
 evaluateCekTrace p =
     unsafePerformIO $ withEmit $ \emit -> do
         let logName       = dynamicTraceName
             logDefinition = dynamicCallAssign logName emit
             env  = insertDynamicBuiltinNameDefinition logDefinition stringBuiltins
-        evaluate $ runCek env p
+        evaluate $ runCekCatch env p
