@@ -1,7 +1,7 @@
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE ViewPatterns              #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts where
@@ -9,9 +9,9 @@ module Ledger.Typed.Scripts where
 import           Language.PlutusTx
 
 import           Ledger.Scripts
-import           Ledger.Tx                    hiding (scriptAddress)
-import qualified Ledger.Tx                    as Tx
-import qualified Ledger.Validation            as Validation
+import           Ledger.Tx         hiding (scriptAddress)
+import qualified Ledger.Tx         as Tx
+import qualified Ledger.Validation as Validation
 
 import           Data.Kind
 
@@ -55,4 +55,4 @@ wrapValidator
     => (d -> r -> Validation.PendingTx -> Bool)
     -> WrappedValidatorType
 wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = f d r p
-wrapValidator _ _ _ _ = False
+wrapValidator _ _ _ _                                                          = False
