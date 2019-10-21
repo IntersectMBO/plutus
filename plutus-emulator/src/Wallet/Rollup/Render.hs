@@ -23,7 +23,7 @@ import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
-import           Data.Text.Prettyprint.Doc             (defaultLayoutOptions, Doc, fill, indent, layoutPretty, line,
+import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
                                                         parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
@@ -43,14 +43,13 @@ import           Ledger.Scripts                        (DataScript (getDataScrip
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
+import           Wallet.Emulator.Types                 (Wallet (Wallet))
+import           Wallet.Rollup                         (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
                                                         BeneficialOwner (OwnedByPubKey, OwnedByScript),
                                                         DereferencedInput (DereferencedInput, originalInput, refersTo),
-                                                        SequenceId (SequenceId, slotIndex, txIndex),
-                                                        balances, dereferencedInputs,
-                                                        toBeneficialOwner, tx, txId)
-import           Wallet.Rollup                         (doAnnotateBlockchain)
-import           Wallet.Emulator.Types                 (Wallet (Wallet))
+                                                        SequenceId (SequenceId, slotIndex, txIndex), balances,
+                                                        dereferencedInputs, toBeneficialOwner, tx, txId)
 
 
 showBlockchain :: [(PubKey, Wallet)] -> [[(TxId, Tx)]]  -> Either Text Text

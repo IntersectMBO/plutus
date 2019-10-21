@@ -10,8 +10,8 @@ import qualified Spec.GameStateMachine
 import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
 import qualified Spec.PubKey
-import qualified Spec.Vesting
 import qualified Spec.Rollup
+import qualified Spec.Vesting
 import           Test.Tasty
 import           Test.Tasty.Hedgehog       (HedgehogTestLimit (..))
 
