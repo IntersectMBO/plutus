@@ -3,7 +3,6 @@ module Main
     ) where
 
 import qualified GistSpec
-import qualified Playground.Rollup.RenderSpec
 import qualified Playground.UsecasesSpec
 import           Test.Tasty                   (defaultMain, testGroup)
 
@@ -13,6 +12,5 @@ main =
     testGroup
         "all tests"
         [ GistSpec.tests
-        , Playground.Rollup.RenderSpec.tests
         , Playground.UsecasesSpec.tests
         ]

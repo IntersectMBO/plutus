@@ -176,7 +176,6 @@ test-suite plutus-playground-server-test
     hs-source-dirs: test
     other-modules:
         Playground.UsecasesSpec
-        Playground.Rollup.RenderSpec
         Paths_plutus_playground_server
         GistSpec
     default-language: Haskell2010
