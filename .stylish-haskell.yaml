@@ -21,10 +21,18 @@ steps:
   - trailing_whitespace: {}
 columns: 120
 newline: native
-language_extensions: 
-  - ScopedTypeVariables
-  - FlexibleContexts
-  - DeriveGeneric
+language_extensions:
+  - DataKinds
   - DeriveAnyClass
+  - DeriveGeneric
   - DerivingStrategies
+  - DerivingVia
+  - ExistentialQuantification
+  - ExplicitNamespaces
+  - FlexibleContexts
   - GeneralizedNewtypeDeriving
+  - MultiParamTypeClasses
+  - PackageImports
+  - QuasiQuotes
+  - ScopedTypeVariables
+  - TemplateHaskell

@@ -16,9 +16,9 @@ module Language.PlutusTx.Compiler.Error (
 import qualified Language.PlutusIR.Compiler        as PIR
 
 import qualified Language.PlutusCore               as PLC
-import qualified Language.PlutusCore.Pretty        as PLC
-import qualified Language.PlutusCore.Check.Value   as PLC
 import qualified Language.PlutusCore.Check.Uniques as PLC
+import qualified Language.PlutusCore.Check.Value   as PLC
+import qualified Language.PlutusCore.Pretty        as PLC
 
 import           Control.Lens
 import           Control.Monad.Except

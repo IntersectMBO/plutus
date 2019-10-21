@@ -1,6 +1,6 @@
-{-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE TypeOperators    #-}
 module Language.Plutus.Contract(
       Contract(..)
@@ -52,7 +52,7 @@ module Language.Plutus.Contract(
     , type Empty
     ) where
 
-import           Control.Applicative                             (Alternative(..))
+import           Control.Applicative                             (Alternative (..))
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
@@ -62,14 +62,15 @@ import           Language.Plutus.Contract.Effects.WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 import           Language.Plutus.Contract.Util                   (both, selectEither)
 
-import           Language.Plutus.Contract.Request                (Contract(..), ContractError(..), ContractRow, select, checkpoint, throwContractError)
+import           Language.Plutus.Contract.Request                (Contract (..), ContractError (..), ContractRow,
+                                                                  checkpoint, select, throwContractError)
 
 import           Language.Plutus.Contract.Tx                     as Tx
 
 import           Prelude                                         hiding (until)
 import           Wallet.API                                      (WalletAPIError)
 
--- | Schema for contracts that can interact with the blockchain (via a node 
+-- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)
 type BlockchainActions =
   AwaitSlot

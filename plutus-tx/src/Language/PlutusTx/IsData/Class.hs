@@ -1,21 +1,21 @@
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.IsData.Class where
 
-import           Data.ByteString.Lazy as BSL
+import           Data.ByteString.Lazy          as BSL
 
-import Prelude (Integer, Maybe (..))
+import           Prelude                       (Integer, Maybe (..))
 
-import Language.PlutusTx.Data
+import           Language.PlutusTx.Data
 
-import Language.PlutusTx.Functor
-import Language.PlutusTx.Applicative
+import           Language.PlutusTx.Applicative
+import           Language.PlutusTx.Functor
 
-import Data.Kind
+import           Data.Kind
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -50,4 +50,4 @@ instance IsData a => IsData [a] where
     toData xs = List (fmap toData xs)
     {-# INLINABLE fromData #-}
     fromData (List ds) = traverse fromData ds
-    fromData _        = Nothing
+    fromData _         = Nothing
