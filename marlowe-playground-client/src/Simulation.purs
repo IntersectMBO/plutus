@@ -5,7 +5,7 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
-import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, cardBody_, card, card_, col6, col_, row_, empty, listGroupItem_, listGroup_)
+import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, card_, col6, col_, empty, listGroupItem_, listGroup_, row_)
 import Control.Alternative (map, (<|>))
 import Data.Array (catMaybes)
 import Data.Array as Array
@@ -186,23 +186,31 @@ inputComposer isEnabled actionInputs =
   vs :: forall k v. Map k v -> Array v
   vs m = map snd (kvs m)
 
+  lastKey :: Maybe (Maybe PubKey)
+  lastKey = map (\x -> x.key) (Map.findMax actionInputs)
+
   actionsForPeople :: forall q. Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML q HAction)
-  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v)) (kvs m)
+  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v) (Just k == lastKey)) (kvs m)
 
 inputComposerPerson ::
   forall p.
   Boolean ->
   Maybe PubKey ->
   Array ActionInput ->
+  Boolean ->
   Array (HTML p HAction)
-inputComposerPerson isEnabled maybePerson actionInputs =
+inputComposerPerson isEnabled maybePerson actionInputs isLast =
   [ h3_
-      [ text (case maybePerson of
-                Just person -> ("Participant " <> show person)
-                Nothing -> ("Anyone"))
+      [ text
+          ( case maybePerson of
+              Just person -> ("Participant " <> show person)
+              Nothing -> ("Anyone")
+          )
       ]
   ]
-    <> catMaybes (mapWithIndex inputForAction actionInputs)
+    <> [ div [ class_ $ ClassName (if isLast then "state-last-row" else "state-row") ]
+          (catMaybes (mapWithIndex inputForAction actionInputs))
+      ]
   where
   inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
   inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled maybePerson index accountId party value
@@ -438,9 +446,11 @@ transactionInputs state =
       [ text "Input list"
       ]
   ]
-    <> ( onEmpty [ text "No inputs in the transaction" ]
-          $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
-      )
+    <> [ div [ class_ $ ClassName "state-row" ]
+          ( onEmpty [ text "No inputs in the transaction" ]
+              $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
+          )
+      ]
   where
   isEnabled = state.contract /= Nothing || state.editorErrors /= []
 
@@ -561,7 +571,8 @@ stateTable state =
             [ h3_
                 [ text "Accounts"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Map.size accounts == 0) then
                     text "There are no accounts in the state"
                   else
@@ -570,7 +581,8 @@ stateTable state =
             , h3_
                 [ text "Choices"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Map.size choices == 0) then
                     text "No choices have been recorded"
                   else
@@ -579,7 +591,8 @@ stateTable state =
             , h3_
                 [ text "Payments"
                 ]
-            , row_
+            , div
+                [ class_ $ ClassName "state-row" ]
                 [ if (Array.length payments == 0) then
                     text "No payments have been recorded"
                   else
@@ -587,14 +600,15 @@ stateTable state =
                 ]
             , h3_
                 [ text "Let bindings"
-            ]
-            , row_
+                ]
+            , div
+                [ class_ $ ClassName "state-last-row" ]
                 [ if (Map.size bindings == 0) then
                     text "No values have been bound"
                   else
                     renderBindings bindings
-        ]
-    ]
+                ]
+            ]
         ]
     ]
   where
