@@ -409,7 +409,7 @@ let
       scripts = {
         inherit (localLib) regeneratePackages;
 
-        fixStylishHaskell = pkgs.writeScriptBin "fix-stylish-haskell" ''
+        fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
           #!${pkgs.runtimeShell}
 
           set -eou pipefail
@@ -433,6 +433,8 @@ let
         '';
 
         fixPurty = pkgs.writeScript "fix-purty" ''
+          #!${pkgs.runtimeShell}
+
           ${pkgs.git}/bin/git diff > pre-purty.diff
           ${pkgs.fd}/bin/fd \
             --extension purs \
@@ -491,13 +493,13 @@ let
       # TODO: Currently we have to use nix-shell to update purescript dependencies manually because
       # updateClientDeps is broken. We will fix this in an upcoming PR and we will be able to remove
       # some of the puresccript dependencies from the nix shell
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ 
-                                                                        [ packages.cabal-install 
-                                                                          pkgs.git 
-                                                                          pkgs.cacert 
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++
+                                                                        [ packages.cabal-install
+                                                                          pkgs.git
+                                                                          pkgs.cacert
                                                                           pkgs.nodejs-10_x
                                                                           pkgs.nodePackages_10_x.node-gyp
-                                                                          pkgs.yarn 
+                                                                          pkgs.yarn
                                                                           pkgs.yarn2nix
                                                                           easyPS.purs
                                                                           easyPS.psc-package
