@@ -566,8 +566,15 @@ relating to the input currently undergoing validation.
 \paragraph{Defining $\tau$ and $\delta$.}
 Assuming we have an
 appropriate hashing function, it is straightforward to define $\tau$.
-The function $\delta$ is implementation-dependent and we will not
-discuss it further.
+For the implementation of $\delta$, note that the $inputs$ field is a
+\FinSet{} in \eutxotx{}, but a \List{}in \ptx{}. Therefore $\delta$ has to introduce
+an ordering of the transaction inputs. Contract authors cannot make
+any assumptions about this ordering and therefore should ensure that
+their scripts pass or fail regardless of what particular permutation
+of transaction inputs they are presented with.
+
+Apart from that, the function $\delta$ is implementation-dependent and
+we will not discuss it further. 
 
 \todokwxm{But with the advent of \Data{} we \textit{can}
   specify $\delta$.  Maybe we should?}
