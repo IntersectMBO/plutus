@@ -693,12 +693,12 @@ renderPayments payments =
         ]
     , thead_
         [ tr []
-            [ th
-                [ class_ $ ClassName "middle-column"
-                ]
+            [ th_
                 [ text "Party"
                 ]
-            , th_
+            , th
+                [ class_ $ ClassName "left-border-column"
+                ]
                 [ text "Money"
                 ]
             ]
@@ -709,12 +709,12 @@ renderPayments payments =
 renderPayment :: forall p. Payment -> HTML p HAction
 renderPayment (Payment party money) =
   tr []
-    [ td
-        [ class_ $ ClassName "middle-column"
-        ]
+    [ td_
         [ text party
         ]
-    , td_
+    , td
+        [ class_ $ ClassName "left-border-column"
+        ]
         [ text (show money)
         ]
     ]
