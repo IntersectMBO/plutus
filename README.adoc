@@ -125,16 +125,23 @@ not have this set up properly.
 
 To set up the cache:
 
-. If you are a not a trusted user (or you do not
-know whether you are a trusted user), then edit `/etc/nix/nix.conf`. If
-you are not a trusted user, you may edit `~/.config/nix/nix.conf`
-instead.
-. Add the following lines:
+. On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
 +
 ----
 substituters        = https://hydra.iohk.io https://cache.nixos.org/
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ----
+. On NixOS, set the following NixOS options:
++
+----
+nix = {
+  binaryCaches          = [ "https://hydra.iohk.io" ];
+  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+};
+----
+
+NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] you may add the
+`nix.conf` lines to `~/.config/nix/nix.conf` instead.
 
 === How to get a development environment
 
