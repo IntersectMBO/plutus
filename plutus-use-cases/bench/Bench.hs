@@ -24,7 +24,7 @@ import           Wallet
 
 import qualified Language.PlutusTx                                 as PlutusTx
 import qualified Language.PlutusTx.Prelude                         as PlutusTx
-import           Language.PlutusTx.Evaluation                      (evaluateCek)
+import           Language.PlutusTx.Evaluation                      (unsafeEvaluateCek)
 
 import qualified Recursion                                         as Rec
 import qualified Scott                                             as Scott
@@ -62,14 +62,14 @@ hashB = bgroup "hash" (imap (\i d -> bench ("hash-" <> show i) $ nf hashit d) ha
 fibB :: Benchmark
 fibB = bgroup "fib" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
             bench "native" $ nf fib 5,
             bench "combinator" $ nf fibRec 5
         ],
         bgroup "10" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
-            bench "plutusOpt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
+            bench "plutusOpt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
             bench "native" $ nf fib 10,
             bench "combinator" $ nf fibRec 10
         ]
@@ -90,16 +90,16 @@ fibB = bgroup "fib" [
 sumB :: Benchmark
 sumB = bgroup "sum" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek script5,
-            bench "plutus-opt" $ nf evaluateCek script5Opt,
+            bench "plutus" $ nf unsafeEvaluateCek script5,
+            bench "plutus-opt" $ nf unsafeEvaluateCek script5Opt,
             bench "native" $ nf haskellNative 5,
             bench "scott" $ nf haskellScott 5,
             bench "combinator" $ nf haskellRec 5,
             bench "scott-combinator" $ nf haskellRecScott 5
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek script20,
-            bench "plutus-opt" $ nf evaluateCek script20Opt,
+            bench "plutus" $ nf unsafeEvaluateCek script20,
+            bench "plutus-opt" $ nf unsafeEvaluateCek script20Opt,
             bench "native" $ nf haskellNative 20,
             bench "scott" $ nf haskellScott 20,
             bench "combinator" $ nf haskellRec 20,
@@ -149,16 +149,16 @@ sumB = bgroup "sum" [
 tailB :: Benchmark
 tailB = bgroup "tail" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 5 ()),
             bench "scott" $ nf tailScott (Scott.replicate 5 ()),
             bench "combinator" $ nf tailRec (replicate 5 ()),
             bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 20 ()),
             bench "scott" $ nf tailScott (Scott.replicate 20 ()),
             bench "combinator" $ nf tailRec (replicate 20 ()),

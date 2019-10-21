@@ -44,13 +44,15 @@ runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlcCek values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluate $ evaluateCek p
+     either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
 runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResultDef)
 runPlcCekTrace values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluate $ evaluateCekTrace p
+     let (logOut, result) = evaluateCekTrace p
+     res <- either (throwError . SomeException) Haskell.pure result
+     Haskell.pure (logOut, res)
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)

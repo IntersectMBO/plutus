@@ -148,7 +148,7 @@ fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
-data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String]
+data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String] | EvaluationException Haskell.String
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -159,7 +159,8 @@ evaluateScript checking s = do
       DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
     let (logOut, result) = evaluateCekTrace (unScript s)
-    unless (PLC.isEvaluationSuccess result) $ throwError $ EvaluationError logOut
+    res <- either (throwError . EvaluationException . show) Haskell.pure result
+    unless (PLC.isEvaluationSuccess res) $ throwError $ EvaluationError logOut
     Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
@@ -277,7 +278,7 @@ plcAddress (ValidatorHash hsh) = digestFromByteString $ BSL.toStrict hsh
 
 {-# INLINABLE unsafePlcAddress #-}
 -- | Get the SHA256 hash (for use in off-chain code) from a 'ValidatorHash'
---   (on-chain). Should be safe if 'ValidatorHash' was constructed using 
+--   (on-chain). Should be safe if 'ValidatorHash' was constructed using
 --   'plcValidatorDigest' or 'plcValidatorHash'.
 unsafePlcAddress :: ValidatorHash -> Digest SHA256
 unsafePlcAddress = fromJust . plcAddress
