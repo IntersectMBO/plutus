@@ -64,8 +64,8 @@ data HAction
   -- marlowe actions
   | ApplyTransaction
   | NextSlot
-  | AddInput PubKey Input (Array Bound)
-  | RemoveInput PubKey Input
+  | AddInput (Maybe PubKey) Input (Array Bound)
+  | RemoveInput (Maybe PubKey) Input
   | SetChoice ChoiceId ChosenNum
   | ResetSimulator
   | Undo
@@ -175,8 +175,8 @@ derive instance eqActionInputId :: Eq ActionInputId
 derive instance ordActionInputId :: Ord ActionInputId
 
 type MarloweState
-  = { possibleActions :: Map PubKey (Map ActionInputId ActionInput)
-    , pendingInputs :: Array (Tuple Input PubKey)
+  = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
+    , pendingInputs :: Array (Tuple Input (Maybe PubKey))
     , transactionError :: Maybe TransactionError
     , state :: State
     , slot :: Slot

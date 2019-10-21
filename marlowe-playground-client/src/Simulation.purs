@@ -173,7 +173,7 @@ onEmpty alt [] = alt
 
 onEmpty _ arr = arr
 
-inputComposer :: forall p. Boolean -> Map PubKey (Map ActionInputId ActionInput) -> Array (HTML p HAction)
+inputComposer :: forall p. Boolean -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML p HAction)
 inputComposer isEnabled actionInputs =
   if (Map.isEmpty actionInputs) then
     [ text "No valid inputs can be added to the transaction" ]
@@ -186,33 +186,35 @@ inputComposer isEnabled actionInputs =
   vs :: forall k v. Map k v -> Array v
   vs m = map snd (kvs m)
 
-  actionsForPeople :: forall q. Map PubKey (Map ActionInputId ActionInput) -> Array (HTML q HAction)
+  actionsForPeople :: forall q. Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML q HAction)
   actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v)) (kvs m)
 
 inputComposerPerson ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Array ActionInput ->
   Array (HTML p HAction)
-inputComposerPerson isEnabled person actionInputs =
+inputComposerPerson isEnabled maybePerson actionInputs =
   [ h3_
-      [ text ("Person " <> show person)
+      [ text (case maybePerson of
+                Just person -> ("Participant " <> show person)
+                Nothing -> ("Anyone"))
       ]
   ]
     <> catMaybes (mapWithIndex inputForAction actionInputs)
   where
   inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
-  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled person index accountId party value
+  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled maybePerson index accountId party value
 
-  inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled person index choiceId chosenNum bounds
+  inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled maybePerson index choiceId chosenNum bounds
 
-  inputForAction index NotifyInput = Just $ inputNotify isEnabled person index
+  inputForAction index NotifyInput = Just $ inputNotify isEnabled maybePerson index
 
 inputDeposit ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Int ->
   AccountId ->
   Party ->
@@ -244,7 +246,7 @@ renderDeposit (AccountId accountNumber accountOwner) party money =
   , b_ [ spanText party ]
   ]
 
-inputChoice :: forall p. Boolean -> PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
+inputChoice :: forall p. Boolean -> Maybe PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
 inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) chosenNum bounds =
   let
     validBounds = inBounds chosenNum bounds
@@ -275,7 +277,7 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
 inputNotify ::
   forall p.
   Boolean ->
-  PubKey ->
+  Maybe PubKey ->
   Int ->
   HTML p HAction
 inputNotify isEnabled person index =
@@ -444,7 +446,7 @@ transactionInputs state =
 
   mapWithOneIndex f = mapWithIndex (\i a -> f (i + 1) a)
 
-inputRow :: forall p. Boolean -> Int -> Tuple Input PubKey -> HTML p HAction
+inputRow :: forall p. Boolean -> Int -> Tuple Input (Maybe PubKey) -> HTML p HAction
 inputRow isEnabled idx (Tuple INotify person) =
   row_
     [ col_
