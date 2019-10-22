@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 module Ledger.Address (
     -- Note that the constructor is not exported - generally people shouldn't be able
@@ -19,6 +20,7 @@ import qualified Data.ByteString.Lazy      as BSL
 import           Data.Hashable             (Hashable, hashWithSalt)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 
 import           Ledger.Crypto
 import qualified LedgerBytes               as LB
@@ -27,6 +29,7 @@ import           Ledger.Scripts
 -- | A payment address using a hash as the id.
 newtype Address = Address { getAddress :: BSL.ByteString }
     deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (IotsType)
 
 instance Pretty Address where
     pretty = pretty . encodeSerialise . getAddress

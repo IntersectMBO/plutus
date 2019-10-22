@@ -80,7 +80,7 @@ instance FromHttpApiData PrivateKey where
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema)
+    deriving anyclass (ToSchema, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 instance ToJSON Signature where
