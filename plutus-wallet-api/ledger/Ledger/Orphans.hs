@@ -13,6 +13,7 @@ import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BSS
 import           IOTS                       (IotsType (iotsDefinition))
+import           Language.PlutusTx          (Data)
 import qualified Language.PlutusTx.AssocMap as Map
 import qualified Language.PlutusTx.Prelude  as P
 import           Schema                     (FormSchema (FormSchemaHex), ToSchema (toSchema))
@@ -43,6 +44,9 @@ instance IotsType (Digest SHA256) where
   iotsDefinition = iotsDefinition @String
 
 instance IotsType P.ByteString where
+  iotsDefinition = iotsDefinition @String
+
+instance IotsType Data where
   iotsDefinition = iotsDefinition @String
 
 instance (ToSchema k, ToSchema v) => ToSchema (Map.Map k v)

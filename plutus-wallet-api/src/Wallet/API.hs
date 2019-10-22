@@ -99,6 +99,7 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, maybeToList)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
+import           IOTS                      (IotsType)
 
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
@@ -251,7 +252,7 @@ data WalletAPIError =
     -- ^ The private key of this public key is not known to the wallet.
     | OtherError Text
     -- ^ Some other error occurred.
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Show, Eq, Ord, Generic, IotsType)
 
 instance Pretty WalletAPIError where
     pretty = \case

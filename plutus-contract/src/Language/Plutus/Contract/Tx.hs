@@ -45,6 +45,7 @@ import           GHC.Generics              (Generic)
 
 import           Language.PlutusTx.Lattice
 
+import           IOTS                      (IotsType)
 import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef,
                                             ValidatorScript)
 import qualified Ledger                    as L
@@ -65,7 +66,7 @@ data UnbalancedTx = UnbalancedTx
         , _validityRange      :: SlotRange
         }
         deriving stock (Eq, Show, Generic)
-        deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
+        deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
 Lens.TH.makeLenses ''UnbalancedTx
 

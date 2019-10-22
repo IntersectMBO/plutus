@@ -64,6 +64,7 @@ import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import           Schema                    (ToSchema)
 
 import           Language.PlutusTx.Lattice
@@ -116,7 +117,7 @@ data Tx = Tx {
     txSignatures :: Map PubKey Signature
     -- ^ Signatures of this transaction
     } deriving stock (Show, Eq, Generic)
-      deriving anyclass (ToJSON, FromJSON, Serialise)
+      deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures} =
@@ -220,6 +221,7 @@ instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
 
 deriving instance Serialise TxOutRef
+deriving anyclass instance IotsType TxOutRef
 deriving instance ToJSON TxOutRef
 deriving instance FromJSON TxOutRef
 deriving instance ToSchema TxOutRef
@@ -235,7 +237,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 data TxInType =
       ConsumeScriptAddress !ValidatorScript !RedeemerScript -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
     | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
-    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
+    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, IotsType)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
@@ -244,6 +246,7 @@ data TxIn = TxIn {
     } deriving (Show, Eq, Ord, Generic)
 
 deriving instance Serialise TxIn
+deriving anyclass instance IotsType TxIn
 deriving instance ToJSON TxIn
 deriving instance FromJSON TxIn
 
@@ -282,7 +285,7 @@ scriptTxIn r v = TxIn r . ConsumeScriptAddress v
 data TxOutType =
     PayToScript !DataScript -- ^ A pay-to-script output with the given data script.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
-    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, ToJSONKey)
+    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
 
 instance Pretty TxOutType where
     pretty = \case
@@ -298,6 +301,7 @@ data TxOut = TxOut {
     deriving (Show, Eq, Generic)
 
 deriving instance Serialise TxOut
+deriving anyclass instance IotsType TxOut
 deriving instance ToJSON TxOut
 deriving instance FromJSON TxOut
 

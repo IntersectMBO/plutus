@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns       #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
@@ -64,6 +65,7 @@ import           Data.Hashable                            (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc                (Pretty)
 import           GHC.Generics                             (Generic)
+import           IOTS                                     (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
@@ -82,6 +84,9 @@ import           Schema                                   (ToSchema)
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
+
+instance IotsType Script where
+  iotsDefinition = iotsDefinition @Haskell.String
 
 {- Note [Normalized types in Scripts]
 The Plutus Tx plugin and lifting machinery does not necessarily produce programs
@@ -194,7 +199,7 @@ unValidatorScript = getValidator
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
@@ -209,7 +214,7 @@ instance BA.ByteArrayAccess ValidatorScript where
 newtype DataScript = DataScript { getDataScript :: Data  }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, Pretty)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -224,7 +229,7 @@ instance BA.ByteArrayAccess DataScript where
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, Pretty)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Show RedeemerScript where
     show = const "RedeemerScript { <script> }"

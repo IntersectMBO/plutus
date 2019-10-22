@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE ExplicitForAll      #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -26,6 +27,7 @@ import           Ledger.AddressMap                             (AddressMap)
 import qualified Ledger.AddressMap                             as AM
 import           Ledger.Tx                                     (TxOutRef)
 
+import           IOTS                                          (IotsType)
 import           Language.Plutus.Contract.Effects.WatchAddress (AddressSet (..))
 import           Language.Plutus.Contract.Request              (Contract, ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema               (Event (..), Handlers (..), Input, Output)
@@ -43,7 +45,7 @@ data UtxoAtAddress =
     , utxo    :: Map TxOutRef TxOut
     }
   deriving stock (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Pretty UtxoAtAddress where
   pretty UtxoAtAddress{address, utxo} =
