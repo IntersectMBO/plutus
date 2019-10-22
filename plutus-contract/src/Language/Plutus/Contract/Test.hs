@@ -35,33 +35,33 @@ module Language.Plutus.Contract.Test(
     , renderTraceContext
     ) where
 
-import           Control.Lens                          (at, from, view, (^.))
-import           Control.Monad                         (unless)
-import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
-import           Data.Foldable                         (toList)
-import           Data.Functor.Contravariant            (Contravariant (..), Op(..))
-import qualified Data.Map                              as Map
-import           Data.Maybe                            (fromMaybe, mapMaybe)
-import           Data.Proxy                            (Proxy(..))
-import           Data.Row
-import           Data.String                           (IsString(..))
+import           Control.Lens                                    (at, from, view, (^.))
+import           Control.Monad                                   (unless)
+import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
+import           Data.Foldable                                   (fold, toList)
+import           Data.Functor.Contravariant                      (Contravariant (..), Op (..))
+import qualified Data.Map                                        as Map
+import           Data.Maybe                                      (fromMaybe, mapMaybe)
+import           Data.Proxy                                      (Proxy (..))
+import           Data.Row                                        (AllUniqueLabels, Forall, HasType)
+import qualified Data.Set                                        as Set
+import           Data.String                                     (IsString (..))
+import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import qualified Data.Text                             as Text
-import qualified Data.Set                              as Set
+import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import           Data.Void
-import           GHC.TypeLits                          (Symbol, KnownSymbol, symbolVal)
-import qualified Test.Tasty.HUnit                      as HUnit
-import           Test.Tasty.Providers                  (TestTree)
+import           GHC.TypeLits                                    (KnownSymbol, Symbol, symbolVal)
+import qualified Test.Tasty.HUnit                                as HUnit
+import           Test.Tasty.Providers                            (TestTree)
 
-import qualified Language.PlutusTx.Prelude             as P
+import qualified Language.PlutusTx.Prelude                       as P
 
-import           Language.Plutus.Contract.Record       (Record)
-import qualified Language.Plutus.Contract.Record       as Rec
-import           Language.Plutus.Contract.Request      (Contract(..))
-import           Language.Plutus.Contract.Resumable    (ResumableError)
-import qualified Language.Plutus.Contract.Resumable    as State
-import           Language.Plutus.Contract.Tx           (UnbalancedTx)
+import           Language.Plutus.Contract.Record                 (Record)
+import qualified Language.Plutus.Contract.Record                 as Rec
+import           Language.Plutus.Contract.Request                (Contract (..))
+import           Language.Plutus.Contract.Resumable              (ResumableError)
+import qualified Language.Plutus.Contract.Resumable              as State
+import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
 import           Language.PlutusTx.Lattice
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
@@ -71,16 +71,15 @@ import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
-import           Ledger.Address                        (Address)
-import qualified Ledger.Ada                            as Ada
-import qualified Ledger.AddressMap                     as AM
-import           Ledger.Slot                           (Slot)
-import           Ledger.Value                          (Value)
-import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
-import qualified Wallet.Emulator                       as EM
+import           Ledger.Address                                  (Address)
+import qualified Ledger.AddressMap                               as AM
+import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (Value)
+import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
+import qualified Wallet.Emulator                                 as EM
 
-import           Language.Plutus.Contract.Schema       (Event(..), Handlers(..), Input, Output)
-import           Language.Plutus.Contract.Trace        as X
+import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Trace                  as X
 
 newtype PredF f a = PredF { unPredF :: a -> f Bool }
     deriving Contravariant via (Op (f Bool))
@@ -526,7 +525,7 @@ walletFundsChange
     -> Value
     -> TracePredicate s e a
 walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulatorState = st}) ->
-        let initialValue = foldMap Ada.toValue (Map.fromList initialDist ^. at w)
+        let initialValue = fold (initialDist ^. at w)
             finalValue   = fromMaybe mempty (EM.fundsDistribution st ^. at w)
         in if initialValue P.+ dlt == finalValue
         then pure True

@@ -44,12 +44,10 @@ import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
-import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData, _Success)
-import Playground.Types (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
-import Playground.Types as Playground
+import Playground.Types (CompilationResult, EndpointName, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
@@ -150,27 +148,49 @@ instance actionValidation :: Validation Action where
     args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
 
 ------------------------------------------------------------
+-- TODO Explain/eliminate the duplication between this and the Haskell, row-types-y one.
+data Expression
+  = AddBlocks { blocks :: Int }
+  | CallEndpoint
+    { endpointName :: EndpointName
+    , wallet :: Wallet
+    , arguments :: RawJson
+    }
+
+derive instance genericExpression :: Generic Expression _
+
+instance encodeExpression :: Encode Expression where
+  encode value =
+    genericEncode
+      ( defaultOptions
+          { unwrapSingleConstructors = true
+          , sumEncoding = aesonSumEncoding
+          }
+      )
+      value
+
 -- | TODO: It should always be true that either toExpression returns a
 -- `Just value` OR validate returns a non-empty array.
 -- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
-toExpression :: Action -> Maybe Playground.Expression
-toExpression (Wait wait) = Just $ Playground.Wait wait
+toExpression :: Action -> Maybe Expression
+toExpression (Wait { blocks }) = Just $ AddBlocks { blocks }
 
 toExpression (Action action) = do
   let
     wallet = view _simulatorWalletWallet action.simulatorWallet
   arguments <- jsonArguments
-  pure $ Playground.Action { wallet, function, arguments }
+  pure $ CallEndpoint { endpointName, wallet, arguments }
   where
-  function = view (_functionSchema <<< to unwrap <<< _functionName) action
+  endpointName = view (_functionSchema <<< to unwrap <<< _functionName) action
 
   argumentSchema = view (_functionSchema <<< to unwrap <<< _argumentSchema) action
 
-  jsonArguments = traverse (map (RawJson <<< encodeJSON) <<< formArgumentToJson) argumentSchema
+  jsonArguments :: Maybe RawJson
+  jsonArguments = map (RawJson <<< encodeJSON) $ traverse (formArgumentToJson) argumentSchema
 
 toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
 toEvaluation sourceCode (Simulation { actions, wallets }) = do
-  program <- traverse toExpression actions
+  program <- RawJson <<< encodeJSON <$> traverse toExpression actions
   pure
     $ Evaluation
         { wallets
@@ -265,7 +285,7 @@ _balancesChartSlot = SProxy
 
 -----------------------------------------------------------
 type ChainSlot
-  = Array (JsonTuple TxId Tx)
+  = Array Tx
 
 type Blockchain
   = Array ChainSlot
@@ -382,8 +402,9 @@ instance showView :: Show View where
 
 ------------------------------------------------------------
 data FormArgument
-  = FormInt (Maybe Int)
+  = FormUnit
   | FormBool Boolean
+  | FormInt (Maybe Int)
   | FormString (Maybe String)
   | FormHex (Maybe String)
   | FormRadio (Array String) (Maybe String)
@@ -412,9 +433,11 @@ toArgument :: Value -> FormSchema -> FormArgument
 toArgument initialValue = ana algebra
   where
   algebra :: FormSchema -> FormArgumentF FormSchema
-  algebra FormSchemaInt = FormIntF Nothing
+  algebra FormSchemaUnit = FormUnitF
 
   algebra FormSchemaBool = FormBoolF false
+
+  algebra FormSchemaInt = FormIntF Nothing
 
   algebra FormSchemaString = FormStringF Nothing
 
@@ -448,8 +471,9 @@ defaultSlotRange =
 -- we can do some recursive processing of the data without cluttering
 -- the transformation with the iteration.
 data FormArgumentF a
-  = FormIntF (Maybe Int)
+  = FormUnitF
   | FormBoolF Boolean
+  | FormIntF (Maybe Int)
   | FormStringF (Maybe String)
   | FormHexF (Maybe String)
   | FormRadioF (Array String) (Maybe String)
@@ -462,8 +486,9 @@ data FormArgumentF a
   | FormUnsupportedF { description :: String }
 
 instance functorFormArgumentF :: Functor FormArgumentF where
-  map f (FormIntF x) = FormIntF x
+  map f FormUnitF = FormUnitF
   map f (FormBoolF x) = FormBoolF x
+  map f (FormIntF x) = FormIntF x
   map f (FormStringF x) = FormStringF x
   map f (FormHexF x) = FormHexF x
   map f (FormRadioF options x) = FormRadioF options x
@@ -478,8 +503,9 @@ instance functorFormArgumentF :: Functor FormArgumentF where
 derive instance eqFormArgumentF :: Eq a => Eq (FormArgumentF a)
 
 instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
-  project (FormInt x) = FormIntF x
+  project FormUnit = FormUnitF
   project (FormBool x) = FormBoolF x
+  project (FormInt x) = FormIntF x
   project (FormString x) = FormStringF x
   project (FormHex x) = FormHexF x
   project (FormRadio options x) = FormRadioF options x
@@ -492,8 +518,9 @@ instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
   project (FormUnsupported x) = FormUnsupportedF x
 
 instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
-  embed (FormIntF x) = FormInt x
+  embed FormUnitF = FormUnit
   embed (FormBoolF x) = FormBool x
+  embed (FormIntF x) = FormInt x
   embed (FormStringF x) = FormString x
   embed (FormHexF x) = FormHex x
   embed (FormRadioF options x) = FormRadio options x
@@ -510,11 +537,13 @@ instance validationFormArgument :: Validation FormArgument where
   validate = cata algebra
     where
     algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
+    algebra (FormUnitF) = []
+
+    algebra (FormBoolF _) = []
+
     algebra (FormIntF (Just _)) = []
 
     algebra (FormIntF Nothing) = [ noPath Required ]
-
-    algebra (FormBoolF _) = []
 
     algebra (FormStringF (Just _)) = []
 
@@ -556,11 +585,13 @@ formArgumentToJson :: FormArgument -> Maybe Foreign
 formArgumentToJson arg = cata algebra arg
   where
   algebra :: Algebra FormArgumentF (Maybe Foreign)
+  algebra FormUnitF = Just $ encode (mempty :: Array Unit)
+
+  algebra (FormBoolF b) = Just $ encode b
+
   algebra (FormIntF (Just n)) = Just $ encode n
 
   algebra (FormIntF Nothing) = Nothing
-
-  algebra (FormBoolF b) = Just $ encode b
 
   algebra (FormStringF (Just str)) = Just $ encode str
 

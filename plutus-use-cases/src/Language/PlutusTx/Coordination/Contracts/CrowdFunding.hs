@@ -2,27 +2,28 @@
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
-    Campaign(..)
+      Campaign(..)
     , CrowdfundingSchema
     , crowdfunding
     , theCampaign
@@ -44,32 +45,33 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
-import           Data.Aeson                     (ToJSON, FromJSON)
-import           Control.Applicative            (Alternative(..), Applicative(..))
-import           Control.Lens                   ((&), (.~), (^.))
-import           Control.Monad                  (Monad((>>)), void)
-import qualified Data.Set                       as Set
-import           GHC.Generics                   (Generic)
-import           IOTS                           (IotsType)
+import           Control.Applicative               (Alternative (..), Applicative (..))
+import           Control.Lens                      ((&), (.~), (^.))
+import           Control.Monad                     (Monad ((>>)), void)
+import           Data.Aeson                        (FromJSON, ToJSON)
+import qualified Data.Set                          as Set
+import           GHC.Generics                      (Generic)
+import           IOTS                              (IotsType)
 
 import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Trace    (ContractTrace, MonadEmulator, TraceError)
+import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
-import qualified Language.Plutus.Contract.Trace as Trace
-import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), (<$>), Applicative (..))
-import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
-import qualified Ledger                         as Ledger
-import qualified Ledger.Ada                     as Ada
-import qualified Ledger.Interval                as Interval
-import           Ledger.Slot                    (SlotRange)
-import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Validation              as V
-import           Ledger.Value                   (Value)
-import qualified Ledger.Value                   as VTH
-import           Wallet.Emulator                (Wallet)
-import qualified Wallet.Emulator                as Emulator
-import qualified Prelude                        as Haskell
+import qualified Language.PlutusTx                 as PlutusTx
+import           Language.PlutusTx.Prelude         hiding (Applicative (..), return, (<$>), (>>), (>>=))
+import           Ledger                            (Address, PendingTx, PubKey, Slot, ValidatorScript)
+import qualified Ledger                            as Ledger
+import qualified Ledger.Ada                        as Ada
+import qualified Ledger.Interval                   as Interval
+import           Ledger.Slot                       (SlotRange)
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Validation                 as V
+import           Ledger.Value                      (Value)
+import qualified Ledger.Value                      as Value
+import qualified Prelude                           as Haskell
+import           Schema                            (ToSchema)
+import           Wallet.Emulator                   (Wallet)
+import qualified Wallet.Emulator                   as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -82,7 +84,7 @@ data Campaign = Campaign
     , campaignOwner              :: PubKey
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the
     --   funds if the campaign is successful.
-    }
+    } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
 
@@ -142,20 +144,35 @@ scriptInstance cmp = Scripts.Validator @CrowdFunding
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
+    -- Check that the transaction falls in the refund range of the campaign
     Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
+    -- Check that the transaction is signed by the contributor
     && (ptx `V.txSignedBy` contributor)
 
 {-# INLINABLE validCollection #-}
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
+    -- Check that the transaction falls in the collection range of the campaign
     (collectionRange campaign `Interval.contains` pendingTxValidRange p)
-    && (valueSpent p `VTH.geq` campaignTarget campaign)
+    -- Check that the transaction is trying to spend more money than the campaign
+    -- target (and hence the target was reached)
+    && (valueSpent p `Value.geq` campaignTarget campaign)
+    -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
+-- | The validator script is of type 'CrowdfundingValidator', and is
+-- additionally parameterized by a 'Campaign' definition. This argument is
+-- provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address,
+-- and different campaigns have different addresses. The Campaign{..} syntax
+-- means that all fields of the 'Campaign' value are in scope
+-- (for example 'campaignDeadline' in l. 70).
 mkValidator :: Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool
 mkValidator c con act p = case act of
-    Refund  -> validRefund c con p
+    -- the "refund" branch
+    Refund -> validRefund c con p
+    -- the "collection" branch
     Collect -> validCollection c p
 
 -- | The validator script that determines whether the campaign owner can

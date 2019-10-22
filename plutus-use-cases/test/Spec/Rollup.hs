@@ -40,9 +40,8 @@ render
     -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
     -> IO ByteString
 render con trace = do
-    let (result, EmulatorState{_chainNewestFirst=blockchain, _walletStates=wallets}) = runTrace con trace
+    let (result, EmulatorState{_chainNewestFirst = resultBlockchain, _walletStates = wallets}) = runTrace con trace
     let walletKeys = flip fmap (Map.toList wallets) $ \(w, ws) -> (toPublicKey (_ownPrivateKey ws), w)
-    let resultBlockchain = flip (fmap . fmap) blockchain $ \tx -> (txId tx, tx)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->

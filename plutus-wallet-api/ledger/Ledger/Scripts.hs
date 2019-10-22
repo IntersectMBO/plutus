@@ -52,7 +52,7 @@ import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Monad                            (unless)
-import           Control.Monad.Except                     (MonadError(..), runExcept)
+import           Control.Monad.Except                     (MonadError, throwError, runExcept)
 import           Control.DeepSeq                          (NFData)
 import           Crypto.Hash                              (Digest, SHA256, hash)
 import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)

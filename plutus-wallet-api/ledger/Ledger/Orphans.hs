@@ -1,6 +1,5 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Ledger.Orphans where
@@ -12,6 +11,7 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BSS
+import qualified Data.ByteString.Lazy       as BSL
 import           IOTS                       (IotsType (iotsDefinition))
 import           Language.PlutusTx          (Data)
 import qualified Language.PlutusTx.AssocMap as Map
@@ -53,3 +53,9 @@ instance (ToSchema k, ToSchema v) => ToSchema (Map.Map k v)
 
 instance (Typeable k, Typeable v, IotsType k, IotsType v) =>
          IotsType (Map.Map k v)
+
+instance ToJSON BSL.ByteString where
+    toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict
+
+instance FromJSON BSL.ByteString where
+    parseJSON v = BSL.fromStrict <$> JSON.decodeByteString v

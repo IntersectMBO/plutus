@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia    #-}
 module Ledger.Address (
     -- Note that the constructor is not exported - generally people shouldn't be able
     -- to look inside addresses
@@ -10,11 +10,11 @@ module Ledger.Address (
     unsafeGetAddress
     ) where
 
-import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import           Data.Aeson.Extras         (encodeSerialise)
 import qualified Codec.CBOR.Write          as Write
 import           Codec.Serialise.Class     (Serialise, encode)
 import           Crypto.Hash               (Digest, SHA256, hash)
+import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import           Data.Aeson.Extras         (encodeSerialise)
 import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Hashable             (Hashable, hashWithSalt)
@@ -23,15 +23,14 @@ import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
 import           Ledger.Crypto
-import qualified LedgerBytes               as LB
+import           Ledger.Orphans            ()
 import           Ledger.Scripts
 
 -- | A payment address using a hash as the id.
 newtype Address = Address { getAddress :: BSL.ByteString }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (IotsType)
+    deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey, IotsType)
     deriving newtype (Serialise)
-    deriving (ToJSON, FromJSON, ToJSONKey, FromJSONKey) via LB.LedgerBytes
 
 instance Pretty Address where
     pretty = pretty . encodeSerialise . getAddress

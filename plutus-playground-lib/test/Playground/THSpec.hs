@@ -11,7 +11,7 @@ module Playground.THSpec where
 import           Data.Text        (Text)
 import           Ledger.Value     (Value)
 import           Playground.TH    (mkFunctions, mkSingleFunction)
-import           Playground.Types (Fn (Fn), FunctionSchema (FunctionSchema))
+import           Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
 import           Schema           (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
 import           Test.Hspec       (Spec, describe, it, shouldBe)
 import           Wallet           (MonadWallet)
@@ -43,24 +43,24 @@ spec =
         it
             "f0"
             (f0Schema `shouldBe`
-             (FunctionSchema (Fn "f0") [] :: FunctionSchema FormSchema))
+             (FunctionSchema (EndpointName "f0") [] :: FunctionSchema FormSchema))
         it
             "f1"
             (f1Schema `shouldBe`
-             (FunctionSchema (Fn "f1") [] :: FunctionSchema FormSchema))
+             (FunctionSchema (EndpointName "f1") [] :: FunctionSchema FormSchema))
         it
             "f2"
             (f2Schema `shouldBe`
-             (FunctionSchema (Fn "f2") [FormSchemaString] :: FunctionSchema FormSchema))
+             (FunctionSchema (EndpointName "f2") [FormSchemaString] :: FunctionSchema FormSchema))
         it
             "f3"
             (f3Schema `shouldBe`
-             (FunctionSchema (Fn "f3") [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema))
+             (FunctionSchema (EndpointName "f3") [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema))
         it
             "f4"
             (f4Schema `shouldBe`
              (FunctionSchema
-                  (Fn "f4")
+                  (EndpointName "f4")
                   [ FormSchemaString
                   , FormSchemaString
                   , FormSchemaTuple FormSchemaInt FormSchemaInt

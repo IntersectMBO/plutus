@@ -1,27 +1,36 @@
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE DeriveAnyClass   #-}
 {-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Playground.TH
     ( mkFunction
     , mkFunctions
     , mkIotsDefinitions
+    , ensureKnownCurrencies
     , ensureIotsDefinitions
+    , mkSchemaDefinitions
     , mkSingleFunction
     , mkKnownCurrencies
     ) where
 
-import           Data.Text             (pack)
-import           IOTS                  (HList (HCons, HNil), Tagged (Tagged))
+import           Data.Row                 (type (.\\))
+import           Data.Text                (pack)
+import           IOTS                     (HList (HCons, HNil), Tagged (Tagged))
 import qualified IOTS
-import           Language.Haskell.TH   (Body (NormalB), Clause (Clause), Dec (FunD, SigD, ValD),
-                                        Exp (ListE, LitE, VarE), ExpQ, Info (VarI), Lit (StringL), Name, Pat (VarP), Q,
-                                        Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), appTypeE, conE, conT,
-                                        litT, lookupValueName, mkName, nameBase, reify, strTyLit, varE)
-import           Playground.Types      (Fn (Fn), FunctionSchema (FunctionSchema), adaCurrency)
-import           Schema                (toSchema)
-import           Wallet.Emulator.Types (MockWallet)
+import           Language.Haskell.TH      (Body (NormalB), Clause (Clause), Dec (FunD, SigD, TySynD, ValD),
+                                           Exp (ListE, LitE, VarE), ExpQ, Info (TyConI, VarI), Lit (StringL), Name,
+                                           Pat (VarP), Q, Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
+                                           appTypeE, conE, conT, litT, lookupValueName, mkName, nameBase, normalB,
+                                           reify, sigD, strTyLit, valD, varE, varP)
+import           Language.Plutus.Contract (BlockchainActions)
+import           Playground.Schema        (endpointsToSchemas)
+import           Playground.Types         (EndpointName (EndpointName), FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema                   (FormSchema, toSchema)
+import           Wallet.Emulator.Types    (MockWallet)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -31,6 +40,9 @@ mkFunctions names = do
     pure $ fns <> [schemas]
   where
     mkNewName name = VarE . mkName $ nameBase name ++ "Schema"
+
+registeredKnownCurrenciesBindingName :: String
+registeredKnownCurrenciesBindingName = "registeredKnownCurrencies"
 
 iotsBindingName :: String
 iotsBindingName = "iotsDefinitions"
@@ -42,18 +54,44 @@ mkIotsDefinitions names = do
     iotsDefinition <- [|IOTS.export $(mkTaggedList applyMonadType names)|]
     pure [ValD (VarP (mkName iotsBindingName)) (NormalB iotsDefinition) []]
 
-ensureIotsDefinitions :: Q [Dec]
-ensureIotsDefinitions = do
-    bound <- lookupValueName iotsBindingName
+unlessBound :: String -> (Name -> Q [Dec]) -> Q [Dec]
+unlessBound bindingName definition = do
+    bound <- lookupValueName bindingName
     case bound of
-        Just _ -> pure []
-        Nothing ->
-            pure
-                [ ValD
-                      (VarP (mkName iotsBindingName))
-                      (NormalB (LitE (StringL "")))
-                      []
-                ]
+        Just _  -> pure []
+        Nothing -> definition $ mkName bindingName
+
+ensureIotsDefinitions :: Q [Dec]
+ensureIotsDefinitions =
+    unlessBound iotsBindingName $ \name ->
+        pure [ValD (VarP name) (NormalB (LitE (StringL ""))) []]
+
+ensureKnownCurrencies :: Q [Dec]
+ensureKnownCurrencies =
+    unlessBound registeredKnownCurrenciesBindingName $ \_ ->
+        mkKnownCurrencies []
+
+schemaBindingName :: String
+schemaBindingName = "schemas"
+
+{-# ANN mkSchemaDefinitions
+          ("HLint: ignore Redundant bracket" :: String)
+        #-}
+
+mkSchemaDefinitions :: Name -> Q [Dec]
+mkSchemaDefinitions ts = do
+    info <- reify ts
+    case info of
+        TyConI (TySynD _ [] t) -> do
+            schemas <- [|endpointsToSchemas @($(pure t) .\\ BlockchainActions)|]
+            unlessBound schemaBindingName $ \name -> do
+                sig <- sigD name [t|[FunctionSchema FormSchema]|]
+                body <- valD (varP name) (normalB (pure schemas)) []
+                pure [sig, body]
+        other ->
+            error $
+            "Incorrect Name type provided to mkSchemaDefinitions. Got: " <>
+            show other
 
 mkTaggedList :: (ExpQ -> ExpQ) -> [Name] -> Q Exp
 mkTaggedList _ [] = [|HNil|]
@@ -87,13 +125,13 @@ mkSingleFunction name = do
 mkFunction' :: Name -> Q Dec
 mkFunction' name = do
     let newName = mkName $ nameBase name ++ "Schema"
-        fn = Fn . pack $ nameBase name
+        fn = EndpointName . pack $ nameBase name
     expression <- mkFunctionExp name fn
     pure $ FunD newName [Clause [] (NormalB expression) []]
 
 {-# ANN mkFunctionExp ("HLint: ignore" :: String) #-}
 
-mkFunctionExp :: Name -> Fn -> Q Exp
+mkFunctionExp :: Name -> EndpointName -> Q Exp
 mkFunctionExp name fn = do
     r <- reify name
     case r of
@@ -104,7 +142,7 @@ mkFunctionExp name fn = do
 
 {-# ANN toSchemas ("HLint: ignore Redundant bracket" :: String) #-}
 
-toSchemas :: Fn -> [Type] -> Q Exp
+toSchemas :: EndpointName -> [Type] -> Q Exp
 toSchemas fn ts = do
     es <- foldr (\t e -> [|toSchema @($(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]
@@ -120,13 +158,11 @@ args (TupleT _)                 = []
 args (AppT (VarT _) t)          = args t
 args a                          = error $ "incorrect type in template haskell function: " ++ show a
 
--- TODO: add a type declaration to registeredKnownCurrencies
 mkKnownCurrencies :: [Name] -> Q [Dec]
 mkKnownCurrencies ks = do
-    let name = mkName "registeredKnownCurrencies"
+    let name = mkName registeredKnownCurrenciesBindingName
+        sig = SigD name (AppT ListT (ConT (mkName "KnownCurrency")))
         names = fmap VarE ('Playground.Types.adaCurrency : ks)
         body = NormalB (ListE names)
         val = ValD (VarP name) body []
-        typeName = mkName "KnownCurrency"
-        sig = SigD name (AppT ListT (ConT typeName))
     pure [sig, val]

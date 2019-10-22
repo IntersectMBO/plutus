@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -23,6 +24,7 @@ module Starter where
 --   * publish
 --   * redeem
 
+import           Control.Monad              (void)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
@@ -31,8 +33,8 @@ import           Ledger                     (Address, DataScript (DataScript), P
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
-import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
-                                             defaultSlotRange, payToScript_, startWatching)
+import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Tx (payToScript, collectFromScript)
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
@@ -68,21 +70,33 @@ mkRedeemerScript =
 contractAddress :: Address
 contractAddress = Ledger.scriptAddress contractValidator
 
+-- | The schema of the contract, with two endpoints.
+type Schema =
+    BlockchainActions
+        .\/ Endpoint "publish" (Integer, Value)
+        .\/ Endpoint "redeem" Integer
+
+contract :: Contract Schema e ()
+contract = publish <|> redeem
+
 -- | The "publish" contract endpoint.
-publish :: MonadWallet m => Integer -> Value -> m ()
-publish dataValue lockedFunds  =
-    payToScript_ defaultSlotRange contractAddress lockedFunds (mkDataScript dataValue)
+publish :: Contract Schema e ()
+publish = do
+    (dataValue, lockedFunds) <- endpoint @"publish"
+    let tx = payToScript lockedFunds contractAddress (mkDataScript dataValue)
+    void $ writeTx tx
 
 -- | The "redeem" contract endpoint.
-redeem :: (WalletAPI m, WalletDiagnostics m) => Integer -> m ()
-redeem redeemerValue = do
+redeem :: Contract Schema e ()
+redeem = do
+    redeemerValue <- endpoint @"redeem"
+    unspentOutputs <- utxoAt contractAddress
     let redeemer = mkRedeemerScript redeemerValue
-    collectFromScript defaultSlotRange contractValidator redeemer
+        tx = collectFromScript unspentOutputs contractValidator redeemer
+    void $ writeTx tx
 
--- | The "start" contract endpoint, telling the wallet to start watching
---   the address of the script.
-start :: MonadWallet m => m ()
-start =
-    startWatching contractAddress
+endpoints :: Contract Schema e ()
+endpoints = contract
 
-$(mkFunctions ['publish, 'redeem, 'start])
+mkSchemaDefinitions ''Schema
+    

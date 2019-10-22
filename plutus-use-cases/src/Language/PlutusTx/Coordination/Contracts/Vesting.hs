@@ -46,9 +46,23 @@ import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
 import           Ledger.Validation            (PendingTx, PendingTx' (..))
 
--- $vesting
--- A simple vesting contract that locks some funds until a
--- predefined slot has been reached.
+{- |
+    A simple vesting scheme. Money is locked by a contract and may only be
+    retrieved after some time has passed.
+
+    This is our first example of a contract that covers multiple transactions,
+    with a contract state that changes over time.
+
+    In our vesting scheme the money will be released in two _tranches_ (parts):
+    A smaller part will be available after an initial number of slots have
+    passed, and the entire amount will be released at the end. The owner of the
+    vesting scheme does not have to take out all the money at once: They can
+    take out any amount up to the total that has been released so far. The
+    remaining funds stay locked and can be retrieved later.
+
+    Let's start with the data types.
+
+-}
 
 type VestingSchema =
     BlockchainActions
@@ -140,14 +154,15 @@ contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
 
 vestingContract :: VestingParams -> Contract VestingSchema T.Text ()
-vestingContract vesting = vest <|> retrieve where
+vestingContract vesting = vest <|> retrieve
+  where
+    vest = endpoint @"vest funds" >> vestFundsC vesting
     retrieve = do
         payment <- endpoint @"retrieve funds"
         liveness <- retrieveFundsC vesting payment
         case liveness of
             Alive -> retrieve
             Dead  -> pure ()
-    vest = endpoint @"vest funds" >> vestFundsC vesting
 
 payIntoContract :: VestingParams -> Value -> UnbalancedTx
 payIntoContract vp value = payToScript value (contractAddress vp) (DataScript (PlutusTx.toData ()))
