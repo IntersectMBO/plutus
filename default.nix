@@ -463,6 +463,10 @@ let
           export PATH=${pkgs.stdenv.lib.makeBinPath [
             pkgs.coreutils
             pkgs.git
+            pkgs.python
+            pkgs.gnumake
+            pkgs.gcc
+            pkgs.gnused
             pkgs.nodejs-10_x
             pkgs.nodePackages_10_x.node-gyp
             pkgs.yarn
