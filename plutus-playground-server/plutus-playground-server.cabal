@@ -19,8 +19,6 @@ data-files:
     usecases/Vesting.hs
     usecases/Starter.hs
     test/gists1.json
-    test/Playground/Rollup/renderVestFunds.txt
-    test/Playground/Rollup/renderCrowdfunding.txt
 
 source-repository head
     type: git
