@@ -80,7 +80,7 @@ let
     repo = "nix-gitignore";
     rev = "686b057f6c24857c8862c0ef15a6852caab809c7";
     sha256 = "1hv8jl7ppv0f8lnfx2qi2jmzc7b5yiy12yvd4waq9xmxhip1k7rb";
-  }) { inherit (pkgs) lib runCommand; };
+  }) { inherit (nativePkgs) lib runCommand; };
 
   nodejsHeaders = nativePkgs.fetchurl {
     url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
@@ -92,10 +92,10 @@ let
     repo = "easy-purescript-nix";
     rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
     sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
-  }) { pkgs = pkgs // { nix-gitignore = nixGitIgnore; }; };
+  }) { pkgs = nativePkgs // { nix-gitignore = nixGitIgnore; }; };
 
   purty = (import ./purty {
-    inherit pkgs;
+    pkgs = nativePkgs;
   });
 
   packages = self: (rec {
