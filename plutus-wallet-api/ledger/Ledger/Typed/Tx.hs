@@ -47,20 +47,20 @@ import qualified Data.Set                   as Set
 import           Control.Monad.Except
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
-newtype TypedScriptTxIn (outs :: [Type]) a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
+newtype TypedScriptTxIn a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
-    :: forall inn (outs :: [Type])
+    :: forall inn
     . (IsData (RedeemerType inn))
     => ScriptInstance inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
-    -> TypedScriptTxIn outs inn
+    -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r (TypedScriptTxOutRef ref) =
     let vs = validatorScript si
         rs = RedeemerScript (toData r)
         txInType = ConsumeScriptAddress vs rs
-    in TypedScriptTxIn @outs @inn $ TxInOf ref txInType
+    in TypedScriptTxIn @inn $ TxInOf ref txInType
 
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
@@ -95,7 +95,7 @@ makePubKeyTxOut value pubKey = PubKeyTxOut $ pubKeyTxOut value pubKey
 -- and a list of connection types for the inputs. The script outputs and inputs must have the correct
 -- corresponding types.
 data TypedTx (ins :: [Type]) (outs :: [Type]) = TypedTx {
-    tyTxTypedTxIns   :: HListF (TypedScriptTxIn outs) ins,
+    tyTxTypedTxIns   :: HListF TypedScriptTxIn ins,
     tyTxPubKeyTxIns  :: [PubKeyTxIn],
     tyTxTypedTxOuts  :: HListF TypedScriptTxOut outs,
     tyTxPubKeyTxOuts :: [PubKeyTxOut],
@@ -119,21 +119,21 @@ baseTx = TypedTx {
 -- inputs yet. Otherwise those inputs would need to change to take the new data script as
 -- an argument.
 addTypedTxOut
-    :: forall outs newOut
+    :: forall ins outs newOut
     . TypedScriptTxOut newOut
-    -> TypedTx '[] outs
-    -> TypedTx '[] (newOut ': outs)
+    -> TypedTx ins outs
+    -> TypedTx ins (newOut ': outs)
 -- We're changing the type so we can't use record update syntax :'(
 addTypedTxOut out TypedTx {
     tyTxTypedTxOuts,
     tyTxPubKeyTxOuts,
-    tyTxTypedTxIns=HNilF,
+    tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
     tyTxValidRange } = TypedTx {
       tyTxTypedTxOuts=HConsF out tyTxTypedTxOuts,
       tyTxPubKeyTxOuts,
-      tyTxTypedTxIns=HNilF,
+      tyTxTypedTxIns,
       tyTxPubKeyTxIns,
       tyTxForge,
       tyTxValidRange }
@@ -141,7 +141,7 @@ addTypedTxOut out TypedTx {
 -- | Adds a 'TypedScriptTxIn' to a 'TypedTx'.
 addTypedTxIn
     :: forall ins outs newIn
-    . TypedScriptTxIn outs newIn
+    . TypedScriptTxIn newIn
     -> TypedTx ins outs
     -> TypedTx (newIn ': ins) outs
 -- We're changing the type so we can't use record update syntax :'(
@@ -168,7 +168,7 @@ data TypedTxSomeIns (outs :: [Type]) = forall ins . TypedTxSomeIns (TypedTx ins 
 -- the input connection types explicitly.
 addSomeTypedTxIn
     :: forall (outs :: [Type]) (newIn :: *)
-    . TypedScriptTxIn outs newIn
+    . TypedScriptTxIn newIn
     -> TypedTxSomeIns outs
     -> TypedTxSomeIns outs
 addSomeTypedTxIn inn (TypedTxSomeIns tx) = TypedTxSomeIns $ addTypedTxIn inn tx
@@ -176,7 +176,7 @@ addSomeTypedTxIn inn (TypedTxSomeIns tx) = TypedTxSomeIns $ addTypedTxIn inn tx
 -- | Adds many homogeneous 'TypedScriptTxIn' to a 'TypedTx'.
 addManyTypedTxIns
     :: forall (ins :: [Type]) (outs :: [Type]) (newIn :: Type)
-    . [TypedScriptTxIn outs newIn]
+    . [TypedScriptTxIn newIn]
     -> TypedTx ins outs
     -> TypedTxSomeIns outs
 addManyTypedTxIns ins tx = foldl' (\someTx inn -> addSomeTypedTxIn inn someTx) (TypedTxSomeIns tx) ins
@@ -206,7 +206,6 @@ toUntypedTx TypedTx{
 -- | An error we can get while trying to type an existing transaction part.
 data ConnectionError =
     WrongValidatorHash ValidatorHash ValidatorHash
-    | WrongValidator ValidatorScript ValidatorScript
     | WrongOutType TxOutType
     | WrongInType TxInType
     | WrongValidatorType String
@@ -258,14 +257,14 @@ checkDataScript _ (DataScript d) =
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
-    :: forall inn (outs :: [Type]) m
+    :: forall inn m
     . ( IsData (RedeemerType inn)
       , IsData (DataType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOut)
     -> ScriptInstance inn
     -> TxIn
-    -> m (TypedScriptTxIn outs inn)
+    -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxInOf{txInRef,txInType} = do
     (vs, rs) <- case txInType of
         ConsumeScriptAddress vs rs -> pure (vs, rs)
