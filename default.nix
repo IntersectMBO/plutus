@@ -498,6 +498,7 @@ let
                                                                         [ packages.cabal-install 
                                                                           pkgs.git 
                                                                           pkgs.cacert 
+                                                                          pkgs.yarn
                                                                           easyPS.purs
                                                                           easyPS.spago
                                                                           ]; });
