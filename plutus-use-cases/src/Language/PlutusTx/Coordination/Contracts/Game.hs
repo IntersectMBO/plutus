@@ -100,7 +100,7 @@ newtype GuessParams = GuessParams
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
     deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
-guess :: Contract GameSchema ()
+guess :: Contract GameSchema e ()
 guess = do
     st <- nextTransactionAt gameAddress
     let mp = AM.fromTxOutputs st
@@ -112,7 +112,7 @@ guess = do
         tx         = unbalancedTx inp []
     void (writeTx tx)
 
-lock :: Contract GameSchema ()
+lock :: Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
@@ -122,12 +122,12 @@ lock = do
         tx         = unbalancedTx [] [output]
     void (writeTx tx)
 
-game :: Contract GameSchema ()
+game :: Contract GameSchema e ()
 game = guess <|> lock
 
 lockTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m () ()
+    => ContractTrace GameSchema e m () ()
 lockTrace =
     let w1 = Trace.Wallet 1
         w2 = Trace.Wallet 2 in
@@ -137,7 +137,7 @@ lockTrace =
 
 guessTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m () ()
+    => ContractTrace GameSchema e m () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace
@@ -146,7 +146,7 @@ guessTrace =
 
 guessWrongTrace
     :: ( MonadEmulator m )
-    => ContractTrace GameSchema m () ()
+    => ContractTrace GameSchema e m () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace

@@ -45,7 +45,7 @@ newtype InterestingAddresses =
         deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
 -- | Wait for the next transaction that changes an address.
-nextTransactionAt :: forall s. HasWatchAddress s => Address -> Contract s Tx
+nextTransactionAt :: forall s e. HasWatchAddress s => Address -> Contract s e Tx
 nextTransactionAt addr =
     let s = Set.singleton addr
         check :: (Address, Tx) -> Maybe Tx
@@ -56,24 +56,24 @@ nextTransactionAt addr =
 -- | Watch an address until the given slot, then return all known outputs
 --   at the address.
 watchAddressUntil
-    :: forall s.
+    :: forall s e.
        ( HasAwaitSlot s
        , HasWatchAddress s
        )
     => Address
     -> Slot
-    -> Contract s AddressMap
+    -> Contract s e AddressMap
 watchAddressUntil a = collectUntil @s AM.updateAddresses (AM.addAddress a mempty) (nextTransactionAt @s a)
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
 --   has surpassed the given value.
 fundsAtAddressGt
-    :: forall s.
+    :: forall s e.
        HasWatchAddress s
     => Address
     -> Value
-    -> Contract s AddressMap
+    -> Contract s e AddressMap
 fundsAtAddressGt addr' vl = loopM go mempty where
     go cur = do
         delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr'
@@ -86,11 +86,11 @@ fundsAtAddressGt addr' vl = loopM go mempty where
 --   on the ledger. Warning: If the transaction does not touch the address,
 --   or is invalid, then 'awaitTransactionConfirmed' will not return.
 awaitTransactionConfirmed
-    :: forall s.
+    :: forall s e.
        ( HasWatchAddress s )
     => Address
     -> TxId
-    -> Contract s Tx
+    -> Contract s e Tx
 awaitTransactionConfirmed addr txid =
     flip loopM () $ \_ -> do
         tx' <- nextTransactionAt addr

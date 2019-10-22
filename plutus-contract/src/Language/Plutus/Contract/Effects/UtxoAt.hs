@@ -45,7 +45,7 @@ data UtxoAtAddress =
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Set Address)
 
 -- | Get the unspent transaction outputs at an address.
-utxoAt :: forall s. HasUtxoAt s => Address -> Contract s AddressMap
+utxoAt :: forall s e. HasUtxoAt s => Address -> Contract s e AddressMap
 utxoAt address' =
     let check :: UtxoAtAddress -> Maybe AddressMap
         check UtxoAtAddress{address,utxo} =

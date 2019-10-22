@@ -22,7 +22,10 @@ type Schema =
 
 tests :: TestTree
 tests =
-    let ep = Con.unContract (Con.endpoint @"endpoint" @String @Schema)
+    let
+        epCon :: Con.Contract Schema () String
+        epCon = Con.endpoint @"endpoint" @String @Schema
+        ep = Con.unContract epCon
         initRecord = fmap fst . fst . fromRight (error "initialise failed") . runExcept . runWriterT . S.initialise
         inp = Endpoint.event @"endpoint" "asd"
         run con =

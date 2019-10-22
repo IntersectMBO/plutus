@@ -1,7 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
@@ -9,6 +8,7 @@
 {-# LANGUAGE OverloadedLabels     #-}
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -16,13 +16,12 @@
 module Language.Plutus.Contract.Request where
 
 import           Control.Applicative
+import           Control.Lens
 import           Control.Monad                      (MonadPlus)
-import           Control.Monad.Except               (MonadError (throwError))
+import           Control.Monad.Except               (MonadError)
 import qualified Data.Aeson                         as Aeson
 import           Data.Row
-import           Data.String                        (IsString)
-import           Data.Text                          (Text)
-import           GHC.Generics                       (Generic)
+import qualified Data.Text                          as T
 
 import           Language.Plutus.Contract.Resumable
 import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
@@ -31,28 +30,30 @@ import qualified Language.Plutus.Contract.Schema    as Events
 import qualified Language.PlutusTx.Applicative      as PlutusTx
 import qualified Language.PlutusTx.Functor          as PlutusTx
 import           Prelude                            as Haskell
-
--- | A list of errors produced by a `Contract`
-newtype ContractError = ContractError { unContractError :: Text }
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving newtype (Aeson.FromJSON, Aeson.ToJSON, IsString)
-
--- | Throw a 'ContractError'
-throwContractError :: (MonadError ContractError m) => Text -> m a
-throwContractError = throwError . ContractError
+import           Wallet.API                         (WalletAPIError)
 
 -- | @Contract s a@ is a contract with schema 's', producing a value of
 --  type 'a' or a 'ContractError'. See note [Contract Schema].
 --
-newtype Contract s a = Contract { unContract :: Resumable ContractError (Step (Maybe (Event s)) (Handlers s)) a }
-  deriving newtype (Functor, Applicative, Monad, MonadError ContractError, Alternative, MonadPlus)
+newtype Contract s e a = Contract { unContract :: Resumable e (Step (Maybe (Event s)) (Handlers s)) a }
+  deriving newtype (Functor, Applicative, Monad, MonadError e, Alternative, MonadPlus)
 
-instance PlutusTx.Functor (Contract s) where
+instance PlutusTx.Functor (Contract s e) where
   fmap = Haskell.fmap
 
-instance PlutusTx.Applicative (Contract s) where
+instance PlutusTx.Applicative (Contract s e) where
   (<*>) = (Haskell.<*>)
   pure  = Haskell.pure
+
+data ContractError =
+    WalletError WalletAPIError
+    | OtherError T.Text
+    deriving Show
+makeClassyPrisms ''ContractError
+
+-- | This lets people use 'T.Text' as their error type.
+instance AsContractError T.Text where
+    _ContractError = prism' (T.pack . show) (const Nothing)
 
 -- | Constraints on the contract schema, ensuring that the requests produced
 --   by the contracts are 'Monoid's (so that we can produce a record with
@@ -69,14 +70,14 @@ type ContractRow s =
 --   is a contract that writes the request @r@ and waits for a response of type
 --   @resp@.
 request
-  :: forall l req resp s.
+  :: forall l req resp s e.
     ( KnownSymbol l
     , HasType l resp (Input s)
     , HasType l req (Output s)
     , ContractRow s
     )
     => req
-    -> Contract s resp
+    -> Contract s e resp
 request out = Contract $ CStep (Step go) where
   upd = Left $ Events.initialise @s @l out
   go Nothing = upd
@@ -86,7 +87,7 @@ request out = Contract $ CStep (Step go) where
 
 -- | Write a request repeatedly until the desired response is returned.
 requestMaybe
-  :: forall l req resp s a.
+  :: forall l req resp s e a.
      ( KnownSymbol l
      , HasType l resp (Input s)
      , HasType l req (Output s)
@@ -94,7 +95,7 @@ requestMaybe
      )
     => req
     -> (resp -> Maybe a)
-    -> Contract s a
+    -> Contract s e a
 requestMaybe out check = do
   rsp <- request @l @req @resp @s out
   case check rsp of
@@ -104,8 +105,8 @@ requestMaybe out check = do
 -- | @select@ returns the contract that finished first, discarding the other
 --   one.
 --
-select :: forall s a. Contract s a -> Contract s a -> Contract s a
+select :: forall s e a. Contract s e a -> Contract s e a -> Contract s e a
 select = (<|>)
 
-checkpoint :: forall s a. (Aeson.FromJSON a, Aeson.ToJSON a) => Contract s a -> Contract s a
+checkpoint :: forall s e a. (Aeson.FromJSON a, Aeson.ToJSON a) => Contract s e a -> Contract s e a
 checkpoint = Contract . CJSONCheckpoint . unContract

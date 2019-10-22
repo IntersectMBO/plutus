@@ -8,11 +8,13 @@
 module Spec.Crowdfunding(tests) where
 
 import           Data.Foldable                                         (traverse_)
+import qualified Data.Text as T
 import qualified Spec.Lib                                              as Lib
 import           Spec.Lib                                              (timesFeeAdjust)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                      as HUnit
 
+import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 import           Language.Plutus.Contract.Test
 import qualified Language.Plutus.Contract.Trace                        as Trace
@@ -28,33 +30,36 @@ w2 = Wallet 2
 w3 = Wallet 3
 w4 = Wallet 4
 
+theContract :: Contract CrowdfundingSchema T.Text ()
+theContract = crowdfunding theCampaign
+
 tests :: TestTree
 tests = testGroup "crowdfunding"
     [ checkPredicate "Expose 'contribute' and 'scheduleCollection' endpoints"
-        (crowdfunding theCampaign)
+        theContract
         (endpointAvailable @"contribute" w1 /\ endpointAvailable @"schedule collection" w1)
         $ pure ()
 
     , checkPredicate "make contribution"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         $ let contribution = Ada.lovelaceValueOf 10
           in makeContribution w1 contribution
 
     , checkPredicate "make contributions and collect"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w1 (1 `timesFeeAdjust` 21))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too early"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Tell the contract we're at slot 21, causing the transaction to be submitted
-            >> Trace.addEvent w1 (AwaitSlot.event 21) 
+            >> Trace.addEvent w1 (AwaitSlot.event 21)
             -- This submits the transaction to the blockchain. Normally, the transaction would
             -- be validated right away and the funds of wallet 1 would increase. In this case
             -- the transaction is not validated because it has a validity interval that begins
@@ -62,7 +67,7 @@ tests = testGroup "crowdfunding"
             >> Trace.handleBlockchainEvents w1
 
     , checkPredicate "cannot collect money too late"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
@@ -77,7 +82,7 @@ tests = testGroup "crowdfunding"
             >> Trace.handleBlockchainEvents w1
 
     , checkPredicate "cannot collect unless notified"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w1 PlutusTx.zero)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
@@ -90,7 +95,7 @@ tests = testGroup "crowdfunding"
             >> Trace.handleBlockchainEvents w1
 
     , checkPredicate "can claim a refund"
-        (crowdfunding theCampaign)
+        theContract
         (walletFundsChange w2 (2 `timesFeeAdjust` 0)
             /\ walletFundsChange w3 (2 `timesFeeAdjust` 0))
         $ startCampaign

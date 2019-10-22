@@ -13,9 +13,11 @@
 --   as one.
 module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract) where
 
+import           Control.Monad.Error.Lens (throwing)
+
 import           Data.Maybe (listToMaybe)
 import qualified Data.Map   as Map
-import qualified Data.Text  as Text
+import qualified Data.Text  as T
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
@@ -36,30 +38,30 @@ pkValidator pk = mkValidatorScript $
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
-pubKeyContract 
-    :: forall s.
+pubKeyContract
+    :: forall s e.
     ( HasWatchAddress s
-    , HasWriteTx s)
+    , HasWriteTx s
+    , AsContractError e)
     => PubKey
     -> Value
-    -> Contract s TxIn
+    -> Contract s e TxIn
 pubKeyContract pk vl = do
     let address = Ledger.scriptAddress (pkValidator pk)
         tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
     txId <- writeTxSuccess tx
 
-    ledgerTx <- awaitTransactionConfirmed address txId 
+    ledgerTx <- awaitTransactionConfirmed address txId
     let output = listToMaybe
                 $ fmap fst
                 $ filter ((==) address . txOutAddress . snd)
                 $ Map.toList
                 $ unspentOutputsTx ledgerTx
     ref <- case output of
-        Nothing -> 
-            throwContractError
-            $ "transaction did not contain script output"
+        Nothing -> throwing _OtherError $
+            "Transaction did not contain script output"
             <> "for public key '"
-            <> Text.pack (show pk)
+            <> T.pack (show pk)
             <> "'"
         Just o -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ())
     pure ref

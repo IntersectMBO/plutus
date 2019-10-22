@@ -121,12 +121,13 @@ forgedValue cur =
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
 --   If @k == 0@ then no value is forged.
 forgeContract
-    :: forall s.
+    :: forall s e.
     ( HasWatchAddress s
-    , HasWriteTx s)
+    , HasWriteTx s
+    , AsContractError e)
     => PubKey
     -> [(String, Integer)]
-    -> Contract s Currency
+    -> Contract s e Currency
 forgeContract pk amounts = do
     refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
     let theCurrency = mkCurrency (txInRef refTxIn) amounts
