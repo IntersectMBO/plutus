@@ -19,8 +19,6 @@ data-files:
     usecases/Vesting.hs
     usecases/Starter.hs
     test/gists1.json
-    test/Playground/Rollup/renderVestFunds.txt
-    test/Playground/Rollup/renderCrowdfunding.txt
 
 source-repository head
     type: git
@@ -176,7 +174,6 @@ test-suite plutus-playground-server-test
     hs-source-dirs: test
     other-modules:
         Playground.UsecasesSpec
-        Playground.Rollup.RenderSpec
         Paths_plutus_playground_server
         GistSpec
     default-language: Haskell2010

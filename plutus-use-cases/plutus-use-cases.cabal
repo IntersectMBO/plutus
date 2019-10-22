@@ -81,6 +81,7 @@ test-suite plutus-use-cases-test
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PubKey
+        Spec.Rollup
         Spec.Vesting
     default-language: Haskell2010
     ghc-options: -Wall -Wnoncanonical-monad-instances
@@ -94,6 +95,8 @@ test-suite plutus-use-cases-test
         plutus-emulator -any
     build-depends:
         base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
         containers -any,
         hedgehog -any,
         prettyprinter -any,

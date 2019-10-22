@@ -23,13 +23,13 @@ import           Ledger                       (hashTx)
 import           Playground.API               (API)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
-import           Playground.Rollup            (doAnnotateBlockchain)
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult (EvaluationResult),
                                                PlaygroundError (RollupError))
 import           Playground.Usecases          (vesting)
 import           Servant                      (err400, errBody)
 import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
+import           Wallet.Rollup                (doAnnotateBlockchain)
 
 acceptSourceCode ::
        SourceCode

@@ -33,9 +33,9 @@ import Ledger.Extra (humaniseInterval, adaToValue)
 import Ledger.Tx (AddressOf(..), TxOutOf(..))
 import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Types (HAction(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
+import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
 chainView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p HAction

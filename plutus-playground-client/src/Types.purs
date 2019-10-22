@@ -46,7 +46,7 @@ import Ledger.TxId (TxIdOf)
 import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData, _Success)
-import Playground.Types (AnnotatedTx, CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.Types (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Playground.Types as Playground
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -54,6 +54,7 @@ import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(..), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
+import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 _simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a

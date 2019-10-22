@@ -17,7 +17,6 @@ import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
                                                SourceCode, column, filename, row, text)
 import qualified Language.Haskell.Interpreter as HI
-import           Playground.Rollup            ()
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
 import           Text.Read                    (readMaybe)

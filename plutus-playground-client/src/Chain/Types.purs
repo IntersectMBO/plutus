@@ -17,7 +17,7 @@ import Ledger.Slot (Slot)
 import Ledger.Tx (Tx, TxInOf, TxOutOf(..), TxOutRefOf(..), TxOutType(..))
 import Ledger.TxId (TxIdOf)
 import Ledger.Value (Value)
-import Playground.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
+import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
 
 type TxId
   = TxIdOf String

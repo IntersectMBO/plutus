@@ -6,7 +6,7 @@ import Data.Lens (_Just, assign, preview, use)
 import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (wrap)
 import MonadApp (class MonadApp, delay)
-import Playground.Types (SequenceId(..))
+import Wallet.Rollup.Types (SequenceId(..))
 import Prelude (Ordering(..), Unit, bind, compare, discard, pure, ($), (<<<), (<>))
 
 handleAction :: forall m. MonadState State m => MonadApp m => Maybe ChainFocus -> Maybe AnnotatedBlockchain -> m Unit
