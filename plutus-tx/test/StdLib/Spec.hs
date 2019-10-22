@@ -6,9 +6,10 @@
 module StdLib.Spec where
 
 import           Common
+import qualified Data.ByteString.Lazy     as BSL
 import           Data.Ratio               ((%))
 import           GHC.Real                 (reduce)
-import           Hedgehog                 (Property)
+import           Hedgehog                 (Gen, MonadGen, Property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen             as Gen
 import qualified Hedgehog.Range           as Range
@@ -16,6 +17,9 @@ import           PlcTestUtils
 import           Test.Tasty               (TestName)
 import           Test.Tasty.Hedgehog      (testProperty)
 
+import           Language.PlutusTx.Data   (Data (..))
+import qualified Language.PlutusTx.Data   as Data
+import qualified Language.PlutusTx.Eq     as PlutusTx
 import qualified Language.PlutusTx.Ord    as PlutusTx
 import qualified Language.PlutusTx.Ratio  as Ratio
 
@@ -38,6 +42,7 @@ tests =
     , pure $ testProperty "ord" testOrd
     , pure $ testProperty "quotRem" testQuotRem
     , pure $ testProperty "reduce" testReduce
+    , pure $ testProperty "Eq @Data" eqData
     ]
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
@@ -79,3 +84,26 @@ testOrd = Hedgehog.property $ do
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
+
+eqData :: Property
+eqData = Hedgehog.property $ do
+    theData <- Hedgehog.forAll genData
+    let ghcResult = theData == theData
+        plutusResult = theData PlutusTx.== theData
+    Hedgehog.annotateShow theData
+    Hedgehog.assert (ghcResult && plutusResult)
+
+genData :: MonadGen m => m Data
+genData =
+    let genInteger = Gen.integral (Range.linear (-10000) 100000)
+        genBytes   = fmap BSL.fromStrict (Gen.bytes (Range.linear 0 1000))
+        genList    = Gen.list (Range.linear 0 10)
+    in Gen.recursive
+            Gen.choice
+            [ I <$> genInteger
+            , B <$> genBytes
+            ]
+            [ Constr <$> genInteger <*> genList genData
+            , Map <$> genList ((,) <$> genData <*> genData)
+            , List <$> genList genData
+            ]

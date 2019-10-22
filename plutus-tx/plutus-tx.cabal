@@ -150,6 +150,7 @@ test-suite plutus-tx-tests
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx -any,
+        plutus-tx-compiler -any,
         plutus-ir -any,
         prettyprinter -any,
         mtl -any,
