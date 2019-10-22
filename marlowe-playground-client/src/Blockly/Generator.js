@@ -13,7 +13,11 @@ exports.nextBlock_ = function (just, nothing, block) {
 exports.getFieldValue_ = function (left, right, block, key) {
     var result = block.getFieldValue(key);
     if (result) {
-        return right(result);
+        /* For some unknown reason, the xmljs library turns strings into numbers if it can
+         * We are always expecting a string and that's what the browser gives us but the
+         * tests break without this extra toString()
+         */
+        return right(result.toString());
     } else {
         return left("couldn't find field: " + key);
     }
@@ -120,7 +124,7 @@ exports.fieldRow_ = function (input) {
 
 exports.setFieldText_ = function (fieldRef, text) {
     return function () {
-        fieldRef.value.setText(text);
+        fieldRef.value.setValue(text);
     };
 }
 

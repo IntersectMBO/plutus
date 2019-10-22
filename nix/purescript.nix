@@ -31,8 +31,14 @@ let
 
   packagesJson = "${src}/packages.json";
 
+  # remove any files that have appeared in local builds
+  cleanSrcs = builtins.filterSource (path: type: !(pkgs.lib.elem (baseNameOf path)
+                                                  [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist"]))
+                                                  src;
+
 in yarn2nix.mkYarnPackage {
-  inherit name src packageJSON yarnLock yarnNix;
+  inherit name packageJSON yarnLock yarnNix;
+  src = cleanSrcs;
   nodejs = nodejs-10_x;
 
   pkgConfig = {

@@ -80,7 +80,7 @@ let
     repo = "nix-gitignore";
     rev = "686b057f6c24857c8862c0ef15a6852caab809c7";
     sha256 = "1hv8jl7ppv0f8lnfx2qi2jmzc7b5yiy12yvd4waq9xmxhip1k7rb";
-  }) { inherit (pkgs) lib runCommand; };
+  }) { inherit (nativePkgs) lib runCommand; };
 
   nodejsHeaders = nativePkgs.fetchurl {
     url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
@@ -92,10 +92,10 @@ let
     repo = "easy-purescript-nix";
     rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
     sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
-  }) { pkgs = pkgs // { nix-gitignore = nixGitIgnore; }; };
+  }) { pkgs = nativePkgs // { nix-gitignore = nixGitIgnore; }; };
 
   purty = (import ./purty {
-    inherit pkgs;
+    pkgs = nativePkgs;
   });
 
   packages = self: (rec {
@@ -463,6 +463,10 @@ let
           export PATH=${pkgs.stdenv.lib.makeBinPath [
             pkgs.coreutils
             pkgs.git
+            pkgs.python
+            pkgs.gnumake
+            pkgs.gcc
+            pkgs.gnused
             pkgs.nodejs-10_x
             pkgs.nodePackages_10_x.node-gyp
             pkgs.yarn
@@ -470,7 +474,7 @@ let
             easyPS.purs
             easyPS.psc-package
             easyPS.spago
-            # easyPS.spago2nix
+            easyPS.spago2nix
           ]}
 
           if [ ! -f package.json ]
@@ -484,27 +488,19 @@ let
 
           echo Generating nix configs.
           yarn2nix > yarn.nix
-          # spago2nix generate
+          spago2nix generate
 
           echo Done
         '';
       };
 
-      # TODO: Currently we have to use nix-shell to update purescript dependencies manually because
-      # updateClientDeps is broken. We will fix this in an upcoming PR and we will be able to remove
-      # some of the puresccript dependencies from the nix shell
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++
-                                                                        [ packages.cabal-install
-                                                                          pkgs.git
-                                                                          pkgs.cacert
-                                                                          pkgs.nodejs-10_x
-                                                                          pkgs.nodePackages_10_x.node-gyp
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ 
+                                                                        [ packages.cabal-install 
+                                                                          pkgs.git 
+                                                                          pkgs.cacert 
                                                                           pkgs.yarn
-                                                                          pkgs.yarn2nix
                                                                           easyPS.purs
-                                                                          easyPS.psc-package
                                                                           easyPS.spago
-                                                                          easyPS.spago2nix
                                                                           ]; });
     };
   });
