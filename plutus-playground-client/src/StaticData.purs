@@ -7,7 +7,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import LocalStorage as LocalStorage
-import Playground.Usecases (vesting, game, crowdfunding, messages, starter)
+import Playground.Usecases (vesting, game, crowdfunding, errorHandling, starter)
 
 type Label
   = String
@@ -20,7 +20,7 @@ demoFiles =
   Map.fromFoldable
     [ "Crowdfunding" /\ crowdfunding
     , "Game" /\ game
-    , "Messages" /\ messages
+    , "Error Handling" /\ errorHandling
     , "Vesting" /\ vesting
     , "Starter" /\ starter
     ]

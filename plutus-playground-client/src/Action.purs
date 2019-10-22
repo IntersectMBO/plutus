@@ -5,6 +5,7 @@ module Action
 
 import Types
 import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
+import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
@@ -29,7 +30,7 @@ import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.Types (EvaluationResult, PlaygroundError(..), _Fn, _FunctionSchema)
+import Playground.Types (EvaluationResult, PlaygroundError(..), _EndpointName, _FunctionSchema)
 import Prelude (const, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
@@ -187,7 +188,7 @@ actionPane isValidWallet actionDrag index action =
                             [ h3_
                                 [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
                                 , text ": "
-                                , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
+                                , text $ view (_FunctionSchema <<< _functionName <<< _EndpointName) functionSchema
                                 ]
                             , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
                             ]
@@ -247,18 +248,7 @@ actionArgumentField ::
   Boolean ->
   FormArgument ->
   HTML p FormEvent
-actionArgumentField ancestors _ arg@(FormInt n) =
-  div_
-    [ input
-        [ type_ InputNumber
-        , classes (Array.cons formControl (actionArgumentClass ancestors))
-        , value $ maybe "" show n
-        , required true
-        , placeholder "Int"
-        , onValueInput (Just <<< SetField <<< SetIntField <<< Int.fromString)
-        ]
-    , validationFeedback (joinPath ancestors <$> validate arg)
-    ]
+actionArgumentField ancestors _ arg@FormUnit = Bootstrap.empty
 
 actionArgumentField ancestors _ arg@(FormBool b) =
   formCheck_
@@ -278,6 +268,19 @@ actionArgumentField ancestors _ arg@(FormBool b) =
     ]
   where
   elementId = String.joinWith "-" ancestors
+
+actionArgumentField ancestors _ arg@(FormInt n) =
+  div_
+    [ input
+        [ type_ InputNumber
+        , classes (Array.cons formControl (actionArgumentClass ancestors))
+        , value $ maybe "" show n
+        , required true
+        , placeholder "Int"
+        , onValueInput (Just <<< SetField <<< SetIntField <<< Int.fromString)
+        ]
+    , validationFeedback (joinPath ancestors <$> validate arg)
+    ]
 
 actionArgumentField ancestors _ arg@(FormString s) =
   div_

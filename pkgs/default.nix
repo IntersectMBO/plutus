@@ -54415,11 +54415,13 @@ license = stdenv.lib.licenses.asl20;
 , mtl
 , newtype-generics
 , playground-common
+, plutus-contract
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , QuickCheck
+, row-types
 , serialise
 , servant
 , stdenv
@@ -54448,10 +54450,12 @@ memory
 mtl
 newtype-generics
 playground-common
+plutus-contract
 plutus-emulator
 plutus-tx
 plutus-wallet-api
 prettyprinter
+row-types
 serialise
 servant
 template-haskell
@@ -54511,6 +54515,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , optparse-applicative
 , playground-common
+, plutus-contract
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -54573,6 +54578,7 @@ monad-logger
 mtl
 newtype-generics
 playground-common
+plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
@@ -54780,6 +54786,7 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
+, playground-common
 , plutus-contract
 , plutus-emulator
 , plutus-tx
@@ -54808,6 +54815,7 @@ containers
 iots-export
 lens
 mtl
+playground-common
 plutus-contract
 plutus-emulator
 plutus-tx

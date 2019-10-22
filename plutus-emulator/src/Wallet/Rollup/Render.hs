@@ -51,7 +51,7 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         dereferencedInputs, toBeneficialOwner, tx, txId)
 
 
-showBlockchain :: [(PubKey, Wallet)] -> [[(TxId, Tx)]]  -> Either Text Text
+showBlockchain :: [(PubKey, Wallet)] -> [[Tx]]  -> Either Text Text
 showBlockchain walletKeys blockchain =
     flip runReaderT walletKeys $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain

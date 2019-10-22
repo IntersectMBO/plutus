@@ -4,7 +4,6 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE ExplicitForAll      #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}

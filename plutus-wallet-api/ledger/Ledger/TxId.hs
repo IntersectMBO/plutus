@@ -19,15 +19,13 @@ import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Prelude as PlutusTx
 import           Ledger.Orphans            ()
-import           LedgerBytes               (LedgerBytes (..))
 import           Schema                    (ToSchema)
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (ToSchema, IotsType)
+    deriving anyclass (ToJSON, FromJSON, ToSchema, IotsType)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
-    deriving (ToJSON, FromJSON) via LedgerBytes
 
 instance Pretty TxId where
     pretty t = "TxId:" <+> pretty (JSON.encodeSerialise $ getTxId t)
