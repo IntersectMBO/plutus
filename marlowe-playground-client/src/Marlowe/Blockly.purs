@@ -94,7 +94,7 @@ payeeTypes :: Array PayeeType
 payeeTypes = upFromIncluding bottom
 
 data ContractType
-  = RefundContractType
+  = CloseContractType
   | PayContractType
   | IfContractType
   | WhenContractType
@@ -381,10 +381,10 @@ toDefinition (PayeeType PartyPayeeType) =
         defaultBlockDefinition
 
 -- Contracts
-toDefinition (ContractType RefundContractType) =
+toDefinition (ContractType CloseContractType) =
   BlockDefinition
     $ merge
-        { type: show RefundContractType
+        { type: show CloseContractType
         , message0: "Close"
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
@@ -863,7 +863,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType Payee where
     pure (Party party)
 
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract where
-  blockDefinition RefundContractType _ _ = pure Close
+  blockDefinition CloseContractType _ _ = pure Close
   blockDefinition PayContractType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- getFieldValue block "account_owner"
@@ -1105,7 +1105,7 @@ instance toBlocklyCases :: ToBlockly (Array Case) where
 
 instance toBlocklyContract :: ToBlockly Contract where
   toBlockly newBlock workspace input Close = do
-    block <- newBlock workspace (show RefundContractType)
+    block <- newBlock workspace (show CloseContractType)
     connectToPrevious block input
   toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee value contract) = do
     block <- newBlock workspace (show PayContractType)
