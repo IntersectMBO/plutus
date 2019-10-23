@@ -28,18 +28,19 @@ import           Control.Monad.Except
 import           Data.Functor                                            ((<&>))
 import qualified Data.Text.IO                                            as Text
 import           Hedgehog                                                hiding (Size, Var, eval)
+import qualified Hedgehog.Gen                                            as Gen
 import           System.FilePath                                         ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
-getSampleTermValue :: KnownType a => TermGen a -> IO (TermOf (Value TyName Name ()))
-getSampleTermValue genTerm = runSampleSucceed $ unsafeTypeEvalCheck <$> genTerm
+getSampleTermValue :: KnownType a => TermGen a -> IO (TermOf EvaluationResultDef)
+getSampleTermValue genTerm = Gen.sample $ unsafeTypeEvalCheck <$> genTerm
 
 -- | Generate a program using a given generator and check that it's well-typed and evaluates correctly.
 getSampleProgramAndValue
-    :: KnownType a => TermGen a -> IO (Program TyName Name (), Value TyName Name ())
+    :: KnownType a => TermGen a -> IO (Program TyName Name (), EvaluationResultDef)
 getSampleProgramAndValue genTerm =
-    getSampleTermValue genTerm <&> \(TermOf term value) ->
-        (Program () (defaultVersion ()) term, value)
+    getSampleTermValue genTerm <&> \(TermOf term result) ->
+        (Program () (defaultVersion ()) term, result)
 
 -- | Generate a program using a given generator, check that it's well-typed and evaluates correctly
 -- and pretty-print it to stdout using the default pretty-printing mode.
