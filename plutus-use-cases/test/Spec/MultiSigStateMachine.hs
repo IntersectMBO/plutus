@@ -39,7 +39,7 @@ tests = testGroup "multi sig state machine tests" [
     HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 350000)
     ]
 
-runTrace :: EM.EmulatorAction a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()
+runTrace :: EM.EmulatorAction EM.AssertionError a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()
 runTrace t f step = do
     let initialState = EM.emulatorStateInitialDist (Map.singleton (EM.walletPubKey (EM.Wallet 1)) (Ada.adaValueOf 10))
         (result, st) = EM.runEmulator initialState t
@@ -110,7 +110,7 @@ makePayment'' st = processAndNotify >> fst <$> EM.walletAction w3 (makePayment' 
 proposeSignPay :: (WalletAPI m, WalletDiagnostics m) => Integer -> State -> EM.Trace m State
 proposeSignPay i = proposePayment'' >=> addSignature'' i >=> makePayment''
 
-lockProposeSignPay :: forall m . (EM.MonadEmulator m) => Integer -> Integer -> m ()
+lockProposeSignPay :: forall e m . (EM.MonadEmulator e m) => Integer -> Integer -> m ()
 lockProposeSignPay i j = EM.processEmulated $ do
 
     -- stX contain the state of the contract. See note [Current state of the

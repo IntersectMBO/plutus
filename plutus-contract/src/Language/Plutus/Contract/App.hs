@@ -26,7 +26,7 @@ import           Language.Plutus.Contract.Servant (Request (..), Response (..), 
 import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, execTrace)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           System.Environment               (getArgs)
-import           Wallet.Emulator                  (Wallet (..))
+import           Wallet.Emulator                  (AsAssertionError, Wallet (..))
 
 import           Language.Plutus.Contract.IOTS    (IotsRow, IotsType, rowSchema)
 
@@ -49,7 +49,7 @@ type AppSchema s =
 -- | Run the contract as an HTTP server with servant/warp
 run
     :: forall s e.
-       ( AppSchema s, Show e )
+       ( AppSchema s, Show e, AsAssertionError e )
     => Contract s e () -> IO ()
 run st = runWithTraces @s st []
 
@@ -57,9 +57,9 @@ run st = runWithTraces @s st []
 --   print the 'Request' values for the given traces.
 runWithTraces
     :: forall s e.
-       ( AppSchema s, Show e )
+       ( AppSchema s, Show e, AsAssertionError e )
     => Contract s e ()
-    -> [(String, (Wallet, ContractTrace s e EmulatorAction () ()))]
+    -> [(String, (Wallet, ContractTrace s e (EmulatorAction e) () ()))]
     -> IO ()
 runWithTraces con traces = do
     let mp = Map.fromList traces
@@ -90,11 +90,12 @@ printTrace
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        , Forall (Input s) ToJSON
+       , AsAssertionError e
        , Show e
        )
     => Contract s e ()
     -> Wallet
-    -> ContractTrace s e EmulatorAction () ()
+    -> ContractTrace s e (EmulatorAction e) () ()
     -> IO ()
 printTrace con wllt ctr = do
     let events = Map.findWithDefault [] wllt $ execTrace con ctr
