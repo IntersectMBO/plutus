@@ -4,6 +4,7 @@ module Spec.Rollup where
 import           Data.ByteString.Lazy                                  (ByteString)
 import qualified Data.ByteString.Lazy                                  as LBS
 import qualified Data.Map                                              as Map
+import qualified Data.Text                                             as T
 import           Data.Text.Encoding                                    (encodeUtf8)
 
 import           Language.Plutus.Contract
@@ -32,8 +33,8 @@ tests = testGroup "showBlockchain"
      ]
 
 render
-    :: Contract s a
-    -> ContractTrace s EmulatorAction a ()
+    :: Contract s T.Text a
+    -> ContractTrace s T.Text EmulatorAction a ()
     -> IO ByteString
 render con trace = do
     let (result, EmulatorState{_chainNewestFirst=blockchain, _walletStates=wallets}) = runTrace con trace
