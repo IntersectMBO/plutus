@@ -48,18 +48,18 @@ type AppSchema s =
 
 -- | Run the contract as an HTTP server with servant/warp
 run
-    :: forall s.
-       ( AppSchema s )
-    => Contract s () -> IO ()
+    :: forall s e.
+       ( AppSchema s, Show e )
+    => Contract s e () -> IO ()
 run st = runWithTraces @s st []
 
 -- | Run the contract as an HTTP server with servant/warp, and
 --   print the 'Request' values for the given traces.
 runWithTraces
-    :: forall s.
-       ( AppSchema s )
-    => Contract s ()
-    -> [(String, (Wallet, ContractTrace s EmulatorAction () ()))]
+    :: forall s e.
+       ( AppSchema s, Show e )
+    => Contract s e ()
+    -> [(String, (Wallet, ContractTrace s e EmulatorAction () ()))]
     -> IO ()
 runWithTraces con traces = do
     let mp = Map.fromList traces
@@ -85,14 +85,16 @@ printTracesAndExit mp = do
 -- | Run a trace on the mockchain and print the 'Request' JSON objects
 --   for each intermediate state to stdout.
 printTrace
-    :: forall s.
+    :: forall s e.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
-       , Forall (Input s) ToJSON )
-    => Contract s ()
+       , Forall (Input s) ToJSON
+       , Show e
+       )
+    => Contract s e ()
     -> Wallet
-    -> ContractTrace s EmulatorAction () ()
+    -> ContractTrace s e EmulatorAction () ()
     -> IO ()
 printTrace con wllt ctr = do
     let events = Map.findWithDefault [] wllt $ execTrace con ctr
@@ -104,4 +106,3 @@ printTrace con wllt ctr = do
 
     initial <- either (error . show) pure (initialResponse @s con)
     foldM_ go initial events
-

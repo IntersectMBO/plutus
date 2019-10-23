@@ -43,10 +43,10 @@ type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 -- | A contract that waits until the slot is reached, then returns the
 --   current slot.
 awaitSlot
-    :: forall s.
+    :: forall s e.
        (HasAwaitSlot s)
     => Slot
-    -> Contract s Slot
+    -> Contract s e Slot
 awaitSlot sl =
   let s = WaitingForSlot $ Just sl
       check :: Slot -> Maybe Slot
@@ -72,52 +72,52 @@ nextSlot (Handlers r) = unWaitingForSlot (r .! #slot)
 
 -- | Run a contract until the given slot has been reached.
 until
-  :: forall s a.
+  :: forall s e a.
      (HasAwaitSlot s)
-  => Contract s a
+  => Contract s e a
   -> Slot
-  -> Contract s (Maybe a)
+  -> Contract s e (Maybe a)
 until c sl =
   fmap (either (const Nothing) Just) (selectEither (awaitSlot @s sl) c)
 
 -- | Run a contract when the given slot has been reached.
 when
-  :: forall s a.
+  :: forall s e a.
      (HasAwaitSlot s)
   => Slot
-  -> Contract s a
-  -> Contract s a
+  -> Contract s e a
+  -> Contract s e a
 when s c = awaitSlot @s s >> c
 
 -- | Run a contract until the given slot has been reached.
 --   @timeout = flip until@
 timeout
-  :: forall s a.
+  :: forall s e a.
      (HasAwaitSlot s)
   => Slot
-  -> Contract s a
-  -> Contract s (Maybe a)
+  -> Contract s e a
+  -> Contract s e (Maybe a)
 timeout = flip (until @s)
 
 -- | Wait until the first slot is reached, then run the contract until
 --   the second slot is reached.
 between
-  :: forall s a.
+  :: forall s e a.
      (HasAwaitSlot s)
   => Slot
   -> Slot
-  -> Contract s a
-  -> Contract s (Maybe a)
+  -> Contract s e a
+  -> Contract s e (Maybe a)
 between a b = timeout @s b . when @s a
 
 -- | Repeatedly run a contract until the slot is reached, then
 --   return the last result.
 collectUntil
-  :: forall s a b.
+  :: forall s e a b.
      (HasAwaitSlot s)
   => (a -> b -> b)
   -> b
-  -> Contract s a
+  -> Contract s e a
   -> Slot
-  -> Contract s b
+  -> Contract s e b
 collectUntil f b con s = foldMaybe f b (until @s con s)

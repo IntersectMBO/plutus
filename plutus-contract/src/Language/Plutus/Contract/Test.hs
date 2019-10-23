@@ -52,7 +52,7 @@ import           Test.Tasty.Providers                  (TestTree)
 import qualified Language.PlutusTx.Prelude             as P
 
 import           Language.Plutus.Contract.Record       (Record)
-import           Language.Plutus.Contract.Request      (Contract(..), ContractError)
+import           Language.Plutus.Contract.Request      (Contract(..))
 import           Language.Plutus.Contract.Resumable    (ResumableError)
 import qualified Language.Plutus.Contract.Resumable    as State
 import           Language.Plutus.Contract.Tx           (UnbalancedTx)
@@ -90,43 +90,43 @@ instance Applicative f => BoundedJoinSemiLattice (PredF f a) where
 instance Applicative f => BoundedMeetSemiLattice (PredF f a) where
     top = PredF $ const (pure top)
 
-type TracePredicate s a = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult s a)
+type TracePredicate s e a = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult s e a)
 
 hooks
-    :: forall s a.
+    :: forall s e a.
        ( Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        , AllUniqueLabels (Output s)
        )
     => Wallet
-    -> ContractTraceResult s a
+    -> ContractTraceResult s e a
     -> Handlers s
 hooks w rs =
     let (evts, con) = contractEventsWallet rs w
     in either (const mempty) snd (State.runResumable evts (unContract con))
 
-record 
-    :: forall s a.
+record
+    :: forall s e a.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        )
-    => Wallet 
-    -> ContractTraceResult s a
-    -> Either (ResumableError ContractError) (Record (Event s))
+    => Wallet
+    -> ContractTraceResult s e a
+    -> Either (ResumableError e) (Record (Event s))
 record w rs =
     let (evts, con) = contractEventsWallet rs w
     in fmap (fmap fst . fst) (State.runResumable evts (unContract con))
 
-not :: TracePredicate s a -> TracePredicate s a
+not :: TracePredicate s e a -> TracePredicate s e a
 not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
-    :: forall s a.
+    :: forall s e a.
        String
-    -> Contract s a
-    -> TracePredicate s a
-    -> ContractTrace s EmulatorAction a ()
+    -> Contract s e a
+    -> TracePredicate s e a
+    -> ContractTrace s e EmulatorAction a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
@@ -140,7 +140,7 @@ checkPredicate nm con predicate action =
                 HUnit.assertBool nm result
 
 endpointAvailable
-    :: forall (l :: Symbol) s a.
+    :: forall (l :: Symbol) s e a.
        ( HasType l Endpoints.ActiveEndpoints (Output s)
        , KnownSymbol l
        , AllUniqueLabels (Output s)
@@ -148,7 +148,7 @@ endpointAvailable
        , Forall (Output s) Semigroup
        )
     => Wallet
-    -> TracePredicate s a
+    -> TracePredicate s e a
 endpointAvailable w = PredF $ \(_, r) -> do
     if Endpoints.isActive @l @s (hooks w r)
     then pure True
@@ -157,11 +157,11 @@ endpointAvailable w = PredF $ \(_, r) -> do
         pure False
 
 interestingAddress
-    :: forall s a.
+    :: forall s e a.
        ( WatchAddress.HasWatchAddress s )
     => Wallet
     -> Address
-    -> TracePredicate s a
+    -> TracePredicate s e a
 interestingAddress w addr = PredF $ \(_, r) -> do
     let hks = WatchAddress.addresses (hooks w r)
     if addr `Set.member` hks
@@ -171,7 +171,7 @@ interestingAddress w addr = PredF $ \(_, r) -> do
         pure False
 
 tx
-    :: forall s a.
+    :: forall s e a.
        ( HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
@@ -179,7 +179,7 @@ tx
     => Wallet
     -> (UnbalancedTx -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 tx w flt nm = PredF $ \(_, r) -> do
     let hks = WriteTx.transactions (hooks w r)
     if any flt hks
@@ -188,12 +188,12 @@ tx w flt nm = PredF $ \(_, r) -> do
         tellSeq ["Unbalanced transactions;", unlines (fmap show hks), "No transaction with '" <> nm <> "'"]
         pure False
 
-walletState 
-    :: forall s a.
-       Wallet 
-    -> (EM.WalletState -> Bool) 
-    -> String 
-    -> TracePredicate s a
+walletState
+    :: forall s e a.
+       Wallet
+    -> (EM.WalletState -> Bool)
+    -> String
+    -> TracePredicate s e a
 walletState w flt nm = PredF $ \(_, r) -> do
     let ws = view (at w) $ EM._walletStates $  _ctrEmulatorState r
     case ws of
@@ -207,22 +207,22 @@ walletState w flt nm = PredF $ \(_, r) -> do
                 tellSeq ["Wallet state of " <> show w <> ":", show st, "Fails '" <> nm <> "'"]
                 pure False
 
-walletWatchingAddress 
-    :: forall s a.
+walletWatchingAddress
+    :: forall s e a.
        Wallet
     -> Address
-    -> TracePredicate s a
+    -> TracePredicate s e a
 walletWatchingAddress w addr =
     let desc = "watching address " <> show addr in
     walletState w (Map.member addr . AM.values . view EM.addressMap) desc
 
-assertEvents 
-    :: forall s a.
+assertEvents
+    :: forall s e a.
        (Forall (Input s) Show)
     => Wallet
     -> ([Event s] -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertEvents w pr nm = PredF $ \(_, r) -> do
     let es = fmap toList (view (ctsEvents . at w) $ _ctrTraceState r)
     case es of
@@ -237,7 +237,7 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
                 pure False
 
 waitingForSlot
-    :: forall s a.
+    :: forall s e a.
        ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
@@ -245,7 +245,7 @@ waitingForSlot
        )
     => Wallet
     -> Slot
-    -> TracePredicate s a
+    -> TracePredicate s e a
 waitingForSlot w sl = PredF $ \(_, r) ->
     case AwaitSlot.nextSlot (hooks w r) of
         Nothing -> do
@@ -259,11 +259,11 @@ waitingForSlot w sl = PredF $ \(_, r) ->
                 pure False
 
 emulatorLog
-    :: forall s a.
+    :: forall s e a.
        ()
     => ([EmulatorEvent] -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 emulatorLog f nm = PredF $ \(_, r) ->
     let lg = EM._emulatorLog $ _ctrEmulatorState r in
     if f lg
@@ -273,18 +273,18 @@ emulatorLog f nm = PredF $ \(_, r) ->
         pure False
 
 anyTx
-    :: forall s a.
+    :: forall s e a.
        ( HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
     => Wallet
-    -> TracePredicate s a
+    -> TracePredicate s e a
 anyTx w = tx w (const True) "anyTx"
 
-assertHooks 
-    :: forall s a.
+assertHooks
+    :: forall s e a.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
@@ -293,7 +293,7 @@ assertHooks
     => Wallet
     -> (Handlers s -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertHooks w p nm = PredF $ \(_, rs) ->
     let hks = hooks w rs in
     if p hks
@@ -302,17 +302,18 @@ assertHooks w p nm = PredF $ \(_, rs) ->
         tellSeq ["Handlers:", show hks, "Failed '" <> nm <> "'"]
         pure False
 
-assertRecord 
-    :: forall s a.
+assertRecord
+    :: forall s e a.
        ( Forall (Input s) Show
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        , AllUniqueLabels (Output s)
+       , Show e
        )
-    => Wallet 
+    => Wallet
     -> (Record (Event s) -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertRecord w p nm = PredF $ \(_, rs) ->
     case record w rs of
         Right r
@@ -324,75 +325,80 @@ assertRecord w p nm = PredF $ \(_, rs) ->
             tellSeq ["Record failed with", show err, "in '" <> nm <> "'"]
             pure False
 
-data Outcome a = 
+data Outcome e a =
     Done a
     -- ^ The contract finished without errors and produced a result
     | NotDone
     -- ^ The contract is waiting for more input.
-    | Error (ResumableError ContractError)
+    | Error (ResumableError e)
     -- ^ The contract failed with an error.
     deriving (Eq, Ord, Show)
 
 -- | A 'TracePredicate' checking that the wallet's contract instance finished
 --   without errors.
 assertDone
-    :: forall s a.
+    :: forall s e a.
     ( Forall (Input s) Show
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
     , Forall (Output s) Show
+    , Show e
     )
     => Wallet
     -> (a -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertDone w pr = assertOutcome w (\case { Done a -> pr a; _ -> False})
 
--- | A 'TracePredicate' checking that the wallet's contract instance is 
+-- | A 'TracePredicate' checking that the wallet's contract instance is
 --   waiting for input.
-assertNotDone 
-    :: forall s a.
+assertNotDone
+    :: forall s e a.
     ( Forall (Input s) Show
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
     , Forall (Output s) Show
+    , Show e
     )
     => Wallet
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertNotDone w = assertOutcome w (\case { NotDone -> True; _ -> False})
 
 -- | A 'TracePredicate' checking that the wallet's contract instance
 --   failed with an error.
 assertContractError
-    :: forall s a.
+    :: forall s e a.
     ( Forall (Input s) Show
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
     , Forall (Output s) Show
+    , Eq e
+    , Show e
     )
     => Wallet
-    -> ContractError
+    -> e
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertContractError w err =
     assertOutcome w (\case { Error (State.OtherError err') -> err' == err; _ -> False })
 
 assertOutcome
-    :: forall s a.
+    :: forall s e a.
        ( Forall (Input s) Show
        , AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        , Forall (Output s) Show
+       , Show e
        )
     => Wallet
-    -> (Outcome a -> Bool)
+    -> (Outcome e a -> Bool)
     -> String
-    -> TracePredicate s a
+    -> TracePredicate s e a
 assertOutcome w p nm = PredF $ \(_, rs) ->
     let (evts, con) = contractEventsWallet rs w
         result = State.runResumable evts (unContract con)
@@ -412,27 +418,27 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
             Right (Right closedRec)
                 | p (Done (snd closedRec)) -> pure True
                 | otherwise -> do
-                    tellSeq 
+                    tellSeq
                         [ "Closed record"
                         , show (fst closedRec)
                         , "failed with '" <> nm <> "'"]
                     pure False
 
-contractEventsWallet 
-    :: ContractTraceResult s a
+contractEventsWallet
+    :: ContractTraceResult s e a
     -> Wallet
-    -> ([Event s], Contract s a)
-contractEventsWallet rs w = 
+    -> ([Event s], Contract s e a)
+contractEventsWallet rs w =
     let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
         con  = rs ^. ctrTraceState . ctsContract
     in (evts, con)
 
 walletFundsChange
-    :: forall s a.
+    :: forall s e a.
        ()
     => Wallet
     -> Value
-    -> TracePredicate s a
+    -> TracePredicate s e a
 walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulatorState = st}) ->
         let initialValue = foldMap Ada.toValue (Map.fromList initialDist ^. at w)
             finalValue   = fromMaybe mempty (EM.fundsDistribution st ^. at w)

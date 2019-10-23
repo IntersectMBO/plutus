@@ -44,9 +44,9 @@ type Endpoint l a = l .== (a, ActiveEndpoints)
 
 -- | Expose an endpoint, return the data that was entered
 endpoint
-  :: forall l a s.
+  :: forall l a s e.
      ( HasEndpoint l a s )
-  => Contract s a
+  => Contract s e a
 endpoint = request @l @_ @_ @s s where
   s = ActiveEndpoints $ Set.singleton $ EndpointDescription $ symbolVal (Proxy @l)
 
