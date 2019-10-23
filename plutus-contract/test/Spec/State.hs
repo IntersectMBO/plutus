@@ -46,4 +46,12 @@ tests =
             res = run con [inp, inp]
         in HUnit.assertBool "checkpoint" (res == Right (Right (jsonLeaf "asd")))
 
+        , HUnit.testCase "run a parallel contract in which the right branch finished first" $
+        let con = S.checkpoint $ do
+                    (l, r) <- both ep ((ep >> ep >> ep) <|> (ep >> ep))
+                    _ <- ep
+                    pure (l <> r)
+            res = run con [inp, inp, inp, inp]
+        in HUnit.assertBool "checkpoint" (res == Right (Right (jsonLeaf "asdasd")))
+
         ]

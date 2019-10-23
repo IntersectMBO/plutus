@@ -284,7 +284,7 @@ runClosed con rc =
                 ClosedBin l r ->
                     case con of
                         CMap f con' -> fmap f (runClosed con' (ClosedBin l r))
-                        CAp l' r'   -> runClosed l' l <*> runClosed r' l
+                        CAp l' r'   -> runClosed l' l <*> runClosed r' r
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
                         o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
