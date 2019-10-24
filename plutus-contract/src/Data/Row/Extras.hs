@@ -9,7 +9,7 @@ module Data.Row.Extras(
     , MonoidRec(..)
     ) where
 
-import           Data.Aeson            (FromJSON, ToJSON, (.:))
+import           Data.Aeson            (FromJSON, ToJSON, (.:), (.=))
 import qualified Data.Aeson            as Aeson
 import qualified Data.Aeson.Types      as Aeson
 import           Data.Functor.Identity
@@ -28,7 +28,9 @@ instance (AllUniqueLabels s, Forall s FromJSON) => FromJSON (JsonVar s) where
     parseJSON vl = JsonVar <$> Variants.fromLabels @FromJSON @s @Aeson.Parser (\lbl -> Aeson.withObject "Var" (\obj -> do { tg <- obj .: "tag"; if tg == show lbl then (obj .: "value") >>= Aeson.parseJSON else fail "Wrong label" }) vl)
 
 instance Forall s ToJSON => ToJSON (JsonVar s) where
-    toJSON (JsonVar v) = Aeson.object [Variants.eraseWithLabels @ToJSON @s  @Text @Aeson.Value Aeson.toJSON v]
+    toJSON (JsonVar v) =
+      let (lbl, vl) = Variants.eraseWithLabels @ToJSON @s  @Text @Aeson.Value Aeson.toJSON v
+      in Aeson.object ["tag" .= lbl, "value" .= vl]
 
 newtype JsonRec s = JsonRec { unJsonRec :: Rec s }
 
