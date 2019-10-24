@@ -4080,7 +4080,7 @@ trace leading to a value, allowed steps permitting.
 \begin{code}
 erase-run : ∀ {A : ∅ ⊢Nf⋆ *} → ℕ → (M : ∅ ⊢Nf A)
   → Σ (0 ⊢) λ M' → (eraseNf M U—→* M') × Maybe (UValue M')
-erase-run n M with run 0  M
+erase-run n M with run n  M
 ... | M' ,, p ,, mv = eraseNf M' ,, erase—→* p ,, Maybe.map eraseVal mv
 \end{code}
 
