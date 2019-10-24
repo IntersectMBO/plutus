@@ -114,6 +114,7 @@ test-suite plutus-contract-test
     hs-source-dirs: test
     other-modules:
         Spec.Contract
+        Spec.Rows
         Spec.State
     build-depends:
         base >=4.9 && <5,
@@ -130,4 +131,5 @@ test-suite plutus-contract-test
         plutus-emulator -any,
         plutus-contract -any,
         plutus-wallet-api -any,
-        plutus-tx -any
+        plutus-tx -any,
+        aeson -any
