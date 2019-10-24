@@ -19,7 +19,9 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (Blockchain, PubKey, Tx, TxId, fromSymbol)
+import           Ledger                       (Address, PubKey, Tx, TxId, TxIn, TxOut,
+                                               TxOutOf (TxOutOf, txOutAddress, txOutType),
+                                               TxOutType (PayToPubKey, PayToScript), fromSymbol)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
@@ -76,7 +78,6 @@ data Evaluation =
         { wallets    :: [SimulatorWallet]
         , program    :: Program
         , sourceCode :: SourceCode
-        , blockchain :: Blockchain
         }
     deriving (Generic, ToJSON, FromJSON)
 

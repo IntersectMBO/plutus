@@ -145,9 +145,9 @@ vestingTest =
   where
     ten = Ada.adaValueOf 10
     simpleEvaluation =
-        Evaluation [mkSimulatorWallet w1 ten] [] (SourceCode vesting) []
+        Evaluation [mkSimulatorWallet w1 ten] [] (SourceCode vesting)
     simpleWaitEval =
-        Evaluation [mkSimulatorWallet w1 ten] [Wait 10] (SourceCode vesting) []
+        Evaluation [mkSimulatorWallet w1 ten] [Wait 10] (SourceCode vesting)
     vestFundsEval =
         Evaluation
             [mkSimulatorWallet w1 ten]
@@ -157,7 +157,6 @@ vestingTest =
                   [theVestingTranche, theVestingTranche, theVestingOwner]
             ]
             (SourceCode vesting)
-            []
     theVestingTranche =
         toJSONString $
         object
@@ -209,7 +208,6 @@ gameTest =
             , Action (Fn "guess") w1 [JSON.String "\"ade\""]
             ]
             (SourceCode game)
-            []
     gameEvalSuccess =
         Evaluation
             [mkSimulatorWallet w1 ten, mkSimulatorWallet w2 ten]
@@ -218,7 +216,6 @@ gameTest =
             , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
             ]
             (SourceCode game)
-            []
     payAll a b c =
         Evaluation
             [ mkSimulatorWallet a ten
@@ -230,7 +227,6 @@ gameTest =
             , Action (Fn "payToWallet_") c [nineAda, toJSONString a]
             ]
             (SourceCode game)
-            []
     nineAda = toJSONString $ Ada.adaValueOf 9
     twoAda = toJSONString $ Ada.adaValueOf 2
 
@@ -289,7 +285,6 @@ crowdfundingTest =
             , Wait 20
             ]
             (SourceCode crowdfunding)
-            []
     successfulCampaign =
         Evaluation
             [ mkSimulatorWallet w1 ten
@@ -321,7 +316,6 @@ crowdfundingTest =
             , Wait 10
             ]
             (SourceCode crowdfunding)
-            []
     theDeadline = toJSONString (object ["getSlot" .= mkI 10])
     theTarget = toJSONString (Ada.adaValueOf 10)
     theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])

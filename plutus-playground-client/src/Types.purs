@@ -176,7 +176,6 @@ toEvaluation sourceCode (Simulation { actions, wallets }) = do
         { wallets
         , program
         , sourceCode
-        , blockchain: []
         }
 
 ------------------------------------------------------------
