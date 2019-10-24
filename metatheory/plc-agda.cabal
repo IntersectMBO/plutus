@@ -150,3 +150,4 @@ test-suite test-plc-agda
   type:    exitcode-stdio-1.0
   main-is: Test.hs
   build-depends: base, process
+  build-tool-depends: plutus-exe:plc, plc-agda:plc-agda
