@@ -6,7 +6,6 @@ module Type.RenamingSubstitution where
 
 \begin{code}
 open import Type
-
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
