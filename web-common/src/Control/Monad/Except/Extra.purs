@@ -1,9 +1,9 @@
 module Control.Monad.Except.Extra where
 
-import Control.Applicative (class Applicative, pure)
+import Control.Applicative (class Applicative)
 import Control.Monad.Except (except)
-import Control.Monad.Except.Trans (ExceptT(..))
-import Data.Either (Either, note)
+import Control.Monad.Except.Trans (ExceptT)
+import Data.Either (note)
 import Data.Function ((<<<))
 import Data.Maybe (Maybe)
 

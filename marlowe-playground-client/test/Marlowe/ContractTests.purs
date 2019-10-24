@@ -12,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), Ada(..), ChoiceId(..), Contract(..), Input(..))
+import Marlowe.Semantics (AccountIdF(..), Ada(..), ChoiceIdF(..), ContractF(..), InputF(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
@@ -101,13 +101,13 @@ all =
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice (Lovelace (fromIntegral 450))
+        deposit = IDeposit (AccountId (wrap (fromIntegral 0)) (wrap alice)) alice (Lovelace (fromIntegral 450))
 
-        choice = ChoiceId "choice"
+        choice = ChoiceId (wrap "choice")
 
-        choice1 = IChoice (choice alice) (fromIntegral 0)
+        choice1 = IChoice (choice (wrap alice)) (fromIntegral 0)
 
-        choice2 = IChoice (choice bob) (fromIntegral 0)
+        choice2 = IChoice (choice (wrap bob)) (fromIntegral 0)
 
         (Tuple _ finalState) =
           runTests

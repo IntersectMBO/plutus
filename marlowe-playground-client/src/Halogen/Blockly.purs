@@ -25,7 +25,7 @@ import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Parser as Parser
 import Marlowe.Pretty (pretty)
-import Marlowe.Semantics (Contract(..))
+import Marlowe.Semantics (ContractF(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)

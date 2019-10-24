@@ -31,7 +31,7 @@ import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
+import Marlowe.Semantics (AccountId, AccountIdF(..), Ada(..), Bound(..), ChoiceId, ChoiceIdF(..), ChosenNum, Input, InputF(..), Party, PayeeF(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueId, ValueIdF(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
@@ -249,7 +249,7 @@ renderDeposit (AccountId accountNumber accountOwner) party money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " ADA into Account "
-  , b_ [ spanText (accountOwner <> " (" <> show accountNumber <> ")") ]
+  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
   , b_ [ spanText party ]
   ]
@@ -271,7 +271,7 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
             [ text "+"
             ]
         , spanText "Choice "
-        , b_ [ spanText choiceName ]
+        , b_ [ spanText (show choiceName) ]
         , spanText ": Choose value "
         , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
         ]
@@ -497,7 +497,7 @@ inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) c
             ]
         , text "Participant "
         , b_
-            [ text choiceOwner
+            [ text (show choiceOwner)
             ]
         , text " chooses the value "
         , b_
@@ -505,7 +505,7 @@ inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) c
             ]
         , text " for choice with id "
         , b_
-            [ text choiceName
+            [ text (show choiceName)
             ]
         ]
     ]
@@ -657,7 +657,7 @@ renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
     , td
         [ class_ $ ClassName "middle-column"
         ]
-        [ text accountOwner
+        [ text (show accountOwner)
         ]
     , td_
         [ text (show value)
@@ -696,12 +696,12 @@ renderChoice :: forall p. Tuple ChoiceId ChosenNum -> HTML p HAction
 renderChoice (Tuple (ChoiceId choiceName choiceOwner) value) =
   tr []
     [ td_
-        [ text choiceName
+        [ text (show choiceName)
         ]
     , td
         [ class_ $ ClassName "middle-column"
         ]
-        [ text choiceOwner
+        [ text (show choiceOwner)
         ]
     , td_
         [ text (show value)
@@ -773,7 +773,7 @@ renderBinding :: forall p. Tuple ValueId BigInteger -> HTML p HAction
 renderBinding (Tuple (ValueId valueId) value) =
   tr []
     [ td_
-        [ text valueId
+        [ text (show valueId)
         ]
     , td
         [ class_ $ ClassName "left-border-column"

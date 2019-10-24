@@ -2,20 +2,156 @@ module Marlowe.Parser where
 
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
+import Control.Monad.State as MonadState
 import Data.Array (fromFoldable, many)
 import Data.Array as Array
+import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
+import Data.Either (Either)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Eq (genericEq)
+import Data.Identity (Identity)
 import Data.List (List, some)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Semantics (AccountId(..), Action(..), Ada(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Input(..), Observation(..), Party, Payee(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), Value(..), ValueId(..))
-import Prelude ((*>), (<*), (<*>), bind, const, pure, (<$>), void, ($), (<<<), discard)
-import Text.Parsing.Parser (Parser, fail)
+import Data.Traversable (traverse)
+import Marlowe.Pretty (class Pretty, prettyFragment)
+import Marlowe.Semantics (AccountIdF(..), ActionF(..), Ada(..), Bound(..), CaseF(..), ChoiceIdF(..), ContractF(..), IdentityF(..), InputF(..), ObservationF(..), Party, PayeeF(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueF(..), ValueIdF(..))
+import Marlowe.Semantics as Semantics
+import Prelude (class Eq, class Show, bind, const, discard, flip, pure, show, void, ($), (*>), (<$>), (<*), (<*>), (<<<), (<>))
+import Text.Parsing.Parser (ParseState(..), Parser, ParserT, fail, runParser)
 import Text.Parsing.Parser.Basic (integral, parens)
 import Text.Parsing.Parser.Combinators (between, choice, sepBy)
+import Text.Parsing.Parser.Pos (Position)
 import Text.Parsing.Parser.String (char, string)
 import Text.Parsing.Parser.Token (alphaNum, space)
+import Text.PrettyPrint.Leijen as Leijen
+import Type.Proxy (Proxy(..))
+
+parse :: forall a. Parser String a -> String -> Either String a
+parse p = lmap show <<< flip runParser (parens p <|> p)
+
+data Term a
+  = Term a
+  | Hole String (Proxy a) Position Position
+
+derive instance genericTerm :: Generic (Term a) _
+
+instance eqTerm :: Eq a => Eq (Term a) where
+  eq a b = genericEq a b
+
+instance showTerm :: Show a => Show (Term a) where
+  show (Term a) = show a
+  show (Hole name _ _ _) = "?" <> name
+
+instance prettyTerm :: Pretty a => Pretty (Term a) where
+  prettyFragment (Term a) = prettyFragment a
+  prettyFragment (Hole name _ _ _) = Leijen.text $ "?" <> name
+
+hole :: forall a. Parser String (Term a)
+hole = do
+  (ParseState _ start _) <- MonadState.get
+  name <- fromCharArray <$> (char '?' *> many alphaNum)
+  (ParseState _ end _) <- MonadState.get
+  pure $ Hole name Proxy start end
+
+parseTerm :: forall a. Parser String a -> Parser String (Term a)
+parseTerm p = hole <|> (Term <$> p)
+
+-- Parsable versions of the Marlowe types
+type AccountId
+  = AccountIdF Term
+
+type ChoiceId
+  = ChoiceIdF Term
+
+type ValueId
+  = ValueIdF Term
+
+type Action
+  = ActionF Term
+
+type Payee
+  = PayeeF Term
+
+type Case
+  = CaseF Term
+
+type Value
+  = ValueF Term
+
+type Input
+  = InputF Term
+
+type Observation
+  = ObservationF Term
+
+type Contract
+  = ContractF Term
+
+termToValue :: forall a. Term a -> Maybe (IdentityF a)
+termToValue (Term a) = Just (Identity a)
+
+termToValue _ = Nothing
+
+class FromTerm f where
+  fromTerm :: f Term -> Maybe (f IdentityF)
+
+instance payeeFromTerm :: FromTerm PayeeF where
+  fromTerm (Account a) = Account <$> fromTerm a
+  fromTerm (Party b) = pure $ Party b
+
+instance actionFromTerm :: FromTerm ActionF where
+  fromTerm (Deposit a b c) = Deposit <$> fromTerm a <*> pure b <*> fromTerm c
+  fromTerm (Choice a b) = Choice <$> fromTerm a <*> pure b
+  fromTerm (Notify a) = Notify <$> fromTerm a
+
+instance caseFromTerm :: FromTerm CaseF where
+  fromTerm (Case a b) = Case <$> fromTerm a <*> fromTerm b
+
+instance accountIdFromTerm :: FromTerm AccountIdF where
+  fromTerm (AccountId (Term b) (Term c)) = pure $ AccountId (Identity b) (Identity c)
+  fromTerm _ = Nothing
+
+instance choiceIdFromTerm :: FromTerm ChoiceIdF where
+  fromTerm (ChoiceId (Term a) (Term b)) = pure $ ChoiceId (Identity a) (Identity b)
+  fromTerm _ = Nothing
+
+instance valueIdFromTerm :: FromTerm ValueIdF where
+  fromTerm (ValueId (Term a)) = pure $ ValueId (Identity a)
+  fromTerm _ = Nothing
+
+instance valueFromTerm :: FromTerm ValueF where
+  fromTerm (AvailableMoney accountIdF) = AvailableMoney <$> fromTerm accountIdF
+  fromTerm (Constant a) = Constant <$> termToValue a
+  fromTerm (NegValue a) = NegValue <$> fromTerm a
+  fromTerm (AddValue a b) = AddValue <$> fromTerm a <*> fromTerm b
+  fromTerm (SubValue a b) = SubValue <$> fromTerm a <*> fromTerm b
+  fromTerm (ChoiceValue a b) = ChoiceValue <$> fromTerm a <*> fromTerm b
+  fromTerm SlotIntervalStart = pure SlotIntervalStart
+  fromTerm SlotIntervalEnd = pure SlotIntervalEnd
+  fromTerm (UseValue a) = UseValue <$> fromTerm a
+
+instance observationFromTerm :: FromTerm ObservationF where
+  fromTerm (AndObs a b) = AndObs <$> fromTerm a <*> fromTerm b
+  fromTerm (OrObs a b) = OrObs <$> fromTerm a <*> fromTerm b
+  fromTerm (NotObs a) = NotObs <$> fromTerm a
+  fromTerm (ChoseSomething a) = ChoseSomething <$> fromTerm a
+  fromTerm (ValueGE a b) = ValueGE <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueGT a b) = ValueGT <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueLT a b) = ValueLT <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueLE a b) = ValueLE <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueEQ a b) = ValueEQ <$> fromTerm a <*> fromTerm b
+  fromTerm TrueObs = pure TrueObs
+  fromTerm FalseObs = pure FalseObs
+
+instance contractFromTerm :: FromTerm ContractF where
+  fromTerm Close = pure Semantics.Close
+  fromTerm (Pay a b c d) = Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
+  fromTerm (If a b c) = If <$> fromTerm a <*> fromTerm b <*> fromTerm c
+  fromTerm (When as b c) = When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
+  fromTerm (Let a b c) = Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
 
 -- All arguments are space separated so we add **> to reduce boilerplate
 maybeSpaces :: Parser String (Array Char)
@@ -62,11 +198,17 @@ bigInteger = do
     (Just v) -> pure v
     Nothing -> fail "not a valid BigInt"
 
+bigIntegerTerm :: Parser String (Term BigInteger)
+bigIntegerTerm = parseTerm bigInteger
+
 valueId :: Parser String ValueId
-valueId = ValueId <$> text
+valueId = ValueId <$> parseTerm text
 
 slot :: Parser String Slot
 slot = Slot <$> maybeParens bigInteger
+
+slotTerm :: Parser String (Term Slot)
+slotTerm = parseTerm slot
 
 timeout :: Parser String Timeout
 timeout = slot
@@ -77,9 +219,9 @@ accountId =
     void maybeSpaces
     void $ string "AccountId"
     void spaces
-    first <- maybeParens bigInteger
+    first <- parseTerm $ maybeParens bigInteger
     void spaces
-    second <- text
+    second <- parseTerm text
     void maybeSpaces
     pure $ AccountId first second
 
@@ -89,22 +231,21 @@ choiceId =
     void maybeSpaces
     void $ string "ChoiceId"
     void spaces
-    first <- text
+    first <- parseTerm text
     void spaces
-    second <- text
+    second <- parseTerm text
     void maybeSpaces
     pure $ ChoiceId first second
 
 atomValue :: Parser String Value
 atomValue =
-  pure SlotIntervalStart <* string "SlotIntervalStart"
-    <|> pure SlotIntervalEnd
-    <* string "SlotIntervalEnd"
+  (pure SlotIntervalStart <* string "SlotIntervalStart")
+    <|> (pure SlotIntervalEnd <* string "SlotIntervalEnd")
 
 recValue :: Parser String Value
 recValue =
   (AvailableMoney <$> (string "AvailableMoney" **> accountId))
-    <|> (Constant <$> (string "Constant" **> (maybeParens bigInteger)))
+    <|> (Constant <$> (string "Constant" **> parseTerm (maybeParens bigInteger)))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
@@ -119,9 +260,8 @@ value = atomValue <|> recValue
 
 atomObservation :: Parser String Observation
 atomObservation =
-  pure TrueObs <* string "TrueObs"
-    <|> pure FalseObs
-    <* string "FalseObs"
+  (pure TrueObs <* string "TrueObs")
+    <|> (pure FalseObs <* string "FalseObs")
 
 recObservation :: Parser String Observation
 recObservation =
@@ -184,7 +324,7 @@ case' = do
   void spaces
   second <- contract'
   void maybeSpaces
-  pure $ (Case first second)
+  pure $ Case first second
   where
   contract' = atomContract <|> fix \p -> parens recContract
 
@@ -212,12 +352,19 @@ recContract =
 
   value' = atomValue <|> fix (\p -> parens value)
 
-contract :: Parser String Contract
-contract = do
+contractTerm :: Parser String Contract
+contractTerm = do
   void maybeSpaces
   c <- (atomContract <|> recContract)
   void maybeSpaces
   pure c
+
+contract :: Parser String Semantics.Contract
+contract = do
+  c <- contractTerm
+  case fromTerm c of
+    Just contract' -> pure contract'
+    Nothing -> fail "Contract has holes"
 
 testString :: String
 testString =
@@ -339,13 +486,44 @@ testString =
                              (Party "bob")
                              (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close"""
 
-input :: Parser String Input
+-- These parsers are not used by the front end at this time and so they are `Parser String (Identity a)`
+-- rather than `Parser String (Term a)`
+input :: Parser String (InputF IdentityF)
 input =
-  (IDeposit <$> (string "IDeposit" **> accountId) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (IChoice <$> (string "IChoice" **> choiceId) <**> (maybeParens bigInteger))
+  (IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
     <|> ((const INotify) <$> (string "INotify"))
 
-inputList :: Parser String (List Input)
+accountIdValue :: ParserT String Identity (AccountIdF IdentityF)
+accountIdValue = do
+  accountId' <- accountId
+  case accountId' of
+    (AccountId (Term a) (Term b)) -> pure $ AccountId (Identity a) (Identity b)
+    _ -> fail "Found a hole when parsing an AccountIf"
+
+choiceIdValue :: ParserT String Identity (ChoiceIdF IdentityF)
+choiceIdValue = do
+  choiceId' <- choiceId
+  case choiceId' of
+    (ChoiceId (Term a) (Term b)) -> pure $ ChoiceId (Identity a) (Identity b)
+    _ -> fail "Found a hole when parsing an ChoiceId"
+
+valueIdValue :: ParserT String Identity (ValueIdF IdentityF)
+valueIdValue = do
+  valueId' <- valueId
+  case valueId' of
+    (ValueId (Term a)) -> pure $ ValueId (Identity a)
+    _ -> fail "Found a hole when parsing an ValueId"
+
+payeeValue :: ParserT String Identity (PayeeF IdentityF)
+payeeValue = do
+  payee' <- payee
+  case payee' of
+    (Account (AccountId (Term a) (Term b))) -> pure $ Account (AccountId (Identity a) (Identity b))
+    (Party p) -> pure $ Party p
+    _ -> fail "Found a hole when parsing an Payee"
+
+inputList :: Parser String (List (InputF IdentityF))
 inputList = haskellList input
 
 slotInterval :: Parser String SlotInterval
@@ -382,10 +560,10 @@ testTransactionInputParsing = "[TransactionInput {txInterval = SlotInterval (-5)
 
 transactionWarning :: Parser String TransactionWarning
 transactionWarning =
-  (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountId <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountId) <**> (parens payee) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueId) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
+  (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
+    <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
 
 transactionWarningList :: Parser String (List TransactionWarning)
 transactionWarningList = haskellList transactionWarning
