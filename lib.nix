@@ -12,7 +12,7 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      }) { inherit system config; };
+      }) { inherit system config; nixpkgsJsonOverride = ./nixpkgs.json; };
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
@@ -54,7 +54,9 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-09-12T00:02:45Z"; };
 
-  unfreePredicate = pkg: (builtins.parseDrvName pkg.name).name == "kindlegen";
+  unfreePredicate = pkg: 
+      if pkg ? name then (builtins.parseDrvName pkg.name).name == "kindlegen" 
+      else if pkg ? pname then pkg.pname == "kindlegen" else false;
 
   packageOverrides = pkgs: {
       python36 = pkgs.python36.override {
