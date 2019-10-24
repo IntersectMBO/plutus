@@ -9,7 +9,7 @@
 module Spec.Contract(tests) where
 
 import           Control.Monad                         (void)
-import           Control.Monad.Except                  (throwError)
+import           Control.Monad.Error.Lens
 import           Test.Tasty
 
 import           Language.Plutus.Contract              as Con
@@ -27,7 +27,7 @@ import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 
 tests :: TestTree
 tests =
-    let cp = checkPredicate @Schema in
+    let cp = checkPredicate @Schema @ContractError in
     testGroup "contracts"
         [ cp "awaitSlot"
             (void $ awaitSlot 10)
@@ -92,7 +92,7 @@ tests =
         , cp "select either"
             (let l = endpoint @"1" >> endpoint @"2"
                  r = endpoint @"3" >> endpoint @"4"
-                 s :: Contract _ () _
+                 s :: Contract _ ContractError _
                  s = selectEither l r
             in void s)
             (assertDone w1 (const True) "left branch should finish")
@@ -109,8 +109,8 @@ tests =
             (callEndpoint @"1" @Int w1 1)
 
         , cp "throw an error"
-            (void $ throwError ("error"::String))
-            (assertContractError w1 "error" "failed to throw error")
+            (void $ throwing _ContractError $ OtherError "error")
+            (assertContractError w1 (OtherError "error") "failed to throw error")
             (pure ())
         ]
 

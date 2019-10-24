@@ -79,8 +79,7 @@ import           Ledger.Slot                                     (Slot)
 import           Ledger.Tx                                       (Address, Tx, hashTx)
 
 import           Wallet.API                                      (WalletAPIError)
-import           Wallet.Emulator                                 (AssertionError, EmulatorAction, EmulatorState,
-                                                                  MonadEmulator, Wallet)
+import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
 import qualified Wallet.Emulator                                 as EM
 
 type InitialDistribution = [(Wallet, Ada)]
@@ -146,9 +145,10 @@ addEventAll e = traverse_ (flip addEvent e) allWallets
 -- | Run a trace in the emulator and return the
 --   final events for each wallet.
 execTrace
-    :: forall s e a.
-       Contract s e a
-    -> ContractTrace s e EmulatorAction a ()
+    :: forall s e a
+    . EM.AsAssertionError e
+    => Contract s e a
+    -> ContractTrace s e (EmulatorAction e) a ()
     -> Map Wallet [Event s]
 execTrace con action =
     let (e, _) = runTrace con action
@@ -158,18 +158,20 @@ execTrace con action =
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
 runTrace
-    :: Contract s e a
-    -> ContractTrace s e EmulatorAction a ()
-    -> (Either AssertionError ((), ContractTraceState s e a), EmulatorState)
+    :: EM.AsAssertionError e
+    => Contract s e a
+    -> ContractTrace s e (EmulatorAction e) a ()
+    -> (Either e ((), ContractTraceState s e a), EmulatorState)
 runTrace con action =
     withInitialDistribution defaultDist (runStateT action (initState allWallets con))
 
 -- | Run an 'EmulatorAction' on a blockchain with the given initial distribution
 --   of funds to wallets.
 withInitialDistribution
-    :: [(Wallet, Ada)]
-    -> EmulatorAction a
-    -> (Either AssertionError a, EmulatorState)
+    :: EM.AsAssertionError e
+    => [(Wallet, Ada)]
+    -> EmulatorAction e a
+    -> (Either e a, EmulatorState)
 withInitialDistribution dist action =
     let s = EM.emulatorStateInitialDist (Map.fromList (first EM.walletPubKey . second Ada.toValue <$> dist))
 
@@ -180,7 +182,7 @@ withInitialDistribution dist action =
 -- | Run a wallet action in the context of the given wallet, notify the wallets,
 --   and return the list of new transactions
 runWallet
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator e m )
     => Wallet
     -> EM.MockWallet a
     -> m ([Tx], Either WalletAPIError a)
@@ -192,7 +194,7 @@ runWallet w t = do
 -- | Call the endpoint on the contract
 callEndpoint
     :: forall l ep s e m a.
-       ( MonadEmulator m
+       ( MonadEmulator e m
        , KnownSymbol l
        , HasType l ep (Input s)
        , AllUniqueLabels (Input s))
@@ -205,7 +207,7 @@ callEndpoint w = addEvent w . Endpoint.event @l @_ @s
 --   of the wallet
 submitUnbalancedTx
     :: forall s e m a.
-      ( MonadEmulator m
+      ( MonadEmulator e m
       , HasType TxSymbol WriteTxResponse (Input s)
       , AllUniqueLabels (Input s)
       )
@@ -220,7 +222,7 @@ submitUnbalancedTx wllt tx = do
 -- | Add the 'LedgerUpdate' event for the given transaction to
 --   the traces of all wallets.
 addTxEvent
-    :: ( MonadEmulator m
+    :: ( MonadEmulator e m
        , HasWatchAddress s
        )
     => Tx
@@ -234,7 +236,7 @@ addTxEvent tx = do
 --   would like to submit to the blockchain.
 unbalancedTransactions
     :: forall s e m a.
-       ( MonadEmulator m
+       ( Monad m
        , HasType TxSymbol WriteTx.PendingTransactions (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
@@ -247,7 +249,7 @@ unbalancedTransactions w = WriteTx.transactions . either (const mempty) id <$> g
 -- | Get the address that the contract has requested the unspent outputs for.
 utxoQueryAddresses
     :: forall s e m a.
-       ( MonadEmulator m
+       ( MonadEmulator e m
        , HasUtxoAt s
        )
     => Wallet
@@ -257,7 +259,7 @@ utxoQueryAddresses =
 
 -- | Get the addresses that are of interest to the wallet's contract instance
 interestingAddresses
-    :: ( MonadEmulator m
+    :: ( MonadEmulator e m
        , HasWatchAddress s
        )
     => Wallet
@@ -269,7 +271,7 @@ interestingAddresses =
 --   contract of the current slot
 notifySlot
     :: forall s e m a.
-       ( MonadEmulator m
+       ( MonadEmulator e m
        , HasType SlotSymbol Slot (Input s)
        , AllUniqueLabels (Input s)
        )
@@ -281,7 +283,7 @@ notifySlot w = do
 
 -- | Add a number of empty blocks to the blockchain.
 addBlocks
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator e m )
     => Integer
     -> ContractTrace s e m a ()
 addBlocks i =
@@ -291,7 +293,7 @@ addBlocks i =
 --   and inform all wallets about new transactions and respond to
 --   UTXO queries
 handleBlockchainEvents
-    :: ( MonadEmulator m
+    :: ( MonadEmulator e m
        , HasUtxoAt s
        , HasWatchAddress s
        , HasWriteTx s
@@ -306,7 +308,7 @@ handleBlockchainEvents wllt = do
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
 handleUtxoQueries
-    :: ( MonadEmulator m
+    :: ( MonadEmulator e m
        , HasUtxoAt s
        )
     => Wallet
@@ -319,7 +321,7 @@ handleUtxoQueries wllt = do
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses
-    :: ( MonadEmulator m
+    :: ( MonadEmulator e m
        , HasWatchAddress s
        )
     => Wallet

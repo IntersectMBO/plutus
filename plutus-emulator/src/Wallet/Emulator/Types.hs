@@ -7,9 +7,11 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -23,6 +25,7 @@ module Wallet.Emulator.Types(
     assert,
     assertIsValidated,
     AssertionError(..),
+    AsAssertionError(..),
     Event(..),
     Notification(..),
     EmulatorEvent(..),
@@ -84,6 +87,7 @@ module Wallet.Emulator.Types(
     ) where
 
 import           Control.Lens              hiding (index)
+import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Operational as Op hiding (view)
 import           Control.Monad.State
@@ -365,8 +369,13 @@ data Assertion
   | OwnFundsEqual Wallet Value -- ^ Assert that the funds belonging to a wallet's public-key address are equal to a value.
 
 -- | An error emitted when an 'Assertion' fails.
-newtype AssertionError = AssertionError T.Text
-    deriving Show
+newtype AssertionError = GenericAssertion T.Text
+    deriving (Show, Eq)
+makeClassyPrisms ''AssertionError
+
+-- | This lets people use 'T.Text' as their error type.
+instance AsAssertionError T.Text where
+    _AssertionError = prism' (T.pack . show) (const Nothing)
 
 -- | The type of events in the emulator. @n@ is the type (usually a monad implementing 'WalletAPI') in
 -- which wallet actions take place.
@@ -412,7 +421,7 @@ emLog = view emulatorLog
 chainOldestFirst :: Lens' EmulatorState Blockchain
 chainOldestFirst = chainNewestFirst . reversed
 
-type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
+type MonadEmulator e m = (MonadError e m, AsAssertionError e, MonadState EmulatorState m)
 
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState {
@@ -424,31 +433,31 @@ emptyEmulatorState = EmulatorState {
     }
 
 -- | Issue an 'Assertion'.
-assert :: (MonadEmulator m) => Assertion -> m ()
+assert :: (MonadEmulator e m) => Assertion -> m ()
 assert (IsValidated txn)            = isValidated txn
 assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
 
 -- | Issue an assertion that the funds for a given wallet have the given value.
-ownFundsEqual :: (MonadEmulator m) => Wallet -> Value -> m ()
+ownFundsEqual :: (MonadEmulator e m) => Wallet -> Value -> m ()
 ownFundsEqual wallet value = do
     es <- get
     ws <- case Map.lookup wallet $ _walletStates es of
-        Nothing -> throwError $ AssertionError "Wallet not found"
+        Nothing -> throwing _AssertionError $ GenericAssertion "Wallet not found"
         Just ws -> pure ws
     let total = foldMap txOutValue $ ws ^. ownFunds
     if value == total
     then pure ()
-    else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
+    else throwing _AssertionError . GenericAssertion $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
     where
     tshow :: Show a => a -> T.Text
     tshow = T.pack . show
 
 -- | Issue an assertion that the given transaction has been validated.
-isValidated :: (MonadEmulator m) => Tx -> m ()
+isValidated :: (MonadEmulator e m) => Tx -> m ()
 isValidated txn = do
     emState <- get
     if notElem txn (join $ _chainNewestFirst emState)
-        then throwError $ AssertionError $ "Txn not validated: " <> T.pack (show txn)
+        then throwing _AssertionError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 
 -- | Initialise the emulator state with a blockchain.
@@ -503,7 +512,7 @@ liftMockWallet wallet act = do
     pure (txns, out)
 
 -- | Evaluate an 'Event' in a 'MonadEmulator' monad.
-evalEmulated :: (MonadEmulator m) => Event MockWallet a -> m a
+evalEmulated :: (MonadEmulator e m) => Event MockWallet a -> m a
 evalEmulated = \case
     WalletAction wallet action -> do
         (txns, result) <- liftMockWallet wallet action
@@ -530,7 +539,7 @@ evalEmulated = \case
             }
         pure block
     Assertion a -> assert a
-    Failure message -> throwError $ AssertionError message
+    Failure message -> throwing _AssertionError $ GenericAssertion message
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
@@ -581,7 +590,7 @@ mkEvent t result =
         Nothing  -> TxnValidate (hashTx t)
         Just err -> TxnValidationFail (hashTx t) err
 
-processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a
+processEmulated :: (MonadEmulator e m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
 
 -- | A synonym for 'runSuccessfulWalletAction'. Runs a wallet action and asserts that it was a success.
@@ -650,12 +659,12 @@ assertIsValidated = assertion . IsValidated
 failure :: T.Text -> Trace m a
 failure = Op.singleton . Failure
 
-newtype EmulatorAction a = EmulatorAction { unEmulatorAction :: ExceptT AssertionError (State EmulatorState) a }
-    deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError AssertionError)
+newtype EmulatorAction e a = EmulatorAction { unEmulatorAction :: ExceptT e (State EmulatorState) a }
+    deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError e)
 
 -- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final
 --   state and either the result or an 'AssertionError'.
-runEmulator :: EmulatorState -> EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runEmulator :: forall e a . EmulatorState -> EmulatorAction e a -> (Either e a, EmulatorState)
 runEmulator e a = runState (runExceptT $ unEmulatorAction a) e
 
 -- | Run an 'Trace' on a blockchain.
@@ -694,7 +703,7 @@ allWallets = Wallet <$> [1..10]
 
 -- | Run an 'EmulatorAction' on a blockchain using a default initial
 --   distribution of 100 Ada for each of the wallets 1-10.
-runTraceChainDefault :: EmulatorAction a -> (Either AssertionError a, EmulatorState)
+runTraceChainDefault :: AsAssertionError e => EmulatorAction e a -> (Either e a, EmulatorState)
 runTraceChainDefault action =
     let
         dist = [(x, 100) | x <- allWallets]

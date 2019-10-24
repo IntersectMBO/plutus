@@ -122,11 +122,12 @@ not :: TracePredicate s e a -> TracePredicate s e a
 not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
-    :: forall s e a.
-       String
+    :: forall s e a
+    . (EM.AsAssertionError e, Show e)
+    => String
     -> Contract s e a
     -> TracePredicate s e a
-    -> ContractTrace s e EmulatorAction a ()
+    -> ContractTrace s e (EmulatorAction e) a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->

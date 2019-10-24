@@ -31,6 +31,7 @@ import qualified Language.PlutusTx.Applicative      as PlutusTx
 import qualified Language.PlutusTx.Functor          as PlutusTx
 import           Prelude                            as Haskell
 import           Wallet.API                         (WalletAPIError)
+import           Wallet.Emulator.Types              (AsAssertionError (..), AssertionError)
 
 -- | @Contract s a@ is a contract with schema 's', producing a value of
 --  type 'a' or a 'ContractError'. See note [Contract Schema].
@@ -47,13 +48,17 @@ instance PlutusTx.Applicative (Contract s e) where
 
 data ContractError =
     WalletError WalletAPIError
+    | EmulatorAssertionError AssertionError
     | OtherError T.Text
-    deriving Show
+    deriving (Show, Eq)
 makeClassyPrisms ''ContractError
 
 -- | This lets people use 'T.Text' as their error type.
 instance AsContractError T.Text where
     _ContractError = prism' (T.pack . show) (const Nothing)
+
+instance AsAssertionError ContractError where
+    _AssertionError = _EmulatorAssertionError
 
 -- | Constraints on the contract schema, ensuring that the requests produced
 --   by the contracts are 'Monoid's (so that we can produce a record with

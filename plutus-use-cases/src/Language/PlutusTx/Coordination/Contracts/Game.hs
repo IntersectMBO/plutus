@@ -16,6 +16,7 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
     game,
+    GameSchema,
     GuessParams(..),
     LockParams(..),
     -- * Scripts
@@ -126,7 +127,7 @@ game :: Contract GameSchema e ()
 game = guess <|> lock
 
 lockTrace
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator e m )
     => ContractTrace GameSchema e m () ()
 lockTrace =
     let w1 = Trace.Wallet 1
@@ -136,7 +137,7 @@ lockTrace =
         >> Trace.handleBlockchainEvents w1
 
 guessTrace
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator e m )
     => ContractTrace GameSchema e m () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
@@ -145,7 +146,7 @@ guessTrace =
         >> Trace.handleBlockchainEvents w2
 
 guessWrongTrace
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator e m )
     => ContractTrace GameSchema e m () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
