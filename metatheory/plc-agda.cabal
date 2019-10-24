@@ -116,6 +116,25 @@ executable plc-agda
         MAlonzo.RTE
         Raw
         Scoped
+        Opts
+        MAlonzo.Code.Algorithmic
+        MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Check
+        MAlonzo.Code.Scoped.CK
+        MAlonzo.Code.Scoped.Extrication
+        MAlonzo.Code.Type.BetaNBE
+        MAlonzo.Code.Type.BetaNBE.Completeness
+        MAlonzo.Code.Type.BetaNBE.Soundness
+        MAlonzo.Code.Type.BetaNBE.Stability
+        MAlonzo.Code.Type.BetaNBE.RenamingSubstitution
+        MAlonzo.Code.Type.BetaNormal
+        MAlonzo.Code.Type.BetaNormal.Equality
+        MAlonzo.Code.Type.Equality
+        MAlonzo.Code.Type.RenamingSubstitution
+        MAlonzo.Code.Algorithmic.Reduction
+        MAlonzo.Code.Algorithmic.RenamingSubstitution
+        MAlonzo.Code.Algorithmic.Equality
+
   build-depends:       base ^>=4.12.0.0,
                        bytestring -any,
                        text -any,
@@ -126,3 +145,8 @@ executable plc-agda
                        language-plutus-core -any
   default-language:    Haskell2010
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+
+test-suite test-plc-agda
+  type:    exitcode-stdio-1.0
+  main-is: Test.hs
+  build-depends: base, process
