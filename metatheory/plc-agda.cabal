@@ -149,5 +149,13 @@ executable plc-agda
 test-suite test-plc-agda
   type:    exitcode-stdio-1.0
   main-is: Test.hs
-  build-depends: base, process
+  build-depends: base,
+                 process,
+                 bytestring -any,
+                 text -any,
+                 ieee754 -any,
+                 cryptonite -any,
+                 memory -any,
+                 optparse-applicative -any,
+                 language-plutus-core -any
   build-tool-depends: plutus-exe:plc, plc-agda:plc-agda
