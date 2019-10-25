@@ -1,19 +1,59 @@
+{-# LANGUAGE PackageImports #-}
+
 module Main where
 
-import           System.Exit        (exitFailure)
+import           System.Environment
+import           System.Exit
 import           System.Process
 
 import qualified MAlonzo.Code.Main  as M
 
-import           System.Environment
+import           Control.Exception
 
-tests = ["succInteger","unitval","true","false","churchZero","churchSucc","overapplication","factorial","fibonacci","NatRoundTrip","ListSum","IfIntegers","ApplyAdd1","ApplyAdd2"]
+succeedingTests = ["succInteger"
+        ,"unitval"
+        ,"true"
+        ,"false"
+        ,"churchZero"
+        ,"churchSucc"
+        ,"overapplication"
+        ,"factorial"
+        ,"fibonacci"
+        ,"NatRoundTrip"
+        ,"ListSum"
+        ,"IfIntegers"
+        ,"ApplyAdd1"
+        ,"ApplyAdd2"
+        ]
 
-runTest :: String -> IO [()]
+failingTests = ["DivideByZero"]
+
+-- this is likely to raise either an exitFailure or exitSuccess exception
+runTest :: String -> IO ()
 runTest test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
+  putStrLn $ "test: " ++ test
   withArgs ["evaluate","--file","tmp"]  M.main
 
 
-main = sequence (map runTest tests)
+runSucceedingTests :: [String] -> IO ()
+runSucceedingTests [] = return ()
+runSucceedingTests (test:tests) = catch
+  (runTest test)
+  (\ e -> case e of
+      ExitFailure _ -> exitFailure
+      ExitSuccess   -> runSucceedingTests tests)
+
+runFailingTests :: [String] -> IO ()
+runFailingTests [] = return ()
+runFailingTests (test:tests) = catch
+  (runTest test)
+  (\ e -> case e of
+      ExitFailure _ -> runFailingTests tests
+      ExitSuccess   -> exitSuccess)
+
+main = do
+  runSucceedingTests succeedingTests
+  runFailingTests failingTests
+
