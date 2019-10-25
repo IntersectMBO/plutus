@@ -45,6 +45,7 @@ library
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Generators
+        Wallet.Emulator.NodeClient
         Wallet.Rollup
         Wallet.Rollup.Types
         Wallet.Rollup.Render
@@ -59,6 +60,7 @@ library
         base16-bytestring -any,
         bytestring -any,
         cborg -any,
+        conduit -any,
         containers -any,
         unordered-containers -any,
         cryptonite >=0.25,

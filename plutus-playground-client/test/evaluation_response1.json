@@ -2,120 +2,174 @@
   "Right": {
     "emulatorLog": [
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 21
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 20
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 19
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 18
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 17
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 16
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 15
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 14
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 13
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 12
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 11
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 10
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 9
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 8
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 7
-        }
-      },
-      {
-        "tag": "SlotAdd",
-        "contents": {
-          "getSlot": 6
-        }
-      },
-      {
-        "tag": "TxnValidationFail",
-        "contents": [
-          {
-            "getTxId": "6ac451202eb2fe1d316f658a1eb05058f942361a1f22d0e658310677cae10144"
-          },
-          {
-            "tag": "ScriptFailure",
-            "contents": {
-              "tag": "EvaluationError",
-              "contents": []
-            }
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 21
           }
-        ]
+        }
       },
       {
-        "tag": "TxnSubmit",
+        "tag": "ChainEvent",
         "contents": {
-          "getTxId": "6ac451202eb2fe1d316f658a1eb05058f942361a1f22d0e658310677cae10144"
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 20
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 19
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 18
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 17
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 16
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 15
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 14
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 13
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 12
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 11
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 10
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 9
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 8
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 7
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 6
+          }
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "TxnValidationFail",
+          "contents": [
+            {
+              "getTxId": "6ac451202eb2fe1d316f658a1eb05058f942361a1f22d0e658310677cae10144"
+            },
+            {
+              "tag": "ScriptFailure",
+              "contents": {
+                "tag": "EvaluationError",
+                "contents": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "tag": "ChainEvent",
+        "contents": {
+          "tag": "TxnSubmit",
+          "contents": {
+            "getTxId": "6ac451202eb2fe1d316f658a1eb05058f942361a1f22d0e658310677cae10144"
+          }
         }
       },
       {
@@ -137,39 +191,57 @@
         ]
       },
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 5
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 5
+          }
         }
       },
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 4
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 4
+          }
         }
       },
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 3
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 3
+          }
         }
       },
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 2
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 2
+          }
         }
       },
       {
-        "tag": "TxnValidate",
+        "tag": "ChainEvent",
         "contents": {
-          "getTxId": "e6a98f8835ff56df7b87f70f32c29ee933af94e5e1eb665fcf8217c3c2ce0351"
+          "tag": "TxnValidate",
+          "contents": {
+            "getTxId": "e6a98f8835ff56df7b87f70f32c29ee933af94e5e1eb665fcf8217c3c2ce0351"
+          }
         }
       },
       {
-        "tag": "TxnSubmit",
+        "tag": "ChainEvent",
         "contents": {
-          "getTxId": "e6a98f8835ff56df7b87f70f32c29ee933af94e5e1eb665fcf8217c3c2ce0351"
+          "tag": "TxnSubmit",
+          "contents": {
+            "getTxId": "e6a98f8835ff56df7b87f70f32c29ee933af94e5e1eb665fcf8217c3c2ce0351"
+          }
         }
       },
       {
@@ -191,15 +263,21 @@
         ]
       },
       {
-        "tag": "SlotAdd",
+        "tag": "ChainEvent",
         "contents": {
-          "getSlot": 1
+          "tag": "SlotAdd",
+          "contents": {
+            "getSlot": 1
+          }
         }
       },
       {
-        "tag": "TxnValidate",
+        "tag": "ChainEvent",
         "contents": {
-          "getTxId": "347050ef7f57c94ee47223ddb560d15a97f814db1a5dabd05230e2bbf7ebb90d"
+          "tag": "TxnValidate",
+          "contents": {
+            "getTxId": "347050ef7f57c94ee47223ddb560d15a97f814db1a5dabd05230e2bbf7ebb90d"
+          }
         }
       }
     ],

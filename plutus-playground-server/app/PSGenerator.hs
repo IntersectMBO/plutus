@@ -62,6 +62,7 @@ import           Servant.PureScript                         (HasBridge, Settings
                                                              writeAPIModuleWithSettings, _generateSubscriberAPI)
 import           System.FilePath                            ((</>))
 import           Wallet.API                                 (WalletAPIError)
+import qualified Wallet.Emulator.NodeClient                 as NC
 import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
                                                              SequenceId)
@@ -236,6 +237,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EmulatorEvent)
+    , (genericShow <*> mkSumType) (Proxy @NC.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @PlaygroundError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (genericShow <*> mkSumType) (Proxy @ScriptError)
