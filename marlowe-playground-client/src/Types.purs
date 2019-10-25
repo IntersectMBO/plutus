@@ -18,7 +18,7 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
@@ -26,6 +26,7 @@ import Gist (Gist)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
+import Marlowe.Parser (MarloweHole)
 import Marlowe.Semantics (AccountId, Action, ActionF(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
@@ -183,6 +184,7 @@ type MarloweState
     , moneyInContract :: Ada
     , contract :: Maybe Contract
     , editorErrors :: Array Annotation
+    , holes :: Array MarloweHole
     , payments :: Array Payment
     }
 
@@ -210,6 +212,9 @@ _contract = prop (SProxy :: SProxy "contract")
 _editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
 _editorErrors = prop (SProxy :: SProxy "editorErrors")
 
+_holes :: forall s a. Lens' { holes :: a | s } a
+_holes = prop (SProxy :: SProxy "holes")
+
 --- Language.Haskell.Interpreter ---
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
@@ -236,6 +241,7 @@ emptyMarloweState sn =
   , moneyInContract: zero
   , contract: Nothing
   , editorErrors: []
+  , holes: []
   , payments: []
   }
 
@@ -261,7 +267,7 @@ actionToActionInput state (Deposit accountId party value) =
 
     env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
   in
-    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+    Tuple (DepositInputId accountId (unwrap party)) (DepositInput accountId (unwrap party) (evalValue env state value))
 
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 

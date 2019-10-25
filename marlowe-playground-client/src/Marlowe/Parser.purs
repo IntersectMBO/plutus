@@ -3,7 +3,7 @@ module Marlowe.Parser where
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
 import Control.Monad.State as MonadState
-import Data.Array (fromFoldable, many)
+import Data.Array (foldMap, foldl, fromFoldable, many, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
@@ -11,15 +11,19 @@ import Data.BigInteger as BigInteger
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Identity (Identity)
 import Data.List (List, some)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (fromCharArray)
 import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Marlowe.Pretty (class Pretty, prettyFragment)
-import Marlowe.Semantics (AccountIdF(..), ActionF(..), Ada(..), Bound(..), CaseF(..), ChoiceIdF(..), ContractF(..), IdentityF(..), InputF(..), ObservationF(..), Party, PayeeF(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueF(..), ValueIdF(..))
+import Marlowe.Semantics (AccountIdF(..), ActionF(..), Ada(..), BoundF(..), CaseF(..), ChoiceIdF(..), ContractF(..), IdentityF(..), InputF(..), ObservationF(..), Party, PayeeF(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueF(..), ValueIdF(..))
 import Marlowe.Semantics as Semantics
-import Prelude (class Eq, class Show, bind, const, discard, flip, pure, show, void, ($), (*>), (<$>), (<*), (<*>), (<<<), (<>))
+import Prelude (class Eq, class Monoid, class Semigroup, class Show, append, bind, const, discard, flip, mempty, pure, show, void, ($), (*>), (<$>), (<*), (<*>), (<<<), (<>))
 import Text.Parsing.Parser (ParseState(..), Parser, ParserT, fail, runParser)
 import Text.Parsing.Parser.Basic (integral, parens)
 import Text.Parsing.Parser.Combinators (between, choice, sepBy)
@@ -31,6 +35,26 @@ import Type.Proxy (Proxy(..))
 
 parse :: forall a. Parser String a -> String -> Either String a
 parse p = lmap show <<< flip runParser (parens p <|> p)
+
+data MarloweType
+  = StringType
+  | BigIntegerType
+  | SlotType
+  | AccountIdType
+  | ChoiceIdType
+  | ValueIdType
+  | ActionType
+  | PayeeType
+  | CaseType
+  | ValueType
+  | InputType
+  | ObservationType
+  | ContractType
+
+derive instance genericMarloweType :: Generic MarloweType _
+
+instance showMarloweType :: Show MarloweType where
+  show = genericShow
 
 data Term a
   = Term a
@@ -49,17 +73,58 @@ instance prettyTerm :: Pretty a => Pretty (Term a) where
   prettyFragment (Term a) = prettyFragment a
   prettyFragment (Hole name _ _ _) = Leijen.text $ "?" <> name
 
-hole :: forall a. Parser String (Term a)
-hole = do
-  (ParseState _ start _) <- MonadState.get
-  name <- fromCharArray <$> (char '?' *> many alphaNum)
-  (ParseState _ end _) <- MonadState.get
-  pure $ Hole name Proxy start end
+-- a concrete type for holes only
+data MarloweHole = MarloweHole String MarloweType Position Position
 
-parseTerm :: forall a. Parser String a -> Parser String (Term a)
-parseTerm p = hole <|> (Term <$> p)
+class IsMarloweType a where
+  marloweType :: Proxy a -> MarloweType
+
+instance stringIsMarloweType :: IsMarloweType String where
+  marloweType _ = StringType
+
+instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
+  marloweType _ = BigIntegerType
+
+-- a Monoid for collecting Holes
+data Holes = Holes (Map String (Array MarloweHole))
+
+instance semigroupHoles :: Semigroup Holes where
+  append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
+
+instance monoidHoles :: Monoid Holes where
+  mempty = Holes mempty
+
+{- | Find holes with the same name
+  We collect all the `Holes` using `getHoles` and then we fold through the result
+  to find occurances that have the same name as well as changing the values to be
+  single MarloweHoles rather than an array of MarloweHoles
+-}   
+validateHoles :: Holes -> Tuple (Array MarloweHole) (Map String MarloweHole)
+validateHoles (Holes m) = foldl f (Tuple [] mempty) arr
+  where
+    arr :: Array (Tuple String (Array MarloweHole))
+    arr = Map.toUnfoldable m
+    f :: Tuple (Array MarloweHole) (Map String MarloweHole) -> Tuple String (Array MarloweHole) -> Tuple (Array MarloweHole) (Map String MarloweHole)
+    f (Tuple duplicates uniquesMap) (Tuple k [v]) = Tuple duplicates (Map.insert k v uniquesMap)
+    f (Tuple duplicates uniquesMap) (Tuple k vs) = Tuple (duplicates <> vs) uniquesMap
+
+insertHole :: forall a. IsMarloweType a => Holes -> Term a -> Holes
+insertHole m (Term _) = m
+insertHole (Holes m) (Hole name proxy start end) = Holes $ Map.alter f name m
+  where
+    marloweHole = MarloweHole name (marloweType proxy) start end
+    f (Just v) = Just (marloweHole : v)
+    f Nothing = Just [marloweHole]
+
+class HasMarloweHoles a where
+  getHoles :: Holes -> a -> Holes
+
+instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
+  getHoles m as = foldMap (getHoles m) as
 
 -- Parsable versions of the Marlowe types
+type Bound = BoundF Term
+
 type AccountId
   = AccountIdF Term
 
@@ -98,29 +163,78 @@ termToValue _ = Nothing
 class FromTerm f where
   fromTerm :: f Term -> Maybe (f IdentityF)
 
+instance boundHasMarloweHoles :: HasMarloweHoles (BoundF Term) where
+  getHoles m (Bound a b) = insertHole m a <> insertHole m b
+
+instance boundFromTerm :: FromTerm BoundF where
+  fromTerm (Bound a b) = Bound <$> termToValue a <*> termToValue b
+
+instance slotMarloweType :: IsMarloweType Slot where
+  marloweType _ = SlotType
+
 instance payeeFromTerm :: FromTerm PayeeF where
   fromTerm (Account a) = Account <$> fromTerm a
-  fromTerm (Party b) = pure $ Party b
+  fromTerm (Party (Term a)) = pure $ Party $ Identity a
+  fromTerm _ = Nothing
+
+instance payeeMarloweType :: IsMarloweType (PayeeF f) where
+  marloweType _ = PayeeType
+
+instance payeeHasMarloweHoles :: HasMarloweHoles (PayeeF Term) where
+  getHoles m (Account a) = getHoles m a
+  getHoles m (Party a) = insertHole m a
 
 instance actionFromTerm :: FromTerm ActionF where
-  fromTerm (Deposit a b c) = Deposit <$> fromTerm a <*> pure b <*> fromTerm c
-  fromTerm (Choice a b) = Choice <$> fromTerm a <*> pure b
+  fromTerm (Deposit a b c) = Deposit <$> fromTerm a <*> termToValue b <*> fromTerm c
+  fromTerm (Choice a b) = Choice <$> fromTerm a <*> (traverse fromTerm b)
   fromTerm (Notify a) = Notify <$> fromTerm a
+
+instance actionMarloweType :: IsMarloweType (ActionF f) where
+  marloweType _ = ActionType
+
+instance actionHasMarloweHoles :: HasMarloweHoles (ActionF Term) where
+  getHoles m (Deposit a b c) = getHoles m a <> insertHole m b <> getHoles m c
+  getHoles m (Choice a b) = getHoles m a <> getHoles m b
+  getHoles m (Notify a) = getHoles m a
 
 instance caseFromTerm :: FromTerm CaseF where
   fromTerm (Case a b) = Case <$> fromTerm a <*> fromTerm b
+
+instance caseMarloweType :: IsMarloweType (CaseF f) where
+  marloweType _ = CaseType
+
+instance caseHasMarloweHoles :: HasMarloweHoles (CaseF Term) where
+  getHoles m (Case a b) = getHoles m a <> getHoles m b
 
 instance accountIdFromTerm :: FromTerm AccountIdF where
   fromTerm (AccountId (Term b) (Term c)) = pure $ AccountId (Identity b) (Identity c)
   fromTerm _ = Nothing
 
+instance accountIdIsMarloweType :: IsMarloweType (AccountIdF Term) where
+  marloweType _ = AccountIdType
+
+instance accountIdHasMarloweHoles :: HasMarloweHoles (AccountIdF Term) where
+  getHoles m (AccountId a b) = insertHole m a <> insertHole m b
+
 instance choiceIdFromTerm :: FromTerm ChoiceIdF where
   fromTerm (ChoiceId (Term a) (Term b)) = pure $ ChoiceId (Identity a) (Identity b)
   fromTerm _ = Nothing
 
+instance choiceIdIsMarloweType :: IsMarloweType (ChoiceIdF Term) where
+  marloweType _ = ChoiceIdType
+
+instance choiceIdHasMarloweHoles :: HasMarloweHoles (ChoiceIdF Term) where
+  getHoles m (ChoiceId a b) = insertHole m a <> insertHole m b
+
 instance valueIdFromTerm :: FromTerm ValueIdF where
   fromTerm (ValueId (Term a)) = pure $ ValueId (Identity a)
   fromTerm _ = Nothing
+
+instance valueIdIsMarloweType :: IsMarloweType (ValueIdF Term) where
+  marloweType _ = ValueIdType
+
+instance valueIdHasMarloweHoles :: HasMarloweHoles (ValueIdF Term) where
+  getHoles m (ValueId a) = insertHole m a
 
 instance valueFromTerm :: FromTerm ValueF where
   fromTerm (AvailableMoney accountIdF) = AvailableMoney <$> fromTerm accountIdF
@@ -132,6 +246,20 @@ instance valueFromTerm :: FromTerm ValueF where
   fromTerm SlotIntervalStart = pure SlotIntervalStart
   fromTerm SlotIntervalEnd = pure SlotIntervalEnd
   fromTerm (UseValue a) = UseValue <$> fromTerm a
+
+instance valueIsMarloweType :: IsMarloweType (ValueF Term) where
+  marloweType _ = ValueType
+
+instance valueHasMarloweHoles :: HasMarloweHoles (ValueF Term) where
+  getHoles m (AvailableMoney a) = getHoles m a
+  getHoles m (Constant a) = insertHole m a
+  getHoles m (NegValue a) = getHoles m a
+  getHoles m (AddValue a b) = getHoles m a <> getHoles m b
+  getHoles m (SubValue a b) = getHoles m a <> getHoles m b
+  getHoles m (ChoiceValue a b) = getHoles m a <> getHoles m b
+  getHoles m SlotIntervalStart = mempty
+  getHoles m SlotIntervalEnd = mempty
+  getHoles m (UseValue a) = getHoles m a
 
 instance observationFromTerm :: FromTerm ObservationF where
   fromTerm (AndObs a b) = AndObs <$> fromTerm a <*> fromTerm b
@@ -146,12 +274,48 @@ instance observationFromTerm :: FromTerm ObservationF where
   fromTerm TrueObs = pure TrueObs
   fromTerm FalseObs = pure FalseObs
 
+instance observationIsMarloweType :: IsMarloweType (ObservationF Term) where
+  marloweType _ = ObservationType
+
+instance observationHasMarloweHoles :: HasMarloweHoles (ObservationF Term) where
+  getHoles m (AndObs a b) = getHoles m a <> getHoles m b
+  getHoles m (OrObs a b) = getHoles m a <> getHoles m b
+  getHoles m (NotObs a) = getHoles m a
+  getHoles m (ChoseSomething a) = getHoles m a
+  getHoles m (ValueGE a b) = getHoles m a <> getHoles m b
+  getHoles m (ValueGT a b) = getHoles m a <> getHoles m b
+  getHoles m (ValueLT a b) = getHoles m a <> getHoles m b
+  getHoles m (ValueLE a b) = getHoles m a <> getHoles m b
+  getHoles m (ValueEQ a b) = getHoles m a <> getHoles m b
+  getHoles m TrueObs = mempty
+  getHoles m FalseObs = mempty
+
 instance contractFromTerm :: FromTerm ContractF where
   fromTerm Close = pure Semantics.Close
   fromTerm (Pay a b c d) = Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
   fromTerm (If a b c) = If <$> fromTerm a <*> fromTerm b <*> fromTerm c
-  fromTerm (When as b c) = When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
+  fromTerm (When as b c) = When <$> (traverse fromTerm as) <*> termToValue b <*> fromTerm c
   fromTerm (Let a b c) = Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
+
+instance contractIsMarloweType :: IsMarloweType (ContractF Term) where
+  marloweType _ = ContractType
+
+instance contractHasMarloweHoles :: HasMarloweHoles (ContractF Term) where
+  getHoles m Close = mempty
+  getHoles m (Pay a b c d) = getHoles m a <> getHoles m b <> getHoles m c <> getHoles m d
+  getHoles m (If a b c) = getHoles m a <> getHoles m b <> getHoles m c
+  getHoles m (When a b c) = getHoles m a <> insertHole m b <> getHoles m c
+  getHoles m (Let a b c) = getHoles m a <> getHoles m b <> getHoles m c
+
+hole :: forall a. Parser String (Term a)
+hole = do
+  (ParseState _ start _) <- MonadState.get
+  name <- fromCharArray <$> (char '?' *> many alphaNum)
+  (ParseState _ end _) <- MonadState.get
+  pure $ Hole name Proxy start end
+
+parseTerm :: forall a. Parser String a -> Parser String (Term a)
+parseTerm p = hole <|> (Term <$> p)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
 maybeSpaces :: Parser String (Array Char)
@@ -245,7 +409,7 @@ atomValue =
 recValue :: Parser String Value
 recValue =
   (AvailableMoney <$> (string "AvailableMoney" **> accountId))
-    <|> (Constant <$> (string "Constant" **> parseTerm (maybeParens bigInteger)))
+    <|> (Constant <$> (string "Constant" **> bigIntegerTerm))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
@@ -285,7 +449,7 @@ observation = atomObservation <|> recObservation
 payee :: Parser String Payee
 payee =
   (Account <$> (string "Account" **> accountId))
-    <|> (Party <$> (string "Party" **> text))
+    <|> (Party <$> (string "Party" **> parseTerm text))
 
 pubkey :: Parser String PubKey
 pubkey = text
@@ -299,15 +463,15 @@ bound =
     void maybeSpaces
     void $ string "Bound"
     void spaces
-    first <- maybeParens bigInteger
+    first <- parseTerm $ maybeParens bigInteger
     void spaces
-    second <- maybeParens bigInteger
+    second <- parseTerm $ maybeParens bigInteger
     void maybeSpaces
     pure (Bound first second)
 
 action :: Parser String Action
 action =
-  (Deposit <$> (string "Deposit" **> accountId) <**> party <**> value')
+  (Deposit <$> (string "Deposit" **> accountId) <**> parseTerm party <**> value')
     <|> (Choice <$> (string "Choice" **> choiceId) <**> array bound)
     <|> (Notify <$> (string "Notify" **> observation'))
   where
@@ -342,7 +506,7 @@ recContract =
       <**> contract'
   )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
-    <|> (When <$> (string "When" **> (array (maybeParens case'))) <**> timeout <**> contract')
+    <|> (When <$> (string "When" **> (array (maybeParens case'))) <**> parseTerm timeout <**> contract')
     <|> (Let <$> (string "Let" **> valueId) <**> value' <**> contract')
     <|> (fail "not a valid Contract")
   where
@@ -520,7 +684,7 @@ payeeValue = do
   payee' <- payee
   case payee' of
     (Account (AccountId (Term a) (Term b))) -> pure $ Account (AccountId (Identity a) (Identity b))
-    (Party p) -> pure $ Party p
+    (Party (Term p)) -> pure $ Party (Identity p)
     _ -> fail "Found a hole when parsing an Payee"
 
 inputList :: Parser String (List (InputF IdentityF))

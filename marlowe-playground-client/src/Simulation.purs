@@ -5,7 +5,7 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
-import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, card_, col6, col_, empty, listGroupItem_, listGroup_, row_)
+import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, card_, col3_, col6, col_, empty, listGroupItem_, listGroup_, row_)
 import Control.Alternative (map, (<|>))
 import Data.Array (catMaybes)
 import Data.Array as Array
@@ -30,14 +30,14 @@ import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), b_, br_, 
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
 import LocalStorage as LocalStorage
-import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId, AccountIdF(..), Ada(..), Bound(..), ChoiceId, ChoiceIdF(..), ChosenNum, Input, InputF(..), Party, PayeeF(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueId, ValueIdF(..), _accounts, _boundValues, _choices, inBounds)
+import Marlowe.Parser (MarloweHole(..), transactionInputList, transactionWarningList)
+import Marlowe.Semantics (AccountId, AccountIdF(..), Ada(..), BoundF(..), Bound, ChoiceId, ChoiceIdF(..), ChosenNum, Input, InputF(..), Party, PayeeF(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueId, ValueIdF(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -80,8 +80,12 @@ simulationPane state =
               [ onDragOver $ Just <<< MarloweHandleDragEvent
               , onDrop $ Just <<< MarloweHandleDropEvent
               ]
-              [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage)
-              ]
+              -- TODO: I am being taken off this project temporarily so I'm hiding this for now
+              [ row_ [ div [ class_ $ ClassName "col-12" ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ] ] ]
+              -- [ row_ [ div [ class_ $ ClassName "col-9" ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ]
+                    --  , holesPane (view (_marloweState <<< _Head <<< _holes) $ state)
+                    --  ]
+              -- ]
           , br_
           , errorList
           , analysisPane state
@@ -113,6 +117,12 @@ initEditor editor =
         Editor.setTheme "ace/theme/monokai" editor
         session <- Editor.getSession editor
         Session.setMode "ace/mode/haskell" session
+
+holesPane :: forall p. Array MarloweHole -> HTML p HAction
+holesPane holes = col3_ [ card_ [ cardBody_ (map displayHole holes)]]
+
+displayHole :: forall p. MarloweHole -> HTML p HAction
+displayHole (MarloweHole name marloweType _ _) = div [] [ text $ "Hole ?" <> name <> " of type " <> show marloweType ]
 
 demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =

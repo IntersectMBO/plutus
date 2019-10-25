@@ -1,6 +1,7 @@
 module MonadApp where
 
 import Prelude
+
 import API (RunResult)
 import Ace (Annotation, Editor)
 import Ace.EditSession as Session
@@ -23,6 +24,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..), fst)
+import Debug.Trace (trace)
 import Editor as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -37,7 +39,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, Source
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Parser (contract)
+import Marlowe.Parser (MarloweHole(..), contract, contractTerm, fromTerm, getHoles, validateHoles)
 import Marlowe.Semantics (ContractF(..), PubKey, SlotInterval(..), TransactionInputF(..), TransactionInput, TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
@@ -45,7 +47,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorSlot, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
 
@@ -217,11 +219,21 @@ withMarloweEditor ::
 withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = case runParser text contract of
-  Right pcon -> set _editorErrors [] <<< set _contract (Just pcon) $ state
+updateContractInStateP text state = case runParser text contractTerm of
+  Right pcon -> 
+    let (Tuple duplicates holes) = validateHoles $ getHoles mempty pcon
+        mContract = fromTerm pcon
+    in case mContract of
+        Just contract -> do
+          set _editorErrors [] <<< set _contract (Just contract) $ state
+        Nothing -> do
+          let holes' = fromFoldable $ Map.values holes
+              errors = map holeToAnnotation holes'
+          (set _editorErrors errors <<< set _holes holes') state
   Left error -> set _editorErrors [ errorToAnnotation error ] state
   where
   errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
+  holeToAnnotation (MarloweHole name marloweType (Position { column, line }) end) = { column: column, row: (line - 1), text: "Found hole ?" <> name, "type": "warning"}
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =

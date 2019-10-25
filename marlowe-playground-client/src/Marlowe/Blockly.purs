@@ -1,6 +1,7 @@
 module Marlowe.Blockly where
 
 import Prelude
+
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
 import Blockly.Types (Block, BlocklyState, Workspace)
@@ -27,7 +28,7 @@ import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Parser (Term(..))
 import Marlowe.Parser as Parser
-import Marlowe.Semantics (AccountIdF(..), ActionF(..), Bound(..), Case, CaseF(..), ChoiceIdF(..), Contract, ContractF(..), IdentityF, ObservationF(..), PayeeF(..), ValueF(..), ValueIdF(..))
+import Marlowe.Semantics (AccountIdF(..), ActionF(..), BoundF(..), Bound, Case, CaseF(..), ChoiceIdF(..), Contract, ContractF(..), IdentityF, ObservationF(..), PayeeF(..), ValueF(..), ValueIdF(..))
 import Record (merge)
 import Text.Parsing.Parser (Parser, runParser)
 import Text.Parsing.Parser.Basic (parens)
@@ -820,13 +821,13 @@ caseDefinition g block = do
 casesDefinition :: Generator -> Block -> Either String (Array (CaseF Term))
 casesDefinition g block = traverse (caseDefinition g) (getAllBlocks block)
 
-boundDefinition :: Generator -> Block -> Either String Bound
+boundDefinition :: Generator -> Block -> Either String (BoundF Term)
 boundDefinition g block = do
   from <- parse Parser.bigInteger =<< getFieldValue block "from"
   to <- parse Parser.bigInteger =<< getFieldValue block "to"
-  pure (Bound from to)
+  pure (Bound (Term from) (Term to))
 
-boundsDefinition :: Generator -> Block -> Either String (Array Bound)
+boundsDefinition :: Generator -> Block -> Either String (Array (BoundF Term))
 boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (ActionF Term) where
@@ -837,7 +838,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (ActionF Term
       accountId = AccountId accountNumber accountOwner
     party <- getFieldValue block "party"
     ammount <- parse Parser.value =<< statementToCode g block "ammount"
-    pure (Deposit accountId party ammount)
+    pure (Deposit accountId (Term party) ammount)
   blockDefinition ChoiceActionType g block = do
     choiceName <- Term <$> getFieldValue block "choice_name"
     choiceOwner <- Term <$> getFieldValue block "choice_owner"
@@ -862,7 +863,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (PayeeF Term) w
     pure (Account accountId)
   blockDefinition PartyPayeeType g block = do
     party <- getFieldValue block "party"
-    pure (Party party)
+    pure (Party (Term party))
 
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (ContractF Term) where
   blockDefinition CloseContractType _ _ = pure Close
@@ -889,7 +890,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Contract
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
       Either.Left _ -> pure []
-    timeout <- parse Parser.timeout =<< getFieldValue block "timeout"
+    timeout <- parse (Parser.parseTerm Parser.timeout) =<< getFieldValue block "timeout"
     contract <- parse Parser.contractTerm =<< statementToCode g block "contract"
     pure (When cases timeout contract)
   blockDefinition LetContractType g block = do
@@ -1034,7 +1035,7 @@ instance toBlocklyPayee :: ToBlockly (PayeeF IdentityF) where
   toBlockly newBlock workspace input (Party party) = do
     block <- newBlock workspace (show PartyPayeeType)
     connectToOutput block input
-    setField block "party" party
+    setField block "party" (unwrap party)
 
 nextBound :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array Bound -> ST r Unit
 nextBound newBlock workspace fromConnection bounds = do
@@ -1049,7 +1050,7 @@ nextBound newBlock workspace fromConnection bounds = do
       nextFromConnection <- nextConnection block
       nextBound newBlock workspace nextFromConnection tail
 
-instance toBlocklyBounds :: ToBlockly (Array Bound) where
+instance toBlocklyBounds :: ToBlockly (Array (BoundF IdentityF)) where
   toBlockly newBlock workspace input bounds = do
     case uncons bounds of
       Nothing -> pure unit
@@ -1067,7 +1068,7 @@ instance toBlocklyAction :: ToBlockly (ActionF IdentityF) where
     connectToPrevious block input
     setField block "account_number" (show accountNumber)
     setField block "account_owner" (unwrap accountOwner)
-    setField block "party" party
+    setField block "party" (unwrap party)
     inputToBlockly newBlock workspace block "ammount" value
   toBlockly newBlock workspace input (Choice (ChoiceId choiceName choiceOwner) bounds) = do
     block <- newBlock workspace (show ChoiceActionType)

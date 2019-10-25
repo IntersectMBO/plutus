@@ -270,33 +270,37 @@ ivFrom (SlotInterval from _) = from
 ivTo :: SlotInterval -> Slot
 ivTo (SlotInterval _ to) = to
 
-data Bound
-  = Bound BigInteger BigInteger
+data BoundF f
+  = Bound (f BigInteger) (f BigInteger)
 
-derive instance genericBound :: Generic Bound _
+type Bound = BoundF IdentityF
 
-derive instance eqBound :: Eq Bound
+derive instance genericBound :: Generic (BoundF f) _
 
-derive instance orBound :: Ord Bound
+instance eqBound :: Eq (f BigInteger) => Eq (BoundF f) where
+  eq v = genericEq v
 
-instance showBound :: Show Bound where
-  show = genericShow
+instance ordBound :: Ord (f BigInteger) => Ord (BoundF f) where
+  compare = genericCompare
 
-instance prettyBound :: Pretty Bound where
+instance showBound :: Show (f BigInteger) => Show (BoundF f) where
+  show v = genericShow v
+
+instance prettyBound :: Show (f BigInteger) => Pretty (BoundF f) where
   prettyFragment a = text $ show a
 
 inBounds :: ChosenNum -> Array Bound -> Boolean
-inBounds num = any (\(Bound l u) -> num >= l && num <= u)
+inBounds num = any (\(Bound l u) -> num >= (unwrap l) && num <= (unwrap u))
 
 boundFrom :: Bound -> BigInteger
-boundFrom (Bound from _) = from
+boundFrom (Bound from _) = (unwrap from)
 
 boundTo :: Bound -> BigInteger
-boundTo (Bound _ to) = to
+boundTo (Bound _ to) = (unwrap to)
 
 data ActionF f
-  = Deposit (AccountIdF f) Party (ValueF f)
-  | Choice (ChoiceIdF f) (Array Bound)
+  = Deposit (AccountIdF f) (f Party) (ValueF f)
+  | Choice (ChoiceIdF f) (Array (BoundF f))
   | Notify (ObservationF f)
 
 type Action
@@ -319,21 +323,23 @@ instance prettyActionF :: (Show (f String), Show (f BigInteger)) => Pretty (Acti
 
 data PayeeF f
   = Account (AccountIdF f)
-  | Party Party
+  | Party (f Party)
 
 type Payee
   = PayeeF IdentityF
 
 derive instance genericPayeeF :: Generic (PayeeF f) _
 
-derive instance eqPayeeF :: (Eq (f String), Eq (f BigInteger)) => Eq (PayeeF f)
+instance eqPayeeF :: (Eq (f String), Eq (f BigInteger)) => Eq (PayeeF f) where
+  eq v = genericEq v
 
-derive instance ordPayeeF :: (Ord (f String), Ord (f BigInteger)) => Ord (PayeeF f)
+instance ordPayeeF :: (Ord (f String), Ord (f BigInteger)) => Ord (PayeeF f) where
+  compare v = genericCompare v
 
 instance showPayeeF :: (Show (f String), Show (f BigInteger)) => Show (PayeeF f) where
   show v = genericShow v
 
-instance prettyPayeeF :: (Show (f String), Show (f BigInteger)) => Pretty (PayeeF f) where
+instance prettyPayeeF :: (Pretty (f String), Show (f String), Show (f BigInteger)) => Pretty (PayeeF f) where
   prettyFragment a = genericPretty a
 
 data CaseF f
@@ -344,24 +350,24 @@ type Case
 
 derive instance genericCaseF :: Generic (CaseF f) _
 
-instance eqCaseF :: (Eq (f String), Eq (f BigInteger)) => Eq (CaseF f) where
+instance eqCaseF :: (Eq (f Slot), Eq (f String), Eq (f BigInteger)) => Eq (CaseF f) where
   eq v = genericEq v
 
-instance ordCaseF :: (Ord (f String), Ord (f BigInteger)) => Ord (CaseF f) where
+instance ordCaseF :: (Ord (f Slot), Ord (f String), Ord (f BigInteger)) => Ord (CaseF f) where
   compare v = genericCompare v
 
-instance showCaseF :: (Show (f String), Show (f BigInteger)) => Show (CaseF f) where
+instance showCaseF :: (Show (f Slot), Show (f String), Show (f BigInteger)) => Show (CaseF f) where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
 
 -- FIXME: pretty printing is a disaster and slooooowwwww
-instance prettyCaseF :: (Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (CaseF f) where
+instance prettyCaseF :: (Pretty (f Slot), Pretty (f String), Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (CaseF f) where
   prettyFragment (Case action contract) = appendWithSoftbreak (text "Case " <> prettyFragment action <> text " ") (prettyFragment contract)
 
 data ContractF f
   = Close
   | Pay (AccountIdF f) (PayeeF f) (ValueF f) (ContractF f)
   | If (ObservationF f) (ContractF f) (ContractF f)
-  | When (Array (CaseF f)) Timeout (ContractF f)
+  | When (Array (CaseF f)) (f Timeout) (ContractF f)
   | Let (ValueIdF f) (ValueF f) (ContractF f)
 
 type Contract
@@ -369,16 +375,16 @@ type Contract
 
 derive instance genericContract :: Generic (ContractF f) _
 
-instance eqContract :: (Eq (f String), Eq (f BigInteger)) => Eq (ContractF f) where
+instance eqContract :: (Eq (f Slot), Eq (f String), Eq (f BigInteger)) => Eq (ContractF f) where
   eq v = genericEq v
 
-instance ordContract :: (Ord (f String), Ord (f BigInteger)) => Ord (ContractF f) where
+instance ordContract :: (Ord (f Slot), Ord (f String), Ord (f BigInteger)) => Ord (ContractF f) where
   compare v = genericCompare v
 
-instance showContract :: (Show (f String), Show (f BigInteger)) => Show (ContractF f) where
+instance showContract :: (Show (f Slot), Show (f String), Show (f BigInteger)) => Show (ContractF f) where
   show v = genericShow v
 
-instance prettyContract :: (Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (ContractF f) where
+instance prettyContract :: (Pretty (f Slot), Pretty (f String), Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (ContractF f) where
   prettyFragment a = genericPretty a
 
 newtype State
@@ -605,7 +611,7 @@ addMoneyToAccount accId money accounts =
 -}
 giveMoney :: Payee -> Money -> Map AccountId Money -> Tuple ReduceEffect (Map AccountId Money)
 giveMoney payee money accounts = case payee of
-  Party party -> Tuple (ReduceWithPayment (Payment party money)) accounts
+  Party party -> Tuple (ReduceWithPayment (Payment (unwrap party) money)) accounts
   Account accId ->
     let
       newAccs = addMoneyToAccount accId money accounts
@@ -689,10 +695,10 @@ reduceContractStep env state contract = case contract of
 
       endSlot = view (_slotInterval <<< to ivTo) env
     in
-      if endSlot < timeout then
+      if endSlot < (unwrap timeout) then
         NotReduced
       else
-        if timeout <= startSlot then
+        if (unwrap timeout) <= startSlot then
           Reduced ReduceNoWarning ReduceNoPayment state nextContract
         else
           AmbiguousSlotIntervalReductionError
@@ -783,7 +789,7 @@ applyCases env state input cases = case input, cases of
 
       newState = over _accounts (addMoneyToAccount accId1 money) state
     in
-      if accId1 == accId2 && party1 == party2 && unwrap money == amount then
+      if accId1 == accId2 && party1 == (unwrap party2) && unwrap money == amount then
         Applied warning newState cont
       else
         applyCases env state input rest
