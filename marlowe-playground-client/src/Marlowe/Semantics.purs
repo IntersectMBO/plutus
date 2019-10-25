@@ -3,8 +3,11 @@ module Marlowe.Semantics where
 import Prelude
 import Data.Array (foldl)
 import Data.BigInteger (BigInteger)
+import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, any)
 import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Eq (genericEq)
+import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Integral (class Integral)
 import Data.Lens (Lens', over, set, to, view)
@@ -16,11 +19,34 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Num (class Num)
+import Data.Ord (class Ord1)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Marlowe.Pretty (class Pretty, genericPretty, prettyFragment)
 import Text.PrettyPrint.Leijen (appendWithSoftbreak, text)
+
+-- We have our own Identity data type because we want a different `Show` instance
+newtype IdentityF a
+  = Identity a
+
+derive instance newtypeIdentityF :: Newtype (IdentityF a) _
+
+derive newtype instance eqIdentityF :: Eq a => Eq (IdentityF a)
+
+derive newtype instance ordIdentityF :: Ord a => Ord (IdentityF a)
+
+instance eq1IdentityF :: Eq1 IdentityF where
+  eq1 v = eq v
+
+instance ord1IdentityF :: Ord1 IdentityF where
+  compare1 v = compare v
+
+instance showIdentityF :: Show a => Show (IdentityF a) where
+  show (Identity a) = show a
+
+instance prettyIdentityF :: Pretty a => Pretty (IdentityF a) where
+  prettyFragment (Identity a) = prettyFragment a
 
 type PubKey
   = String
@@ -96,105 +122,127 @@ derive newtype instance realRingAda :: Real Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
-data AccountId
-  = AccountId BigInteger PubKey
+data AccountIdF f
+  = AccountId (f BigInteger) (f PubKey)
 
-derive instance genericAccountId :: Generic AccountId _
+type AccountId
+  = AccountIdF IdentityF
 
-derive instance eqAccountId :: Eq AccountId
+derive instance genericAccountIdF :: Generic (AccountIdF f) _
 
-derive instance ordAccountId :: Ord AccountId
+instance eqAccountId :: (Eq (f BigInteger), Eq (f PubKey)) => Eq (AccountIdF f) where
+  eq v = genericEq v
 
-instance showAccountId :: Show AccountId where
+instance ordAccountId :: (Ord (f BigInteger), Ord (f PubKey)) => Ord (AccountIdF f) where
+  compare v = genericCompare v
+
+instance showAccountId :: (Show (f BigInteger), Show (f PubKey)) => Show (AccountIdF f) where
   show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
 
-instance prettyAccountId :: Pretty AccountId where
+instance prettyAccountId :: (Show (f BigInteger), Show (f PubKey)) => Pretty (AccountIdF f) where
   prettyFragment a = text (show a)
 
 accountOwner :: AccountId -> PubKey
-accountOwner (AccountId _ owner) = owner
+accountOwner (AccountId _ owner) = unwrap owner
 
-data ChoiceId
-  = ChoiceId String PubKey
+data ChoiceIdF f
+  = ChoiceId (f String) (f PubKey)
 
-derive instance genericChoiceId :: Generic ChoiceId _
+type ChoiceId
+  = ChoiceIdF IdentityF
 
-derive instance eqChoiceId :: Eq ChoiceId
+derive instance genericChoiceIdF :: Generic (ChoiceIdF f) _
 
-derive instance ordChoiceId :: Ord ChoiceId
+instance eqChoiceIdF :: Eq (f String) => Eq (ChoiceIdF f) where
+  eq v = genericEq v
 
-instance showChoiceId :: Show ChoiceId where
+instance ordChoiceIdF :: Ord (f String) => Ord (ChoiceIdF f) where
+  compare v = genericCompare v
+
+instance showChoiceIdF :: Show (f String) => Show (ChoiceIdF f) where
   show (ChoiceId name owner) = "(ChoiceId " <> show name <> " " <> show owner <> ")"
 
-instance prettyChoiceId :: Pretty ChoiceId where
+instance prettyChoiceIdF :: Show (f String) => Pretty (ChoiceIdF f) where
   prettyFragment a = text (show a)
 
 choiceOwner :: ChoiceId -> PubKey
-choiceOwner (ChoiceId _ owner) = owner
+choiceOwner (ChoiceId _ owner) = unwrap owner
 
-newtype ValueId
-  = ValueId String
+newtype ValueIdF f
+  = ValueId (f String)
 
-derive instance genericValueId :: Generic ValueId _
+type ValueId
+  = ValueIdF IdentityF
 
-derive instance newtypeValueId :: Newtype ValueId _
+derive instance genericValueIdF :: Generic (ValueIdF f) _
 
-derive instance eqValueId :: Eq ValueId
+derive instance newtypeValueIdF :: Newtype (ValueIdF f) _
 
-derive instance ordValueId :: Ord ValueId
+derive newtype instance eqValueIdF :: Eq (f String) => Eq (ValueIdF f)
 
-instance showValueId :: Show ValueId where
-  show (ValueId valueId) = show valueId
+derive newtype instance ordValueIdF :: Ord (f String) => Ord (ValueIdF f)
 
-instance prettyValueId :: Pretty ValueId where
+derive newtype instance showValueIdF :: Show (f String) => Show (ValueIdF f)
+
+instance prettyValueId :: Show (f String) => Pretty (ValueIdF f) where
   prettyFragment a = text (show a)
 
-data Value
-  = AvailableMoney AccountId
-  | Constant BigInteger
-  | NegValue Value
-  | AddValue Value Value
-  | SubValue Value Value
-  | ChoiceValue ChoiceId Value
+data ValueF f
+  = AvailableMoney (AccountIdF f)
+  | Constant (f BigInteger)
+  | NegValue (ValueF f)
+  | AddValue (ValueF f) (ValueF f)
+  | SubValue (ValueF f) (ValueF f)
+  | ChoiceValue (ChoiceIdF f) (ValueF f)
   | SlotIntervalStart
   | SlotIntervalEnd
-  | UseValue ValueId
+  | UseValue (ValueIdF f)
 
-derive instance genericValue :: Generic Value _
+type Value
+  = ValueF IdentityF
 
-derive instance eqValue :: Eq Value
+derive instance genericValue :: Generic (ValueF f) _
 
-derive instance ordValue :: Ord Value
+instance eqValueF :: (Eq (f BigInteger), Eq (f String)) => Eq (ValueF f) where
+  eq v = genericEq v
 
-instance showValue :: Show Value where
+instance ordValueF :: (Ord (f BigInteger), Ord (f String)) => Ord (ValueF f) where
+  compare v = genericCompare v
+
+instance showValueF :: (Show (f BigInteger), Show (f String)) => Show (ValueF f) where
   show v = genericShow v
 
-instance prettyValue :: Pretty Value where
+instance prettyValue :: (Pretty (f BigInteger), Show (f BigInteger), Show (f String)) => Pretty (ValueF f) where
   prettyFragment a = genericPretty a
 
-data Observation
-  = AndObs Observation Observation
-  | OrObs Observation Observation
-  | NotObs Observation
-  | ChoseSomething ChoiceId
-  | ValueGE Value Value
-  | ValueGT Value Value
-  | ValueLT Value Value
-  | ValueLE Value Value
-  | ValueEQ Value Value
+data ObservationF f
+  = AndObs (ObservationF f) (ObservationF f)
+  | OrObs (ObservationF f) (ObservationF f)
+  | NotObs (ObservationF f)
+  | ChoseSomething (ChoiceIdF f)
+  | ValueGE (ValueF f) (ValueF f)
+  | ValueGT (ValueF f) (ValueF f)
+  | ValueLT (ValueF f) (ValueF f)
+  | ValueLE (ValueF f) (ValueF f)
+  | ValueEQ (ValueF f) (ValueF f)
   | TrueObs
   | FalseObs
 
-derive instance genericObservation :: Generic Observation _
+type Observation
+  = ObservationF IdentityF
 
-derive instance eqObservation :: Eq Observation
+derive instance genericObservationF :: Generic (ObservationF f) _
 
-derive instance ordObservation :: Ord Observation
+instance eqObservationF :: (Eq (f String), Eq (f BigInteger)) => Eq (ObservationF f) where
+  eq v = genericEq v
 
-instance showObservation :: Show Observation where
+instance ordObservationF :: (Ord (f String), Ord (f BigInteger)) => Ord (ObservationF f) where
+  compare v = genericCompare v
+
+instance showObservationF :: (Show (f String), Show (f BigInteger)) => Show (ObservationF f) where
   show o = genericShow o
 
-instance prettyObservation :: Pretty Observation where
+instance prettyObservationF :: (Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (ObservationF f) where
   prettyFragment a = genericPretty a
 
 validInterval :: SlotInterval -> Boolean
@@ -246,73 +294,91 @@ boundFrom (Bound from _) = from
 boundTo :: Bound -> BigInteger
 boundTo (Bound _ to) = to
 
-data Action
-  = Deposit AccountId Party Value
-  | Choice ChoiceId (Array Bound)
-  | Notify Observation
+data ActionF f
+  = Deposit (AccountIdF f) Party (ValueF f)
+  | Choice (ChoiceIdF f) (Array Bound)
+  | Notify (ObservationF f)
 
-derive instance genericAction :: Generic Action _
+type Action
+  = ActionF IdentityF
 
-derive instance eqAction :: Eq Action
+derive instance genericActionF :: Generic (ActionF f) _
 
-derive instance ordAction :: Ord Action
+instance eqActionF :: (Eq (f String), Eq (f BigInteger)) => Eq (ActionF f) where
+  eq v = genericEq v
 
-instance showAction :: Show Action where
+instance ordActionF :: (Ord (f String), Ord (f BigInteger)) => Ord (ActionF f) where
+  compare v = genericCompare v
+
+instance showActionF :: (Show (f String), Show (f BigInteger)) => Show (ActionF f) where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
   show v = genericShow v
 
-instance prettyAction :: Pretty Action where
+instance prettyActionF :: (Show (f String), Show (f BigInteger)) => Pretty (ActionF f) where
   prettyFragment a = text (show a)
 
-data Payee
-  = Account AccountId
+data PayeeF f
+  = Account (AccountIdF f)
   | Party Party
 
-derive instance genericPayee :: Generic Payee _
+type Payee
+  = PayeeF IdentityF
 
-derive instance eqPayee :: Eq Payee
+derive instance genericPayeeF :: Generic (PayeeF f) _
 
-derive instance ordPayee :: Ord Payee
+derive instance eqPayeeF :: (Eq (f String), Eq (f BigInteger)) => Eq (PayeeF f)
 
-instance showPayee :: Show Payee where
+derive instance ordPayeeF :: (Ord (f String), Ord (f BigInteger)) => Ord (PayeeF f)
+
+instance showPayeeF :: (Show (f String), Show (f BigInteger)) => Show (PayeeF f) where
   show v = genericShow v
 
-instance prettyPayee :: Pretty Payee where
+instance prettyPayeeF :: (Show (f String), Show (f BigInteger)) => Pretty (PayeeF f) where
   prettyFragment a = genericPretty a
 
-data Case
-  = Case Action Contract
+data CaseF f
+  = Case (ActionF f) (ContractF f)
 
-derive instance genericCase :: Generic Case _
+type Case
+  = CaseF IdentityF
 
-derive instance eqCase :: Eq Case
+derive instance genericCaseF :: Generic (CaseF f) _
 
-derive instance ordCase :: Ord Case
+instance eqCaseF :: (Eq (f String), Eq (f BigInteger)) => Eq (CaseF f) where
+  eq v = genericEq v
 
-instance showCase :: Show Case where
+instance ordCaseF :: (Ord (f String), Ord (f BigInteger)) => Ord (CaseF f) where
+  compare v = genericCompare v
+
+instance showCaseF :: (Show (f String), Show (f BigInteger)) => Show (CaseF f) where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
 
 -- FIXME: pretty printing is a disaster and slooooowwwww
-instance prettyCase :: Pretty Case where
+instance prettyCaseF :: (Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (CaseF f) where
   prettyFragment (Case action contract) = appendWithSoftbreak (text "Case " <> prettyFragment action <> text " ") (prettyFragment contract)
 
-data Contract
+data ContractF f
   = Close
-  | Pay AccountId Payee Value Contract
-  | If Observation Contract Contract
-  | When (Array Case) Timeout Contract
-  | Let ValueId Value Contract
+  | Pay (AccountIdF f) (PayeeF f) (ValueF f) (ContractF f)
+  | If (ObservationF f) (ContractF f) (ContractF f)
+  | When (Array (CaseF f)) Timeout (ContractF f)
+  | Let (ValueIdF f) (ValueF f) (ContractF f)
 
-derive instance genericContract :: Generic Contract _
+type Contract
+  = ContractF IdentityF
 
-derive instance eqContract :: Eq Contract
+derive instance genericContract :: Generic (ContractF f) _
 
-derive instance ordContract :: Ord Contract
+instance eqContract :: (Eq (f String), Eq (f BigInteger)) => Eq (ContractF f) where
+  eq v = genericEq v
 
-instance showContract :: Show Contract where
+instance ordContract :: (Ord (f String), Ord (f BigInteger)) => Ord (ContractF f) where
+  compare v = genericCompare v
+
+instance showContract :: (Show (f String), Show (f BigInteger)) => Show (ContractF f) where
   show v = genericShow v
 
-instance prettyContract :: Pretty Contract where
+instance prettyContract :: (Show (f String), Show (f BigInteger), Pretty (f BigInteger)) => Pretty (ContractF f) where
   prettyFragment a = genericPretty a
 
 newtype State
@@ -372,18 +438,23 @@ instance showEnvironment :: Show Environment where
 _slotInterval :: Lens' Environment SlotInterval
 _slotInterval = _Newtype <<< prop (SProxy :: SProxy "slotInterval")
 
-data Input
-  = IDeposit AccountId Party Money
-  | IChoice ChoiceId ChosenNum
+data InputF f
+  = IDeposit (AccountIdF f) Party Money
+  | IChoice (ChoiceIdF f) ChosenNum
   | INotify
 
-derive instance genericInput :: Generic Input _
+type Input
+  = InputF IdentityF
 
-derive instance eqInput :: Eq Input
+derive instance genericInput :: Generic (InputF f) _
 
-derive instance ordInput :: Ord Input
+instance eqInputF :: (Eq (f String), Eq (f BigInteger)) => Eq (InputF f) where
+  eq v = genericEq v
 
-instance showInput :: Show Input where
+instance ordInputF :: (Ord (f String), Ord (f BigInteger)) => Ord (InputF f) where
+  compare v = genericCompare v
+
+instance showInputF :: (Show (f String), Show (f BigInteger)) => Show (InputF f) where
   show v = genericShow v
 
 -- Processing of slot interval
@@ -447,7 +518,7 @@ evalValue env state value =
           balance = fromMaybe zero $ Map.lookup accId (unwrap state).accounts
         in
           unwrap balance
-      Constant integer -> integer
+      Constant integer -> unwrap integer
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
@@ -556,7 +627,7 @@ derive instance eqReduceWarning :: Eq ReduceWarning
 derive instance ordReduceWarning :: Ord ReduceWarning
 
 instance showReduceWarning :: Show ReduceWarning where
-  show = genericShow
+  show v = genericShow v
 
 data ReduceStepResult
   = Reduced ReduceWarning ReduceEffect State Contract
@@ -683,7 +754,7 @@ derive instance eqApplyWarning :: Eq ApplyWarning
 derive instance ordApplyWarning :: Ord ApplyWarning
 
 instance showApplyWarning :: Show ApplyWarning where
-  show = genericShow
+  show v = genericShow v
 
 data ApplyResult
   = Applied ApplyWarning State Contract
@@ -749,7 +820,7 @@ derive instance eqTransactionWarning :: Eq TransactionWarning
 derive instance ordTransactionWarning :: Ord TransactionWarning
 
 instance showTransactionWarning :: Show TransactionWarning where
-  show = genericShow
+  show v = genericShow v
 
 convertReduceWarnings :: List ReduceWarning -> List TransactionWarning
 convertReduceWarnings Nil = Nil
@@ -850,22 +921,24 @@ derive instance ordTransactionOutput :: Ord TransactionOutput
 instance showTransactionOutput :: Show TransactionOutput where
   show = genericShow
 
-newtype TransactionInput
+newtype TransactionInputF f
   = TransactionInput
   { interval :: SlotInterval
-  , inputs :: (List Input)
+  , inputs :: (List (InputF f))
   }
 
-derive instance genericTransactionInput :: Generic TransactionInput _
+type TransactionInput
+  = TransactionInputF IdentityF
 
-derive instance newtypeTransactionInput :: Newtype TransactionInput _
+derive instance genericTransactionInputF :: Generic (TransactionInputF f) _
 
-derive instance eqTransactionInput :: Eq TransactionInput
+derive instance newtypeTransactionInputF :: Newtype (TransactionInputF f) _
 
-derive instance ordTransactionInput :: Ord TransactionInput
+derive newtype instance eqTransactionInputF :: (Eq (f String), Eq (f BigInteger)) => Eq (TransactionInputF f)
 
-instance showTransactionInput :: Show TransactionInput where
-  show = genericShow
+derive newtype instance ordTransactionInputF :: (Ord (f String), Ord (f BigInteger)) => Ord (TransactionInputF f)
+
+derive newtype instance showTransactionInputF :: (Show (f String), Show (f BigInteger)) => Show (TransactionInputF f)
 
 -- | Try to compute outputs of a transaction give its input
 computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
