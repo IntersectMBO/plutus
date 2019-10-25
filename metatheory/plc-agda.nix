@@ -12,7 +12,10 @@ mkDerivation {
     base bytestring cryptonite ieee754 language-plutus-core memory
     optparse-applicative text
   ];
-  testHaskellDepends = [ base process ];
+  testHaskellDepends = [
+    base bytestring cryptonite ieee754 language-plutus-core memory
+    optparse-applicative process text
+  ];
   testToolDepends = [ plutus-exe ];
   homepage = "https://github.com/input-output-hk/plutus";
   description = "Command line tool for running plutus core programs";

@@ -1,11 +1,11 @@
 module Main where
 
-import System.Exit (exitFailure)
-import System.Process
+import           System.Exit        (exitFailure)
+import           System.Process
 
-import qualified MAlonzo.Code.Main as M
+import qualified MAlonzo.Code.Main  as M
 
-import System.Environment
+import           System.Environment
 
 tests = ["succInteger","unitval","true","false","churchZero","churchSucc","overapplication","factorial","fibonacci","NatRoundTrip","ListSum","IfIntegers","ApplyAdd1","ApplyAdd2"]
 
