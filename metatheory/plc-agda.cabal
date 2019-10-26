@@ -280,10 +280,11 @@ executable plc-agda
 
 
 test-suite test2-plc-agda
-    type:       detailed-0.9
+    type: detailed-0.9
     test-module: TestDetailed
-    build-depends: base, Cabal,
-                   process,
+    build-depends: base -any,
+                   Cabal -any,
+                   process -any,
                    bytestring -any,
                    text -any,
                    ieee754 -any,
@@ -291,7 +292,7 @@ test-suite test2-plc-agda
                    memory -any,
                    optparse-applicative -any,
                    language-plutus-core -any,
-                   directory
+                   directory -any
     other-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char

@@ -24,8 +24,8 @@ catchOutput f = do
   removeFile tmpf
   return str
 
-run1 :: String -> IO Progress
-run1 test = do
+compare :: String -> IO Progress
+compare test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
@@ -55,7 +55,7 @@ testNames = ["succInteger"
 
 mkTest :: String -> TestInstance
 mkTest s = TestInstance
-        { run = run1 s
+        { run = compare s
         , name = s
         , tags = []
         , options = []
