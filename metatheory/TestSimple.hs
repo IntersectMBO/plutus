@@ -2,13 +2,12 @@
 
 module Main where
 
+import           Control.Exception
 import           System.Environment
 import           System.Exit
 import           System.Process
 
 import qualified MAlonzo.Code.Main  as M
-
-import           Control.Exception
 
 succeedingTests = ["succInteger"
         ,"unitval"
@@ -35,7 +34,6 @@ runTest test = do
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   withArgs ["evaluate","--file","tmp"]  M.main
-
 
 runSucceedingTests :: [String] -> IO ()
 runSucceedingTests [] = return ()
