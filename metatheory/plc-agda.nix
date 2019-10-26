@@ -1,6 +1,6 @@
-{ mkDerivation, base, bytestring, cryptonite, ieee754
-, language-plutus-core, memory, optparse-applicative, plutus-exe
-, process, stdenv, text
+{ mkDerivation, base, bytestring, Cabal, cryptonite, directory
+, ieee754, language-plutus-core, memory, optparse-applicative
+, plutus-exe, process, stdenv, text
 }:
 mkDerivation {
   pname = "plc-agda";
@@ -13,8 +13,8 @@ mkDerivation {
     optparse-applicative text
   ];
   testHaskellDepends = [
-    base bytestring cryptonite ieee754 language-plutus-core memory
-    optparse-applicative process text
+    base bytestring Cabal cryptonite directory ieee754
+    language-plutus-core memory optparse-applicative process text
   ];
   testToolDepends = [ plutus-exe ];
   homepage = "https://github.com/input-output-hk/plutus";

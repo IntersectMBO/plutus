@@ -7,9 +7,9 @@ import           System.Exit
 import           System.IO
 import           System.Process
 
-import Distribution.TestSuite
+import           Distribution.TestSuite
 
-import qualified MAlonzo.Code.Main  as M
+import qualified MAlonzo.Code.Main      as M
 
 catchOutput :: IO () -> IO String
 catchOutput f = do
