@@ -11,21 +11,24 @@ import           Distribution.TestSuite
 
 import qualified MAlonzo.Code.Main      as M
 
+-- this function is based on this stackoverflow answer:
+-- https://stackoverflow.com/a/9664017
+
 catchOutput :: IO () -> IO String
-catchOutput f = do
-  tmpd <- getTemporaryDirectory
-  (tmpf, tmph) <- openTempFile tmpd "haskell_stdout"
-  stdout_dup <- hDuplicate stdout
-  hDuplicateTo tmph stdout
-  hClose tmph
-  f
-  hDuplicateTo stdout_dup stdout
-  str <- readFile tmpf
-  removeFile tmpf
+catchOutput act = do
+  tmpD <- getTemporaryDirectory
+  (tmpFP, tmpH) <- openTempFile tmpD "stdout"
+  stdoutDup <- hDuplicate stdout
+  hDuplicateTo tmpH stdout
+  hClose tmpH
+  act
+  hDuplicateTo stdoutDup stdout
+  str <- readFile tmpFP
+  removeFile tmpFP
   return str
 
-compare :: String -> IO Progress
-compare test = do
+compareResult :: String -> IO Progress
+compareResult test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
@@ -55,7 +58,7 @@ testNames = ["succInteger"
 
 mkTest :: String -> TestInstance
 mkTest s = TestInstance
-        { run = compare s
+        { run = compareResult s
         , name = s
         , tags = []
         , options = []
