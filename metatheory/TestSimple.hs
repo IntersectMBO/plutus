@@ -38,10 +38,9 @@ succeedingTCTests = ["succInteger"
         ,"fibonacci"
         ,"NatRoundTrip"
         ,"ListSum"
-        -- these tests are currently unreliable:
-        --,"IfIntegers"
-        --,"ApplyAdd1"
-        --,"ApplyAdd2"
+        ,"IfIntegers"
+        ,"ApplyAdd1"
+        ,"ApplyAdd2"
         ]
 
 
