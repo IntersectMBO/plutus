@@ -9,7 +9,7 @@ import           System.Process
 
 import qualified MAlonzo.Code.Main  as M
 
-succeedingTests = ["succInteger"
+succeedingEvalTests = ["succInteger"
         ,"unitval"
         ,"true"
         ,"false"
@@ -25,7 +25,25 @@ succeedingTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
-failingTests = ["DivideByZero"]
+failingEvalTests = ["DivideByZero"]
+
+succeedingTCTests = ["succInteger"
+        ,"unitval"
+        ,"true"
+        ,"false"
+        ,"churchZero"
+        ,"churchSucc"
+        ,"overapplication"
+        ,"factorial"
+        ,"fibonacci"
+        ,"NatRoundTrip"
+        ,"ListSum"
+        -- these tests are currently unreliable:
+        --,"IfIntegers"
+        --,"ApplyAdd1"
+        --,"ApplyAdd2"
+        ]
+
 
 
 -- this is likely to raise either an exitFailure or exitSuccess exception
@@ -53,8 +71,7 @@ runFailingTests mode (test:tests) = catch
       ExitSuccess   -> exitSuccess)
 
 main = do
-  runSucceedingTests "evaluate" succeedingTests
-  runFailingTests "evaluate" failingTests
-  -- all the examples are type correct:
-  runSucceedingTests "typecheck" (succeedingTests ++ failingTests)
+  runSucceedingTests "evaluate" succeedingEvalTests
+  runFailingTests "evaluate" failingEvalTests
+  runSucceedingTests "typecheck" succeedingTCTests
 
