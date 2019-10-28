@@ -58,12 +58,19 @@ postulate
   parse : ByteString → Maybe Program
   showTerm : RawTm → String
   getContents : IO ByteString
+  exitFailure : IO ⊤
+  exitSuccess : IO ⊤
   
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 {-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
 {-# FOREIGN GHC import Data.Either #-}
+{-# FOREIGN GHC import System.Exit #-}
+{-# COMPILE GHC exitSuccess = exitSuccess #-}
+{-# COMPILE GHC exitFailure = exitFailure #-}
+
+
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
@@ -116,32 +123,34 @@ data EvalMode : Set where
   TCK CK L : EvalMode
 
 -- extrinsically typed evaluation
-evalPLC : EvalMode → ByteString → String
+evalPLC : EvalMode → ByteString → String ⊎ String
 evalPLC m plc with parse plc
 evalPLC m plc | just t with deBruijnifyTm nil (convP t)
 evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
-evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing = "out of fuel"
-evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e =
-  "runtime error" Data.String.++
-  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
+  inj₁ (prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing =
+  inj₂ "out of fuel"
+evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
+  ("runtime error" Data.String.++
+  prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
 evalPLC CK plc | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  prettyPrintTm (deDeBruijnify [] nil (unsaturate t''))
+  inj₁ (prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
-  "this shouldn't happen"
-evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = "out of fuel"
+  inj₂ ("this shouldn't happen")
+evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
 evalPLC TCK plc | just t | just t' with inferType _ t'
-... | inj₂ e = "typechecking error"
+... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
-... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  = prettyPrintTm (deDeBruijnify [] nil (extricate t'''))
-... | _ ,, _ ,, _ ,, _ ,, M.just _  = "this shouldn't happen"
-... | _ ,, _ ,, _ ,, _ ,, M.nothing = "out of fuel"
+... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
+  inj₁ (prettyPrintTm (deDeBruijnify [] nil (extricate t''')))
+... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
+... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
 
 -- prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
-evalPLC m plc | just t | nothing = "scope error"
-evalPLC m plc | nothing = "parse error"
+evalPLC m plc | just t | nothing = inj₂ "scope error"
+evalPLC m plc | nothing = inj₂ "parse error"
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
@@ -209,7 +218,7 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalMode = data EvalMode (TCK | CK | L ) #-}
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode → Input → IO String
+evalInput : EvalMode → Input → IO (String ⊎ String)
 evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
 evalInput m StdInput       = imap (evalPLC m) getContents 
 
@@ -218,7 +227,12 @@ tcInput (FileInput fn) = imap tcPLC (readFile fn)
 tcInput StdInput       = imap tcPLC getContents
 
 main' : Command → IO ⊤
-main' (Evaluate (EvalOpts i m)) = evalInput m i >>= putStrLn
+main' (Evaluate (EvalOpts i m)) =
+  evalInput m i
+  >>=
+  Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
+           , (λ e → putStrLn e >> exitFailure)
+           ] 
 main' (TypeCheck (TCOpts i))    = tcInput i >>= putStrLn
 
 main : IO ⊤
