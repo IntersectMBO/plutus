@@ -27,31 +27,34 @@ succeedingTests = ["succInteger"
 
 failingTests = ["DivideByZero"]
 
+
 -- this is likely to raise either an exitFailure or exitSuccess exception
-runTest :: String -> IO ()
-runTest test = do
+runTest :: String -> String -> IO ()
+runTest mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
-  putStrLn $ "test: " ++ test
-  withArgs ["evaluate","--file","tmp"]  M.main
+  putStrLn $ "test: " ++ test ++ " [" ++ mode ++ "]"
+  withArgs [mode,"--file","tmp"]  M.main
 
-runSucceedingTests :: [String] -> IO ()
-runSucceedingTests [] = return ()
-runSucceedingTests (test:tests) = catch
-  (runTest test)
+runSucceedingTests :: String -> [String] -> IO ()
+runSucceedingTests mode [] = return ()
+runSucceedingTests mode (test:tests) = catch
+  (runTest mode test)
   (\ e -> case e of
       ExitFailure _ -> exitFailure
-      ExitSuccess   -> runSucceedingTests tests)
+      ExitSuccess   -> runSucceedingTests mode tests)
 
-runFailingTests :: [String] -> IO ()
-runFailingTests [] = return ()
-runFailingTests (test:tests) = catch
-  (runTest test)
+runFailingTests :: String -> [String] -> IO ()
+runFailingTests mode [] = return ()
+runFailingTests mode (test:tests) = catch
+  (runTest mode test)
   (\ e -> case e of
-      ExitFailure _ -> runFailingTests tests
+      ExitFailure _ -> runFailingTests mode tests
       ExitSuccess   -> exitSuccess)
 
 main = do
-  runSucceedingTests succeedingTests
-  runFailingTests failingTests
+  runSucceedingTests "evaluate" succeedingTests
+  runFailingTests "evaluate" failingTests
+  -- all the examples are type correct:
+  runSucceedingTests "typecheck" (succeedingTests ++ failingTests)
 
