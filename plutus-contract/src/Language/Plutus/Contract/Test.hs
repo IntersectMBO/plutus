@@ -33,7 +33,7 @@ module Language.Plutus.Contract.Test(
     , checkPredicate
     ) where
 
-import           Control.Lens                          (at, folded, to, view, (^.))
+import           Control.Lens                          (at, folded, from, to, view, (^.))
 import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
 import           Data.Bifunctor                        (Bifunctor(..))
 import           Data.Foldable                         (toList, traverse_)
@@ -52,6 +52,7 @@ import           Test.Tasty.Providers                  (TestTree)
 import qualified Language.PlutusTx.Prelude             as P
 
 import           Language.Plutus.Contract.Record       (Record)
+import qualified Language.Plutus.Contract.Record       as Rec
 import           Language.Plutus.Contract.Request      (Contract(..))
 import           Language.Plutus.Contract.Resumable    (ResumableError)
 import qualified Language.Plutus.Contract.Resumable    as State
@@ -116,7 +117,7 @@ record
     -> Either (ResumableError e) (Record (Event s))
 record w rs =
     let (evts, con) = contractEventsWallet rs w
-    in fmap (fmap fst . fst) (State.runResumable evts (unContract con))
+    in fmap (view (from Rec.record) . fmap fst . fst) (State.runResumable evts (unContract con))
 
 not :: TracePredicate s e a -> TracePredicate s e a
 not = PredF . fmap (fmap Prelude.not) . unPredF

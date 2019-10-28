@@ -14,7 +14,16 @@ import qualified Data.Aeson     as Aeson
 -- | The serialisable state of a contract instance, containing a mix of raw
 --   input events and serialised checkpoints.
 --   See note [Handling state in contracts] in 'Language.Plutus.Contract.Resumable'.
-type Record i = Either (OpenRecord i) (ClosedRecord i)
+data Record i =
+  OpenRec (OpenRecord i)
+  | ClosedRec (ClosedRecord i)
+  deriving stock (Eq, Show, Generic, Functor)
+  deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
+
+record :: Iso' (Record i) (Either (OpenRecord i) (ClosedRecord i))
+record = iso f g where
+    f = \case { OpenRec r -> Left r; ClosedRec r -> Right r }
+    g = either OpenRec ClosedRec
 
 data FinalValue i = FinalJSON Value | FinalEvents (Maybe i)
     deriving stock (Eq, Show, Generic, Functor)
@@ -58,16 +67,16 @@ closedSubRecords f = \case
 
 fromPair :: Record i -> Record i -> Record i
 fromPair l r = case (l, r) of
-  (Left l', Right r')  -> Left (OpenLeft l' r')
-  (Left l', Left r')   -> Left (OpenBoth l' r')
-  (Right l', Left r')  -> Left (OpenRight l' r')
-  (Right l', Right r') -> Right (ClosedBin l' r')
+  (OpenRec l', ClosedRec r')   -> OpenRec (OpenLeft l' r')
+  (OpenRec l', OpenRec r')     -> OpenRec (OpenBoth l' r')
+  (ClosedRec l', OpenRec r')   -> OpenRec (OpenRight l' r')
+  (ClosedRec l', ClosedRec r') -> ClosedRec (ClosedBin l' r')
 
 jsonLeaf :: (Aeson.ToJSON a) => a -> ClosedRecord i
 jsonLeaf = ClosedLeaf . FinalJSON . Aeson.toJSON
 
 insert :: i -> Record i -> Record i
-insert i = bimap go id  where
+insert i = over record (first go) where
   go = \case
       OpenLeaf _ -> OpenLeaf (Just i)
       OpenLeft or' cr -> OpenLeft (go or') cr

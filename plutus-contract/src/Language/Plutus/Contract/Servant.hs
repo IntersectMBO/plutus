@@ -18,6 +18,7 @@ module Language.Plutus.Contract.Servant(
     , Response(..)
     ) where
 
+import           Control.Lens                       (from, view)
 import           Control.Monad.Except               (MonadError (..), runExcept)
 import           Control.Monad.Writer               (runWriterT)
 import           Data.Aeson                         (FromJSON, ToJSON)
@@ -29,7 +30,8 @@ import           GHC.Generics                       (Generic)
 import           Servant                            ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
 import           Servant.Server                     (Application, ServantErr, Server, serve)
 
-import           Language.Plutus.Contract.Record
+import           Language.Plutus.Contract.Record    (Record)
+import qualified Language.Plutus.Contract.Record    as Rec
 import           Language.Plutus.Contract.Request   (Contract (..))
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import qualified Language.Plutus.Contract.Resumable as Resumable
@@ -121,7 +123,7 @@ initialResponse
     => Contract s e ()
     -> Either (ResumableError e) (Response s)
 initialResponse =
-    fmap (uncurry Response . first (State . fmap fst))
+    fmap (uncurry Response . first (State . view (from Rec.record) . fmap fst))
     . runExcept
     . runWriterT
     . Resumable.initialise
