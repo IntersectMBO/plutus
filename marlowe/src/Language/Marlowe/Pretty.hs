@@ -1,15 +1,23 @@
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeOperators     #-}
-module Language.Marlowe.Pretty (pretty, Pretty, prettyFragment) where
+{-# LANGUAGE DefaultSignatures  #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# OPTIONS_GHC -fno-warn-orphans       #-}
+module Language.Marlowe.Pretty where
 
-import           Data.Text               (Text)
-import qualified Data.Text               as Text
-import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
-                                          Rep, S, U1, conName, from)
-import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
-                                          rparen, space, text)
+import qualified Data.ByteString.Lazy         as BSL
+import           Data.Char                    (isDigit)
+import           Data.Text                    (Text)
+import qualified Data.Text                    as Text
+import qualified Data.Text.Encoding           as TE
+import           GHC.Generics                 ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1),
+                                               M1 (M1), Rep, S, U1, conName, from)
+import           Ledger                       (PubKey (..), Slot (..))
+import           LedgerBytes
+import           Text.ParserCombinators.ReadP
+import           Text.PrettyPrint.Leijen      (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
+                                               rparen, space, text)
 
 -- | This function will pretty print an a but will not wrap the whole
 -- expression in parentheses or add an initial newline, where as for
@@ -21,7 +29,7 @@ import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket
 -- >>> pretty $ MyData One (MyData One Two)
 -- MyData One (MyData One Two)
 pretty :: (Generic a, Pretty1 (Rep a)) => a -> Doc
-pretty a = pretty1 True $ from a
+pretty a = pretty1 True $ GHC.Generics.from a
 
 class Pretty a where
   prettyFragment :: a -> Doc
@@ -87,3 +95,53 @@ instance (Pretty a, Pretty b) => Pretty (a, b) where
 
 instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)
+
+
+{- This is temp ugly hack to not break Marlowe Playground.
+
+    In PureScript we use String to represent a PubKey,
+    and Integer to represent Slot.
+
+    During Analisys, Marlowe Playground PureScript pretty prints a contract,
+    and sends a String to backend, which 'read' a contract, and analyses it.
+
+    That's why we require @Haskell.read . PureScript.pretty == id@
+
+    Currently, Marlowe Playground saves a Haskell contract to a file,
+    and runs Haskell interpreter. A script usually pretty prints a contract
+    to standard output, and that's get returned to the Playground as
+    a Haskell compiled contract. It's parsed by PureScript.
+
+    Thus, we require @PureScript.parse . Haskell.pretty == id
+
+    These two requirements break @Haskell.read . Haskell.show == id@
+
+ -}
+
+instance Pretty LedgerBytes where
+    prettyFragment (LedgerBytes lb) = prettyFragment lb
+
+instance Pretty Slot where
+    prettyFragment (Slot n) = prettyFragment n
+
+instance Pretty PubKey where
+    prettyFragment (PubKey lb) = prettyFragment lb
+
+pubKeyFromString :: String -> PubKey
+pubKeyFromString = PubKey . LedgerBytes . BSL.fromStrict . TE.encodeUtf8 . Text.pack
+
+instance Read PubKey where
+    readsPrec _ = readP_to_S $ do
+        skipSpaces
+        _ <- char '\"'
+        s <- manyTill get (char '\"')
+        return $ pubKeyFromString s
+
+instance Read Slot where
+    readsPrec _ = readP_to_S $ do
+        skipSpaces
+        digits <- many1 $ satisfy isDigit
+        return $ Slot (read digits)
+
+instance Pretty BSL.ByteString where
+    prettyFragment = text . show . TE.decodeUtf8 . BSL.toStrict

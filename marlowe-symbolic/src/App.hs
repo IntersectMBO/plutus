@@ -8,8 +8,8 @@ import           Control.Exception                     (try)
 import           Data.Aeson                            (encode)
 import           Data.ByteString.UTF8                  as BSU
 import           Data.Proxy                            (Proxy (Proxy))
+import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
 import           Language.Marlowe.Analysis.FSSemantics (warningsTrace)
-import           Language.Marlowe.Semantics            (Slot (Slot), TransactionInput, TransactionWarning)
 import           Marlowe.Symbolic.Types.API            (API)
 import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract))
 import qualified Marlowe.Symbolic.Types.Request        as Req

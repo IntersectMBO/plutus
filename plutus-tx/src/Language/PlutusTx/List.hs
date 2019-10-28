@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, (++), (!!)) where
+module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, reverse, zip, (++), (!!)) where
 
 import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Eq
 import           Prelude                    hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null,
-                                             (!!), (&&), (++), (||))
+                                             reverse, zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -145,3 +145,20 @@ findIndex p l = listToMaybe (findIndices p l)
 (x : xs) !! i = if Builtins.equalsInteger i 0
     then x
     else xs !! Builtins.subtractInteger i 1
+
+
+{-# INLINABLE reverse #-}
+-- | 'reverse' @xs@ returns the elements of @xs@ in reverse order.
+-- @xs@ must be finite.
+reverse :: [a] -> [a]
+reverse l =  rev l []
+  where
+    rev []      a = a
+    rev (x:xs) a  = rev xs (x:a)
+
+
+{-# INLINABLE zip #-}
+zip :: [a] -> [b] -> [(a,b)]
+zip []     _bs    = []
+zip _as    []     = []
+zip (a:as) (b:bs) = (a,b) : zip as bs

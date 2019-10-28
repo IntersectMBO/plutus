@@ -19,6 +19,8 @@ import qualified Language.Marlowe.Analysis.IntegerArray as IntegerArray
 import           Language.Marlowe.Analysis.MkSymb       (mkSymbolicDatatype)
 import           Language.Marlowe.Analysis.Numbering
 import qualified Language.Marlowe.Semantics             as MS
+import           Ledger                                 (Slot (..))
+import qualified Ledger.Ada                             as Ada
 
 data Bounds = Bounds { numParties  :: Integer
                      , numChoices  :: Integer
@@ -857,7 +859,7 @@ warningsTraceWB bnds sn =
 type MaxActions = Integer
 
 convertTimeout :: MS.Timeout -> Timeout
-convertTimeout (MS.Slot num) = num
+convertTimeout (Slot num) = num
 
 convertAccId :: MS.AccountId -> Mappings -> (AccountId, Mappings)
 convertAccId accId@(MS.AccountId _ party) maps =
@@ -971,7 +973,7 @@ convertAction (MS.Notify observation) maps =
     (Notify newObservation, mapsWithObservation)
   where (newObservation, mapsWithObservation) = convertObservation observation maps
 
-convertCaseList :: [MS.Case] -> Mappings -> ([Case], MaxActions, Mappings)
+convertCaseList :: [MS.Case MS.Contract] -> Mappings -> ([Case], MaxActions, Mappings)
 convertCaseList [] maps = ([], 0, maps)
 convertCaseList (MS.Case action cont : rest) maps =
     ( Case newAction newCont : newRest
@@ -1018,17 +1020,11 @@ extractBounds maxActions maps =
          , numLets = numberOfLabels (valueM maps)
          , numActions = maxActions }
 
-revertParty :: Party -> Mappings -> MS.PubKey
+revertParty :: Party -> Mappings -> MS.Party
 revertParty party maps = getLabel party (partyM maps)
 
-revertMoney :: Money -> MS.Ada
-revertMoney mon = MS.Lovelace { MS.getLovelace = mon }
-
-revertSlotNum :: SlotNumber -> MS.Slot
-revertSlotNum sn = MS.Slot { MS.getSlot = sn }
-
 revertInterval :: SlotInterval -> MS.SlotInterval
-revertInterval (snl, snh) = MS.SlotInterval (revertSlotNum snl) (revertSlotNum snh)
+revertInterval (snl, snh) = (Slot snl, Slot snh)
 
 revertChoId :: ChoiceId -> Mappings -> MS.ChoiceId
 revertChoId (ChoiceId choId _) maps = getLabel choId (choiceM maps)
@@ -1040,7 +1036,7 @@ revertInput :: Input -> Mappings -> MS.Input
 revertInput (IDeposit accId party mon) maps = MS.IDeposit newAccId newParty newMon
   where newAccId = revertAccId (unNestAccountId accId) maps
         newParty = revertParty party maps
-        newMon = revertMoney mon
+        newMon = Ada.lovelaceOf mon
 revertInput (IChoice choId chosenNum) maps = MS.IChoice newChoId chosenNum
   where newChoId = revertChoId (unNestChoiceId choId) maps
 revertInput INotify _ = MS.INotify
@@ -1065,8 +1061,8 @@ revertReduceWarningList (ReducePartialPay accId payee mon1 mon2) maps =
      MS.ReducePartialPay newAccId newPayee newMon1 newMon2
   where newAccId = revertAccId (unNestAccountId accId) maps
         newPayee = revertPayee (unNestPayee payee) maps
-        newMon1 = revertMoney mon1
-        newMon2 = revertMoney mon2
+        newMon1 = Ada.lovelaceOf mon1
+        newMon2 = Ada.lovelaceOf mon2
 revertReduceWarningList (ReduceShadowing valId int1 int2) maps =
      MS.ReduceShadowing newValId int1 int2
   where newValId = revertValId (unNestValueId valId) maps
@@ -1088,8 +1084,8 @@ transListLabel = "transList"
 
 extractCounterExample :: SMTModel -> Mappings
                       -> (SSlotNumber -> SList NTransaction -> SList NTransactionWarning)
-                      -> (MS.Slot, [MS.TransactionInput], [MS.TransactionWarning])
-extractCounterExample smtModel maps func = ( revertSlotNum slotNum
+                      -> (Slot, [MS.TransactionInput], [MS.TransactionWarning])
+extractCounterExample smtModel maps func = ( Slot slotNum
                                            , revertTransactionList transList maps
                                            , revertAllWarnings )
   where assocs = modelAssocs smtModel
@@ -1103,7 +1099,7 @@ extractCounterExample smtModel maps func = ( revertSlotNum slotNum
 
 warningsTrace :: MS.Contract
               -> IO (Either ThmResult
-                            (Maybe ( MS.Slot
+                            (Maybe ( Slot
                                    , [MS.TransactionInput]
                                    , [MS.TransactionWarning] )))
 warningsTrace con =
