@@ -70,7 +70,7 @@ tcTestNames  = ["succInteger"
                ,"IfIntegers"
                ,"ApplyAdd1"
                ,"ApplyAdd2"
-               ]           
+               ]
 
 mkTest :: String -> String -> TestInstance
 mkTest mode test = TestInstance
