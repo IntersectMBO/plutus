@@ -34,6 +34,7 @@ module Language.Plutus.Contract.Test(
     ) where
 
 import           Control.Lens                          (at, folded, from, to, view, (^.))
+import           Control.Monad                         (unless)
 import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
 import           Data.Foldable                         (toList)
 import           Data.Functor.Contravariant            (Contravariant (..), Op(..))
@@ -125,7 +126,9 @@ not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
     :: forall s e a
-    . (EM.AsAssertionError e, Show e)
+    . (EM.AsAssertionError e
+      , Show e
+      , Forall (Input s) Pretty)
     => String
     -> Contract s e a
     -> TracePredicate s e a
@@ -139,8 +142,19 @@ checkPredicate nm con predicate action =
             (Right (_, st), ms) -> do
                 let dt = ContractTraceResult ms st
                     (result, emLog) = runWriter $ unPredF predicate (defaultDist, dt)
-                if result then pure () else step (renderString $ layoutPretty defaultLayoutOptions emLog)
+                unless result $ do
+                    step (renderString $ layoutPretty defaultLayoutOptions emLog)
+                    step "Events by wallets"
+                    step (renderString $ layoutPretty defaultLayoutOptions (prettyWalletEvents st))
                 HUnit.assertBool nm result
+
+prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
+prettyWalletEvents cts = 
+    let nonEmptyLogs = filter (P.not . null . snd) (Map.toList $ view ctsEvents cts)
+        renderLog (wallet, events) = 
+            let events' = vsep $ fmap (\e -> "•" <+> nest 2 (pretty e)) $ toList events
+            in nest 2 $ vsep ["Events for" <+> pretty wallet <> colon, events']
+    in vsep (fmap renderLog nonEmptyLogs)
 
 endpointAvailable
     :: forall (l :: Symbol) s e a.
@@ -172,7 +186,7 @@ interestingAddress w addr = PredF $ \(_, r) -> do
     else do
         tell $ hsep
             [ "Interesting addresses of " <+> pretty w <> colon
-                <+> hang 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
+                <+> nest 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
             , "Missing address:", viaShow addr
             ]
         pure False
@@ -194,7 +208,7 @@ tx w flt nm = PredF $ \(_, r) -> do
     else do
         tell $ hsep
             [ "Unbalanced transactions of" <+> pretty w <> colon 
-                <+> hang 2 (vsep (fmap pretty hks))
+                <+> nest 2 (vsep (fmap pretty hks))
             , "No transaction with '" <> fromString nm <> "'"]
         pure False
 
@@ -214,7 +228,7 @@ walletState w flt nm = PredF $ \(_, r) -> do
             if flt st
             then pure True
             else do
-                tell $ align $ vsep
+                tell $ vsep
                     [ "Wallet state of '" <+> viaShow w <+> colon <+> viaShow st
                     , "Fails " <> squotes (fromString nm)
                     ]
@@ -246,9 +260,9 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
             if pr lg
             then pure True
             else do
-                tell $ align $ vsep
+                tell $ vsep
                     [ "Event log for" <+> pretty w <> ":"
-                    , hang 4 (vsep (fmap pretty lg))
+                    , nest 2 (vsep (fmap pretty lg))
                     , "Fails" <+> squotes (fromString nm)
                     ]
                 pure False
@@ -286,9 +300,9 @@ emulatorLog f nm = PredF $ \(_, r) ->
     if f lg
     then pure True
     else do
-        tell $ align $ vsep
+        tell $ vsep
             [ "Emulator log:"
-            , hang 4 (vsep (fmap viaShow lg))
+            , nest 2 (vsep (fmap viaShow lg))
             , "Fails" <+> squotes (fromString nm)
             ]
         pure False
@@ -320,9 +334,9 @@ assertHooks w p nm = PredF $ \(_, rs) ->
     if p hks
     then pure True
     else do
-        tell $ align $ vsep
+        tell $ vsep
             [ "Handlers for" <+> pretty w <> colon
-            , hang 4 (pretty hks)
+            , nest 2 (pretty hks)
             , "Failed" <+> squotes (fromString nm)
             ]
         pure False
@@ -344,9 +358,9 @@ assertRecord w p nm = PredF $ \(_, rs) ->
         Right r
             | p r -> pure True
             | otherwise -> do
-                tell $ align $ vsep
+                tell $ vsep
                     [ "Record:"
-                    , hang 4 (pretty r)
+                    , nest 2 (pretty r)
                     , "Failed" <+> squotes (fromString nm)
                     ]
                 pure False
@@ -432,7 +446,7 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
             Left err
                 | p (Error err) -> pure True
                 | otherwise -> do
-                    tell $ align $ vsep
+                    tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Resumable error" <+> viaShow err
                         , "in" <+> squotes (fromString nm)
@@ -441,18 +455,17 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
             Right (Left openRec)
                 | p NotDone -> pure True
                 | otherwise -> do
-                    tell $ align $ vsep
+                    tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Open record"
                         , pretty openRec
                         , "in" <+> squotes (fromString nm)
                         ]
-                    -- tell (_ (fmap (first (fmap fst)) result)) --FIXME always print event log if error happend? 
                     pure False
             Right (Right closedRec)
                 | p (Done (snd closedRec)) -> pure True
                 | otherwise -> do
-                    tell $ align $ vsep
+                    tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Closed record"
                         , pretty (fst closedRec)
@@ -481,7 +494,7 @@ walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulato
         in if initialValue P.+ dlt == finalValue
         then pure True
         else do
-            tell $ align $ vsep
+            tell $ vsep
                 [ "Expected funds of" <+> pretty w <+> "to change by" <+> viaShow dlt
                 , "but they changed by", viaShow (finalValue P.- initialValue)]
             pure False

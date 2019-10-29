@@ -33,7 +33,6 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
-import           Data.String               (IsString (fromString))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 
@@ -68,11 +67,11 @@ instance Pretty UnbalancedTx where
         let lines' =
                 [ "inputs:" <+> prettyShowList (Set.toList _inputs)
                 , "outputs:" <+> prettyShowList _outputs
-                , "forge:" <+> viaShow _forge
+                , "forge:" <+> pretty _forge
                 , "required signatures:" <+> prettyShowList _requiredSignatures
                 , "validity range:" <+> viaShow _validityRange
                 ]
-        in braces (align (vsep lines'))
+        in braces $ nest 2 $ vsep lines'
 
 prettyShowList :: Show a => [a] -> Doc ann
 prettyShowList = hsep . punctuate comma . fmap viaShow

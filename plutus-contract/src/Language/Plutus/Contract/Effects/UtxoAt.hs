@@ -49,7 +49,7 @@ instance Pretty UtxoAtAddress where
     let
       prettyTxOutPair (txoutref, TxOutOf{txOutValue, txOutType}) =
         pretty txoutref <> colon <+> pretty txOutType <+> viaShow txOutValue
-      utxos = align $ hang 4 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
+      utxos = nest 2 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
     in "Utxo at" <+> pretty address <+> "=" <+> utxos
 
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Set Address)

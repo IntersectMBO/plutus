@@ -155,13 +155,13 @@ instance Pretty Tx where
         let lines' =
                 [ "inputs:" <+> prettyShowList (Set.toList txInputs)
                 , "outputs:" <+> hsep (punctuate comma $ fmap (pretty . txOutType) txOutputs)
-                , "forge:" <+> viaShow txForge
-                , "fee:" <+> viaShow txFee
-                , "required signatures:" <+> hsep (punctuate comma $ fmap (pretty . fst) (Map.toList txSignatures))
+                , "forge:" <+> pretty txForge
+                , "fee:" <+> pretty txFee
+                , "signatures:" <+> hsep (punctuate comma $ fmap (pretty . fst) (Map.toList txSignatures))
                 , "validity range:" <+> viaShow txValidRange
                 ]
             txid = hashTx t
-        in "Tx" <+> pretty txid <> colon <+> braces (nest 2 $ align (vsep lines'))
+        in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
 
 prettyShowList :: Show a => [a] -> Doc ann
 prettyShowList = hsep . punctuate comma . fmap viaShow

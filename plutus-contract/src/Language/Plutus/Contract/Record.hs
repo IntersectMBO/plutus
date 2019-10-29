@@ -25,8 +25,8 @@ data Record i =
 
 instance Pretty i => Pretty (Record i) where
   pretty = \case
-    OpenRec openRec -> "OpenRec" <+> parens (hang 2 (pretty openRec))
-    ClosedRec cr -> "ClosedRec" <+> parens (hang 2 (pretty cr))
+    OpenRec openRec -> "OpenRec" <+> parens (nest 2 (pretty openRec))
+    ClosedRec cr -> "ClosedRec" <+> parens (nest 2 (pretty cr))
 
 record :: Iso' (Record i) (Either (OpenRecord i) (ClosedRecord i))
 record = iso f g where
@@ -57,7 +57,7 @@ instance Functor ClosedRecord where
     ClosedAlt e -> ClosedAlt $ bimap (fmap f) (fmap f) e
 
 instance Pretty i => Pretty (ClosedRecord i) where
-  pretty = hang 2 . \case
+  pretty = nest 2 . \case
     ClosedLeaf vl -> "ClosedLeaf" <+> parens (pretty vl)
     ClosedBin l r -> "ClosedBin" <+> vsep [parens (pretty l), parens (pretty r)]
     ClosedAlt (Left cr) -> "ClosedAlt (Left)" <+> pretty cr
@@ -73,7 +73,7 @@ data OpenRecord i =
   deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 instance Pretty i => Pretty (OpenRecord i) where
-  pretty = hang 2 . \case
+  pretty = nest 2 . \case
     OpenLeaf Nothing -> "OpenLeaf Nothing"
     OpenLeaf (Just i) -> "OpenLeaf" <+> parens (pretty i)
     OpenBind r -> "OpenBind" <+> parens (pretty r)

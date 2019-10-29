@@ -17,6 +17,7 @@ import           Data.Proxy
 import           Data.Row
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 import           GHC.TypeLits                     (Symbol, symbolVal)
 
@@ -29,8 +30,16 @@ newtype EndpointDescription = EndpointDescription { getEndpointDescription :: St
     deriving newtype (ToJSON, FromJSON)
     deriving anyclass (IotsType)
 
+newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
+    deriving stock (Eq, Ord, Generic, Show)
+    deriving newtype (ToJSON, FromJSON)
+    deriving anyclass (IotsType)
+
+instance Show a => Pretty (EndpointValue a) where
+    pretty = viaShow . unEndpointValue
+
 type HasEndpoint l a s =
-  ( HasType l a (Input s)
+  ( HasType l (EndpointValue a) (Input s)
   , HasType l ActiveEndpoints (Output s)
   , KnownSymbol l
   , ContractRow s
@@ -40,21 +49,21 @@ newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDes
   deriving (Eq, Ord, Show)
   deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
 
-type Endpoint l a = l .== (a, ActiveEndpoints)
+type Endpoint l a = l .== (EndpointValue a, ActiveEndpoints)
 
 -- | Expose an endpoint, return the data that was entered
 endpoint
   :: forall l a s e.
      ( HasEndpoint l a s )
   => Contract s e a
-endpoint = request @l @_ @_ @s s where
+endpoint = unEndpointValue <$> request @l @_ @_ @s s where
   s = ActiveEndpoints $ Set.singleton $ EndpointDescription $ symbolVal (Proxy @l)
 
 event
-  :: forall (l :: Symbol) a s. (KnownSymbol l, HasType l a (Input s), AllUniqueLabels (Input s))
+  :: forall (l :: Symbol) a s. (KnownSymbol l, HasType l (EndpointValue a) (Input s), AllUniqueLabels (Input s))
   => a
   -> Event s
-event = Event . IsJust (Label @l)
+event = Event . IsJust (Label @l) . EndpointValue
 
 isActive
   :: forall (l :: Symbol) s. (KnownSymbol l, HasType l ActiveEndpoints (Output s))

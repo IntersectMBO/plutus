@@ -31,6 +31,7 @@ import           Data.Fixed
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), viaShow)
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
@@ -72,6 +73,9 @@ instance Haskell.Monoid Ada where
 
 instance Monoid Ada where
     mempty = Lovelace 0
+
+instance Pretty Ada where
+    pretty = viaShow
 
 makeLift ''Ada
 
