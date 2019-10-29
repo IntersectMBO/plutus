@@ -102,6 +102,27 @@ makeChoice :: (
 makeChoice tx marloweData choiceId choice = applyInputs tx marloweData [IChoice choiceId choice]
 
 
+{-| Create a simple transaction that just evaluates/reduces a contract.
+
+    Imagine a contract:
+    @
+    If (SlotIntervalStart `ValueLT` (Constant 100))
+        (When [] 200 (.. receive payment ..))
+        Close
+    @
+    In order to receive a payment, one have to firts evaluate the contract
+    before slot 100, and this transaction should not have any inputs.
+    Then, after slot 200, one can evaluate again to claim the payment.
+-}
+makeProgress :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => Tx
+    -> MarloweData
+    -> m MarloweData
+makeProgress tx marloweData = applyInputs tx marloweData []
+
+
 {-| Apply a list of 'Input' to a Marlowe contract.
     All inputs must be from a wallet owner.
     One can only apply an input that's expected from his/her PubKey.
@@ -153,9 +174,9 @@ applyInputs tx MarloweData{..} inputs = do
                         totalPayouts = foldMap (Ada.fromValue . txOutValue) payouts
                         finalBalance = totalIncome - totalPayouts + depositAmount
                         dataScript = DataScript (PlutusTx.toData marloweData)
-                        scritOutValue = Ada.toValue finalBalance
-                        scritOut = scriptTxOut scritOutValue validator dataScript
-                        in scritOut : payouts
+                        scriptOutValue = Ada.toValue finalBalance
+                        scriptOut = scriptTxOut scriptOutValue validator dataScript
+                        in scriptOut : payouts
 
             return (deducedTxOutputs, marloweData)
         Error txError -> throwOtherError (Text.pack $ show txError)

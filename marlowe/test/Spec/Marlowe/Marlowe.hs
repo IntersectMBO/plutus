@@ -53,6 +53,7 @@ tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe"
     , testProperty "Values form abelian group" valuesFormAbelianGroup
     , testProperty "Zero Coupon Bond Contract" zeroCouponBondTest
     , testProperty "Trust Fund Contract" trustFundTest
+    , testProperty "Make progress Contract" makeProgressTest
     ]
 
 
@@ -138,6 +139,33 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
 
     assertOwnFundsEq alice (Ada.adaValueOf 744)
     assertOwnFundsEq bob (Ada.adaValueOf 1256)
+
+
+makeProgressTest :: Property
+makeProgressTest = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList
+        [ (walletPubKey alice, Ada.adaValueOf 1000), (walletPubKey bob, Ada.adaValueOf 1000) ] }) $ do
+    -- Init a contract
+    let alicePk = walletPubKey alice
+        aliceAcc = AccountId 0 alicePk
+        bobPk = walletPubKey bob
+        update = updateAll [alice, bob]
+    update
+
+    let contract = If (SlotIntervalStart `ValueLT` Constant 10)
+            (When [Case (Deposit aliceAcc alicePk (Constant 500_000000))
+                    (Pay aliceAcc (Party bobPk) (AvailableMoney aliceAcc) Close)]
+                        (Slot 100) Close)
+            Close
+
+    let performs = performNotify [alice, bob]
+    (tx, md) <- alice `performs` createContract contract
+    addBlocksAndNotify [alice, bob] 5
+    (tx, md) <- alice `performs` makeProgress tx md
+    void $ alice `performs` deposit tx md aliceAcc (Ada.adaOf 500)
+
+    assertOwnFundsEq alice (Ada.adaValueOf 500)
+    assertOwnFundsEq bob (Ada.adaValueOf 1500)
 
 
 pubKeyGen :: Gen PubKey
@@ -238,4 +266,7 @@ showReadStuff = do
         \(Pay (AccountId 0 \"investor\") (Party \"investor\") (Constant 1000) Close))] \
         \20 Close)))] 10 Close"
     let contract :: Contract = read contractString
+    let contract2 :: Contract = Let (ValueId "id") (Constant 12) Close
     assertEqual "Contract" contract ((read . show . pretty) contract)
+    assertEqual "ValueId"  contract2 (read "Let \"id\" (Constant 12) Close")
+    assertEqual "ValueId"  contract2 ((read . show . pretty) contract2)

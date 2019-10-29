@@ -6,18 +6,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 module Language.Marlowe.Pretty where
 
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Char                    (isDigit)
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import qualified Data.Text.Encoding           as TE
-import           GHC.Generics                 ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1),
-                                               M1 (M1), Rep, S, U1, conName, from)
-import           Ledger                       (PubKey (..), Slot (..))
+import qualified Data.ByteString.Lazy    as BSL
+import           Data.String             (fromString)
+import           Data.Text               (Text)
+import qualified Data.Text               as Text
+import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
+                                          Rep, S, U1, conName, from)
+import           Ledger                  (PubKey (..), Slot (..))
 import           LedgerBytes
-import           Text.ParserCombinators.ReadP
-import           Text.PrettyPrint.Leijen      (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
-                                               rparen, space, text)
+import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
+                                          rparen, space, text)
 
 -- | This function will pretty print an a but will not wrap the whole
 -- expression in parentheses or add an initial newline, where as for
@@ -118,30 +116,20 @@ instance (Pretty a) => Pretty [a] where
 
  -}
 
-instance Pretty LedgerBytes where
-    prettyFragment (LedgerBytes lb) = prettyFragment lb
-
 instance Pretty Slot where
     prettyFragment (Slot n) = prettyFragment n
 
 instance Pretty PubKey where
-    prettyFragment (PubKey lb) = prettyFragment lb
+    prettyFragment (PubKey (LedgerBytes lb)) = prettyFragment lb
 
 pubKeyFromString :: String -> PubKey
-pubKeyFromString = PubKey . LedgerBytes . BSL.fromStrict . TE.encodeUtf8 . Text.pack
+pubKeyFromString = PubKey . LedgerBytes . fromString
 
 instance Read PubKey where
-    readsPrec _ = readP_to_S $ do
-        skipSpaces
-        _ <- char '\"'
-        s <- manyTill get (char '\"')
-        return $ pubKeyFromString s
+    readsPrec p x = [(PubKey (LedgerBytes v), s) | (v, s) <- readsPrec p x]
 
 instance Read Slot where
-    readsPrec _ = readP_to_S $ do
-        skipSpaces
-        digits <- many1 $ satisfy isDigit
-        return $ Slot (read digits)
+    readsPrec p x = [(Slot v, s) | (v, s) <- readsPrec p x]
 
 instance Pretty BSL.ByteString where
-    prettyFragment = text . show . TE.decodeUtf8 . BSL.toStrict
+    prettyFragment = text . show . BSL.toStrict

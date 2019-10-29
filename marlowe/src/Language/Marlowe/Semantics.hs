@@ -36,7 +36,7 @@ and actions (i.e. /Choices/) are passed as
 module Language.Marlowe.Semantics where
 
 import           GHC.Generics               (Generic)
-import           Language.Marlowe.Pretty    (Pretty)
+import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
@@ -119,9 +119,7 @@ data ChoiceId = ChoiceId ByteString Party
     and can be used by 'UseValue' construct.
 -}
 newtype ValueId = ValueId ByteString
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
-  deriving anyclass (Pretty)
-
+  deriving stock (Show,P.Eq,P.Ord)
 
 {-| Values include some quantities that change with time,
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
@@ -413,7 +411,7 @@ evalValue env state value = let
                 Just x  -> Ada.getLovelace x
                 Nothing -> 0
         Constant integer     -> integer
-        NegValue val         -> (-1) * eval val
+        NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
         ChoiceValue choiceId defVal ->
@@ -591,7 +589,7 @@ applyInput env state input (When cases _ _) = applyCases env state input cases
 applyInput _ _ _ _                          = ApplyNoMatchError
 
 
--- | Propogate 'ReduceWarning' to 'TransactionWarning'
+-- | Propagate 'ReduceWarning' to 'TransactionWarning'
 convertReduceWarnings :: [ReduceWarning] -> [TransactionWarning]
 convertReduceWarnings = foldr (\warn acc -> case warn of
     ReduceNoWarning -> acc
@@ -843,6 +841,14 @@ instance Eq ChoiceId where
 instance Eq ValueId where
     {-# INLINABLE (==) #-}
     (ValueId n1) == (ValueId n2) = n1 == n2
+
+
+instance Read ValueId where
+    readsPrec p x = [(ValueId v, s) | (v, s) <- readsPrec p x]
+
+
+instance Pretty ValueId where
+    prettyFragment (ValueId n) = prettyFragment n
 
 
 instance Eq Payee where
