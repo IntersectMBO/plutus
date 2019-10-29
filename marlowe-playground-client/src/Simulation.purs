@@ -5,14 +5,17 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
-import Bootstrap (btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, card_, col3_, col6, col_, empty, listGroupItem_, listGroup_, row_)
+import Ace.Types as Ace
+import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
+import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
 import Control.Alternative (map, (<|>))
-import Data.Array (catMaybes)
+import Data.Array (catMaybes, fromFoldable, head, sortBy)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (foldMap, intercalate)
+import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.HeytingAlgebra ((&&), (||))
 import Data.Lens (to, view, (^.))
@@ -26,18 +29,21 @@ import Data.Tuple (Tuple(..), snd)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), a, b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
-import Halogen.HTML.Properties (InputType(InputNumber), class_, classes, enabled, placeholder, prop, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, classes, enabled, id_, placeholder, prop, type_, value)
+import Halogen.HTML.Properties.ARIA (role)
 import LocalStorage as LocalStorage
-import Marlowe.Parser (MarloweHole(..), transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId, AccountIdF(..), Ada(..), BoundF(..), Bound, ChoiceId, ChoiceIdF(..), ChosenNum, Input, InputF(..), Party, PayeeF(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput, TransactionInputF(..), TransactionWarning(..), ValueId, ValueIdF(..), _accounts, _boundValues, _choices, inBounds)
+import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
+import Marlowe.Parser (transactionInputList, transactionWarningList)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (class Show, Unit, bind, const, discard, flip, identity, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, Unit, bind, compare, const, discard, flip, identity, mempty, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError)
+import Text.Parsing.Parser.Pos (Position(..))
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -80,12 +86,11 @@ simulationPane state =
               [ onDragOver $ Just <<< MarloweHandleDragEvent
               , onDrop $ Just <<< MarloweHandleDropEvent
               ]
-              -- TODO: I am being taken off this project temporarily so I'm hiding this for now
-              [ row_ [ div [ class_ $ ClassName "col-12" ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ] ] ]
-          -- [ row_ [ div [ class_ $ ClassName "col-9" ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ]
-          --  , holesPane (view (_marloweState <<< _Head <<< _holes) $ state)
-          --  ]
-          -- ]
+              [ row_
+                  [ div [ class_ $ col9 ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ]
+                  , holesPane (view _selectedHole state) (view (_marloweState <<< _Head <<< _holes) $ state)
+                  ]
+              ]
           , br_
           , errorList
           , analysisPane state
@@ -118,11 +123,94 @@ initEditor editor =
         session <- Editor.getSession editor
         Session.setMode "ace/mode/haskell" session
 
-holesPane :: forall p. Array MarloweHole -> HTML p HAction
-holesPane holes = col3_ [ card_ [ cardBody_ (map displayHole holes) ] ]
+holesPane :: forall p. Maybe String -> Holes -> HTML p HAction
+holesPane selectedHole (Holes holes) =
+  let
+    kvs = Map.toUnfoldable holes
 
-displayHole :: forall p. MarloweHole -> HTML p HAction
-displayHole (MarloweHole { name, marloweType }) = div [] [ text $ "Hole ?" <> name <> " of type " <> show marloweType ]
+    ordered = sortBy sortHoles kvs
+
+    holesGroup = map (\(Tuple k v) -> displayHole selectedHole k v) ordered
+  in
+    col3_
+      [ div
+          [ class_ $ ClassName "btn-group-vertical"
+          , role "group"
+          ]
+          holesGroup
+      ]
+  where
+  sortHoles = compare `on` (head <<< snd)
+
+displayHole :: forall p. Maybe String -> String -> Array MarloweHole -> HTML p HAction
+displayHole selectedHole name holes =
+  div [ classes ([ ClassName "btn-group" ] <> showClass) ]
+    [ button
+        [ classes [ btn, btnSecondary, dropdownToggle, ClassName "button-box" ]
+        , id_ ("hole-btn-" <> name)
+        , type_ ButtonButton
+        , dataToggle "dropdown"
+        , ariaHasPopup true
+        , ariaExpanded expanded
+        , onClick $ const $ Just $ SelectHole selectHole
+        ]
+        [ text name ]
+    , div
+        [ classes ([ ClassName "dropdown-menu" ] <> showClass)
+        , ariaLabelledBy ("hole-btn-" <> name)
+        ]
+        (holeDropdowns holes)
+    ]
+  where
+  expanded = selectedHole == Just name
+
+  showClass = if selectedHole == Just name then [ ClassName "show" ] else []
+
+  selectHole = if selectedHole == Just name then Nothing else Just name
+
+holeDropdowns :: forall p. Array MarloweHole -> Array (HTML p HAction)
+holeDropdowns holes = case Array.uncons holes of
+  Nothing -> mempty
+  Just { head: (MarloweHole { marloweType: BigIntegerType, end }) } ->
+    [ div
+        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
+        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        ]
+        [ text "Replace the hole with an integer" ]
+    ]
+  Just { head: (MarloweHole { marloweType: StringType, end }) } ->
+    [ div
+        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
+        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        ]
+        [ text "Replace the hole with a string" ]
+    ]
+  Just { head: (MarloweHole { marloweType: ValueIdType, end }) } ->
+    [ div
+        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
+        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        ]
+        [ text "Replace the hole with a string" ]
+    ]
+  Just { head: (MarloweHole { marloweType: SlotType, end }) } ->
+    [ div
+        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
+        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        ]
+        [ text "Replace the hole with an integer" ]
+    ]
+  Just { head: hole@(MarloweHole { marloweType }) } ->
+    map
+      ( \constructor ->
+          a
+            [ class_ $ ClassName "dropdown-item"
+            , onClick $ const $ Just $ InsertHole constructor hole holes
+            ]
+            [ text constructor ]
+      )
+      (fromFoldable $ Map.keys $ getMarloweConstructors marloweType)
+  where
+  holeToAcePosition (Position { column, line }) = Ace.Position { column, row: line }
 
 demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =
@@ -539,8 +627,8 @@ stateTitle state =
     [ paneHeader "State"
     , span
         [ classes
-            [ ClassName "btn"
-            , ClassName "btn-sm"
+            [ btn
+            , btnSmall
             ]
         ]
         [ strong_

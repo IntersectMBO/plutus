@@ -259,6 +259,9 @@ btnExtraSmall = ClassName "btn-xs"
 btnLink :: ClassName
 btnLink = ClassName "btn-link"
 
+dropdownToggle :: ClassName
+dropdownToggle = ClassName "dropdown-toggle"
+
 pullLeft :: ClassName
 pullLeft = ClassName "pull-left"
 
