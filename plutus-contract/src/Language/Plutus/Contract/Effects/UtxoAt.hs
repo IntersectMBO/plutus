@@ -13,27 +13,28 @@
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.UtxoAt where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Map                         (Map)
-import qualified Data.Map                         as Map
+import           Data.Aeson                                    (FromJSON, ToJSON)
+import           Data.Map                                      (Map)
+import qualified Data.Map                                      as Map
 import           Data.Row
-import           Data.Set                         (Set)
-import qualified Data.Set                         as Set
+import           Data.Set                                      (Set)
+import qualified Data.Set                                      as Set
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, TxOutOf (..))
-import           Ledger.AddressMap                (AddressMap)
-import qualified Ledger.AddressMap                as AM
-import           Ledger.Tx                        (TxOut, TxOutRef)
+import           GHC.Generics                                  (Generic)
+import           Ledger                                        (Address, TxOutOf (..))
+import           Ledger.AddressMap                             (AddressMap)
+import qualified Ledger.AddressMap                             as AM
+import           Ledger.Tx                                     (TxOut, TxOutRef)
 
-import           Language.Plutus.Contract.Request (Contract, ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Effects.WatchAddress (AddressSet (..))
+import           Language.Plutus.Contract.Request              (Contract, ContractRow, requestMaybe)
+import           Language.Plutus.Contract.Schema               (Event (..), Handlers (..), Input, Output)
 
 type UtxoAtSym = "utxo-at"
 
 type HasUtxoAt s =
     ( HasType UtxoAtSym UtxoAtAddress (Input s)
-    , HasType UtxoAtSym (Set Address) (Output s)
+    , HasType UtxoAtSym AddressSet (Output s)
     , ContractRow s)
 
 data UtxoAtAddress =
@@ -52,7 +53,7 @@ instance Pretty UtxoAtAddress where
       utxos = nest 2 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
     in "Utxo at" <+> pretty address <+> "=" <+> utxos
 
-type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Set Address)
+type UtxoAt = UtxoAtSym .== (UtxoAtAddress, AddressSet)
 
 -- | Get the unspent transaction outputs at an address.
 utxoAt :: forall s e. HasUtxoAt s => Address -> Contract s e AddressMap
@@ -61,7 +62,7 @@ utxoAt address' =
         check UtxoAtAddress{address,utxo} =
           if address' == address then Just (AM.AddressMap $ Map.singleton address utxo) else Nothing
     in
-    requestMaybe @UtxoAtSym @_ @_ @s (Set.singleton address') check
+    requestMaybe @UtxoAtSym @_ @_ @s (AddressSet $ Set.singleton address') check
 
 event
     :: forall s.
@@ -75,4 +76,4 @@ addresses
     ( HasUtxoAt s )
     => Handlers s
     -> Set Address
-addresses (Handlers r) = r .! Label @UtxoAtSym
+addresses (Handlers r) = unAddressSet (r .! Label @UtxoAtSym)

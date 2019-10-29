@@ -31,6 +31,7 @@ module Language.Plutus.Contract.Test(
     , emulatorLog
     -- * Checking predicates
     , checkPredicate
+    , renderTraceContext
     ) where
 
 import           Control.Lens                          (at, folded, from, to, view, (^.))
@@ -44,7 +45,8 @@ import           Data.Proxy                            (Proxy(..))
 import           Data.Row
 import           Data.String                           (IsString(..))
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.String (renderString)
+import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import qualified Data.Text                             as Text
 import qualified Data.Set                              as Set
 import           Data.Void
 import           GHC.TypeLits                          (Symbol, KnownSymbol, symbolVal)
@@ -128,7 +130,11 @@ checkPredicate
     :: forall s e a
     . (EM.AsAssertionError e
       , Show e
-      , Forall (Input s) Pretty)
+      , AllUniqueLabels (Output s)
+      , Forall (Input s) Pretty
+      , Forall (Output s) Semigroup
+      , Forall (Output s) Pretty
+      , Forall (Output s) Monoid)
     => String
     -> Contract s e a
     -> TracePredicate s e a
@@ -141,12 +147,38 @@ checkPredicate nm con predicate action =
                 HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
             (Right (_, st), ms) -> do
                 let dt = ContractTraceResult ms st
-                    (result, emLog) = runWriter $ unPredF predicate (defaultDist, dt)
-                unless result $ do
-                    step (renderString $ layoutPretty defaultLayoutOptions emLog)
-                    step "Events by wallets"
-                    step (renderString $ layoutPretty defaultLayoutOptions (prettyWalletEvents st))
+                    (result, testOutputs) = runWriter $ unPredF predicate (defaultDist, dt)
+                unless result (step . Text.unpack $ renderTraceContext testOutputs st)
                 HUnit.assertBool nm result
+
+renderTraceContext
+    :: forall s e a ann.
+        ( Forall (Input s) Pretty
+        , AllUniqueLabels (Output s)
+        , Forall (Output s) Semigroup
+        , Forall (Output s) Monoid
+        , Forall (Output s) Pretty
+        , Show e
+        )
+    => Doc ann
+    -> ContractTraceState s e a
+    -> Text.Text
+renderTraceContext testOutputs st =
+    let nonEmptyLogs = filter (P.not . null . snd) (Map.toList $ fmap toList $ view ctsEvents st)
+        theContract = unContract (view ctsContract st)
+        results = fmap (\(wallet, events) -> (wallet, State.runResumable events theContract)) nonEmptyLogs
+        prettyResults = fmap (\(wallet, res) -> hang 2 $ vsep ["Wallet:" <+> pretty wallet, prettyResult res]) results
+        prettyResult result = case result of
+            Left err -> 
+                hang 2 $ vsep ["Error:", viaShow err]
+            Right (Left _, handlers) -> 
+                hang 2 $ vsep ["Running, waiting for input:", pretty handlers]
+            Right (Right _, _) -> "Done"
+    in renderStrict $ layoutPretty defaultLayoutOptions $ vsep
+        [ hang 2 (vsep ["Test outputs:", testOutputs])
+        , hang 2 (vsep ["Events by wallet:", prettyWalletEvents st])
+        , hang 2 (vsep ["Contract result by wallet:", hang 2 $ vsep prettyResults])
+        ]
 
 prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
 prettyWalletEvents cts = 

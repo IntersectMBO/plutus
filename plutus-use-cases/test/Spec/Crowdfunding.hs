@@ -7,12 +7,17 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
+import           Control.Monad.Except
+import           Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable                                         (traverse_)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Spec.Lib                                              as Lib
 import           Spec.Lib                                              (timesFeeAdjust)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                      as HUnit
+import           Test.Tasty.Golden                                     (goldenVsString)
 
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
@@ -114,4 +119,30 @@ tests = testGroup "crowdfunding"
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
         in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 50000)
+
+    , goldenVsString
+        "renders the context of a trace sensibly"
+        "test/Spec/crowdfundingTestOutput.txt"
+        (renderPredicate 
+            (crowdfunding theCampaign) 
+            (makeContribution w1 (Ada.lovelaceValueOf 10)))
+
+    , goldenVsString
+        "renders an error sensibly"
+        "test/Spec/contractError.txt"
+        (renderPredicate
+            (throwError "something went wrong")
+            (startCampaign))
     ]
+
+renderPredicate 
+    :: Contract CrowdfundingSchema T.Text ()
+    -> ContractTrace CrowdfundingSchema T.Text (EmulatorAction T.Text) () ()
+    -> IO ByteString
+renderPredicate contract trace = do
+    case runTrace contract trace of
+        (Left err, _) ->
+            HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
+        (Right (_, st), _) -> do
+            pure $ BSL.fromStrict $ T.encodeUtf8 $ renderTraceContext mempty st
+            

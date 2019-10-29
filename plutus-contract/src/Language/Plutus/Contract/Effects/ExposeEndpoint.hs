@@ -31,6 +31,7 @@ newtype EndpointDescription = EndpointDescription { getEndpointDescription :: St
     deriving stock (Eq, Ord, Generic, Show)
     deriving newtype (ToJSON, FromJSON)
     deriving anyclass (IotsType)
+    deriving Pretty via (PrettyShow String)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
@@ -49,6 +50,7 @@ type HasEndpoint l a s =
 newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDescription }
   deriving (Eq, Ord, Show)
   deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+  deriving Pretty via (PrettyFoldable Set EndpointDescription)
 
 type Endpoint l a = l .== (EndpointValue a, ActiveEndpoints)
 

@@ -60,7 +60,7 @@ deriving newtype instance Forall (Input s) Eq => Eq (Event s)
 instance (Forall (Input s) Pretty) => Pretty (Event s) where
   pretty (Event e) =
     let (lbl, vl) = Variants.eraseWithLabels @Pretty pretty e in
-    braces (lbl <> colon <+> vl)
+    hang 1 (braces $ vsep [lbl <> colon, vl])
 
 deriving via JsonVar (Input s) instance (AllUniqueLabels (Input s), Forall (Input s) FromJSON) => FromJSON (Event s)
 
@@ -77,7 +77,7 @@ deriving newtype instance Forall (Output s) Eq   => Eq (Handlers s)
 instance (Forall (Output s) Pretty) => Pretty (Handlers s) where
   pretty (Handlers s) = 
     let entries = Records.eraseWithLabels @Pretty pretty s in
-    braces (vsep (fmap (\(lbl, vl) -> lbl <> colon <+> vl) entries))
+    hang 1 (braces (vsep (fmap (\(lbl, vl) -> lbl <> colon <+> vl) entries)))
 
 deriving via (MonoidRec (Output s)) instance (Forall (Output s) Semigroup) => Semigroup (Handlers s)
 

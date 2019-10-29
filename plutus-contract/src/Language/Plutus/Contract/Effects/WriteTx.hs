@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
@@ -18,6 +19,7 @@ import           Control.Monad.Error.Lens         (throwing)
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 
 import           Language.Plutus.Contract.Request as Req
@@ -56,6 +58,7 @@ newtype PendingTransactions =
   PendingTransactions { unPendingTransactions :: [UnbalancedTx] }
     deriving stock (Eq, Generic, Show)
     deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+    deriving Pretty via (PrettyFoldable [] UnbalancedTx)
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction, or an error.
