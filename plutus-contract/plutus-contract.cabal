@@ -86,7 +86,8 @@ library
         mmorph -any,
         tasty -any,
         tasty-hunit -any,
-        row-types -any
+        row-types -any,
+        prettyprinter >=1.1.0.1
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0

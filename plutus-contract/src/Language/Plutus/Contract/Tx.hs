@@ -6,6 +6,8 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 module Language.Plutus.Contract.Tx(
@@ -31,6 +33,7 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 
 import           Language.PlutusTx.Lattice
@@ -58,6 +61,20 @@ data UnbalancedTx = UnbalancedTx
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
 Lens.TH.makeLenses ''UnbalancedTx
+
+instance Pretty UnbalancedTx where
+    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _validityRange} =
+        let lines' =
+                [ "inputs:" <+> prettyShowList (Set.toList _inputs)
+                , "outputs:" <+> prettyShowList _outputs
+                , "forge:" <+> pretty _forge
+                , "required signatures:" <+> prettyShowList _requiredSignatures
+                , "validity range:" <+> viaShow _validityRange
+                ]
+        in braces $ nest 2 $ vsep lines'
+
+prettyShowList :: Show a => [a] -> Doc ann
+prettyShowList = hsep . punctuate comma . fmap viaShow
 
 -- TODO: this is a bit of a hack, I'm not sure quite what the best way to avoid this is
 fromLedgerTx :: L.Tx -> UnbalancedTx

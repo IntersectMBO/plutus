@@ -102,6 +102,7 @@ import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
 
 import qualified Data.Text                 as Text
+import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
@@ -253,6 +254,15 @@ data WalletAPIError =
     | OtherError Text
     -- ^ Some other error occurred.
     deriving (Show, Eq, Ord, Generic)
+
+instance Pretty WalletAPIError where
+    pretty = \case
+        InsufficientFunds t ->
+            "Insufficient funds:" <+> pretty t
+        PrivateKeyNotFound pk ->
+            "Private key not found:" <+> viaShow pk
+        OtherError t ->
+            "Other error:" <+> pretty t
 
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError

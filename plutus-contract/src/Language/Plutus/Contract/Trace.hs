@@ -65,6 +65,7 @@ import qualified Language.Plutus.Contract.Wallet                 as Wallet
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
@@ -195,9 +196,8 @@ runWallet w t = do
 callEndpoint
     :: forall l ep s e m a.
        ( MonadEmulator e m
-       , KnownSymbol l
-       , HasType l ep (Input s)
-       , AllUniqueLabels (Input s))
+       , HasEndpoint l ep s
+       )
     => Wallet
     -> ep
     -> ContractTrace s e m a ()
@@ -216,7 +216,7 @@ submitUnbalancedTx
     -> ContractTrace s e m a [Tx]
 submitUnbalancedTx wllt tx = do
     (txns, res) <- lift (runWallet wllt (Wallet.handleTx tx))
-    addEvent wllt (WriteTx.event $ fmap hashTx res)
+    addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap hashTx res)
     pure txns
 
 -- | Add the 'LedgerUpdate' event for the given transaction to

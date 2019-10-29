@@ -28,6 +28,7 @@ module Language.Plutus.Contract.Resumable(
     ) where
 
 import           Control.Applicative
+import           Control.Lens
 import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
@@ -382,13 +383,13 @@ updateRecord
     -> Either (ResumableError e) (Record i, o)
 updateRecord con rc =
     case rc of
-        Right cl ->
-            fmap (first $ const $ Right cl)
+        ClosedRec cl ->
+            fmap (first $ const $ ClosedRec cl)
             $ runExcept
             $ runWriterT
             $ runClosed con cl
-        Left cl  ->
-            fmap (first (fmap fst))
+        OpenRec cl  ->
+            fmap (first (view (from record) . fmap fst))
             $ runExcept
             $ runWriterT
             $ runOpen con cl
@@ -409,9 +410,16 @@ runResumable es con = do
     initial <- runExcept $ runWriterT (initialise con)
     foldM go initial es where
         go r e =
-            let r' = insert e (fst <$> fst r)
+            let r' = over (from record) (insert e) (fst <$> fst r)
                 result = case r' of
-                            Left open -> runExcept $ runWriterT $ runOpen con open
-                            Right closed -> fmap (\(a, h) -> (Right (closed, a), h)) $ runExcept $ runWriterT $ runClosed con closed
+                    Left open -> 
+                        runExcept 
+                        $ runWriterT 
+                        $ runOpen con open
+                    Right closed -> 
+                        fmap (\(a, h) -> (Right (closed, a), h)) 
+                        $ runExcept 
+                        $ runWriterT 
+                        $ runClosed con closed
             in result
     

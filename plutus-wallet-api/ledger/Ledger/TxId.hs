@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 -- ToJSON/FromJSON/Serialise (Digest SHA256)
@@ -12,17 +13,18 @@ module Ledger.TxId(
     , TxId
     ) where
 
-import           Codec.Serialise.Class  (Serialise, decode, encode)
-import           Crypto.Hash            (Digest, SHA256, digestFromByteString)
-import           Data.Aeson             (FromJSON (parseJSON), ToJSON (toJSON))
-import qualified Data.Aeson             as JSON
-import qualified Data.Aeson.Extras      as JSON
-import qualified Data.ByteArray         as BA
-import qualified Data.ByteString        as BSS
-import           GHC.Generics           (Generic)
-import qualified Language.PlutusTx.Eq   as PlutusTx
-import           Language.PlutusTx.Lift (makeLift)
-import           Schema                 (ToSchema)
+import           Codec.Serialise.Class     (Serialise, decode, encode)
+import           Crypto.Hash               (Digest, SHA256, digestFromByteString)
+import           Data.Aeson                (FromJSON (parseJSON), ToJSON (toJSON))
+import qualified Data.Aeson                as JSON
+import qualified Data.Aeson.Extras         as JSON
+import qualified Data.ByteArray            as BA
+import qualified Data.ByteString           as BSS
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           GHC.Generics              (Generic)
+import qualified Language.PlutusTx.Eq      as PlutusTx
+import           Language.PlutusTx.Lift    (makeLift)
+import           Schema                    (ToSchema)
 
 instance Serialise (Digest SHA256) where
     encode = encode . BA.unpack
@@ -52,3 +54,6 @@ deriving newtype instance Serialise TxId
 deriving newtype instance PlutusTx.Eq h => PlutusTx.Eq (TxIdOf h)
 deriving anyclass instance ToJSON a => ToJSON (TxIdOf a)
 deriving anyclass instance FromJSON a => FromJSON (TxIdOf a)
+
+instance Pretty (TxIdOf (Digest SHA256)) where
+    pretty t = "TxId:" <+> pretty (JSON.encodeSerialise $ getTxId t)

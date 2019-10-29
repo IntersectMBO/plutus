@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE DerivingVia         #-}
 module Language.Plutus.Contract.Effects.WatchAddress where
 
 import           Control.Lens                               (at, (^.))
@@ -18,6 +19,8 @@ import           Data.Maybe                                 (fromMaybe)
 import           Data.Row
 import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
+import           Data.Text.Prettyprint.Doc                  (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                               (Generic)
 import           Ledger                                     (Address, Slot, TxId, Value, hashTx)
 import           Ledger.AddressMap                          (AddressMap)
@@ -34,15 +37,16 @@ type AddressSymbol = "address"
 
 type HasWatchAddress s =
     ( HasType AddressSymbol (Address, Tx) (Input s)
-    , HasType AddressSymbol (Set Address) (Output s)
+    , HasType AddressSymbol AddressSet (Output s)
     , ContractRow s)
 
-type WatchAddress = AddressSymbol .== ((Address, Tx), Set Address)
+type WatchAddress = AddressSymbol .== ((Address, Tx), AddressSet)
 
-newtype InterestingAddresses =
-    InterestingAddresses  { unInterestingAddresses :: Set Address }
+newtype AddressSet =
+    AddressSet  { unAddressSet :: Set Address }
         deriving stock (Eq, Ord, Generic, Show)
         deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+        deriving Pretty via (PrettyFoldable Set Address)
 
 -- | Wait for the next transaction that changes an address.
 nextTransactionAt :: forall s e. HasWatchAddress s => Address -> Contract s e Tx
@@ -51,7 +55,7 @@ nextTransactionAt addr =
         check :: (Address, Tx) -> Maybe Tx
         check (addr', tx) = if addr == addr' then Just tx else Nothing
     in
-    requestMaybe @AddressSymbol @_ @_ @s s check
+    requestMaybe @AddressSymbol @_ @_ @s (AddressSet s) check
 
 -- | Watch an address until the given slot, then return all known outputs
 --   at the address.
@@ -113,7 +117,7 @@ events utxo tx =
 
 addresses
     :: forall s.
-    ( HasType AddressSymbol (Set Address) (Output s))
+    ( HasType AddressSymbol AddressSet (Output s))
     => Handlers s
     -> Set Address
-addresses (Handlers r) = r .! Label @AddressSymbol
+addresses (Handlers r) = unAddressSet (r .! Label @AddressSymbol)

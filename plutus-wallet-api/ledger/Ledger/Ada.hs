@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -31,6 +32,8 @@ import           Data.Fixed
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
@@ -60,6 +63,8 @@ newtype Ada = Lovelace { getLovelace :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
     deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
+
+deriving via (PrettyShow Ada) instance (Pretty Ada)
 
 instance Haskell.Semigroup Ada where
     Lovelace a1 <> Lovelace a2 = Lovelace (a1 + a2)

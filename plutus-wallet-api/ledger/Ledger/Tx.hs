@@ -3,6 +3,9 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
@@ -63,6 +66,7 @@ import           Codec.Serialise.Class     (Serialise, encode)
 import           Control.Lens
 import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import           Data.Aeson.Extras         (encodeSerialise)
 import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Char8     as BS8
 import qualified Data.ByteString.Lazy      as BSL
@@ -71,6 +75,7 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           Schema                    (ToSchema)
 
@@ -113,6 +118,9 @@ especially because we only need one direction (to binary).
 newtype AddressOf h = AddressOf { getAddress :: h }
     deriving stock (Eq, Ord, Show, Generic)
 
+instance Pretty (AddressOf (Digest SHA256)) where
+    pretty = pretty . encodeSerialise . getAddress
+
 -- | A payment address using a SHA256 hash as the address id type.
 type Address = AddressOf (Digest SHA256)
 
@@ -141,6 +149,22 @@ data Tx = Tx {
     -- ^ Signatures of this transaction
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise)
+
+instance Pretty Tx where
+    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures} =
+        let lines' =
+                [ "inputs:" <+> prettyShowList (Set.toList txInputs)
+                , "outputs:" <+> hsep (punctuate comma $ fmap (pretty . txOutType) txOutputs)
+                , "forge:" <+> pretty txForge
+                , "fee:" <+> pretty txFee
+                , "signatures:" <+> hsep (punctuate comma $ fmap (pretty . fst) (Map.toList txSignatures))
+                , "validity range:" <+> viaShow txValidRange
+                ]
+            txid = hashTx t
+        in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
+
+prettyShowList :: Show a => [a] -> Doc ann
+prettyShowList = hsep . punctuate comma . fmap viaShow
 
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
@@ -227,6 +251,9 @@ data TxOutRefOf h = TxOutRefOf {
 -- | A reference to a transaction output, using a SHA256 hash.
 type TxOutRef = TxOutRefOf (Digest SHA256)
 
+instance Pretty (TxOutRefOf (Digest SHA256)) where
+    pretty TxOutRefOf{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
+
 deriving instance Serialise TxOutRef
 deriving instance ToJSON TxOutRef
 deriving instance FromJSON TxOutRef
@@ -307,6 +334,11 @@ data TxOutType =
     PayToScript !DataScript -- ^ A pay-to-script output with the given data script.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, ToJSONKey)
+
+instance Pretty TxOutType where
+    pretty = \case
+        PayToScript (DataScript ds) -> "PayToScript:" <+> pretty ds
+        PayToPubKey pk -> "PayToPubKey:" <+> pretty pk
 
 -- | A transaction output, using the given transaction id type, consisting of a target address,
 -- a value, and an output type.
