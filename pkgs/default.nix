@@ -44469,8 +44469,21 @@ license = "GPL";
 ({
   mkDerivation
 , base
+, bytestring
+, cborg
 , containers
+, hedgehog
+, memory
+, mtl
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, serialise
 , stdenv
+, tasty
+, tasty-hedgehog
+, tasty-hunit
+, template-haskell
 , text
 , unlit
 , wl-pprint
@@ -44482,12 +44495,34 @@ version = "0.1.0.0";
 src = .././marlowe;
 libraryHaskellDepends = [
 base
+bytestring
 containers
+mtl
+plutus-tx
+plutus-wallet-api
+template-haskell
 text
 wl-pprint
 ];
 libraryToolDepends = [
 unlit
+];
+testHaskellDepends = [
+base
+bytestring
+cborg
+containers
+hedgehog
+memory
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+serialise
+tasty
+tasty-hedgehog
+tasty-hunit
+template-haskell
+text
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
@@ -44521,6 +44556,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , optparse-applicative
 , playground-common
+, plutus-wallet-api
 , process
 , prometheus
 , purescript-bridge
@@ -44610,6 +44646,7 @@ monad-logger
 mtl
 optparse-applicative
 playground-common
+plutus-wallet-api
 prometheus
 purescript-bridge
 servant-client
@@ -44647,6 +44684,7 @@ license = stdenv.lib.licenses.asl20;
 , http-client
 , http-client-tls
 , marlowe
+, plutus-wallet-api
 , process
 , sbv
 , servant
@@ -44668,6 +44706,7 @@ containers
 http-client
 http-client-tls
 marlowe
+plutus-wallet-api
 process
 sbv
 servant

@@ -5,18 +5,20 @@ import           Data.List                  (foldl')
 import           Data.Map.Strict            (Map)
 import qualified Data.Map.Strict            as Map
 import           Data.String
-import qualified Data.Text                  as T
 
+import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
+import           Ledger                     (PubKey (..))
+import qualified Ledger.Ada                 as Ada
 
 instance IsString PubKey where
-    fromString s = PubKey (T.pack s)
+    fromString = pubKeyFromString
 
 instance IsString AccountId where
-    fromString s = AccountId 0 (PubKey (T.pack s))
+    fromString s = AccountId 0 (fromString s)
 
 instance IsString ValueId where
-    fromString s = ValueId (T.pack s)
+    fromString = ValueId . fromString
 
 alicePubKey :: PubKey
 alicePubKey = PubKey "Alice"
@@ -57,7 +59,7 @@ emptyAccountsDiff = Map.empty
 
 
 isEmptyAccountsDiff :: AccountsDiff -> Bool
-isEmptyAccountsDiff = all (== Lovelace 0)
+isEmptyAccountsDiff = all (== Ada.lovelaceOf 0)
 
 
 -- Adds a value to the map of outcomes

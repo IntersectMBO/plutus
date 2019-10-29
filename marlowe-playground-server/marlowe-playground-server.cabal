@@ -2,7 +2,7 @@ cabal-version: >=1.10
 name: marlowe-playground-server
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 author: Pablo Lamela
@@ -102,6 +102,7 @@ executable marlowe-playground-server
         marlowe-symbolic -any,
         monad-logger -any,
         mtl -any,
+        plutus-wallet-api,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,

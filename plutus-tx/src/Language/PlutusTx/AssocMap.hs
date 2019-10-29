@@ -21,6 +21,9 @@ module Language.PlutusTx.AssocMap (
     , toList
     , keys
     , lookup
+    , member
+    , insert
+    , delete
     , union
     , all
     , mapThese
@@ -75,6 +78,24 @@ lookup c (Map xs) =
         go []            = Nothing
         go ((c', i):xs') = if c' == c then Just i else go xs'
     in go xs
+
+
+{-# INLINABLE member #-}
+-- | Is the key a member of the map?
+member :: forall k v . (Eq k) => k -> Map k v -> Bool
+member k m = isJust (lookup k m)
+
+{-# INLINABLE insert #-}
+insert :: forall k v . Eq k => k -> v -> Map k v -> Map k v
+insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
+
+{-# INLINABLE delete #-}
+delete :: forall k v . (Eq k) => k -> Map k v -> Map k v
+delete key (Map ls) = Map (go ls)
+  where
+    go [] = []
+    go ((k, v) : rest) | k == key = rest
+                       | otherwise = (k, v) : go rest
 
 {-# INLINABLE keys #-}
 -- | The keys of a 'Map'.
