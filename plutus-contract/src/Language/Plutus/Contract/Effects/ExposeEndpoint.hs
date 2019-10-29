@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -18,6 +19,7 @@ import           Data.Row
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           GHC.TypeLits                     (Symbol, symbolVal)
 
@@ -35,8 +37,7 @@ newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving newtype (ToJSON, FromJSON)
     deriving anyclass (IotsType)
 
-instance Show a => Pretty (EndpointValue a) where
-    pretty = viaShow . unEndpointValue
+deriving via (PrettyShow a) instance (Show a => Pretty (EndpointValue a))
 
 type HasEndpoint l a s =
   ( HasType l (EndpointValue a) (Input s)

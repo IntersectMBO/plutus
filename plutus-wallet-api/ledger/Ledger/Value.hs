@@ -53,6 +53,7 @@ import           Data.Hashable                (Hashable)
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Builtins   as Builtins
@@ -146,8 +147,8 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
     deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
     deriving newtype (Serialise, PlutusTx.IsData)
 
-instance Pretty Value where
-    pretty = viaShow
+deriving via (PrettyShow Value) instance Pretty Value
+
 
 instance ToSchema Value where
     toSchema = FormSchemaValue

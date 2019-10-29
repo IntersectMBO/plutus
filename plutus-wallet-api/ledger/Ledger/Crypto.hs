@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DerivingVia        #-}
 module Ledger.Crypto(
     PubKey(..)
     , PrivateKey(..)
@@ -44,6 +45,7 @@ import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
@@ -64,8 +66,7 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 makeLift ''PubKey
 
-instance Pretty PubKey where
-    pretty pk = "PubKey:" <+> viaShow (getPubKey pk)
+deriving via (PrettyShow LedgerBytes) instance Pretty PubKey
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
@@ -73,10 +74,9 @@ newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
-makeLift ''PrivateKey
+deriving via (PrettyShow PrivateKey) instance (Pretty PrivateKey)
 
-instance Pretty PrivateKey where
-    pretty pk = "PrivateKey:" <+> viaShow (getPrivateKey pk)
+makeLift ''PrivateKey
 
 instance ToHttpApiData PrivateKey where
     toUrlPiece = toUrlPiece . getPrivateKey
