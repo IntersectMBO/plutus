@@ -196,7 +196,7 @@ trivial = bgroup "trivial" [
         bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
     ]
     where
-        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> True ||])
+        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
 
 -- | The multisig contract is one of the simplest ones that we have. This runs a number of different scenarios.
 -- Note that multisig also does some signature verification!
