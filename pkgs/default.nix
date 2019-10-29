@@ -41746,6 +41746,7 @@ happy
 ];
 executableHaskellDepends = [
 base
+hedgehog
 text
 ];
 testHaskellDepends = [
@@ -53933,6 +53934,7 @@ mtl
 plutus-emulator
 plutus-tx
 plutus-wallet-api
+prettyprinter
 profunctors
 row-types
 semigroupoids
