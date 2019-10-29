@@ -12,8 +12,8 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Parser (AccountId, Action, Case, ChoiceId, Contract, Observation, Payee, Term(..), Value, ValueId)
-import Marlowe.Semantics (AccountIdF(..), ActionF(..), Bound(..), CaseF(..), ChoiceIdF(..), ContractF(..), SlotInterval(..), ObservationF(..), PayeeF(..), PubKey, Slot(..), Timeout, ValueF(..), ValueIdF(..))
+import Marlowe.Parser (AccountId, Action, Case, ChoiceId, Contract, Observation, Payee, Term(..), Value, ValueId, Bound)
+import Marlowe.Semantics (AccountIdF(..), ActionF(..), BoundF(..), CaseF(..), ChoiceIdF(..), ContractF(..), SlotInterval(..), ObservationF(..), PayeeF(..), PubKey, Slot(..), Timeout, ValueF(..), ValueIdF(..))
 import Text.Parsing.Parser.Pos (Position(..))
 import Type.Proxy (Proxy(..))
 
@@ -52,11 +52,12 @@ genSlotInterval gen = do
   to <- suchThat gen (\v -> v > from)
   pure $ SlotInterval from to
 
-genBound :: forall m. MonadGen m => MonadRec m => m Bound
+genBound :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Bound
 genBound = do
   from <- genBigInteger
-  to <- suchThat genBigInteger (\v -> v > from)
-  pure $ Bound from to
+  from' <- genTerm $ pure from
+  to <- genTerm $ suchThat genBigInteger (\v -> v > from)
+  pure $ Bound from' to
 
 genPosition :: forall m. MonadGen m => MonadRec m => m Position
 genPosition = do
@@ -90,12 +91,12 @@ genChoiceId = do
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genPubKey ]
+genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm genPubKey ]
 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadAsk Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genAccountId <*> genPubKey <*> genValue' size)
+    $ (Deposit <$> genAccountId <*> genTerm genPubKey <*> genValue' size)
     :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable genBound)
       , Notify <$> genObservation' size
       ]
@@ -248,7 +249,7 @@ genContract' size
         oneOf $ pure Close
           :| [ Pay <$> genAccountId <*> genPayee <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContract <*> genNewContract
-            , When <$> genCases newSize <*> genTimeout <*> genNewContract
+            , When <$> genCases newSize <*> genTerm genTimeout <*> genNewContract
             , Let <$> genValueId <*> genNewValue <*> genNewContract
             ]
   | otherwise = genLeaf
