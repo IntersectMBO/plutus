@@ -1,5 +1,4 @@
 {-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -265,9 +264,9 @@ runClosed con rc =
                         CStep con' -> do
                             let r = runStep con' evt
                             case r of
-                                Left _ -> 
+                                Left _ ->
                                     throwRecordmismatchError "ClosedLeaf, contract not finished"
-                                Right a  -> 
+                                Right a  ->
                                     pure a
                         _ -> throwRecordmismatchError "ClosedLeaf, expected CStep "
                 ClosedLeaf (FinalJSON vl) ->
@@ -394,17 +393,17 @@ updateRecord con rc =
             $ runWriterT
             $ runOpen con cl
 
-execResumable 
+execResumable
     :: Monoid o
     => [i]
     -> Resumable e (Step (Maybe i) o) a
     -> Either (ResumableError e) o
 execResumable es = fmap snd . runResumable es
 
-runResumable 
-    :: Monoid o 
-    => [i] 
-    -> Resumable e (Step (Maybe i) o) a 
+runResumable
+    :: Monoid o
+    => [i]
+    -> Resumable e (Step (Maybe i) o) a
     -> Either (ResumableError e) (Either (OpenRecord i) (ClosedRecord i, a), o)
 runResumable es con = do
     initial <- runExcept $ runWriterT (initialise con)
@@ -422,4 +421,3 @@ runResumable es con = do
                         $ runWriterT 
                         $ runClosed con closed
             in result
-    
