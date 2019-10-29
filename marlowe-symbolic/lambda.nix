@@ -9,7 +9,7 @@
 # In order to get around this we make sure that the TH code is all in libraries and create
 # a single haskell file that does nothing other than import the main function from the library.
 # We can then pass the `-optl=-static` flag and statically link this as it does not use TH.
-{ pkgs, haskellPackages }:
+{ pkgs, lib, haskellPackages }:
 let
   ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-symbolic ]);
   main = pkgs.writeText "app.hs"
@@ -32,10 +32,11 @@ in
       mkdir -p $out/bin
       ${ghc}/bin/ghc ${main} -static -threaded -o $out/bin/bootstrap \
                      -optl=-static \
-                     -optl=-L${pkgs.ncurses.override { enableStatic = true; }}/lib \
-                     -optl=-L${pkgs.zlib.static}/lib \
-                     -optl=-L${pkgs.gmp6.override { withStatic = true; }}/lib \
-                     -optl=-L${pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; })}/lib
+                     -optl=-L${lib.getLib (pkgs.ncurses.override { enableStatic = true; })}/lib \
+                     -optl=-L${lib.getLib (pkgs.zlib.static)}/lib \
+                     -optl=-L${lib.getLib (pkgs.gmp6.override { withStatic = true; })}/lib \
+                     -optl=-L${lib.getLib (pkgs.openssl.override (old: { static = true; }))}/lib \
+                     -optl=-L${lib.getLib (pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; }))}/lib
       '';
     installPhase = ''
       zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
