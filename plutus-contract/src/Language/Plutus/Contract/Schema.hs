@@ -25,6 +25,8 @@ import           Data.Aeson            (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Row.Internal
 import qualified Data.Row.Records      as Records
+import qualified Data.Row.Variants     as Variants
+import           Data.Text.Prettyprint.Doc
 
 import           Data.Row.Extras
 
@@ -55,6 +57,11 @@ newtype Event s = Event { unEvent :: Var (Input s) }
 deriving newtype instance Forall (Input s) Show => Show (Event s)
 deriving newtype instance Forall (Input s) Eq => Eq (Event s)
 
+instance (Forall (Input s) Pretty) => Pretty (Event s) where
+  pretty (Event e) =
+    let (lbl, vl) = Variants.eraseWithLabels @Pretty pretty e in
+    braces (lbl <> colon <+> vl)
+
 deriving via JsonVar (Input s) instance (AllUniqueLabels (Input s), Forall (Input s) FromJSON) => FromJSON (Event s)
 
 deriving via JsonVar (Input s) instance (Forall (Input s) ToJSON) => ToJSON (Event s)
@@ -66,6 +73,11 @@ deriving via (JsonRec (Output s)) instance (AllUniqueLabels (Output s), Forall (
 
 deriving newtype instance Forall (Output s) Show => Show (Handlers s)
 deriving newtype instance Forall (Output s) Eq   => Eq (Handlers s)
+
+instance (Forall (Output s) Pretty) => Pretty (Handlers s) where
+  pretty (Handlers s) = 
+    let entries = Records.eraseWithLabels @Pretty pretty s in
+    braces (vsep (fmap (\(lbl, vl) -> lbl <> colon <+> vl) entries))
 
 deriving via (MonoidRec (Output s)) instance (Forall (Output s) Semigroup) => Semigroup (Handlers s)
 

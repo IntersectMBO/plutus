@@ -8,6 +8,7 @@
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.UtxoAt where
@@ -18,8 +19,9 @@ import qualified Data.Map                         as Map
 import           Data.Row
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Address)
+import           Ledger                           (Address, TxOutOf (..))
 import           Ledger.AddressMap                (AddressMap)
 import qualified Ledger.AddressMap                as AM
 import           Ledger.Tx                        (TxOut, TxOutRef)
@@ -41,6 +43,14 @@ data UtxoAtAddress =
     }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty UtxoAtAddress where
+  pretty UtxoAtAddress{address, utxo} =
+    let
+      prettyTxOutPair (txoutref, TxOutOf{txOutValue, txOutType}) =
+        pretty txoutref <> colon <+> pretty txOutType <+> viaShow txOutValue
+      utxos = align $ hang 4 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
+    in "Utxo at" <+> pretty address <+> "=" <+> utxos
 
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Set Address)
 

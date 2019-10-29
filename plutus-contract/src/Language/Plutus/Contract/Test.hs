@@ -35,16 +35,17 @@ module Language.Plutus.Contract.Test(
 
 import           Control.Lens                          (at, folded, from, to, view, (^.))
 import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
-import           Data.Bifunctor                        (Bifunctor(..))
-import           Data.Foldable                         (toList, traverse_)
+import           Data.Foldable                         (toList)
 import           Data.Functor.Contravariant            (Contravariant (..), Op(..))
 import qualified Data.Map                              as Map
 import           Data.Maybe                            (fromMaybe)
-import           Data.Proxy                                      (Proxy(..))
+import           Data.Proxy                            (Proxy(..))
 import           Data.Row
-import           Data.Sequence                         (Seq)
-import qualified Data.Sequence                         as Seq
+import           Data.String                           (IsString(..))
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import qualified Data.Set                              as Set
+import           Data.Void
 import           GHC.TypeLits                          (Symbol, KnownSymbol, symbolVal)
 import qualified Test.Tasty.HUnit                      as HUnit
 import           Test.Tasty.Providers                  (TestTree)
@@ -91,7 +92,7 @@ instance Applicative f => BoundedJoinSemiLattice (PredF f a) where
 instance Applicative f => BoundedMeetSemiLattice (PredF f a) where
     top = PredF $ const (pure top)
 
-type TracePredicate s e a = PredF (Writer (Seq String)) (InitialDistribution, ContractTraceResult s e a)
+type TracePredicate s e a = PredF (Writer (Doc Void)) (InitialDistribution, ContractTraceResult s e a)
 
 hooks
     :: forall s e a.
@@ -138,7 +139,7 @@ checkPredicate nm con predicate action =
             (Right (_, st), ms) -> do
                 let dt = ContractTraceResult ms st
                     (result, emLog) = runWriter $ unPredF predicate (defaultDist, dt)
-                if result then pure () else traverse_ step emLog
+                if result then pure () else step (renderString $ layoutPretty defaultLayoutOptions emLog)
                 HUnit.assertBool nm result
 
 endpointAvailable
@@ -155,7 +156,7 @@ endpointAvailable w = PredF $ \(_, r) -> do
     if Endpoints.isActive @l @s (hooks w r)
     then pure True
     else do
-        tellSeq ["missing endpoint:" ++ symbolVal (Proxy :: Proxy l)]
+        tell ("missing endpoint:" <+> (fromString (symbolVal (Proxy :: Proxy l))))
         pure False
 
 interestingAddress
@@ -169,7 +170,11 @@ interestingAddress w addr = PredF $ \(_, r) -> do
     if addr `Set.member` hks
     then pure True
     else do
-        tellSeq ["Interesting addresses:", unlines (show <$> toList hks), "missing address:", show addr]
+        tell $ hsep
+            [ "Interesting addresses of " <+> pretty w <> colon
+                <+> hang 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
+            , "Missing address:", viaShow addr
+            ]
         pure False
 
 tx
@@ -187,7 +192,10 @@ tx w flt nm = PredF $ \(_, r) -> do
     if any flt hks
     then pure True
     else do
-        tellSeq ["Unbalanced transactions;", unlines (fmap show hks), "No transaction with '" <> nm <> "'"]
+        tell $ hsep
+            [ "Unbalanced transactions of" <+> pretty w <> colon 
+                <+> hang 2 (vsep (fmap pretty hks))
+            , "No transaction with '" <> fromString nm <> "'"]
         pure False
 
 walletState
@@ -200,13 +208,16 @@ walletState w flt nm = PredF $ \(_, r) -> do
     let ws = view (at w) $ EM._walletStates $  _ctrEmulatorState r
     case ws of
         Nothing -> do
-            tellSeq ["Wallet state of '" <> show w <> "' not found"]
+            tell $ "Wallet state of " <+> pretty w <+> "not found"
             pure False
         Just st ->
             if flt st
             then pure True
             else do
-                tellSeq ["Wallet state of " <> show w <> ":", show st, "Fails '" <> nm <> "'"]
+                tell $ align $ vsep
+                    [ "Wallet state of '" <+> viaShow w <+> colon <+> viaShow st
+                    , "Fails " <> squotes (fromString nm)
+                    ]
                 pure False
 
 walletWatchingAddress
@@ -220,7 +231,7 @@ walletWatchingAddress w addr =
 
 assertEvents
     :: forall s e a.
-       (Forall (Input s) Show)
+       (Forall (Input s) Pretty)
     => Wallet
     -> ([Event s] -> Bool)
     -> String
@@ -229,13 +240,17 @@ assertEvents w pr nm = PredF $ \(_, r) -> do
     let es = fmap toList (view (ctsEvents . at w) $ _ctrTraceState r)
     case es of
         Nothing -> do
-            tellSeq ["Event log for '" <> show w <> "' not found"]
+            tell $ "Event log for" <+> pretty w <+> "not found"
             pure False
         Just lg ->
             if pr lg
             then pure True
             else do
-                tellSeq ["Event log for '" <> show w <> ":", unlines (fmap show lg), "Fails '" <> nm <> "'"]
+                tell $ align $ vsep
+                    [ "Event log for" <+> pretty w <> ":"
+                    , hang 4 (vsep (fmap pretty lg))
+                    , "Fails" <+> squotes (fromString nm)
+                    ]
                 pure False
 
 waitingForSlot
@@ -251,13 +266,13 @@ waitingForSlot
 waitingForSlot w sl = PredF $ \(_, r) ->
     case AwaitSlot.nextSlot (hooks w r) of
         Nothing -> do
-            tellSeq [show w <> " not waiting for any slot notifications. Expected: " <>  show sl]
+            tell $ pretty w <+> "not waiting for any slot notifications. Expected:" <+>  viaShow sl
             pure False
         Just sl' ->
             if sl == sl'
             then pure True
             else do
-                tellSeq [show w <> " waiting for " <> show sl', "Expected: " <> show sl]
+                tell $ pretty w <+> "waiting for" <+> viaShow sl' <+> "Expected:" <+> viaShow sl
                 pure False
 
 emulatorLog
@@ -271,7 +286,11 @@ emulatorLog f nm = PredF $ \(_, r) ->
     if f lg
     then pure True
     else do
-        tellSeq ["Emulator log:", unlines (fmap show lg), "Fails '" <> nm <> "'"]
+        tell $ align $ vsep
+            [ "Emulator log:"
+            , hang 4 (vsep (fmap viaShow lg))
+            , "Fails" <+> squotes (fromString nm)
+            ]
         pure False
 
 anyTx
@@ -290,7 +309,7 @@ assertHooks
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
-       , Forall (Output s) Show
+       , Forall (Output s) Pretty
        )
     => Wallet
     -> (Handlers s -> Bool)
@@ -301,12 +320,16 @@ assertHooks w p nm = PredF $ \(_, rs) ->
     if p hks
     then pure True
     else do
-        tellSeq ["Handlers:", show hks, "Failed '" <> nm <> "'"]
+        tell $ align $ vsep
+            [ "Handlers for" <+> pretty w <> colon
+            , hang 4 (pretty hks)
+            , "Failed" <+> squotes (fromString nm)
+            ]
         pure False
 
 assertRecord
     :: forall s e a.
-       ( Forall (Input s) Show
+       ( Forall (Input s) Pretty
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
        , AllUniqueLabels (Output s)
@@ -321,10 +344,14 @@ assertRecord w p nm = PredF $ \(_, rs) ->
         Right r
             | p r -> pure True
             | otherwise -> do
-                tellSeq ["Record: ", show r, "Failed '" <> nm <> "'"]
+                tell $ align $ vsep
+                    [ "Record:"
+                    , hang 4 (pretty r)
+                    , "Failed" <+> squotes (fromString nm)
+                    ]
                 pure False
         Left err -> do
-            tellSeq ["Record failed with", show err, "in '" <> nm <> "'"]
+            tell $ pretty w <> colon <+> "Record failed with" <+> viaShow err <+> "in" <+> squotes (fromString nm)
             pure False
 
 data Outcome e a =
@@ -340,11 +367,10 @@ data Outcome e a =
 --   without errors.
 assertDone
     :: forall s e a.
-    ( Forall (Input s) Show
+    ( Forall (Input s) Pretty
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
-    , Forall (Output s) Show
     , Show e
     )
     => Wallet
@@ -357,11 +383,10 @@ assertDone w pr = assertOutcome w (\case { Done a -> pr a; _ -> False})
 --   waiting for input.
 assertNotDone
     :: forall s e a.
-    ( Forall (Input s) Show
+    ( Forall (Input s) Pretty
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
-    , Forall (Output s) Show
     , Show e
     )
     => Wallet
@@ -373,11 +398,10 @@ assertNotDone w = assertOutcome w (\case { NotDone -> True; _ -> False})
 --   failed with an error.
 assertContractError
     :: forall s e a.
-    ( Forall (Input s) Show
+    ( Forall (Input s) Pretty
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
-    , Forall (Output s) Show
     , Eq e
     , Show e
     )
@@ -390,11 +414,10 @@ assertContractError w err =
 
 assertOutcome
     :: forall s e a.
-       ( Forall (Input s) Show
+       ( Forall (Input s) Pretty
        , AllUniqueLabels (Output s)
        , Forall (Output s) Semigroup
        , Forall (Output s) Monoid
-       , Forall (Output s) Show
        , Show e
        )
     => Wallet
@@ -409,21 +432,32 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
             Left err
                 | p (Error err) -> pure True
                 | otherwise -> do
-                    tellSeq ["Resumable error", show err, "in '" <> nm <> "'"]
+                    tell $ align $ vsep
+                        [ "Outcome of" <+> pretty w <> colon
+                        , "Resumable error" <+> viaShow err
+                        , "in" <+> squotes (fromString nm)
+                        ]
                     pure False
             Right (Left openRec)
                 | p NotDone -> pure True
                 | otherwise -> do
-                    tellSeq ["Open record", show openRec, "in '" <> nm <> "'"]
-                    tellSeq [show (fmap (first (fmap fst)) result)]
+                    tell $ align $ vsep
+                        [ "Outcome of" <+> pretty w <> colon
+                        , "Open record"
+                        , pretty openRec
+                        , "in" <+> squotes (fromString nm)
+                        ]
+                    -- tell (_ (fmap (first (fmap fst)) result)) --FIXME always print event log if error happend? 
                     pure False
             Right (Right closedRec)
                 | p (Done (snd closedRec)) -> pure True
                 | otherwise -> do
-                    tellSeq
-                        [ "Closed record"
-                        , show (fst closedRec)
-                        , "failed with '" <> nm <> "'"]
+                    tell $ align $ vsep
+                        [ "Outcome of" <+> pretty w <> colon
+                        , "Closed record"
+                        , pretty (fst closedRec)
+                        , "failed with" <+> squotes (fromString nm)
+                        ]
                     pure False
 
 contractEventsWallet
@@ -447,8 +481,7 @@ walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulato
         in if initialValue P.+ dlt == finalValue
         then pure True
         else do
-            tellSeq ["Expected funds to change by", show dlt, "but they changed by", show (finalValue P.- initialValue)]
+            tell $ align $ vsep
+                [ "Expected funds of" <+> pretty w <+> "to change by" <+> viaShow dlt
+                , "but they changed by", viaShow (finalValue P.- initialValue)]
             pure False
-
-tellSeq :: MonadWriter (Seq a) m => [a] -> m ()
-tellSeq = tell . Seq.fromList

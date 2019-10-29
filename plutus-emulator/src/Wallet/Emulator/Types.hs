@@ -106,6 +106,7 @@ import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as T
+import           Data.Text.Prettyprint.Doc hiding (annotate)
 import           Data.Traversable          (for)
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType (iotsDefinition))
@@ -134,6 +135,9 @@ newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema, IotsType)
+
+instance Pretty Wallet where
+    pretty (Wallet i) = "W" <> pretty i
 
 -- | Get a wallet's public key.
 walletPubKey :: Wallet -> PubKey

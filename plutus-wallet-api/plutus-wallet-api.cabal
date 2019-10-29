@@ -93,7 +93,8 @@ library
         template-haskell -any,
         text -any,
         recursion-schemes -any,
-        deriving-compat -any
+        deriving-compat -any,
+        prettyprinter >=1.1.0.1
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

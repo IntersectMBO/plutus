@@ -43,6 +43,7 @@ import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Hash  as Hash
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
@@ -63,6 +64,9 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 makeLift ''PubKey
 
+instance Pretty PubKey where
+    pretty pk = "PubKey:" <+> viaShow (getPubKey pk)
+
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
@@ -70,6 +74,9 @@ newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 makeLift ''PrivateKey
+
+instance Pretty PrivateKey where
+    pretty pk = "PrivateKey:" <+> viaShow (getPrivateKey pk)
 
 instance ToHttpApiData PrivateKey where
     toUrlPiece = toUrlPiece . getPrivateKey

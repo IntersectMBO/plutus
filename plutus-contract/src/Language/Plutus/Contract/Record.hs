@@ -2,14 +2,17 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 module Language.Plutus.Contract.Record where
 
 import           Control.Lens
-import           Data.Bifunctor (Bifunctor (..))
-import           GHC.Generics   (Generic)
+import           Data.Bifunctor            (Bifunctor (..))
+import           Data.Text.Prettyprint.Doc
+import           GHC.Generics              (Generic)
 
-import           Data.Aeson     (Value)
-import qualified Data.Aeson     as Aeson
+import           Data.Aeson                (Value)
+import qualified Data.Aeson                as Aeson
+import qualified Data.Aeson.Text           as Aeson
 
 -- | The serialisable state of a contract instance, containing a mix of raw
 --   input events and serialised checkpoints.
@@ -20,6 +23,11 @@ data Record i =
   deriving stock (Eq, Show, Generic, Functor)
   deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
 
+instance Pretty i => Pretty (Record i) where
+  pretty = \case
+    OpenRec openRec -> "OpenRec" <+> parens (hang 2 (pretty openRec))
+    ClosedRec cr -> "ClosedRec" <+> parens (hang 2 (pretty cr))
+
 record :: Iso' (Record i) (Either (OpenRecord i) (ClosedRecord i))
 record = iso f g where
     f = \case { OpenRec r -> Left r; ClosedRec r -> Right r }
@@ -28,6 +36,12 @@ record = iso f g where
 data FinalValue i = FinalJSON Value | FinalEvents (Maybe i)
     deriving stock (Eq, Show, Generic, Functor)
     deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
+
+instance Pretty i => Pretty (FinalValue i) where
+  pretty = \case
+    FinalJSON vl -> "FinalJSON" <+> pretty (Aeson.encodeToLazyText vl)
+    FinalEvents Nothing -> "FinalEvents Nothing"
+    FinalEvents (Just i) -> "FinalEvents" <+> parens (pretty i)
 
 data ClosedRecord i =
     ClosedLeaf (FinalValue i)
@@ -42,6 +56,13 @@ instance Functor ClosedRecord where
     ClosedBin l r -> ClosedBin (fmap f l) (fmap f r)
     ClosedAlt e -> ClosedAlt $ bimap (fmap f) (fmap f) e
 
+instance Pretty i => Pretty (ClosedRecord i) where
+  pretty = hang 2 . \case
+    ClosedLeaf vl -> "ClosedLeaf" <+> parens (pretty vl)
+    ClosedBin l r -> "ClosedBin" <+> vsep [parens (pretty l), parens (pretty r)]
+    ClosedAlt (Left cr) -> "ClosedAlt (Left)" <+> pretty cr
+    ClosedAlt (Right cr) -> "ClosedAlt (Right)" <+> pretty cr
+
 data OpenRecord i =
     OpenLeaf (Maybe i)
   | OpenBind (OpenRecord i)
@@ -50,6 +71,16 @@ data OpenRecord i =
   | OpenBoth (OpenRecord i) (OpenRecord i)
   deriving stock (Eq, Show, Generic, Functor)
   deriving anyclass (Aeson.FromJSON, Aeson.ToJSON)
+
+instance Pretty i => Pretty (OpenRecord i) where
+  pretty = hang 2 . \case
+    OpenLeaf Nothing -> "OpenLeaf Nothing"
+    OpenLeaf (Just i) -> "OpenLeaf" <+> parens (pretty i)
+    OpenBind r -> "OpenBind" <+> parens (pretty r)
+    OpenLeft openRec closedRec -> "OpenLeft" <+> vsep [parens (pretty openRec), parens (pretty closedRec)]
+    OpenRight closedRec openRec -> "OpenRight" <+> vsep [parens (pretty closedRec), parens (pretty openRec)]
+    OpenBoth openRecL openRecR -> "OpenBoth" <+> vsep [parens (pretty openRecL), parens (pretty openRecR)]
+
 
 openSubRecords :: Traversal' (OpenRecord i) (OpenRecord i)
 openSubRecords f = \case

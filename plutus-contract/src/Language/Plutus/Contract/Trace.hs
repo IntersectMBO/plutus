@@ -216,7 +216,7 @@ submitUnbalancedTx
     -> ContractTrace s e m a [Tx]
 submitUnbalancedTx wllt tx = do
     (txns, res) <- lift (runWallet wllt (Wallet.handleTx tx))
-    addEvent wllt (WriteTx.event $ fmap hashTx res)
+    addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap hashTx res)
     pure txns
 
 -- | Add the 'LedgerUpdate' event for the given transaction to
