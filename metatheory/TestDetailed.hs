@@ -27,47 +27,66 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
-compareResult :: String -> IO Progress
-compareResult test = do
+compareResult :: String -> String -> IO Progress
+compareResult mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" ["evaluate","--file","tmp"] []
+  plcOutput <- readProcess "plc" [mode,"--file","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp"]  M.main)
+    (withArgs [mode,"--file","tmp"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   return $ Finished $ if plcOutput == plcAgdaOutput then Pass else Fail "it failed!"
 
-testNames = ["succInteger"
-        ,"unitval"
-        ,"true"
-        ,"false"
-        ,"churchZero"
-        ,"churchSucc"
-        ,"overapplication"
-        ,"factorial"
-        ,"fibonacci"
-        ,"NatRoundTrip"
-        ,"ListSum"
-        ,"IfIntegers"
-        ,"ApplyAdd1"
-        ,"ApplyAdd2"
-        ]
+evalTestNames = ["succInteger"
+                ,"unitval"
+                ,"true"
+                ,"false"
+                ,"churchZero"
+                ,"churchSucc"
+                ,"overapplication"
+                ,"factorial"
+                ,"fibonacci"
+                ,"NatRoundTrip"
+                ,"ListSum"
+                ,"IfIntegers"
+                ,"ApplyAdd1"
+                ,"ApplyAdd2"
+                ]
 
-mkTest :: String -> TestInstance
-mkTest s = TestInstance
-        { run = compareResult s
-        , name = s
+tcTestNames  = ["succInteger"
+               ,"unitval"
+               ,"true"
+               ,"false"
+               ,"churchZero"
+               ,"churchSucc"
+               ,"overapplication"
+               ,"factorial"
+               ,"fibonacci"
+               ,"NatRoundTrip"
+               ,"ListSum"
+               ,"IfIntegers"
+               ,"ApplyAdd1"
+               ,"ApplyAdd2"
+               ]
+
+mkTest :: String -> String -> TestInstance
+mkTest mode test = TestInstance
+        { run = compareResult mode test
+        , name = mode ++ " " ++ test
         , tags = []
         , options = []
-        , setOption = \_ _ -> Right (mkTest s)
+        , setOption = \_ _ -> Right (mkTest mode test)
         }
 
 tests :: IO [Test]
-tests = --return [ Test succeeds ] -- , Test fails ]
-  return $ map Test (map mkTest testNames)
+tests = do --return [ Test succeeds ] -- , Test fails ]
+  return $ map Test
+    (map (mkTest "evaluate") evalTestNames
+     ++
+     map (mkTest "typecheck") tcTestNames)
   where
     fails = TestInstance
         { run = return $ Finished $ Fail "Always fails!"

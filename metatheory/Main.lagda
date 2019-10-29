@@ -156,31 +156,32 @@ junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
-tcPLC : ByteString → String
+tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
-... | nothing = "parse error"
+... | nothing = inj₂ "parse error"
 ... | just t with deBruijnifyTm nil (convP t)
-... | nothing = "scope error"
+... | nothing = inj₂ "scope error"
 ... | just t' with inferType _ t'
-... | inj₁ (A ,, t'') = prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
-... | inj₂ typeError = "typeError"
-... | inj₂ kindEqError = "kindEqError"
-... | inj₂ notTypeError = "notTypeError"
-... | inj₂ notFunction = "notFunction"
-... | inj₂ notPiError = "notPiError"
-... | inj₂ notPat = "notPat"
-... | inj₂ (nameError x x') = x Data.String.++ " != " Data.String.++ x'
-... | inj₂ (typeEqError n n') =
+... | inj₁ (A ,, t'') =
+  inj₁ (prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A)))
+... | inj₂ typeError = inj₂ "typeError"
+... | inj₂ kindEqError = inj₂ "kindEqError"
+... | inj₂ notTypeError = inj₂ "notTypeError"
+... | inj₂ notFunction = inj₂ "notFunction"
+... | inj₂ notPiError = inj₂ "notPiError"
+... | inj₂ notPat = inj₂ "notPat"
+... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
+... | inj₂ (typeEqError n n') = inj₂ (
   prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n))
   Data.String.++
   "\n != \n"
   Data.String.++
-  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n'))
+  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n')))
   
-... | inj₂ typeVarEqError = "typeVarEqError"
-... | inj₂ tyConError     = "tyConError"
-... | inj₂ builtinError   = "builtinError"
-... | inj₂ unwrapError    = "unwrapError"
+... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
+... | inj₂ tyConError     = inj₂ "tyConError"
+... | inj₂ builtinError   = inj₂ "builtinError"
+... | inj₂ unwrapError    = inj₂ "unwrapError"
 
 
 
@@ -222,7 +223,7 @@ evalInput : EvalMode → Input → IO (String ⊎ String)
 evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
 evalInput m StdInput       = imap (evalPLC m) getContents 
 
-tcInput : Input → IO String
+tcInput : Input → IO (String ⊎ String)
 tcInput (FileInput fn) = imap tcPLC (readFile fn)
 tcInput StdInput       = imap tcPLC getContents
 
@@ -233,7 +234,12 @@ main' (Evaluate (EvalOpts i m)) =
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
            ] 
-main' (TypeCheck (TCOpts i))    = tcInput i >>= putStrLn
+main' (TypeCheck (TCOpts i))    =
+  (tcInput i)
+  >>= 
+  Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
+           , (λ e → putStrLn e >> exitFailure)
+           ] 
 
 main : IO ⊤
 main = execP >>= main'
