@@ -273,7 +273,8 @@ ivTo (SlotInterval _ to) = to
 data BoundF f
   = Bound (f BigInteger) (f BigInteger)
 
-type Bound = BoundF IdentityF
+type Bound
+  = BoundF IdentityF
 
 derive instance genericBound :: Generic (BoundF f) _
 

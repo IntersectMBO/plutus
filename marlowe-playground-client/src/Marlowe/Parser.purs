@@ -3,12 +3,13 @@ module Marlowe.Parser where
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
 import Control.Monad.State as MonadState
-import Data.Array (foldMap, foldl, fromFoldable, many, (:))
+import Data.Array (foldMap, fromFoldable, many, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either)
+import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
@@ -74,7 +75,13 @@ instance prettyTerm :: Pretty a => Pretty (Term a) where
   prettyFragment (Hole name _ _ _) = Leijen.text $ "?" <> name
 
 -- a concrete type for holes only
-data MarloweHole = MarloweHole String MarloweType Position Position
+data MarloweHole
+  = MarloweHole
+    { name :: String
+    , marloweType :: MarloweType
+    , start :: Position
+    , end :: Position
+    }
 
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
@@ -86,7 +93,8 @@ instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
   marloweType _ = BigIntegerType
 
 -- a Monoid for collecting Holes
-data Holes = Holes (Map String (Array MarloweHole))
+data Holes
+  = Holes (Map String (Array MarloweHole))
 
 instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
@@ -98,23 +106,24 @@ instance monoidHoles :: Monoid Holes where
   We collect all the `Holes` using `getHoles` and then we fold through the result
   to find occurances that have the same name as well as changing the values to be
   single MarloweHoles rather than an array of MarloweHoles
--}   
+-}
 validateHoles :: Holes -> Tuple (Array MarloweHole) (Map String MarloweHole)
-validateHoles (Holes m) = foldl f (Tuple [] mempty) arr
+validateHoles (Holes m) = foldlWithIndex f (Tuple [] mempty) m
   where
-    arr :: Array (Tuple String (Array MarloweHole))
-    arr = Map.toUnfoldable m
-    f :: Tuple (Array MarloweHole) (Map String MarloweHole) -> Tuple String (Array MarloweHole) -> Tuple (Array MarloweHole) (Map String MarloweHole)
-    f (Tuple duplicates uniquesMap) (Tuple k [v]) = Tuple duplicates (Map.insert k v uniquesMap)
-    f (Tuple duplicates uniquesMap) (Tuple k vs) = Tuple (duplicates <> vs) uniquesMap
+  f k (Tuple duplicates uniquesMap) [ v ] = Tuple duplicates (Map.insert k v uniquesMap)
+
+  f k (Tuple duplicates uniquesMap) vs = Tuple (duplicates <> vs) uniquesMap
 
 insertHole :: forall a. IsMarloweType a => Holes -> Term a -> Holes
 insertHole m (Term _) = m
+
 insertHole (Holes m) (Hole name proxy start end) = Holes $ Map.alter f name m
   where
-    marloweHole = MarloweHole name (marloweType proxy) start end
-    f (Just v) = Just (marloweHole : v)
-    f Nothing = Just [marloweHole]
+  marloweHole = MarloweHole { name, marloweType: (marloweType proxy), start, end }
+
+  f (Just v) = Just (marloweHole : v)
+
+  f Nothing = Just [ marloweHole ]
 
 class HasMarloweHoles a where
   getHoles :: Holes -> a -> Holes
@@ -123,7 +132,8 @@ instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) 
   getHoles m as = foldMap (getHoles m) as
 
 -- Parsable versions of the Marlowe types
-type Bound = BoundF Term
+type Bound
+  = BoundF Term
 
 type AccountId
   = AccountIdF Term
