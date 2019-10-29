@@ -389,9 +389,11 @@ let
 
     marlowe-symbolic-lambda =
       let
+        staticHaskellOverlay = import ./nix/overlays/static-haskell.nix { inherit pkgs; };
         # We must use musl because glibc can't do static linking properly
         muslHaskellPackages = (haskellPackages.override (old: {
           pkgsGenerated = pkgs.pkgsMusl.callPackage ./pkgs {};
+          customOverlays = old.customOverlays ++ [ staticHaskellOverlay ];
         }));
       in pkgs.pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = muslHaskellPackages; };
 
