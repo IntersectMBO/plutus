@@ -16,7 +16,7 @@ let
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  pkgs = iohkNix.pkgs;
+  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) ]; };
   nixpkgs = iohkNix.nixpkgs;
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
@@ -58,18 +58,6 @@ let
       if pkg ? name then (builtins.parseDrvName pkg.name).name == "kindlegen" 
       else if pkg ? pname then pkg.pname == "kindlegen" else false;
 
-  packageOverrides = pkgs: {
-      python36 = pkgs.python36.override {
-              packageOverrides = self: super: {
-                      cython = super.cython.overridePythonAttrs (old: rec {
-                              # TODO Cython tests for unknown reason hang with musl. Remove when that's fixed.
-                              # See https://github.com/nh2/static-haskell-nix/issues/6#issuecomment-421852854
-                              doCheck = false;
-                      });
-              };
-      };
-  };
-
   comp = f: g: (v: f(g v));
 
 in lib // {
@@ -82,7 +70,6 @@ in lib // {
   plutusPkgList
   regeneratePackages
   unfreePredicate
-  packageOverrides
   nixpkgs
   pkgs
   comp;

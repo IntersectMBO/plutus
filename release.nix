@@ -14,7 +14,7 @@ in
       # we need unfree for kindlegen
       config = { allowUnfree = false; 
                  allowUnfreePredicate = localLib.unfreePredicate; 
-                 packageOverrides = localLib.packageOverrides; 
+                 overlays = [ (import ./nix/overlays/musl.nix) ];
                  inHydra = true; 
                  };
       inherit fasterBuild;

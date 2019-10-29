@@ -27,9 +27,7 @@
 { system ? builtins.currentSystem
 , crossSystem ? builtins.currentSystem
  # The nixpkgs configuration file
-, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate;
-             packageOverrides = (import ./lib.nix {}).packageOverrides;
-           }
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
