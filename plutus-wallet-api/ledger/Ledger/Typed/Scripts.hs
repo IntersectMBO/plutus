@@ -8,10 +8,11 @@ module Ledger.Typed.Scripts where
 
 import           Language.PlutusTx
 
+import           Language.PlutusTx.Prelude (check)
 import           Ledger.Scripts
-import           Ledger.Tx         hiding (scriptAddress)
-import qualified Ledger.Tx         as Tx
-import qualified Ledger.Validation as Validation
+import           Ledger.Tx                 hiding (scriptAddress)
+import qualified Ledger.Tx                 as Tx
+import qualified Ledger.Validation         as Validation
 
 import           Data.Kind
 
@@ -30,7 +31,7 @@ class ScriptType (a :: Type) where
 -- | The type of validators for the given connection type.
 type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.PendingTx -> Bool
 
-type WrappedValidatorType = Data -> Data -> Data -> Bool
+type WrappedValidatorType = Data -> Data -> Data -> ()
 
 -- | The type of a connection.
 data ScriptInstance (a :: Type) where
@@ -48,11 +49,25 @@ scriptAddress = Tx.scriptAddress . validatorScript
 validatorScript :: ScriptInstance a -> ValidatorScript
 validatorScript (Validator vc wrapper) = mkValidatorScript $ wrapper `applyCode` vc
 
+{- Note [Scripts returning Bool]
+It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
+you can determine whether the script evaluation is error-or-not without having to look at what the result actually
+*is* if there is one.
+
+However, from the script author's point of view, it would be nicer to return a Bool, since otherwise you end up doing a
+lot of `if realCondition then () else error ()` which is rubbish.
+
+So we changed the result type to be Bool. But now we have to answer the question of how the validator knows what the
+result value is. All *sorts* of terms can be True or False in disguise. The easiest way to tell is by reducing it
+to the previous problem: apply a function which does a pattern match and returns error in the case of False and ()
+otherwise. Then, as before, we just check for error in the overall evaluation.
+-}
+
 {-# INLINABLE wrapValidator #-}
 wrapValidator
     :: forall d r
     . (IsData d, IsData r)
     => (d -> r -> Validation.PendingTx -> Bool)
     -> WrappedValidatorType
-wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = f d r p
-wrapValidator _ _ _ _                                                          = False
+wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
+wrapValidator _ _ _ _                                                          = check False

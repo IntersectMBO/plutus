@@ -119,7 +119,7 @@ w1 = EM.Wallet 1
 
 someAddress :: Address
 someAddress = Ledger.scriptAddress $
-    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> True ||])
+    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
 
 type Schema =
     BlockchainActions

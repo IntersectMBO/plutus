@@ -74,7 +74,7 @@ import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusTx.Lift                   (liftCode)
-import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift, IsData (..), Data)
+import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
@@ -188,7 +188,7 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode (Data -> Data -> Data -> Bool) -> ValidatorScript
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> ValidatorScript
 mkValidatorScript = ValidatorScript . fromCompiledCode
 
 unValidatorScript :: ValidatorScript -> Script
@@ -313,23 +313,7 @@ runScript
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
-    -- See Note [Scripts returning Bool]
-    let appliedChecker = checker `applyScript` appliedValidator
-    evaluateScript checking appliedChecker
-
-{- Note [Scripts returning Bool]
-It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
-you can determine whether the script evaluation is error-or-not without having to look at what the result actually
-*is* if there is one.
-
-However, from the script author's point of view, it would be nicer to return a Bool, since otherwise you end up doing a
-lot of `if realCondition then () else error ()` which is rubbish.
-
-So we changed the result type to be Bool. But now we have to answer the question of how the validator knows what the
-result value is. All *sorts* of terms can be True or False in disguise. The easiest way to tell is by reducing it
-to the previous problem: apply a function which does a pattern match and returns error in the case of False and ()
-otherwise. Then, as before, we just check for error in the overall evaluation.
--}
+    evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
 unitData :: DataScript
@@ -338,10 +322,6 @@ unitData = DataScript $ toData ()
 -- | @()@ as a redeemer.
 unitRedeemer :: RedeemerScript
 unitRedeemer = RedeemerScript $ toData ()
-
--- | @()@ as a redeemer.
-checker :: Script
-checker = fromCompiledCode $$(compile [|| check ||])
 
 makeLift ''ValidatorHash
 
