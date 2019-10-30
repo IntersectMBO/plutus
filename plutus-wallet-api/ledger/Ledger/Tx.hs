@@ -152,19 +152,26 @@ data Tx = Tx {
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures} =
-        let lines' =
-                [ "inputs:" <+> prettyShowList (Set.toList txInputs)
-                , "outputs:" <+> hsep (punctuate comma $ fmap (pretty . txOutType) txOutputs)
+        let renderOutput TxOutOf{txOutType, txOutValue} =
+                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "locked by", pretty txOutType]
+            renderInput TxInOf{txInRef,txInType} =
+                let rest =
+                        case txInType of
+                            ConsumeScriptAddress _ redeemer ->
+                                [pretty redeemer]
+                            ConsumePublicKeyAddress pk ->
+                                [pretty pk]
+                in hang 2 $ vsep $ "-" <+> pretty txInRef : rest
+            lines' =
+                [ hang 2 (vsep ("inputs:" : fmap renderInput (Set.toList txInputs)))
+                , hang 2 (vsep ("outputs:" : fmap renderOutput txOutputs))
                 , "forge:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
-                , "signatures:" <+> hsep (punctuate comma $ fmap (pretty . fst) (Map.toList txSignatures))
+                , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
                 , "validity range:" <+> viaShow txValidRange
                 ]
             txid = hashTx t
         in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
-
-prettyShowList :: Show a => [a] -> Doc ann
-prettyShowList = hsep . punctuate comma . fmap viaShow
 
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
