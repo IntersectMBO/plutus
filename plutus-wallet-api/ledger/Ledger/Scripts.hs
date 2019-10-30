@@ -67,6 +67,7 @@ import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.Maybe                               (fromJust)
 import           Data.String
+import           Data.Text.Prettyprint.Doc                (Pretty)
 import           GHC.Generics                             (Generic)
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
@@ -212,7 +213,7 @@ instance BA.ByteArrayAccess ValidatorScript where
 -- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype DataScript = DataScript { getDataScript :: Data  }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, Pretty)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show DataScript where
@@ -227,7 +228,7 @@ instance BA.ByteArrayAccess DataScript where
 -- | 'RedeemerScript' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, Pretty)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Show RedeemerScript where

@@ -219,18 +219,35 @@ submitUnbalancedTx wllt tx = do
     addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap hashTx res)
     pure txns
 
--- | Add the 'LedgerUpdate' event for the given transaction to
---   the traces of all wallets.
-addTxEvent
+addInterestingTxEvents
+    :: forall s e m a.
+       ( HasWatchAddress s
+       , MonadEmulator e m
+       )
+    => Map Address (Event s)
+    -> Wallet
+    -> ContractTrace s e m a ()
+addInterestingTxEvents mp wallet = do
+    hks <- fmap (either (const mempty) id) (getHooks wallet)
+    let relevantAddresses = WatchAddress.addresses hks
+        relevantTransactions =
+            fmap snd
+            $ Map.toList
+            $ Map.filterWithKey (\addr _ -> addr `Set.member` relevantAddresses) mp
+    traverse_ (addEvent wallet) relevantTransactions
+
+-- | Respond to all 'WatchAddress' requests from contracts that are waiting
+--   for a change to an address touched by this transaction
+addTxEvents
     :: ( MonadEmulator e m
        , HasWatchAddress s
        )
     => Tx
     -> ContractTrace s e m a ()
-addTxEvent tx = do
+addTxEvents tx = do
     idx <- lift (gets (AM.fromUtxoIndex . view EM.index))
-    let event = fmap snd $ Map.toList $ WatchAddress.events idx tx
-    traverse_ addEventAll event
+    let events = WatchAddress.events idx tx
+    traverse_ (addInterestingTxEvents events) allWallets
 
 -- | Get the unbalanced transactions that the wallet's contract instance
 --   would like to submit to the blockchain.
@@ -302,7 +319,7 @@ handleBlockchainEvents
     -> ContractTrace s e m a ()
 handleBlockchainEvents wllt = do
     utxs <- unbalancedTransactions wllt
-    traverse_ (submitUnbalancedTx wllt >=> traverse_ addTxEvent) utxs
+    traverse_ (submitUnbalancedTx wllt >=> traverse_ addTxEvents) utxs
     handleUtxoQueries wllt
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them

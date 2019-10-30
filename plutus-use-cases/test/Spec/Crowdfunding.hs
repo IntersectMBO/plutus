@@ -125,7 +125,7 @@ tests = testGroup "crowdfunding"
         "test/Spec/crowdfundingTestOutput.txt"
         (renderPredicate 
             (crowdfunding theCampaign) 
-            (makeContribution w1 (Ada.lovelaceValueOf 10)))
+            successfulCampaign)
 
     , goldenVsString
         "renders an error sensibly"

@@ -2,277 +2,151 @@ Test outputs:
   
 Events by wallet:
   Events for W1:
-    • {contribute:
-       (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
+    • {schedule collection:
+       ()}
+    • {slot:
+       Slot: 27}
+    • {utxo-at:
+       Utxo at 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff = TxId: 9f0518501866186b18ba184118cb18c5188418f018a618bc18b118fa18b218ea10189b131848031841187c18f718c418b2184f0c1895187718201886ff!1: PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
+         TxId: 9f188c189d18e0184b18a418c1184d18a018e618f50d182718da185d18fa18bb0818e21830181d18d918d91854181f18b9183418aa183618f918221873189aff!1: PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 9f189c185d18e218c21887188803171832184f1863183218421872186718ce18931894188218e0182118241824182018ac18f918af18ff18a61838041887ff!1: PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
     • {tx:
-       WriteTxSuccess: TxIdOf {getTxId = 1846ef5c28eb205f93cec17094d29feda6ba816a2fea60efc21cf61365fc5f82}}
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
+       WriteTxSuccess: TxIdOf {getTxId = 4fb424a8b1d454c7a8ee5ff2b23882f4812d8229df503246f6a932e8d20f1422}}
   Events for W2:
+    • {contribute:
+       (PubKey {getPubKey = fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
+    • {tx:
+       WriteTxSuccess: TxIdOf {getTxId = 8c9de04ba4c14da0e6f50d27da5dfabb08e2301dd9d9541fb934aa36f922739a}}
     • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
+       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
+       , Tx TxId: 9f188c189d18e0184b18a418c1184d18a018e618f50d182718da185d18fa18bb0818e21830181d18d918d91854181f18b9183418aa183618f918221873189aff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!8
+              fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
+             PayToPubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
+             PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+         signatures:
+           fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
        ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
+       , Tx TxId: 9f189c185d18e218c21887188803171832184f1863183218421872186718ce18931894188218e0182118241824182018ac18f918af18ff18a61838041887ff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!3
+              98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
+             PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
+             PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+         signatures:
+           98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
+    • {address:
+       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
+       , Tx TxId: 9f0518501866186b18ba184118cb18c5188418f018a618bc18b118fa18b218ea10189b131848031841187c18f718c418b2184f0c1895187718201886ff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!7
+              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
+             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
+             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
+         forge: Value {getValue = Map {unMap = []}}
+         fee: Lovelace {getLovelace = 0}
+         signatures:
+           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W3:
+    • {contribute:
+       (PubKey {getPubKey = 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
+    • {tx:
+       WriteTxSuccess: TxIdOf {getTxId = 9c5de2c287880317324f6332427267ce939482e021242420acf9afffa6380487}}
     • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
+       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
+       , Tx TxId: 9f189c185d18e218c21887188803171832184f1863183218421872186718ce18931894188218e0182118241824182018ac18f918af18ff18a61838041887ff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!3
+              98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
+             PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
+             PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+         signatures:
+           98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
        ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
+       , Tx TxId: 9f0518501866186b18ba184118cb18c5188418f018a618bc18b118fa18b218ea10189b131848031841187c18f718c418b2184f0c1895187718201886ff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!7
+              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
+             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
+             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+         signatures:
+           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W4:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
+    • {contribute:
+       (PubKey {getPubKey = f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863},Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}})}
+    • {tx:
+       WriteTxSuccess: TxIdOf {getTxId = 0550666bba41cbc584f0a6bcb1fab2ea109b134803417cf7c4b24f0c95772086}}
     • {address:
        ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
+       , Tx TxId: 9f0518501866186b18ba184118cb18c5188418f018a618bc18b118fa18b218ea10189b131848031841187c18f718c418b2184f0c1895187718201886ff:
+         {inputs:
+            - TxId: 9f186018ea184a18ab18c818be18e718b61885185518c41865185e183a0e187618f7183418b818f81872185a13151881185718f618c9187e18af18e21884ff!7
+              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+         outputs:
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
+             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
+             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W5:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W6:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W7:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W8:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W9:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-  Events for W10:
-    • {address:
-       ( 9f1827182118f6185718e918ed189118d218fc182a1828182f187f18f518ed188118ae184818f4188b185106181a0a18a218fa18a418b2185b185f031822ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
-         validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
-    • {address:
-       ( 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff
-       , Tx TxId: 9f1818184618ef185c182818eb1820185f189318ce18c11870189418d2189f18ed18a618ba1881186a182f18ea186018ef18c2181c18f613186518fc185f1882ff:
-         {inputs: TxInOf {txInRef = TxOutRefOf {txOutRefId = TxIdOf {getTxId = 60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284}, txOutRefIdx = 1}, txInType = ConsumePublicKeyAddress (PubKey {getPubKey = 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c})}
-         outputs: PayToPubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c, PayToScript: "=@\ETB\195\232C\137Z\146\183\n\167M\ESC~\188\156\152,\207.\196\150\140\192\205U\241*\244f\f"
-         forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
-         signatures: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c
+         signatures:
+           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
 Contract result by wallet:
   Wallet: W1
-    Running, waiting for input:
-      {address: [ 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff ]
-       contribute: []
-       schedule collection: ["schedule collection"]
-       slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
-       tx: []
-       utxo-at: []}
+    Done
     Wallet: W2
       Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
+        {address: [ 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff ]
+         contribute: []
          schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
+         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
+        {address: [ 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff ]
+         contribute: []
          schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
+         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
+        {address: [ 9f18e71871183918900418260a1887181c185b18a918911871189018d018511853181c18f3187a18bd18231868189a18f9185e0418c5184e188e18961834ff ]
+         contribute: []
          schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W5
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W6
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W7
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W8
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W9
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
-         tx: []
-         utxo-at: []}
-    Wallet: W10
-      Running, waiting for input:
-        {address: []
-         contribute: ["contribute"]
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Nothing}
+         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []
          utxo-at: []}
