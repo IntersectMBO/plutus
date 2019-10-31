@@ -4,11 +4,8 @@ let
 
   iohkNix = import sources.iohk-nix { 
     inherit system config; 
-    # FIXME: should use the non-json override, but see https://github.com/input-output-hk/iohk-nix/pull/215
-    nixpkgsJsonOverride = builtins.toFile "spec.json" (builtins.toJSON { 
-      inherit (sources.nixpkgs) rev sha256; 
-      url = "https://github.com/NixOS/nixpkgs-channels";
-    });
+    # FIXME: should be 'nixpkgsOverride = sources.nixpkgs', but see https://github.com/input-output-hk/iohk-nix/pull/215
+    nixpkgsJsonOverride = ./nixpkgs.json;
   };
 
   nixpkgs = iohkNix.nixpkgs;
