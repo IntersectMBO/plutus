@@ -12,7 +12,7 @@ let
   };
 
   nixpkgs = iohkNix.nixpkgs;
-  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) (import ./nix/overlays/pkgs.nix) ]; };
+  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) (import ./nix/overlays/nixpkgs-overrides.nix) ]; };
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
 
