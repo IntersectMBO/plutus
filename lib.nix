@@ -1,23 +1,18 @@
 { system ? builtins.currentSystem, config ? {} }:
 let
-  # iohk-nix can be overridden for debugging purposes by setting
-  # NIX_PATH=iohk_nix=/path/to/iohk-nix
-  iohkNix = import (
-    let try = builtins.tryEval <iohk_nix>;
-    in if try.success
-    then builtins.trace "using host <iohk_nix>" try.value
-    else
-      let
-        spec = builtins.fromJSON (builtins.readFile ./iohk-nix.json);
-      in builtins.fetchTarball {
-        url = "${spec.url}/archive/${spec.rev}.tar.gz";
-        inherit (spec) sha256;
-      }) { inherit system config; nixpkgsJsonOverride = ./nixpkgs.json; };
+  sources = import ./nix/sources.nix;
 
-  # nixpkgs can be overridden for debugging purposes by setting
-  # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) (import ./nix/overlays/pkgs.nix) ]; };
+  iohkNix = import sources.iohk-nix { 
+    inherit system config; 
+    # FIXME: should use the non-json override, but see https://github.com/input-output-hk/iohk-nix/pull/215
+    nixpkgsJsonOverride = builtins.toFile "spec.json" (builtins.toJSON { 
+      inherit (sources.nixpkgs) rev sha256; 
+      url = "https://github.com/NixOS/nixpkgs-channels";
+    });
+  };
+
   nixpkgs = iohkNix.nixpkgs;
+  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) (import ./nix/overlays/pkgs.nix) ]; };
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
 

@@ -4,7 +4,7 @@
 , psSrc
 , easyPS
 , yarn2nix-moretea
-, nodejsHeaders
+, nodejs-headers
 , src
 , webCommonPath
 , packages
@@ -45,7 +45,7 @@ in yarn2nix-moretea.mkYarnPackage {
     "libxmljs" = {
       buildInputs = [ nodejs-10_x nodePackages_10_x.node-gyp python2 ];
       postInstall = ''
-        node-gyp --tarball ${nodejsHeaders} rebuild
+        node-gyp --tarball ${nodejs-headers} rebuild
       '';
     };
   };

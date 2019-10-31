@@ -65,18 +65,9 @@ let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
+  sources = import ./nix/sources.nix;
 
-  nodejsHeaders = pkgs.fetchurl {
-    url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
-    sha256 = "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a";
-  };
-
-  easyPS = pkgs.callPackage (pkgs.fetchFromGitHub {
-    owner = "justinwoo";
-    repo = "easy-purescript-nix";
-    rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
-    sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
-  }) { };
+  easyPS = pkgs.callPackage sources.easy-purescript-nix { }; 
 
   purty = pkgs.callPackage ./purty { };
 
@@ -221,7 +212,8 @@ let
 
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit easyPS nodejsHeaders;
+          inherit easyPS;
+          inherit (sources) nodejs-headers;
           psSrc = generated-purescript;
           src = ./plutus-playground-client;
           webCommonPath = ./web-common;
@@ -260,7 +252,8 @@ let
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit easyPS nodejsHeaders;
+          inherit (sources) nodejs-headers;
+          inherit easyPS;
           psSrc = generated-purescript;
           src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
@@ -364,12 +357,7 @@ let
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.0.1";
-        src = pkgs.fetchFromGitHub {
-          owner = "agda";
-          repo = "agda-stdlib";
-          rev = "v1.0.1";
-          sha256 = "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2";
-        };
+        src = sources.agda-stdlib;
       });
     };
 
