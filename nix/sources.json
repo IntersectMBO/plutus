@@ -6,9 +6,9 @@
         "owner": "agda",
         "repo": "agda-stdlib",
         "rev": "v1.0.1",
-        "sha256": "0nnv8hqm5knf57nah3qzva9418d3237k1h65d21nyi4f4zn13glq",
+        "sha256": "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2",
         "type": "tarball",
-        "url": "https://github.com/agda/agda-stdlib/archive/a62501b50cec47c51b4a1a12f853944f5bdb6e7e.tar.gz",
+        "url": "https://github.com/agda/agda-stdlib/archive/v1.0.1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "deployment-nixpkgs": {
