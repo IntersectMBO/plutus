@@ -74,10 +74,6 @@ let
   packages = self: (rec {
     inherit pkgs localLib;
 
-    # We can *nearly* replace this with upstream nixpkgs, but unfortunately we also need a patch
-    # that hasn't been merged upstream yet.
-    patchedAsciidoctor = pkgs.callPackage ./nix/asciidoctor { };
-
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
     git-rev = if isNull rev then localLib.iohkNix.commitIdFromGitRepo ./.git else rev;
@@ -156,7 +152,7 @@ let
       # this version of asciidoctor is also more recent, although we don't care about the epub bit
       plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
       plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
-      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = patchedAsciidoctor; };
+      plutus-book = pkgs.callPackage ./plutus-book/doc { };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
       multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
