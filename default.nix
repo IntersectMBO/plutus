@@ -143,8 +143,9 @@ let
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
       };
-      purty = pkgs.callPackage ./purty/test.nix {
-        inherit src purty;
+      purty = pkgs.callPackage ./nix/tests/purty.nix {
+        inherit (self.haskellPackages) purty;
+        inherit src;
       };
     };
 
@@ -375,7 +376,7 @@ let
 
     dev = rec {
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
       };
 
       scripts = {
@@ -414,7 +415,7 @@ let
             --exclude '*/.spago/*' \
             --exclude '*/node_modules/*' \
             --exclude '*/generated/*' \
-            --exec ${purty}/bin/purty --write {}
+            --exec ${packages.purty}/bin/purty --write {}
           ${pkgs.git}/bin/git diff > post-purty.diff
           diff pre-purty.diff post-purty.diff > /dev/null
           if [ $? != 0 ]

@@ -15483,6 +15483,41 @@ description = "Parser for common compiler warning formats";
 license = stdenv.lib.licenses.bsd2;
 
 }) {};
+"componentm" = callPackage
+({
+  mkDerivation
+, base
+, containers
+, deepseq
+, exceptions
+, pretty-show
+, prettyprinter
+, rio
+, stdenv
+, teardown
+}:
+mkDerivation {
+
+pname = "componentm";
+version = "0.0.0.2";
+sha256 = "efe23d927d3ad2aee5052ef379f7a472f60e1b0749195e9b46bbf0d8c756b6a7";
+libraryHaskellDepends = [
+base
+containers
+deepseq
+exceptions
+pretty-show
+prettyprinter
+rio
+teardown
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/roman/Haskell-componentm#readme";
+description = "Monad for allocation and cleanup of application resources";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "composable-associations" = callPackage
 ({
   mkDerivation
@@ -20262,11 +20297,14 @@ license = stdenv.lib.licenses.mpl20;
 "dhall" = callPackage
 ({
   mkDerivation
+, aeson
+, aeson-pretty
 , ansi-terminal
 , base
 , bytestring
 , case-insensitive
 , cborg
+, cborg-json
 , containers
 , contravariant
 , cryptonite
@@ -20294,6 +20332,7 @@ license = stdenv.lib.licenses.mpl20;
 , template-haskell
 , text
 , transformers
+, transformers-compat
 , unordered-containers
 , uri-encode
 , vector
@@ -20301,18 +20340,21 @@ license = stdenv.lib.licenses.mpl20;
 mkDerivation {
 
 pname = "dhall";
-version = "1.19.1";
-sha256 = "f8d32a4415c67bbae43d90780c5707cd471a408f20959d233f14b91c3577d291";
+version = "1.23.0";
+sha256 = "eda7b9d1baad8214f83aaf7e7ce5e374c32a62f58ca69734024fb3f254bc9d1c";
 revision = "1";
-editedCabalFile = "193h4dmlz1asfr1ldy0saa9spgp64xh60xh3yywzn9lz0hxzbfpg";
+editedCabalFile = "06z5f1jk0s65dkvv5gmflla3j18vxwzgspg0lfql1vihxnvrk9hj";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
+aeson
+aeson-pretty
 ansi-terminal
 base
 bytestring
 case-insensitive
 cborg
+cborg-json
 containers
 contravariant
 cryptonite
@@ -20339,6 +20381,7 @@ serialise
 template-haskell
 text
 transformers
+transformers-compat
 unordered-containers
 uri-encode
 vector
@@ -57127,6 +57170,7 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , aeson
 , aeson-better-errors
+, aeson-pretty
 , ansi-terminal
 , ansi-wl-pprint
 , array
@@ -57150,9 +57194,11 @@ license = stdenv.lib.licenses.bsd3;
 , fsnotify
 , gitrev
 , Glob
+, happy
 , haskeline
 , http-types
 , language-javascript
+, lifted-async
 , lifted-base
 , microlens-platform
 , monad-control
@@ -57191,13 +57237,14 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "purescript";
-version = "0.12.4";
-sha256 = "e6542f20f9210919724da71ac0f330c7fd2d14c6876e111fa7a3be04296371d2";
+version = "0.13.2";
+sha256 = "14ef4d299b3585e029373851fa0b3d42bea66df7e179da2ceebde46175178f3c";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
 aeson-better-errors
+aeson-pretty
 ansi-terminal
 array
 base
@@ -57221,6 +57268,7 @@ fsnotify
 Glob
 haskeline
 language-javascript
+lifted-async
 lifted-base
 microlens-platform
 monad-control
@@ -57249,9 +57297,13 @@ unordered-containers
 utf8-string
 vector
 ];
+libraryToolDepends = [
+happy
+];
 executableHaskellDepends = [
 aeson
 aeson-better-errors
+aeson-pretty
 ansi-terminal
 ansi-wl-pprint
 array
@@ -57278,6 +57330,7 @@ Glob
 haskeline
 http-types
 language-javascript
+lifted-async
 lifted-base
 microlens-platform
 monad-control
@@ -57311,6 +57364,9 @@ wai
 wai-websockets
 warp
 websockets
+];
+executableToolDepends = [
+happy
 ];
 doHaddock = false;
 doCheck = false;
@@ -57362,6 +57418,58 @@ wl-pprint-text
 doHaddock = false;
 doCheck = false;
 description = "Generate PureScript data types from Haskell data types";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"purty" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, componentm
+, dhall
+, fetchgit
+, hpack
+, optparse-applicative
+, purescript
+, rio
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "purty";
+version = "4.5.1";
+src = fetchgit {
+
+url = "https://gitlab.com/joneshf/purty.git";
+sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
+rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
+fetchSubmodules = true;
+
+};
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+base
+bytestring
+componentm
+dhall
+optparse-applicative
+purescript
+rio
+text
+];
+libraryToolDepends = [
+hpack
+];
+executableHaskellDepends = [
+base
+];
+doHaddock = false;
+doCheck = false;
+preConfigure = "hpack";
+homepage = "https://github.com/joneshf/purty#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -59920,6 +60028,7 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
+, fail
 , haskeline
 , mtl
 , process
@@ -59928,11 +60037,12 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "repline";
-version = "0.2.0.0";
-sha256 = "ecc72092d0340b896ee6bf96bf6645694dbcd33361725a2cd28c5ab5d60c02de";
+version = "0.2.1.0";
+sha256 = "45c3186ff35ed650ee9c641f545a30860eedc44107fefb21da36df47aeb1ae7b";
 libraryHaskellDepends = [
 base
 containers
+fail
 haskeline
 mtl
 process
@@ -70360,6 +70470,35 @@ doCheck = false;
 homepage = "https://github.com/futurice/haskell-tdigest#readme";
 description = "On-line accumulation of rank-based statistics";
 license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"teardown" = callPackage
+({
+  mkDerivation
+, base
+, prettyprinter
+, rio
+, stdenv
+, typed-process
+, unliftio
+}:
+mkDerivation {
+
+pname = "teardown";
+version = "0.5.0.1";
+sha256 = "4dc02f4df93a06a8570fbebb0d152dff8d660a6aa84b71cbb128f0ba183156c5";
+libraryHaskellDepends = [
+base
+prettyprinter
+rio
+typed-process
+unliftio
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/roman/Haskell-teardown#readme";
+description = "Build safe and composable teardown sub-routines for resources";
+license = stdenv.lib.licenses.mit;
 
 }) {};
 "telegram-bot-simple" = callPackage

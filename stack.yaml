@@ -35,7 +35,7 @@ extra-deps:
 - composition-prelude-2.0.2.1
 - resolv-0.1.1.2
 - monad-stm-0.1.0.2
-- purescript-0.12.4
+- purescript-0.13.2
 - servant-options-0.1.0.0
 - servant-subscriber-0.6.0.2
 - tasty-hedgehog-0.2.0.0
@@ -51,6 +51,10 @@ extra-deps:
 - random-strings-0.1.1.0@sha256:935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677,2517
 - extensible-effects-5.0.0.1
 - sbv-8.4
+- componentm-0.0.0.2
+- teardown-0.5.0.1
+- dhall-1.23.0
+- repline-0.2.1.0
 - git: https://github.com/target/row-types
   commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
@@ -69,6 +73,8 @@ extra-deps:
 # Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
 - git: https://github.com/shmish111/github.git
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
+- git: https://gitlab.com/joneshf/purty.git
+  commit: 3c073e1149ecdddd01f1d371c70d5b243d743bf2
 flags:
   language-plutus-core:
     development: true
