@@ -93,9 +93,9 @@ let
   packages = self: (rec {
     inherit pkgs localLib;
 
-    # Upstream nixpkgs has the asciidoctor-epub3 gem, ours doesn't. So I've backported it here.
-    # Our nixpkgs is so old it doesn't have epubcheck.
-    asciidoctorWithEpub3 = pkgs.callPackage ./nix/asciidoctor { epubcheck = null; };
+    # We can *nearly* replace this with upstream nixpkgs, but unfortunately we also need a patch
+    # that hasn't been merged upstream yet.
+    patchedAsciidoctor = pkgs.callPackage ./nix/asciidoctor { };
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
@@ -173,9 +173,9 @@ let
 
     docs = {
       # this version of asciidoctor is also more recent, although we don't care about the epub bit
-      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
-      plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
-      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
+      plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
+      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = patchedAsciidoctor; };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
       multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
@@ -195,7 +195,7 @@ let
         };
       };
 
-      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
+      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
     };
 
     papers = {
