@@ -16,7 +16,7 @@ let
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) ]; };
+  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) (import ./nix/overlays/pkgs.nix) ]; };
   nixpkgs = iohkNix.nixpkgs;
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
