@@ -25,10 +25,9 @@
 ########################################################################
 
 { system ? builtins.currentSystem
+, crossSystem ? builtins.currentSystem
  # The nixpkgs configuration file
-, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate;
-             packageOverrides = (import ./lib.nix {}).packageOverrides;
-           }
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
@@ -40,18 +39,11 @@
 # Profiling slows down performance by 50% so we don't enable it by default.
 , enableProfiling ? false
 
-# Enable separation of build/check derivations.
-, enableSplitCheck ? true
-
 # Keeps the debug information for all haskell packages.
 , enableDebugging ? false
 
 # Build (but don't run) benchmarks for all local packages.
 , enableBenchmarks ? true
-
-# Overrides all nix derivations to add build timing information in
-# their build output.
-, enablePhaseMetrics ? true
 
 # Overrides all nix derivations to add haddock hydra output.
 , enableHaddockHydra ? true
@@ -132,9 +124,13 @@ let
       # so we make sure it uses the same one.
       pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
-      inherit forceDontCheck enableProfiling enablePhaseMetrics
+      inherit forceDontCheck enableProfiling 
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays pkgsGenerated;
+      customOverlays pkgsGenerated;
+      # Broken on vanilla 19.09, require the IOHK fork. Will be abandoned when
+      # we go to haskell.nix anyway.
+      enablePhaseMetrics = false;
+      enableSplitCheck = false;
 
       filter = localLib.isPlutus;
       filterOverrides = {
@@ -472,7 +468,10 @@ let
             pkgs.nodejs-10_x
             pkgs.nodePackages_10_x.node-gyp
             pkgs.yarn
-            pkgs.yarn2nix
+            # yarn2nix won't seem to build on hydra, see
+            # https://github.com/moretea/yarn2nix/pull/103
+            # I can't figure out how to fix this...
+            #pkgs.yarn2nix-moretea.yarn2nix
             easyPS.purs
             easyPS.psc-package
             easyPS.spago

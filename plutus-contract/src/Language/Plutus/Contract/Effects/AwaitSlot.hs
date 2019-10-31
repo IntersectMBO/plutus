@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}

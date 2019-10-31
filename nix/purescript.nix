@@ -3,7 +3,7 @@
 , fetchurl
 , psSrc
 , easyPS
-, yarn2nix
+, yarn2nix-moretea
 , nodejsHeaders
 , src
 , webCommonPath
@@ -20,11 +20,11 @@ with pkgs;
 let
   # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
   nodeSassBinLinux = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-57_binding.node";
-    sha256 = "1hv63bxf3wsknczg0x4431lfgizwqa1fvlhqblh5j4bw3p8mp3c0";
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-64_binding.node";
+    sha256 = "0dl91l414na44h090cgghd06q0j2whlj9h98im2qb9823glq7xff";
   };
   nodeSassBinDarwin = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-57_binding.node";
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-64_binding.node";
     sha256 = "04m3lpqapsx1nsaz7xr6k0yr64car1447v5gf6x6sfiszmshvjw2";
   };
   webCommon = pkgs.copyPathToStore webCommonPath;
@@ -36,7 +36,7 @@ let
                                                   [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist"]))
                                                   src;
 
-in yarn2nix.mkYarnPackage {
+in yarn2nix-moretea.mkYarnPackage {
   inherit name packageJSON yarnLock yarnNix;
   src = cleanSrcs;
   nodejs = nodejs-10_x;
@@ -58,13 +58,18 @@ in yarn2nix.mkYarnPackage {
     export HOME=$NIX_BUILD_TOP
     export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
 
-    # mkYarnPackage moves everything into deps/${name}
-    shopt -s extglob
-    mkdir deps
-    mv !(deps) deps/
-    cd deps
+    # Recent versions of yarn2nix moved the package source
+    # into deps/${name} with a .yarnrc that magically uses
+    # that as the PWD. This doesn't work for us since we're
+    # not just using yarn, so we undo that.
+    # (The node_mdules is just a symlink to something empty,
+    # the real one seems to be in the root, I don't understand
+    # why. We remove it so we can copy without conflicts.)
+    rm deps/${name}/node_modules
+    cp -R deps/${name}/* .
+    rm .yarnrc
 
-    # move everything into its correct place
+    # Put the generated and common code in place
     cp -R ${psSrc} generated
     cp -R ${webCommon} ../web-common
     sh ${spagoPackages.installSpagoStyle}

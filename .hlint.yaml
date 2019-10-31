@@ -3,7 +3,7 @@
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
   - {name: error}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
-  - {name: fromJust, within: [Language.PlutusTx.Lift, Spec.Lib]}
+  - {name: fromJust, within: [Language.PlutusTx.Lift, Spec.Lib, Ledger.Scripts]}
   - {name: foldl, within: []}
   - {name: traceShowId, within: []} # for debugging only, should not be merged to master
 
@@ -22,9 +22,12 @@
 - ignore: {name: Use newtype instead of data, within: [Tutorial.Emulator]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
+# this is often worse
+- ignore: {name: Use <$>}
 # this aids clarity since you can name the parameters
 - ignore: {name: Avoid lambda}
 - ignore: {name: Avoid lambda using `infix`}
+- ignore: {name: Replace case with fromMaybe}
 # whether this is better is very variable
 - ignore: {name: Use infix}
 # hlint can't handle typed TH: https://github.com/haskell-suite/haskell-src-exts/issues/383

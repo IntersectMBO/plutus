@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
@@ -166,7 +165,7 @@ evaluateScript checking s = do
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
 typecheckScript (unScript -> p) =
-    either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure $ act
+    either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure act
       where
         act :: Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         act = runExcept $ PLC.runQuoteT $ do

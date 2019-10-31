@@ -169,9 +169,9 @@ renderTraceContext testOutputs st =
         results = fmap (\(wallet, events) -> (wallet, State.runResumable events theContract)) nonEmptyLogs
         prettyResults = fmap (\(wallet, res) -> hang 2 $ vsep ["Wallet:" <+> pretty wallet, prettyResult res]) results
         prettyResult result = case result of
-            Left err -> 
+            Left err ->
                 hang 2 $ vsep ["Error:", viaShow err]
-            Right (Left _, handlers) -> 
+            Right (Left _, handlers) ->
                 hang 2 $ vsep ["Running, waiting for input:", pretty handlers]
             Right (Right _, _) -> "Done"
     in renderStrict $ layoutPretty defaultLayoutOptions $ vsep
@@ -181,9 +181,9 @@ renderTraceContext testOutputs st =
         ]
 
 prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
-prettyWalletEvents cts = 
+prettyWalletEvents cts =
     let nonEmptyLogs = filter (P.not . null . snd) (Map.toList $ view ctsEvents cts)
-        renderLog (wallet, events) = 
+        renderLog (wallet, events) =
             let events' = vsep $ fmap (\e -> "•" <+> nest 2 (pretty e)) $ toList events
             in nest 2 $ vsep ["Events for" <+> pretty wallet <> colon, events']
     in vsep (fmap renderLog nonEmptyLogs)
@@ -198,11 +198,11 @@ endpointAvailable
        )
     => Wallet
     -> TracePredicate s e a
-endpointAvailable w = PredF $ \(_, r) -> do
+endpointAvailable w = PredF $ \(_, r) ->
     if Endpoints.isActive @l @s (hooks w r)
     then pure True
     else do
-        tell ("missing endpoint:" <+> (fromString (symbolVal (Proxy :: Proxy l))))
+        tell ("missing endpoint:" <+> fromString (symbolVal (Proxy :: Proxy l)))
         pure False
 
 interestingAddress
@@ -239,7 +239,7 @@ tx w flt nm = PredF $ \(_, r) -> do
     then pure True
     else do
         tell $ hsep
-            [ "Unbalanced transactions of" <+> pretty w <> colon 
+            [ "Unbalanced transactions of" <+> pretty w <> colon
                 <+> nest 2 (vsep (fmap pretty hks))
             , "No transaction with '" <> fromString nm <> "'"]
         pure False

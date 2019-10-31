@@ -195,7 +195,7 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert (null (_txPool st))
 
 
 updateAll :: [Wallet] -> Trace MockWallet ()

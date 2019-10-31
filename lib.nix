@@ -12,11 +12,11 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      }) { inherit system config; };
+      }) { inherit system config; nixpkgsJsonOverride = ./nixpkgs.json; };
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  pkgs = iohkNix.pkgs;
+  pkgs = iohkNix.getPkgs { extraOverlays = [ (import ./nix/overlays/musl.nix) ]; };
   nixpkgs = iohkNix.nixpkgs;
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
@@ -54,19 +54,9 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-09-12T00:02:45Z"; };
 
-  unfreePredicate = pkg: (builtins.parseDrvName pkg.name).name == "kindlegen";
-
-  packageOverrides = pkgs: {
-      python36 = pkgs.python36.override {
-              packageOverrides = self: super: {
-                      cython = super.cython.overridePythonAttrs (old: rec {
-                              # TODO Cython tests for unknown reason hang with musl. Remove when that's fixed.
-                              # See https://github.com/nh2/static-haskell-nix/issues/6#issuecomment-421852854
-                              doCheck = false;
-                      });
-              };
-      };
-  };
+  unfreePredicate = pkg: 
+      if pkg ? name then (builtins.parseDrvName pkg.name).name == "kindlegen" 
+      else if pkg ? pname then pkg.pname == "kindlegen" else false;
 
   comp = f: g: (v: f(g v));
 
@@ -80,7 +70,6 @@ in lib // {
   plutusPkgList
   regeneratePackages
   unfreePredicate
-  packageOverrides
   nixpkgs
   pkgs
   comp;

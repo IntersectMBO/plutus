@@ -9,7 +9,6 @@
 {-# LANGUAGE KindSignatures            #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE TypeApplications          #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)

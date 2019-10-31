@@ -36,9 +36,6 @@
     "webpack-dev-server": "^3.1.10",
     "xhr2": "^0.1.4"
   },
-  "resolutions": {
-    "events": "2.1.0",
-    "execa": "<=2.0.0"
-  },
+  "resolutions": { },
   "license": "Apache-2.0"
 }

@@ -1,5 +1,4 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE DerivingVia #-}
 module Data.Text.Prettyprint.Doc.Extras(
     PrettyShow(..)
     , PrettyFoldable(..)
