@@ -8,11 +8,13 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests) where
 
+import           Control.Lens                          ((&), (.~))
 import           Control.Monad                         (void)
 import           Control.Monad.Error.Lens
 import           Test.Tasty
 
 import           Language.Plutus.Contract              as Con
+import           Language.Plutus.Contract.Tx           as Tx
 import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
 import           Language.PlutusTx.Lattice
@@ -87,7 +89,15 @@ tests =
         , cp "submit tx"
             (void $ writeTx mempty >> watchAddressUntil someAddress 20)
             (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
-            (handleBlockchainEvents w1)
+            (handleBlockchainEvents w1 >> addBlocks 1)
+
+        , let smallTx = mempty & Tx.outputs .~ [Tx.pubKeyTxOut (Ada.lovelaceValueOf 10) (walletPubKey (Wallet 2))]
+          in cp "handle several blockchain events"
+                (writeTx smallTx >> writeTx smallTx)
+                (assertDone w1 (const True) "all blockchain events should be processed"
+                /\ assertNoFailedTransactions
+                /\ walletFundsChange w1 (Ada.lovelaceValueOf (-20)))
+                (handleBlockchainEvents w1)
 
         , cp "select either"
             (let l = endpoint @"1" >> endpoint @"2"

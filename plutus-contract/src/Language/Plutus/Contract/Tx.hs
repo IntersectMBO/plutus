@@ -23,6 +23,14 @@ module Language.Plutus.Contract.Tx(
     , payToScript
     , collectFromScript
     , collectFromScriptFilter
+    -- * Constructing inputs
+    , Tx.pubKeyTxIn
+    , Tx.scriptTxIn
+    , Tx.TxOutRefOf(..)
+    -- * Constructing outputs
+    , Tx.pubKeyTxOut
+    , Tx.scriptTxOut
+    , Tx.scriptTxOut'
     ) where
 
 import           Control.Lens              (at, (^.))

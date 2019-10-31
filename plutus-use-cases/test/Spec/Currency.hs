@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Spec.Currency(tests) where
 
-import           Control.Monad                                     (replicateM_)
-
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger
@@ -20,12 +18,12 @@ tests = testGroup "currency"
     [ checkPredicate "can create a new currency"
         theContract
         (assertDone w1 (const True) "currency contract not done")
-        (replicateM_ 6 (handleBlockchainEvents (Wallet 1)))
+        (handleBlockchainEvents (Wallet 1))
 
     , checkPredicate "script size is reasonable"
         theContract
         (assertDone w1 ((50000 >=) . Ledger.scriptSize . Ledger.unValidatorScript . Cur.curValidator) "script too large")
-        (replicateM_ 6 (handleBlockchainEvents (Wallet 1)))
+        (handleBlockchainEvents (Wallet 1))
 
     ]
 

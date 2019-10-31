@@ -245,4 +245,3 @@ successfulCampaign =
         >> Trace.addBlocks 18
         >> Trace.notifySlot (Trace.Wallet 1)
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)
-        >> Trace.handleBlockchainEvents (Trace.Wallet 1)
