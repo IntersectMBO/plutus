@@ -62,33 +62,30 @@
 with pkgs.lib;
 
 let
-  nativePkgs = import pkgs.path { config = {}; overlays = []; };
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
 
-  nixGitIgnore = import (nativePkgs.fetchFromGitHub {
+  nixGitIgnore = pkgs.callPackage (pkgs.fetchFromGitHub {
     owner = "siers";
     repo = "nix-gitignore";
     rev = "686b057f6c24857c8862c0ef15a6852caab809c7";
     sha256 = "1hv8jl7ppv0f8lnfx2qi2jmzc7b5yiy12yvd4waq9xmxhip1k7rb";
-  }) { inherit (nativePkgs) lib runCommand; };
+  }) { };
 
-  nodejsHeaders = nativePkgs.fetchurl {
+  nodejsHeaders = pkgs.fetchurl {
     url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
     sha256 = "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a";
   };
 
-  easyPS = import (nativePkgs.fetchFromGitHub {
+  easyPS = pkgs.callPackage (pkgs.fetchFromGitHub {
     owner = "justinwoo";
     repo = "easy-purescript-nix";
     rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
     sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
-  }) { pkgs = nativePkgs // { nix-gitignore = nixGitIgnore; }; };
+  }) { pkgs = pkgs // { nix-gitignore = nixGitIgnore; }; };
 
-  purty = (import ./purty {
-    pkgs = nativePkgs;
-  });
+  purty = pkgs.callPackage ./purty { };
 
   packages = self: (rec {
     inherit pkgs localLib;
@@ -374,7 +371,7 @@ let
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.0.1";
-        src = nativePkgs.fetchFromGitHub {
+        src = pkgs.fetchFromGitHub {
           owner = "agda";
           repo = "agda-stdlib";
           rev = "v1.0.1";
