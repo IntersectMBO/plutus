@@ -126,7 +126,7 @@ let
 
         ];
       };
-      requiredOverlay = ./nix/overlays/required.nix;
+      requiredOverlay = ./nix/overlays/haskell-overrides.nix;
     };
 
     localPackages = localLib.getPackages {
