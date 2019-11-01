@@ -216,7 +216,7 @@ runghcOpts =
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
     --, "-package plutus-tx"
-    , "-package plutus-wallet-api"
+    --, "-package plutus-wallet-api"
     ]
 
 jsonToString :: ToJSON a => a -> String
