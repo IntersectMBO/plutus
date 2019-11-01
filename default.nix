@@ -62,40 +62,17 @@
 with pkgs.lib;
 
 let
-  nativePkgs = import pkgs.path { config = {}; overlays = []; };
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
+  sources = import ./nix/sources.nix;
 
-  nixGitIgnore = import (nativePkgs.fetchFromGitHub {
-    owner = "siers";
-    repo = "nix-gitignore";
-    rev = "686b057f6c24857c8862c0ef15a6852caab809c7";
-    sha256 = "1hv8jl7ppv0f8lnfx2qi2jmzc7b5yiy12yvd4waq9xmxhip1k7rb";
-  }) { inherit (nativePkgs) lib runCommand; };
+  easyPS = pkgs.callPackage sources.easy-purescript-nix { }; 
 
-  nodejsHeaders = nativePkgs.fetchurl {
-    url = "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz";
-    sha256 = "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a";
-  };
-
-  easyPS = import (nativePkgs.fetchFromGitHub {
-    owner = "justinwoo";
-    repo = "easy-purescript-nix";
-    rev = "cc7196bff3fdb5957aabfe22c3fa88267047fe88";
-    sha256 = "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw";
-  }) { pkgs = nativePkgs // { nix-gitignore = nixGitIgnore; }; };
-
-  purty = (import ./purty {
-    pkgs = nativePkgs;
-  });
+  purty = pkgs.callPackage ./purty { };
 
   packages = self: (rec {
     inherit pkgs localLib;
-
-    # Upstream nixpkgs has the asciidoctor-epub3 gem, ours doesn't. So I've backported it here.
-    # Our nixpkgs is so old it doesn't have epubcheck.
-    asciidoctorWithEpub3 = pkgs.callPackage ./nix/asciidoctor { epubcheck = null; };
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
@@ -149,7 +126,7 @@ let
 
         ];
       };
-      requiredOverlay = ./nix/overlays/required.nix;
+      requiredOverlay = ./nix/overlays/haskell-overrides.nix;
     };
 
     localPackages = localLib.getPackages {
@@ -166,16 +143,17 @@ let
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
       };
-      purty = pkgs.callPackage ./purty/test.nix {
-        inherit src purty;
+      purty = pkgs.callPackage ./nix/tests/purty.nix {
+        inherit (self.haskellPackages) purty;
+        inherit src;
       };
     };
 
     docs = {
       # this version of asciidoctor is also more recent, although we don't care about the epub bit
-      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
-      plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
-      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
+      plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
+      plutus-book = pkgs.callPackage ./plutus-book/doc { };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
       multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
@@ -195,7 +173,7 @@ let
         };
       };
 
-      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
+      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
     };
 
     papers = {
@@ -231,7 +209,8 @@ let
 
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit easyPS nodejsHeaders;
+          inherit easyPS;
+          inherit (sources) nodejs-headers;
           psSrc = generated-purescript;
           src = ./plutus-playground-client;
           webCommonPath = ./web-common;
@@ -270,7 +249,8 @@ let
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit easyPS nodejsHeaders;
+          inherit (sources) nodejs-headers;
+          inherit easyPS;
           psSrc = generated-purescript;
           src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
@@ -374,12 +354,7 @@ let
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.0.1";
-        src = nativePkgs.fetchFromGitHub {
-          owner = "agda";
-          repo = "agda-stdlib";
-          rev = "v1.0.1";
-          sha256 = "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2";
-        };
+        src = sources.agda-stdlib;
       });
     };
 
@@ -401,7 +376,7 @@ let
 
     dev = rec {
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
       };
 
       scripts = {
@@ -440,7 +415,7 @@ let
             --exclude '*/.spago/*' \
             --exclude '*/node_modules/*' \
             --exclude '*/generated/*' \
-            --exec ${purty}/bin/purty --write {}
+            --exec ${packages.purty}/bin/purty --write {}
           ${pkgs.git}/bin/git diff > post-purty.diff
           diff pre-purty.diff post-purty.diff > /dev/null
           if [ $? != 0 ]

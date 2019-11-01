@@ -44,6 +44,21 @@ self: super: {
     # Should also not be necessary once we bump nixpkgs to 19.03 and --enable-library-for-ghci isn't the default
     doctest = enableSharedExecutables super.doctest;
 
+    # https://github.com/input-output-hk/stack2nix/issues/162
+    hfsevents = super.callPackage ../hfsevents.nix { inherit (pkgs.darwin.apple_sdk.frameworks) Cocoa CoreServices; };
+
+    # has a newer network constraint than everything else, doesn't seem to matter
+    purescript = doJailbreak super.purescript;
+
+    # has overly-specific bounds on things
+    purty = overrideCabal (doJailbreak super.purty) (drv: {
+      # The generator cleverly puts a hpack call in preConfigure, but if we want
+      # to jailbreak we need it to happen before patching instead. And then we can't
+      # run it again.
+      prePatch = ''hpack'';
+      preConfigure = "";
+    });
+
     # stack2nix doesn't have the right set of GHC base packages nulled out for 8.4, as
     # per https://github.com/input-output-hk/stack2nix/issues/84, which means
     # we can hit https://github.com/input-output-hk/stack2nix/issues/134 unless
