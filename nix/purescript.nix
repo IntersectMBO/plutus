@@ -25,7 +25,7 @@ let
   };
   nodeSassBinDarwin = fetchurl {
     url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-64_binding.node";
-    sha256 = "04m3lpqapsx1nsaz7xr6k0yr64car1447v5gf6x6sfiszmshvjw2";
+    sha256 = "1p5gz1694vxar81hbrrbdmmr2wjw3ksfvfgwh0kzzgjkc2dpk5pa";
   };
   webCommon = pkgs.copyPathToStore webCommonPath;
 
