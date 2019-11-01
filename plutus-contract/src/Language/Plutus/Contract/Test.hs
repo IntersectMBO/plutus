@@ -18,6 +18,7 @@ module Language.Plutus.Contract.Test(
     , assertNotDone
     , assertContractError
     , assertOutcome
+    , assertNoFailedTransactions
     , Outcome(..)
     , assertHooks
     , assertRecord
@@ -40,7 +41,7 @@ import           Control.Monad.Writer                  (MonadWriter (..), Writer
 import           Data.Foldable                         (toList)
 import           Data.Functor.Contravariant            (Contravariant (..), Op(..))
 import qualified Data.Map                              as Map
-import           Data.Maybe                            (fromMaybe)
+import           Data.Maybe                            (fromMaybe, mapMaybe)
 import           Data.Proxy                            (Proxy(..))
 import           Data.Row
 import           Data.String                           (IsString(..))
@@ -529,4 +530,15 @@ walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulato
             tell $ vsep
                 [ "Expected funds of" <+> pretty w <+> "to change by" <+> viaShow dlt
                 , "but they changed by", viaShow (finalValue P.- initialValue)]
+            pure False
+
+assertNoFailedTransactions
+    :: forall s e a.
+    TracePredicate s e a
+assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) -> 
+    let failedTransactions = mapMaybe (\case { EM.TxnValidationFail txid err -> Just (txid, err); _ -> Nothing}) (EM.emLog st)
+    in case failedTransactions of
+        [] -> pure True
+        xs -> do
+            tell $ vsep ("Transactions failed to validate:" : fmap pretty xs)
             pure False

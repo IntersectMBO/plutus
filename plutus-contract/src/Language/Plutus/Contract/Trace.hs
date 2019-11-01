@@ -56,7 +56,8 @@ import           Data.Sequence                                   (Seq)
 import qualified Data.Sequence                                   as Seq
 import qualified Data.Set                                        as Set
 
-import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx)
+import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx,
+                                                                  waitingForBlockchainActions)
 import           Language.Plutus.Contract.Resumable              (ResumableError)
 import qualified Language.Plutus.Contract.Resumable              as State
 import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
@@ -306,9 +307,6 @@ addBlocks
 addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
--- | Submit the wallet's pending transactions to the blockchain
---   and inform all wallets about new transactions and respond to
---   UTXO queries
 handleBlockchainEvents
     :: ( MonadEmulator e m
        , HasUtxoAt s
@@ -317,10 +315,28 @@ handleBlockchainEvents
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleBlockchainEvents wllt = do
+handleBlockchainEvents wallet = do
+    hks <- fmap (either (const mempty) id) (getHooks wallet)
+    if waitingForBlockchainActions hks
+    then do
+        submitUnbalancedTxns wallet
+        handleUtxoQueries wallet
+        handleBlockchainEvents wallet
+    else pure ()
+
+-- | Submit the wallet's pending transactions to the blockchain
+--   and inform all wallets about new transactions and respond to
+--   UTXO queries
+submitUnbalancedTxns
+    :: ( MonadEmulator e m
+       , HasWatchAddress s
+       , HasWriteTx s
+       )
+    => Wallet
+    -> ContractTrace s e m a ()
+submitUnbalancedTxns wllt = do
     utxs <- unbalancedTransactions wllt
     traverse_ (submitUnbalancedTx wllt >=> traverse_ addTxEvents) utxs
-    handleUtxoQueries wllt
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.

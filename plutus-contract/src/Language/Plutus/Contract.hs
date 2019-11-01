@@ -50,6 +50,7 @@ module Language.Plutus.Contract(
     , ContractRow
     , type (.\/)
     , type Empty
+    , waitingForBlockchainActions
     ) where
 
 import           Control.Applicative                             (Alternative (..))
@@ -57,13 +58,14 @@ import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
-import           Language.Plutus.Contract.Effects.UtxoAt
-import           Language.Plutus.Contract.Effects.WatchAddress
+import           Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
+import           Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 import           Language.Plutus.Contract.Util                   (both, selectEither)
 
 import           Language.Plutus.Contract.Request                (AsContractError (..), Contract (..),
                                                                   ContractError (..), ContractRow, checkpoint, select)
+import           Language.Plutus.Contract.Schema                 (Handlers)
 
 import           Language.Plutus.Contract.Tx                     as Tx
 
@@ -84,3 +86,13 @@ type HasBlockchainActions s =
   , HasWriteTx s
   , HasUtxoAt s
   )
+
+-- | Check if there are handlers for any of the four blockchain
+--   events.
+waitingForBlockchainActions
+  :: ( HasWriteTx s, HasUtxoAt s )
+  => Handlers s
+  -> Bool
+waitingForBlockchainActions handlers =
+  UtxoAt.addresses handlers /= mempty
+  || transactions handlers /= mempty

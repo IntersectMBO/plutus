@@ -58,7 +58,8 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "cannot collect money too early"
         theContract
-        (walletFundsChange w1 PlutusTx.zero)
+        (walletFundsChange w1 PlutusTx.zero
+        /\ assertNoFailedTransactions)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
@@ -73,18 +74,20 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "cannot collect money too late"
         theContract
-        (walletFundsChange w1 PlutusTx.zero)
+        (walletFundsChange w1 PlutusTx.zero
+        /\ assertNoFailedTransactions)
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Add some blocks to bring the total up to 31
             -- (that is, above the collection deadline)
-            >> Trace.addBlocks 25
+            >> Trace.addBlocks 26
             -- Then inform the wallet. It's too late to collect the funds
             -- now.
             >> Trace.notifySlot w1
             >> Trace.handleBlockchainEvents w1
+            >> Trace.addBlocks 1
 
     , checkPredicate "cannot collect unless notified"
         theContract

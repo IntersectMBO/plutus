@@ -39,7 +39,6 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents (Wallet 2)
         >> callEndpoint @"redeem-escrow" (Wallet 3) ()
         >> notifySlot w3
-        >> handleUtxoQueries (Wallet 3)
         >> handleBlockchainEvents (Wallet 3)
         >> handleBlockchainEvents (Wallet 1)
         >> handleBlockchainEvents (Wallet 2))
@@ -77,7 +76,6 @@ tests = testGroup "escrow"
           >> handleBlockchainEvents (Wallet 3)
           >> callEndpoint @"redeem-escrow" (Wallet 1) ()
           >> notifySlot w1
-          >> handleUtxoQueries (Wallet 1)
           >> handleBlockchainEvents (Wallet 1)
           >> handleBlockchainEvents (Wallet 3)
           >> handleBlockchainEvents (Wallet 2))
@@ -90,7 +88,6 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents (Wallet 1)
         >> addBlocks 200
         >> callEndpoint @"refund-escrow" (Wallet 1) ()
-        >> handleUtxoQueries (Wallet 1)
         >> handleBlockchainEvents (Wallet 1))
 
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 50000)

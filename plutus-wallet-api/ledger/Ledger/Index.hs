@@ -1,6 +1,6 @@
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
@@ -25,34 +25,36 @@ module Ledger.Index(
     validateTransaction
     ) where
 
-import           Prelude                   hiding (lookup)
+import           Prelude                          hiding (lookup)
 
 
-import           Control.Lens              (at, (^.))
+import           Control.Lens                     (at, (^.))
 import           Control.Monad
-import           Control.Monad.Except      (MonadError (..), runExcept)
-import           Control.Monad.Reader      (MonadReader (..), ReaderT (..), ask)
-import           Crypto.Hash               (Digest, SHA256)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Foldable             (fold, foldl', traverse_)
-import qualified Data.Map                  as Map
-import           Data.Semigroup            (Semigroup)
-import qualified Data.Set                  as Set
-import           GHC.Generics              (Generic)
-import           Language.PlutusTx         (toData)
-import qualified Language.PlutusTx.Numeric as P
-import qualified Ledger.Ada                as Ada
+import           Control.Monad.Except             (MonadError (..), runExcept)
+import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
+import           Crypto.Hash                      (Digest, SHA256)
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Foldable                    (fold, foldl', traverse_)
+import qualified Data.Map                         as Map
+import           Data.Semigroup                   (Semigroup)
+import qualified Data.Set                         as Set
+import           Data.Text.Prettyprint.Doc        (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
+import           GHC.Generics                     (Generic)
+import           Language.PlutusTx                (toData)
+import qualified Language.PlutusTx.Numeric        as P
+import qualified Ledger.Ada                       as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
-import qualified Ledger.Interval           as Interval
+import qualified Ledger.Interval                  as Interval
 import           Ledger.Scripts
-import qualified Ledger.Scripts            as Scripts
-import qualified Ledger.Slot               as Slot
+import qualified Ledger.Scripts                   as Scripts
+import qualified Ledger.Slot                      as Slot
 import           Ledger.Tx
 import           Ledger.TxId
-import           Ledger.Validation         (PendingTx' (..))
-import qualified Ledger.Validation         as Validation
-import qualified Ledger.Value              as V
+import           Ledger.Validation                (PendingTx' (..))
+import qualified Ledger.Validation                as Validation
+import qualified Ledger.Value                     as V
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
@@ -111,6 +113,7 @@ data ValidationError =
 
 instance FromJSON ValidationError
 instance ToJSON ValidationError
+deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
