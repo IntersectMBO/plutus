@@ -16,7 +16,6 @@
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE TypeApplications          #-}
 
 module Language.PlutusCore.Constant.Typed where
 --     ( TypeGround (..)

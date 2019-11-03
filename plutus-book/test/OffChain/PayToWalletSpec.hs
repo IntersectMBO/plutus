@@ -5,6 +5,7 @@ import           Utils
 import qualified OffChain.PayToWallet       as P1
 import qualified OffChain.PayToWalletSimple as P2
 
+import qualified Language.PlutusTx.Numeric  as P
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
@@ -21,14 +22,14 @@ spec = do
 mkSpec :: (Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec payToWallet =
     it "transfers funds as expected" $
-        isRight (fst $ getResult tr) `shouldBe` True
+        fst (getResult tr) `shouldSatisfy` isRight
   where
     ada :: Ada
-    ada = fromInt 8
+    ada = lovelaceOf 8
 
     tr :: Trace MockWallet ()
     tr = void $ do
         updateWallets
         void $ walletAction w1 $ payToWallet w2 ada
         updateWallets
-        assertFunds2 (initialAda `minus` ada) (initialAda `plus` ada)
+        assertFunds2 (initialAda P.- ada) (initialAda P.+ ada)

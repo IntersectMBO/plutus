@@ -69,7 +69,7 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser (
     command "typecheck" (info (Typecheck <$> typecheckOpts) (progDesc "Typecheck a Plutus Core program"))
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
-    <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term"))
+    <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
   )
 
 normalizationMode :: Parser NormalizationMode
@@ -138,7 +138,7 @@ runEval (EvalOptions inp mode) = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
             CK  -> PLC.runCk
-            CEK -> PLC.runCek mempty
+            CEK -> PLC.unsafeRunCek mempty
             L   -> PLC.runL mempty
     case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (e :: PLC.Error PLC.AlexPosn) -> do

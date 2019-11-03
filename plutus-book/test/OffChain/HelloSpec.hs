@@ -16,7 +16,7 @@ spec :: Spec
 spec = describe "hello" $
     it "logs the expected message" $ do
         let res = getResult tr
-        isRight (fst res) `shouldBe` True
+        fst res `shouldSatisfy` isRight
         _emulatorLog (snd res) `shouldBe` [WalletInfo w "Hello from the wallet!"]
   where
     w :: Wallet

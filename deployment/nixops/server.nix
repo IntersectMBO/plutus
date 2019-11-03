@@ -13,6 +13,18 @@
                             ''
                             machine_role{role="nginx"} 1
                             '';
+    docs = if serviceName == "plutus-playground" then plutus.docs.plutus-tutorial else plutus.docs.marlowe-tutorial;
+    documentation-site =
+      let
+        adjustedTutorial = docs.override { marlowePlaygroundUrl = "https://${machines.environment}.${machines.marloweTld}";
+                                           plutusPlaygroundUrl = "https://${machines.environment}.${machines.plutusTld}";
+                                           haddockUrl = "../haddock";
+                                         };
+      in pkgs.runCommand "documentation-site" {} ''
+        mkdir -p $out
+        cp -aR ${adjustedTutorial} $out/tutorial
+        cp -aR ${plutus.docs.public-combined-haddock}/share/doc $out/haddock
+      '';
   in
   {
     imports = [ (defaultMachine node pkgs)
@@ -104,14 +116,38 @@
             '';
           };
           "/tutorial/" = {
-            root = "${plutus.plutus-playground.documentation-site}/";
+            root = "${documentation-site}/";
           };
           "/haddock/" = {
-            root = "${plutus.plutus-playground.documentation-site}/";
+            root = "${documentation-site}/";
           };
           "/+" = {
             proxyPass = "http://${serviceName}/";
             proxyWebsockets = true;
+          };
+          # we have the ability in the load balancer to specify which machine you want a request to go to
+          # TODO: I can't work out quite how to get regex working here
+          "/machine-a" = {
+            proxyPass = "http://${serviceName}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+            rewrite /machine-a/(.*) /$1  break;
+            # we want to rate limit the API however the webpage loading downloads a few files so we allow a small burst
+            limit_req zone=plutuslimit burst=10;
+            add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            expires off;
+            '';
+          };
+          "/machine-b" = {
+            proxyPass = "http://${serviceName}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+            rewrite /machine-b/(.*) /$1  break;
+            # we want to rate limit the API however the webpage loading downloads a few files so we allow a small burst
+            limit_req zone=plutuslimit burst=10;
+            add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            expires off;
+            '';
           };
         };
       };

@@ -1,11 +1,10 @@
 module Playground.Gists
-       ( mkNewGist
-       , gistSourceFilename
-       , gistSimulationFilename
-       , playgroundGistFile
-       , simulationGistFile
-       )
-       where
+  ( mkNewGist
+  , gistSourceFilename
+  , gistSimulationFilename
+  , playgroundGistFile
+  , simulationGistFile
+  ) where
 
 import Cursor (Cursor)
 import Data.Array (catMaybes)
@@ -22,23 +21,30 @@ import Types (Simulation)
 mkNewGist ::
   { source :: Maybe SourceCode
   , simulations :: Cursor Simulation
-  }
-  -> Maybe NewGist
-mkNewGist  { source, simulations } =
-  if Array.null gistFiles
-    then Nothing
-    else Just $ NewGist { _newGistDescription: "Plutus Playground Smart Contract"
-                        , _newGistPublic: true
-                        , _newGistFiles: gistFiles
-                        }
+  } ->
+  Maybe NewGist
+mkNewGist { source, simulations } =
+  if Array.null gistFiles then
+    Nothing
+  else
+    Just
+      $ NewGist
+          { _newGistDescription: "Plutus Playground Smart Contract"
+          , _newGistPublic: true
+          , _newGistFiles: gistFiles
+          }
   where
-    gistFiles = catMaybes [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
-                          , Just (mkNewGistFile gistSimulationFilename $ encodeJSON simulations)
-                          ]
-    mkNewGistFile _newGistFilename _newGistFileContent =
-      NewGistFile { _newGistFilename
-                  , _newGistFileContent
-                  }
+  gistFiles =
+    catMaybes
+      [ mkNewGistFile gistSourceFilename <<< unwrap <$> source
+      , Just (mkNewGistFile gistSimulationFilename $ encodeJSON simulations)
+      ]
+
+  mkNewGistFile _newGistFilename _newGistFileContent =
+    NewGistFile
+      { _newGistFilename
+      , _newGistFileContent
+      }
 
 gistSourceFilename :: String
 gistSourceFilename = "Playground.hs"

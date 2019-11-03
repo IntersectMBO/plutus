@@ -22,6 +22,7 @@ import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.PLCTypes
 import           Language.PlutusTx.Utils
 
+import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
@@ -114,10 +115,16 @@ install args todo = do
     pure $ simpl:pass:todo
 
 pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
-pluginPass opts guts = getMarkerName >>= \case
-    -- nothing to do
-    Nothing -> pure guts
-    Just name -> GHC.bindsOnlyPass (mapM $ compileMarkedExprsBind opts name) guts
+pluginPass opts guts = do
+    -- Family env code borrowed from SimplCore
+    p_fam_env <- GHC.getPackageFamInstEnv
+    let fam_envs = (p_fam_env, GHC.mg_fam_inst_env guts)
+
+    maybeName <- getMarkerName
+    case maybeName of
+        -- nothing to do
+        Nothing   -> pure guts
+        Just name -> GHC.bindsOnlyPass (mapM $ compileMarkedExprsBind (opts, fam_envs) name) guts
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
@@ -125,10 +132,17 @@ to a 'CompiledCode', not the Haskell expression we started with!
 
 Currently we look for calls to the 'plc :: a -> CompiledCode' function, and we replace the whole application with the
 generated code object, which will still be well-typed.
+-}
 
-However, if we do this with a polymorphic expression as the argument to 'plc', we have problems
-where GHC gives unconstrained type variables the type `Any` rather than leaving them abstracted as we require (see
-note [System FC and system FW]). I don't currently know how to resolve this.
+{- Note [Polymorphic values and Any]
+If you try and use the plugin on a polymorphic expression, then GHC will replace the quantified types
+with 'Any' and remove the type lambdas. This is pretty annoying, and I don't entirely understand
+why it happens, despite poking around in GHC a fair bit.
+
+Possibly it has to do with the type that is given to 'plc' being unconstrained, resulting in GHC
+putting 'Any' there, and that then propagating into the type of the quote. It's tricky to experiment
+with this, since you can't really specify a polymorphic type in a type application or in the resulting
+'CompiledCode' because that's impredicative polymorphism.
 -}
 
 getMarkerName :: GHC.CoreM (Maybe GHC.Name)
@@ -199,13 +213,13 @@ stripTicks = \case
     e -> e
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.
-compileMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
+compileMarkedExprsBind :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 compileMarkedExprsBind opts markerName = \case
     GHC.NonRec b e -> GHC.NonRec b <$> compileMarkedExprs opts markerName e
     GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> compileMarkedExprs opts markerName e) bs
 
 -- | Compiles all the marked expressions in the given expression into PLC literals.
-compileMarkedExprs :: PluginOptions -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileMarkedExprs :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
 compileMarkedExprs opts markerName =
     let
         comp = compileMarkedExprs opts markerName
@@ -243,14 +257,16 @@ mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
-compileCoreExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-compileCoreExpr opts locStr codeTy origE = do
+compileCoreExpr :: (PluginOptions, GHC.FamInstEnvs) -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
     flags <- GHC.getDynFlags
+
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let context = CompileContext {
             ccOpts=CompileOptions {},
             ccFlags=flags,
+            ccFamInstEnvs=famEnvs,
             ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack,
             ccBlackholed=mempty

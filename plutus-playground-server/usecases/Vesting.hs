@@ -13,24 +13,27 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import qualified Prelude                   as Haskell
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
 
+import           IOTS
 import qualified Language.PlutusTx         as PlutusTx
 import           Ledger                    (Address, DataScript(..),
                                             RedeemerScript(..),  Slot,
-                                            TxOutRef, TxIn, ValidatorScript(..))
+                                            TxOutRef, TxIn, ValidatorScript, mkValidatorScript)
 import qualified Ledger                    as Ledger
+import           Ledger.Typed.Scripts      (wrapValidator)
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
 import qualified Ledger.Validation         as V
-import           Ledger.Validation         (PendingTx(..))
+import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import           Wallet                    (WalletAPI(..),
                                             PubKey)
 import qualified Wallet                    as W
+import Wallet.Emulator (walletPubKey)
 import qualified Wallet.API                as WAPI
 import           Playground.Contract
 
@@ -58,7 +61,7 @@ data VestingTranche = VestingTranche {
     -- ^ When this tranche is released
     vestingTrancheAmount :: Value
     -- ^ How much money is locked in this tranche
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, IotsType)
 
 PlutusTx.makeLift ''VestingTranche
 
@@ -74,14 +77,14 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     -- ^ The recipient of the scheme (who is authorised to take out money once
     --   it has been released)
-    } deriving (Generic, ToJSON, FromJSON, ToSchema)
+    } deriving (Generic, ToJSON, FromJSON, ToSchema, IotsType)
 
 PlutusTx.makeLift ''Vesting
 
 -- | The total value locked by a vesting scheme
 totalAmount :: Vesting -> Value
 totalAmount (Vesting l r _) =
-    (vestingTrancheAmount l) `Value.plus` (vestingTrancheAmount r)
+    (vestingTrancheAmount l) + (vestingTrancheAmount r)
 
 -- | The amount guaranteed to be available from a given tranche in a
 -- given slot range.
@@ -95,7 +98,7 @@ availableFrom (VestingTranche d v) range =
     -- in particular that the start slot of the argument range is after the
     -- tranche vesting date), then the money in the tranche is available,
     -- otherwise nothing is available.
-    in if validRange `Interval.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else zero
 
 {- |
 
@@ -114,6 +117,8 @@ availableFrom (VestingTranche d v) range =
 
     `Vesting -> Signature -> () -> PendingTx -> ()`
 
+    This isn't completely implemented yet:  `mkValidator` below just takes
+    () in place of a signature.
 -}
 
 -- | The validator script
@@ -127,11 +132,11 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
-            `Value.plus` availableFrom vestingTranche2 range
+            + availableFrom vestingTranche2 range
 
         -- And the following amount has not been released yet:
         unreleased :: Value
-        unreleased = (totalAmount d) `Value.minus` released
+        unreleased = (totalAmount d) - released
 
         -- To check whether the withdrawal is legitimate we need to
         -- 1. Ensure that the amount taken out does not exceed the current
@@ -156,10 +161,10 @@ mkValidator d@Vesting{..} () () p@PendingTx{pendingTxValidRange = range} =
     in con1 && con2
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted v
+validatorScript v = mkValidatorScript $
+    $$(PlutusTx.compile [|| \vd -> wrapValidator (mkValidator vd) ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode v
 
 contractAddress :: Vesting -> Address
 contractAddress vst = Ledger.scriptAddress (validatorScript vst)
@@ -178,15 +183,18 @@ contractAddress vst = Ledger.scriptAddress (validatorScript vst)
 
 -}
 
-vestFunds :: (Monad m, WalletAPI m) => Vesting -> m ()
-vestFunds vst = do
-    let amt = totalAmount vst
+vestFunds :: (Monad m, WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
+vestFunds tranche1 tranche2 ownerWallet = do
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+        amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (Ledger.lifted ())
+        dataScript = DataScript (PlutusTx.toData ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
-registerVestingScheme :: (WalletAPI m) =>  Vesting -> m ()
-registerVestingScheme vst = startWatching (contractAddress vst)
+registerVestingScheme :: (WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> m ()
+registerVestingScheme tranche1 tranche2 ownerWallet =
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+    in startWatching (contractAddress vst)
 
 {- |
 
@@ -195,10 +203,11 @@ registerVestingScheme vst = startWatching (contractAddress vst)
     *and* puts the value that remains back at the script address.
 
 -}
-withdraw :: (Monad m, WalletAPI m) => Vesting -> Value -> m ()
-withdraw vst vl = do
+withdraw :: (Monad m, WalletAPI m) => VestingTranche -> VestingTranche -> Wallet -> Value -> m ()
+withdraw tranche1 tranche2 ownerWallet vl = do
 
-    let address = contractAddress vst
+    let vst = Vesting tranche1 tranche2 (walletPubKey ownerWallet)
+        address = contractAddress vst
         validator = validatorScript vst
 
     -- We are going to use the wallet API to build the transaction "by hand",
@@ -217,22 +226,16 @@ withdraw vst vl = do
     utxos <- WAPI.outputsAt address
 
     let
-        -- the redeemer script with the unit value ()
-        redeemer  = RedeemerScript (Ledger.lifted ())
-
-        -- Turn the 'utxos' map into a set of 'TxIn' values
-        mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator redeemer
-
-        ins = Set.map mkIn (Map.keysSet utxos)
-
-    -- Our transaction has either one or two outputs.
-    -- If the scheme is finished (no money is left in it) then
-    -- there is only one output, a pay-to-pubkey output owned by
-    -- us.
-    -- If any money is left in the scheme then there will be an additional
-    -- pay-to-script output locked by the vesting scheme's validator script
-    -- that keeps the remaining value.
+    -- Our transaction has either one or two outputs.  If the scheme
+    -- is finished (no money is left in it) then there is only one
+    -- output, a pay-to-pubkey output owned by us.  If any money is
+    -- left in the scheme then there will be an additional
+    -- pay-to-script output locked by the vesting scheme's validator
+    -- script that keeps the remaining value.  In this case, we need a
+    -- redeemer which discards the contents of the extra output's data
+    -- script (strictly, the redeemer should check that the data
+    -- script is correct).  If there is no money left then redeemer
+    -- should just be ().
 
     -- We can create a public key output to our own key with 'ownPubKeyTxOut'.
     ownOutput <- W.ownPubKeyTxOut vl
@@ -241,21 +244,30 @@ withdraw vst vl = do
     -- scheme:
     let
         currentlyLocked = Map.foldr
-            (\txo vl' -> vl' `Value.plus` Ledger.txOutValue txo)
-            Value.zero
+            (\txo vl' -> vl' + Ledger.txOutValue txo)
+            zero
             utxos
-        remaining = currentlyLocked `Value.minus` vl
+        remaining = currentlyLocked - vl
 
         lockedOutput =
-            Ledger.scriptTxOut remaining validator (DataScript (Ledger.lifted ()))
+            Ledger.scriptTxOut remaining validator (DataScript (PlutusTx.toData ()))
         otherOutputs =
             if Value.isZero remaining
             then []
             else [lockedOutput]
 
+        redeemer = RedeemerScript $ PlutusTx.toData ()
+
+        -- Turn the 'utxos' map into a set of 'TxIn' values
+        mkIn :: TxOutRef -> TxIn
+        mkIn r = Ledger.scriptTxIn r validator redeemer
+
+        ins = Set.map mkIn (Map.keysSet utxos)
+
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
 
-    pure ()
+    Haskell.pure ()
 
 $(mkFunctions ['vestFunds, 'registerVestingScheme, 'withdraw])
+$(mkIotsDefinitions ['vestFunds, 'registerVestingScheme, 'withdraw])

@@ -10,6 +10,7 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | A map represented as an "association list" of key-value pairs.
 module Language.PlutusTx.AssocMap (
@@ -20,11 +21,16 @@ module Language.PlutusTx.AssocMap (
     , toList
     , keys
     , lookup
+    , member
+    , insert
+    , delete
     , union
     , all
+    , mapThese
     ) where
 
 import           GHC.Generics              (Generic)
+import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (all, lookup)
 import qualified Language.PlutusTx.Prelude as P
@@ -36,7 +42,7 @@ import           Language.PlutusTx.These
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving newtype (Eq, Ord)
+    deriving newtype (Eq, Ord, IsData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
@@ -72,6 +78,24 @@ lookup c (Map xs) =
         go []            = Nothing
         go ((c', i):xs') = if c' == c then Just i else go xs'
     in go xs
+
+
+{-# INLINABLE member #-}
+-- | Is the key a member of the map?
+member :: forall k v . (Eq k) => k -> Map k v -> Bool
+member k m = isJust (lookup k m)
+
+{-# INLINABLE insert #-}
+insert :: forall k v . Eq k => k -> v -> Map k v -> Map k v
+insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
+
+{-# INLINABLE delete #-}
+delete :: forall k v . (Eq k) => k -> Map k v -> Map k v
+delete key (Map ls) = Map (go ls)
+  where
+    go [] = []
+    go ((k, v) : rest) | k == key = rest
+                       | otherwise = (k, v) : go rest
 
 {-# INLINABLE keys #-}
 -- | The keys of a 'Map'.
@@ -126,7 +150,16 @@ all p (Map mps) =
             (_ :: k, x):xs' -> p x && go xs'
     in go mps
 
-{-# INLINABLE singleton #-}
+-- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
+mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
+mapThese f mps = (Map mpl, Map mpr)  where
+    (mpl, mpr) = P.foldr f' ([], []) mps'
+    Map mps'  = fmap f mps
+    f' (k, v) (as, bs) = case v of
+        This a    -> ((k, a):as, bs)
+        That b    -> (as, (k, b):bs)
+        These a b -> ((k, a):as, (k, b):bs)
+
 -- | A singleton map.
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]

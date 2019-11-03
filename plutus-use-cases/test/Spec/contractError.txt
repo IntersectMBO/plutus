@@ -1,0 +1,10 @@
+Test outputs:
+  
+Events by wallet:
+  Events for W1:
+    • {schedule collection:
+       ()}
+Contract result by wallet:
+  Wallet: W1
+    Error:
+      OtherError "something went wrong"

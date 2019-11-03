@@ -5,8 +5,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
     Vesting(..),
     VestingTranche(..),
@@ -20,22 +22,27 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     mkValidator
     ) where
 
+import           Control.Applicative          (Applicative (..))
 import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude    hiding (Applicative (..))
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger                       as Ledger
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
+import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
+import           Ledger.Scripts               (ValidatorHash)
+import qualified Ledger.Scripts               as Scripts
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx (..), ValidatorHash)
+import           Ledger.Validation            (PendingTx, PendingTx' (..), PendingTxIn'(..), PendingTxOut(..), getContinuingOutputs)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -55,11 +62,13 @@ data Vesting = Vesting {
 
 PlutusTx.makeLift ''Vesting
 
+{-# INLINABLE totalAmount #-}
 -- | The total amount vested
 totalAmount :: Vesting -> Value
 totalAmount Vesting{..} =
-    vestingTrancheAmount vestingTranche1 `Value.plus` vestingTrancheAmount vestingTranche2
+    vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
 
+{-# INLINABLE availableFrom #-}
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
@@ -68,7 +77,7 @@ availableFrom (VestingTranche d v) range =
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
-    in if validRange `Interval.contains` range then v else Value.zero
+    in if validRange `Interval.contains` range then v else zero
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
@@ -80,7 +89,11 @@ instance Eq VestingData where
     {-# INLINABLE (==) #-}
     (VestingData h1 v1) == (VestingData h2 v2) = h1 == h2 && v1 == v2
 
+PlutusTx.makeIsData ''VestingData
 PlutusTx.makeLift ''VestingData
+
+transactionFee :: Value
+transactionFee = Ada.lovelaceValueOf 0
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
@@ -92,10 +105,10 @@ vestFunds :: (
     -> m VestingData
 vestFunds vst value = do
     _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    (payment, change) <- createPaymentWithChange value
+    (payment, change) <- createPaymentWithChange (value + transactionFee)
     let vs = validatorScript vst
-        o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
-        vd =  VestingData (validatorScriptHash vst) Value.zero
+        o = scriptTxOut value vs (DataScript $ PlutusTx.toData vd)
+        vd =  VestingData (validatorScriptHash vst) zero
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
@@ -116,35 +129,44 @@ retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     currentSlot <- slot
     let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
-        remaining = totalAmount vs `Value.minus` vnow
-        vd' = vd {vestingDataPaidOut = vnow `Value.plus` vestingDataPaidOut vd }
-        inp = scriptTxIn r val Ledger.unitRedeemer
+        o   = scriptTxOut remaining val (DataScript $ PlutusTx.toData vd')
+        remaining = totalAmount vs - vnow
+        vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
+        inp = scriptTxIn r val (RedeemerScript $ PlutusTx.toData ())
         range = W.intervalFrom currentSlot
-    _ <- createTxAndSubmit range (Set.singleton inp) [oo, o]
+    (fee, change) <- createPaymentWithChange transactionFee
+    _ <- createTxAndSubmit range (Set.insert inp fee) ([oo, o] ++ maybeToList change)
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
-    Validation.plcValidatorDigest
+    Scripts.plcValidatorDigest
     . Ledger.getAddress
     . Ledger.scriptAddress
     . validatorScript
 
+{-# INLINABLE mkValidator #-}
 mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool
-mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = range} =
+mkValidator d@Vesting{..} VestingData{..} _ ptx@PendingTx{pendingTxValidRange = range} =
     let
-        -- We assume here that the txn outputs are always given in the same
-        -- order (1 PubKey output, followed by 0 or 1 script outputs)
+        -- The locked funds which are returned?
+        payBack :: Value
+        payBack = mconcat (map pendingTxOutValue (getContinuingOutputs ptx))
+
+        -- The funds available in the contract.
+        lockedValue :: Value
+        lockedValue = pendingTxInValue (pendingTxIn ptx)
+
+        -- The funds that are paid to the owner
         amountSpent :: Value
-        amountSpent = Validation.valuePaidTo p vestingOwner
+        amountSpent = lockedValue - payBack
 
         -- Value that has been released so far under the scheme
         released = availableFrom vestingTranche1 range
-            `Value.plus` availableFrom vestingTranche2 range
+            + availableFrom vestingTranche2 range
 
         paidOut = vestingDataPaidOut
-        newAmount = paidOut `Value.plus` amountSpent
+        newAmount = paidOut + amountSpent
 
         -- Verify that the amount taken out, plus the amount already taken
         -- out before, does not exceed the threshold that is currently
@@ -154,13 +176,14 @@ mkValidator d@Vesting{..} VestingData{..} () p@PendingTx{pendingTxValidRange = r
         -- Check that the remaining output is locked by the same validation
         -- script
         txnOutputsValid =
-            let remaining = Validation.valueLockedBy p (Validation.ownHash p) in
-            remaining == (totalAmount d `Value.minus` newAmount)
+            let remaining = Validation.valueLockedBy ptx (Validation.ownHash ptx) in
+            remaining == (totalAmount d - newAmount)
 
     in amountsValid && txnOutputsValid
 
 validatorScript :: Vesting -> ValidatorScript
-validatorScript v = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted v
+validatorScript v = Ledger.mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode v
+    where validatorParam vd = Scripts.wrapValidator (mkValidator vd)

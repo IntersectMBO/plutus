@@ -15,7 +15,7 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
-import qualified Language.PlutusCore.Check.Value              as VR
+import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
@@ -94,7 +94,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. KnownType a => TermOf a -> Maybe (TermOf (Value TyName Name ()))
+    :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
     case errOrRes of
@@ -103,4 +103,4 @@ unsafeTypeEvalCheck termOfTbv = do
             , "\nin\n"
             , docString . prettyPlcClassicDebug $ _termOfTerm termOfTbv
             ]
-        Right termOfTecr -> traverse (reoption . _termCheckResultValue) termOfTecr
+        Right termOfTecr -> _termCheckResultValue <$> termOfTecr

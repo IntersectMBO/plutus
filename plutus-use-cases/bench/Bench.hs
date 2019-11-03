@@ -18,14 +18,13 @@ import qualified Data.ByteString                                   as BS
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
 import qualified Language.PlutusTx.Prelude                         as P
 import           Ledger
-import           Ledger.Ada                                        as Ada
 import qualified Ledger.Crypto                                     as Crypto
-import           Ledger.Value                                      as Value
 import           LedgerBytes
 import           Wallet
 
 import qualified Language.PlutusTx                                 as PlutusTx
-import           Language.PlutusTx.Evaluation                      (evaluateCek)
+import qualified Language.PlutusTx.Prelude                         as PlutusTx
+import           Language.PlutusTx.Evaluation                      (unsafeEvaluateCek)
 
 import qualified Recursion                                         as Rec
 import qualified Scott                                             as Scott
@@ -63,14 +62,14 @@ hashB = bgroup "hash" (imap (\i d -> bench ("hash-" <> show i) $ nf hashit d) ha
 fibB :: Benchmark
 fibB = bgroup "fib" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
             bench "native" $ nf fib 5,
             bench "combinator" $ nf fibRec 5
         ],
         bgroup "10" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
-            bench "plutusOpt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
+            bench "plutusOpt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
             bench "native" $ nf fib 10,
             bench "combinator" $ nf fibRec 10
         ]
@@ -82,7 +81,7 @@ fibB = bgroup "fib" [
             then 0
             else if n P.== 1
             then 1
-            else fib (n `P.minus` 1) `P.plus` fib (n `P.minus` 2)
+            else fib (n P.- 1) P.+ fib (n P.- 2)
 
         fibRec :: Integer -> Integer
         fibRec = Rec.fix1zSimple $ \r n -> if n == 0 then 0 else if n == 1 then 1 else r (n-1) + r (n-2)
@@ -91,16 +90,16 @@ fibB = bgroup "fib" [
 sumB :: Benchmark
 sumB = bgroup "sum" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek script5,
-            bench "plutus-opt" $ nf evaluateCek script5Opt,
+            bench "plutus" $ nf unsafeEvaluateCek script5,
+            bench "plutus-opt" $ nf unsafeEvaluateCek script5Opt,
             bench "native" $ nf haskellNative 5,
             bench "scott" $ nf haskellScott 5,
             bench "combinator" $ nf haskellRec 5,
             bench "scott-combinator" $ nf haskellRecScott 5
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek script20,
-            bench "plutus-opt" $ nf evaluateCek script20Opt,
+            bench "plutus" $ nf unsafeEvaluateCek script20,
+            bench "plutus-opt" $ nf unsafeEvaluateCek script20Opt,
             bench "native" $ nf haskellNative 20,
             bench "scott" $ nf haskellScott 20,
             bench "combinator" $ nf haskellRec 20,
@@ -111,7 +110,7 @@ sumB = bgroup "sum" [
         fromTo :: Integer -> Integer -> [Integer]
         fromTo f t =
             if f P.== t then [f]
-            else f:(fromTo (f `P.plus` 1) t)
+            else f:(fromTo (f P.+ 1) t)
 
         foldrRec :: (a -> b -> b) -> b -> [a] -> b
         foldrRec f z = go
@@ -139,10 +138,10 @@ sumB = bgroup "sum" [
         haskellRecScott :: Integer -> Integer
         haskellRecScott i = foldrRecScott (+) 0 (Scott.fromTo 1 i)
 
-        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 5) ||])
-        script5Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 5) ||])
-        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr P.plus 0 (fromTo 1 20) ||])
-        script20Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt P.plus 0 (fromToOpt 1 20) ||])
+        script5 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr (P.+) 0 (fromTo 1 5) ||])
+        script5Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt (P.+) 0 (fromToOpt 1 5) ||])
+        script20 = PlutusTx.getPlc $$(PlutusTx.compile [|| P.foldr (P.+) 0 (fromTo 1 20) ||])
+        script20Opt = PlutusTx.getPlc $$(PlutusTx.compile [|| foldrOpt (P.+) 0 (fromToOpt 1 20) ||])
 
 -- | This aims to exercise some reasonably substantial computation *without* using any builtins.
 -- Hence we also provide explicitly constructed lists, rather than writing 'replicate', which would
@@ -150,16 +149,16 @@ sumB = bgroup "sum" [
 tailB :: Benchmark
 tailB = bgroup "tail" [
         bgroup "5" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), ()] ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 5 ()),
             bench "scott" $ nf tailScott (Scott.replicate 5 ()),
             bench "combinator" $ nf tailRec (replicate 5 ()),
             bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
         ],
         bgroup "20" [
-            bench "plutus" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf evaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () (_::PendingTx) -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 20 ()),
             bench "scott" $ nf tailScott (Scott.replicate 20 ()),
             bench "combinator" $ nf tailRec (replicate 20 ()),
@@ -197,7 +196,7 @@ trivial = bgroup "trivial" [
         bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
     ]
     where
-        validator = ValidatorScript $$(Ledger.compileScript [|| \() () (_::PendingTx) -> True ||])
+        validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
 
 -- | The multisig contract is one of the simplest ones that we have. This runs a number of different scenarios.
 -- Note that multisig also does some signature verification!
@@ -234,9 +233,9 @@ multisig = bgroup "multisig" [
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (plcDigest m) s
 
-runScriptNoCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> ([String], Bool)
+runScriptNoCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> ([String], Bool)
+runScriptCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
 runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey
@@ -259,24 +258,24 @@ sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
 validationData1 :: ValidationData
-validationData1 = ValidationData $ lifted $ mockPendingTx
+validationData1 = ValidationData $ PlutusTx.toData $ mockPendingTx
 
 validationData2 :: ValidationData
-validationData2 = ValidationData $ lifted $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
+validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
     { pendingTxInputs = []
     , pendingTxOutputs = []
-    , pendingTxFee = Ada.zero
-    , pendingTxForge = Value.zero
+    , pendingTxFee = PlutusTx.zero
+    , pendingTxForge = PlutusTx.zero
     , pendingTxIn = PendingTxIn
         { pendingTxInRef = PendingTxOutRef
             { pendingTxOutRefId = TxHash P.emptyByteString
             , pendingTxOutRefIdx = 0
             }
-        , pendingTxInWitness = Nothing
-        , pendingTxInValue = Value.zero
+        , pendingTxInWitness = ("", "")
+        , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
     , pendingTxSignatures = []

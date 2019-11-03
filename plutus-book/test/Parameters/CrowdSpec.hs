@@ -5,27 +5,28 @@ import           Utils
 
 import           Parameters.Crowd
 
+import qualified Language.PlutusTx.Numeric as P
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
 
-import           Control.Monad    (replicateM_, void)
-import           Data.Either      (isRight)
-import           Data.Text        (Text)
+import           Control.Monad             (replicateM_, void)
+import           Data.Either               (isRight)
+import           Data.Text                 (Text)
 import           Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec
 spec = describe "crowd" $ do
     it "works for a successful campaign" $
-        isRight (fst $ getResult tr1) `shouldBe` True
+        fst (getResult tr1) `shouldSatisfy` isRight
     it "works for a failed campaign" $
-        isRight (fst $ getResult tr2) `shouldBe` True
+        fst (getResult tr2) `shouldSatisfy` isRight
   where
     ft, ada2, ada3 :: Ada
-    ft   = fromInt 10000
-    ada2 = fromInt  4000
-    ada3 = fromInt  7000
+    ft   = lovelaceOf 10000
+    ada2 = lovelaceOf  4000
+    ada3 = lovelaceOf  7000
 
     ed, cd :: Slot
     ed = Slot 10
@@ -50,13 +51,13 @@ spec = describe "crowd" $ do
         updateWallets
         assertFunds3
             initialAda
-            (initialAda `minus` ada2)
-            (initialAda `minus` ada3)
+            (initialAda P.- ada2)
+            (initialAda P.- ada3)
         replicateM_ 7 updateWallets
         assertFunds3
-            (initialAda `plus` ada2 `plus` ada3)
-            (initialAda `minus` ada2)
-            (initialAda `minus` ada3)
+            (initialAda P.+ ada2 P.+ ada3)
+            (initialAda P.- ada2)
+            (initialAda P.- ada3)
 
     tr2 = void $ do
         updateWallets
@@ -64,6 +65,6 @@ spec = describe "crowd" $ do
         updateWallets
         void $ walletAction w2 $ contribute campaign ada2
         updateWallets
-        assertFunds2 initialAda (initialAda `minus` ada2)
+        assertFunds2 initialAda (initialAda P.- ada2)
         replicateM_ 18 updateWallets
         assertFunds2 initialAda initialAda

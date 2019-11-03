@@ -1,13 +1,13 @@
 [#multi]
 = Multi-Stage Contracts
 
-The example scripts we have seen so far had one thing in common: All locked funds
+The example scripts we have seen so far had one thing in common: all locked funds
 were collected from them in one step. In this chapter, we want to look at an
 example where this is not the case and where the funds can be collected in
 potentially many steps.
 
 Our example will be a _vesting scheme_:
-In such a scheme, parts (so called _tranches_) of the locked funds become available
+in such a scheme, parts (so called _tranches_) of the locked funds become available
 at certain times. To simplify matters, we will look at vesting schemes with
 _two_ such tranches.
 

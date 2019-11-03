@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -41,3 +42,4 @@ throwWalletAPIError :: MonadWallet m => Text -> m ()
 throwWalletAPIError = throwOtherError
 
 $(mkFunctions ['logAMessage, 'submitInvalidTxn, 'throwWalletAPIError])
+$(mkIotsDefinitions ['logAMessage, 'submitInvalidTxn, 'throwWalletAPIError])

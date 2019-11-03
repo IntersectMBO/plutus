@@ -21,11 +21,6 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅ = zero
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
--- scoped kind clearly shoud go...
-extricateK : Kind → ScopedKind
-extricateK * = *
-extricateK (K ⇒ J) = extricateK K ⇒ extricateK J
-
 extricateVar⋆ : ∀{Γ K}(A : Γ ∋⋆ K) → Fin (len⋆ Γ)
 extricateVar⋆ Z     = zero
 extricateVar⋆ (S α) = suc (extricateVar⋆ α)
@@ -36,9 +31,9 @@ extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-extricateNf⋆ (Π {K = K} x A) = Π x (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (Π {K = K} x A) = Π x K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
-extricateNf⋆ (ƛ {K = K} x A) = ƛ x (extricateK K) (extricateNf⋆ A)
+extricateNf⋆ (ƛ {K = K} x A) = ƛ x K (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
 extricateNf⋆ (con c) = con c
 
@@ -46,8 +41,8 @@ extricateNe⋆ (` α) = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
 -- ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
 extricateNe⋆ (μ1 {K = K}) = ƛ "x"
-  ((extricateK K ⇒ *) ⇒ extricateK K ⇒ *)
-  (ƛ "y" (extricateK K) (μ (` (suc zero)) (` zero)))
+  ((K ⇒ *) ⇒ K ⇒ *)
+  (ƛ "y" (K) (μ (` (suc zero)) (` zero)))
 \end{code}
 
 
@@ -60,13 +55,14 @@ len (Γ , A) = S (len Γ)
 open import Relation.Binary.PropositionalEquality as Eq
 
 extricateVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → WeirdFin (len Γ)
-extricateVar Z = Z
+extricateVar (Z _) = Z
 extricateVar (S x) = S (extricateVar x)
-extricateVar (T x) = T (extricateVar x)
+extricateVar (T x _) = T (extricateVar x)
 
 extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
-extricateC (integer i) = integer i
+extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
+extricateC (string s)     = string s
 
 open import Data.List as L
 open import Data.Product as P
@@ -92,13 +88,13 @@ extricateTel σ (A ∷ As) (t P., ts) = extricate t ∷ extricateTel σ As ts
 extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ x (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
-extricate (Λ {K = K} x t) = Λ x (extricateK K) (extricate t)
-extricate {Φ}{Γ} (t ·⋆ A) = extricate t ·⋆ extricateNf⋆ A
+extricate (Λ {K = K} x t) = Λ x K (extricate t)
+extricate {Φ}{Γ} (·⋆ t A _) = extricate t ScopedTm.·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
-extricate (unwrap1 t) = unwrap (extricate t)
+extricate (unwrap1 t _) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate {Φ}{Γ} (builtin b σ ts) =
+extricate {Φ}{Γ} (builtin b σ ts _) =
   builtin b (extricateSub σ) (extricateTel σ _ ts)
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

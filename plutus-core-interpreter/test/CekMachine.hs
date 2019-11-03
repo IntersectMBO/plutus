@@ -16,5 +16,5 @@ test_evaluateCek :: TestTree
 test_evaluateCek =
     testGroup "evaluateCek"
         [ testGroup "props" $ fromInterestingTermGens $ \name ->
-            testProperty name . propEvaluate (evaluateCek mempty)
+            testProperty name . propEvaluate (unsafeEvaluateCek mempty)
         ]

@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -19,13 +20,13 @@ module CrowdFunding where
 -- this contract on the blockchain.
 
 import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
-                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript (ValidatorScript),
-                                            applyScript, compileScript, hashTx, lifted, pendingTxValidRange,
-                                            scriptAddress, valueSpent)
+                                            RedeemerScript (RedeemerScript), TxId, ValidatorScript, mkValidatorScript,
+                                            hashTx, pendingTxValidRange, scriptAddress, valueSpent)
 import qualified Ledger.Interval           as Interval
 import           Ledger.Slot               (Slot, SlotRange)
+import           Ledger.Typed.Scripts      (wrapValidator)
 import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
@@ -80,6 +81,7 @@ refundRange cmp =
 data CampaignAction = Collect | Refund
     deriving (Generic, ToJSON, FromJSON, ToSchema)
 
+PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 -- | The validator script is a function of three arguments:
@@ -129,10 +131,10 @@ mkValidator c con act p = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript cmp  = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted cmp
+contributionScript cmp  = mkValidatorScript $
+    $$(PlutusTx.compile [|| \c -> wrap (mkValidator c) ||])
+        `PlutusTx.applyCode` PlutusTx.liftCode cmp
+    where wrap = wrapValidator @PubKey @CampaignAction
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
@@ -144,7 +146,7 @@ contribute :: MonadWallet m => Slot -> Value -> Slot -> Wallet -> Value -> m ()
 contribute deadline target collectionDeadline ownerWallet value = do
     let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     ownPK <- ownPubKey
-    let ds = DataScript (Ledger.lifted ownPK)
+    let ds = DataScript (PlutusTx.toData ownPK)
         range = W.interval 1 (campaignDeadline cmp)
 
     -- `payToScript` is a function of the wallet API. It takes a campaign
@@ -173,7 +175,7 @@ scheduleCollection deadline target collectionDeadline ownerWallet = do
     let cmp = mkCampaign deadline target collectionDeadline ownerWallet
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
-        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+        let redeemerScript = Ledger.RedeemerScript (PlutusTx.toData Collect)
             range = collectionRange cmp
         collectFromScript range (contributionScript cmp) redeemerScript))
 
@@ -195,7 +197,7 @@ refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
 refundHandler txid cmp = EventHandler (\_ -> do
     logMsg "Claiming refund"
     let validatorScript = contributionScript cmp
-        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted Refund)
+        redeemerScript  = Ledger.RedeemerScript (PlutusTx.toData Refund)
 
     -- `collectFromScriptTxn` generates a transaction that spends the unspent
     -- transaction outputs at the address of the validator scripts, *but* only
@@ -206,6 +208,7 @@ refundHandler txid cmp = EventHandler (\_ -> do
     collectFromScriptTxn (refundRange cmp) validatorScript redeemerScript txid)
 
 $(mkFunctions ['scheduleCollection, 'contribute])
+$(mkIotsDefinitions ['scheduleCollection, 'contribute])
 
 {- note [Transactions in the crowdfunding campaign]
 
@@ -255,3 +258,7 @@ This part of the API (the PendingTx argument) is experimental and subject
 to change.
 
 -}
+
+myCurrency :: KnownCurrency
+myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])
+$(mkKnownCurrencies ['myCurrency])

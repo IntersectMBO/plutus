@@ -28,6 +28,7 @@ library
   exposed-modules:
       Playground.Contract
       Playground.API
+      Playground.Types
       Playground.TH
       Playground.Interpreter.Util
   other-modules:
@@ -41,19 +42,24 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , cryptonite
     , insert-ordered-containers
+    , iots-export
     , playground-common
     , lens
     , memory
     , mtl
+    , newtype-generics
     , servant
-    , swagger2
     , template-haskell
     , text
     , transformers
     , plutus-tx
     , plutus-wallet-api
     , plutus-emulator
+    , prettyprinter
+    , serialise
+    , wl-pprint-text
   default-language: Haskell2010
 
 test-suite plutus-playground-lib-test
@@ -70,8 +76,8 @@ test-suite plutus-playground-lib-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        iots-export -any,
         playground-common -any,
-        swagger2 -any,
         tasty -any,
         tasty-hunit -any,
         text -any,

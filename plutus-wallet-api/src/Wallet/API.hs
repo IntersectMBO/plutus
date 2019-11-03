@@ -1,14 +1,17 @@
-{-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -19,7 +22,9 @@ module Wallet.API(
     MonadWallet,
     EventHandler(..),
     PubKey(..),
+    createPaymentWithChange,
     signTxn,
+    signTxnWithKey,
     createTxAndSubmit,
     signTxAndSubmit,
     signTxAndSubmit_,
@@ -37,7 +42,9 @@ module Wallet.API(
     register,
     -- * Slot ranges
     Interval(..),
+    Slot,
     SlotRange,
+    width,
     defaultSlotRange,
     interval,
     intervalFrom,
@@ -46,7 +53,6 @@ module Wallet.API(
     isEmpty,
     always,
     member,
-    width,
     before,
     after,
     contains,
@@ -70,6 +76,7 @@ module Wallet.API(
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
+    throwPrivateKeyNotFoundError,
     throwInsufficientFundsError,
     throwOtherError,
     -- * Logging
@@ -95,15 +102,17 @@ import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
 
 import qualified Data.Text                 as Text
+import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
                                             TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
-                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, txOutRefId)
+                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId,
+                                            width)
 import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
-import           Ledger.Slot               (singleton, width)
 import qualified Ledger.Value              as Value
 import           Text.Show.Deriving        (deriveShow1)
 
@@ -199,10 +208,10 @@ annTruthValue h mp = cata f where
         TNever -> embedC (False, TNever)
         TSlotRange r -> embedC (h `member` r, TSlotRange r)
         TFundsAtAddressGeq a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.geq` r, TFundsAtAddressGeq a r)
         TFundsAtAddressGt a r ->
-            let funds = Map.findWithDefault Value.zero a mp in
+            let funds = Map.findWithDefault mempty a mp in
             embedC (funds `Value.gt` r, TFundsAtAddressGt a r)
 
 -- | The addresses that an 'EventTrigger' refers to.
@@ -238,11 +247,22 @@ instance Monad m => Monoid (EventHandler m) where
 
 -- | An error thrown by wallet interactions.
 data WalletAPIError =
-    -- | There were insufficient funds to perform the desired operation.
     InsufficientFunds Text
-    -- | Some other error occurred.
+    -- ^ There were insufficient funds to perform the desired operation.
+    | PrivateKeyNotFound PubKey
+    -- ^ The private key of this public key is not known to the wallet.
     | OtherError Text
+    -- ^ Some other error occurred.
     deriving (Show, Eq, Ord, Generic)
+
+instance Pretty WalletAPIError where
+    pretty = \case
+        InsufficientFunds t ->
+            "Insufficient funds:" <+> pretty t
+        PrivateKeyNotFound pk ->
+            "Private key not found:" <+> viaShow pk
+        OtherError t ->
+            "Other error:" <+> pretty t
 
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
@@ -278,8 +298,12 @@ class WalletAPI m where
     {- |
     Select enough inputs from the user's UTxOs to make a payment of the given value.
     Includes an output for any leftover funds, if there are any. Fails if we don't have enough funds.
+
+    This can also be used iteratively, by passing the outputs from this function as its inputs, and
+    a new value we want to spend. New inputs will be added to the input set to cover the new values,
+    as required.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
+    updatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
     Register a 'EventHandler' in @m ()@ to be run a single time when the
@@ -320,11 +344,17 @@ class WalletAPI m where
     -}
     slot :: m Slot
 
+createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
+createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
+
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
+
+throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKey -> m a
+throwPrivateKeyNotFoundError = throwError . PrivateKeyNotFound
 
 -- | A variant of 'register' that registers the trigger again immediately after
 --   running the action. This is useful if you want to run the same action every
@@ -333,6 +363,17 @@ register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
 register t h = registerOnce t h' where
     h' = h <> (EventHandler $ \_ -> register t h)
 
+-- | Sign the transaction with the private key of the given public
+--   key. Fails if the wallet doesn't have the private key.
+signTxnWithKey :: (WalletAPI m, MonadError WalletAPIError m) => Tx -> PubKey -> m Tx
+signTxnWithKey tx pubK = do
+    -- at the moment we only know a single private key: the one
+    -- belonging to 'ownPubKey'.
+    ownPubK <- ownPubKey
+    if ownPubK == pubK
+    then signTxn tx
+    else throwPrivateKeyNotFoundError pubK
+
 -- | Sign the transaction with the wallet's private key and add
 --   the signature to the transaction's list of signatures.
 --
@@ -340,8 +381,8 @@ register t h = registerOnce t h' where
 --   signing to be handled by a different process
 signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
 signTxn tx = do
-    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
     pubK <- ownPubKey
+    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
     pure $ tx & signatures . at pubK ?~ sig
 
 -- | Transfer some funds to a number of script addresses, returning the
@@ -438,7 +479,8 @@ outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef T
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
---   TODO: Also compute the fee
+--   TODO: This is here to make the calculation of fees easier for old-style contracts
+--         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
     (Monad m, WalletAPI m)
     => SlotRange
@@ -449,12 +491,12 @@ createTxAndSubmit range ins outs = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
-            , txForge = Value.zero
+            , txForge = mempty
             , txFee = 0
             , txValidRange = range
             , txSignatures = Map.empty
             }
-    signTxAndSubmit tx
+    signTxAndSubmit $ tx { txFee = minFee tx }
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.

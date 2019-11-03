@@ -67,7 +67,7 @@ data GeneratorModel = GeneratorModel {
 -- | A generator model with some sensible defaults.
 generatorModel :: GeneratorModel
 generatorModel =
-    let vl = Ada.toValue $ Ada.fromInt 100000
+    let vl = Ada.lovelaceValueOf 100000
         pubKeys = toPublicKey <$> knownPrivateKeys
 
     in
@@ -156,7 +156,7 @@ genValidTransaction' g f (Mockchain bc ops) = do
                 then Gen.discard
                 else Gen.int (Range.linear 1 (Map.size ops))
     let ins = Set.fromList
-                    $ uncurry pubKeyTxIn
+                    $ uncurry (flip pubKeyTxIn)
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
@@ -186,7 +186,7 @@ genValidTransactionSpending' g f ins totalVal = do
             let tx = Tx
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txForge = Value.zero
+                        , txForge = mempty
                         , txFee = fee
                         , txValidRange = Interval.always
                         , txSignatures = Map.empty
@@ -198,7 +198,7 @@ genValidTransactionSpending' g f ins totalVal = do
         else Gen.discard
 
 genAda :: MonadGen m => m Ada
-genAda = Ada.fromInt <$> Gen.integral (Range.linear 0 (100000 :: Integer))
+genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))
 
 -- | Generate a 'ByteString s' of up to @s@ bytes.
 genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString

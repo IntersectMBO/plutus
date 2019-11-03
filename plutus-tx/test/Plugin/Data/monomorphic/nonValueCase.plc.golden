@@ -2,17 +2,17 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl MyEnum (type))
-        
-        MyEnum_match
-        (vardecl Enum MyEnum) (vardecl Enum MyEnum)
-      )
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+        (datatype
+          (tyvardecl MyEnum (type))
+          
+          MyEnum_match
+          (vardecl Enum MyEnum) (vardecl Enum MyEnum)
+        )
       )
       (let
         (nonrec)

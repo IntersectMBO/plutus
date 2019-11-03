@@ -8,13 +8,12 @@ import           Control.Monad.Error.Class  (MonadError, throwError)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
 import           Ledger                     (Blockchain, PubKey, Tx, TxOutOf (txOutValue), toPublicKey)
 import qualified Ledger.Value               as V
-import           Playground.API             (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
+import           Playground.Types           (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet, WalletState, ownFunds, ownPrivateKey, processPending,
@@ -76,7 +75,7 @@ runTrace wallets actions =
                         Left e -> Left . OtherError . show $ e
   where
     walletStateBalance :: WalletState -> V.Value
-    walletStateBalance = foldl' V.plus V.zero . fmap txOutValue . view ownFunds
+    walletStateBalance = foldMap txOutValue . view ownFunds
     toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
     toSimulatorWallet simulatorWalletWallet walletState = SimulatorWallet {..}
       where

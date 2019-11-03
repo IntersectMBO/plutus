@@ -99,7 +99,7 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
 VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe B.Bool → ScopedTm w
 VERIFYSIG (just B.false) = false
 VERIFYSIG (just B.true)  = true
-VERIFYSIG nothing        = error boolean
+VERIFYSIG nothing        = error ScopedBoolean
 
 
 BUILTIN : ∀{n}{w : Weirdℕ n} → Builtin
@@ -128,19 +128,19 @@ BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) =
   decIf (i <? i') true false
-BUILTIN lessThanInteger _ _ _ = error boolean
+BUILTIN lessThanInteger _ _ _ = error ScopedBoolean
 BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i I.≤? i') true false
-BUILTIN lessThanEqualsInteger _ _ _ = error boolean
+BUILTIN lessThanEqualsInteger _ _ _ = error ScopedBoolean
 BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i >? i') true false
-BUILTIN greaterThanInteger _ _ _ = error boolean
+BUILTIN greaterThanInteger _ _ _ = error ScopedBoolean
 BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i ≥? i') true false
-BUILTIN greaterThanEqualsInteger _ _ _ = error boolean
+BUILTIN greaterThanEqualsInteger _ _ _ = error ScopedBoolean
 BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i I.≟ i') true false
-BUILTIN equalsInteger _ _ _ = error boolean
+BUILTIN equalsInteger _ _ _ = error ScopedBoolean
 -- BS -> BS -> BS
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
 BUILTIN concatenate _ _ _ = error (con bytestring)
@@ -159,7 +159,7 @@ BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   B.if equals b b' then true else false
-BUILTIN equalsByteString _ _ _ = error boolean
+BUILTIN equalsByteString _ _ _ = error ScopedBoolean
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M

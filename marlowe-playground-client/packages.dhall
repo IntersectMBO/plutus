@@ -64,20 +64,26 @@ Syntax:
 Replace the additions' "{=}" (an empty record) with the following idea:
 -------------------------------
 let additions =
-  { "package-name" =
-       mkPackage
-         [ "dependency1"
-         , "dependency2"
-         ]
-         "https://example.com/path/to/git/repo.git"
-         "tag ('v4.0.0') or branch ('master')"
-  , "package-name" =
-       mkPackage
-         [ "dependency1"
-         , "dependency2"
-         ]
-         "https://example.com/path/to/git/repo.git"
-         "tag ('v4.0.0') or branch ('master')"
+  { package-name =
+       { dependencies =
+           [ "dependency1"
+           , "dependency2"
+           ]
+       , repo =
+           "https://example.com/path/to/git/repo.git"
+       , version =
+           "tag ('v4.0.0') or branch ('master')"
+       }
+  , package-name =
+       { dependencies =
+           [ "dependency1"
+           , "dependency2"
+           ]
+       , repo =
+           "https://example.com/path/to/git/repo.git"
+       , version =
+           "tag ('v4.0.0') or branch ('master')"
+       }
   , etc.
   }
 -------------------------------
@@ -86,101 +92,137 @@ Example:
 -------------------------------
 let additions =
   { benchotron =
-      mkPackage
-        [ "arrays"
-        , "exists"
-        , "profunctor"
-        , "strings"
-        , "quickcheck"
-        , "lcg"
-        , "transformers"
-        , "foldable-traversable"
-        , "exceptions"
-        , "node-fs"
-        , "node-buffer"
-        , "node-readline"
-        , "datetime"
-        , "now"
-        ]
-        "https://github.com/hdgarrood/purescript-benchotron.git"
-        "v7.0.0"
+      { dependencies =
+          [ "arrays"
+          , "exists"
+          , "profunctor"
+          , "strings"
+          , "quickcheck"
+          , "lcg"
+          , "transformers"
+          , "foldable-traversable"
+          , "exceptions"
+          , "node-fs"
+          , "node-buffer"
+          , "node-readline"
+          , "datetime"
+          , "now"
+          ]
+      , repo =
+          "https://github.com/hdgarrood/purescript-benchotron.git"
+      , version =
+          "v7.0.0"
+      }
   }
 -------------------------------
 -}
 
-let mkPackage =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.12.5-20190427/src/mkPackage.dhall sha256:0b197efa1d397ace6eb46b243ff2d73a3da5638d8d0ac8473e8e4a8fc528cf57
 
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.12.5-20190427/src/packages.dhall sha256:6b17811247e1f825034fa4dacc4b8ec5eddd0e832e0e1579c2ba3b9b2a1c63fe
+      https://github.com/purescript/package-sets/releases/download/psc-0.13.3-20190920/packages.dhall sha256:53873cf2fc4a343a41f335ee47c1706ecf755ac7c5a336e8eb03ad23165dfd28
 
-let overrides =
-      { foreign-generic =
-            upstream.foreign-generic
-          ⫽ { repo =
-                "https://github.com/shmish111/purescript-foreign-generic.git"
-            , version =
-                "purs012"
-            }
-      }
+let overrides = {=}
 
 let additions =
       { servant-support =
-          mkPackage
-          [ "console"
-          , "prelude"
-          , "either"
-          , "foldable-traversable"
-          , "generics-rep"
-          , "effect"
-          , "aff"
-          , "exceptions"
-          , "web-xhr"
-          , "foreign-generic"
-          , "affjax"
-          ]
-          "https://github.com/shmish111/purescript-servant-support.git"
-          "purs012.2" -- TODO: must use refs/heads/master or sha or tag
-      , ace =
-          mkPackage
-          [ "effect"
-          , "web-html"
-          , "web-uievents"
-          , "arrays"
-          , "foreign"
-          , "nullable"
-          , "prelude"
-          ]
-          "https://github.com/slamdata/purescript-ace.git"
-          "v7.0.0"
+          { dependencies =
+              [ "console"
+              , "prelude"
+              , "either"
+              , "foldable-traversable"
+              , "generics-rep"
+              , "effect"
+              , "aff"
+              , "affjax"
+              , "exceptions"
+              , "web-xhr"
+              , "foreign-generic"
+              ]
+          , repo =
+              "https://github.com/shmish111/purescript-servant-support"
+          , version =
+              "purs-0.13"
+          }
+      , foreign-generic =
+            upstream.foreign-generic
+          ⫽ { repo =
+                "https://github.com/shmish111/purescript-foreign-generic"
+            , version =
+                "purs-0.13"
+            }
+      , affjax =
+          { dependencies =
+              [ "aff"
+              , "argonaut-core"
+              , "arraybuffer-types"
+              , "web-xhr"
+              , "foreign"
+              , "form-urlencoded"
+              , "http-methods"
+              , "integers"
+              , "math"
+              , "media-types"
+              , "nullable"
+              , "refs"
+              , "unsafe-coerce"
+              ]
+          , repo =
+              "https://github.com/krisajenkins/purescript-affjax"
+          , version =
+              "purs-0.13"
+          }
       , ace-halogen =
-          mkPackage
-          [ "ace"
-          , "halogen"
-          , "now"
-          , "random"
-          , "refs"
-          , "aff"
-          , "foreign-object"
-          , "prelude"
-          ]
-          "https://github.com/shmish111/purescript-ace-halogen.git"
-          "purs012"
-      , undefinable =
-          mkPackage
-          [ "maybe", "functions" ]
-          "https://github.com/ethul/purescript-undefinable.git"
-          "v4.0.0"
+          { dependencies =
+              [ "ace"
+              , "halogen"
+              , "now"
+              , "random"
+              , "refs"
+              , "aff"
+              , "foreign-object"
+              , "prelude"
+              ]
+          , repo =
+              "https://github.com/shmish111/purescript-ace-halogen"
+          , version =
+              "purs-0.13"
+          }
+      , ace =
+          { dependencies =
+              [ "effect"
+              , "web-html"
+              , "web-uievents"
+              , "arrays"
+              , "foreign"
+              , "nullable"
+              , "prelude"
+              ]
+          , repo =
+              "https://github.com/slamdata/purescript-ace.git"
+          , version =
+              "v7.0.0"
+          }
       , matryoshka =
-          mkPackage
-          [ "prelude", "fixed-points", "free", "transformers", "profunctor" ]
-          "https://github.com/slamdata/purescript-matryoshka.git"
-          "v0.4.0"
+          { dependencies =
+              [ "prelude"
+              , "fixed-points"
+              , "free"
+              , "transformers"
+              , "profunctor"
+              ]
+          , repo =
+              "https://github.com/slamdata/purescript-matryoshka.git"
+          , version =
+              "v0.4.0"
+          }
       , numerics =
-          mkPackage
-          [ "prelude", "integers", "rationals", "uint", "bigints" ]
-          "https://github.com/Proclivis/purescript-numerics"
-          "v0.1.2"
+          { dependencies =
+              [ "prelude", "integers", "rationals", "uint", "bigints" ]
+          , repo =
+              "https://github.com/Proclivis/purescript-numerics"
+          , version =
+              "v0.1.2"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions

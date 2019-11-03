@@ -6,6 +6,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
 module LedgerBytes ( LedgerBytes (..)
@@ -21,14 +22,15 @@ import qualified Data.Aeson.Extras          as JSON
 import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.String                (IsString (..))
-import           Data.Swagger.Internal
-import           Data.Swagger.Schema
 import qualified Data.Text                  as Text
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
+import           IOTS                       (IotsType (iotsDefinition))
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import qualified Language.PlutusTx.Prelude  as P
+import           Schema                     (ToSchema (toSchema))
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -61,7 +63,7 @@ fromHex = LedgerBytes . asBSLiteral
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving (Eq, Ord, Serialise, Generic)
-    deriving newtype (P.Eq, P.Ord)
+    deriving newtype (P.Eq, P.Ord, PlutusTx.IsData)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes
@@ -76,7 +78,10 @@ instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes
 
 instance ToSchema LedgerBytes where
-    declareNamedSchema _ = pure $ NamedSchema (Just "LedgerBytes") byteSchema
+  toSchema = toSchema @String
+
+instance IotsType LedgerBytes where
+  iotsDefinition = iotsDefinition @String
 
 instance ToJSON LedgerBytes where
     toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . bytes

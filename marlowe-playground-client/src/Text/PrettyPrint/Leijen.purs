@@ -15,7 +15,6 @@ import Data.Int as Int
 import Data.List as List
 import Data.List.Lazy as LL
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
 import Data.String (split)
 import Data.String.CodeUnits (fromCharArray)
 import Data.String as String
@@ -443,10 +442,11 @@ number f = text (show f)
 fillBreak :: Int -> Doc -> Doc
 fillBreak f x =
   width x
-    ( \w -> if (w > f) then
-        nest f linebreak
-      else
-        text (spaces (f - w))
+    ( \w ->
+        if (w > f) then
+          nest f linebreak
+        else
+          text (spaces (f - w))
     )
 
 -- | The document @(fill i x)@ renders document @x@. It than appends
@@ -474,10 +474,11 @@ fillBreak f x =
 fill :: Int -> Doc -> Doc
 fill f d =
   width d
-    ( \w -> if (w >= f) then
-        empty
-      else
-        text (spaces (f - w))
+    ( \w ->
+        if (w >= f) then
+          empty
+        else
+          text (spaces (f - w))
     )
 
 width :: Doc -> (Int -> Doc) -> Doc

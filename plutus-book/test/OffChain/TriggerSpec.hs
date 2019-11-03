@@ -2,15 +2,16 @@ module OffChain.TriggerSpec (spec) where
 
 import           Utils
 
-import qualified OffChain.Trigger       as T1
-import qualified OffChain.TriggerSimple as T2
+import qualified OffChain.Trigger          as T1
+import qualified OffChain.TriggerSimple    as T2
 
+import qualified Language.PlutusTx.Numeric as P
 import           Ledger
 import           Ledger.Ada
 import           Wallet.Emulator
 
-import           Control.Monad          (void)
-import           Data.Either            (isRight)
+import           Control.Monad             (void)
+import           Data.Either               (isRight)
 import           Test.Hspec
 
 spec :: Spec
@@ -21,11 +22,11 @@ spec = do
 mkSpec :: (Slot -> Wallet -> Ada -> MockWallet ()) -> SpecWith ()
 mkSpec waitUntil =
     it "behaves as expected" $
-        isRight (fst $ getResult tr) `shouldBe` True
+        fst (getResult tr) `shouldSatisfy` isRight
 
   where
     ada :: Ada
-    ada = fromInt 10000
+    ada = lovelaceOf 10000
 
     tr :: Trace MockWallet ()
     tr = void $ do
@@ -37,4 +38,4 @@ mkSpec waitUntil =
         updateWallets
         assertFunds2 initialAda initialAda
         updateWallets
-        assertFunds2 (initialAda `minus` ada) (initialAda `plus` ada)
+        assertFunds2 (initialAda P.- ada) (initialAda P.+ ada)

@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
@@ -6,6 +8,7 @@
 module Language.PlutusCore.CBOR () where
 
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
@@ -209,7 +212,12 @@ instance ( Serialise ann
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
 
+deriving newtype instance (Serialise a) => Serialise (Normalized a)
+
+instance Serialise a => Serialise (Token a)
 instance Serialise AlexPosn
+instance Serialise Keyword
+instance Serialise Special
 
 deriving instance Serialise Index
 
@@ -220,3 +228,12 @@ instance Serialise ann => Serialise (DeBruijn ann) where
 instance Serialise ann => Serialise (TyDeBruijn ann) where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
+
+instance (Serialise a) => Serialise (ParseError a)
+instance (Serialise (tyname a), Serialise a) => Serialise (ValueRestrictionError tyname a)
+instance (Serialise (tyname a), Serialise (name a), Serialise a) => Serialise (NormalizationError tyname name a)
+instance (Serialise a) => Serialise (UniqueError a)
+instance Serialise UnknownDynamicBuiltinNameError
+instance (Serialise a) => Serialise (InternalTypeError a)
+instance (Serialise a) => Serialise (TypeError a)
+instance (Serialise a) => Serialise (Error a)

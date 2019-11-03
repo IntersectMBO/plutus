@@ -84,9 +84,9 @@ deploy event Options {..} =
                       void $ runIn nixopsDir "nixops" $ ["modify", "./default.nix", "./network.nix"] <> args
                       -- We do a rolling deploy, if availability zone A fails to deploy or health check fails then we will
                       -- investigate and roll forward, rather than rolling back
-                      void $ runIn nixopsDir "nixops" $ ["deploy", "--include", "playgroundA", "--include", "marlowePlaygroundA"] <> args
+                      void $ runIn nixopsDir "nixops" $ ["deploy", "--include", "playgroundA", "marlowePlaygroundA"] <> args
                       checkHealth nixopsDir A environment
-                      void $ runIn nixopsDir "nixops" $ ["deploy", "--include", "playgroundB", "--include", "marlowePlaygroundB"] <> args
+                      void $ runIn nixopsDir "nixops" $ ["deploy", "--include", "playgroundB", "marlowePlaygroundB"] <> args
                       checkHealth nixopsDir B environment
                       pure gitHead
 

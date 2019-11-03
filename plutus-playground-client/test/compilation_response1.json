@@ -2,6 +2,7 @@
   "Right": {
     "warnings": [],
     "result": {
+      "iotsSpec": "import * as t from 'io-ts';\n\n// Ledger.Slot.Slot\nconst Slot = t.type({\n    getSlot: t.Int\n});\n\n// Ledger.Value.CurrencySymbol\nconst CurrencySymbol = t.type({\n    unCurrencySymbol: t.string\n});\n\n// Ledger.Value.TokenName\nconst TokenName = t.type({\n    unTokenName: t.string\n});\n\n// Language.PlutusTx.AssocMap.Map\nconst MapTokenNameInteger = t.type({\n    unMap: t.array(\n        t.tuple([\n            TokenName,\n            t.Int\n        ])\n    )\n});\n\n// Language.PlutusTx.AssocMap.Map\nconst MapCurrencySymbolMapTokenNameInteger = t.type({\n    unMap: t.array(\n        t.tuple([\n            CurrencySymbol,\n            MapTokenNameInteger\n        ])\n    )\n});\n\n// Ledger.Value.Value\nconst Value = t.type({\n    getValue: MapCurrencySymbolMapTokenNameInteger\n});\n\n// Wallet.Emulator.Types.Wallet\nconst Wallet = t.type({\n    getWallet: t.Int\n});\n\nconst ScheduleCollectionArgA = Slot;\n\nconst ScheduleCollectionArgB = Value;\n\nconst ScheduleCollectionArgC = Slot;\n\nconst ScheduleCollectionArgD = Wallet;\n\nconst ScheduleCollectionArgReturn = t.null;\n\ntype ScheduleCollection = (\n    a: t.TypeOf<typeof ScheduleCollectionArgA>,\n    b: t.TypeOf<typeof ScheduleCollectionArgB>,\n    c: t.TypeOf<typeof ScheduleCollectionArgC>,\n    d: t.TypeOf<typeof ScheduleCollectionArgD>\n) => t.TypeOf<typeof ScheduleCollectionArgReturn>;\n\nconst ContributeArgA = Slot;\n\nconst ContributeArgB = Value;\n\nconst ContributeArgC = Slot;\n\nconst ContributeArgD = Wallet;\n\nconst ContributeArgE = Value;\n\nconst ContributeArgReturn = t.null;\n\ntype Contribute = (\n    a: t.TypeOf<typeof ContributeArgA>,\n    b: t.TypeOf<typeof ContributeArgB>,\n    c: t.TypeOf<typeof ContributeArgC>,\n    d: t.TypeOf<typeof ContributeArgD>,\n    e: t.TypeOf<typeof ContributeArgE>\n) => t.TypeOf<typeof ContributeArgReturn>;",
       "knownCurrencies": [
         {
           "hash": "",
@@ -13,7 +14,7 @@
           ]
         },
         {
-          "hash": "5f4462306230ff",
+          "hash": "b0b0",
           "friendlyName": "MyCurrency",
           "knownTokens": [
             {
@@ -29,62 +30,37 @@
         {
           "argumentSchema": [
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "FormSchemaObject",
               "contents": [
                 [
-                  "campaignDeadline",
+                  "getSlot",
                   {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
+                    "tag": "FormSchemaInt"
                   }
-                ],
+                ]
+              ]
+            },
+            {
+              "tag": "FormSchemaValue"
+            },
+            {
+              "tag": "FormSchemaObject",
+              "contents": [
                 [
-                  "campaignTarget",
+                  "getSlot",
                   {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getAda",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
+                    "tag": "FormSchemaInt"
                   }
-                ],
+                ]
+              ]
+            },
+            {
+              "tag": "FormSchemaObject",
+              "contents": [
                 [
-                  "campaignOwner",
+                  "getWallet",
                   {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getPubKey",
-                        {
-                          "tag": "SimpleStringSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignCollectionDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
+                    "tag": "FormSchemaInt"
                   }
                 ]
               ]
@@ -95,76 +71,43 @@
         {
           "argumentSchema": [
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "FormSchemaObject",
               "contents": [
                 [
-                  "campaignDeadline",
+                  "getSlot",
                   {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignTarget",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getAda",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignOwner",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getPubKey",
-                        {
-                          "tag": "SimpleStringSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "campaignCollectionDeadline",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
+                    "tag": "FormSchemaInt"
                   }
                 ]
               ]
             },
             {
-              "tag": "SimpleObjectSchema",
+              "tag": "FormSchemaValue"
+            },
+            {
+              "tag": "FormSchemaObject",
               "contents": [
                 [
-                  "getAda",
+                  "getSlot",
                   {
-                    "tag": "SimpleIntSchema"
+                    "tag": "FormSchemaInt"
                   }
                 ]
               ]
+            },
+            {
+              "tag": "FormSchemaObject",
+              "contents": [
+                [
+                  "getWallet",
+                  {
+                    "tag": "FormSchemaInt"
+                  }
+                ]
+              ]
+            },
+            {
+              "tag": "FormSchemaValue"
             }
           ],
           "functionName": "contribute"
@@ -172,94 +115,15 @@
         {
           "argumentSchema": [
             {
-              "tag": "SimpleObjectSchema",
-              "contents": [
-                [
-                  "ivTo",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ],
-                [
-                  "ivFrom",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "getSlot",
-                        {
-                          "tag": "SimpleIntSchema"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              ]
+              "tag": "FormSchemaValue"
             },
             {
-              "tag": "ValueSchema",
-              "contents": [
-                [
-                  "getValue",
-                  {
-                    "tag": "SimpleObjectSchema",
-                    "contents": [
-                      [
-                        "unMap",
-                        {
-                          "tag": "SimpleArraySchema",
-                          "contents": {
-                            "tag": "SimpleTupleSchema",
-                            "contents": [
-                              {
-                                "tag": "SimpleHexSchema"
-                              },
-                              {
-                                "tag": "SimpleObjectSchema",
-                                "contents": [
-                                  [
-                                    "unMap",
-                                    {
-                                      "tag": "SimpleArraySchema",
-                                      "contents": {
-                                        "tag": "SimpleTupleSchema",
-                                        "contents": [
-                                          {
-                                            "tag": "SimpleStringSchema"
-                                          },
-                                          {
-                                            "tag": "SimpleIntSchema"
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  ]
-                                ]
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              ]
-            },
-            {
-              "tag": "SimpleObjectSchema",
+              "tag": "FormSchemaObject",
               "contents": [
                 [
                   "getWallet",
                   {
-                    "tag": "SimpleIntSchema"
+                    "tag": "FormSchemaInt"
                   }
                 ]
               ]

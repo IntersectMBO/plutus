@@ -5,6 +5,7 @@ import           Utils
 
 import           Token.Fungible
 
+import qualified Language.PlutusTx.Numeric  as P
 import           Ledger
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
@@ -21,14 +22,14 @@ spec :: Spec
 spec = do
     describe "forge" $
         it "forges" $
-            isRight (fst $ getResult tr1) `shouldBe` True
+            fst (getResult tr1) `shouldSatisfy` isRight
     describe "buy/sell" $ do
         it "works if both parties pay" $
-            isRight (fst $ getResult tr2) `shouldBe` True
+            fst (getResult tr2) `shouldSatisfy` isRight
         it "works if buyer doesn't pay" $
-            isRight (fst $ getResult tr3) `shouldBe` True
+            fst (getResult tr3) `shouldSatisfy` isRight
         it "works if seller doesn't pay" $
-            isRight (fst $ getResult tr4) `shouldBe` True
+            fst (getResult tr4) `shouldSatisfy` isRight
   where
     plutus :: String
     plutus = "Plutus"
@@ -38,7 +39,7 @@ spec = do
     p2 = 100000
 
     ada :: Ada
-    ada = A.fromInt 50000
+    ada = A.lovelaceOf 50000
 
     price :: Value
     price = A.toValue ada
@@ -46,7 +47,7 @@ spec = do
     sl :: Slot
     sl = Slot 15
 
-    tr1, tr2 :: Trace MockWallet ()
+    tr1, tr2, tr3, tr4 :: Trace MockWallet ()
     tr1 = void $ do
         updateWallets
         void $ walletAction w1 $ forge plutus p1
@@ -64,10 +65,10 @@ spec = do
         updateWallets
         assertOwnFundsEq w1 $
             (A.toValue initialAda <> plutusValue p1 <> price)
-                `V.minus` plutusValue p2
+                P.- plutusValue p2
         assertOwnFundsEq w2 $
             (A.toValue initialAda <> plutusValue p2)
-                `V.minus` price
+                P.- price
     tr3 = void $ do
         updateWallets
         void $ walletAction w1 $ forge plutus p1

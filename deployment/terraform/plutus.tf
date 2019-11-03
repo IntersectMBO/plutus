@@ -82,7 +82,7 @@ resource "aws_instance" "playground_a" {
   ]
 
   root_block_device = {
-    volume_size = "20"
+    volume_size = "40"
   }
 
   tags {
@@ -113,7 +113,7 @@ resource "aws_instance" "playground_b" {
   ]
 
   root_block_device = {
-    volume_size = "20"
+    volume_size = "40"
   }
 
   tags {

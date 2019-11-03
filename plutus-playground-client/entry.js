@@ -1,4 +1,4 @@
-import 'font-awesome/scss/font-awesome.scss';
+import '@fortawesome/fontawesome-free/css/all.css';
 import 'chartist/dist/chartist.min.css';
 import 'chartist/dist/chartist.min.js';
 import 'chartist-plugin-tooltips/dist/chartist-plugin-tooltip.css';

@@ -14,9 +14,6 @@ module Language.PlutusCore.Generators.Internal.Utils
     , forAllPrettyT
     , forAllPrettyPlc
     , forAllPrettyPlcT
-    , forAllPrettyPlcMaybe
-    , forAllPrettyPlcMaybeT
-    , runSampleSucceed
     , prettyPlcErrorString
     ) where
 
@@ -73,21 +70,6 @@ forAllPrettyPlc = forAllWith prettyPlcDefString
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
 forAllPrettyPlcT = forAllWithT prettyPlcDefString
-
--- | Generate a value wrapped in 'Maybe' using the 'PrettyPlc' constraint
--- for getting its 'String' representation.
-forAllPrettyPlcMaybe :: (Monad m, PrettyPlc a) => Gen (Maybe a) -> PropertyT m (Maybe a)
-forAllPrettyPlcMaybe = forAllWith $ maybe "Nothing" prettyPlcDefString
-
--- | Generate a value wrapped in 'Maybe' using the 'PrettyPlc' constraint
--- for getting its 'String' representation.
--- A supplied generator has access to the 'Monad' the whole property has access to.
-forAllPrettyPlcMaybeT :: (Monad m, PrettyPlc a) => GenT m (Maybe a) -> PropertyT m (Maybe a)
-forAllPrettyPlcMaybeT = forAllWithT $ maybe "Nothing" prettyPlcDefString
-
--- | Run a generator until it succeeds with a 'Just'.
-runSampleSucceed :: Gen (Maybe a) -> IO a
-runSampleSucceed = Gen.sample . Gen.just
 
 -- | Pretty-print a PLC error.
 prettyPlcErrorString :: PrettyPlc err => err -> String

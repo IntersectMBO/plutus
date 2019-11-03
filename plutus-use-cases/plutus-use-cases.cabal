@@ -28,6 +28,7 @@ library
         Language.PlutusTx.Coordination.Contracts
         Language.PlutusTx.Coordination.Contracts.CrowdFunding
         Language.PlutusTx.Coordination.Contracts.Currency
+        Language.PlutusTx.Coordination.Contracts.Escrow
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.GameStateMachine
@@ -36,9 +37,6 @@ library
         Language.PlutusTx.Coordination.Contracts.PubKey
         Language.PlutusTx.Coordination.Contracts.Vesting
         Language.PlutusTx.Coordination.Contracts.Swap
-    other-modules:
-        Language.PlutusTx.Coordination.Contracts.GameStateMachine.Types
-        Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine.Types
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -51,7 +49,10 @@ library
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
+        plutus-contract -any
+    build-depends:
         base -any,
+        aeson -any,
         bytestring -any,
         containers -any,
         mtl -any,
@@ -72,25 +73,32 @@ test-suite plutus-use-cases-test
     other-modules:
         Spec.Crowdfunding
         Spec.Currency
+        Spec.Escrow
         Spec.Future
         Spec.Game
         Spec.GameStateMachine
+        Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine
-        Spec.Lib
+        Spec.PubKey
+        Spec.Rollup
         Spec.Vesting
     default-language: Haskell2010
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
     build-depends:
-        base >=4.9 && <5,
-        containers -any,
-        hedgehog -any,
         plutus-tx -any,
+        plutus-contract -any,
         plutus-wallet-api -any,
         plutus-use-cases -any,
-        plutus-emulator -any,
+        plutus-emulator -any
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
+        containers -any,
+        hedgehog -any,
         prettyprinter -any,
         tasty -any,
         tasty-hunit -any,
@@ -123,3 +131,23 @@ benchmark plutus-use-cases-bench
         plutus-use-cases -any,
         plutus-wallet-api -any,
         bytestring -any
+
+executable contract-guessing-game
+    default-language: Haskell2010
+    main-is: Main.hs
+    hs-source-dirs: exe/game
+    build-depends:
+        plutus-contract -any,
+        plutus-use-cases -any
+    build-depends:
+        base >=4.7 && <5
+
+executable contract-crowdfunding
+    default-language: Haskell2010
+    main-is: Main.hs
+    hs-source-dirs: exe/crowdfunding
+    build-depends:
+        plutus-contract -any,
+        plutus-use-cases -any
+    build-depends:
+        base >=4.7 && <5

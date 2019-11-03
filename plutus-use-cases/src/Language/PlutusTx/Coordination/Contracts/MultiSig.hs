@@ -22,12 +22,10 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
 
 import qualified Data.Map                     as Map
 import qualified Data.Set                     as Set
-import           Data.Foldable                (fold)
-import qualified Ledger.Ada                   as Ada
-import qualified Ledger.Value                 as Value
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
@@ -41,23 +39,24 @@ data MultiSig = MultiSig
 PlutusTx.makeLift ''MultiSig
 
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
-validate (MultiSig keys num) () () p =
+validate (MultiSig keys num) _ _ p =
     let present = length (filter (V.txSignedBy p) keys)
     in present >= num
 
 msValidator :: MultiSig -> ValidatorScript
-msValidator sig = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
-        `Ledger.applyScript`
-            Ledger.lifted sig
+msValidator sig = mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode sig
+    where validatorParam s = Scripts.wrapValidator (validate s)
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
-msDataScript = DataScript $ Ledger.lifted ()
+msDataScript = DataScript $ PlutusTx.toData ()
 
 -- | Multisig redeemer (unit value).
 msRedeemer :: RedeemerScript
-msRedeemer = RedeemerScript $ Ledger.lifted ()
+msRedeemer = RedeemerScript $ PlutusTx.toData ()
 
 -- | The address of a 'MultiSig' contract.
 msAddress :: MultiSig -> Address
@@ -94,8 +93,8 @@ unlockTx ms = do
     let tx = Ledger.Tx
                 { txInputs = ins
                 , txOutputs = [ownOutput]
-                , txForge = Value.zero
-                , txFee   = Ada.zero
+                , txForge = zero
+                , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
                 }

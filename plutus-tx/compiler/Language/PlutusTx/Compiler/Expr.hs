@@ -50,12 +50,6 @@ Haskell uses system FC, which includes type equalities and coercions.
 PLC does *not* have coercions in particular. However, PLC also does not have a nominal
 type system - everything is constructed via operators on base types, so we have no
 need for coercions to convert between newtypes and datatypes.
-
-So we mostly ignore coercions. The one place that I know of where the mismatch hurts
-us is that GHC uses the `Any` type (coercible to and from anything) for unconstrained
-function variables, e.g. in polymorphic lambdas. This is annoying for us, since we
-really want the version with explicit type abstraction. I don't currently have a fix
-for this.
 -}
 
 
@@ -152,7 +146,7 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
     GHC.DEFAULT   -> do
         body' <- compileExpr body >>= maybeDelay mustDelay
         -- need to consume the args
-        argTypes <- mapM compileType instArgTys
+        argTypes <- mapM compileTypeNorm instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
         pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
@@ -180,6 +174,18 @@ of the expression.
 
 We handle this by simply let-binding that variable outside our generated case. In the instances
 where it's not used, the PIR dead-binding pass will remove it.
+-}
+
+{- Note [Default-only cases]
+GHC sometimes generates case expressions where there is only a single alternative, which is a default
+alternative. It can do this even if the argument is a type variable (i.e. not known to be a datatype).
+What this amounts to is ensuring the expression is evaluated - hence once place this appears is bang
+patterns.
+
+We can't actually compile this as a pattern match, since we need to know the actual type to do that.
+But in the case where the only alternative is a default alternative, we don't *need* to, because it
+doesn't actually inspect the contents of the datatype. So we can just compile this by returning
+the body of the alternative.
 -}
 
 {- Note [Coercions and newtypes]
@@ -306,10 +312,10 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileType t
+            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
         -- Special kinds of id
@@ -342,7 +348,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
         GHC.Lit lit -> compileLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileType t
+        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction
@@ -369,18 +375,25 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.Rec binds body'
+        -- See Note [Default-only cases]
+        GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
+            -- See Note [At patterns]
+            scrutinee' <- compileExpr scrutinee
+            withVarScoped b $ \v -> do
+                body' <- compileExpr body
+                -- See Note [At patterns]
+                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
+                pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             let scrutineeType = GHC.varType b
-            -- This is something of a stop-gap error, we should use Integer everywhere
-            when (scrutineeType `GHC.eqType` GHC.intTy) $ throwPlain $ UnsupportedError "Case on Int"
 
             -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
             withVarScoped b $ \v -> do
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwPlain $ CompilationError "Scrutinee's type was not a type constructor application"
+                    Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
                 -- See Note [Case expressions and laziness]
@@ -394,7 +407,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                resultType <- compileType t >>= maybeDelayType lazyCase
+                resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
 
                 branches <- forM dcs $ \dc ->

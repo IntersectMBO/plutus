@@ -10,6 +10,7 @@
 *.bbl
 *.fdb_latexmk
 *.blg
+auto
 
 # Cabal
 .ghc.environment*
@@ -20,6 +21,7 @@ cabal-dev
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
+cabal.project.local
 
 # Stack
 .stack-work
@@ -31,6 +33,9 @@ stack.yaml.lock
 *.chi
 *.chs.h
 *.prof
+
+# Agda
+*.agdai
 
 # Nix
 result*

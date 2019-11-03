@@ -12,7 +12,11 @@ in
   , skipPackages ? []
   , nixpkgsArgs ? {
       # we need unfree for kindlegen
-      config = { allowUnfree = false; allowUnfreePredicate = localLib.unfreePredicate; inHydra = true; };
+      config = { allowUnfree = false; 
+                 allowUnfreePredicate = localLib.unfreePredicate; 
+                 overlays = [ (import ./nix/overlays/musl.nix) ];
+                 inHydra = true; 
+                 };
       inherit fasterBuild;
     }
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
@@ -47,8 +51,11 @@ let
     plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
     # At least the client is broken on darwin for some yarn reason
     marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
+    # The lambda is specifically built for linux only using musl
+    marlowe-symbolic-lambda = linux;
     # texlive is broken on darwin at our nixpkgs pin
     docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
+    papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
     dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
     dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts; 
@@ -67,8 +74,10 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.metatheory)
       ++ (allJobs jobsets.tests)
       ++ (allJobs jobsets.docs) 
+      ++ (allJobs jobsets.papers) 
       ++ (allJobs jobsets.plutus-playground)
       ++ (allJobs jobsets.marlowe-playground)
+      ++ (allJobs jobsets.marlowe-symbolic-lambda)
       ++ (allJobs jobsets.dev.scripts);
   });
 })

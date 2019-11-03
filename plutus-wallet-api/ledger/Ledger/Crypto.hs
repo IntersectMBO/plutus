@@ -1,9 +1,9 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DerivingVia        #-}
 module Ledger.Crypto(
     PubKey(..)
     , PrivateKey(..)
@@ -13,6 +13,10 @@ module Ledger.Crypto(
     , signTx
     , fromHex
     , toPublicKey
+    -- * Hashes
+    , plcSHA2_256
+    , plcSHA3_256
+    , plcDigest
     -- $privateKeys
     , knownPrivateKeys
     , privateKey1
@@ -31,35 +35,45 @@ import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
+import           Crypto.Hash                (Digest, SHA256)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Swagger               (ToSchema (declareNamedSchema), byteSchema)
-import           Data.Swagger.Internal
+import qualified Data.ByteString.Lazy.Hash  as Hash
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics               (Generic)
+import           IOTS                       (IotsType)
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import qualified Language.PlutusTx.Prelude  as P
+import           Ledger.Orphans             ()
 import           Ledger.TxId
 import           LedgerBytes                (LedgerBytes)
 import qualified LedgerBytes                as KB
+import           Schema                     (ToSchema)
 import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
-    deriving newtype (P.Eq, P.Ord, Serialise)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 makeLift ''PubKey
+
+deriving via (PrettyShow LedgerBytes) instance Pretty PubKey
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
-    deriving newtype (P.Eq, P.Ord, Serialise)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+
+deriving via (PrettyShow PrivateKey) instance (Pretty PrivateKey)
 
 makeLift ''PrivateKey
 
@@ -72,10 +86,8 @@ instance FromHttpApiData PrivateKey where
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving newtype (P.Eq, P.Ord, Serialise)
-
-instance ToSchema Signature where
-    declareNamedSchema _ = pure $ NamedSchema (Just "Signature") byteSchema
+    deriving anyclass (ToSchema)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 instance ToJSON Signature where
   toJSON signature =
@@ -123,6 +135,21 @@ fromHex = PrivateKey . KB.fromHex
 toPublicKey :: PrivateKey -> PubKey
 toPublicKey = PubKey . KB.fromBytes . BSL.pack . BA.unpack . ED25519.toPublic . f . KB.bytes . getPrivateKey where
     f = throwCryptoError . ED25519.secretKey . BSL.toStrict
+
+{-# INLINABLE plcSHA2_256 #-}
+-- | PLC-compatible SHA-256 hash of a hashable value
+plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA2_256 = Hash.sha2
+
+{-# INLINABLE plcSHA3_256 #-}
+-- | PLC-compatible SHA3-256 hash of a hashable value
+plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
+plcSHA3_256 = Hash.sha3
+
+{-# INLINABLE plcDigest #-}
+-- | Convert a `Digest SHA256` to a PLC `Hash`
+plcDigest :: Digest SHA256 -> Builtins.ByteString
+plcDigest = BSL.pack . BA.unpack
 
 -- $privateKeys
 -- 'privateKey1', 'privateKey2', ... 'privateKey10' are ten predefined 'PrivateKey' values.

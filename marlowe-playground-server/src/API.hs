@@ -6,17 +6,23 @@
 {-# LANGUAGE TypeOperators              #-}
 module API where
 
-import           Control.Newtype.Generics     (Newtype)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Text                    (Text)
-import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
-import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody)
+import           Control.Newtype.Generics        (Newtype)
+import           Data.Aeson                      (FromJSON, ToJSON)
+import           Data.Text                       (Text)
+import           GHC.Generics                    (Generic)
+import           Language.Haskell.Interpreter    (InterpreterError, InterpreterResult, SourceCode)
+import qualified Marlowe.Symbolic.Types.Request  as MSReq
+import qualified Marlowe.Symbolic.Types.Response as MSRes
+import           Servant.API                     ((:<|>), (:>), Get, Header, JSON, NoContent, Post, ReqBody)
+import           Servant.API.WebSocket           (WebSocketPending)
 
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
 
+type WSAPI = "ws" :> WebSocketPending
+
+type MarloweSymbolicAPI = "marlowe-analysis" :> Header "X-Amz-Invocation-Type" Text :> Header "x-api-key" Text :> ReqBody '[JSON] MSReq.Request :> Post '[JSON] NoContent
 
 newtype RunResult = RunResult Text
    deriving stock (Show, Eq, Generic)
