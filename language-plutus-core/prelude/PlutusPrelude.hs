@@ -131,7 +131,7 @@ import           Data.Functor.Compose
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
 
--- | This class is used in order to provide default implementations of 'PrettyBy' for
+-- | This class is used for providing default implementations of 'PrettyBy' for
 -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
 -- we can define a single 'DefaultPrettyBy' instance and then derive @PrettyBy Config a@ for each
 -- @a@ provided the @a@ implements the @PrettyBy Subconfig1@, @PrettyBy Subconfig2@, etc instances.
@@ -144,7 +144,7 @@ infixl 4 <<$>>, <<*>>
 -- >     defaultPrettyBy (Subconfig1 subconfig1) = prettyBy subconfig1
 -- >     defaultPrettyBy (Subconfig2 subconfig2) = prettyBy subconfig2
 --
--- Now having in scope  @PrettyBy Subconfig1 A@ and @PrettyBy Subconfig2 A@
+-- Now having in scope @PrettyBy Subconfig1 A@ and @PrettyBy Subconfig2 A@
 -- and the same instances for @B@ we can write
 --
 -- > instance PrettyBy Config A
@@ -161,7 +161,7 @@ class PrettyBy config a where
     default prettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
     prettyBy = defaultPrettyBy
 
--- | A newtype wrapper around @a@ which point is to provide a 'PrettyBy config' instance
+-- | A newtype wrapper around @a@ whose point is to provide a 'PrettyBy config' instance
 -- for anything that has a 'Pretty' instance.
 newtype PrettyConfigIgnore a = PrettyConfigIgnore
     { unPrettyConfigIgnore :: a
