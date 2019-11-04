@@ -73,7 +73,8 @@ pay owner vl =
 
 ownsTxOut :: AccountOwner -> TxOut -> Bool
 ownsTxOut owner txout =
-    Just owner == (Ledger.txOutData txout >>= PlutusTx.fromData . Ledger.getDataScript)
+    let fromDataScript = PlutusTx.fromData @AccountOwner . Ledger.getDataScript in
+    Just owner == (Ledger.txOutData txout >>= fromDataScript)
 
 -- | Create a transaction that spends all outputs belonging to the 'AccountOwner'.
 redeemTx
@@ -126,12 +127,13 @@ newAccount
        , HasWriteTx s
        , AsContractError e
        )
-    => PubKey
+    => TokenName
+    -> PubKey
     -> Contract s e AccountOwner
-newAccount pk = do
-    cur <- Currency.forgeContract pk [("token-account", 1)]
+newAccount tokenName pk = do
+    cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Ledger.plcCurrencySymbol (Ledger.scriptAddress (Currency.curValidator cur))
-    pure $ AccountOwner (sym, "token-account")
+    pure $ AccountOwner (sym, tokenName)
 
 
 PlutusTx.makeLift ''AccountOwner
