@@ -24,7 +24,7 @@ import qualified Data.Set                   as Set
 import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
-import           Ledger                     (DataScript (..), PubKey (..), Slot (..), Tx, TxOut, TxOutOf (..), interval,
+import           Ledger                     (DataScript (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
                                              mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
 import           Ledger.Ada                 (Ada)
@@ -198,7 +198,7 @@ applyInputs tx MarloweData{..} inputs = do
 
     totalIncome = foldMap collectDeposits inputs
 
-    isAddress address (TxOutOf{txOutAddress}, _) = txOutAddress == address
+    isAddress address (TxOut{txOutAddress}, _) = txOutAddress == address
 
     txPaymentOuts :: [Payment] -> [TxOut]
     txPaymentOuts payments = let

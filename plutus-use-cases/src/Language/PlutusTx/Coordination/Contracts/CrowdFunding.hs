@@ -186,7 +186,7 @@ contribute cmp = do
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
 
-    let flt Ledger.TxOutRefOf{txOutRefId} _ = txId Haskell.== txOutRefId
+    let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
     if not . Set.null $ tx' ^. inputs

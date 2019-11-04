@@ -40,7 +40,7 @@ type Admin = (TxHash, Integer)
 -- Convert the reference to an output to a hash-index
 -- pair.
 mkAdmin :: TxOutRef -> Admin
-mkAdmin (TxOutRefOf h i) = (plcTxHash h, i)
+mkAdmin (TxOutRef h i) = (plcTxHash h, i)
 
 -- We need no data in data- and redeemer-scripts,
 -- so both can be of unit type.

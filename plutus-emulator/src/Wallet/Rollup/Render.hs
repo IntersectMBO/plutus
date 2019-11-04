@@ -29,13 +29,11 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn,
-                                                        TxInOf (TxInOf, txInRef, txInType),
-                                                        TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress), TxOut,
-                                                        TxOutOf (TxOutOf), TxOutRef,
-                                                        TxOutRefOf (TxOutRefOf, txOutRefId, txOutRefIdx), Value,
-                                                        getAddress, getPubKey, getTxId, txFee, txForge, txOutValue,
-                                                        txOutputs)
+import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn (TxIn, txInRef, txInType),
+                                                        TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
+                                                        TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
+                                                        Value, getAddress, getPubKey, getTxId, txFee, txForge,
+                                                        txOutValue, txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
@@ -211,7 +209,7 @@ instance Render DereferencedInput where
             [render refersTo, pure "Source:", indent 2 <$> render originalInput]
 
 instance Render TxIn where
-    render TxInOf {txInRef, txInType} =
+    render TxIn {txInRef, txInType} =
         vsep <$> sequence [render txInRef, render txInType]
 
 instance Render TxInType where
@@ -219,7 +217,7 @@ instance Render TxInType where
     render (ConsumePublicKeyAddress pubKey)   = render pubKey
 
 instance Render TxOutRef where
-    render TxOutRefOf {txOutRefId, txOutRefIdx} =
+    render TxOutRef {txOutRefId, txOutRefIdx} =
         vsep <$>
         sequence [heading "Tx:" txOutRefId, heading "Output #" txOutRefIdx]
       where
@@ -228,7 +226,7 @@ instance Render TxOutRef where
             pure $ fill 8 t <> r
 
 instance Render TxOut where
-    render txOut@TxOutOf {txOutValue} =
+    render txOut@TxOut {txOutValue} =
         vsep <$>
         sequence
             [ mappend "Destination:" . indent 2 <$>

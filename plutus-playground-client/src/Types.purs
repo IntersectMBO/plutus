@@ -42,7 +42,7 @@ import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
-import Ledger.TxId (TxIdOf)
+import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
 import Network.RemoteData (RemoteData, _Success)
@@ -271,7 +271,7 @@ _balancesChartSlot = SProxy
 
 -----------------------------------------------------------
 type ChainSlot
-  = Array (JsonTuple (TxIdOf String) Tx)
+  = Array (JsonTuple TxId Tx)
 
 type Blockchain
   = Array ChainSlot

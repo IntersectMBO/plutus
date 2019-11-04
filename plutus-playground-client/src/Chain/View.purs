@@ -4,7 +4,7 @@ import Prelude hiding (div)
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col2, col3_, col6_, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
-import Chain.Types (AnnotatedBlockchain, ChainFocus(..), State, TxId, _FocusTx, _balances, _chainFocus, _dereferencedInputs, _findTx, _sequenceId, _tx, _txFee, _txForge, _txId, _txIdOf, _txInRef, _txOutRefId, _txOutputs, _txSignatures, _txValidRange, findConsumptionPoint, toBeneficialOwner)
+import Chain.Types (AnnotatedBlockchain, ChainFocus(..), State, _FocusTx, _balances, _chainFocus, _dereferencedInputs, _findTx, _sequenceId, _tx, _txFee, _txForge, _txId, _txIdOf, _txInRef, _txOutRefId, _txOutputs, _txSignatures, _txValidRange, findConsumptionPoint, toBeneficialOwner)
 import Data.Array ((:))
 import Data.Array as Array
 import Data.Array.Extra (intersperse)
@@ -30,8 +30,8 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
 import Ledger.Extra (humaniseInterval, adaToValue)
-import Ledger.Tx (AddressOf(..), TxOutOf(..))
-import Ledger.TxId (TxIdOf)
+import Ledger.Tx (Address(..), TxOut(..))
+import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Types (HAction(..), _value)
 import Wallet.Emulator.Types (Wallet(..))
@@ -288,7 +288,7 @@ dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { origin
   originatingTx :: Maybe AnnotatedTx
   originatingTx = preview (_findTx txId) annotatedBlockchain
 
-outputView :: forall p. Map PubKey Wallet -> TxIdOf String -> AnnotatedBlockchain -> Int -> TxOutOf String -> HTML p HAction
+outputView :: forall p. Map PubKey Wallet -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p HAction
 outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   txOutOfView false walletKeys txOut
     $ case consumedInTx of
@@ -305,8 +305,8 @@ outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   consumedInTx :: Maybe AnnotatedTx
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
-txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOutOf String -> Maybe (HTML p HAction) -> HTML p HAction
-txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txOutValue }) mFooter =
+txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOut -> Maybe (HTML p HAction) -> HTML p HAction
+txOutOfView showArrow walletKeys txOut@(TxOut { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
     [ div [ classes [ cardHeader, textTruncate ] ]
@@ -320,7 +320,7 @@ txOutOfView showArrow walletKeys txOutOf@(TxOutOf { txOutAddress, txOutType, txO
         Just footer -> cardFooter_ [ footer ]
     ]
   where
-  beneficialOwner = toBeneficialOwner txOutOf
+  beneficialOwner = toBeneficialOwner txOut
 
 beneficialOwnerClass :: BeneficialOwner -> ClassName
 beneficialOwnerClass (OwnedByPubKey _) = ClassName "wallet"
@@ -341,7 +341,7 @@ beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey w
           ]
       ]
 
-beneficialOwnerView _ (OwnedByScript (AddressOf a)) =
+beneficialOwnerView _ (OwnedByScript (Address a)) =
   span_
     [ text "Script"
     , nbsp

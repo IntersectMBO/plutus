@@ -42,9 +42,9 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
-                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
-                                                             TxOutType, ValidatorScript)
+import           Ledger                                     (Address, DataScript, PubKey, RedeemerScript, Signature, Tx,
+                                                             TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutType,
+                                                             ValidatorScript)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
 import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
@@ -232,14 +232,14 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxIdOf A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxInOf A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutOf A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(TxOutRefOf A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIn)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOut)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutRef)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @(AddressOf A))
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(Interval A))
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))

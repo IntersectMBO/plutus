@@ -117,7 +117,7 @@ signedBy (Signature s) (PubKey k) txId =
 
 -- | Sign the hash of a transaction using a private key.
 signTx :: TxId -> PrivateKey -> Signature
-signTx (TxIdOf txId) = sign txId
+signTx (TxId txId) = sign txId
 
 -- | Sign a message using a private key.
 sign :: BA.ByteArrayAccess a => a -> PrivateKey -> Signature

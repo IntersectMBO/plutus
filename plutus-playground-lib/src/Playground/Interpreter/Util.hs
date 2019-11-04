@@ -11,7 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, PubKey, Tx, TxOutOf (txOutValue), toPublicKey)
+import           Ledger                     (Blockchain, PubKey, Tx, TxOut (txOutValue), toPublicKey)
 import qualified Ledger.Value               as V
 import           Playground.Types           (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)

@@ -26,7 +26,7 @@ module Language.Plutus.Contract.Tx(
     -- * Constructing inputs
     , Tx.pubKeyTxIn
     , Tx.scriptTxIn
-    , Tx.TxOutRefOf(..)
+    , Tx.TxOutRef(..)
     -- * Constructing outputs
     , Tx.pubKeyTxOut
     , Tx.scriptTxOut

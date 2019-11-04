@@ -1,10 +1,11 @@
 module Chain.Eval (handleAction) where
 
-import Chain.Types (AnnotatedBlockchain, ChainFocus, State, TxId, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
+import Chain.Types (AnnotatedBlockchain, ChainFocus, State, _FocusTx, _chainFocus, _chainFocusAge, _chainFocusAppearing, _findTx, _sequenceId)
 import Control.Monad.State.Trans (class MonadState)
 import Data.Lens (_Just, assign, preview, use)
 import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (wrap)
+import Ledger.TxId (TxId)
 import MonadApp (class MonadApp, delay)
 import Wallet.Rollup.Types (SequenceId(..))
 import Prelude (Ordering(..), Unit, bind, compare, discard, pure, ($), (<<<), (<>))

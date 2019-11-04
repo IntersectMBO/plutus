@@ -36,8 +36,7 @@ import           Data.Semigroup        (Semigroup (..))
 import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 
-import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
-                                        Value, hashTx)
+import           Ledger                (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), Value, hashTx)
 import           Ledger.Index          (UtxoIndex)
 import qualified Ledger.Index          as Index
 import           Ledger.Tx             (outAddress)
@@ -106,7 +105,7 @@ values = Map.map (fold . Map.map txOutValue) . getAddressMap
 fromTxOutputs :: Tx -> AddressMap
 fromTxOutputs tx =
     AddressMap . Map.fromListWith Map.union . fmap mkUtxo . zip [0..] . txOutputs $ tx where
-    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRefOf h i) t)
+    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) t)
     h = hashTx tx
 
 -- | Take all unspent outputs from the 'UtxoIndex' and put them in
