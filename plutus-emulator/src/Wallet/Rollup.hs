@@ -12,7 +12,7 @@ import           Control.Lens             (assign, ifoldr, makeLenses, over, use
 import           Control.Lens.Combinators (itraverse)
 import           Control.Monad.Except     (MonadError, throwError)
 import           Control.Monad.State      (StateT, evalStateT)
-import           Crypto.Hash              (Digest, SHA256)
+import qualified Data.ByteString.Lazy     as BSL
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import qualified Data.Set                 as Set
@@ -29,7 +29,7 @@ import           Wallet.Rollup.Types      (AnnotatedTx (AnnotatedTx), Beneficial
 
 data TxKey =
     TxKey
-        { _txKeyTxId        :: Digest SHA256
+        { _txKeyTxId        :: BSL.ByteString
         , _txKeyTxOutRefIdx :: Integer
         }
     deriving (Show, Eq, Ord, Generic)

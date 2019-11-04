@@ -19,11 +19,12 @@
 -- type errors at validation time.
 module Ledger.Typed.Tx where
 
+import           Ledger.Address             hiding (scriptAddress)
 import           Ledger.Crypto
 import qualified Ledger.Interval            as Interval
 import           Ledger.Scripts
 import           Ledger.Slot
-import           Ledger.Tx                  hiding (scriptAddress)
+import           Ledger.Tx
 import           Ledger.Typed.Scripts
 import qualified Ledger.Value               as Value
 
@@ -205,7 +206,7 @@ toUntypedTx TypedTx{
 
 -- | An error we can get while trying to type an existing transaction part.
 data ConnectionError =
-    WrongValidatorHash ValidatorHash ValidatorHash
+    WrongValidatorAddress Address Address
     | WrongOutType TxOutType
     | WrongInType TxInType
     | WrongValidatorType String
@@ -215,10 +216,10 @@ data ConnectionError =
     deriving (Show, Eq, Ord)
 
 -- | Checks that the given validator hash is consistent with the actual validator.
-checkValidatorHash :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> ValidatorHash -> m ()
-checkValidatorHash ct actualHash = do
-    let expectedHash = plcValidatorDigest $ getAddress $ scriptAddress ct
-    unless (actualHash == expectedHash) $ throwError $ WrongValidatorHash expectedHash actualHash
+checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()
+checkValidatorAddress ct actualAddr = do
+    let expectedAddr = scriptAddress ct
+    unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
 
 -- | Checks that the given validator script has the right type.
 checkValidatorScript
@@ -295,11 +296,11 @@ typeScriptTxOut
     => ScriptInstance out
     -> TxOut
     -> m (TypedScriptTxOut out)
-typeScriptTxOut si TxOut{txOutAddress=Address addrHash,txOutValue,txOutType} = do
+typeScriptTxOut si TxOut{txOutAddress,txOutValue,txOutType} = do
     ds <- case txOutType of
         PayToScript ds -> pure ds
         x              -> throwError $ WrongOutType x
-    checkValidatorHash si (plcValidatorDigest addrHash)
+    checkValidatorAddress si txOutAddress
     dsVal <- checkDataScript si ds
     pure $ makeTypedScriptTxOut si dsVal txOutValue
 

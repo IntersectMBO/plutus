@@ -44,7 +44,6 @@ import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import           Ledger.AddressMap              (values)
 import qualified Ledger.Typed.Scripts           as Scripts
-import qualified Ledger.Scripts                 as Scripts
 import           Ledger.Validation              (PendingTx, PendingTx' (..))
 import           Ledger.Value                   (Value, lt, geq)
 
@@ -95,8 +94,8 @@ payToPubKeyTarget = PubKeyTarget
 
 -- | An 'EscrowTarget' that pays the value to a script address, with the
 --   given data script.
-payToScriptTarget :: Address -> DataScript -> Value -> EscrowTarget
-payToScriptTarget (Ledger.Address hsh) = ScriptTarget (Scripts.plcValidatorDigest hsh)
+payToScriptTarget :: ValidatorHash -> DataScript -> Value -> EscrowTarget
+payToScriptTarget = ScriptTarget
 
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
 data EscrowParams =
@@ -126,7 +125,7 @@ targetValue = \case
 mkTxOutput :: EscrowTarget -> TxOut
 mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
-    ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.Address (Scripts.unsafePlcAddress hsh)) ds
+    ScriptTarget vs ds vl -> scriptTxOut' vl (Ledger.scriptHashAddress vs) ds
 
 data Action = Redeem | Refund
 

@@ -41,7 +41,7 @@ balanceWallet utx = do
     WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
-    let utxo = addr ^. at (Tx.pubKeyAddress pk) . to (fromMaybe mempty)
+    let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)
     balanceTx utxo pk utx
 
 -- | Compute the difference between the value of the inputs consumed and the

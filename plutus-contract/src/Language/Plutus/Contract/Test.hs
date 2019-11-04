@@ -71,10 +71,10 @@ import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
+import           Ledger.Address                        (Address)
 import qualified Ledger.Ada                            as Ada
 import qualified Ledger.AddressMap                     as AM
 import           Ledger.Slot                           (Slot)
-import           Ledger.Tx                             (Address)
 import           Ledger.Value                          (Value)
 import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                       as EM
@@ -535,7 +535,7 @@ walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulato
 assertNoFailedTransactions
     :: forall s e a.
     TracePredicate s e a
-assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) -> 
+assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) ->
     let failedTransactions = mapMaybe (\case { EM.TxnValidationFail txid err -> Just (txid, err); _ -> Nothing}) (EM.emLog st)
     in case failedTransactions of
         [] -> pure True

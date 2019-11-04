@@ -82,8 +82,7 @@ nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 -- Given a token name (represented by a string for convenience),
 -- return the value of the corresponding token.

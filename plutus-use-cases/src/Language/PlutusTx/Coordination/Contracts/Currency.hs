@@ -32,7 +32,7 @@ import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     (CurrencySymbol, PubKey, TxHash, TxOutRef(..), plcCurrencySymbol, txInRef)
+import           Ledger                     (CurrencySymbol, TxId, PubKey, TxOutRef(..), scriptCurrencySymbol, txInRef)
 import qualified Ledger                     as Ledger
 import           Ledger.Value               (TokenName, Value)
 
@@ -43,7 +43,7 @@ import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
 
 data Currency = Currency
-  { curRefTransactionOutput :: (TxHash, Integer)
+  { curRefTransactionOutput :: (TxId, Integer)
   -- ^ Transaction input that must be spent when
   --   the currency is forged.
   , curAmounts              :: AssocMap.Map TokenName Integer
@@ -62,7 +62,7 @@ currencyValue s Currency{curAmounts = amts} =
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
 mkCurrency (TxOutRef h i) amts =
     Currency
-        { curRefTransactionOutput = (V.plcTxHash h, i)
+        { curRefTransactionOutput = (h, i)
         , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)
         }
 
@@ -113,7 +113,7 @@ forgedValue :: Currency -> Value
 forgedValue cur =
     let
         -- see note [Obtaining the currency symbol]
-        a = plcCurrencySymbol (Ledger.scriptAddress (curValidator cur))
+        a = scriptCurrencySymbol (curValidator cur)
     in
         currencyValue a cur
 

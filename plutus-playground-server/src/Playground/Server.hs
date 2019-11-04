@@ -19,7 +19,7 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode))
-import           Ledger                       (hashTx)
+import           Ledger                       (txId)
 import           Playground.API               (API)
 import qualified Playground.Interpreter       as PI
 import           Playground.Interpreter.Util  (TraceResult)
@@ -58,7 +58,7 @@ postProcessEvaluation ::
 postProcessEvaluation interpreterResult = do
     (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) <-
         interpreterResult
-    let blockchainWithTxIds = fmap (\tx -> (hashTx tx, tx)) <$> blockchain
+    let blockchainWithTxIds = fmap (\tx -> (txId tx, tx)) <$> blockchain
     rollup <- first RollupError $ doAnnotateBlockchain blockchainWithTxIds
     pure $
         EvaluationResult

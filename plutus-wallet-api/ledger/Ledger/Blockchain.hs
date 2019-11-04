@@ -45,8 +45,8 @@ lastSlot = Slot . fromIntegral . length
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx
-transaction bc txid = listToMaybe $ filter p  $ join bc where
-    p = (txid ==) . hashTx
+transaction bc tid = listToMaybe $ filter p  $ join bc where
+    p tx = tid == txId tx
 
 -- | Determine the unspent output that an input refers to
 out :: Blockchain -> TxOutRef -> Maybe TxOut

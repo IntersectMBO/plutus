@@ -105,10 +105,10 @@ genMockchain' :: MonadGen m
     -> m Mockchain
 genMockchain' gm = do
     let (txn, ot) = genInitialTransaction gm
-        txId = hashTx txn
+        tid = txId txn
     pure Mockchain {
         mockchainInitialBlock = [txn],
-        mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
+        mockchainUtxo = Map.fromList $ first (TxOutRef tid) <$> zip [0..] ot
         }
 
 -- | Generate a mockchain using the default 'GeneratorModel'.

@@ -63,6 +63,7 @@ library
         Data.Text.Prettyprint.Doc.Extras,
         Ledger,
         Ledger.Ada,
+        Ledger.Address,
         Ledger.AddressMap,
         Ledger.Blockchain,
         Ledger.Crypto,
@@ -112,6 +113,7 @@ library plutus-ledger
         Data.Text.Prettyprint.Doc.Extras
         Ledger
         Ledger.Ada
+        Ledger.Address
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto

@@ -19,7 +19,7 @@ import qualified Test.Tasty.HUnit                                  as HUnit
 import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import           Ledger                                            (PrivateKey, Tx, hashTx, signatures, toPublicKey)
+import           Ledger                                            (PrivateKey, Tx, txId, signatures, toPublicKey)
 import qualified Ledger.Ada                                        as Ada
 import qualified Ledger.Crypto                                     as Crypto
 import qualified Wallet.API                                        as WAPI
@@ -85,5 +85,5 @@ threeOutOfFive n = do
 -- | Attach a signature to a transaction.
 attachSignature :: PrivateKey -> Tx -> Tx
 attachSignature pk tx' =
-    let sig = Crypto.signTx (hashTx tx') pk
+    let sig = Crypto.signTx (txId tx') pk
     in  tx' & signatures . at (toPublicKey pk) ?~ sig

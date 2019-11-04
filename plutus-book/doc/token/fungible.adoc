@@ -103,8 +103,7 @@ fungibleAddress :: Fungible -> Address
 fungibleAddress = scriptAddress . mkFungibleValidator
 
 fungibleSymbol :: Fungible -> CurrencySymbol
-fungibleSymbol f = case validatorScriptHash $ mkFungibleValidator f of
-    ValidatorHash h -> V.currencySymbol h
+fungibleSymbol f = scriptCurrencySymbol $ mkFungibleValidator f
 
 fungibleValue :: Fungible -> Integer -> Value
 fungibleValue f = V.singleton (fungibleSymbol f) (name f)
@@ -398,7 +397,7 @@ sell i c n v2 p2 dl = do
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
             (mkTradeRedeemerScript Reclaim)
-            (hashTx tx)
+            (txId tx)
 ----
 
 <1> Lock the currency at the trade script.
@@ -464,7 +463,7 @@ buy i c n p1 v2 dl = do
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
             (mkTradeRedeemerScript Reclaim)
-            (hashTx tx)
+            (txId tx)
 
 $(mkFunctions ['forge, 'sell, 'buy])
 ----

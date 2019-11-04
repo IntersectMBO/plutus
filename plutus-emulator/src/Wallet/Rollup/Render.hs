@@ -32,8 +32,8 @@ import qualified Language.PlutusTx.Builtins            as Builtins
 import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getAddress, getPubKey, getTxId, txFee, txForge,
-                                                        txOutValue, txOutputs)
+                                                        Value, getPubKey, getTxId, txFee, txForge, txOutValue,
+                                                        txOutputs)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
@@ -159,7 +159,7 @@ instance Render Wallet where
     render (Wallet n) = pure $ "Wallet" <+> viaShow n
 
 instance Render Address where
-    render = render . getAddress
+    render = pure . pretty
 
 instance Render BeneficialOwner where
     render (OwnedByScript address) = ("Script:" <+>) <$> render address

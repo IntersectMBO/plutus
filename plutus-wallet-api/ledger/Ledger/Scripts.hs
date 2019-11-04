@@ -37,12 +37,9 @@ module Ledger.Scripts(
     DataScriptHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
-    plcDataScriptHash,
-    plcValidatorDigest,
-    plcValidatorHash,
-    plcRedeemerHash,
-    plcAddress,
-    unsafePlcAddress,
+    dataScriptHash,
+    redeemerHash,
+    validatorHash,
     -- * Example scripts
     unitRedeemer,
     unitData
@@ -56,7 +53,7 @@ import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Monad                            (unless)
 import           Control.Monad.Except                     (MonadError(..), runExcept)
 import           Control.DeepSeq                          (NFData)
-import           Crypto.Hash                              (Digest, SHA256, digestFromByteString)
+import           Crypto.Hash                              (Digest, SHA256, hash)
 import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson                               as JSON
 import qualified Data.Aeson.Extras                        as JSON
@@ -64,7 +61,6 @@ import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
-import           Data.Maybe                               (fromJust)
 import           Data.String
 import           Data.Text.Prettyprint.Doc                (Pretty)
 import           GHC.Generics                             (Generic)
@@ -78,7 +74,7 @@ import           Language.PlutusTx                        (CompiledCode, getPlc,
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
-import           Ledger.Crypto
+import           Ledger.Orphans                           ()
 import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -261,37 +257,17 @@ newtype RedeemerHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
-{-# INLINABLE plcDataScriptHash #-}
-plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
+dataScriptHash :: DataScript -> DataScriptHash
+dataScriptHash = DataScriptHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-{-# INLINABLE plcValidatorDigest #-}
--- | Compute the hash of a validator script.
-plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
+redeemerHash :: RedeemerScript -> RedeemerHash
+redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-{-# INLINABLE plcAddress #-}
--- | Get the SHA256 hash (for use in off-chain code) from a 'ValidatorHash'
---   (on-chain)
-plcAddress :: ValidatorHash -> Maybe (Digest SHA256)
-plcAddress (ValidatorHash hsh) = digestFromByteString $ BSL.toStrict hsh
-
-{-# INLINABLE unsafePlcAddress #-}
--- | Get the SHA256 hash (for use in off-chain code) from a 'ValidatorHash'
---   (on-chain). Should be safe if 'ValidatorHash' was constructed using
---   'plcValidatorDigest' or 'plcValidatorHash'.
-unsafePlcAddress :: ValidatorHash -> Digest SHA256
-unsafePlcAddress = fromJust . plcAddress
-
--- TODO: Is this right? Make it obvious
-{-# INLINABLE plcValidatorHash #-}
--- | Compute the hash of a validator script.
-plcValidatorHash :: ValidatorScript -> ValidatorHash
-plcValidatorHash = ValidatorHash . plcSHA2_256 . BSL.pack . BA.unpack
-
-{-# INLINABLE plcRedeemerHash #-}
-plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
+validatorHash :: ValidatorScript -> ValidatorHash
+validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h' :: Digest SHA256 = hash h
+    e = encode vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.

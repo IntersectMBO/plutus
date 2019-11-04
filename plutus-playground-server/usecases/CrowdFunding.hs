@@ -23,7 +23,7 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude hiding (Applicative (..))
 import           Ledger                    (Address, DataScript (DataScript), PendingTx, PubKey,
                                             RedeemerScript (RedeemerScript), TxId, ValidatorScript, mkValidatorScript,
-                                            hashTx, pendingTxValidRange, scriptAddress, valueSpent)
+                                            txId, pendingTxValidRange, scriptAddress, valueSpent)
 import qualified Ledger.Interval           as Interval
 import           Ledger.Slot               (Slot, SlotRange)
 import           Ledger.Typed.Scripts      (wrapValidator)
@@ -164,7 +164,7 @@ contribute deadline target collectionDeadline ownerWallet value = do
     -- event. It instructs the wallet to start watching the addresses mentioned
     -- in the trigger definition and run the handler when the refund condition
     -- is true.
-    register (refundTrigger value cmp) (refundHandler (Ledger.hashTx tx) cmp)
+    register (refundTrigger value cmp) (refundHandler (Ledger.txId tx) cmp)
 
     logMsg "Registered refund trigger"
 

@@ -106,7 +106,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
 
     extract :: (UtxoLocation, Tx) -> [Maybe FlowLink]
     extract (loc, tx) =
-      let targetRef = mkRef $ hashTx tx in
+      let targetRef = mkRef $ txId tx in
       fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ txInputs tx)
     -- make a flow for a TxOutRef
 

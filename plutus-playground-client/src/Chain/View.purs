@@ -28,9 +28,10 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
+import Ledger.Address (Address)
 import Ledger.Crypto (PubKey(..))
 import Ledger.Extra (humaniseInterval, adaToValue)
-import Ledger.Tx (Address(..), TxOut(..))
+import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Types (HAction(..), _value)
@@ -341,11 +342,11 @@ beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey w
           ]
       ]
 
-beneficialOwnerView _ (OwnedByScript (Address a)) =
+beneficialOwnerView _ (OwnedByScript a) =
   span_
     [ text "Script"
     , nbsp
-    , text a.getAddress
+    , text $ show a
     ]
 
 showPubKey :: forall p i. PubKey -> HTML p i

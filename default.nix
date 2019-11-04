@@ -385,8 +385,6 @@ let
         fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
           #!${pkgs.runtimeShell}
 
-          set -eou pipefail
-
           ${pkgs.git}/bin/git diff > pre-stylish.diff
           ${pkgs.fd}/bin/fd \
             --extension hs \

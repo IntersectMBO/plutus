@@ -76,9 +76,10 @@ import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
 import           Ledger.Ada                                      (Ada)
 import qualified Ledger.Ada                                      as Ada
+import           Ledger.Address                                  (Address)
 import qualified Ledger.AddressMap                               as AM
 import           Ledger.Slot                                     (Slot)
-import           Ledger.Tx                                       (Address, Tx, hashTx)
+import           Ledger.Tx                                       (Tx, txId)
 
 import           Wallet.API                                      (WalletAPIError)
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
@@ -217,7 +218,7 @@ submitUnbalancedTx
     -> ContractTrace s e m a [Tx]
 submitUnbalancedTx wllt tx = do
     (txns, res) <- lift (runWallet wllt (Wallet.handleTx tx))
-    addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap hashTx res)
+    addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res)
     pure txns
 
 addInterestingTxEvents
