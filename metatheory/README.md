@@ -13,8 +13,38 @@ a much higher degree of assurance.
 This repository contains a formalisation of Plutus Core in Agda. Agda
 is both a dependently typed functional programming language and a
 proof assistant. It is particularly suited to formalising programming
-languages.
+languages. Agda programs can be compiled to Haskell and can make use
+of Haskell libraries.
 
+## Roadmap
+
+### Stage 1 (basic metatheory)
+
+- [X] Intrinsically typed representation of the syntax (of Plutus Core);
+- [X] Intrinsically typed representation of the reduction semantics;
+- [X] Formal Proofs of progress and (type) preservation;
+- [X] Evaluator that can be run inside Agda;
+- [X] Correspondence to untyped syntax;
+- [X] Correspondence to untyped (reduction) semantics;
+- [X] Published paper.
+
+### Stage 2 (testing producation against Agda model)
+
+- [X] An extrinsically typed evaluator that can be compiled to Haskell;
+- [X] Typechecker + compilation to Haskell;
+- [X] Automated building under CI;
+- [X] Automated testing of evaluation under CI;
+- [X] Automated testing of typechecking under CI.
+
+### Stage 3 (more metatheory)
+
+- [X] Intrinsically typed CK machine;
+- [X] Extrinsically typed CK machine;
+- [ ] Correspondence between CK executation and reduction;
+- [ ] Correspondence between extrinsic and intrinsic semantics;
+- [X] Soundness of typechecking;
+- [ ] Completeness of typechecking;
+- [ ] Intrinsic evaluation, compiled to Haskell.
 
 ## Installation
 
