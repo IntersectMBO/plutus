@@ -119,7 +119,7 @@ lock = do
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
-        output     = Ledger.TxOutOf gameAddress vl (Ledger.PayToScript dataScript)
+        output     = Ledger.TxOut gameAddress vl (Ledger.PayToScript dataScript)
         tx         = unbalancedTx [] [output]
     void (writeTx tx)
 

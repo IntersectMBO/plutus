@@ -21,10 +21,10 @@ import           Data.Set                                      (Set)
 import qualified Data.Set                                      as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                                  (Generic)
-import           Ledger                                        (Address, TxOutOf (..))
+import           Ledger                                        (Address, TxOut (..))
 import           Ledger.AddressMap                             (AddressMap)
 import qualified Ledger.AddressMap                             as AM
-import           Ledger.Tx                                     (TxOut, TxOutRef)
+import           Ledger.Tx                                     (TxOutRef)
 
 import           Language.Plutus.Contract.Effects.WatchAddress (AddressSet (..))
 import           Language.Plutus.Contract.Request              (Contract, ContractRow, requestMaybe)
@@ -48,7 +48,7 @@ data UtxoAtAddress =
 instance Pretty UtxoAtAddress where
   pretty UtxoAtAddress{address, utxo} =
     let
-      prettyTxOutPair (txoutref, TxOutOf{txOutValue, txOutType}) =
+      prettyTxOutPair (txoutref, TxOut{txOutValue, txOutType}) =
         pretty txoutref <> colon <+> pretty txOutType <+> viaShow txOutValue
       utxos = nest 2 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
     in "Utxo at" <+> pretty address <+> "=" <+> utxos

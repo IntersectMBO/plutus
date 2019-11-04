@@ -118,9 +118,8 @@ import           Servant.API               (FromHttpApiData (..), ToHttpApiData 
 import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                            TxId, TxInOf (..), TxOut, TxOutOf (..), TxOutRef, Value, addSignature,
-                                            hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey,
-                                            txOutAddress)
+                                            TxId, TxIn (..), TxOut (..), TxOutRef, Value, addSignature, hashTx,
+                                            lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
 import qualified Ledger.Index              as Index

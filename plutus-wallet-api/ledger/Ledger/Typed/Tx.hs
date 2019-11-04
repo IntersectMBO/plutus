@@ -60,13 +60,13 @@ makeTypedScriptTxIn si r (TypedScriptTxOutRef ref) =
     let vs = validatorScript si
         rs = RedeemerScript (toData r)
         txInType = ConsumeScriptAddress vs rs
-    in TypedScriptTxIn @inn $ TxInOf ref txInType
+    in TypedScriptTxIn @inn $ TxIn ref txInType
 
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
 -- | Create a 'PubKeyTxIn'.
 makePubKeyTxIn :: TxOutRef -> PubKey -> PubKeyTxIn
-makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxInOf ref $ ConsumePublicKeyAddress pubkey
+makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxIn ref $ ConsumePublicKeyAddress pubkey
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 newtype TypedScriptTxOut a = TypedScriptTxOut { unTypedScriptTxOut :: TxOut }
@@ -80,7 +80,7 @@ makeTypedScriptTxOut
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
     let outTy = PayToScript (DataScript (toData d))
-    in TypedScriptTxOut @out $ TxOutOf (scriptAddress ct) value outTy
+    in TypedScriptTxOut @out $ TxOut (scriptAddress ct) value outTy
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 newtype TypedScriptTxOutRef a = TypedScriptTxOutRef { unTypedScriptTxOutRef :: TxOutRef }
@@ -265,7 +265,7 @@ typeScriptTxIn
     -> ScriptInstance inn
     -> TxIn
     -> m (TypedScriptTxIn inn)
-typeScriptTxIn lookupRef si TxInOf{txInRef,txInType} = do
+typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
     (vs, rs) <- case txInType of
         ConsumeScriptAddress vs rs -> pure (vs, rs)
         x                          -> throwError $ WrongInType x
@@ -281,7 +281,7 @@ typePubKeyTxIn
     . (MonadError ConnectionError m)
     => TxIn
     -> m PubKeyTxIn
-typePubKeyTxIn inn@TxInOf{txInType} = do
+typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
         ConsumePublicKeyAddress _ -> pure ()
         x                         -> throwError $ WrongInType x
@@ -295,7 +295,7 @@ typeScriptTxOut
     => ScriptInstance out
     -> TxOut
     -> m (TypedScriptTxOut out)
-typeScriptTxOut si TxOutOf{txOutAddress=AddressOf addrHash,txOutValue,txOutType} = do
+typeScriptTxOut si TxOut{txOutAddress=Address addrHash,txOutValue,txOutType} = do
     ds <- case txOutType of
         PayToScript ds -> pure ds
         x              -> throwError $ WrongOutType x
@@ -328,7 +328,7 @@ typePubKeyTxOut
     . (MonadError ConnectionError m)
     => TxOut
     -> m PubKeyTxOut
-typePubKeyTxOut out@TxOutOf{txOutType} = do
+typePubKeyTxOut out@TxOut{txOutType} = do
     case txOutType of
         PayToPubKey _ -> pure ()
         x             -> throwError $ WrongOutType x

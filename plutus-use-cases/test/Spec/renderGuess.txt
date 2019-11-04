@@ -1,5 +1,5 @@
 ==== Slot #0, Tx #0 ====
-TxId:       60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284
+TxId:       ce22d130c6172da7db2bb6a83a608f91ac966da0dd72b67956f1ff0116507d38
 Fee:        -
 Forge:      Ada:      Lovelace:  1000
 Inputs:
@@ -100,7 +100,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  100
 
 ==== Slot #2, Tx #0 ====
-TxId:       2bdbaa25a7bf049fe5324ae01f2713bf99593140460875c9717dfe8262e76ac7
+TxId:       0018bf85d530053d929813e64a9d3d922705e3a0c2bf9475cabc226c48dfb2c5
 Fee:        -
 Forge:      -
 Inputs:
@@ -109,7 +109,7 @@ Inputs:
   Value:
     Ada:      Lovelace:  100
   Source:
-    Tx:     60ea4aabc8bee7b68555c4655e3a0e76f734b8f8725a13158157f6c97eafe284
+    Tx:     ce22d130c6172da7db2bb6a83a608f91ac966da0dd72b67956f1ff0116507d38
     Output #1
     PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
 
@@ -172,7 +172,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  10
 
 ==== Slot #3, Tx #0 ====
-TxId:       fec4beb9b56497c78c0108217b5386c33f855d7fd6a027f2bbd095bab88d56b6
+TxId:       20aae7827bcdd6c63ed8208b7ad981c273d381de28124912228d4a9d92492641
 Fee:        -
 Forge:      -
 Inputs:
@@ -181,7 +181,7 @@ Inputs:
   Value:
     Ada:      Lovelace:  10
   Source:
-    Tx:     2bdbaa25a7bf049fe5324ae01f2713bf99593140460875c9717dfe8262e76ac7
+    Tx:     0018bf85d530053d929813e64a9d3d922705e3a0c2bf9475cabc226c48dfb2c5
     Output #1
     Script: f6f6010000c3f6c3f6c5f6c1f6f664556e697419...
 

@@ -37,7 +37,7 @@ data BeneficialOwner
     deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
-toBeneficialOwner TxOutOf {txOutType, txOutAddress} =
+toBeneficialOwner TxOut {txOutType, txOutAddress} =
     case txOutType of
         PayToPubKey pubKey -> OwnedByPubKey pubKey
         PayToScript _      -> OwnedByScript txOutAddress

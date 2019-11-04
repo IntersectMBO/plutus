@@ -96,7 +96,7 @@ payToPubKeyTarget = PubKeyTarget
 -- | An 'EscrowTarget' that pays the value to a script address, with the
 --   given data script.
 payToScriptTarget :: Address -> DataScript -> Value -> EscrowTarget
-payToScriptTarget (Ledger.AddressOf hsh) = ScriptTarget (Scripts.plcValidatorDigest hsh)
+payToScriptTarget (Ledger.Address hsh) = ScriptTarget (Scripts.plcValidatorDigest hsh)
 
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
 data EscrowParams =
@@ -126,7 +126,7 @@ targetValue = \case
 mkTxOutput :: EscrowTarget -> TxOut
 mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
-    ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.AddressOf (Scripts.unsafePlcAddress hsh)) ds
+    ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.Address (Scripts.unsafePlcAddress hsh)) ds
 
 data Action = Redeem | Refund
 

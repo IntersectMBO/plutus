@@ -40,8 +40,8 @@ data UtxOwner
   deriving (Eq, Ord, Show, Generic, ToJSON)
 
 -- | Given a set of known public keys, compute the owner of a given transaction output.
-owner :: Set.Set PubKey -> TxOutOf h -> UtxOwner
-owner keys TxOutOf {..} =
+owner :: Set.Set PubKey -> TxOut -> UtxOwner
+owner keys TxOut {..} =
   case txOutType of
     PayToScript _ -> ScriptOwner
     PayToPubKey pk
@@ -130,6 +130,6 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
 outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef, UtxoLocation)]
 outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
 
--- | Create a 'TxRef' from a 'TxOutRefOf'.
-utxoTargets :: Show a => TxOutRefOf a -> TxRef
-utxoTargets (TxOutRefOf rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]
+-- | Create a 'TxRef' from a 'TxOutRef'.
+utxoTargets :: TxOutRef -> TxRef
+utxoTargets (TxOutRef rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]

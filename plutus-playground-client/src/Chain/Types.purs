@@ -14,14 +14,13 @@ import Ledger.Ada (Ada)
 import Ledger.Crypto (PubKey, Signature)
 import Ledger.Interval (Interval)
 import Ledger.Slot (Slot)
-import Ledger.Tx (Tx, TxInOf, TxOutOf(..), TxOutRefOf(..), TxOutType(..))
-import Ledger.TxId (TxIdOf)
+import Ledger.Tx (Tx, TxIn, TxOut(..), TxOutRef(..), TxOutType(..))
+import Ledger.TxId (TxId)
 import Ledger.Value (Value)
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
 
-type TxId
-  = TxIdOf String
-
+--type TxId
+-- = TxId String
 data ChainFocus
   = FocusTx TxId
 
@@ -69,7 +68,7 @@ _sequenceId = _Newtype <<< prop (SProxy :: SProxy "sequenceId")
 _dereferencedInputs :: Lens' AnnotatedTx (Array DereferencedInput)
 _dereferencedInputs = _Newtype <<< prop (SProxy :: SProxy "dereferencedInputs")
 
-_originalInput :: Lens' DereferencedInput (TxInOf String)
+_originalInput :: Lens' DereferencedInput TxIn
 _originalInput = _Newtype <<< prop (SProxy :: SProxy "originalInput")
 
 _txIdOf :: Lens' AnnotatedTx TxId
@@ -93,23 +92,23 @@ _txValidRange = _Newtype <<< prop (SProxy :: SProxy "txValidRange")
 _txSignatures :: Lens' Tx (AssocMap.Map PubKey Signature)
 _txSignatures = _Newtype <<< prop (SProxy :: SProxy "txSignatures")
 
-_txInputs :: Lens' Tx (Array (TxInOf String))
+_txInputs :: Lens' Tx (Array TxIn)
 _txInputs = _Newtype <<< prop (SProxy :: SProxy "txInputs")
 
-_txOutputs :: Lens' Tx (Array (TxOutOf String))
+_txOutputs :: Lens' Tx (Array TxOut)
 _txOutputs = _Newtype <<< prop (SProxy :: SProxy "txOutputs")
 
-_txId :: forall a. Lens' (TxIdOf a) a
+_txId :: Lens' TxId String
 _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 
-_txInRef :: forall a. Lens' (TxInOf a) (TxOutRefOf a)
+_txInRef :: forall a. Lens' TxIn TxOutRef
 _txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")
 
-_txOutRefId :: forall a. Lens' (TxOutRefOf a) (TxIdOf a)
+_txOutRefId :: forall a. Lens' TxOutRef TxId
 _txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
 
-toBeneficialOwner :: TxOutOf String -> BeneficialOwner
-toBeneficialOwner (TxOutOf { txOutType, txOutAddress }) = case txOutType of
+toBeneficialOwner :: TxOut -> BeneficialOwner
+toBeneficialOwner (TxOut { txOutType, txOutAddress }) = case txOutType of
   PayToPubKey pubKey -> OwnedByPubKey pubKey
   PayToScript _ -> OwnedByScript txOutAddress
 
@@ -120,15 +119,15 @@ _findTx focussedTxId = (_AnnotatedBlocks <<< filtered isAnnotationOf)
   isAnnotationOf (AnnotatedTx { txId }) = txId == focussedTxId
 
 -- | Where is this output consumed?
-findConsumptionPoint :: Int -> TxIdOf String -> AnnotatedBlockchain -> Maybe AnnotatedTx
+findConsumptionPoint :: Int -> TxId -> AnnotatedBlockchain -> Maybe AnnotatedTx
 findConsumptionPoint outputIndex txId = preview (_AnnotatedBlocks <<< filtered isMatchingTx)
   where
   isMatchingTx :: AnnotatedTx -> Boolean
   isMatchingTx tx = preview (_tx <<< _txInputs <<< traversed <<< _txInRef) tx == Just txOutRef
 
-  txOutRef :: TxOutRefOf String
+  txOutRef :: TxOutRef
   txOutRef =
-    TxOutRefOf
+    TxOutRef
       { txOutRefId: txId
       , txOutRefIdx: outputIndex
       }

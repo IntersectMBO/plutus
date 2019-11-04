@@ -32,7 +32,7 @@ import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     (CurrencySymbol, PubKey, TxHash, TxOutRef, TxOutRefOf(..), plcCurrencySymbol, txInRef)
+import           Ledger                     (CurrencySymbol, PubKey, TxHash, TxOutRef(..), plcCurrencySymbol, txInRef)
 import qualified Ledger                     as Ledger
 import           Ledger.Value               (TokenName, Value)
 
@@ -60,7 +60,7 @@ currencyValue s Currency{curAmounts = amts} =
     in fold values
 
 mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
-mkCurrency (TxOutRefOf h i) amts =
+mkCurrency (TxOutRef h i) amts =
     Currency
         { curRefTransactionOutput = (V.plcTxHash h, i)
         , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)

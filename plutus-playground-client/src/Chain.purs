@@ -30,7 +30,7 @@ import Halogen.HTML (ClassName(ClassName), HTML, br_, div, div_, h2_, slot, text
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
-import Ledger.TxId (TxIdOf(TxIdOf))
+import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
@@ -72,15 +72,15 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (TxnSubmit (TxIdOf txId)) =
+emulatorEventPane (TxnSubmit (TxId txId)) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidate (TxIdOf txId)) =
+emulatorEventPane (TxnValidate (TxId txId)) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidationFail (TxIdOf txId) error) =
+emulatorEventPane (TxnValidationFail (TxId txId) error) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_

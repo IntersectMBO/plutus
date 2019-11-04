@@ -32,7 +32,6 @@ import           Control.Lens                     (at, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
-import           Crypto.Hash                      (Digest, SHA256)
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (fold, foldl', traverse_)
 import qualified Data.Map                         as Map
@@ -209,7 +208,7 @@ data InOutMatch =
         ValidatorScript
         RedeemerScript
         DataScript
-        (AddressOf (Digest SHA256))
+        Address
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -344,7 +343,7 @@ pendingTxInPubkey outRef = txInFromRef outRef Nothing
 
 -- | Create the data about a transaction input which will be passed to a validator script.
 mkIn :: ValidationMonad m => TxIn -> m Validation.PendingTxIn
-mkIn TxInOf{txInRef, txInType} = case txInType of
+mkIn TxIn{txInRef, txInType} = case txInType of
     ConsumeScriptAddress v r  ->
         Validation.toLedgerTxIn <$> pendingTxInScript txInRef v r
     ConsumePublicKeyAddress _ ->

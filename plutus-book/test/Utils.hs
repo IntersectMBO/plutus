@@ -48,7 +48,7 @@ initialChain =
         txId      = hashTx txn
     in  Mockchain {
             mockchainInitialBlock = [txn],
-            mockchainUtxo = Map.fromList $ first (TxOutRefOf txId) <$> zip [0..] ot
+            mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
         }
 
 updateWallets :: Trace MockWallet ()

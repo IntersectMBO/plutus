@@ -105,10 +105,9 @@ import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
-                                            SlotRange, Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutRef,
-                                            TxOutType (..), ValidatorScript, Value, getTxId, hashTx, outValue,
-                                            pubKeyTxOut, scriptAddress, scriptTxIn, signatures, singleton, txOutRefId,
-                                            width)
+                                            SlotRange, Tx (..), TxId, TxIn, TxOut (..), TxOutRef, TxOutType (..),
+                                            ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut,
+                                            scriptAddress, scriptTxIn, signatures, singleton, txOutRefId, width)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
@@ -391,7 +390,7 @@ payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScr
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
-        otherOutputs = fmap (\(addr, vl, ds) -> TxOutOf addr vl (PayToScript ds)) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange)
 

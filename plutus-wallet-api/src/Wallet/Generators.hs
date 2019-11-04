@@ -108,7 +108,7 @@ genMockchain' gm = do
         txId = hashTx txn
     pure Mockchain {
         mockchainInitialBlock = [txn],
-        mockchainUtxo = Map.fromList $ first (TxOutRefOf txId) <$> zip [0..] ot
+        mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
         }
 
 -- | Generate a mockchain using the default 'GeneratorModel'.
