@@ -228,10 +228,7 @@ compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalise
 with a proof assistant.  Indeed, the specification in the present
-document has been formalised in the Agda proof assistant~\citep{Agda}:
-the formalisation can be found
-at \url{https://github.com/input-output-hk/plutus/tree/master/metatheory}
-and the techniques used are described in ~\citep{System-F-in-Agda}.
+document has been formalised in the Agda proof assistant~\citep{Agda}.
 
 We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
@@ -243,6 +240,13 @@ recursion or branching, but the type system is sufficiently expressive
 to allow us to use standard combinators (for example the $Z$
 combinator and Church/Scott encoded booleans) for such purposes.
 
+\paragraph{Implementation.} A compiler and evaluator for Plutus Core can be found at
+\url{https://github.com/input-output-hk/plutus}.
+
+\paragraph{Formalisation.} The Agda formalisation of Plutus Core mentioned earlier
+can be found
+at \url{https://github.com/input-output-hk/plutus/tree/master/metatheory},
+and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 \subsection{Blockchain issues}
 Plutus Core code (and code intended for execution on a blockchain in
@@ -976,8 +980,7 @@ at some time in the future.
 \subfile{figures/Builtins}
 
 \section{Examples}
-(To follow)
-
+The section contains some examples of Plutus Core code.
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
