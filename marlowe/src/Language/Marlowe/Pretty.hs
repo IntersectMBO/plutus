@@ -1,8 +1,9 @@
-{-# LANGUAGE DefaultSignatures  #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DefaultSignatures          #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeOperators              #-}
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 module Language.Marlowe.Pretty where
 
@@ -14,6 +15,7 @@ import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Cons
                                           Rep, S, U1, conName, from)
 import           Ledger                  (PubKey (..), Slot (..))
 import           Ledger.Ada              (Ada, getLovelace)
+import           Ledger.Value
 import           LedgerBytes
 import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
                                           rparen, space, text)
@@ -135,6 +137,16 @@ instance Read Slot where
 instance Pretty BSL.ByteString where
     prettyFragment = text . show . BSL.toStrict
 
+
 instance Pretty Ada where
     prettyFragment x = prettyFragment (getLovelace x)
+
+instance Read CurrencySymbol where
+    readsPrec p x = [(CurrencySymbol v, s) | (v, s) <- readsPrec p x]
+
+instance Read TokenName where
+    readsPrec p x = [(TokenName v, s) | (v, s) <- readsPrec p x]
+
+deriving instance Pretty CurrencySymbol
+deriving instance Pretty TokenName
 
