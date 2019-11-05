@@ -14,7 +14,9 @@ import           Prelude                                           hiding (tail)
 import           Control.Lens.Indexed
 import           Criterion.Main
 import           Crypto.Hash
+import qualified Data.ByteArray                                    as BA
 import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Lazy                              as BSL
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
 import qualified Language.PlutusTx.Prelude                         as P
 import           Ledger
@@ -231,7 +233,7 @@ multisig = bgroup "multisig" [
 -- Test functions and data
 
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
-verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (plcDigest m) s
+verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
 
 runScriptNoCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
@@ -271,7 +273,7 @@ mockPendingTx = PendingTx
     , pendingTxForge = PlutusTx.zero
     , pendingTxIn = PendingTxIn
         { pendingTxInRef = PendingTxOutRef
-            { pendingTxOutRefId = TxHash P.emptyByteString
+            { pendingTxOutRefId = TxId P.emptyByteString
             , pendingTxOutRefIdx = 0
             }
         , pendingTxInWitness = ("", "")
@@ -279,5 +281,5 @@ mockPendingTx = PendingTx
         }
     , pendingTxValidRange = defaultSlotRange
     , pendingTxSignatures = []
-    , pendingTxHash = TxHash P.emptyByteString
+    , pendingTxId = TxId P.emptyByteString
     }

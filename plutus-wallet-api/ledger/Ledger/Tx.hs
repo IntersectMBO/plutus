@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
     -- * Transactions
@@ -21,8 +21,7 @@ module Ledger.Tx(
     signatures,
     addSignature,
     -- ** Hashing transactions
-    preHash,
-    hashTx,
+    txId,
     -- ** Stripped transactions
     TxStripped(..),
     strip,
@@ -49,12 +48,7 @@ module Ledger.Tx(
     inPubKey,
     validRange,
     pubKeyTxIn,
-    scriptTxIn,
-    -- * Addresses
-    Address(..),
-    pubKeyAddress,
-    scriptAddress,
-    inAddress
+    scriptTxIn
     ) where
 
 import qualified Codec.CBOR.Write          as Write
@@ -62,11 +56,8 @@ import           Codec.Serialise.Class     (Serialise, encode)
 import           Control.Lens
 import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import           Data.Aeson.Extras         (encodeSerialise)
 import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Char8     as BS8
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Hashable             (Hashable, hashWithSalt)
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
@@ -78,6 +69,7 @@ import           Schema                    (ToSchema)
 import           Language.PlutusTx.Lattice
 
 import           Ledger.Ada
+import           Ledger.Address
 import           Ledger.Crypto
 import           Ledger.Orphans            ()
 import           Ledger.Scripts
@@ -85,7 +77,6 @@ import           Ledger.Slot
 import           Ledger.TxId
 import           Ledger.Value
 import qualified Ledger.Value              as V
-import qualified LedgerBytes               as LB
 
 {- Note [Serialisation and hashing]
 
@@ -109,22 +100,6 @@ However, it should be easy to change the serialisation mechanism later on,
 especially because we only need one direction (to binary).
 
 -}
-
--- | A payment address using a hash as the id.
-newtype Address = Address { getAddress :: Digest SHA256 }
-    deriving stock (Eq, Ord, Show, Generic)
-
-instance Pretty Address where
-    pretty = pretty . encodeSerialise . getAddress
-
-instance Hashable Address where
-    hashWithSalt s (Address digest) = hashWithSalt s $ BA.unpack digest
-
-deriving newtype instance Serialise Address
-deriving anyclass instance ToJSON Address
-deriving anyclass instance FromJSON Address
-deriving anyclass instance ToJSONKey Address
-deriving anyclass instance FromJSONKey Address
 
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {
@@ -163,7 +138,7 @@ instance Pretty Tx where
                 , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
                 , "validity range:" <+> viaShow txValidRange
                 ]
-            txid = hashTx t
+            txid = txId t
         in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
 
 instance Semigroup Tx where
@@ -202,10 +177,6 @@ signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
 
-instance BA.ByteArrayAccess Tx where
-    length        = BA.length . Write.toStrictByteString . encode
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
-
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
@@ -222,23 +193,20 @@ data TxStripped = TxStripped {
     -- ^ The 'Value' forged by this transaction.
     txStrippedFee     :: !Ada
     -- ^ The fee for this transaction.
-    } deriving (Show, Eq)
-
-instance BA.ByteArrayAccess TxStripped where
-    length = BA.length . BS8.pack . show
-    withByteArray = BA.withByteArray . BS8.pack . show
+    } deriving (Show, Eq, Generic, Serialise)
 
 strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
     i = Set.map txInRef txInputs
 
--- | Hash a stripped transaction once.
-preHash :: TxStripped -> Digest SHA256
-preHash = hash
-
--- | Double hash of a transaction, excluding its witnesses.
-hashTx :: Tx -> TxId
-hashTx = TxId . hash . preHash . strip
+-- | Compute the id of a transaction.
+txId :: Tx -> TxId
+-- Double hash of a transaction, excluding its witnesses.
+txId tx = TxId $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256
+    h = hash $ Write.toStrictByteString $ encode $ strip tx
+    h' :: Digest SHA256
+    h' = hash h
 
 -- | A reference to a transaction output. This is a
 -- pair of a transaction reference, and an index indicating which of the outputs
@@ -261,8 +229,7 @@ deriving instance FromJSONKey TxOutRef
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
 txOutRefs :: Tx -> [(TxOut, TxOutRef)]
 txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
-    mkOut (i, o) = (o, TxOutRef txId i)
-    txId = hashTx t
+    mkOut (i, o) = (o, TxOutRef (txId t) i)
 
 -- | The type of a transaction input.
 data TxInType =
@@ -303,14 +270,6 @@ inPubKey TxIn{ txInType = t } = case t of
     ConsumeScriptAddress _ _  -> Nothing
     ConsumePublicKeyAddress p -> Just p
 
--- | The address of the output spent by a 'TxIn'.
-inAddress :: TxIn -> BSL.ByteString
-inAddress TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress v _ ->
-        BSL.fromStrict . BA.convert . getAddress . scriptAddress $ v
-    ConsumePublicKeyAddress pk  ->
-        LB.bytes (getPubKey pk)
-
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: PubKey -> TxOutRef -> TxIn
 pubKeyTxIn pubK r = TxIn r (ConsumePublicKeyAddress pubK)
@@ -318,10 +277,6 @@ pubKeyTxIn pubK r = TxIn r (ConsumePublicKeyAddress pubK)
 -- | A transaction input that spends a "pay to script" output, given witnesses.
 scriptTxIn :: TxOutRef -> ValidatorScript -> RedeemerScript -> TxIn
 scriptTxIn r v = TxIn r . ConsumeScriptAddress v
-
-instance BA.ByteArrayAccess TxIn where
-    length        = BA.length . Write.toStrictByteString . encode
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | The type of a transaction output.
 data TxOutType =
@@ -345,10 +300,6 @@ data TxOut = TxOut {
 deriving instance Serialise TxOut
 deriving instance ToJSON TxOut
 deriving instance FromJSON TxOut
-
-instance BA.ByteArrayAccess TxOut where
-    length        = BA.length . Write.toStrictByteString . encode
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | The data script attached to a 'TxOut', if there is one.
 txOutData :: TxOut -> Maybe DataScript
@@ -387,18 +338,6 @@ isPubKeyOut = isJust . txOutPubKey
 isPayToScriptOut :: TxOut -> Bool
 isPayToScriptOut = isJust . txOutData
 
--- | The address that should be targeted by a transaction output locked by the given public key.
-pubKeyAddress :: PubKey -> Address
-pubKeyAddress pk = Address $ hash h where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode pk
-
--- | The address that should be used by a transaction output locked by the given validator script.
-scriptAddress :: ValidatorScript -> Address
-scriptAddress vl = Address $ hash h where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode vl
-
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
 scriptTxOut' :: Value -> Address -> DataScript -> TxOut
@@ -418,7 +357,7 @@ pubKeyTxOut v pk = TxOut a v tp where
 -- | The unspent outputs of a transaction.
 unspentOutputsTx :: Tx -> Map TxOutRef TxOut
 unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
-    f (idx, o) = (TxOutRef (hashTx t) idx, o)
+    f (idx, o) = (TxOutRef (txId t) idx, o)
 
 -- | The transaction output references consumed by a transaction.
 spentOutputs :: Tx -> Set.Set TxOutRef
@@ -435,5 +374,5 @@ updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.un
 --   transaction's list of signatures.
 addSignature :: PrivateKey -> Tx -> Tx
 addSignature privK tx = tx & signatures . at pubK ?~ sig where
-    sig = signTx (hashTx tx) privK
+    sig = signTx (txId tx) privK
     pubK = toPublicKey privK

@@ -309,14 +309,14 @@ contribute campaign ada = do
 
     handler :: Tx -> EventHandler m
     handler tx = EventHandler $ const $ do
-        let txId = hashTx tx                                     -- <4>
-        logMsg $ pack $ "Reclaiming contribution " ++ show txId
+        let tid = txId tx                                     -- <4>
+        logMsg $ pack $ "Reclaiming contribution " ++ show tid
             ++ " from " ++ show campaign
         collectFromScriptTxn                                     -- <5>
             range
             (mkValidator campaign)
             (mkRedeemerScript Refund)                            -- <6>
-            txId
+            tid
 
 $(mkFunctions ['startCampaign, 'contribute])
 ----

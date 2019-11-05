@@ -35,6 +35,7 @@ import           Control.Monad.Reader             (MonadReader (..), ReaderT (..
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (fold, foldl', traverse_)
 import qualified Data.Map                         as Map
+import           Data.Maybe (mapMaybe)
 import           Data.Semigroup                   (Semigroup)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc        (Pretty)
@@ -42,6 +43,7 @@ import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Language.PlutusTx                (toData)
 import qualified Language.PlutusTx.Numeric        as P
+import           Ledger.Address
 import qualified Ledger.Ada                       as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
@@ -161,9 +163,9 @@ checkSlotRange sl tx =
 --   can be unlocked by the signatures or validator scripts of the inputs.
 checkValidInputs :: ValidationMonad m => Tx -> m ()
 checkValidInputs tx = do
-    let txId = hashTx tx
+    let tid = txId tx
         sigs = tx ^. signatures
-    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput txId sigs))
+    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput tid sigs))
     vld     <- validationData tx
     traverse_ (checkMatch vld) matches
 
@@ -189,17 +191,15 @@ the blockchain.
 checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
 checkForgingAuthorised tx =
     let
-        forgedCurrencies =
-            V.unCurrencySymbol <$> V.symbols (txForge tx)
+        forgedCurrencies = V.symbols (txForge tx)
 
-        spendsOutput i =
-            let spentAddresses = Set.map inAddress (txInputs tx) in
-            Set.member i spentAddresses
+        mpsScriptHashes = Scripts.ValidatorHash . V.unCurrencySymbol <$> forgedCurrencies
 
-        forgedWithoutScript = filter (not . spendsOutput) forgedCurrencies
+        lockingScripts = validatorHash . fst <$> (mapMaybe inScripts $ Set.toList (txInputs tx))
 
+        forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
-        traverse_ (throwError . ForgeWithoutScript . Scripts.ValidatorHash) forgedWithoutScript
+        traverse_ (throwError . ForgeWithoutScript) forgedWithoutScript
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -299,7 +299,7 @@ validationData tx = do
             , pendingTxIn = () -- this is changed accordingly in `checkMatch` during validation
             , pendingTxValidRange = txValidRange tx
             , pendingTxSignatures = Map.toList (tx ^. signatures)
-            , pendingTxHash = Validation.plcTxHash $ hashTx tx
+            , pendingTxId = txId tx
             }
     pure ptx
 
@@ -308,8 +308,8 @@ mkOut :: TxOut -> Validation.PendingTxOut
 mkOut t = Validation.PendingTxOut (txOutValue t) tp where
     tp = case txOutType t of
         PayToScript scrpt ->
-            let validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
-            in Validation.ScriptTxOut validatorHash scrpt
+            let vh  = Scripts.ValidatorHash (unsafeGetAddress $ txOutAddress t)
+            in Validation.ScriptTxOut vh scrpt
         PayToPubKey pk -> Validation.PubKeyTxOut pk
 
 pendingTxInScript
@@ -319,9 +319,7 @@ pendingTxInScript
     -> RedeemerScript
     -> m Validation.PendingTxInScript
 pendingTxInScript outRef val red = txInFromRef outRef witness where
-        witness =
-            let h = getAddress $ scriptAddress val in
-            (Scripts.plcValidatorDigest h, Scripts.plcRedeemerHash red)
+        witness = (Scripts.validatorHash val, Scripts.redeemerHash red)
 
 txInFromRef
     :: ValidationMonad m
@@ -331,9 +329,9 @@ txInFromRef
 txInFromRef outRef witness = Validation.PendingTxIn ref witness <$> vl where
     vl = lkpValue outRef
     ref =
-        let hash = Validation.plcTxHash $ txOutRefId outRef
+        let tid = txOutRefId outRef
             idx  = txOutRefIdx outRef
-        in Validation.PendingTxOutRef hash idx
+        in Validation.PendingTxOutRef tid idx
 
 pendingTxInPubkey
     :: ValidationMonad m

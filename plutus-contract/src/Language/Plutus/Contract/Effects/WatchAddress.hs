@@ -21,7 +21,7 @@ import qualified Data.Set                                   as Set
 import           Data.Text.Prettyprint.Doc                  (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                               (Generic)
-import           Ledger                                     (Address, Slot, TxId, Value, hashTx)
+import           Ledger                                     (Address, Slot, TxId, Value, txId)
 import           Ledger.AddressMap                          (AddressMap)
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx)
@@ -97,7 +97,7 @@ awaitTransactionConfirmed
 awaitTransactionConfirmed addr txid =
     flip loopM () $ \_ -> do
         tx' <- nextTransactionAt addr
-        if hashTx tx' == txid
+        if txId tx' == txid
         then pure $ Right tx'
         else pure $ Left ()
 

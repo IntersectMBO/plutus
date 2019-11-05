@@ -142,7 +142,7 @@ gameTokenVal :: Value
 gameTokenVal =
     let
         -- see note [Obtaining the currency symbol]
-        cur = plcCurrencySymbol (Scripts.scriptAddress scriptInstance)
+        cur = scriptCurrencySymbol (Scripts.validatorScript scriptInstance)
     in
         V.singleton cur gameToken 1
 
@@ -163,7 +163,7 @@ guess gss new keepVal restVal = do
 
     let addr = Scripts.scriptAddress scriptInstance
         guessedSecret = ClearString (C.pack gss)
-        newSecret = HashedString (plcSHA2_256 (C.pack new))
+        newSecret = HashedString (sha2_256 (C.pack new))
         input = Guess guessedSecret newSecret
         newState = Locked gameToken newSecret
         redeemer = RedeemerScript $ PlutusTx.toData input
@@ -189,7 +189,7 @@ guess gss new keepVal restVal = do
 --   when submitting a guess.
 lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
 lock initialWord vl = do
-    let secret = HashedString (plcSHA2_256 (C.pack initialWord))
+    let secret = HashedString (sha2_256 (C.pack initialWord))
         addr = Scripts.scriptAddress scriptInstance
         state = Initialised secret
         ds   = DataScript $ PlutusTx.toData state
@@ -221,7 +221,7 @@ lock initialWord vl = do
                         , txSignatures = Map.empty
                         }
 
-            WAPI.logMsg $ Text.pack $ "The forging transaction is: " <> show (Ledger.hashTx tx)
+            WAPI.logMsg $ Text.pack $ "The forging transaction is: " <> show (Ledger.txId tx)
             WAPI.signTxAndSubmit_ tx
 
 

@@ -148,7 +148,7 @@ collectFromScriptFilter
     -> RedeemerScript
     -> UnbalancedTx
 collectFromScriptFilter flt am vls red =
-    let utxo       = fromMaybe Map.empty $ am ^. at (Tx.scriptAddress vls)
+    let utxo       = fromMaybe Map.empty $ am ^. at (L.scriptAddress vls)
         ourUtxo    = Map.toList $ Map.filterWithKey flt utxo
         mkTxIn ref = Tx.scriptTxIn ref vls red
         txInputs   = mkTxIn . fst  <$> ourUtxo

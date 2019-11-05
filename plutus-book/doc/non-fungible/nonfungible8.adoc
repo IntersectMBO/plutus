@@ -36,12 +36,12 @@ import qualified Data.Text                  as T
 -- The admin token is parameterized by a transaction
 -- output, which in turn is given by the hash of a
 -- transaction and the output index.
-type Admin = (TxHash, Integer)
+type Admin = (TxId, Integer)
 
 -- Convert the reference to an output to a hash-index
 -- pair.
 mkAdmin :: TxOutRef -> Admin
-mkAdmin (TxOutRef h i) = (plcTxHash h, i)
+mkAdmin (TxOutRef h i) = (h, i)
 
 -- We need no data in data- and redeemer-scripts,
 -- so both can be of unit type.
@@ -82,8 +82,7 @@ adminAddress :: Admin -> Address
 adminAddress = scriptAddress . mkAdminValidator
 
 adminSymbol :: Admin -> CurrencySymbol
-adminSymbol admin = case validatorScriptHash $ mkAdminValidator admin of
-    ValidatorHash h -> V.currencySymbol h
+adminSymbol admin = scriptCurrencySymbol $ mkAdminValidator admin
 
 adminTokenName :: TokenName
 adminTokenName = TokenName emptyByteString
@@ -165,8 +164,7 @@ nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 nonFungibleValue :: NonFungible -> String -> Value
 nonFungibleValue nf name = V.singleton

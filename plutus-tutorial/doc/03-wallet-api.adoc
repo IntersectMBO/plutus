@@ -561,14 +561,14 @@ contribute cmp adaAmount = do
     tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataScript -- <.>
     W.logMsg "Submitted contribution"
 
-    let txId = L.hashTx tx -- <.>
+    let tid = L.txId tx -- <.>
 
-    W.register (refundTrigger cmp) (refundHandler txId cmp)
+    W.register (refundTrigger cmp) (refundHandler tid cmp)
     W.logMsg "Registered refund trigger"
 ----
 <.> `payToScript` returns the transaction that was submitted
 (unlike `payToScript_` which returns unit).
-<.> `L.hashTx` gives the `TxId` of a transaction.
+<.> `L.txId` gives the `TxId` of a transaction.
 
 [#03-testing-contract]
 == Testing the contract

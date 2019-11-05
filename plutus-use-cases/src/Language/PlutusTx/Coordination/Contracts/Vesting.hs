@@ -16,7 +16,6 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     vestFunds,
     retrieveFunds,
     totalAmount,
-    validatorScriptHash,
     -- * Script
     validatorScript,
     mkValidator
@@ -34,8 +33,6 @@ import           Ledger                       (DataScript (..), Slot(..), PubKey
 import qualified Ledger.Ada                   as Ada
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
-import           Ledger.Scripts               (ValidatorHash)
-import qualified Ledger.Scripts               as Scripts
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
@@ -81,13 +78,12 @@ availableFrom (VestingTranche d v) range =
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
-    vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
     vestingDataPaidOut :: Value          -- ^ How much of the vested value has already been retrieved
     } deriving (Generic)
 
 instance Eq VestingData where
     {-# INLINABLE (==) #-}
-    (VestingData h1 v1) == (VestingData h2 v2) = h1 == h2 && v1 == v2
+    (VestingData v1) == (VestingData v2) = v1 == v2
 
 PlutusTx.makeIsData ''VestingData
 PlutusTx.makeLift ''VestingData
@@ -108,7 +104,7 @@ vestFunds vst value = do
     (payment, change) <- createPaymentWithChange (value + transactionFee)
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ PlutusTx.toData vd)
-        vd =  VestingData (validatorScriptHash vst) zero
+        vd =  VestingData zero
     _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
@@ -137,13 +133,6 @@ retrieveFunds vs vd r vnow = do
     (fee, change) <- createPaymentWithChange transactionFee
     _ <- createTxAndSubmit range (Set.insert inp fee) ([oo, o] ++ maybeToList change)
     pure vd'
-
-validatorScriptHash :: Vesting -> ValidatorHash
-validatorScriptHash =
-    Scripts.plcValidatorDigest
-    . Ledger.getAddress
-    . Ledger.scriptAddress
-    . validatorScript
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool

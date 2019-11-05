@@ -77,7 +77,7 @@ gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
 
 gameDataScript :: String -> DataScript
 gameDataScript =
-    Ledger.DataScript . PlutusTx.toData . HashedString . Ledger.plcSHA2_256 . C.pack
+    Ledger.DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =

@@ -49,9 +49,9 @@ pubKeyContract
 pubKeyContract pk vl = do
     let address = Ledger.scriptAddress (pkValidator pk)
         tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
-    txId <- writeTxSuccess tx
+    tid <- writeTxSuccess tx
 
-    ledgerTx <- awaitTransactionConfirmed address txId
+    ledgerTx <- awaitTransactionConfirmed address tid
     let output = listToMaybe
                 $ fmap fst
                 $ filter ((==) address . txOutAddress . snd)

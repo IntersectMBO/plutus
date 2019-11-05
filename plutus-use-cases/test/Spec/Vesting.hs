@@ -24,10 +24,9 @@ import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
                                                                    retrieveFunds, totalAmount, validatorScript, mkValidator,
-                                                                   validatorScriptHash, vestFunds)
+                                                                    vestFunds)
 import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
-import qualified Ledger.Scripts                                   as Scripts
 import           Ledger.Value                                     (Value)
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
@@ -60,7 +59,6 @@ scen1 = VestingScenario{..} where
     vsInitialBalances = Map.fromList [
         (walletPubKey w1, startingBalance),
         (walletPubKey w2, startingBalance)]
-    vsScriptHash = validatorScriptHash vsVestingScheme
 
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
 --   to the transaction output that is locked by the schemes's validator
@@ -71,7 +69,7 @@ commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
 
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
-    let VestingScenario s _ _ = scen1
+    let VestingScenario s _ = scen1
     updateAll
     _ <- commit w2 s total
     updateAll
@@ -81,7 +79,7 @@ secureFunds = checkVestingTrace scen1 $ do
 
 canRetrieveFunds :: Property
 canRetrieveFunds = checkVestingTrace scen1 $ do
-    let VestingScenario s _ _ = scen1
+    let VestingScenario s _ = scen1
         amt = Ada.adaValueOf 150
     updateAll
 
@@ -91,7 +89,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
 
     -- Advance the clock so that the first tranche (200 ada) becomes unlocked.
     addBlocks' 10
-    let ds = VestingData (vsScriptHash scen1) amt
+    let ds = VestingData amt
 
     -- Take 150 ada out of the scheme
     walletAction w1 $ void (retrieveFunds s ds ref amt)
@@ -102,7 +100,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
-    let VestingScenario s _ _ = scen1
+    let VestingScenario s _ = scen1
     updateAll
     ref <- commit w2 s total
     updateAll
@@ -111,7 +109,7 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     -- at slot 11, not more than 200 may be taken out
     -- so the transaction submitted by `retrieveFunds` below
     -- is invalid and will be rejected by the mockchain.
-    let ds = VestingData (vsScriptHash scen1) (Ada.adaValueOf 250)
+    let ds = VestingData (Ada.adaValueOf 250)
     walletAction w1 $ void (retrieveFunds s ds ref (Ada.adaValueOf 250))
     updateAll
 
@@ -120,14 +118,14 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
 
 canRetrieveFundsAtEnd :: Property
 canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
-    let VestingScenario s _ _ = scen1
+    let VestingScenario s _ = scen1
     updateAll
     ref <- commit w2 s total
     updateAll
     addBlocks' 20
 
     -- everything can be taken out at h=21
-    let ds = VestingData (vsScriptHash scen1) (Ada.adaValueOf 600)
+    let ds = VestingData (Ada.adaValueOf 600)
     walletAction w1 $ void (retrieveFunds s ds ref (Ada.adaValueOf 600))
     updateAll
 
@@ -140,8 +138,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
-    vsInitialBalances :: Map.Map PubKey Ledger.Value,
-    vsScriptHash      :: Scripts.ValidatorHash -- Hash of validator script for this scenario
+    vsInitialBalances :: Map.Map PubKey Ledger.Value
     }
 
 -- | Funds available to each wallet after the initial transaction on the

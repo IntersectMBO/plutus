@@ -2138,7 +2138,7 @@
                                                                         VestingData_match
                                                                         (vardecl
                                                                           VestingData
-                                                                          (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] VestingData))
+                                                                          (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] VestingData)
                                                                         )
                                                                       )
                                                                     )
@@ -3267,289 +3267,160 @@
                                                                                                           }
                                                                                                           (lam
                                                                                                             ds
-                                                                                                            (con bytestring)
-                                                                                                            (lam
-                                                                                                              ds
-                                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                              (let
-                                                                                                                (nonrec
+                                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                            (let
+                                                                                                              (nonrec
+                                                                                                              )
+                                                                                                              (termbind
+                                                                                                                (strict
                                                                                                                 )
-                                                                                                                (termbind
-                                                                                                                  (strict
-                                                                                                                  )
-                                                                                                                  (vardecl
-                                                                                                                    wild
-                                                                                                                    [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]
-                                                                                                                  )
-                                                                                                                  ptx
+                                                                                                                (vardecl
+                                                                                                                  wild
+                                                                                                                  [PendingTx [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]]
                                                                                                                 )
-                                                                                                                [
-                                                                                                                  {
-                                                                                                                    [
-                                                                                                                      {
-                                                                                                                        PendingTx_match
-                                                                                                                        [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                                      }
-                                                                                                                      ptx
-                                                                                                                    ]
-                                                                                                                    Bool
-                                                                                                                  }
+                                                                                                                ptx
+                                                                                                              )
+                                                                                                              [
+                                                                                                                {
+                                                                                                                  [
+                                                                                                                    {
+                                                                                                                      PendingTx_match
+                                                                                                                      [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                    }
+                                                                                                                    ptx
+                                                                                                                  ]
+                                                                                                                  Bool
+                                                                                                                }
+                                                                                                                (lam
+                                                                                                                  ds
+                                                                                                                  [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]]
                                                                                                                   (lam
                                                                                                                     ds
-                                                                                                                    [List [PendingTxIn [Maybe [[Tuple2 (con bytestring)] (con bytestring)]]]]
+                                                                                                                    [List PendingTxOut]
                                                                                                                     (lam
                                                                                                                       ds
-                                                                                                                      [List PendingTxOut]
+                                                                                                                      (con integer)
                                                                                                                       (lam
                                                                                                                         ds
-                                                                                                                        (con integer)
+                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                         (lam
                                                                                                                           ds
-                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                          [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                                                           (lam
                                                                                                                             ds
-                                                                                                                            [PendingTxIn [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                            [Interval (con integer)]
                                                                                                                             (lam
                                                                                                                               ds
-                                                                                                                              [Interval (con integer)]
+                                                                                                                              [List [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                                                               (lam
                                                                                                                                 ds
-                                                                                                                                [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                                                                (lam
-                                                                                                                                  ds
-                                                                                                                                  (con bytestring)
-                                                                                                                                  (let
-                                                                                                                                    (nonrec
+                                                                                                                                (con bytestring)
+                                                                                                                                (let
+                                                                                                                                  (nonrec
+                                                                                                                                  )
+                                                                                                                                  (termbind
+                                                                                                                                    (nonstrict
                                                                                                                                     )
-                                                                                                                                    (termbind
-                                                                                                                                      (nonstrict
-                                                                                                                                      )
-                                                                                                                                      (vardecl
-                                                                                                                                        newAmount
-                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                      )
+                                                                                                                                    (vardecl
+                                                                                                                                      newAmount
+                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                    )
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        [
+                                                                                                                                          unionWith
+                                                                                                                                          addInteger
+                                                                                                                                        ]
+                                                                                                                                        ds
+                                                                                                                                      ]
                                                                                                                                       [
                                                                                                                                         [
                                                                                                                                           [
                                                                                                                                             unionWith
                                                                                                                                             addInteger
                                                                                                                                           ]
-                                                                                                                                          ds
+                                                                                                                                          [
+                                                                                                                                            {
+                                                                                                                                              [
+                                                                                                                                                {
+                                                                                                                                                  PendingTxIn_match
+                                                                                                                                                  [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                }
+                                                                                                                                                ds
+                                                                                                                                              ]
+                                                                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                            }
+                                                                                                                                            (lam
+                                                                                                                                              ds
+                                                                                                                                              PendingTxOutRef
+                                                                                                                                              (lam
+                                                                                                                                                ds
+                                                                                                                                                [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                (lam
+                                                                                                                                                  ds
+                                                                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                  ds
+                                                                                                                                                )
+                                                                                                                                              )
+                                                                                                                                            )
+                                                                                                                                          ]
                                                                                                                                         ]
                                                                                                                                         [
                                                                                                                                           [
-                                                                                                                                            [
-                                                                                                                                              unionWith
-                                                                                                                                              addInteger
-                                                                                                                                            ]
-                                                                                                                                            [
-                                                                                                                                              {
-                                                                                                                                                [
-                                                                                                                                                  {
-                                                                                                                                                    PendingTxIn_match
-                                                                                                                                                    [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                                                                  }
-                                                                                                                                                  ds
-                                                                                                                                                ]
-                                                                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                              }
-                                                                                                                                              (lam
-                                                                                                                                                ds
-                                                                                                                                                PendingTxOutRef
-                                                                                                                                                (lam
-                                                                                                                                                  ds
-                                                                                                                                                  [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                                                                  (lam
-                                                                                                                                                    ds
-                                                                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                    ds
-                                                                                                                                                  )
-                                                                                                                                                )
-                                                                                                                                              )
-                                                                                                                                            ]
+                                                                                                                                            fAdditiveGroupValue_cscale
+                                                                                                                                            fAdditiveGroupValue
                                                                                                                                           ]
                                                                                                                                           [
                                                                                                                                             [
-                                                                                                                                              fAdditiveGroupValue_cscale
-                                                                                                                                              fAdditiveGroupValue
+                                                                                                                                              [
+                                                                                                                                                {
+                                                                                                                                                  {
+                                                                                                                                                    foldr
+                                                                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                  }
+                                                                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                }
+                                                                                                                                                fMonoidValue_c
+                                                                                                                                              ]
+                                                                                                                                              {
+                                                                                                                                                Nil
+                                                                                                                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                              }
                                                                                                                                             ]
                                                                                                                                             [
                                                                                                                                               [
-                                                                                                                                                [
-                                                                                                                                                  {
-                                                                                                                                                    {
-                                                                                                                                                      foldr
-                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                    }
-                                                                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                  }
-                                                                                                                                                  fMonoidValue_c
-                                                                                                                                                ]
                                                                                                                                                 {
-                                                                                                                                                  Nil
-                                                                                                                                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                  {
+                                                                                                                                                    map
+                                                                                                                                                    PendingTxOut
+                                                                                                                                                  }
+                                                                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                                 }
+                                                                                                                                                pendingTxOutValue
                                                                                                                                               ]
                                                                                                                                               [
-                                                                                                                                                [
-                                                                                                                                                  {
-                                                                                                                                                    {
-                                                                                                                                                      map
-                                                                                                                                                      PendingTxOut
-                                                                                                                                                    }
-                                                                                                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                  }
-                                                                                                                                                  pendingTxOutValue
-                                                                                                                                                ]
-                                                                                                                                                [
-                                                                                                                                                  getContinuingOutputs
-                                                                                                                                                  wild
-                                                                                                                                                ]
+                                                                                                                                                getContinuingOutputs
+                                                                                                                                                wild
                                                                                                                                               ]
                                                                                                                                             ]
                                                                                                                                           ]
                                                                                                                                         ]
                                                                                                                                       ]
-                                                                                                                                    )
+                                                                                                                                    ]
+                                                                                                                                  )
+                                                                                                                                  [
                                                                                                                                     [
                                                                                                                                       [
-                                                                                                                                        [
-                                                                                                                                          {
-                                                                                                                                            [
-                                                                                                                                              Bool_match
-                                                                                                                                              [
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    checkBinRel
-                                                                                                                                                    lessThanEqInteger
-                                                                                                                                                  ]
-                                                                                                                                                  newAmount
-                                                                                                                                                ]
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      unionWith
-                                                                                                                                                      addInteger
-                                                                                                                                                    ]
-                                                                                                                                                    [
-                                                                                                                                                      [
-                                                                                                                                                        availableFrom
-                                                                                                                                                        ds
-                                                                                                                                                      ]
-                                                                                                                                                      ds
-                                                                                                                                                    ]
-                                                                                                                                                  ]
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      availableFrom
-                                                                                                                                                      ds
-                                                                                                                                                    ]
-                                                                                                                                                    ds
-                                                                                                                                                  ]
-                                                                                                                                                ]
-                                                                                                                                              ]
-                                                                                                                                            ]
-                                                                                                                                            (fun Unit Bool)
-                                                                                                                                          }
-                                                                                                                                          (lam
-                                                                                                                                            thunk
-                                                                                                                                            Unit
+                                                                                                                                        {
+                                                                                                                                          [
+                                                                                                                                            Bool_match
                                                                                                                                             [
                                                                                                                                               [
                                                                                                                                                 [
                                                                                                                                                   checkBinRel
-                                                                                                                                                  equalsInteger
+                                                                                                                                                  lessThanEqInteger
                                                                                                                                                 ]
-                                                                                                                                                [
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      {
-                                                                                                                                                        {
-                                                                                                                                                          foldr
-                                                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                        }
-                                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                      }
-                                                                                                                                                      fMonoidValue_c
-                                                                                                                                                    ]
-                                                                                                                                                    {
-                                                                                                                                                      Nil
-                                                                                                                                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                    }
-                                                                                                                                                  ]
-                                                                                                                                                  [
-                                                                                                                                                    [
-                                                                                                                                                      {
-                                                                                                                                                        {
-                                                                                                                                                          map
-                                                                                                                                                          [[Tuple2 Data] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                                                                                                                                        }
-                                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                      }
-                                                                                                                                                      {
-                                                                                                                                                        {
-                                                                                                                                                          snd
-                                                                                                                                                          Data
-                                                                                                                                                        }
-                                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                      }
-                                                                                                                                                    ]
-                                                                                                                                                    [
-                                                                                                                                                      [
-                                                                                                                                                        scriptOutputsAt
-                                                                                                                                                        [
-                                                                                                                                                          {
-                                                                                                                                                            [
-                                                                                                                                                              {
-                                                                                                                                                                PendingTxIn_match
-                                                                                                                                                                [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                                                                              }
-                                                                                                                                                              ds
-                                                                                                                                                            ]
-                                                                                                                                                            (con bytestring)
-                                                                                                                                                          }
-                                                                                                                                                          (lam
-                                                                                                                                                            ds
-                                                                                                                                                            PendingTxOutRef
-                                                                                                                                                            (lam
-                                                                                                                                                              ds
-                                                                                                                                                              [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                                                                              (lam
-                                                                                                                                                                ds
-                                                                                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                                [
-                                                                                                                                                                  {
-                                                                                                                                                                    [
-                                                                                                                                                                      {
-                                                                                                                                                                        {
-                                                                                                                                                                          Tuple2_match
-                                                                                                                                                                          (con bytestring)
-                                                                                                                                                                        }
-                                                                                                                                                                        (con bytestring)
-                                                                                                                                                                      }
-                                                                                                                                                                      ds
-                                                                                                                                                                    ]
-                                                                                                                                                                    (con bytestring)
-                                                                                                                                                                  }
-                                                                                                                                                                  (lam
-                                                                                                                                                                    a
-                                                                                                                                                                    (con bytestring)
-                                                                                                                                                                    (lam
-                                                                                                                                                                      ds
-                                                                                                                                                                      (con bytestring)
-                                                                                                                                                                      a
-                                                                                                                                                                    )
-                                                                                                                                                                  )
-                                                                                                                                                                ]
-                                                                                                                                                              )
-                                                                                                                                                            )
-                                                                                                                                                          )
-                                                                                                                                                        ]
-                                                                                                                                                      ]
-                                                                                                                                                      wild
-                                                                                                                                                    ]
-                                                                                                                                                  ]
-                                                                                                                                                ]
+                                                                                                                                                newAmount
                                                                                                                                               ]
                                                                                                                                               [
                                                                                                                                                 [
@@ -3559,28 +3430,135 @@
                                                                                                                                                   ]
                                                                                                                                                   [
                                                                                                                                                     [
-                                                                                                                                                      [
-                                                                                                                                                        unionWith
-                                                                                                                                                        addInteger
-                                                                                                                                                      ]
+                                                                                                                                                      availableFrom
+                                                                                                                                                      ds
+                                                                                                                                                    ]
+                                                                                                                                                    ds
+                                                                                                                                                  ]
+                                                                                                                                                ]
+                                                                                                                                                [
+                                                                                                                                                  [
+                                                                                                                                                    availableFrom
+                                                                                                                                                    ds
+                                                                                                                                                  ]
+                                                                                                                                                  ds
+                                                                                                                                                ]
+                                                                                                                                              ]
+                                                                                                                                            ]
+                                                                                                                                          ]
+                                                                                                                                          (fun Unit Bool)
+                                                                                                                                        }
+                                                                                                                                        (lam
+                                                                                                                                          thunk
+                                                                                                                                          Unit
+                                                                                                                                          [
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                checkBinRel
+                                                                                                                                                equalsInteger
+                                                                                                                                              ]
+                                                                                                                                              [
+                                                                                                                                                [
+                                                                                                                                                  [
+                                                                                                                                                    {
+                                                                                                                                                      {
+                                                                                                                                                        foldr
+                                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                      }
+                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                    }
+                                                                                                                                                    fMonoidValue_c
+                                                                                                                                                  ]
+                                                                                                                                                  {
+                                                                                                                                                    Nil
+                                                                                                                                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                  }
+                                                                                                                                                ]
+                                                                                                                                                [
+                                                                                                                                                  [
+                                                                                                                                                    {
+                                                                                                                                                      {
+                                                                                                                                                        map
+                                                                                                                                                        [[Tuple2 Data] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                                                                                      }
+                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                    }
+                                                                                                                                                    {
+                                                                                                                                                      {
+                                                                                                                                                        snd
+                                                                                                                                                        Data
+                                                                                                                                                      }
+                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                    }
+                                                                                                                                                  ]
+                                                                                                                                                  [
+                                                                                                                                                    [
+                                                                                                                                                      scriptOutputsAt
                                                                                                                                                       [
                                                                                                                                                         {
                                                                                                                                                           [
-                                                                                                                                                            VestingTranche_match
+                                                                                                                                                            {
+                                                                                                                                                              PendingTxIn_match
+                                                                                                                                                              [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                            }
                                                                                                                                                             ds
                                                                                                                                                           ]
-                                                                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                          (con bytestring)
                                                                                                                                                         }
                                                                                                                                                         (lam
                                                                                                                                                           ds
-                                                                                                                                                          (con integer)
+                                                                                                                                                          PendingTxOutRef
                                                                                                                                                           (lam
                                                                                                                                                             ds
-                                                                                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                                                            ds
+                                                                                                                                                            [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                                                                            (lam
+                                                                                                                                                              ds
+                                                                                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                              [
+                                                                                                                                                                {
+                                                                                                                                                                  [
+                                                                                                                                                                    {
+                                                                                                                                                                      {
+                                                                                                                                                                        Tuple2_match
+                                                                                                                                                                        (con bytestring)
+                                                                                                                                                                      }
+                                                                                                                                                                      (con bytestring)
+                                                                                                                                                                    }
+                                                                                                                                                                    ds
+                                                                                                                                                                  ]
+                                                                                                                                                                  (con bytestring)
+                                                                                                                                                                }
+                                                                                                                                                                (lam
+                                                                                                                                                                  a
+                                                                                                                                                                  (con bytestring)
+                                                                                                                                                                  (lam
+                                                                                                                                                                    ds
+                                                                                                                                                                    (con bytestring)
+                                                                                                                                                                    a
+                                                                                                                                                                  )
+                                                                                                                                                                )
+                                                                                                                                                              ]
+                                                                                                                                                            )
                                                                                                                                                           )
                                                                                                                                                         )
                                                                                                                                                       ]
+                                                                                                                                                    ]
+                                                                                                                                                    wild
+                                                                                                                                                  ]
+                                                                                                                                                ]
+                                                                                                                                              ]
+                                                                                                                                            ]
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                [
+                                                                                                                                                  unionWith
+                                                                                                                                                  addInteger
+                                                                                                                                                ]
+                                                                                                                                                [
+                                                                                                                                                  [
+                                                                                                                                                    [
+                                                                                                                                                      unionWith
+                                                                                                                                                      addInteger
                                                                                                                                                     ]
                                                                                                                                                     [
                                                                                                                                                       {
@@ -3601,27 +3579,45 @@
                                                                                                                                                       )
                                                                                                                                                     ]
                                                                                                                                                   ]
-                                                                                                                                                ]
-                                                                                                                                                [
                                                                                                                                                   [
-                                                                                                                                                    fAdditiveGroupValue_cscale
-                                                                                                                                                    fAdditiveGroupValue
+                                                                                                                                                    {
+                                                                                                                                                      [
+                                                                                                                                                        VestingTranche_match
+                                                                                                                                                        ds
+                                                                                                                                                      ]
+                                                                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                    }
+                                                                                                                                                    (lam
+                                                                                                                                                      ds
+                                                                                                                                                      (con integer)
+                                                                                                                                                      (lam
+                                                                                                                                                        ds
+                                                                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                                                                        ds
+                                                                                                                                                      )
+                                                                                                                                                    )
                                                                                                                                                   ]
-                                                                                                                                                  newAmount
                                                                                                                                                 ]
                                                                                                                                               ]
+                                                                                                                                              [
+                                                                                                                                                [
+                                                                                                                                                  fAdditiveGroupValue_cscale
+                                                                                                                                                  fAdditiveGroupValue
+                                                                                                                                                ]
+                                                                                                                                                newAmount
+                                                                                                                                              ]
                                                                                                                                             ]
-                                                                                                                                          )
-                                                                                                                                        ]
-                                                                                                                                        (lam
-                                                                                                                                          thunk
-                                                                                                                                          Unit
-                                                                                                                                          False
+                                                                                                                                          ]
                                                                                                                                         )
                                                                                                                                       ]
-                                                                                                                                      Unit
+                                                                                                                                      (lam
+                                                                                                                                        thunk
+                                                                                                                                        Unit
+                                                                                                                                        False
+                                                                                                                                      )
                                                                                                                                     ]
-                                                                                                                                  )
+                                                                                                                                    Unit
+                                                                                                                                  ]
                                                                                                                                 )
                                                                                                                               )
                                                                                                                             )
@@ -3630,8 +3626,8 @@
                                                                                                                       )
                                                                                                                     )
                                                                                                                   )
-                                                                                                                ]
-                                                                                                              )
+                                                                                                                )
+                                                                                                              ]
                                                                                                             )
                                                                                                           )
                                                                                                         ]

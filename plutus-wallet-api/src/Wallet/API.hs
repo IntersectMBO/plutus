@@ -88,7 +88,6 @@ import           Control.Monad             (void, when)
 import           Control.Monad.Error.Class (MonadError (..))
 import           Data.Aeson                (FromJSON, FromJSON1, ToJSON, ToJSON1)
 import           Data.Bifunctor            (Bifunctor (bimap))
-import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Eq.Deriving          (deriveEq1)
 import           Data.Foldable             (fold)
@@ -106,8 +105,8 @@ import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic, Generic1)
 import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
                                             SlotRange, Tx (..), TxId, TxIn, TxOut (..), TxOutRef, TxOutType (..),
-                                            ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut,
-                                            scriptAddress, scriptTxIn, signatures, singleton, txOutRefId, width)
+                                            ValidatorScript, Value, getTxId, outValue, pubKeyTxOut, scriptAddress,
+                                            scriptTxIn, signatures, singleton, txId, txOutRefId, width)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
@@ -381,7 +380,7 @@ signTxnWithKey tx pubK = do
 signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
 signTxn tx = do
     pubK <- ownPubKey
-    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
+    sig <- sign (getTxId $ txId tx)
     pure $ tx & signatures . at pubK ?~ sig
 
 -- | Transfer some funds to a number of script addresses, returning the

@@ -24,7 +24,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger                     (Address, DataScript (DataScript), PendingTx,
                                              RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
-                                             plcSHA2_256, scriptAddress)
+                                             scriptAddress)
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
@@ -59,7 +59,7 @@ gameValidator =
 -- and lifting the hash to its on-chain representation
 gameDataScript :: String -> DataScript
 gameDataScript =
-    DataScript . PlutusTx.toData . HashedString . plcSHA2_256 . C.pack
+    DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation

@@ -118,8 +118,8 @@ import           Servant.API               (FromHttpApiData (..), ToHttpApiData 
 import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                            TxId, TxIn (..), TxOut (..), TxOutRef, Value, addSignature, hashTx,
-                                            lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
+                                            TxId, TxIn (..), TxOut (..), TxOutRef, Value, addSignature, lastSlot,
+                                            pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId, txOutAddress)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
 import qualified Ledger.Index              as Index
@@ -506,7 +506,7 @@ liftMockWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
         ((out, newState), (msgs, txns)) = runWriter $ runStateT (runExceptT (runMockWallet act)) walletState
-        events = (TxnSubmit . hashTx <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
+        events = (TxnSubmit . txId <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
     put emState {
         _txPool = txns ++ _txPool emState,
         _walletStates = Map.insert wallet newState $ _walletStates emState,
@@ -590,8 +590,8 @@ canValidateNow currentSlot tx = Interval.member currentSlot (txValidRange tx)
 mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
 mkEvent t result =
     case result of
-        Nothing  -> TxnValidate (hashTx t)
-        Just err -> TxnValidationFail (hashTx t) err
+        Nothing  -> TxnValidate (txId t)
+        Just err -> TxnValidationFail (txId t) err
 
 processEmulated :: (MonadEmulator e m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
