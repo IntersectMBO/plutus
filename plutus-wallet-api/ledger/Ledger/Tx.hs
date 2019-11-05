@@ -322,7 +322,7 @@ inAddress TxInOf{ txInType = t } = case t of
     ConsumeScriptAddress v _ ->
         BSL.fromStrict . BA.convert . getAddress . scriptAddress $ v
     ConsumePublicKeyAddress pk  ->
-        LB.bytes (getPubKey pk)
+        BSL.fromStrict . BA.convert . getAddress . pubKeyAddress $ pk
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: PubKey -> TxOutRefOf h -> TxInOf h
