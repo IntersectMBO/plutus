@@ -100,7 +100,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  100
 
 ==== Slot #2, Tx #0 ====
-TxId:       "y\STX\134\STX\158V\SOH\t6)\225A\245\174\172\151\\\221\ETX\DLEJ{9\233\220\&4\169|\227!%\154"
+TxId:       "\147\235\231\226\226\193\153\219\EM+0?\SOr\EOTT[\178k7\217s\225w\214C]\250\NULk\189Z"
 Fee:        -
 Forge:      -
 Inputs:
@@ -121,7 +121,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  10
 
@@ -167,12 +167,12 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  10
 
 ==== Slot #3, Tx #0 ====
-TxId:       "M*\GS\158\143C\180\232\164!;\NAK\156@\201\175\202\133X\181\161\SOH\"\136G>\213\162g\208*R"
+TxId:       "*\v\211\EOT'\176\217\166\146\FS\CAN\166\210l\SOH\ETB\130\174\242\205I!\154\178\177'\228A\197(\168\&3"
 Fee:        -
 Forge:      -
 Inputs:
@@ -193,7 +193,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  10
 
@@ -239,12 +239,12 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  20
 
 ==== Slot #4, Tx #0 ====
-TxId:       "_g\172\149\141Y'&\178r\174\193\183\GS\146H\246hB\200&6\240\DLE\234\b\186\233\\#\155f"
+TxId:       "\224\167-\209\184\212S\128?P\145vBB\226p\161\218\188\&3\233\EM\191\SI\\\249<>5V,\200"
 Fee:        -
 Forge:      -
 Inputs:
@@ -265,7 +265,7 @@ Outputs:
     Ada:      Lovelace:  99
   
   ---- Output 1 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  1
 
@@ -311,39 +311,39 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  21
 
 ==== Slot #23, Tx #0 ====
-TxId:       "\NAK\200O\DC3I\210\229\244\225\203u}CE\162\f\224\&7s6&\SO)b\NAK'M\255O\253\242\204"
+TxId:       "\CAN\153\227R\235\SUBr\154\176\128\&0\199l\"\222\134'\n\148\188\EOT\215\131h\222\138\134\195\243I\250r"
 Fee:        -
 Forge:      -
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  10
   Source:
-    Tx:     "M*\GS\158\143C\180\232\164!;\NAK\156@\201\175\202\133X\181\161\SOH\"\136G>\213\162g\208*R"
+    Tx:     "*\v\211\EOT'\176\217\166\146\FS\CAN\166\210l\SOH\ETB\130\174\242\205I!\154\178\177'\228A\197(\168\&3"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
   
   ---- Input 1 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
-    Ada:      Lovelace:  1
+    Ada:      Lovelace:  10
   Source:
-    Tx:     "_g\172\149\141Y'&\178r\174\193\183\GS\146H\246hB\200&6\240\DLE\234\b\186\233\\#\155f"
+    Tx:     "\147\235\231\226\226\193\153\219\EM+0?\SOr\EOTT[\178k7\217s\225w\214C]\250\NULk\189Z"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
   
   ---- Input 2 ----
-  Destination:  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Destination:  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
-    Ada:      Lovelace:  10
+    Ada:      Lovelace:  1
   Source:
-    Tx:     "y\STX\134\STX\158V\SOH\t6)\225A\245\174\172\151\\\221\ETX\DLEJ{9\233\220\&4\169|\227!%\154"
+    Tx:     "\224\167-\209\184\212S\128?P\145vBB\226p\161\218\188\&3\233\EM\191\SI\\\249<>5V,\200"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
 
@@ -396,6 +396,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582006f0fa600099bd02622cdef6b874bd10d1b23aa9e7039a40b2b9085907246bb2ff
+  Script: 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
   Value:
     Ada:      Lovelace:  0

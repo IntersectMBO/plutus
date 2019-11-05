@@ -107,7 +107,7 @@
                                                                                         (type)
                                                                                         (lam
                                                                                           s_i0
-                                                                                          [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
+                                                                                          [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) a_i2]
                                                                                           [
                                                                                             (unwrap
                                                                                               s_i1
@@ -119,11 +119,11 @@
                                                                                       (fun a_i3 b_i2)
                                                                                     }
                                                                                     (iwrap
-                                                                                      (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
-                                                                                      (lam dat_i0 (fun (type) (type)) [dat_i1 (fun a_i4 b_i3)])
+                                                                                      (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1)))
+                                                                                      (fun a_i3 b_i2)
                                                                                       (lam
                                                                                         s_i0
-                                                                                        [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) (fun a_i4 b_i3)]
+                                                                                        [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun a_i4 b_i3)]
                                                                                         (lam
                                                                                           x_i0
                                                                                           a_i5
@@ -137,7 +137,7 @@
                                                                                                     (type)
                                                                                                     (lam
                                                                                                       s_i0
-                                                                                                      [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
+                                                                                                      [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) a_i2]
                                                                                                       [
                                                                                                         (unwrap
                                                                                                           s_i1

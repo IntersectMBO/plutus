@@ -100,7 +100,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  100
 
 ==== Slot #2, Tx #0 ====
-TxId:       "\133\143y\139&\162\142E\ETX\185'\f\224\246\&60\SOH\STX\133\208\179C\132U\196_\143\f\163\217^b"
+TxId:       "\135\226\&2(\211W54Z\"<SX\152<\SO|\132\&2\184F\ax\236N*2\SI\150\DC2P\CAN"
 Fee:        -
 Forge:      -
 Inputs:
@@ -121,7 +121,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f5820cfa11580db5f7039d6b9aea174f77fa06b469f0096d959e25cc47c2589249707ff
+  Destination:  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
   Value:
     Ada:      Lovelace:  10
 
@@ -167,21 +167,21 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f5820cfa11580db5f7039d6b9aea174f77fa06b469f0096d959e25cc47c2589249707ff
+  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
   Value:
     Ada:      Lovelace:  10
 
 ==== Slot #3, Tx #0 ====
-TxId:       "\152\190\174\132Q!\185O\215V\232\ACK\171\v\NAKstz\233\f\172<H\\\240\DC2E\ESC\149e\217\173"
+TxId:       "\134\177n\250c\DELr\212\v\241G\215dm~o\192\US\b\213\183\208\ESCr\131=\248/\152%\128\246"
 Fee:        -
 Forge:      -
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: 5f5820cfa11580db5f7039d6b9aea174f77fa06b469f0096d959e25cc47c2589249707ff
+  Destination:  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
   Value:
     Ada:      Lovelace:  10
   Source:
-    Tx:     "\133\143y\139&\162\142E\ETX\185'\f\224\246\&60\SOH\STX\133\208\179C\132U\196_\143\f\163\217^b"
+    Tx:     "\135\226\&2(\211W54Z\"<SX\152<\SO|\132\&2\184F\ax\236N*2\SI\150\DC2P\CAN"
     Output #1
     Script: f6f6010000c3f6c3f6c5f6c1f6f664556e697419...
 
@@ -234,6 +234,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f5820cfa11580db5f7039d6b9aea174f77fa06b469f0096d959e25cc47c2589249707ff
+  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
   Value:
     Ada:      Lovelace:  0
