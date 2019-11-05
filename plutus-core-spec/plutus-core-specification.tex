@@ -982,6 +982,63 @@ at some time in the future.
 \section{Examples}
 The section contains some examples of Plutus Core code.
 
+\paragraph{Integer subtraction.}
+The following program subtracts 11 from 55, returning 44.
+
+\begin{verbatim}
+  (program 1.0.0
+    [(builtin subtractInteger) (con 55) (con 11)]
+  )
+\end{verbatim}
+
+
+\paragraph{Absolute value.} The function below returns the absolute value of an
+integer.  
+\begin{verbatim}
+  (lam n (con integer)
+    [ 
+      { [(builtin lessThanInteger) n (con 0)] (con integer) }
+        [(builtin subtractInteger) (con 0) n]
+        n
+    ]
+  )
+\end{verbatim}
+
+\noindent We have used the built-in \verb|subtractInteger|
+function, which returns a boolean value encoded as shown in
+Figure~\ref{fig:type_abbreviations}, of type
+$\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
+Boolean values are functions taking two arguments: \textit{true}
+returns the first, and \textit{false} returns the second.  We have to
+instantiate the type variable $\alpha$ to \textit{integer} before we
+can apply these.
+
+Note that since Plutus Core has strict semantics, both branches above
+will always be evaluated.  Thus even if $n$ is positive the code
+above will still calculate $0-n$ and then discard it.  To avoid this we
+can delay the evaluation of the branches by making them into functions
+taking arguments of type \textit{unit} and only applying the function
+once we know the outcome of the test:
+
+\begin{verbatim}
+  (lam n (con integer)
+    [
+      [
+        {
+          [(builtin lessThanInteger) n (con 0)]
+             (fun (all a (type) (fun a a)) (con integer))
+        }
+        (lam u (all a (type) (fun a a)) [(builtin subtractInteger) (con 0) n])
+        (lam u (all a (type) (fun a a)) n)
+      ]
+      (abs a (type) (lam x a x))
+    ]
+  )
+\end{verbatim}
+
+\paragraph{Factorial function.}
+This will be fun.
+
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
 
@@ -989,7 +1046,8 @@ For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
-each rule that is different, where possible (Figures~\ref{fig:contexts_algorithmic_unrestricted}
+each rule that is different, where possible
+(Figures~\ref{fig:contexts_algorithmic_unrestricted}
 and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
 
 \subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
