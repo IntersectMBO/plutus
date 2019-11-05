@@ -36,7 +36,7 @@ of Haskell libraries.
 - [X] Automated testing of evaluation under CI;
 - [X] Automated testing of typechecking under CI.
 
-### Stage 3 (more metatheory)
+### Stage 3 (further metatheory)
 
 - [X] Intrinsically typed CK machine;
 - [X] Extrinsically typed CK machine;
@@ -49,20 +49,34 @@ of Haskell libraries.
 ## Installation
 
 The formalisation requires version 2.6 or higher of Agda, the latest
-version of the Agda standard library, and a version of ghc that is
-supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
+corresonnding version of the Agda standard library, and a version of
+ghc that is supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
-Building it requires the `language-plutus-core` Haskell library from
-[here](https://github.com/input-output-hk/plutus). After installing
-this (via `cabal`), `plc-agda` can then be built like this:
+The `plc-agda` tool can be installed by running the following commands
+starting in the root folder of the `plutus` repository:
+
 ```
+$ cd metatheory
 $ agda --compile --ghc-dont-call-ghc Main.lagda
-$ cabal install
+$ cd ..
+$ cabal v2-install metatheory
+```
+
+The `plc-agda` can to execute Plutus Core programs. It is intended to
+be used for testing the `plc` command against. The tests can be
+executed by running the following command from the `plutus` root
+folder:
+
+```
+$ cd metatheory
+$ agda --compile --ghc-dont-call-ghc Main.lagda
+$ cd ..
+$ cabal v2-test metatheory
 ```
 
 ## Status
@@ -70,8 +84,9 @@ $ cabal install
 The formalisation currently covers the full language of Plutus Core:
 System F omega with (deep) iso-recursive types, and builtin-types for
 integers and bytestrings. Progress and preservation have been shown to
-hold for the small-step operational semantics. An evaluator can be used to execute
-small examples in Agda and also compile them to Haskell.
+hold for the small-step operational semantics. An evaluator can be
+used to execute small examples in Agda and also compile them to
+Haskell.
 
 There are three versions of the operational semantics:
 
