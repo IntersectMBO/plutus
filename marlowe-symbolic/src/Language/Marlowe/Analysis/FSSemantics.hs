@@ -1116,6 +1116,6 @@ warningsTrace con =
         satCommand = proveWith (z3 {validateModel = True})
                                (forAll [snLabel, transListLabel]
                                    (\sn transList ->
-                                       (SL.length transList .<= literal (maxActs + 1)) .=>
+                                       (SL.length transList .<= literal (maxActs + 1)) .&& (sn .>= literal 0) .=>
                                        SL.null (warningsFunc sn transList)))
 
