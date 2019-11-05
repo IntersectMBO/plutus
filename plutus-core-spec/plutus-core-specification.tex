@@ -459,8 +459,8 @@ as an index. Indices can be used in order to get parameterised data
 types, but also in order to control the shape of the data type:
 depending on an index, recursive occurrences can be instantiated
 differently.  This allows us to encode a wide variety of data types,
-including non-regular and mutually recursive data types.
-See~\cite{unravelling-recursion} for more details.
+including non-regular and mutually recursive data types:
+see~\citep[3.1]{unravelling-recursion} for more information.
 
 Note that we have an \textit{isomporhism} of types here rather than
 equality: fixpoint types are
@@ -980,7 +980,8 @@ at some time in the future.
 \subfile{figures/Builtins}
 
 \section{Examples}
-The section contains some examples of Plutus Core code.
+The section contains some relatively simple examples of Plutus Core
+code.
 
 \paragraph{Integer subtraction.}
 The following program subtracts 11 from 55, returning 44.
@@ -1013,12 +1014,12 @@ returns the first, and \textit{false} returns the second.  We have to
 instantiate the type variable $\alpha$ to \textit{integer} before we
 can apply these.
 
-Note that since Plutus Core has strict semantics, both branches above
-will always be evaluated.  Thus even if $n$ is positive the code
-above will still calculate $0-n$ and then discard it.  To avoid this we
-can delay the evaluation of the branches by making them into functions
-taking arguments of type \textit{unit} and only applying the function
-once we know the outcome of the test:
+Note that both branches above will always be evaluated because Plutus
+Core has strict evaluation.  Thus even if $n$ is positive the code above will
+still calculate $0-n$ and then discard it.  To avoid this we can delay
+the evaluation of the branches by making them into functions taking
+arguments of type \textit{unit} and only applying the function once we
+know the outcome of the test:
 
 \begin{verbatim}
   (lam n (con integer)
@@ -1036,8 +1037,19 @@ once we know the outcome of the test:
   )
 \end{verbatim}
 
-\paragraph{Factorial function.}
-This will be fun.
+\paragraph{Other examples.} The Plutus Core evaluator at
+\url{https://github.com/input-output-hk/plutus/tree/master/plutus-exe}
+has the ability to print out sample programs, including recursive
+programs to calculate Fibonacci numbers and factorials.  The available
+examples can be listed using \verb|plc example -a| and specific
+examples can be printed out using, for example,
+\verb|plc example -s factorial| (this particular example is quite lengthy, mostly because
+it requires a stereotypical but somewhat complex \verb|ifix| analogue
+of the $Z$ combinator in order to implement recursion).
+
+% I was going to add the factorial function, but \verb|plc example -s
+% factorial| gives you something 399 lines long, thanks
+% to \verb|ifix|.
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
