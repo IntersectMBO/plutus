@@ -24,20 +24,20 @@ main = defaultMain tests
 --   the test suite.
 --
 limit :: HedgehogTestLimit
-limit = HedgehogTestLimit (Just 30)
+limit = HedgehogTestLimit (Just 1)
 
 tests :: TestTree
 tests = localOption limit $ testGroup "use cases" [
-    Spec.Crowdfunding.tests,
-    Spec.Vesting.tests,
-    Spec.Future.tests,
-    Spec.Game.tests,
-    Spec.MultiSig.tests,
-    Spec.MultiSigStateMachine.tests,
-    Spec.Currency.tests,
-    Spec.PubKey.tests,
-    Spec.Escrow.tests,
-    Spec.GameStateMachine.tests,
-    Spec.Rollup.tests,
+    -- Spec.Crowdfunding.tests,
+    -- Spec.Vesting.tests,
+    -- Spec.Future.tests,
+    -- Spec.Game.tests,
+    -- Spec.MultiSig.tests,
+    -- Spec.MultiSigStateMachine.tests,
+    -- Spec.Currency.tests,
+    -- Spec.PubKey.tests,
+    -- Spec.Escrow.tests,
+    -- Spec.GameStateMachine.tests,
+    -- Spec.Rollup.tests,
     Spec.TokenAccount.tests
     ]

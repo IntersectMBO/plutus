@@ -114,3 +114,11 @@ insert i = over record (first go) where
       OpenRight cr or' -> OpenRight cr (go or')
       OpenBoth or' or'' -> OpenBoth (go or') (go or'')
       OpenBind or' -> OpenBind (go or')
+
+clear :: OpenRecord i -> OpenRecord i
+clear = \case
+    OpenLeaf _ -> OpenLeaf Nothing
+    OpenLeft or' cr -> OpenLeft (clear or') cr
+    OpenRight cr or' -> OpenRight cr (clear or')
+    OpenBoth or' or'' -> OpenBoth (clear or') (clear or'')
+    OpenBind or' -> OpenBind (clear or')

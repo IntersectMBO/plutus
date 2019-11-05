@@ -58,7 +58,7 @@ currencyValue s Currency{curAmounts = amts} =
     in fold values
 
 mkCurrency :: TxOutRef -> [(TokenName, Integer)] -> Currency
-mkCurrency (TxOutRefOf h i) amts =
+mkCurrency (TxOutRef h i) amts =
     Currency
         { curRefTransactionOutput = (h, i)
         , curAmounts              = AssocMap.fromList amts

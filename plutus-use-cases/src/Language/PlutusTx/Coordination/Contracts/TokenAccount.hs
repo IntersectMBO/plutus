@@ -1,3 +1,5 @@
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -12,15 +14,22 @@
 --   contract, or with 'newAccount' in this module)
 module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   AccountOwner(..)
+  -- * Contract functionality
   , pay
   , redeem
-  , redeemTx
+  , transferToken
+  , newAccount
   , balance
   , address
-  , newAccount
+  , accountToken
+  -- * Endpoints
+  , TokenAccountSchema
+  , HasTokenAccountSchema
+  , tokenAccountContract
   ) where
 
 import           Control.Lens
+import           Control.Monad                                     (void)
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (fromMaybe)
 
@@ -40,13 +49,54 @@ import qualified Ledger.Value                                      as Value
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 
 newtype AccountOwner = AccountOwner { unAccountOwner :: (CurrencySymbol, TokenName) }
-    deriving newtype Eq
+    deriving newtype (Eq, Show)
 
 data TokenAccount
 
 instance ScriptType TokenAccount where
     type RedeemerType TokenAccount = ()
     type DataType TokenAccount = AccountOwner
+
+type TokenAccountSchema =
+    BlockchainActions
+        .\/ Endpoint "transfer-token" (AccountOwner, PubKey)
+        .\/ Endpoint "redeem" (AccountOwner, PubKey)
+        .\/ Endpoint "pay" (AccountOwner, Value)
+        .\/ Endpoint "new-account" (TokenName, PubKey)
+
+type HasTokenAccountSchema s =
+    ( HasBlockchainActions s
+    , HasEndpoint "transfer-token" (AccountOwner, PubKey) s
+    , HasEndpoint "redeem" (AccountOwner, PubKey) s
+    , HasEndpoint "pay" (AccountOwner, Value) s
+    , HasEndpoint "new-account" (TokenName, PubKey) s
+    )
+
+-- | 'transfer', 'redeem', 'pay' and 'newAccount' with endpoints.
+tokenAccountContract
+    :: forall s e.
+       ( HasTokenAccountSchema s
+       , AsContractError e
+       )
+    => Contract s e ()
+tokenAccountContract = go >> go >> go where
+    go = transfer_ <|> redeem_ <|> pay_ <|> newAccount_
+    transfer_ = do
+        (accountOwner, destination) <- endpoint @"transfer-token" @(AccountOwner, PubKey) @s
+        void $ transferToken accountOwner destination
+        tokenAccountContract
+    redeem_ = do
+        (accountOwner, destination) <- endpoint @"redeem" @(AccountOwner, PubKey) @s
+        void $ redeem destination accountOwner
+        tokenAccountContract
+    pay_ = do
+        (accountOwner, value) <- endpoint @"pay" @_ @s
+        void $ pay accountOwner value
+        tokenAccountContract
+    newAccount_ = do
+        (tokenName, initialOwner) <- endpoint @"new-account" @_ @s
+        void $ newAccount tokenName initialOwner
+        tokenAccountContract
 
 {-# INLINEABLE accountToken #-}
 accountToken :: AccountOwner -> Value
@@ -75,6 +125,10 @@ ownsTxOut :: AccountOwner -> TxOut -> Bool
 ownsTxOut owner txout =
     let fromDataScript = PlutusTx.fromData @AccountOwner . Ledger.getDataScript in
     Just owner == (Ledger.txOutData txout >>= fromDataScript)
+
+transferToken :: (HasWriteTx s, AsContractError e) => AccountOwner -> PubKey -> Contract s e TxId
+transferToken accountOwner destination =
+    writeTxSuccess $ mempty & outputs .~ [pubKeyTxOut (accountToken accountOwner) destination]
 
 -- | Create a transaction that spends all outputs belonging to the 'AccountOwner'.
 redeemTx
@@ -128,13 +182,14 @@ newAccount
        , AsContractError e
        )
     => TokenName
+    -- ^ Name of the token
     -> PubKey
+    -- ^ Public key of the token's initial owner
     -> Contract s e AccountOwner
 newAccount tokenName pk = do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
-    let sym = Ledger.plcCurrencySymbol (Ledger.scriptAddress (Currency.curValidator cur))
+    let sym = Ledger.scriptCurrencySymbol (Currency.curValidator cur)
     pure $ AccountOwner (sym, tokenName)
-
 
 PlutusTx.makeLift ''AccountOwner
 PlutusTx.makeIsData ''AccountOwner

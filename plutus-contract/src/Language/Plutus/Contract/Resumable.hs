@@ -37,6 +37,7 @@ import qualified Data.Aeson.Types                as Aeson
 import           Data.Bifunctor                  (Bifunctor (..))
 
 import           Language.Plutus.Contract.Record
+import           Language.PlutusTx.Lattice
 
 {- Note [Handling state in contracts]
 
@@ -116,6 +117,8 @@ data ResumableError e =
     --   'Resumable'.
     | AesonError String
     -- ^ Something went wrong while decoding a JSON value
+    | ProgressError String
+    -- ^ The progress invariant was violated
     | OtherError e
     deriving (Eq, Ord, Show)
 
@@ -161,8 +164,8 @@ initialise = \case
         (l', wl) <- runWriterT (initialise conL)
         (r', wr) <- runWriterT (initialise conR)
         case (l', r') of
-            (Right (_, a), _) -> pure $ Right (ClosedLeaf (FinalEvents Nothing), a)
-            (_, Right (_, a)) -> pure $ Right (ClosedLeaf (FinalEvents Nothing), a)
+            (Right (_, a), _) -> pure $ Right (ClosedAlt (Left (ClosedLeaf (FinalEvents Nothing))), a)
+            (_, Right (_, a)) -> pure $ Right (ClosedAlt (Right (ClosedLeaf (FinalEvents Nothing))), a)
             (Left l, Left r)  -> writer (Left (OpenBoth l r), wl <> wr)
     CBind c f -> do
         l <- initialise c
@@ -288,6 +291,39 @@ runClosed con rc =
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
                         o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
+data RunOpenProgress = 
+    Progress 
+    | NoProgress
+
+instance JoinSemiLattice RunOpenProgress where
+    NoProgress \/ NoProgress = NoProgress
+    _ \/ _                   = Progress
+
+instance MeetSemiLattice RunOpenProgress where
+    Progress /\ Progress = Progress
+    _ /\ _               = NoProgress
+
+instance BoundedJoinSemiLattice RunOpenProgress where
+    bottom = NoProgress
+
+instance BoundedMeetSemiLattice RunOpenProgress where
+    top = Progress
+
+runOpenNoProgress
+    :: ( MonadWriter o m
+       , MonadError (ResumableError e) m)
+    => Resumable e (Step (Maybe i) o) a
+    -> OpenRecord i
+    -> m ()
+runOpenNoProgress con opr = do
+    result <- runOpen con opr
+    case result of
+        Left (_, NoProgress) -> pure ()
+        _                    -> throwError (ProgressError "")
+    -- TODO: The sole purpose of 'runOpenNoProgress' is to run the `MonadWriter`
+    --       effects. If we stored the 'o' that was written in the 'Record' then
+    --       we wouldn't need 'runOpenNoProgress' at all.
+
 -- | Run an unfinished resumable program on an open record. Returns the updated
 --   record.
 runOpen
@@ -295,7 +331,7 @@ runOpen
        , MonadError (ResumableError e) m)
     => Resumable e (Step (Maybe i) o) a
     -> OpenRecord i
-    -> m (Either (OpenRecord i) (ClosedRecord i, a))
+    -> m (Either (OpenRecord i, RunOpenProgress) (ClosedRecord i, a))
 runOpen con opr =
     case (con, opr) of
         (CMap f con', _) -> (fmap .fmap $ fmap f) (runOpen con' opr)
@@ -303,26 +339,31 @@ runOpen con opr =
             lr <- runOpen l opr'
             rr <- runClosed r cr
             case lr of
-                Left opr''     -> pure (Left (OpenLeft opr'' cr))
+                Left (opr'', prog)     -> pure (Left (OpenLeft opr'' cr, prog))
                 Right (cr', a) -> pure (Right (ClosedBin cr' cr, a rr))
         (CAp l r, OpenRight cr opr') -> do
             lr <- runClosed l cr
             rr <- runOpen r opr'
             case rr of
-                Left opr''     -> pure (Left (OpenRight cr opr''))
-                Right (cr', a) -> pure (Right (ClosedBin cr cr', lr a))
+                Left (opr'', prog) -> pure (Left (OpenRight cr opr'', prog))
+                Right (cr', a)     -> pure (Right (ClosedBin cr cr', lr a))
         (CAp l r, OpenBoth orL orR) -> do
             lr <- runOpen l orL
-            rr <- runOpen r orR
-            case (lr, rr) of
-                (Right (crL, a), Right (crR, b)) ->
-                    pure (Right (ClosedBin crL crR, a b))
-                (Right (crL, _), Left oR) ->
-                    pure (Left (OpenRight crL oR))
-                (Left oL, Right (cR, _)) ->
-                    pure (Left (OpenLeft oL cR))
-                (Left oL, Left oR) ->
-                    pure (Left (OpenBoth oL oR))
+            case lr of
+                Right (crL, _) -> do
+                    let oR' = clear orR
+                    runOpenNoProgress r oR'
+                    pure (Left (OpenRight crL oR', Progress))
+                Left (oL, Progress) -> do
+                    let oR' = clear orR
+                    runOpenNoProgress r oR'
+                    pure (Left (OpenBoth oL oR', Progress))
+                Left (oL, NoProgress) -> do
+                    rr <- runOpen r orR
+                    case rr of
+                        Right (cR, _) -> pure (Left (OpenLeft orL cR, Progress))
+                        Left (oR, pR) -> pure (Left (OpenBoth oL oR, pR))
+
         (CAp{}, OpenLeaf _) -> throwRecordmismatchError "CAp OpenLeaf"
 
         (CAlt l r, OpenBoth orL orR) -> do
@@ -330,29 +371,37 @@ runOpen con opr =
             -- discard the requests of the other branch. So we evaluate
             -- both of them in 'runWriterT'.
             (lr, wl) <- runWriterT (runOpen l orL)
-            (rr, wr) <- runWriterT (runOpen r orR)
-            case (lr, rr) of
-                (Right (crL, a), _) -> pure (Right (ClosedAlt (Left crL), a))
-                (_, Right (crR, a)) -> pure (Right (ClosedAlt (Right crR), a))
-                (Left oL, Left oR)  -> writer (Left (OpenBoth oL oR), wl <> wr)
+            case lr of
+                Right (crL, a) -> pure (Right (ClosedAlt (Left crL), a))
+                Left (oL, Progress) -> do
+                    tell wl
+                    let oR' = clear orR
+                    runOpenNoProgress r oR'
+                    pure (Left (OpenBoth oL oR', Progress))
+                Left (oL, NoProgress) -> do
+                    (rr, wr) <- runWriterT (runOpen r orR)
+                    case rr of
+                        Right (cR, a) -> pure (Right (ClosedAlt (Right cR), a))
+                        Left (oR, pR) -> writer (Left (OpenBoth oL oR, pR), wl <> wr)
+
         (CAlt{}, OpenLeaf _) -> throwRecordmismatchError "CAlt OpenLeaf"
 
         (CBind c f, OpenBind bnd) -> do
             lr <- runOpen c bnd
             case lr of
-                Left orL' -> pure (Left $ OpenBind orL')
+                Left (orL', prog) -> pure $ Left (OpenBind orL', prog)
                 Right (crL, a) -> do
                     let con' = f a
                     orR' <- initialise con'
                     case orR' of
                         Right (crrrr, a') -> pure (Right (ClosedBin crL crrrr, a'))
-                        Left orrrr        -> pure (Left (OpenRight crL orrrr))
+                        Left orrrr        -> pure (Left (OpenRight crL orrrr, Progress))
 
         (CBind c f, OpenRight cr opr') -> do
             lr <- runClosed c cr
             rr <- runOpen (f lr) opr'
             case rr of
-                Left opr''     -> pure (Left (OpenRight cr opr''))
+                Left (opr'', prog)     -> pure (Left (OpenRight cr opr'', prog))
                 Right (cr', a) -> pure (Right (ClosedBin cr cr', a))
         (CBind{}, _) -> throwRecordmismatchError "CBind"
 
@@ -360,7 +409,7 @@ runOpen con opr =
                 r <- runStepWriter con' evt
                 case r of
                     Just a  -> pure $ Right (ClosedLeaf (FinalEvents evt), a)
-                    Nothing -> pure $ Left (OpenLeaf evt)
+                    Nothing -> pure $ Left (OpenLeaf evt, NoProgress)
         (CStep{}, _) -> throwRecordmismatchError "CStep non leaf "
 
         (CJSONCheckpoint con', opr') ->
@@ -391,7 +440,7 @@ updateRecord con rc =
             fmap (first (view (from record) . fmap fst))
             $ runExcept
             $ runWriterT
-            $ runOpen con cl
+            $ fmap (first fst) (runOpen con cl)
 
 execResumable
     :: Monoid o
@@ -414,7 +463,7 @@ runResumable es con = do
                     Left open -> 
                         runExcept 
                         $ runWriterT 
-                        $ runOpen con open
+                        $ fmap (first fst) (runOpen con open)
                     Right closed -> 
                         fmap (\(a, h) -> (Right (closed, a), h)) 
                         $ runExcept 
