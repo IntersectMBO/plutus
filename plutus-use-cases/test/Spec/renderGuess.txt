@@ -100,7 +100,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  100
 
 ==== Slot #2, Tx #0 ====
-TxId:       "\135\226\&2(\211W54Z\"<SX\152<\SO|\132\&2\184F\ax\236N*2\SI\150\DC2P\CAN"
+TxId:       "\139g\160R\DC4%K\153!\255\RS\140;\136\132.Z\189\DC4\165\255_\188\158\196\226\v\176\&1\159\184\218"
 Fee:        -
 Forge:      -
 Inputs:
@@ -121,7 +121,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
+  Destination:  Script: 5f582094f7e151acc75dd722f637c087a3a551ba46ac3a886b7558f0e23dd17608934bff
   Value:
     Ada:      Lovelace:  10
 
@@ -167,21 +167,21 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
+  Script: 5f582094f7e151acc75dd722f637c087a3a551ba46ac3a886b7558f0e23dd17608934bff
   Value:
     Ada:      Lovelace:  10
 
 ==== Slot #3, Tx #0 ====
-TxId:       "\134\177n\250c\DELr\212\v\241G\215dm~o\192\US\b\213\183\208\ESCr\131=\248/\152%\128\246"
+TxId:       "\154\208\192M\204\SO\STX\CAN\bm\NULq\128\200C\171s\167\224\204\201\&4*w\235,\221n\252\DC3\219\236"
 Fee:        -
 Forge:      -
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
+  Destination:  Script: 5f582094f7e151acc75dd722f637c087a3a551ba46ac3a886b7558f0e23dd17608934bff
   Value:
     Ada:      Lovelace:  10
   Source:
-    Tx:     "\135\226\&2(\211W54Z\"<SX\152<\SO|\132\&2\184F\ax\236N*2\SI\150\DC2P\CAN"
+    Tx:     "\139g\160R\DC4%K\153!\255\RS\140;\136\132.Z\189\DC4\165\255_\188\158\196\226\v\176\&1\159\184\218"
     Output #1
     Script: f6f6010000c3f6c3f6c5f6c1f6f664556e697419...
 
@@ -234,6 +234,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f5820ee298921840118bd1b422d617c38cbe65cae0a579de3971d177ebe9c5b9b8c30ff
+  Script: 5f582094f7e151acc75dd722f637c087a3a551ba46ac3a886b7558f0e23dd17608934bff
   Value:
     Ada:      Lovelace:  0

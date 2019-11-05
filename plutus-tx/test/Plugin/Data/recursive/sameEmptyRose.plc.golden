@@ -600,20 +600,20 @@
                                         )
                                       )
                                     )
-                                    (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i8 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                                    (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam f_i0 (fun (type) (type)) [f_i1 [rec_i2 f_i1]])) (lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i6 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))))
                                   }
                                   (lam
                                     arg_0_i0
-                                    [List_i5 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))]
+                                    [List_i5 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam f_i0 (fun (type) (type)) [f_i1 [rec_i2 f_i1]])) (lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i7 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))))]
                                     (iwrap
-                                      (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
-                                      (lam dat_i0 (type) dat_i1)
+                                      (lam rec_i0 (fun (fun (type) (type)) (type)) (lam f_i0 (fun (type) (type)) [f_i1 [rec_i2 f_i1]]))
+                                      (lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i7 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1)))
                                       (abs
                                         out_EmptyRose_i0
                                         (type)
                                         (lam
                                           case_EmptyRose_i0
-                                          (fun [List_i7 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i11 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))] out_EmptyRose_i2)
+                                          (fun [List_i7 (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam f_i0 (fun (type) (type)) [f_i1 [rec_i2 f_i1]])) (lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))))] out_EmptyRose_i2)
                                           [ case_EmptyRose_i1 arg_0_i3 ]
                                         )
                                       )
@@ -622,7 +622,7 @@
                                 ]
                                 (lam
                                   x_i0
-                                  (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i9 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                                  (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam f_i0 (fun (type) (type)) [f_i1 [rec_i2 f_i1]])) (lam EmptyRose_i0 (type) (all out_EmptyRose_i0 (type) (fun (fun [List_i7 EmptyRose_i2] out_EmptyRose_i1) out_EmptyRose_i1))))
                                   (unwrap x_i1)
                                 )
                               ]

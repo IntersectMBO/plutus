@@ -7,19 +7,19 @@ Events by wallet:
     • {slot:
        Slot: 27}
     • {utxo-at:
-       Utxo at 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff = TxId: 5f58202a0bd30427b0d9a6921c18a6d26c011782aef2cd49219ab2b127e441c528a833ff!1: PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         TxId: 5f582093ebe7e2e2c199db192b303f0e7204545bb26b37d973e177d6435dfa006bbd5aff!1: PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         TxId: 5f5820e0a72dd1b8d453803f5091764242e270a1dabc33e919bf0f5cf93c3e35562cc8ff!1: PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
+       Utxo at 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff = TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff!1: PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
+         TxId: 5f58203e51d8592914edd6066f52974eafaeb590e30771dcca59640e75e7c93f603f11ff!1: PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff!1: PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "\CAN\153\227R\235\SUBr\154\176\128\&0\199l\"\222\134'\n\148\188\EOT\215\131h\222\138\134\195\243I\250r"}}
+       WriteTxSuccess: TxId {getTxId = ".T\206l\246\133\192\ESC)\237\SYN+O\133\139\168\207\144\149\163n\184\210\177\245\251\241\150f\236\158\EOT"}}
   Events for W2:
     • {contribute:
        (PubKey {getPubKey = fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "\147\235\231\226\226\193\153\219\EM+0?\SOr\EOTT[\178k7\217s\225w\214C]\250\NULk\189Z"}}
+       WriteTxSuccess: TxId {getTxId = ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"}}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f582093ebe7e2e2c199db192b303f0e7204545bb26b37d973e177d6435dfa006bbd5aff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f58203e51d8592914edd6066f52974eafaeb590e30771dcca59640e75e7c93f603f11ff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!8
               fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
@@ -34,8 +34,8 @@ Events by wallet:
            fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f58202a0bd30427b0d9a6921c18a6d26c011782aef2cd49219ab2b127e441c528a833ff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -50,8 +50,8 @@ Events by wallet:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f5820e0a72dd1b8d453803f5091764242e270a1dabc33e919bf0f5cf93c3e35562cc8ff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -69,10 +69,10 @@ Events by wallet:
     • {contribute:
        (PubKey {getPubKey = 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "*\v\211\EOT'\176\217\166\146\FS\CAN\166\210l\SOH\ETB\130\174\242\205I!\154\178\177'\228A\197(\168\&3"}}
+       WriteTxSuccess: TxId {getTxId = "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"}}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f58202a0bd30427b0d9a6921c18a6d26c011782aef2cd49219ab2b127e441c528a833ff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -87,8 +87,8 @@ Events by wallet:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f5820e0a72dd1b8d453803f5091764242e270a1dabc33e919bf0f5cf93c3e35562cc8ff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -106,10 +106,10 @@ Events by wallet:
     • {contribute:
        (PubKey {getPubKey = f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863},Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}})}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "\224\167-\209\184\212S\128?P\145vBB\226p\161\218\188\&3\233\EM\191\SI\\\249<>5V,\200"}}
+       WriteTxSuccess: TxId {getTxId = "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"}}
     • {address:
-       ( 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff
-       , Tx TxId: 5f5820e0a72dd1b8d453803f5091764242e270a1dabc33e919bf0f5cf93c3e35562cc8ff:
+       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -128,7 +128,7 @@ Contract result by wallet:
     Done
     Wallet: W2
       Running, waiting for input:
-        {address: [ 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff ]
+        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
@@ -136,7 +136,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: [ 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff ]
+        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
@@ -144,7 +144,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: [ 5f582028097b8e72753c6beddb0db9f12a83c280ef879153e4ad305c1e2b61ca2f8147ff ]
+        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
