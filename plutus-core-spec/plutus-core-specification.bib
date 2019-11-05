@@ -1,3 +1,64 @@
+@InProceedings{unravelling-recursion,
+author="Peyton Jones, Michael
+and Gkoumas, Vasilis
+and Kireev, Roman
+and {MacKenzie}, Kenneth
+and Nester, Chad
+and Wadler, Philip",
+editor="Hutton, Graham",
+title="Unraveling Recursion: Compiling an {IR} with Recursion to {System F}",
+booktitle="Mathematics of Program Construction",
+year="2019",
+publisher="Springer International Publishing",
+pages="414--443",
+abstract="Lambda calculi are often used as intermediate representations for compilers. However, they require extensions to handle higher-level features of programming languages. In this paper we show how to construct an IR based on {\$}{\$}{\backslash}text {\{}System{\}}{\backslash} F{\_}{\{}{\backslash}omega {\}}^{\backslash}mu {\$}{\$}which supports recursive functions and datatypes, and describe how to compile it to {\$}{\$}{\backslash}text {\{}System{\}}{\backslash} F{\_}{\{}{\backslash}omega {\}}^{\backslash}mu {\$}{\$}. Our IR was developed for commercial use at the IOHK company, where it is used as part of a compilation pipeline for smart contracts running on a blockchain.",
+isbn="978-3-030-33636-3",
+doi=https://doi.org/10.1007/978-3-030-33636-3_15
+}
+%address=Cham,
+
+
+@InProceedings{System-F-in-Agda,
+author="Chapman, James
+and Kireev, Roman
+and Nester, Chad
+and Wadler, Philip",
+editor="Hutton, Graham",
+title="{System F} in {Agda}, for Fun and Profit",
+booktitle="Mathematics of Program Construction",
+year="2019",
+publisher="Springer International Publishing",
+pages="255--297",
+abstract="System F, also known as the polymorphic {\$}{\$}{\backslash}lambda {\$}{\$}-calculus, is a typed {\$}{\$}{\backslash}lambda {\$}{\$}-calculus independently discovered by the logician Jean-Yves Girard and the computer scientist John Reynolds. We consider {\$}{\$}F{\_}{\{}{\backslash}omega {\backslash}mu {\}}{\$}{\$}, which adds higher-order kinds and iso-recursive types. We present the first complete, intrinsically typed, executable, formalisation of System {\$}{\$}F{\_}{\{}{\backslash}omega {\backslash}mu {\}}{\$}{\$}that we are aware of. The work is motivated by verifying the core language of a smart contract system based on System {\$}{\$}F{\_}{\{}{\backslash}omega {\backslash}mu {\}}{\$}{\$}. The paper is a literate Agda script [14].",
+isbn="978-3-030-33636-3",
+doi=https://doi.org/10.1007/978-3-030-33636-3_10
+}
+%address="Cham",
+
+@misc{Agda,
+title="Agda",
+howpublished={\url{https://wiki.portal.chalmers.se/agda/pmwiki.php}}
+}
+
+@misc{EUTXO,
+title="The {Extended} {UTXO} transaction model",
+howlpublished={\url{https://github.com/input-output-hk/plutus/tree/master/extended-utxo-spec}}
+}
+
+@book{Plutus-book,
+title={{Plutus: Writing Reliable Smart Contracts}},
+author={Lars Br{\"u}njes and Polina Vinogradova},
+note={Available at \url{https://github.com/input-output-hk/plutus/tree/master/plutus-book}},
+institution={IOHK},
+year={2019}
+}
+
+@misc{Cardano,
+title = {Cardano},
+howpublished={\url{https://www.cardano.org/en/home/}},
+year = {2015-2019}
+}
+
 @book{Pierce:TAPL,
   author = {Benjamin C. Pierce},
   title = {Types and Programming Languages},
@@ -226,21 +287,4 @@
   timestamp = {Tue, 14 Aug 2018 17:08:11 +0200},
   biburl    = {https://dblp.org/rec/bib/journals/iacr/Zahnentferner18a},
   bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-
-@inproceedings{compiling-to-fomega-2019,
-author = {Roman Kireev and Chad Nester and Michael Peyton Jones and Philip Wadler and Vasilis Gkoumas and Kenneth {MacKenzie}},
-title = {Unraveling recursion: compiling an {IR} with recursion to {System~$F$}},
-booktitle = {Proceedings of MPC 2019},
-year={2019},
-note = {To appear}
-}
-
-@inproceedin{system-F-in-Agda,
-author = {James Chapman and Roman Kireev and Chad Nester and Philip Wadler},
-title = {{System~$F$} in {Agda}, for fun and profit},
-booktitle = {Proceedings of MPC 2019},
-year={2019},
-note = {To appear}
 }

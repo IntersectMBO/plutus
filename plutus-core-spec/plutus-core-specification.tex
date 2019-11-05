@@ -1,12 +1,13 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{22nd July 2019}
+\date{5th November 2019}
 
 \documentclass[a4paper]{article}
 
 \usepackage{blindtext, graphicx}
 \usepackage{url}
 \usepackage{natbib}
+\usepackage{hyperref}
 
 % *** MATH PACKAGES ***
 %
@@ -216,10 +217,9 @@
 %system.
 
 \section{Plutus Core}
-
 Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
 for use as a transaction validation language in blockchain
-systems. More precisely, Plutus Core is the system $F_\omega$ of
+systems. More precisely, Plutus Core is the System $F_\omega$ of
 Girard and Reynolds (see \citep{Girard-thesis},
 \citep{Reynolds-type-structure}, \citep[\S30]{Pierce:TAPL}) with a
 number of extensions (isorecursive types, higher kinds, and a library
@@ -227,7 +227,11 @@ of basic types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalise
-with a proof assistant.
+with a proof assistant.  Indeed, the specification in the present
+document has been formalised in the Agda proof assistant~\citep{Agda}:
+the formalisation can be found
+at \url{https://github.com/input-output-hk/plutus/tree/master/metatheory}
+and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
@@ -268,14 +272,11 @@ Plutus Core Code, but no other validation.  Type checking itself takes
 time and requires memory, so there is also a gas charge for on-chain
 type checking.
 
-%% Because of these issues, it is important that the cost of on-chain
-%% code execution is easy to calculate, certainly during execution (so
-%% that gas consumption can be accounted for), but ideally also in
-%% advance so that a user has some idea of how much a contract is likely
-%% to cost and can make sure that they buy enough gas to allow their
-%% contract to run to completion.  The design of Plutus Core incorporates
-%% a number of features to facilitate cost analysis for this purpose.
-
+Plutus Core is intended to be used for validation of on-chain
+transactions on the Cardano blockchain~\citep{Cardano}.  The details
+of the validation process are outside the scope of this document, but
+are explained in~\citep{EUTXO}. See also~\citep{Plutus-book} for 
+details of Cardano's smart contract infrastructure.
 
 \section{Syntax}
 
@@ -454,12 +455,8 @@ as an index. Indices can be used in order to get parameterised data
 types, but also in order to control the shape of the data type:
 depending on an index, recursive occurrences can be instantiated
 differently.  This allows us to encode a wide variety of data types,
-including non-regular and mutually recursive data types.%
-\blue{\footnote{\blue{We could do with more detail (or perhaps an
-      example) here, since it'll be much more difficult for the reader
-      to work out what's going on than with standard \texttt{fix}.  Is
-      the compilation paper sufficient?}}}
-See~\cite{compiling-to-fomega-2019} for more details.
+including non-regular and mutually recursive data types.
+See~\cite{unravelling-recursion} for more details.
 
 Note that we have an \textit{isomporhism} of types here rather than
 equality: fixpoint types are
@@ -970,84 +967,17 @@ at some time in the future.
 %
 
   \item We use fixed Scott encodings for certain types and values,
-    specifically for the \textit{unit} and \textit{boolean} types.
+    specifically for the \textit{unit} and \textit{boolean} types:
+    see Figure~\ref{fig:type_abbreviations} (\textit{one}
+    is the unique non-\verb|error| inhabitant of the \textit{unit} type).
     Compilers targeting Plutus Core must be aware of these encodings and
-    use them appropriately.
+    use them appropriately.  
 \end{itemize}
 \subfile{figures/Builtins}
 
-\section{Transaction Validation}
-The primary use for Plutus Core is for executing code on blockchain
-nodes; specifically, it is intended for scripts used to validate
-transactions taking place on the chain.  This section will give a
-brief description of the background which will be useful in a
-subsequent example.
+\section{Examples}
+(To follow)
 
-The Cardano blockchain uses a variant of Bitcoin's \textit{Unspent
-  Transaction Output} (UTXO) model.  Transactions on the chain consume
-inputs and produce outputs consisting of cryptocurrency, and outputs
-from a transaction can be spent as inputs to a later transaction.
-Users do not have an account containing currency, but instead have the
-right to spend outputs from previous transactions which have not yet
-been spent (UTXOs).
-
-To spend an output, a user has to prove that they have the right to do
-so.  In a simple case, an output might have been locked with a public
-key and a user would have to use the corresponding private key to
-unlock it.  However, more complicated scenarios are possible: for
-example, a specified set of users might have to act together to spend
-a particular output, or an output might not be spendable until a
-certain period of time has passed since its production.
-
-The process of verifying that an output can be spent is called
-\textit{validation}, and is performed by executing \textit{scripts},
-which in our case will be Plutus Core programs.
-
-
-Cardano uses a validation strategy which we call the \textit{Extended
-  UTXO model}.  A full specification of the Extended UTXO model is
-currently being prepared: in the meantime the fundamental ideas can be
-found in~\citep{Zahnentferner18-Chimeric} and
-\citep{Zahnentferner18-UTxO}.
-
-The basic idea is that when a transaction wishes $T$ to consume an
-unspent output $U$, it applies a script called the \textit{validator}
-to another script called the \textit{redeemer}\footnote{The Extended
-  UTXO model also involves another script called the \textit{data
-    script}, but for simplicity we won't discuss this here}; the
-validator also has access to certain parts of the blockchain state,
-such as the current block number (\textit{blocknum}) and the hash
-\textit{txhash} of the current transaction.  If the result of applying
-the validator to the redeemer is the Plutus Core \texttt{error} term
-then validation fails and the output cannot be spent; otherwise
-validation succeeds and the output can be spent.
-
-The job of the validator is to check whether the transaction $T$ is
-allowed to consume the output $U$, and the redeemer provides evidence
-that $U$ can in fact be spent.  For example, if a user $X$ wishes to
-spend an output $U$ then $X$ might provide a redeemer consisting of a
-signature obtained from $U$ with a private key belonging to $X$ and
-the validator would use $X$'s public key to check that the signature
-is valid.  We consider this example in more detail in the next
-section.
-
-\section{Example}
-
-\subfile{figures/ValidatorExample}
-
-%\section{Erasure}
-
-%TO WRITE
-
-%\subfile{figures/PlutusCoreErasureGrammar}
-
-%\subfile{figures/PlutusCoreErasureReduction}
-
-%\subfile{figures/PlutusCoreErasureTheorem}
-
-%\section{Example}
-
-%\subfile{figures/PlutusCoreExampleAgain}
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
