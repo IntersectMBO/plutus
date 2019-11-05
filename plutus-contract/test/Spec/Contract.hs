@@ -122,10 +122,21 @@ tests =
             (void $ throwing _ContractError $ OtherError "error")
             (assertContractError w1 (OtherError "error") "failed to throw error")
             (pure ())
+
+        , cp "pay to wallet"
+            (pure ())
+            (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
+            /\ walletFundsChange w2 (Ada.lovelaceValueOf 20)
+            /\ assertNoFailedTransactions)
+            (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+
         ]
 
 w1 :: EM.Wallet
 w1 = EM.Wallet 1
+
+w2 :: EM.Wallet
+w2 = EM.Wallet 2
 
 someAddress :: Address
 someAddress = Ledger.scriptAddress $

@@ -31,6 +31,7 @@ module Language.Plutus.Contract.Trace(
     , addEventAll
     , notifyInterestingAddresses
     , notifySlot
+    , payToWallet
     -- * Running 'MonadEmulator' actions
     , MonadEmulator
     , InitialDistribution
@@ -80,8 +81,9 @@ import           Ledger.Address                                  (Address)
 import qualified Ledger.AddressMap                               as AM
 import           Ledger.Slot                                     (Slot)
 import           Ledger.Tx                                       (Tx, txId)
+import           Ledger.Value                                    (Value)
 
-import           Wallet.API                                      (WalletAPIError)
+import           Wallet.API                                      (WalletAPIError, defaultSlotRange, payToPublicKey_)
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
 import qualified Wallet.Emulator                                 as EM
 
@@ -362,6 +364,22 @@ notifyInterestingAddresses
     -> ContractTrace s e m a ()
 notifyInterestingAddresses wllt =
     void $ interestingAddresses wllt >>= lift . runWallet wllt . traverse_ Wallet.startWatching
+
+-- | Transfer some funds from one wallet to another. This represents a "user
+--   action" that runs independently of any contract, just interacting directly
+--   with the wallet.
+payToWallet
+    :: ( MonadEmulator e m )
+    => Wallet
+    -- ^ The sender
+    -> Wallet
+    -- ^ The recipient
+    -> Value
+    -- ^ The amount to be transferred
+    -> ContractTrace s e m a ()
+payToWallet source target amount =
+    let payment = payToPublicKey_ defaultSlotRange amount (EM.walletPubKey target)
+    in void $ lift (runWallet source payment)
 
 -- | The wallets used in mockchain simulations by default. There are
 --   ten wallets because the emulator comes with ten private keys.
