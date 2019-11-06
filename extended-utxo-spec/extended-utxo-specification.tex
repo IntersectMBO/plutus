@@ -118,7 +118,7 @@
 
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
-\newcommand{\valdata}{\mi{valData}}
+\newcommand{\dataval}{\mi{dataVal}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
@@ -370,9 +370,9 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   the current slot number lies within the transaction's validity
   interval.
 
-\item Each unspent output now has an object $\valdata$ of type
+\item Each unspent output now has an object $\dataval$ of type
   \Data{} associated with it: we call this the output's
-  \textit{validation data} (see note~\ref{note:valdata}).
+  \textit{data value} (see note~\ref{note:data-values}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data{}.
@@ -385,7 +385,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 \item Validation of an output is performed by running the validator
   script with three inputs:
   \begin{enumerate}
-  \item the validation data,
+  \item the data value,
   \item the redeemer,
   \item the \ptx{}, encoded as \Data{}.
   \end{enumerate}
@@ -408,7 +408,7 @@ for automatic contract analysis.
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
 \citep{Zahnentferner18-UTxO}, except that we have added the new
-features mentioned above (the validity interval, the validation data
+features mentioned above (the validity interval, the data value
 and the \ptx{} structure), changed the type of the redeemer from
 \script{} to \Data{}, and used finitely-supported functions in place
 of maps.
@@ -434,7 +434,7 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: Address,\\
                 & &\ \val: \qty,\\
-                & &\ \valdata: \Data)\\
+                & &\ \dataval: \Data)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
@@ -483,7 +483,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
 note~\ref{note:inputs-and-outputs} for a discussion of why.
 
-\paragraph{Scripts.} Note that validation data are modelled as components
+\paragraph{Scripts.} Note that data values are modelled as components
 of outputs, but validator scripts as components of inputs, even though
 a validator is conceptually part of an output.  The reasons for this
 are explained in Note~\ref{note:scripts}.
@@ -522,7 +522,7 @@ related types.
   \begin{array}{rll}
     \s{OutputInfo } &=&(\val: \qty,\\
                     & &\ \i{validatorHash}: \Address,\\
-                    & &\ \valdata: \Data)\\
+                    & &\ \dataval: \Data)\\
     \\
     \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
                    & &\ \i{validatorHash}: \s{Address},\\
@@ -553,8 +553,8 @@ Figure~\ref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
 transaction.  The \i{outputInfo} field contains information about the
 outputs which will be produced if the pending transaction validates
 successfully: it contains only the address of the relevant validator,
-but has the validation data for the output in full.\footnote{See
-  Note~\ref{note:validation-data} for further explanation.}
+but has the data value for the output in full.\footnote{See
+  Note~\ref{note:data-values-in-ptx} for further explanation.}
 The \i{inputInfo} field contains information about the
 inputs to the pending transaction, but provides only the hashes of the
 validator and redeemer scripts for the inputs.  The \i{thisInput}
@@ -675,7 +675,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (\getSpent(i, l).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (\getSpent(i, l).\dataval,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -700,7 +700,7 @@ $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
 In practice, validity imposes a limit on the size of the
 \script{} values of the $\validator$, $\redeemer$ and
-$\valdata$ fields and the result of $\delta$. The validation of a
+$\dataval$ fields and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -766,7 +766,7 @@ currency, as in EUTXO-1.
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
-                 & &\ \valdata: \Data)\\
+                 & &\ \dataval: \Data)\\
     \\
     \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
@@ -936,7 +936,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(\getSpent(i,l).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(\getSpent(i,l).\dataval,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -1064,13 +1064,13 @@ An alternative design would be to include a unique nonce in transaction outputs
 (effectively: their index in the list), and then we could use this to identify
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
-\note{Validation data}
-\label{note:valdata}
-The introduction of the validation data
+\note{Data values}
+\label{note:data-values}
+The introduction of data values
 increases the expressivity of the model considerably. For example,
-one can use the validation data to propagate state between
+one can use a data value to propagate state between
 transactions, and this can be used to give a contract the structure
-of a finite state machine; the fact that the validation data is part
+of a finite state machine; the fact that the data value is part
 of the output and not the transaction means that the state can
 change without the transaction changing, which makes it easier to
 have an ``identity'' for an ongoing contract.
@@ -1111,18 +1111,18 @@ the hash in the output can be used to check that the correct validator
 is in fact being used when validation occurs), but unspent outputs
 persist on-chain in the UTXO set until they are eventually spent.
 
-This strategy is not applied to validation data since, as the name
+This strategy is not applied to data values since, as the name
 would suggest, we expect these to be small pieces of data (public
 keys, for example) which would not incur large storage charges.
 
-\note{Validation data in \ptx{}}
-\label{note:validation-data}
+\note{Data values in \ptx{}}
+\label{note:data-values-in-ptx}
 In Figures~\ref{fig:ptx-1-types} and~\ref{fig:ptx-2-types} the
-\textsf{OutputInfo} type includes the validation data for the outputs
+\textsf{OutputInfo} type includes the data values for the outputs
 of the pending transaction in full.  This allows a validator to
-inspect outgoing validation data, for example to confirm that its
-contents are correct in some sense. This can be useful when validation
-data is used to propagate information about the state of a contract to
+inspect an outgoing data value, for example to confirm that its
+contents are correct in some sense. This can be useful when a data
+value is used to propagate information about the state of a contract to
 later transactions.  See~\cite{Plutus-book} for examples of this.
 \todokwxm{More specific reference?}
 
