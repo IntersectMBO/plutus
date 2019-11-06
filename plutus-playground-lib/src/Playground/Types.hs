@@ -19,9 +19,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (Address, PubKey, Tx, TxId, TxIn, TxOut,
-                                               TxOutOf (TxOutOf, txOutAddress, txOutType),
-                                               TxOutType (PayToPubKey, PayToScript), fromSymbol)
+import           Ledger                       (PubKey, Tx, TxId, fromSymbol)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
