@@ -13,6 +13,7 @@ import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
 import           Ledger                  (PubKey (..), Slot (..))
+import           Ledger.Ada              (Ada, getLovelace)
 import           LedgerBytes
 import           Text.PrettyPrint.Leijen (Doc, comma, encloseSep, hang, lbracket, line, lparen, parens, rbracket,
                                           rparen, space, text)
@@ -133,3 +134,7 @@ instance Read Slot where
 
 instance Pretty BSL.ByteString where
     prettyFragment = text . show . BSL.toStrict
+
+instance Pretty Ada where
+    prettyFragment x = prettyFragment (getLovelace x)
+

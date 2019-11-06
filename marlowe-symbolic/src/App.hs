@@ -10,6 +10,7 @@ import           Data.ByteString.UTF8                  as BSU
 import           Data.Proxy                            (Proxy (Proxy))
 import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
 import           Language.Marlowe.Analysis.FSSemantics (warningsTrace)
+import           Language.Marlowe.Pretty
 import           Marlowe.Symbolic.Types.API            (API)
 import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract))
 import qualified Marlowe.Symbolic.Types.Request        as Req
@@ -21,6 +22,7 @@ import           Servant.API                           (NoContent)
 import           Servant.Client                        (ClientEnv, ClientM, client, mkClientEnv, parseBaseUrl,
                                                         runClientM)
 import           System.Process                        (system)
+import           Text.PrettyPrint.Leijen               (displayS, renderCompact)
 
 notifyApi :: Proxy API
 notifyApi = Proxy
@@ -36,6 +38,9 @@ sendRequest cu resp = do
   res <- runClientM (notifyClient resp) clientEnv
   print res
 
+prettyToString :: Pretty a => a -> String
+prettyToString x = (displayS $ renderCompact $ prettyFragment x) ""
+
 makeResponse :: String ->
                 Either String (Maybe (Slot, [TransactionInput], [TransactionWarning]))
              -> Response
@@ -48,8 +53,8 @@ makeResponse u (Right res) =
                   Just (Slot sn, ti, tw) ->
                      CounterExample
                        { initialSlot = sn
-                       , transactionList = show ti
-                       , transactionWarning = show tw
+                       , transactionList = prettyToString ti
+                       , transactionWarning = prettyToString tw
                        }
      }
 
