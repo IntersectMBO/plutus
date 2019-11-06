@@ -42,7 +42,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Ledger                     (PubKey (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
@@ -50,6 +50,7 @@ import           Ledger.Interval            (Extended (..), Interval (..), Lower
 import           Ledger.Scripts             (DataScript (..))
 import           Ledger.Validation
 import qualified Prelude                    as P
+import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 
@@ -336,8 +337,15 @@ data TransactionError = TEAmbiguousSlotIntervalError
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving stock (Show, Generic)
-  deriving anyclass (Pretty)
+  deriving stock (Show)
+
+instance Pretty TransactionInput where
+    prettyFragment tInp = text "TransactionInput" <> space <> lbrace <> line <> txIntLine <> line <> txInpLine
+        where
+            txIntLine = hang 2 $ text "txInterval = " <> prettyFragment (txInterval tInp) <> comma
+            txInpLine = hang 2 $ text "txInputs = " <> prettyFragment (txInputs tInp) <> rbrace
+
+
 
 
 {-| Marlowe transaction output.
