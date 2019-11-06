@@ -2,6 +2,7 @@
 TxId:       "\247\\\FS\193L\DC2\DLE\238\168O\160MO\FS\191\236\197\219\212\242\129[\145WE\238\161\130\234\225\187/"
 Fee:        -
 Forge:      Ada:      Lovelace:  1000
+Signatures  -
 Inputs:
   
 
@@ -103,6 +104,8 @@ Balances Carried Forward:
 TxId:       "\139g\160R\DC4%K\153!\255\RS\140;\136\132.Z\189\DC4\165\255_\188\158\196\226\v\176\&1\159\184\218"
 Fee:        -
 Forge:      -
+Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
+              Signature: 5f58200beafe1484c10e3e961d19dbfae95e97be...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf... (Wallet 1)
@@ -175,6 +178,8 @@ Balances Carried Forward:
 TxId:       "\154\208\192M\204\SO\STX\CAN\bm\NULq\128\200C\171s\167\224\204\201\&4*w\235,\221n\252\DC3\219\236"
 Fee:        -
 Forge:      -
+Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
+              Signature: 5f5820771925cd36bfb8ce4cfe9869bb8254e643...
 Inputs:
   ---- Input 0 ----
   Destination:  Script: 5f582094f7e151acc75dd722f637c087a3a551ba46ac3a886b7558f0e23dd17608934bff

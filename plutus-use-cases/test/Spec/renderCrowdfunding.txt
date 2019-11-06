@@ -2,6 +2,7 @@
 TxId:       "\247\\\FS\193L\DC2\DLE\238\168O\160MO\FS\191\236\197\219\212\242\129[\145WE\238\161\130\234\225\187/"
 Fee:        -
 Forge:      Ada:      Lovelace:  1000
+Signatures  -
 Inputs:
   
 
@@ -103,6 +104,8 @@ Balances Carried Forward:
 TxId:       ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"
 Fee:        -
 Forge:      -
+Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
+              Signature: 5f582097ef3756d8b8994af1236441a2757ece45...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
@@ -175,6 +178,8 @@ Balances Carried Forward:
 TxId:       "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"
 Fee:        -
 Forge:      -
+Signatures  PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401...
+              Signature: 5f582061adea16706a5b857ec6a3850eeb6a6c25...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
@@ -247,6 +252,8 @@ Balances Carried Forward:
 TxId:       "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"
 Fee:        -
 Forge:      -
+Signatures  PubKey: f81fb54a825fced95eb033afcd64314075abfb0a...
+              Signature: 5f58201b380bc7dfc07b773c4361507271355358...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
@@ -319,6 +326,8 @@ Balances Carried Forward:
 TxId:       ".T\206l\246\133\192\ESC)\237\SYN+O\133\139\168\207\144\149\163n\184\210\177\245\251\241\150f\236\158\EOT"
 Fee:        -
 Forge:      -
+Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
+              Signature: 5f5820eead494c357fb4dcc0f95bf3f9116256c7...
 Inputs:
   ---- Input 0 ----
   Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
