@@ -108,7 +108,9 @@ other discussions to the forum.
 
 === How to contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail.
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail;
+and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
+
 
 [[nix]]
 == Nix
@@ -147,11 +149,11 @@ NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] y
 
 Nix on macOS can be a bit tricky. In particular, sandboxing is disabled by default, which can lead to strange failures.
 
-These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings, 
+These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings,
 in the same way as in xref:iohk-binary-cache[previous section]:
 
 ----
-sandbox = true 
+sandbox = true
 extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
 ----
 

@@ -1,0 +1,235 @@
+= Architecture of the Plutus project
+
+This document is an overview of how the software in the Plutus project is
+structured. Most things are in direct subdirectories of the root, so we will
+work through those in conceptual order.
+
+== Plutus Core
+
+Plutus Core is the language that actually goes on the blockchain. Consequently
+this is the absolute core of the codebase, and everything depends on it.
+
+=== `language-plutus-core`
+
+This package implements the Plutus Core language.
+
+This includes:
+
+- Parser
+- Typechecker
+- Prettyprinter
+- Simple evaluator (see `plutus-core-evaluator` for fancier evaluators)
+
+=== `plutus-core-intepreter`
+
+This package contains the production evaluator that we use, along with an experimental
+lazy evaluator.
+
+=== `plutus-exe`
+
+This package defines a command-line executable that used to typecheck or
+evaluate Plutus Core programs.
+
+== Plutus Tx
+
+Plutus Tx is how we refer to the subset of Haskell which we compile into Plutus
+Core. This is how users actually write Plutus contracts: they write Haskell
+programs, part of which is compiled into Plutus Core. The rest of the program
+can then use this compiled code when submitting transactions.
+
+=== `plutus-ir`
+
+Plutus IR is a higher-level language that sits between Plutus Tx and Plutus
+Core in the compilation pipeline. This package implements the compiler, which
+compiles Plutus IR into Plutus Core.
+
+=== `plutus-tx`
+
+This package provides several things:
+
+- The Plutus Tx compiler, which compiles GHC Core into
+Plutus IR.
+- A GHC Core plugin, which is the mechanism by which people use
+the compiler.
+- A couple of special typeclasses which aid with the interface
+between Haskell and Plutus Tx, and has some Template Haskell support for
+generating instances.
+- It provides a partial replacement Prelude, since many parts of the
+normal Haskell Prelude cannot be used with Plutus Tx.
+
+== Ledger
+
+To write actual Plutus contracts we need a model of the ledger that we're
+running on. There are two reasons for this:
+
+- The on-chain code needs to work with the data: validators are given information
+  about the current transaction being validated.
+- The off-chain code needs to produce transactions to submit.
+- We want to write tests that simulate the "full" behaviour of contracts, i.e.
+  across time, in a multi-agent scenario.
+
+=== `plutus-wallet-api`
+
+This package should probably be split in two!
+
+The `ledger` sublibrary defines our model of an Extended UTXO ledger, including:
+- The types that
+
+The rest of the package defines the
+
+=== `plutus-emulator`
+
+This package defines the chain emulator, which is used for tests, and to back
+the simulations in the Plutus Playground.
+
+== Contract modelling
+
+We want to help people write "contracts". When we say that, we mean both:
+. A high-level applications that exposes a limited API and
+is suitable for running inside something like a wallet smart contract backend.
+. An implementation of a conceptual "contract" (e.g. a crowdfunding contract),
+including both the on-chain code and the eventual contract application.
+
+These packages are geared towards providing the tools to do that, and building
+up examples to ensure that we have adequate functionality.
+
+=== `plutus-contract`
+
+This package has a new API for defining "contracts": bundled applications that
+interact with a wallet smart contract backend. This is in many ways the
+"successor" to much of `plutus-wallet-api`, and should eventually
+replace much of it.
+
+=== `plutus-use-cases`
+
+This package contains worked examples of a number of contracts, along with
+tests using the emulator. This should always be our "most real" project: this is
+where we try and do the things that we think people will really try and do.
+
+It has a few other miscellaneous tests and benchmarks that use the use-cases as
+a source of large/real validators.
+
+=== `iots-export`
+
+This package defines a scheme for exporting interfaces to Typescript using IOTS.
+This is used by `plutus-contract` to expose an interface for Typescript clients.
+
+== Marlowe
+
+Although conceptually separate from Plutus, a fair amount of Marlowe-related
+code is in the Plutus repository. This is for two different reasons:
+
+. We have an implementation of Marlowe on top of Plutus, which depends on the
+other code in the repository.
+. The Marlowe Playground shares code and deployment infrastructure with the
+Plutus Playground.
+
+=== `marlowe`
+
+This package contains an implementation of the Marlowe interpreter as a Plutus
+contract.
+
+=== `marlowe-symbolic`
+
+This package contains a web-service for doing static analysis of Marlowe
+programs using symbolic execution.
+
+== Playgrounds
+
+The Plutus/Marlowe Playgrounds are our web-based environment for developing and
+testing basic Plutus and Marlowe contracts. That means they're the main way that
+anyone outside the team has interacted with out product!
+
+=== `playground-common`
+
+This package contains some library code which is shared between the Plutus and
+Marlowe Playgrounds.
+
+=== `plutus-playground-lib`
+
+This package contains some library code for the Plutus Playground.
+
+=== `plutus-playground-server`/`marlowe-playground-server`
+
+These packages contain the servers that back the Plutus/Marlowe Playgrounds by
+compiling user code and evaluating their simulations.
+
+They also define executables that generates Purescript bindings for the types that
+the Purescript code needs.
+
+=== `plutus-playground-client`/`marlowe-playground-client`
+
+This contains the Plutus/Marlowe Playground client code, written in Purescript.
+
+=== `web-common`
+
+This contains some Purescript client code that is shared between the Plutus and
+Marlowe Playgrounds.
+
+=== `deployment`
+
+This folder contains the nixops/Terraform code used for deploying the Playgrounds.
+
+=== `deployment-server`
+
+This package contains a small server that handles automatic continuous
+deployment of the alpha Playground whenever PRs are merged.
+
+== Documentation
+
+=== `plutus-tutorial`/`marlowe-tutorial`
+
+These packages contains tutorials for Plutus/Marlowe. The Plutus tutorial is a
+literate Haskell project, the Marlowe one is not (yet).
+
+=== `plutus-book`
+
+This package contains the Plutus Book. It is a literate Haskell project.
+
+=== `example`
+
+This contains an example project that is designed to help people get started if
+they want to use our libraries locally, rather than in the Playground. This can
+otherwise be quite challenging, since our projects aren't on Hackage yet!
+
+=== `docs`
+
+This folder contains a variety of miscellaneous documents.
+
+NOTE: Many of these are quite out of date, but can be useful for reference.
+
+== Specification/design
+
+We have done a fair amount of work in specifying and formalizing parts of our
+system. At the moment all of this work also lives in the Plutus repository, and
+we even have some basic testing of the Haskell implementation against the Agda formalization.
+
+=== `metatheory`
+
+This folder contains the Agda formalization of the Plutus Core metatheory,
+including a `plc-agda` executable that is the equivalent of the `plc` executable
+from `plutus-exe`. This is used for some basic tests.
+
+=== `papers`
+
+This folder contains our published academic papers.
+
+=== `plutus-core-spec`
+
+This folder contains the Plutus Core specification.
+
+=== `extended-utxo-spec`
+
+This folder contains the Extended UTXO model specification.
+
+NOTE: This is more of a design document, really, it's not aiming for full precision.
+
+== Build tooling
+
+=== `nix`
+
+This contains miscellaneous Nix code.
+
+=== `pkgs`
+
+This contains the generated Nix code representing our Haskell package set.
