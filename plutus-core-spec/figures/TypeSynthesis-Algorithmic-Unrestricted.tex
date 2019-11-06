@@ -70,14 +70,6 @@
         \RightLabel{lam}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\diffbox{S}}{\diffbox{T}}}}\)}
     \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\funT{S}{T}}}}\)}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
-        \AxiomC{\(\diffbox{\typeEqual{S}{S'}}\)}
-        \RightLabel{app}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
-    \end{prooftree}
     \caption{Type Synthesis (Algorithmic, Unrestricted)}
 \end{figure}
 
@@ -85,6 +77,14 @@
 
 \begin{figure}[H]
   \ContinuedFloat
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\funT{S}{T}}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
+        \AxiomC{\(\diffbox{\typeEqual{S}{S'}}\)}
+        \RightLabel{app}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
+    \end{prooftree}
+
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
