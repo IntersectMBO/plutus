@@ -62,14 +62,7 @@
 		\RightLabel{unwrap}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\diffbox{R}}}\)}
     \end{prooftree}
-
-    \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-    	\AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
-        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\diffbox{S}}}{\istermJ{M}{\diffbox{T}}}\)}
-        \RightLabel{lam}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\diffbox{S}}{\diffbox{T}}}}\)}
-    \end{prooftree}
+% -----
     \caption{Type Synthesis (Algorithmic, Unrestricted)}
 \end{figure}
 
@@ -77,6 +70,15 @@
 
 \begin{figure}[H]
   \ContinuedFloat
+% -----
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+    	\AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\diffbox{S}}}{\istermJ{M}{\diffbox{T}}}\)}
+        \RightLabel{lam}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\diffbox{S}}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\funT{S}{T}}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
