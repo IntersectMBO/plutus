@@ -372,7 +372,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \item Each unspent output now has an object $\dataval$ of type
   \Data{} associated with it: we call this the output's
-  \textit{data value} (see note~\ref{note:valdata}).
+  \textit{data value} (see note~\ref{note:data-values}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data{}.
@@ -554,7 +554,7 @@ transaction.  The \i{outputInfo} field contains information about the
 outputs which will be produced if the pending transaction validates
 successfully: it contains only the address of the relevant validator,
 but has the data value for the output in full.\footnote{See
-  Note~\ref{note:data-values} for further explanation.}
+  Note~\ref{note:data-values-in-ptx} for further explanation.}
 The \i{inputInfo} field contains information about the
 inputs to the pending transaction, but provides only the hashes of the
 validator and redeemer scripts for the inputs.  The \i{thisInput}
@@ -1065,7 +1065,7 @@ An alternative design would be to include a unique nonce in transaction outputs
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
 \note{Data values}
-\label{note:valdata}
+\label{note:data-values}
 The introduction of data values
 increases the expressivity of the model considerably. For example,
 one can use a data value to propagate state between
@@ -1116,7 +1116,7 @@ would suggest, we expect these to be small pieces of data (public
 keys, for example) which would not incur large storage charges.
 
 \note{Data values in \ptx{}}
-\label{note:data-values}
+\label{note:data-values-in-ptx}
 In Figures~\ref{fig:ptx-1-types} and~\ref{fig:ptx-2-types} the
 \textsf{OutputInfo} type includes the data values for the outputs
 of the pending transaction in full.  This allows a validator to
