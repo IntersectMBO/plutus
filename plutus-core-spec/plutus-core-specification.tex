@@ -240,12 +240,11 @@ recursion or branching, but the type system is sufficiently expressive
 to allow us to use standard combinators (for example the $Z$
 combinator and Church/Scott encoded booleans) for such purposes.
 
-\paragraph{Implementation.} A compiler and evaluator for Plutus Core can be found at
-\url{https://github.com/input-output-hk/plutus}.
+\paragraph{Implementation.} A compiler and evaluator for Plutus Core can be found
+in~\citep{Plutus-exe-repo}.
 
 \paragraph{Formalisation.} The Agda formalisation of Plutus Core mentioned earlier
-can be found
-at \url{https://github.com/input-output-hk/plutus/tree/master/metatheory},
+can be found in~\citep{Plutus-metatheory-repo}, 
 and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 \subsection{Blockchain issues}
@@ -279,8 +278,10 @@ type checking.
 Plutus Core is intended to be used for validation of on-chain
 transactions on the Cardano blockchain~\citep{Cardano}.  The details
 of the validation process are outside the scope of this document, but
-are explained in~\citep{EUTXO}. See also~\citep{Plutus-book} for 
-details of Cardano's smart contract infrastructure.
+are explained in~\citep{EUTXO}. For details of Cardano's smart
+contract infrastructure (including examples of the kind of validation
+code which is compiled into Plutus Core) see the
+book~\citep{Plutus-book}.
 
 \section{Syntax}
 
@@ -916,7 +917,7 @@ Figure~\ref{fig:type_constants}: for example \texttt{(con
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.
+abbreviations given in Figure~\ref{fig:type_abbreviations}.  
 
 
 Note the following:
@@ -971,17 +972,23 @@ at some time in the future.
 %
 
   \item We use fixed Scott encodings for certain types and values,
-    specifically for the \textit{unit} and \textit{boolean} types:
-    see Figure~\ref{fig:type_abbreviations} (\textit{one}
-    is the unique non-\verb|error| inhabitant of the \textit{unit} type).
-    Compilers targeting Plutus Core must be aware of these encodings and
-    use them appropriately.  
+    specifically for the \textit{unit} and \textit{boolean} types: see
+    Figure~\ref{fig:type_abbreviations} (\textit{one} is the unique
+    non-\verb|error| inhabitant of the \textit{unit} type).  Compilers
+    targeting Plutus Core must be aware of these encodings and use
+    them appropriately.  Note that these encodings are not purely
+    abstract, but have semantic content. For example we use boolean
+    values directly to implement branching: see the examples in
+    Section~\ref{sec:examples}.
 \end{itemize}
 \subfile{figures/Builtins}
 
 \section{Examples}
-The section contains some relatively simple examples of Plutus Core
-code.
+\label{sec:examples}
+The section contains some simple examples of Plutus Core code. The
+first example is an entire program, but for simplicity subsequent ones
+are presented as functions. The latter can easily be embedded into
+programs (and applied to arguments) as in the first example.
 
 \paragraph{Integer subtraction.}
 The following program subtracts 11 from 55, returning 44.
@@ -994,7 +1001,7 @@ The following program subtracts 11 from 55, returning 44.
 
 
 \paragraph{Absolute value.} The function below returns the absolute value of an
-integer.  
+integer.
 \begin{verbatim}
   (lam n (con integer)
     [ 
@@ -1037,15 +1044,14 @@ know the outcome of the test:
   )
 \end{verbatim}
 
-\paragraph{Other examples.} The Plutus Core evaluator at
-\url{https://github.com/input-output-hk/plutus/tree/master/plutus-exe}
+\paragraph{Other examples.} The Plutus Core evaluator in~\citep{Plutus-exe-repo}
 has the ability to print out sample programs, including recursive
 programs to calculate Fibonacci numbers and factorials.  The available
 examples can be listed using \verb|plc example -a| and specific
 examples can be printed out using, for example,
 \verb|plc example -s factorial| (this particular example is quite lengthy, mostly because
-it requires a stereotypical but somewhat complex \verb|ifix| analogue
-of the $Z$ combinator in order to implement recursion).
+it uses the techniques from~\citep{unravelling-recursion} to implement
+recursion using an \verb|ifix|-based analogue of the $Z$ combinator).
 
 % I was going to add the factorial function, but \verb|plc example -s
 % factorial| gives you something 399 lines long, thanks
