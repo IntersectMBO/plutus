@@ -1,4 +1,8 @@
 = Architecture of the Plutus project
+:email: plutus@iohk.io
+:author: Input Output HK Limited
+:toc: left
+:reproducible:
 
 This document is an overview of how the software in the Plutus project is
 structured. Most things are in direct subdirectories of the root, so we will

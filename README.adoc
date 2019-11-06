@@ -1,5 +1,8 @@
 = https://github.com/input-output-hk/plutus[Plutus Platform]
-:author: Input Output HK
+:email: plutus@iohk.io
+:author: Input Output HK Limited
+:toc: left
+:reproducible:
 
 The Plutus Platform enables you to:
 
