@@ -1,7 +1,7 @@
 %% Extended UTXO Specification
 \newcommand\version{-1}
 
-\title{Formal Specification of the Extended UTXO Model (\red{\textsf{DRAFT}})}
+\title{The Extended UTXO Transaction Model}
 
 \pagestyle{plain}
 \date{11th October 2019}
@@ -32,14 +32,15 @@
 \usepackage{subfiles}
 \usepackage{geometry}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{verbatim}
 \usepackage{alltt}
 
 %\usepackage{todonotes}
 \usepackage[disable]{todonotes}
 
-\usepackage{hyperref}  % This has to go at the end of the packages.
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum]{hyperref}
+% This has to go at the end of the packages.
 
 
 % Stuff for splitting figures over page breaks
@@ -170,7 +171,7 @@ owned by the user.  Every core node on the blockchain maintains a
 record of all of the currently unspent outputs, the \textit{UTXO set};
 when outputs are spent, they are removed from the UTXO set.
 
-This document contains a specification of some extensions of the
+This document contains a description of some extensions of the
 UTXO model: the main aim of these extensions is to facilitate the
 implementation of \textit{smart contracts}, programs which perform
 automated and irrevocable transfer of funds on the blockchain, subject
@@ -208,7 +209,7 @@ model (EUTXO stands for \textit{Extended UTXO}):
 
 \medskip
 
-The rationale for providing two separate specifications is that (1)
+The rationale for providing two separate extensions is that (1)
 introducing the extensions separately clarifies the structure of the
 models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
@@ -218,7 +219,7 @@ perhaps with less computational overhead.
 \medskip
 
 For ease of reference we have kept exposition to a minimum in the main
-text.  Some aspects of the specification are explained in more detail
+text.  Some aspects of the models are explained in more detail
 in Appendix~\ref{appendix:comments}, with cross-references in the main
 text.  Further explanation and many examples are contained in the
 book~\citep{Plutus-book}.
@@ -370,7 +371,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   interval.
 
 \item Each unspent output now has an object $\valdata$ of type
-  \Data{} associated with it: we (\red{provisionally}) call this the output's
+  \Data{} associated with it: we call this the output's
   \textit{validation data} (see note~\ref{note:valdata}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
@@ -976,7 +977,7 @@ and \ref{note:eutxo-2-performance} for comments on some technical
 aspects of the model.
 
 \appendix
-\section{Comments on the specification}
+\section{Comments}
 \label{appendix:comments}
 
 \note{Computing with finitely-supported functions}
@@ -1230,7 +1231,7 @@ states'':
   currencies can have many \token{}s, but these can have more than unit
   quantities in circulation.  These can be useful to model distinct
   categories of thing where there are fungible quantities within
-  those, for example share classes. \red{Eh?}
+  those, for example share classes.
 \end{itemize}
 
 \note{Performance issues for EUTXO-2.}
