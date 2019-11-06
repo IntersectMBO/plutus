@@ -4,6 +4,7 @@
 -- number of inputs a transaction can have.
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -14,6 +15,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -42,10 +44,14 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
+import           Data.Aeson                     (ToJSON, FromJSON)
 import           Control.Applicative            (Alternative(..), Applicative(..))
 import           Control.Lens                   ((&), (.~), (^.))
 import           Control.Monad                  (Monad((>>)), void)
 import qualified Data.Set                       as Set
+import           GHC.Generics                   (Generic)
+import           IOTS                           (IotsType)
+
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
@@ -92,7 +98,16 @@ PlutusTx.makeLift ''CampaignAction
 type CrowdfundingSchema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
-        .\/ Endpoint "contribute" (PubKey, Value)
+        .\/ Endpoint "contribute" Contribution
+
+data Contribution =
+    Contribution
+        { contributor  :: PubKey
+        -- ^ who is authorised to claim the refund if the campaign fails
+        , contribValue :: Value
+        -- ^ how much to contribute
+        } deriving stock (Haskell.Eq, Show, Generic)
+          deriving anyclass (ToJSON, FromJSON, IotsType)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -175,9 +190,9 @@ theCampaign = Campaign
 --   refund if the funding target was not met.
 contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
-    (ownPK, contribution) <- endpoint @"contribute"
-    let ds = Ledger.DataScript (PlutusTx.toData ownPK)
-        tx = payToScript contribution (campaignAddress cmp) ds
+    Contribution{contribValue, contributor} <- endpoint @"contribute"
+    let ds = Ledger.DataScript (PlutusTx.toData contributor)
+        tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     txId <- writeTxSuccess tx
 
@@ -189,6 +204,7 @@ contribute cmp = do
     let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
+                & requiredSignatures .~ [contributor]
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
     else pure ()
@@ -230,7 +246,7 @@ makeContribution
     -> Value
     -> ContractTrace CrowdfundingSchema e m () ()
 makeContribution w v =
-    Trace.callEndpoint @"contribute" w (Trace.walletPubKey w, v)
+    Trace.callEndpoint @"contribute" w Contribution{contributor=Trace.walletPubKey w, contribValue=v}
         >> Trace.handleBlockchainEvents w
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
