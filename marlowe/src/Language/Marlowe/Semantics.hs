@@ -236,7 +236,8 @@ newtype Environment = Environment { slotInterval :: SlotInterval }
 data Input = IDeposit AccountId Party Money
            | IChoice ChoiceId ChosenNum
            | INotify
-  deriving stock (Show,P.Eq,P.Ord)
+  deriving stock (Show,P.Eq,P.Ord,Generic)
+  deriving anyclass (Pretty)
 
 
 {-| Slot interval errors.
@@ -318,7 +319,8 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Integer
                                                -- ^ src    ^ dest ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (Pretty)
 
 
 -- | Transaction error
@@ -334,7 +336,8 @@ data TransactionError = TEAmbiguousSlotIntervalError
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (Pretty)
 
 
 {-| Marlowe transaction output.
