@@ -14,7 +14,7 @@ Events by wallet:
        WriteTxSuccess: TxId {getTxId = "\NAK\200O\DC3I\210\229\244\225\203u}CE\162\f\224\&7s6&\SO)b\NAK'M\255O\253\242\204"}}
   Events for W2:
     • {contribute:
-       (PubKey {getPubKey = fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
+       Contribution {contributor = PubKey {getPubKey = fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {tx:
        WriteTxSuccess: TxId {getTxId = "y\STX\134\STX\158V\SOH\t6)\225A\245\174\172\151\\\221\ETX\DLEJ{9\233\220\&4\169|\227!%\154"}}
     • {address:
@@ -67,7 +67,7 @@ Events by wallet:
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W3:
     • {contribute:
-       (PubKey {getPubKey = 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63},Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}})}
+       Contribution {contributor = PubKey {getPubKey = 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {tx:
        WriteTxSuccess: TxId {getTxId = "M*\GS\158\143C\180\232\164!;\NAK\156@\201\175\202\133X\181\161\SOH\"\136G>\213\162g\208*R"}}
     • {address:
@@ -104,7 +104,7 @@ Events by wallet:
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W4:
     • {contribute:
-       (PubKey {getPubKey = f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863},Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}})}
+       Contribution {contributor = PubKey {getPubKey = f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}}
     • {tx:
        WriteTxSuccess: TxId {getTxId = "_g\172\149\141Y'&\178r\174\193\183\GS\146H\246hB\200&6\240\DLE\234\b\186\233\\#\155f"}}
     • {address:
