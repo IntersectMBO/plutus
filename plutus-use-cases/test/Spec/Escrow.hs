@@ -90,7 +90,7 @@ tests = testGroup "escrow"
         >> callEndpoint @"refund-escrow" (Wallet 1) ()
         >> handleBlockchainEvents (Wallet 1))
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 50000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 35000)
     ]
 
 w1, w2, w3 :: Wallet
@@ -107,4 +107,3 @@ escrowParams =
         , payToPubKeyTarget (walletPubKey w2) (Ada.lovelaceValueOf 20)
         ]
     }
-
