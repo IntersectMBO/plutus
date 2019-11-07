@@ -79,16 +79,19 @@ $ cd ..
 $ cabal v2-test metatheory
 ```
 
-## Status
+## Features:
 
-The formalisation currently covers the full language of Plutus Core:
-System F omega with (deep) iso-recursive types, and builtin-types for
-integers and bytestrings. Progress and preservation have been shown to
-hold for the small-step operational semantics. An evaluator can be
-used to execute small examples in Agda and also compile them to
-Haskell.
+* The formalisation currently covers the full language of Plutus Core:
+  System F omega with (deep) iso-recursive types, and builtin-types
+  for integers and bytestrings. Progress and preservation have been
+  shown to hold for the small-step operational semantics.
 
-There are three versions of the operational semantics:
+* The Agda formalisation contains an executable `plc-agda` which makes
+  use of the parser and pretty printer from `language-plutus-core` in
+  conjunction with an interpreter written in Agda. It has the same
+  interface as `plc`.
+
+There are three versions of the reduction semantics:
 
 1. The intrinsically typed semantics which is the most high-assurance
 and described in the paper "System F for Fun and Profit" which will be
@@ -103,10 +106,15 @@ is the case. It also provides a check that other versions of the
 syntax and semantics match by seeing if they erase to the same untyped
 syntax/semantics.
 
-The command line tool `plc-agda` does not include a typechecker. So,
-it currently uses a separate extrinsically typed evaluator.
+We have proved that the three versions of the syntax/reduction
+semantics match.
 
-We have proved that the three versions of the syntax/semantics match.
+There are two versions of the CK machine:
+
+1. Intrinsically typed.
+2. Extrinsically typed.
+
+There is an evidence producing typechecker.
 
 ## Structure of the intrinsically typed formalisation
 
