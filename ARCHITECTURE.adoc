@@ -19,10 +19,13 @@ This package implements the Plutus Core language.
 
 This includes:
 
+- AST types
 - Parser
-- Typechecker
+- Various checkers including a typechecker
 - Prettyprinter
 - Simple evaluator (see `plutus-core-evaluator` for fancier evaluators)
+- Support for some standard constructs e.g. the encodings of recursive types
+- A number of example programs
 
 === `plutus-core-intepreter`
 
@@ -56,7 +59,7 @@ Plutus IR.
 - A GHC Core plugin, which is the mechanism by which people use
 the compiler.
 - A couple of special typeclasses which aid with the interface
-between Haskell and Plutus Tx, and has some Template Haskell support for
+between Haskell and Plutus Tx, and Template Haskell support for
 generating instances.
 - It provides a partial replacement Prelude, since many parts of the
 normal Haskell Prelude cannot be used with Plutus Tx.
@@ -77,9 +80,14 @@ running on. There are two reasons for this:
 This package should probably be split in two!
 
 The `ledger` sublibrary defines our model of an Extended UTXO ledger, including:
-- The types that
 
-The rest of the package defines the
+- The types that describe transactions, pending transactions, keys, currencies, etc.
+- Functions that implement the ledger validation rules.
+
+The rest of the package defines the "wallet API", which was our attempt at
+defining the interface that contracts would use to the wallet. As it turns out,
+we need to do things somewhat differently, and so `plutus-contract` is the
+future, but the functions in here are still used fairly widely.
 
 === `plutus-emulator`
 
@@ -89,7 +97,8 @@ the simulations in the Plutus Playground.
 == Contract modelling
 
 We want to help people write "contracts". When we say that, we mean both:
-. A high-level applications that exposes a limited API and
+
+. A high-level application that exposes a limited API and
 is suitable for running inside something like a wallet smart contract backend.
 . An implementation of a conceptual "contract" (e.g. a crowdfunding contract),
 including both the on-chain code and the eventual contract application.
@@ -153,17 +162,17 @@ Marlowe Playgrounds.
 
 This package contains some library code for the Plutus Playground.
 
-=== `plutus-playground-server`/`marlowe-playground-server`
+=== `plutus-playground-server` and `marlowe-playground-server`
 
 These packages contain the servers that back the Plutus/Marlowe Playgrounds by
 compiling user code and evaluating their simulations.
 
-They also define executables that generates Purescript bindings for the types that
+They also define executables that generate Purescript bindings for the types that
 the Purescript code needs.
 
-=== `plutus-playground-client`/`marlowe-playground-client`
+=== `plutus-playground-client` and `marlowe-playground-client`
 
-This contains the Plutus/Marlowe Playground client code, written in Purescript.
+These contain the Plutus/Marlowe Playground client code, written in Purescript.
 
 === `web-common`
 
@@ -181,7 +190,7 @@ deployment of the alpha Playground whenever PRs are merged.
 
 == Documentation
 
-=== `plutus-tutorial`/`marlowe-tutorial`
+=== `plutus-tutorial` and `marlowe-tutorial`
 
 These packages contains tutorials for Plutus/Marlowe. The Plutus tutorial is a
 literate Haskell project, the Marlowe one is not (yet).
@@ -202,7 +211,7 @@ This folder contains a variety of miscellaneous documents.
 
 NOTE: Many of these are quite out of date, but can be useful for reference.
 
-== Specification/design
+== Specification and design
 
 We have done a fair amount of work in specifying and formalizing parts of our
 system. At the moment all of this work also lives in the Plutus repository, and
