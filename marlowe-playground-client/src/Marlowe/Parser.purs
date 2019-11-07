@@ -664,7 +664,8 @@ testString =
 -- rather than `Parser String (Term a)`
 input :: Parser String (InputF IdentityF)
 input =
-  (IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
+  maybeParens
+    (IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
     <|> (IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
     <|> ((const INotify) <$> (string "INotify"))
 
@@ -701,7 +702,16 @@ inputList :: Parser String (List (InputF IdentityF))
 inputList = haskellList input
 
 slotInterval :: Parser String SlotInterval
-slotInterval = (SlotInterval <$> (string "SlotInterval" **> slot) <**> slot)
+slotInterval =
+  parens do
+    void maybeSpaces
+    minSlot <- slot
+    void maybeSpaces
+    void $ string ","
+    void maybeSpaces
+    maxSlot <- slot
+    void maybeSpaces
+    pure $ SlotInterval minSlot maxSlot
 
 transactionInput :: Parser String TransactionInput
 transactionInput = do
@@ -733,11 +743,22 @@ testTransactionInputParsing :: String
 testTransactionInputParsing = "[TransactionInput {txInterval = SlotInterval (-5) (-4), txInputs = [IDeposit (AccountId 1 \"Alice\") \"Bob\" 20,INotify]}]"
 
 transactionWarning :: Parser String TransactionWarning
-transactionWarning =
-  (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
+transactionWarning = do
+  void maybeSpaces
+  tWa <-
+    maybeParens
+      ( do
+          void maybeSpaces
+          tWaS <-
+            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> (Lovelace <$> (maybeParens bigInteger)))
+              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)))
+              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
+              <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
+          void maybeSpaces
+          pure tWaS
+      )
+  void maybeSpaces
+  pure tWa
 
 transactionWarningList :: Parser String (List TransactionWarning)
 transactionWarningList = haskellList transactionWarning
