@@ -107,7 +107,7 @@ scriptInstance =
 address :: Address
 address = Scripts.scriptAddress scriptInstance
 
--- | Pay some money to the given token
+-- | Pay some money to the given token account
 pay :: (AsContractError e, HasWriteTx s) => AccountOwner -> Value -> Contract s e TxId
 pay owner vl =
     let ds = Ledger.DataScript (PlutusTx.toData owner)
