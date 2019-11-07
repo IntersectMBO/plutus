@@ -44,7 +44,7 @@ tests = testGroup "vesting" [
     testProperty "cannot retrieve more than allowed" cannotRetrieveTooMuch,
     testProperty "can retrieve everything at end" canRetrieveFundsAtEnd,
     Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| mkValidator ||]),
-    HUnit.testCase "script size is reasonable" (Lib.reasonable (validatorScript $ vsVestingScheme scen1) 45000)
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (validatorScript $ vsVestingScheme scen1) 30000)
     ]
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a
