@@ -69,6 +69,8 @@ import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
+import           Language.Plutus.Contract.Effects.OwnPubKey      (HasOwnPubKey, OwnPubKeyRequest (..))
+import qualified Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
@@ -315,6 +317,7 @@ handleBlockchainEvents
        , HasUtxoAt s
        , HasWatchAddress s
        , HasWriteTx s
+       , HasOwnPubKey s
        )
     => Wallet
     -> ContractTrace s e m a ()
@@ -324,6 +327,7 @@ handleBlockchainEvents wallet = do
     then do
         submitUnbalancedTxns wallet
         handleUtxoQueries wallet
+        handleOwnPubKeyQueries wallet
         handleBlockchainEvents wallet
     else pure ()
 
@@ -354,6 +358,18 @@ handleUtxoQueries wllt = do
     AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . AM.fromUtxoIndex . view EM.index))
     let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
     traverse_ (addEvent wllt . UtxoAt.event) events
+
+handleOwnPubKeyQueries
+    :: ( MonadEmulator e m
+       , HasOwnPubKey s
+       )
+    => Wallet
+    -> ContractTrace s e m a ()
+handleOwnPubKeyQueries wallet = do
+    hooks <- fmap (either (const mempty) id) (getHooks wallet)
+    case OwnPubKey.request hooks of
+        WaitingForPubKey    -> addEvent wallet (OwnPubKey.event (EM.walletPubKey wallet))
+        NotWaitingForPubKey -> pure ()
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses

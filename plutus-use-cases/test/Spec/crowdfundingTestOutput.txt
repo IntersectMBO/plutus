@@ -14,7 +14,9 @@ Events by wallet:
        WriteTxSuccess: TxId {getTxId = ".T\206l\246\133\192\ESC)\237\SYN+O\133\139\168\207\144\149\163n\184\210\177\245\251\241\150f\236\158\EOT"}}
   Events for W2:
     • {contribute:
-       Contribution {contributor = PubKey {getPubKey = fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+    • {own-pubkey:
+       fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
     • {tx:
        WriteTxSuccess: TxId {getTxId = ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"}}
     • {address:
@@ -67,7 +69,9 @@ Events by wallet:
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W3:
     • {contribute:
-       Contribution {contributor = PubKey {getPubKey = 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+    • {own-pubkey:
+       98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
     • {tx:
        WriteTxSuccess: TxId {getTxId = "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"}}
     • {address:
@@ -104,7 +108,9 @@ Events by wallet:
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W4:
     • {contribute:
-       Contribution {contributor = PubKey {getPubKey = f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}, contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}}
+       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}}
+    • {own-pubkey:
+       f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
     • {tx:
        WriteTxSuccess: TxId {getTxId = "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"}}
     • {address:
@@ -130,6 +136,7 @@ Contract result by wallet:
       Running, waiting for input:
         {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
+         own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []
@@ -138,6 +145,7 @@ Contract result by wallet:
       Running, waiting for input:
         {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
+         own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []
@@ -146,6 +154,7 @@ Contract result by wallet:
       Running, waiting for input:
         {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
          contribute: []
+         own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]
          slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
          tx: []

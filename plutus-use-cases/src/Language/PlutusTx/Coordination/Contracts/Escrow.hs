@@ -56,7 +56,7 @@ import qualified Prelude                        as Haskell
 
 type EscrowSchema =
     BlockchainActions
-        .\/ Endpoint "pay-escrow" (PubKey, Value)
+        .\/ Endpoint "pay-escrow" Value
         .\/ Endpoint "redeem-escrow" ()
         .\/ Endpoint "refund-escrow" ()
 
@@ -184,10 +184,10 @@ escrowAddress = Scripts.scriptAddress . scriptInstance
 escrowContract :: EscrowParams -> Contract EscrowSchema T.Text ()
 escrowContract escrow =
     let payAndRefund = do
-            (ownPubKey, vl) <- endpoint @"pay-escrow"
-            _ <- pay escrow ownPubKey vl
+            vl <- endpoint @"pay-escrow"
+            _ <- pay escrow vl
             _ <- awaitSlot (escrowDeadline escrow)
-            refund escrow ownPubKey
+            refund escrow
     in void payAndRefund <|> void (redeemEp escrow)
 
 -- | 'pay' with an endpoint that gets the owner's public key and the
@@ -195,26 +195,28 @@ escrowContract escrow =
 payEp
     ::
     ( HasWriteTx s
-    , HasEndpoint "pay-escrow" (PubKey, Value) s
+    , HasOwnPubKey s
+    , HasEndpoint "pay-escrow" Value s
     )
     => EscrowParams
     -> Contract s T.Text TxId
 payEp escrow = do
-    (ownPubKey, vl) <- endpoint @"pay-escrow"
-    pay escrow ownPubKey vl
+    vl <- endpoint @"pay-escrow"
+    pay escrow vl
 
 -- | Pay some money into the escrow contract.
 pay
-    :: (HasWriteTx s)
+    :: ( HasWriteTx s
+       , HasOwnPubKey s
+       )
     => EscrowParams
     -- ^ The escrow contract
-    -> PubKey
-    -- ^ Public key of the contributor (used for refunds)
     -> Value
     -- ^ How much money to pay in
     -> Contract s T.Text TxId
-pay escrow ownPubKey vl = do
-    let ds = DataScript (PlutusTx.toData ownPubKey)
+pay escrow vl = do
+    pk <- ownPubKey
+    let ds = DataScript (PlutusTx.toData pk)
         tx = payToScript vl (escrowAddress escrow) ds
                 & validityRange .~ Ledger.interval 1 (escrowDeadline escrow)
     writeTxSuccess tx
@@ -271,21 +273,22 @@ refundEp
     ::
     ( HasUtxoAt s
     , HasWriteTx s
+    , HasOwnPubKey s
     , HasEndpoint "refund-escrow" () s
     )
     => EscrowParams
-    -> PubKey
     -> Contract s T.Text RefundResult
-refundEp escrow txid = endpoint @"refund-escrow" >> refund escrow txid
+refundEp escrow = endpoint @"refund-escrow" >> refund escrow
 
 -- | Claim a refund of the contribution.
 refund
     :: ( HasUtxoAt s
+       , HasOwnPubKey s
        , HasWriteTx s)
     => EscrowParams
-    -> PubKey
     -> Contract s T.Text RefundResult
-refund escrow pk = do
+refund escrow = do
+    pk <- ownPubKey
     unspentOutputs <- utxoAt (escrowAddress escrow)
     let flt _ txOut = Ledger.txOutData txOut == Just (DataScript (PlutusTx.toData pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
