@@ -144,6 +144,11 @@ tests =
             /\ assertNoFailedTransactions)
             (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
 
+        , cp "ownPubKey"
+            (ownPubKey)
+            (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
+            (handleBlockchainEvents w2)
+
         ]
 
 w1 :: EM.Wallet

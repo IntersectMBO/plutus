@@ -42,7 +42,12 @@ module Language.Plutus.Contract(
     , awaitTransactionConfirmed
     -- * UTXO set
     , HasUtxoAt
+    , UtxoAt
     , utxoAt
+    -- * Wallet'S own public key
+    , HasOwnPubKey
+    , OwnPubKey
+    , ownPubKey
     -- * Transactions
     , module Tx
     -- * Row-related things
@@ -58,6 +63,7 @@ import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
+import           Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
@@ -79,20 +85,23 @@ type BlockchainActions =
   .\/ WatchAddress
   .\/ WriteTx
   .\/ UtxoAt
+  .\/ OwnPubKey
 
 type HasBlockchainActions s =
   ( HasAwaitSlot s
   , HasWatchAddress s
   , HasWriteTx s
   , HasUtxoAt s
+  , HasOwnPubKey s
   )
 
 -- | Check if there are handlers for any of the four blockchain
 --   events.
 waitingForBlockchainActions
-  :: ( HasWriteTx s, HasUtxoAt s )
+  :: ( HasWriteTx s, HasUtxoAt s, HasOwnPubKey s )
   => Handlers s
   -> Bool
 waitingForBlockchainActions handlers =
   UtxoAt.addresses handlers /= mempty
   || transactions handlers /= mempty
+  || OwnPubKey.request handlers /= mempty
