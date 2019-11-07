@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -40,7 +41,6 @@ import           Control.Monad.Except
 import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Char
-import           Data.IORef
 import           Data.Proxy
 import qualified Data.Text                                  as Text
 import qualified Data.Text.Prettyprint.Doc                  as Doc
@@ -57,7 +57,15 @@ updated state that the first 'eval' finished with. This may cause all kinds of w
 for example, an error message saying that there is a free variable and evaluation cannot proceed.
 -}
 
+instance PrettyKnown BSL.ByteString where
+    prettyKnown = undefined
+
+instance PrettyKnown Integer where
+    prettyKnown = undefined
+
 instance KnownType a uni => KnownType (EvaluationResult a) uni where
+    type VisibilityOf (EvaluationResult a) = VisibilityOf a
+
     toTypeAst _ = toTypeAst @a Proxy
 
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
@@ -87,57 +95,42 @@ instance (KnownSymbol text, KnownNat uniq, uni1 ~ uni2, Evaluable uni1) =>
 instance PrettyKnown (OpaqueTerm uni text uniq) where
     prettyKnown = undefined
 
-instance Evaluable uni => KnownType Integer uni where
-    toTypeAst _ = constantType @Integer Proxy ()
+newtype Shallow a = Shallow
+    { unShallow :: a
+    } deriving (Show, Generic, Typeable)
 
-    makeKnown = constantTerm ()
+instance Pretty a => Pretty (Shallow a) where
+    pretty = pretty . unShallow
 
-    readKnown (Evaluator eval) term = do
-        -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
-        -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- makeRightReflectT $ eval id mempty term
-        case extractValue res of
-            Just i  -> pure i
-            Nothing -> throwError "Not a builtin Integer"
-instance PrettyKnown Integer
+instance (Evaluable uni, uni `Includes` a, PrettyKnown a) => KnownType (Shallow a) uni where
+    type VisibilityOf (Shallow a) = 'Internal
 
-instance Evaluable uni => KnownType Int uni where
-    toTypeAst _ = constantType @Integer Proxy ()
+    toTypeAst _ = constantType @a Proxy ()
 
-    makeKnown = constantTerm @Integer () . fromIntegral
+    makeKnown (Shallow x) = constantTerm () x
 
     readKnown (Evaluator eval) term = do
         res <- makeRightReflectT $ eval id mempty term
         case extractValue res of
-            -- TODO: check that 'i' is in bounds.
-            Just i -> pure $ fromIntegral @Integer i
-            _      -> throwError "Not a builtin Int"
-instance PrettyKnown Int
+            Just x -> pure $ Shallow x
+            _      -> throwError "Not an integer-encoded Char"
+instance PrettyKnown a => PrettyKnown (Shallow a) where
+    prettyKnown = prettyKnown . unShallow
 
-instance Evaluable uni => KnownType BSL.ByteString uni where
-    toTypeAst _ = constantType @BSL.ByteString Proxy ()
+newtype Deep a = Deep
+    { unDeep :: a
+    } deriving (Show, Generic, Typeable)
 
-    makeKnown = constantTerm ()
+instance Pretty a => Pretty (Deep a) where
+    pretty = pretty . unDeep
 
-    readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval id mempty term
-        case extractValue res of
-            Just bs -> pure bs
-            Nothing -> throwError "Not a builtin ByteString"
-instance PrettyKnown BSL.ByteString where
-    prettyKnown = prettyBytes
-
-instance Evaluable uni => KnownType [Char] uni where
-    toTypeAst _ = constantType @String Proxy ()
-
-    makeKnown = constantTerm ()
-
-    readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval id mempty term
-        case extractValue res of
-            Just s  -> pure s
-            Nothing -> throwError "Not a builtin String"
-instance PrettyKnown [Char]
+instance ExternalKnownType a uni => KnownType (Deep a) uni where
+    type VisibilityOf (Deep a) = 'Internal
+    toTypeAst = undefined -- toTypeAst
+    makeKnown = makeKnown . unDeep
+    readKnown eval = fmap Deep . readKnown eval
+instance PrettyKnown a => PrettyKnown (Deep a) where
+    prettyKnown = prettyKnown . unDeep
 
 instance Evaluable uni => KnownType Bool uni where
     toTypeAst _ = bool
@@ -188,30 +181,14 @@ makeTypeAndKnown x = (da, dx) where
     da = toTypeAst @a Proxy
     dx = makeKnown x
 
-data Meta a = Meta
-    { unMeta :: a
-    } deriving (Show, Generic, Typeable)
-
--- TODO: derive all the 'Integer', 'ByteString' and other instances in term of this one.
-instance (Evaluable uni, uni `Includes` a) => KnownType (Meta a) uni where
-    toTypeAst _ = constantType @a Proxy ()
-
-    makeKnown (Meta x) = constantTerm () x
-
-    readKnown (Evaluator eval) term = do
-        res <- makeRightReflectT $ eval id mempty term
-        case extractValue res of
-            Just x -> pure $ Meta x
-            _      -> throwError "Not an integer-encoded Char"
-instance PrettyKnown (Meta a) where
-    prettyKnown = undefined
-
 newtype AsExtension (uni :: * -> *) a = AsExtension
     { unAsExtension :: a
     }
 
 instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) =>
             KnownType (AsExtension uni a) euni where
+    type VisibilityOf (AsExtension uni a) = 'Internal
+
     toTypeAst _ = extensionType ()
 
     makeKnown = extensionTerm () . unAsExtension
@@ -225,7 +202,7 @@ instance PrettyKnown (AsExtension uni a) where
     prettyKnown = Prelude.error "ololo2"
 
 instance (Evaluable uni, KnownType a uni, KnownType b uni, Typeable a, Typeable b, Pretty a, Pretty b) =>
-            KnownType (a, b) uni where
+             KnownType (a, b) uni where
     toTypeAst _ =
         mkIterTyApp () (prodN 2)
             [ toTypeAst @a Proxy

@@ -24,10 +24,11 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Instances
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type        (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -35,11 +36,11 @@ import           PlutusPrelude
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Inner
 import           Crypto
-import qualified Data.ByteString.Lazy                  as BSL
-import qualified Data.ByteString.Lazy.Hash             as Hash
+import qualified Data.ByteString.Lazy                           as BSL
+import qualified Data.ByteString.Lazy.Hash                      as Hash
 import           Data.GADT.Compare
 import           Data.Proxy
-import           Data.Text                             (Text)
+import           Data.Text                                      (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError uni
@@ -119,9 +120,12 @@ type EvaluateConstAppDef uni m = EvaluateConstApp uni m (Value TyName Name uni (
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
 -- Useful for correctly handling `div`, `mod`, etc.
-nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
-nonZeroArg _ _ 0 = EvaluationFailure
-nonZeroArg f x y = EvaluationSuccess $ f x y
+nonZeroArg
+    :: Coercible integer Integer
+    => (integer -> integer -> integer) -> integer -> integer -> EvaluationResult integer
+nonZeroArg f x y
+    | coerce y == (0 :: Integer) = EvaluationFailure
+    | otherwise                  = EvaluationSuccess $ f x y
 
 -- | Evaluate a constant application computation using the given evaluator.
 runEvaluateConstApp :: Evaluator Term uni m -> EvaluateConstApp uni m a -> m (ConstAppResult uni a)
@@ -133,23 +137,14 @@ liftConstAppResult :: Monad m => ConstAppResult uni a -> EvaluateConstApp uni m 
 liftConstAppResult = EvaluateT . lift . yield
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
--- makeConstAppResult :: uni `Includes` a => a -> ConstAppResultDef uni
--- makeConstAppResult = pure . Constant () . SomeOf knownUni
 makeConstAppResult :: KnownType a uni => a -> ConstAppResultDef uni
 makeConstAppResult = pure . makeKnown
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given built-in type.
 extractBuiltin
-    :: forall m uni a. (Monad m, KnownType a uni)
+    :: forall m uni a. (Monad m, InternalKnownType a uni)
     => Value TyName Name uni () -> EvaluateConstApp uni m a
--- -- TODO: this code makes perfect sense and is what we're going to use in future,
--- -- but currently it's commented out, because we emulate the old machinery using the new one.
--- extractBuiltin value@(Constant _ (SomeOf uni x)) = case geq uni $ knownUni @uni @a of
---     -- TODO: add an 'IllTypedApplication' error or something like that.
---     -- TODO: change errors in general.
---     Nothing   -> liftConstAppResult $ ConstAppError $ UnreadableBuiltinConstAppError value "blah-blah"
---     Just Refl -> pure x
 extractBuiltin value                             =
     thoist (InnerT . fmap nat . runReflectT) $ readKnownM value where
         nat :: forall b. EvaluationResult (Either Text b) -> ConstAppResult uni b
@@ -199,47 +194,47 @@ applyBuiltinName
     :: (Monad m, Evaluable uni)
     => BuiltinName -> [Value TyName Name uni ()] -> EvaluateConstAppDef uni m
 applyBuiltinName AddInteger           =
-    applyTypedBuiltinName typedAddInteger           (+)
-applyBuiltinName SubtractInteger      =
-    applyTypedBuiltinName typedSubtractInteger      (-)
-applyBuiltinName MultiplyInteger      =
-    applyTypedBuiltinName typedMultiplyInteger      (*)
-applyBuiltinName DivideInteger        =
-    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
-applyBuiltinName QuotientInteger      =
-    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
-applyBuiltinName RemainderInteger     =
-    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
-applyBuiltinName ModInteger           =
-    applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
-applyBuiltinName LessThanInteger      =
-    applyTypedBuiltinName typedLessThanInteger      (<)
-applyBuiltinName LessThanEqInteger    =
-    applyTypedBuiltinName typedLessThanEqInteger    (<=)
-applyBuiltinName GreaterThanInteger   =
-    applyTypedBuiltinName typedGreaterThanInteger   (>)
-applyBuiltinName GreaterThanEqInteger =
-    applyTypedBuiltinName typedGreaterThanEqInteger (>=)
-applyBuiltinName EqInteger            =
-    applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (<>)
-applyBuiltinName TakeByteString       =
-    applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
-applyBuiltinName DropByteString       =
-    applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
-applyBuiltinName SHA2                 =
-    applyTypedBuiltinName typedSHA2                 Hash.sha2
-applyBuiltinName SHA3                 =
-    applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      =
-    applyTypedBuiltinName typedVerifySignature      verifySignature
-applyBuiltinName EqByteString         =
-    applyTypedBuiltinName typedEqByteString         (==)
-applyBuiltinName LtByteString         =
-    applyTypedBuiltinName typedLtByteString         (<)
-applyBuiltinName GtByteString         =
-    applyTypedBuiltinName typedGtByteString         (>)
+    applyTypedBuiltinName typedAddInteger           (coerce ((+) :: Integer -> Integer -> Integer))
+-- applyBuiltinName SubtractInteger      =
+--     applyTypedBuiltinName typedSubtractInteger      (-)
+-- applyBuiltinName MultiplyInteger      =
+--     applyTypedBuiltinName typedMultiplyInteger      (*)
+-- applyBuiltinName DivideInteger        =
+--     applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
+-- applyBuiltinName QuotientInteger      =
+--     applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
+-- applyBuiltinName RemainderInteger     =
+--     applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
+-- applyBuiltinName ModInteger           =
+--     applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
+-- applyBuiltinName LessThanInteger      =
+--     applyTypedBuiltinName typedLessThanInteger      (coerce ((<) :: Integer -> Integer -> Bool))
+-- applyBuiltinName LessThanEqInteger    =
+--     applyTypedBuiltinName typedLessThanEqInteger    (<=)
+-- applyBuiltinName GreaterThanInteger   =
+--     applyTypedBuiltinName typedGreaterThanInteger   (>)
+-- applyBuiltinName GreaterThanEqInteger =
+--     applyTypedBuiltinName typedGreaterThanEqInteger (>=)
+-- applyBuiltinName EqInteger            =
+--     applyTypedBuiltinName typedEqInteger            (==)
+-- applyBuiltinName Concatenate          =
+--     applyTypedBuiltinName typedConcatenate          (<>)
+-- applyBuiltinName TakeByteString       =
+--     applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
+-- applyBuiltinName DropByteString       =
+--     applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
+-- applyBuiltinName SHA2                 =
+--     applyTypedBuiltinName typedSHA2                 Hash.sha2
+-- applyBuiltinName SHA3                 =
+--     applyTypedBuiltinName typedSHA3                 Hash.sha3
+-- applyBuiltinName VerifySignature      =
+--     applyTypedBuiltinName typedVerifySignature      verifySignature
+-- applyBuiltinName EqByteString         =
+--     applyTypedBuiltinName typedEqByteString         (==)
+-- applyBuiltinName LtByteString         =
+--     applyTypedBuiltinName typedLtByteString         (<)
+-- applyBuiltinName GtByteString         =
+--     applyTypedBuiltinName typedGtByteString         (>)
 
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.

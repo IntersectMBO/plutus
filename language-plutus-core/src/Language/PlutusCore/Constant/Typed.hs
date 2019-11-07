@@ -29,7 +29,10 @@ module Language.PlutusCore.Constant.Typed
     , Evaluator (..)
     , EvaluateT (..)
     , ReflectT (..)
+    , Visibility (..)
     , KnownType (..)
+    , InternalKnownType
+    , ExternalKnownType
     , PrettyKnown (..)
     , KnownTypeValue (..)
     , OpaqueTerm (..)
@@ -79,15 +82,18 @@ import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
+type InternalKnownType a uni = (KnownType a uni, VisibilityOf a ~ 'Internal)
+type ExternalKnownType a uni = (KnownType a uni, VisibilityOf a ~ 'External)
+
 -- | Type schemes of primitive operations.
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
 -- @r@ is the resulting type in @a@, e.g. the resulting type in
 -- @ByteString -> Size -> Integer@ is @Integer@.
 data TypeScheme uni as r where
-    -- TODO: replace @KnownType a@ with @uni `Includes` a@ in both the constructors
-    -- once implicit unlifting is gone.
-    TypeSchemeResult  :: KnownType a uni => Proxy a -> TypeScheme uni '[] a
-    TypeSchemeArrow   :: KnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
+    TypeSchemeResult
+        :: InternalKnownType a uni => Proxy a -> TypeScheme uni '[] a
+    TypeSchemeArrow
+        :: InternalKnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -335,10 +341,17 @@ makeReflectT = ReflectT . ExceptT . InnerT
 makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
 makeRightReflectT = ReflectT . lift . InnerT
 
+data Visibility
+    = Internal
+    | External
+
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- | Haskell types known to exist on the PLC side.
 class PrettyKnown a => KnownType a uni where
+    type VisibilityOf a :: Visibility
+    type VisibilityOf a = 'External
+
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
 
@@ -355,6 +368,11 @@ class PrettyKnown a where
     prettyKnown :: a -> Doc ann
     default prettyKnown :: Pretty a => a -> Doc ann
     prettyKnown = pretty
+
+-- unliftWith
+--     :: (Monad m, ExternalKnownType a uni)
+--     => Evaluator Term uni m -> Term TyName Name uni () -> ReflectT m a
+-- unliftWith = readKnown
 
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
@@ -463,11 +481,11 @@ unshiftConstantsType = substConstantsType unextend
 unshiftConstantsTerm :: Term tyname name (Extend b uni) ann -> Term tyname name uni ann
 unshiftConstantsTerm = substConstantsTerm unextend
 
-extractValueOf :: GEq uni  => uni a -> Term tyname name uni ann -> Maybe a
+extractValueOf :: GEq uni => uni a -> Term tyname name uni ann -> Maybe a
 extractValueOf uni1 (Constant _ (SomeOf uni2 x)) = fmap (\Refl -> x) $ geq uni1 uni2
 extractValueOf _    _                            = Nothing
 
-extractValue :: (GEq uni, uni `Includes` a)  => Term tyname name uni ann -> Maybe a
+extractValue :: (GEq uni, uni `Includes` a) => Term tyname name uni ann -> Maybe a
 extractValue = extractValueOf knownUni
 
 -- | Like @extractValueOf Extension@, but doesn't require any constraints.
@@ -557,7 +575,9 @@ newtype InExtended (b :: *) (uni :: * -> *) a = InExtended
 -- A type known in a universe is known in an extended version of that universe.
 instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
             KnownType (InExtended b uni a) euni where
-    toTypeAst _ = shiftConstantsType $ toTypeAst @a @uni Proxy
+    type VisibilityOf (InExtended b uni a) = 'Internal
+
+    toTypeAst _ = shiftConstantsType $ toTypeAst @a Proxy
 
     makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
 
@@ -573,6 +593,8 @@ newtype InUnextended (euni :: * -> *) a = InUnextended
 
 instance (Evaluable uni, KnownType a euni, euni ~ Extend b uni, Typeable b) =>
             KnownType (InUnextended euni a) uni where
+    type VisibilityOf (InUnextended euni a) = 'Internal
+
     toTypeAst _ = unshiftConstantsType $ toTypeAst @a @euni Proxy
 
     makeKnown (InUnextended x) = unshiftConstantsTerm $ makeKnown @a @euni x

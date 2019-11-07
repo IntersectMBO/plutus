@@ -1,7 +1,5 @@
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+
 -- | The CK machine.
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -18,6 +16,7 @@ module Language.PlutusCore.Evaluation.CkMachine
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Dynamic.Instances
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Error
@@ -40,11 +39,11 @@ import           Language.PlutusCore.StdLib.Data.Unit
 instance Pretty BSL.ByteString where
     pretty _ = "<bytesting>"
 
-test1 :: EvaluationResult (Either Text (Integer, Bool))
-test1 = readKnownCk @_ @DefaultUni $ makeKnown (5 :: Integer, True)
+test1 :: EvaluationResult (Either Text (Shallow Integer, Bool))
+test1 = readKnownCk @_ @DefaultUni . makeKnown $ (Shallow (5 :: Integer), True)
 
-test :: EvaluationResult (Either Text ((Integer, ()), (Char, Bool)))
-test = readKnownCk @_ @DefaultUni $ makeKnown ((5 :: Integer, ()), ('a', True))
+test :: EvaluationResult (Either Text ((Shallow Integer, ()), (Char, Bool)))
+test = readKnownCk @_ @DefaultUni $ makeKnown ((Shallow (5 :: Integer), ()), ('a', True))
 
 test2 :: EvaluationResult (Either Text ())
 test2 = readKnownCk @() @DefaultUni unitval

@@ -64,11 +64,11 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
 
 extensionType
-    :: forall b uni proxy tyname ann. ann -> Type tyname (Extend b uni) ann
+    :: forall b uni tyname ann. ann -> Type tyname (Extend b uni) ann
 extensionType ann = TyConstant ann $ Some Extension
 
 extensionTerm
-    :: forall b uni term proxy tyname name ann. TermLike term tyname name (Extend b uni)
+    :: forall b uni term tyname name ann. TermLike term tyname name (Extend b uni)
     => ann -> b -> term ann
 extensionTerm ann = constant ann . SomeOf Extension
 
