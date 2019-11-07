@@ -37,7 +37,6 @@ import qualified Data.Aeson.Types                as Aeson
 import           Data.Bifunctor                  (Bifunctor (..))
 
 import           Language.Plutus.Contract.Record
-import           Language.PlutusTx.Lattice
 
 {- Note [Handling state in contracts]
 
@@ -117,8 +116,8 @@ data ResumableError e =
     --   'Resumable'.
     | AesonError String
     -- ^ Something went wrong while decoding a JSON value
-    | ProgressError String
-    -- ^ The progress invariant was violated
+    | ProgressError
+    -- ^ Progress was made unexpectedly.
     | OtherError e
     deriving (Eq, Ord, Show)
 
@@ -291,24 +290,15 @@ runClosed con rc =
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
                         o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
+-- | 'RunOpenProgress' indicats whether progress was made when running a 
+--   resumable program on an open record. Progress was made if one of the 
+--   branches of the open record switched from open to closed.
 data RunOpenProgress = 
     Progress 
     | NoProgress
 
-instance JoinSemiLattice RunOpenProgress where
-    NoProgress \/ NoProgress = NoProgress
-    _ \/ _                   = Progress
-
-instance MeetSemiLattice RunOpenProgress where
-    Progress /\ Progress = Progress
-    _ /\ _               = NoProgress
-
-instance BoundedJoinSemiLattice RunOpenProgress where
-    bottom = NoProgress
-
-instance BoundedMeetSemiLattice RunOpenProgress where
-    top = Progress
-
+-- | Run an unfinished resumable program on an open record,
+--   throwing an error if any progress is made.
 runOpenNoProgress
     :: ( MonadWriter o m
        , MonadError (ResumableError e) m)
@@ -319,10 +309,24 @@ runOpenNoProgress con opr = do
     result <- runOpen con opr
     case result of
         Left (_, NoProgress) -> pure ()
-        _                    -> throwError (ProgressError "")
-    -- TODO: The sole purpose of 'runOpenNoProgress' is to run the `MonadWriter`
-    --       effects. If we stored the 'o' that was written in the 'Record' then
-    --       we wouldn't need 'runOpenNoProgress' at all.
+        _                    -> throwError ProgressError
+    -- TODO: The sole purpose of 'runOpenNoProgress' is to run the 'MonadWriter'
+    --       effects. But every time we call 'runOpenNoProgress', 'runOpen con 
+    --       opr' has already been run before. If we could store the 
+    --       'o' that it produced in the record then we can avoid 
+    --       'runOpenNoProgress' altogether.
+
+runOpenRightNoProgress
+    :: ( MonadWriter o m
+       , MonadError (ResumableError e) m)
+    => Resumable e (Step (Maybe i) o) a
+    -> OpenRecord i
+    -> OpenRecord i
+    -> m (OpenRecord i, RunOpenProgress)
+runOpenRightNoProgress r oL oR = do
+    let oR' = clear oR
+    runOpenNoProgress r oR'
+    pure (OpenBoth oL oR', Progress)
 
 -- | Run an unfinished resumable program on an open record. Returns the updated
 --   record.
@@ -348,16 +352,16 @@ runOpen con opr =
                 Left (opr'', prog) -> pure (Left (OpenRight cr opr'', prog))
                 Right (cr', a)     -> pure (Right (ClosedBin cr cr', lr a))
         (CAp l r, OpenBoth orL orR) -> do
+            -- we only need to update the right branch if no progress was made
+            -- in the left branch. So we run the left branch first, look at the
+            -- result, and then run the right branch if necessary.
             lr <- runOpen l orL
             case lr of
                 Right (crL, _) -> do
                     let oR' = clear orR
                     runOpenNoProgress r oR'
                     pure (Left (OpenRight crL oR', Progress))
-                Left (oL, Progress) -> do
-                    let oR' = clear orR
-                    runOpenNoProgress r oR'
-                    pure (Left (OpenBoth oL oR', Progress))
+                Left (oL, Progress) -> Left <$> runOpenRightNoProgress r oL orR
                 Left (oL, NoProgress) -> do
                     rr <- runOpen r orR
                     case rr of
@@ -375,9 +379,7 @@ runOpen con opr =
                 Right (crL, a) -> pure (Right (ClosedAlt (Left crL), a))
                 Left (oL, Progress) -> do
                     tell wl
-                    let oR' = clear orR
-                    runOpenNoProgress r oR'
-                    pure (Left (OpenBoth oL oR', Progress))
+                    Left <$> runOpenRightNoProgress r oL orR
                 Left (oL, NoProgress) -> do
                     (rr, wr) <- runWriterT (runOpen r orR)
                     case rr of

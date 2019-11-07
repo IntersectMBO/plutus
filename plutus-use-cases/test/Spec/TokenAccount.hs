@@ -11,8 +11,9 @@ import           Language.PlutusTx.Lattice
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Value                                          (TokenName, Value)
 
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (AccountOwner (..), TokenAccountSchema,
+                                                                        tokenAccountContract)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
-import Language.PlutusTx.Coordination.Contracts.TokenAccount (AccountOwner(..), TokenAccountSchema, tokenAccountContract)
 
 tests :: TestTree
 tests = testGroup "token account"
@@ -28,8 +29,6 @@ tests = testGroup "token account"
         tokenAccountContract
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
-        -- /\ assertDone w1 (const True) ""
-        -- /\ emulatorLog (const False) ""
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
         ( callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
         >> handleBlockchainEvents w1
@@ -38,20 +37,20 @@ tests = testGroup "token account"
         >> handleBlockchainEvents w1
         >> addBlocks 1)
 
-    -- , checkPredicate @TokenAccountSchema @ContractError "Transfer & redeem all funds"
-    --     tokenAccountContract
-    --     (assertNoFailedTransactions
-    --     /\ assertNotDone w1 "contract should not have any errors"
-    --     /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-    --     /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
-    --     (  callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
-    --     >> handleBlockchainEvents w1
-    --     >> callEndpoint @"pay" w1 (accountOwner, Ada.lovelaceValueOf 10)
-    --     >> handleBlockchainEvents w1
-    --     >> callEndpoint @"transfer-token" w1 (accountOwner, walletPubKey w2)
-    --     >> handleBlockchainEvents w1
-    --     >> callEndpoint @"redeem" w2 (accountOwner, walletPubKey w2)
-    --     >> handleBlockchainEvents w2)
+    , checkPredicate @TokenAccountSchema @ContractError "Transfer & redeem all funds"
+        tokenAccountContract
+        (assertNoFailedTransactions
+        /\ assertNotDone w1 "contract should not have any errors"
+        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
+        (  callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
+        >> handleBlockchainEvents w1
+        >> callEndpoint @"pay" w1 (accountOwner, Ada.lovelaceValueOf 10)
+        >> handleBlockchainEvents w1
+        >> payToWallet w1 w2 theToken
+        >> handleBlockchainEvents w1
+        >> callEndpoint @"redeem" w2 (accountOwner, walletPubKey w2)
+        >> handleBlockchainEvents w2)
 
     ]
 
@@ -63,8 +62,8 @@ tokenName :: TokenName
 tokenName = "test token"
 
 accountOwner :: AccountOwner
-accountOwner = 
-    let currencySymbol = "76fcf6ead0de688c0dd68a58ee7a73f0536fc1eeb8cdb1bdda36ef734f94865e"
+accountOwner =
+    let currencySymbol = "f5280bdee70e27421f36798ffce5a21024d850f5604c9eb332442cffb56c57fe"
     in AccountOwner (currencySymbol, tokenName)
 
 theToken :: Value

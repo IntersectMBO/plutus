@@ -17,7 +17,6 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   -- * Contract functionality
   , pay
   , redeem
-  , transferToken
   , newAccount
   , balance
   , address
@@ -59,14 +58,12 @@ instance ScriptType TokenAccount where
 
 type TokenAccountSchema =
     BlockchainActions
-        .\/ Endpoint "transfer-token" (AccountOwner, PubKey)
         .\/ Endpoint "redeem" (AccountOwner, PubKey)
         .\/ Endpoint "pay" (AccountOwner, Value)
         .\/ Endpoint "new-account" (TokenName, PubKey)
 
 type HasTokenAccountSchema s =
     ( HasBlockchainActions s
-    , HasEndpoint "transfer-token" (AccountOwner, PubKey) s
     , HasEndpoint "redeem" (AccountOwner, PubKey) s
     , HasEndpoint "pay" (AccountOwner, Value) s
     , HasEndpoint "new-account" (TokenName, PubKey) s
@@ -79,12 +76,7 @@ tokenAccountContract
        , AsContractError e
        )
     => Contract s e ()
-tokenAccountContract = go >> go >> go where
-    go = transfer_ <|> redeem_ <|> pay_ <|> newAccount_
-    transfer_ = do
-        (accountOwner, destination) <- endpoint @"transfer-token" @(AccountOwner, PubKey) @s
-        void $ transferToken accountOwner destination
-        tokenAccountContract
+tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
     redeem_ = do
         (accountOwner, destination) <- endpoint @"redeem" @(AccountOwner, PubKey) @s
         void $ redeem destination accountOwner
@@ -126,10 +118,6 @@ ownsTxOut owner txout =
     let fromDataScript = PlutusTx.fromData @AccountOwner . Ledger.getDataScript in
     Just owner == (Ledger.txOutData txout >>= fromDataScript)
 
-transferToken :: (HasWriteTx s, AsContractError e) => AccountOwner -> PubKey -> Contract s e TxId
-transferToken accountOwner destination =
-    writeTxSuccess $ mempty & outputs .~ [pubKeyTxOut (accountToken accountOwner) destination]
-
 -- | Create a transaction that spends all outputs belonging to the 'AccountOwner'.
 redeemTx
     :: ( HasUtxoAt s )
@@ -168,9 +156,7 @@ balance owner = do
     utxos <- utxoAt (Scripts.scriptAddress scriptInstance)
     let inner =
             foldMap (view Ledger.outValue)
-            $ filter (ownsTxOut owner)
-            $ fmap snd
-            $ Map.toList
+            $ Map.filter (ownsTxOut owner)
             $ fromMaybe Map.empty
             $ utxos ^. at (Scripts.scriptAddress scriptInstance)
     pure inner
