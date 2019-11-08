@@ -1097,6 +1097,19 @@ extractCounterExample smtModel maps func = ( Slot slotNum
         revertAllWarnings = concatMap (\x -> revertTransactionWarningList
                                                (unNestTransactionWarning x) maps) warningList
 
+transSlotsPositive :: STransaction -> SBool
+transSlotsPositive trans = slotMin .>= 0 .&& slotMax .>= 0
+  where slotInt = interval trans :: SSlotInterval
+        (slotMin, slotMax) = ST.untuple slotInt
+
+transListSlotsPositive :: MaxActions -> SList NTransaction -> SBool
+transListSlotsPositive b slist
+  | b <= 0 = sFalse
+  | otherwise = ite (SL.null slist)
+                    sTrue
+                    (transSlotsPositive (SL.head slist) .&&
+                     transListSlotsPositive (b - 1) (SL.tail slist))
+
 warningsTrace :: MS.Contract
               -> IO (Either ThmResult
                             (Maybe ( Slot
@@ -1116,6 +1129,7 @@ warningsTrace con =
         satCommand = proveWith (z3 {validateModel = True})
                                (forAll [snLabel, transListLabel]
                                    (\sn transList ->
-                                       (SL.length transList .<= literal (maxActs + 1)) .&& (sn .>= literal 0) .=>
+                                       (SL.length transList .<= literal maxTransListLength) .&& (sn .>= literal 0) .&& transListSlotsPositive maxTransListLength transList .=>
                                        SL.null (warningsFunc sn transList)))
+        maxTransListLength = maxActs + 1
 
