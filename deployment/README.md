@@ -29,6 +29,8 @@ nixops host. You should always ssh using the `nixops ssh <host>` command on nixo
 
 The key for API Gateway (`apiGatewayKey` in the `secrets.json` file mentioned in next section) can be found in the AWS console in the API Gateway section, API Keys (left menu), then select the API Key in the list, and then click the `Show` hyperlink in the `API key` field on the right hand side.
 
+It seems currently the API Gateway end-point is not deployed automatically. It can also be deployed from the console by going to API Gateway, click in the API to deploy, and in the resources section resources click actions, and then Deploy API in the drop down menu ([related stack overflow question](https://stackoverflow.com/questions/38910937/terraform-not-deploying-api-gateway-stage)).
+
 ## Nixops
 
 The individual machines now exist but have nothing installed on them. We configure these machines and install services using nixops.
