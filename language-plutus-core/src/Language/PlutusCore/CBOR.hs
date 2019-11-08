@@ -1,17 +1,13 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.
 module Language.PlutusCore.CBOR () where
 
-import           Codec.CBOR.Decoding
-import           Codec.CBOR.Encoding
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable          hiding (fold)
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer      (AlexPosn)
@@ -20,6 +16,12 @@ import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Codec.CBOR.Decoding
+import           Codec.CBOR.Encoding
+import           Codec.Serialise
+import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable          hiding (fold)
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -108,38 +110,38 @@ instance Serialise Unique where
     encode (Unique i) = encodeInt i
     decode = Unique <$> decodeInt
 
-instance Serialise a => Serialise (Name a) where
+instance Serialise ann => Serialise (Name ann) where
     -- TODO: should we encode the name or not?
-    encode (Name x txt u) = encode x <> encode txt <> encode u
+    encode (Name ann txt u) = encode ann <> encode txt <> encode u
     decode = Name <$> decode <*> decode <*> decode
 
-instance Serialise a => Serialise (TyName a) where
+instance Serialise ann => Serialise (TyName ann) where
     encode (TyName n) = encode n
     decode = TyName <$> decode
 
-instance Serialise a => Serialise (Version a) where
-    encode (Version x n n' n'') = fold [ encode x, encode n, encode n', encode n'' ]
+instance Serialise ann => Serialise (Version ann) where
+    encode (Version ann n n' n'') = fold [ encode ann, encode n, encode n', encode n'' ]
     decode = Version <$> decode <*> decode <*> decode <*> decode
 
-instance Serialise a => Serialise (Kind a) where
+instance Serialise ann => Serialise (Kind ann) where
     encode = cata a where
-        a (TypeF x)           = encodeTag 0 <> encode x
-        a (KindArrowF x k k') = fold [ encodeTag 1, encode x, k , k' ]
+        a (TypeF ann)           = encodeTag 0 <> encode ann
+        a (KindArrowF ann k k') = fold [ encodeTag 1, encode ann, k , k' ]
 
     decode = go =<< decodeTag
         where go 0 = Type <$> decode
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-instance (Serialise a, Serialise (tyname a)) => Serialise (Type tyname a) where
+instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) where
     encode = cata a where
-        a (TyVarF x tn)        = encodeTag 0 <> encode x <> encode tn
-        a (TyFunF x t t')      = encodeTag 1 <> encode x <> t <> t'
-        a (TyIFixF x pat arg)  = encodeTag 2 <> encode x <> pat <> arg
-        a (TyForallF x tn k t) = encodeTag 3 <> encode x <> encode tn <> encode k <> t
-        a (TyBuiltinF x bi)    = encodeTag 4 <> encode x <> encode bi
-        a (TyLamF x n k t)     = encodeTag 5 <> encode x <> encode n <> encode k <> t
-        a (TyAppF x t t')      = encodeTag 6 <> encode x <> t <> t'
+        a (TyVarF ann tn)        = encodeTag 0 <> encode ann <> encode tn
+        a (TyFunF ann t t')      = encodeTag 1 <> encode ann <> t <> t'
+        a (TyIFixF ann pat arg)  = encodeTag 2 <> encode ann <> pat <> arg
+        a (TyForallF ann tn k t) = encodeTag 3 <> encode ann <> encode tn <> encode k <> t
+        a (TyBuiltinF ann con)   = encodeTag 4 <> encode ann <> encode con
+        a (TyLamF ann n k t)     = encodeTag 5 <> encode ann <> encode n <> encode k <> t
+        a (TyAppF ann t t')      = encodeTag 6 <> encode ann <> t <> t'
 
     decode = go =<< decodeTag
         where go 0 = TyVar <$> decode <*> decode
@@ -155,9 +157,9 @@ instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
     decode = DynamicBuiltinName <$> decode
 
-instance Serialise a => Serialise (Builtin a) where
-    encode (BuiltinName x bn)     = encodeTag 0 <> encode x <> encode bn
-    encode (DynBuiltinName x dbn) = encodeTag 1 <> encode x <> encode dbn
+instance Serialise ann => Serialise (Builtin ann) where
+    encode (BuiltinName ann bn)     = encodeTag 0 <> encode ann <> encode bn
+    encode (DynBuiltinName ann dbn) = encodeTag 1 <> encode ann <> encode dbn
 
     decode = go =<< decodeTag
         where go 0 = BuiltinName <$> decode <*> decode
@@ -165,28 +167,31 @@ instance Serialise a => Serialise (Builtin a) where
               go _ = fail "Failed to decode Builtin ()"
 
 
-instance Serialise a => Serialise (Constant a) where
-    encode (BuiltinInt x i) = fold [ encodeTag 0, encode x, encodeInteger i ]
-    encode (BuiltinBS x bs) = fold [ encodeTag 1, encode x, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinStr x s) = encodeTag 2 <> encode x <> encode s
+instance Serialise ann => Serialise (Constant ann) where
+    encode (BuiltinInt ann i) = fold [ encodeTag 0, encode ann, encodeInteger i ]
+    encode (BuiltinBS ann bs) = fold [ encodeTag 1, encode ann, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinStr ann s) = encodeTag 2 <> encode ann <> encode s
     decode = go =<< decodeTag
         where go 0 = BuiltinInt <$> decode <*> decodeInteger
               go 1 = BuiltinBS <$> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinStr <$> decode <*> decode
               go _ = fail "Failed to decode Constant ()"
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a) where
+instance ( Serialise ann
+         , Serialise (tyname ann)
+         , Serialise (name ann)
+         ) => Serialise (Term tyname name ann) where
     encode = cata a where
-        a (VarF x n)           = encodeTag 0 <> encode x <> encode n
-        a (TyAbsF x tn k t)    = encodeTag 1 <> encode x <> encode tn <> encode k <> t
-        a (LamAbsF x n ty t)   = encodeTag 2 <> encode x <> encode n <> encode ty <> t
-        a (ApplyF x t t')      = encodeTag 3 <> encode x <> t <> t'
-        a (ConstantF x c)      = encodeTag 4 <> encode x <> encode c
-        a (TyInstF x t ty)     = encodeTag 5 <> encode x <> t <> encode ty
-        a (UnwrapF x t)        = encodeTag 6 <> encode x <> t
-        a (IWrapF x pat arg t) = encodeTag 7 <> encode x <> encode pat <> encode arg <> t
-        a (ErrorF x ty)        = encodeTag 8 <> encode x <> encode ty
-        a (BuiltinF x bi)      = encodeTag 9 <> encode x <> encode bi
+        a (VarF ann n)           = encodeTag 0 <> encode ann <> encode n
+        a (TyAbsF ann tn k t)    = encodeTag 1 <> encode ann <> encode tn <> encode k <> t
+        a (LamAbsF ann n ty t)   = encodeTag 2 <> encode ann <> encode n <> encode ty <> t
+        a (ApplyF ann t t')      = encodeTag 3 <> encode ann <> t <> t'
+        a (ConstantF ann c)      = encodeTag 4 <> encode ann <> encode c
+        a (TyInstF ann t ty)     = encodeTag 5 <> encode ann <> t <> encode ty
+        a (UnwrapF ann t)        = encodeTag 6 <> encode ann <> t
+        a (IWrapF ann pat arg t) = encodeTag 7 <> encode ann <> encode pat <> encode arg <> t
+        a (ErrorF ann ty)        = encodeTag 8 <> encode ann <> encode ty
+        a (BuiltinF ann bi)      = encodeTag 9 <> encode ann <> encode bi
 
     decode = go =<< decodeTag
         where go 0 = Var <$> decode <*> decode
@@ -201,16 +206,22 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (T
               go 9 = Builtin <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (VarDecl tyname name a) where
+instance ( Serialise ann
+         , Serialise (tyname ann)
+         , Serialise (name ann)
+         ) => Serialise (VarDecl tyname name ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 
-instance (Serialise a, Serialise (tyname a))  => Serialise (TyVarDecl tyname a) where
+instance (Serialise ann, Serialise (tyname ann))  => Serialise (TyVarDecl tyname ann) where
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a) where
-    encode (Program x v t) = encode x <> encode v <> encode t
+instance ( Serialise ann
+         , Serialise (tyname ann)
+         , Serialise (name ann)
+         ) => Serialise (Program tyname name ann) where
+    encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
 
 deriving newtype instance (Serialise a) => Serialise (Normalized a)
@@ -222,19 +233,20 @@ instance Serialise Special
 
 deriving instance Serialise Index
 
-instance Serialise a => Serialise (DeBruijn a) where
-    encode (DeBruijn x txt i) = encode x <> encode txt <> encode i
+instance Serialise ann => Serialise (DeBruijn ann) where
+    encode (DeBruijn ann txt i) = encode ann <> encode txt <> encode i
     decode = DeBruijn <$> decode <*> decode <*> decode
 
-instance Serialise a => Serialise (TyDeBruijn a) where
+instance Serialise ann => Serialise (TyDeBruijn ann) where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
 
-instance (Serialise a) => Serialise (ParseError a)
-instance (Serialise (tyname a), Serialise a) => Serialise (ValueRestrictionError tyname a)
-instance (Serialise (tyname a), Serialise (name a), Serialise a) => Serialise (NormalizationError tyname name a)
-instance (Serialise a) => Serialise (UniqueError a)
+instance (Serialise ann) => Serialise (ParseError ann)
+instance (Serialise (tyname ann), Serialise ann) => Serialise (ValueRestrictionError tyname ann)
+instance (Serialise (tyname ann), Serialise (name ann), Serialise ann) =>
+            Serialise (NormCheckError tyname name ann)
+instance (Serialise ann) => Serialise (UniqueError ann)
 instance Serialise UnknownDynamicBuiltinNameError
-instance (Serialise a) => Serialise (InternalTypeError a)
-instance (Serialise a) => Serialise (TypeError a)
-instance (Serialise a) => Serialise (Error a)
+instance (Serialise ann) => Serialise (InternalTypeError ann)
+instance (Serialise ann) => Serialise (TypeError ann)
+instance (Serialise ann) => Serialise (Error ann)

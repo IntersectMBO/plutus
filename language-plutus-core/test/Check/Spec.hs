@@ -190,5 +190,5 @@ normalTypesCheck = runQuote $ do
         , testCase "builtin" $ isRight (checkNormal (builtinNameAsTerm AddInteger)) @? "Normalization"
       ]
         where
-            checkNormal :: Term TyName Name () -> Either (Normal.NormalizationError TyName Name ()) ()
+            checkNormal :: Term TyName Name () -> Either (Normal.NormCheckError TyName Name ()) ()
             checkNormal = Normal.checkTerm

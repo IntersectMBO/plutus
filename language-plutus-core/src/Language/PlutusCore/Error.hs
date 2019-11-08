@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
@@ -14,8 +15,8 @@ module Language.PlutusCore.Error
     , AsParseError (..)
     , ValueRestrictionError (..)
     , AsValueRestrictionError (..)
-    , NormalizationError (..)
-    , AsNormalizationError (..)
+    , NormCheckError (..)
+    , AsNormCheckError (..)
     , UniqueError (..)
     , AsUniqueError (..)
     , UnknownDynamicBuiltinNameError (..)
@@ -49,30 +50,30 @@ throwingEither r e = case e of
     Right v -> pure v
 
 -- | An error encountered during parsing.
-data ParseError a
+data ParseError ann
     = LexErr String
-    | Unexpected (Token a)
-    | Overflow a Natural Integer
+    | Unexpected (Token ann)
+    | Overflow ann Natural Integer
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
-data ValueRestrictionError tyname a
-    = ValueRestrictionViolation a (tyname a)
+data ValueRestrictionError tyname ann
+    = ValueRestrictionViolation ann (tyname ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ValueRestrictionError
 
-data UniqueError a
-    = MultiplyDefined Unique a a
-    | IncoherentUsage Unique a a
-    | FreeVariable Unique a
+data UniqueError ann
+    = MultiplyDefined Unique ann ann
+    | IncoherentUsage Unique ann ann
+    | FreeVariable Unique ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''UniqueError
 
-data NormalizationError tyname name a
-    = BadType a (Type tyname a) T.Text
-    | BadTerm a (Term tyname name a) T.Text
+data NormCheckError tyname name ann
+    = BadType ann (Type tyname ann) T.Text
+    | BadTerm ann (Term tyname name ann) T.Text
     deriving (Show, Eq, Generic, NFData)
-makeClassyPrisms ''NormalizationError
+makeClassyPrisms ''NormCheckError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
 newtype UnknownDynamicBuiltinNameError
@@ -82,79 +83,86 @@ newtype UnknownDynamicBuiltinNameError
 makeClassyPrisms ''UnknownDynamicBuiltinNameError
 
 -- | An internal error occurred during type checking.
-data InternalTypeError a
+data InternalTypeError ann
     = OpenTypeOfBuiltin (Type TyName ()) (Builtin ())
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''InternalTypeError
 
-data TypeError a
-    = KindMismatch a (Type TyName ()) (Kind ()) (Kind ())
-    | TypeMismatch a (Term TyName Name ())
-                     (Type TyName ())
-                     (Normalized (Type TyName ()))
-    | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
-    | InternalTypeErrorE a (InternalTypeError a)
-    | FreeTypeVariableE (TyName a)
-    | FreeVariableE (Name a)
+data TypeError ann
+    = KindMismatch ann (Type TyName ()) (Kind ()) (Kind ())
+    | TypeMismatch ann
+        (Term TyName Name ())
+        (Type TyName ())
+        (Normalized (Type TyName ()))
+    | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
+    | InternalTypeErrorE ann (InternalTypeError ann)
+    | FreeTypeVariableE (TyName ann)
+    | FreeVariableE (Name ann)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
-data Error a
-    = ParseErrorE (ParseError a)
-    | ValueRestrictionErrorE (ValueRestrictionError TyName a)
-    | UniqueCoherencyErrorE (UniqueError a)
-    | TypeErrorE (TypeError a)
-    | NormalizationErrorE (NormalizationError TyName Name a)
+data Error ann
+    = ParseErrorE (ParseError ann)
+    | ValueRestrictionErrorE (ValueRestrictionError TyName ann)
+    | UniqueCoherencyErrorE (UniqueError ann)
+    | TypeErrorE (TypeError ann)
+    | NormCheckErrorE (NormCheckError TyName Name ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''Error
 
-instance AsParseError (Error a) a where
+instance AsParseError (Error ann) ann where
     _ParseError = _ParseErrorE
 
-instance tyname ~ TyName => AsValueRestrictionError (Error a) tyname a where
+instance tyname ~ TyName => AsValueRestrictionError (Error ann) tyname ann where
     _ValueRestrictionError = _ValueRestrictionErrorE
 
-instance AsUniqueError (Error a) a where
+instance AsUniqueError (Error ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error a) a where
+instance AsTypeError (Error ann) ann where
     _TypeError = _TypeErrorE
 
-instance (tyname ~ TyName, name ~ Name) => AsNormalizationError (Error a) tyname name a where
-    _NormalizationError = _NormalizationErrorE
+instance (tyname ~ TyName, name ~ Name) =>
+            AsNormCheckError (Error ann) tyname name ann where
+    _NormCheckError = _NormCheckErrorE
 
 asInternalError :: Doc ann -> Doc ann
 asInternalError doc =
     "An internal error has occurred:" <+> doc <> hardline <>
     "Please report this as a bug."
 
-instance Pretty a => Pretty (ParseError a) where
+instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
-    pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+    pretty (Overflow ann _ _) = "Integer overflow at" <+> pretty ann <> "."
 
-instance (Pretty a, PrettyBy config (tyname a)) => PrettyBy config (ValueRestrictionError tyname a) where
+instance (Pretty ann, PrettyBy config (tyname ann)) =>
+            PrettyBy config (ValueRestrictionError tyname ann) where
     prettyBy config (ValueRestrictionViolation ann name) =
         "Value restriction violation at" <+> pretty ann <+>
         "after the binding for this name:" <+> prettyBy config name
 
-instance Pretty a => Pretty (UniqueError a) where
+instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
-        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is redefined at" <+> pretty redef
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+>
+        "is redefined at" <+> pretty redef
     pretty (IncoherentUsage u def use) =
-        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is used in a different scope at" <+> pretty use
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+>
+        "is used in a different scope at" <+> pretty use
     pretty (FreeVariable u use) =
         "Variable" <+> pretty u <+> "is free at" <+> pretty use
 
-instance (Pretty a, PrettyBy config (Type tyname a), PrettyBy config (Term tyname name a)) =>
-        PrettyBy config (NormalizationError tyname name a) where
-    prettyBy config (BadType l ty expct) =
-        "Malformed type at" <+> pretty l <>
+instance ( Pretty ann
+         , PrettyBy config (Type tyname ann)
+         , PrettyBy config (Term tyname name ann)
+         ) => PrettyBy config (NormCheckError tyname name ann) where
+    prettyBy config (BadType ann ty expct) =
+        "Malformed type at" <+> pretty ann <>
         ". Type" <+>  squotes (prettyBy config ty) <+>
         "is not a" <+> pretty expct <> "."
-    prettyBy config (BadTerm l t expct) =
-        "Malformed term at" <+> pretty l <>
+    prettyBy config (BadTerm ann t expct) =
+        "Malformed term at" <+> pretty ann <>
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
@@ -162,21 +170,21 @@ instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameErrorE dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
-instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
+instance PrettyBy PrettyConfigPlc (InternalTypeError ann) where
     prettyBy config (OpenTypeOfBuiltin ty bi)        =
         asInternalError $
             "The type" <+> prettyBy config ty <+>
             "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
-instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')          =
-        "Kind mismatch at" <+> pretty x <+>
+instance Pretty ann => PrettyBy PrettyConfigPlc (TypeError ann) where
+    prettyBy config (KindMismatch ann ty k k')          =
+        "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')         =
-        "Type mismatch at" <+> pretty x <>
+    prettyBy config (TypeMismatch ann t ty ty')         =
+        "Type mismatch at" <+> pretty ann <>
         (if _pcpoCondensedErrors (_pcpOptions config) == CondensedErrorsYes
             then mempty
             else " in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
@@ -188,17 +196,17 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Free type variable:" <+> prettyBy config name
     prettyBy config (FreeVariableE name)              =
         "Free variable:" <+> prettyBy config name
-    prettyBy config (InternalTypeErrorE x err)        =
+    prettyBy config (InternalTypeErrorE ann err)        =
         prettyBy config err <> hardline <>
-        "Error location:" <+> pretty x
-    prettyBy _      (UnknownDynamicBuiltinName x err) =
-        "Unknown dynamic built-in name at" <+> pretty x <>
+        "Error location:" <+> pretty ann
+    prettyBy _      (UnknownDynamicBuiltinName ann err) =
+        "Unknown dynamic built-in name at" <+> pretty ann <>
         ":" <+> pretty err
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
-instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
+instance Pretty ann => PrettyBy PrettyConfigPlc (Error ann) where
     prettyBy _      (ParseErrorE e)            = pretty e
     prettyBy config (ValueRestrictionErrorE e) = prettyBy config e
     prettyBy _      (UniqueCoherencyErrorE e)  = pretty e
     prettyBy config (TypeErrorE e)             = prettyBy config e
-    prettyBy config (NormalizationErrorE e)    = prettyBy config e
+    prettyBy config (NormCheckErrorE e)        = prettyBy config e

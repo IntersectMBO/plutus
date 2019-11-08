@@ -66,7 +66,7 @@ module Language.PlutusCore
     -- * Errors
     , Error (..)
     , AsError (..)
-    , AsNormalizationError (..)
+    , AsNormCheckError (..)
     , UnknownDynamicBuiltinNameError (..)
     , UniqueError (..)
     -- * Base functors
@@ -180,7 +180,7 @@ parseTypecheck
     :: (AsParseError e AlexPosn,
         AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
-        AsNormalizationError e TyName Name AlexPosn,
+        AsNormCheckError e TyName Name AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
@@ -190,7 +190,7 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 -- | Typecheck a program.
 typecheckPipeline
     :: (AsValueRestrictionError e TyName a,
-        AsNormalizationError e TyName Name a,
+        AsNormCheckError e TyName Name a,
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)

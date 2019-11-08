@@ -3,11 +3,12 @@
 {-# LANGUAGE RankNTypes            #-}
 
 -- | This module makes sure types are normalized inside programs.
-module Language.PlutusCore.Check.Normal ( checkProgram
-                                        , checkTerm
-                                        , NormalizationError (..)
-                                        , isNormalType
-                                        ) where
+module Language.PlutusCore.Check.Normal
+    ( checkProgram
+    , checkTerm
+    , isNormalType
+    , NormCheckError (..)
+    ) where
 
 import           Control.Monad.Except
 
@@ -17,14 +18,18 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Ensure that all types in the 'Program' are normalized.
-checkProgram :: (AsNormalizationError e TyName Name a, MonadError e m) => Program TyName Name a -> m ()
+checkProgram
+    :: (AsNormCheckError e TyName Name ann, MonadError e m)
+    => Program TyName Name ann -> m ()
 checkProgram (Program _ _ t) = checkTerm t
 
 -- | Ensure that all types in the 'Term' are normalized.
-checkTerm :: (AsNormalizationError e TyName Name a, MonadError e m) => Term TyName Name a -> m ()
-checkTerm p = throwingEither _NormalizationError $ check p
+checkTerm
+    :: (AsNormCheckError e TyName Name ann, MonadError e m)
+    => Term TyName Name ann -> m ()
+checkTerm p = throwingEither _NormCheckError $ check p
 
-check :: Term tyname name a -> Either (NormalizationError tyname name a) ()
+check :: Term tyname name ann -> Either (NormCheckError tyname name ann) ()
 check (Error _ ty)           = normalType ty
 check (TyInst _ t ty)        = check t >> normalType ty
 check (IWrap _ pat arg term) = normalType pat >> normalType arg >> check term
@@ -47,17 +52,17 @@ The current version of the specification has moved to fully saturated builtins,
 but the implementation is not there. Consequently we consider builtin types to be neutral types.
 -}
 
-isNormalType :: Type tyname a -> Bool
+isNormalType :: Type tyname ann -> Bool
 isNormalType = isRight . normalType
 
-normalType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+normalType :: Type tyname ann -> Either (NormCheckError tyname name ann) ()
 normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
 normalType (TyLam _ _ _ ty)    = normalType ty
 normalType ty                  = neutralType ty
 
-neutralType :: Type tyname a -> Either (NormalizationError tyname name a) ()
+neutralType :: Type tyname ann -> Either (NormCheckError tyname name ann) ()
 neutralType TyVar{}           = pure ()
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
 -- See note [Builtin applications and values]
