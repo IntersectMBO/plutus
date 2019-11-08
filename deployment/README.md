@@ -27,6 +27,8 @@ We use `terraform` to manage the AWS infrastructure including networking, loadba
 You should now have a complete infrastructure however not much is installed on the machines. You can see the available machines and their addresses with `cat ~/.ssh/config.d/plutus_playground`. You can ssh to the machines as `root` in an emergency, but this should never ever be done unless the machine is completely unreachable from
 nixops host. You should always ssh using the `nixops ssh <host>` command on nixops host instead of directly logging in as root over ssh.
 
+The key for API Gateway (`apiGatewayKey` in the `secrets.json` file mentioned in next section) can be found in the AWS console in the API Gateway section, API Keys (left menu), then select the API Key in the list, and then click the `Show` hyperlink in the `API key` field on the right hand side.
+
 ## Nixops
 
 The individual machines now exist but have nothing installed on them. We configure these machines and install services using nixops.
@@ -40,7 +42,7 @@ The individual machines now exist but have nothing installed on them. We configu
 5. Enter the project `cd plutus`
 6. Switch to the branch you want to work with e.g. `git checkout master`
 7. Move into the nixops directory `cd deployment/nixops/`
-8. Create a file called `secrets.json` that is based on [the example file](./nixops/secrets.json.example)
+8. Create a file called `secrets.json` that is based on [the example file](./nixops/secrets.json.example).
 9. Create a new deployment `nixops create ./default.nix ./network.nix -d playgrounds`
 10. Deploy the new deployment `nixops deploy`
 11. You should now be able to reach the plutus playground at [https://myname.plutus.iohkdev.io] (https://myname.plutus.iohkdev.io) and marlowe playground at [https://myname.marlowe.iohkdev.io] (https://myname.marlowe.iohkdev.io)
