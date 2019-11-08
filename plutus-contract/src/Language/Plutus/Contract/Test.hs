@@ -35,7 +35,7 @@ module Language.Plutus.Contract.Test(
     , renderTraceContext
     ) where
 
-import           Control.Lens                          (at, folded, from, to, view, (^.))
+import           Control.Lens                          (at, from, view, (^.))
 import           Control.Monad                         (unless)
 import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
 import           Data.Foldable                         (toList)
@@ -165,7 +165,10 @@ renderTraceContext
     -> ContractTraceState s e a
     -> Text.Text
 renderTraceContext testOutputs st =
-    let nonEmptyLogs = filter (P.not . null . snd) (Map.toList $ fmap toList $ view ctsEvents st)
+    let nonEmptyLogs = 
+            Map.toList 
+            $ Map.filter (P.not . null) 
+            $ eventsByWallet st
         theContract = unContract (view ctsContract st)
         results = fmap (\(wallet, events) -> (wallet, State.runResumable events theContract)) nonEmptyLogs
         prettyResults = fmap (\(wallet, res) -> hang 2 $ vsep ["Wallet:" <+> pretty wallet, prettyResult res]) results
@@ -183,7 +186,10 @@ renderTraceContext testOutputs st =
 
 prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
 prettyWalletEvents cts =
-    let nonEmptyLogs = filter (P.not . null . snd) (Map.toList $ view ctsEvents cts)
+    let nonEmptyLogs = 
+            Map.toList
+            $ Map.filter (P.not . null)
+            $ eventsByWallet cts
         renderLog (wallet, events) =
             let events' = vsep $ fmap (\e -> "•" <+> nest 2 (pretty e)) $ toList events
             in nest 2 $ vsep ["Events for" <+> pretty wallet <> colon, events']
@@ -284,7 +290,7 @@ assertEvents
     -> String
     -> TracePredicate s e a
 assertEvents w pr nm = PredF $ \(_, r) -> do
-    let es = fmap toList (view (ctsEvents . at w) $ _ctrTraceState r)
+    let es = fmap (toList . walletEvents) (view (ctsWalletStates . at w) $ _ctrTraceState r)
     case es of
         Nothing -> do
             tell $ "Event log for" <+> pretty w <+> "not found"
@@ -511,7 +517,7 @@ contractEventsWallet
     -> Wallet
     -> ([Event s], Contract s e a)
 contractEventsWallet rs w =
-    let evts = rs ^. ctrTraceState . ctsEvents . at w . folded . to toList
+    let evts = Map.findWithDefault [] w (eventsByWallet $ _ctrTraceState rs)
         con  = rs ^. ctrTraceState . ctsContract
     in (evts, con)
 
