@@ -1,6 +1,8 @@
 -- | A dynamic built-in name that allows to call arbitrary 'IO' actions over
 -- PLC values of a built-in types (including dynamic built-in types).
 
+{-# LANGUAGE DataKinds #-}
+
 module Language.PlutusCore.Constant.Dynamic.Call
     ( dynamicCallTypeScheme
     , dynamicCallAssign
@@ -16,17 +18,17 @@ import           Language.PlutusCore.Type
 import           Data.Proxy
 import           System.IO.Unsafe
 
-dynamicCallTypeScheme :: (KnownType a uni, Evaluable uni) => TypeScheme uni (a -> ()) ()
+dynamicCallTypeScheme :: (KnownType a uni, Evaluable uni) => TypeScheme uni '[a] ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicCallAssign
     :: (KnownType a uni, Evaluable uni)
     => DynamicBuiltinName
     -> (a -> IO ())
-    -> DynamicBuiltinNameDefinition uni
+    -> NameDefinition uni
 dynamicCallAssign name f =
-    DynamicBuiltinNameDefinition name $
-        DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f)
+    NameDefinition name $
+        NameMeaning dynamicCallTypeScheme (unsafePerformIO . f)
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name uni ()
 dynamicCall = dynamicBuiltinNameAsTerm

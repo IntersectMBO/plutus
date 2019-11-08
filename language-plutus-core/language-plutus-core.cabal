@@ -73,7 +73,7 @@ library
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         Language.PlutusCore.Lexer
---         Language.PlutusCore.Parser
+        Language.PlutusCore.Parser
         PlutusPrelude
         Control.Monad.Trans.Inner
         Common

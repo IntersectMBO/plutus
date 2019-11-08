@@ -29,10 +29,7 @@ module Language.PlutusCore.Constant.Typed
     , Evaluator (..)
     , EvaluateT (..)
     , ReflectT (..)
-    , Visibility (..)
     , KnownType (..)
-    , InternalKnownType
-    , ExternalKnownType
     , PrettyKnown (..)
     , KnownTypeValue (..)
     , OpaqueTerm (..)
@@ -82,18 +79,15 @@ import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
-type InternalKnownType a uni = (KnownType a uni, VisibilityOf a ~ 'Internal)
-type ExternalKnownType a uni = (KnownType a uni, VisibilityOf a ~ 'External)
-
 -- | Type schemes of primitive operations.
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
 -- @r@ is the resulting type in @a@, e.g. the resulting type in
 -- @ByteString -> Size -> Integer@ is @Integer@.
 data TypeScheme uni as r where
     TypeSchemeResult
-        :: InternalKnownType a uni => Proxy a -> TypeScheme uni '[] a
+        :: KnownType a uni => Proxy a -> TypeScheme uni '[] a
     TypeSchemeArrow
-        :: InternalKnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
+        :: KnownType a uni => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -341,17 +335,10 @@ makeReflectT = ReflectT . ExceptT . InnerT
 makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
 makeRightReflectT = ReflectT . lift . InnerT
 
-data Visibility
-    = Internal
-    | External
-
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- | Haskell types known to exist on the PLC side.
 class PrettyKnown a => KnownType a uni where
-    type VisibilityOf a :: Visibility
-    type VisibilityOf a = 'External
-
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
 
@@ -575,8 +562,6 @@ newtype InExtended (b :: *) (uni :: * -> *) a = InExtended
 -- A type known in a universe is known in an extended version of that universe.
 instance (Evaluable uni, KnownType a uni, euni ~ Extend b uni, Typeable b) =>
             KnownType (InExtended b uni a) euni where
-    type VisibilityOf (InExtended b uni a) = 'Internal
-
     toTypeAst _ = shiftConstantsType $ toTypeAst @a Proxy
 
     makeKnown (InExtended x) = shiftConstantsTerm $ makeKnown @a x
@@ -593,8 +578,6 @@ newtype InUnextended (euni :: * -> *) a = InUnextended
 
 instance (Evaluable uni, KnownType a euni, euni ~ Extend b uni, Typeable b) =>
             KnownType (InUnextended euni a) uni where
-    type VisibilityOf (InUnextended euni a) = 'Internal
-
     toTypeAst _ = unshiftConstantsType $ toTypeAst @a @euni Proxy
 
     makeKnown (InUnextended x) = unshiftConstantsTerm $ makeKnown @a @euni x

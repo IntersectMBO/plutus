@@ -64,19 +64,19 @@ withTypedBuiltinName GtByteString         k = k typedGtByteString
 -- make is just one @args@ by induction on the list type argument.
 
 oneArg
-    :: (InternalKnownType a uni, InternalKnownType b uni)
+    :: (KnownType a uni, KnownType b uni)
     => TypeScheme uni '[a] b
 oneArg =
     Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 twoArgs
-    :: (InternalKnownType a uni, InternalKnownType b uni, InternalKnownType c uni)
+    :: (KnownType a uni, KnownType b uni, KnownType c uni)
     => TypeScheme uni '[a, b] c
 twoArgs =
     Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 threeArgs
-    :: (InternalKnownType a uni, InternalKnownType b uni, InternalKnownType c uni, InternalKnownType d uni)
+    :: (KnownType a uni, KnownType b uni, KnownType c uni, KnownType d uni)
     => TypeScheme uni '[a, b, c] d
 threeArgs =
     Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
@@ -118,27 +118,27 @@ typedModInteger = TypedBuiltinName ModInteger twoArgs
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] Bool
 typedLessThanInteger = TypedBuiltinName LessThanInteger twoArgs
 
 -- | Typed 'LessThanEqInteger'.
 typedLessThanEqInteger
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] Bool
 typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger twoArgs
 
 -- | Typed 'GreaterThanInteger'.
 typedGreaterThanInteger
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] Bool
 typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger twoArgs
 
 -- | Typed 'GreaterThanEqInteger'.
 typedGreaterThanEqInteger
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] Bool
 typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger twoArgs
 
 -- | Typed 'EqInteger'.
 typedEqInteger
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow Integer, Shallow Integer] Bool
 typedEqInteger = TypedBuiltinName EqInteger twoArgs
 
 -- | Typed 'Concatenate'.
@@ -168,20 +168,20 @@ typedSHA3 = TypedBuiltinName SHA3 oneArg
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString, Shallow BSL.ByteString] (EvaluationResult (Deep Bool))
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString, Shallow BSL.ByteString] (EvaluationResult Bool)
 typedVerifySignature = TypedBuiltinName VerifySignature threeArgs
 
 -- | Typed 'EqByteString'.
 typedEqByteString
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] Bool
 typedEqByteString = TypedBuiltinName EqByteString twoArgs
 
 -- | Typed 'LtByteString'.
 typedLtByteString
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] Bool
 typedLtByteString = TypedBuiltinName LtByteString twoArgs
 
 -- | Typed 'GtByteString'.
 typedGtByteString
-    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] (Deep Bool)
+    :: Evaluable uni => TypedBuiltinName uni '[Shallow BSL.ByteString, Shallow BSL.ByteString] Bool
 typedGtByteString = TypedBuiltinName GtByteString twoArgs

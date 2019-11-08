@@ -64,8 +64,6 @@ instance PrettyKnown Integer where
     prettyKnown = undefined
 
 instance KnownType a uni => KnownType (EvaluationResult a) uni where
-    type VisibilityOf (EvaluationResult a) = VisibilityOf a
-
     toTypeAst _ = toTypeAst @a Proxy
 
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
@@ -103,8 +101,6 @@ instance Pretty a => Pretty (Shallow a) where
     pretty = pretty . unShallow
 
 instance (Evaluable uni, uni `Includes` a, PrettyKnown a) => KnownType (Shallow a) uni where
-    type VisibilityOf (Shallow a) = 'Internal
-
     toTypeAst _ = constantType @a Proxy ()
 
     makeKnown (Shallow x) = constantTerm () x
@@ -116,21 +112,6 @@ instance (Evaluable uni, uni `Includes` a, PrettyKnown a) => KnownType (Shallow 
             _      -> throwError "Not an integer-encoded Char"
 instance PrettyKnown a => PrettyKnown (Shallow a) where
     prettyKnown = prettyKnown . unShallow
-
-newtype Deep a = Deep
-    { unDeep :: a
-    } deriving (Show, Generic, Typeable)
-
-instance Pretty a => Pretty (Deep a) where
-    pretty = pretty . unDeep
-
-instance ExternalKnownType a uni => KnownType (Deep a) uni where
-    type VisibilityOf (Deep a) = 'Internal
-    toTypeAst = undefined -- toTypeAst
-    makeKnown = makeKnown . unDeep
-    readKnown eval = fmap Deep . readKnown eval
-instance PrettyKnown a => PrettyKnown (Deep a) where
-    prettyKnown = prettyKnown . unDeep
 
 instance Evaluable uni => KnownType Bool uni where
     toTypeAst _ = bool
@@ -187,8 +168,6 @@ newtype AsExtension (uni :: * -> *) a = AsExtension
 
 instance (Evaluable uni, euni ~ Extend a uni, Typeable a, Pretty a) =>
             KnownType (AsExtension uni a) euni where
-    type VisibilityOf (AsExtension uni a) = 'Internal
-
     toTypeAst _ = extensionType ()
 
     makeKnown = extensionTerm () . unAsExtension

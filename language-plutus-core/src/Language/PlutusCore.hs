@@ -2,12 +2,12 @@
 module Language.PlutusCore
     (
       -- * Parser
-      parse
-    , parseST
-    , parseTermST
-    , parseTypeST
-    , parseScoped
-    , parseProgram
+--       parse
+--     , parseST
+--     , parseTermST
+--     , parseTypeST
+--     , parseScoped
+      parseProgram
     , parseTerm
     , parseType
     -- * AST

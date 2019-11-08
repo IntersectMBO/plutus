@@ -143,7 +143,7 @@ makeConstAppResult = pure . makeKnown
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given built-in type.
 extractBuiltin
-    :: forall m uni a. (Monad m, InternalKnownType a uni)
+    :: forall m uni a. (Monad m, KnownType a uni)
     => Value TyName Name uni () -> EvaluateConstApp uni m a
 extractBuiltin value                             =
     thoist (InnerT . fmap nat . runReflectT) $ readKnownM value where

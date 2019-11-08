@@ -1,8 +1,13 @@
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE Rank2Types           #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | The CK machine.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings    #-}
 
 module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
@@ -47,7 +52,6 @@ test = readKnownCk @_ @DefaultUni $ makeKnown ((Shallow (5 :: Integer), ()), ('a
 
 test2 :: EvaluationResult (Either Text ())
 test2 = readKnownCk @() @DefaultUni unitval
-
 
 infix 4 |>, <|
 
