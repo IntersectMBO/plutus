@@ -2,18 +2,19 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
-module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
-                                      , DynamicBuiltinName (..)
-                                      , StagedBuiltinName (..)
-                                      , Version (..)
-                                      , Keyword (..)
-                                      , Special (..)
-                                      , Token (..)
-                                      , TypeBuiltin (..)
-                                      , prettyBytes
-                                      , allBuiltinNames
-                                      , defaultVersion
-                                      ) where
+module Language.PlutusCore.Lexer.Type
+    ( TypeBuiltin (..)
+    , BuiltinName (..)
+    , DynamicBuiltinName (..)
+    , StagedBuiltinName (..)
+    , Version (..)
+    , Keyword (..)
+    , Special (..)
+    , Token (..)
+    , prettyBytes
+    , allBuiltinNames
+    , defaultVersion
+    ) where
 
 import           Language.PlutusCore.Name
 import           PlutusPrelude
@@ -25,34 +26,36 @@ import           Language.Haskell.TH.Syntax         (Lift)
 import           Numeric                            (showHex)
 
 -- | A builtin type
-data TypeBuiltin = TyByteString
-                 | TyInteger
-                 | TyString
-                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
+data TypeBuiltin
+    = TyByteString
+    | TyInteger
+    | TyString
+    deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
-data BuiltinName = AddInteger
-                 | SubtractInteger
-                 | MultiplyInteger
-                 | DivideInteger
-                 | QuotientInteger
-                 | RemainderInteger
-                 | ModInteger
-                 | LessThanInteger
-                 | LessThanEqInteger
-                 | GreaterThanInteger
-                 | GreaterThanEqInteger
-                 | EqInteger
-                 | Concatenate
-                 | TakeByteString
-                 | DropByteString
-                 | SHA2
-                 | SHA3
-                 | VerifySignature
-                 | EqByteString
-                 | LtByteString
-                 | GtByteString
-                 deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
+data BuiltinName
+    = AddInteger
+    | SubtractInteger
+    | MultiplyInteger
+    | DivideInteger
+    | QuotientInteger
+    | RemainderInteger
+    | ModInteger
+    | LessThanInteger
+    | LessThanEqInteger
+    | GreaterThanInteger
+    | GreaterThanEqInteger
+    | EqInteger
+    | Concatenate
+    | TakeByteString
+    | DropByteString
+    | SHA2
+    | SHA3
+    | VerifySignature
+    | EqByteString
+    | LtByteString
+    | GtByteString
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -63,65 +66,70 @@ newtype DynamicBuiltinName = DynamicBuiltinName
       deriving newtype (NFData, Lift)
 
 -- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
-data StagedBuiltinName = StaticStagedBuiltinName  BuiltinName
-                       | DynamicStagedBuiltinName DynamicBuiltinName
-                       deriving (Show, Eq, Generic, NFData, Lift)
+data StagedBuiltinName
+    = StaticStagedBuiltinName  BuiltinName
+    | DynamicStagedBuiltinName DynamicBuiltinName
+    deriving (Show, Eq, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
-data Version a = Version a Natural Natural Natural
-               deriving (Show, Eq, Functor, Generic, NFData, Lift)
+data Version ann
+    = Version ann Natural Natural Natural
+    deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
 -- | A keyword in Plutus Core.
-data Keyword = KwAbs
-             | KwLam
-             | KwIFix
-             | KwFun
-             | KwAll
-             | KwByteString
-             | KwInteger
-             | KwType
-             | KwProgram
-             | KwCon
-             | KwIWrap
-             | KwBuiltin
-             | KwUnwrap
-             | KwError
-             deriving (Show, Eq, Generic, NFData)
+data Keyword
+    = KwAbs
+    | KwLam
+    | KwIFix
+    | KwFun
+    | KwAll
+    | KwByteString
+    | KwInteger
+    | KwType
+    | KwProgram
+    | KwCon
+    | KwIWrap
+    | KwBuiltin
+    | KwUnwrap
+    | KwError
+    deriving (Show, Eq, Generic, NFData)
 
 -- | A special character. This type is only used internally between the lexer
 -- and the parser.
-data Special = OpenParen
-             | CloseParen
-             | OpenBracket
-             | CloseBracket
-             | Dot
-             | Exclamation
-             | OpenBrace
-             | CloseBrace
-             deriving (Show, Eq, Generic, NFData)
+data Special
+    = OpenParen
+    | CloseParen
+    | OpenBracket
+    | CloseBracket
+    | Dot
+    | Exclamation
+    | OpenBrace
+    | CloseBrace
+    deriving (Show, Eq, Generic, NFData)
 
 -- | A token generated by the lexer.
-data Token a = LexName { loc        :: a
-                       , name       :: T.Text
-                       , identifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
-                       }
-             | LexInt { loc :: a, tkInt :: Integer }
-             | LexBS { loc :: a, tkBytestring :: BSL.ByteString }
-             | LexBuiltin { loc :: a, tkBuiltin :: BuiltinName }
-             | LexNat { loc :: a, tkNat :: Natural }
-             | LexKeyword { loc :: a, tkKeyword :: Keyword }
-             | LexSpecial { loc :: a, tkSpecial :: Special }
-             | EOF { loc :: a }
-             deriving (Show, Eq, Generic, NFData)
+data Token ann
+    = LexName { loc        :: ann
+              , name       :: T.Text
+              , identifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
+              }
+    | LexInt { loc :: ann, tkInt :: Integer }
+    | LexBS { loc :: ann, tkBytestring :: BSL.ByteString }
+    | LexBuiltin { loc :: ann, tkBuiltin :: BuiltinName }
+    | LexNat { loc :: ann, tkNat :: Natural }
+    | LexKeyword { loc :: ann, tkKeyword :: Keyword }
+    | LexSpecial { loc :: ann, tkSpecial :: Special }
+    | EOF { loc :: ann }
+    deriving (Show, Eq, Generic, NFData)
 
-asBytes :: Word8 -> Doc a
+asBytes :: Word8 -> Doc ann
 asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
     where addLeadingZero :: String -> String
           addLeadingZero
               | x < 16    = ('0' :)
               | otherwise = id
 
-prettyBytes :: BSL.ByteString -> Doc a
+prettyBytes :: BSL.ByteString -> Doc ann
 prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
 instance Pretty Special where
     pretty OpenParen    = "("
@@ -149,7 +157,7 @@ instance Pretty Keyword where
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
 
-instance Pretty (Token a) where
+instance Pretty (Token ann) where
     pretty (LexName _ n _)   = pretty n
     pretty (LexInt _ i)      = pretty i
     pretty (LexNat _ n)      = pretty n
@@ -194,7 +202,7 @@ instance Pretty TypeBuiltin where
     pretty TyByteString = "bytestring"
     pretty TyString     = "string"
 
-instance Pretty (Version a) where
+instance Pretty (Version ann) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
 
 -- | The list of all 'BuiltinName's.
@@ -204,5 +212,5 @@ allBuiltinNames = [minBound .. maxBound]
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
 
 -- | The default version of Plutus Core supported by this library.
-defaultVersion :: a -> Version a
-defaultVersion a = Version a 1 0 0
+defaultVersion :: ann -> Version ann
+defaultVersion ann = Version ann 1 0 0

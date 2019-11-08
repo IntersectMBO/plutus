@@ -195,11 +195,12 @@ testRebindShadowedVariable =
         typeKind = Type ()
 
         -- (all x (type) (fun (all y (type) y) x))
-        type0 = TyForall () xName typeKind (TyFun () (TyForall () yName typeKind varY) varX)
+        l1 = TyForall () xName typeKind (TyFun () (TyForall () yName typeKind varY) varX)
         -- (all x (type) (fun (all x (type) x) x))
-        type1 = TyForall () xName typeKind (TyFun () (TyForall () xName typeKind varX) varX)
+        r1 = TyForall () xName typeKind (TyFun () (TyForall () xName typeKind varX) varX)
+
     in
-        type0 == type1
+        l1 == r1
 
 testRebindCapturedVariable :: Bool
 testRebindCapturedVariable =

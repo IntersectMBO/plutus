@@ -75,8 +75,8 @@ instance (PP.Pretty a) => PP.Pretty (Error a) where
 instance PLC.AsTypeError CompileError () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
 
-instance PLC.AsNormalizationError CompileError PLC.TyName PLC.Name () where
-    _NormalizationError = _NoContext . _PLCError . PLC._NormalizationError
+instance PLC.AsNormCheckError CompileError PLC.TyName PLC.Name () where
+    _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError
 
 instance PLC.AsValueRestrictionError CompileError PLC.TyName () where
     _ValueRestrictionError = _NoContext . _PLCError . PLC._ValueRestrictionError

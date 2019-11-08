@@ -6,25 +6,25 @@
 -- just for the type equality constraint
 {-# LANGUAGE GADTs                 #-}
 
-module Language.PlutusCore.Quote (
-              runQuoteT
-            , runQuote
-            , freshUnique
-            , freshName
-            , freshTyName
-            , freshenName
-            , freshenTyName
-            , markNonFresh
-            , markNonFreshBelow
-            , markNonFreshTerm
-            , markNonFreshType
-            , markNonFreshProgram
-            , QuoteT
-            , Quote
-            , MonadQuote
-            , FreshState
-            , liftQuote
-            ) where
+module Language.PlutusCore.Quote
+    ( runQuoteT
+    , runQuote
+    , freshUnique
+    , freshName
+    , freshTyName
+    , freshenName
+    , freshenTyName
+    , markNonFresh
+    , markNonFreshBelow
+    , markNonFreshTerm
+    , markNonFreshType
+    , markNonFreshProgram
+    , QuoteT
+    , Quote
+    , MonadQuote
+    , FreshState
+    , liftQuote
+    ) where
 
 import           Control.Lens              (coerced)
 import           Control.Monad.Except
@@ -81,7 +81,7 @@ instance MonadQuote m => MonadQuote (PropertyT m)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.
-runQuoteT ::  (Monad m) => QuoteT m a -> m a
+runQuoteT ::  Monad m => QuoteT m a -> m a
 runQuoteT q = evalStateT (unQuoteT q) emptyFreshState
 
 -- | A non-transformer version of 'QuoteT'.
@@ -94,24 +94,24 @@ runQuote = runIdentity . runQuoteT
 -- | Marks all the 'Unique's in a type as used, so they will not be generated in future. Useful if you
 -- have a type which was not generated in 'Quote'.
 markNonFreshType
-    :: (HasUnique (tyname a) TypeUnique, MonadQuote m)
-    => Type tyname a
+    :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
+    => Type tyname ann
     -> m ()
 markNonFreshType = markNonFreshMax . collectTypeUniques
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.
 markNonFreshTerm
-    :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
-    => Term tyname name a
+    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    => Term tyname name ann
     -> m ()
 markNonFreshTerm = markNonFreshMax . collectTermUniques
 
 -- | Marks all the 'Unique's in a program as used, so they will not be generated in future. Useful if you
 -- have a program which was not generated in 'Quote'.
 markNonFreshProgram
-    :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
-    => Program tyname name a
+    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    => Program tyname name ann
     -> m ()
 markNonFreshProgram (Program _ _ body) = markNonFreshTerm body
 
@@ -132,7 +132,7 @@ markNonFreshBelow nonFresh = liftQuote $ do
     nextU <- QuoteT get
     QuoteT $ put $ Unique (max (unUnique nonFresh) (unUnique nextU))
 
-collectTypeUniques :: (HasUnique (tyname a) TypeUnique) => Type tyname a -> Set.Set Unique
+collectTypeUniques :: (HasUnique (tyname ann) TypeUnique) => Type tyname ann -> Set.Set Unique
 collectTypeUniques = cata f where
     f = \case
         TyVarF _ tn        -> Set.singleton (tn ^. unique . coerced)
@@ -143,7 +143,9 @@ collectTypeUniques = cata f where
         TyIFixF _ pat arg  -> pat <> arg
         _                  -> mempty
 
-collectTermUniques :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) => Term tyname name a -> Set.Set Unique
+collectTermUniques
+    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
+    => Term tyname name ann -> Set.Set Unique
 collectTermUniques = cata f where
     f = \case
         VarF _ n           -> Set.singleton (n ^. unique . coerced)
@@ -164,17 +166,17 @@ freshUnique = liftQuote $ do
     pure nextU
 
 -- | Get a fresh 'Name', given the annotation and the 'Text.Text' name.
-freshName :: Monad m => a -> Text.Text -> QuoteT m (Name a)
+freshName :: Monad m => ann -> Text.Text -> QuoteT m (Name ann)
 freshName ann str = Name ann str <$> freshUnique
 
 -- | Make a copy of the given 'Name' that is distinct from the old one.
-freshenName :: Monad m => Name a -> QuoteT m (Name a)
+freshenName :: Monad m => Name ann -> QuoteT m (Name ann)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
 -- | Get a fresh 'TyName', given the annotation and the 'Text.Text' name.
-freshTyName :: Monad m => a -> Text.Text -> QuoteT m (TyName a)
+freshTyName :: Monad m => ann -> Text.Text -> QuoteT m (TyName ann)
 freshTyName = fmap TyName .* freshName
 
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
-freshenTyName :: Monad m => TyName a -> QuoteT m (TyName a)
+freshenTyName :: Monad m => TyName ann -> QuoteT m (TyName ann)
 freshenTyName (TyName name) = TyName <$> freshenName name
