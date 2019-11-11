@@ -35,7 +35,7 @@ import           Playground.Types             (CompilationResult (CompilationRes
 import           Playground.Usecases          (crowdfunding, errorHandling, game, vesting)
 import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaUnit, FormSchemaValue))
 import           Test.Tasty                   (TestTree, testGroup)
-import           Test.Tasty.HUnit             (Assertion, assertBool, assertEqual, assertFailure, testCase)
+import           Test.Tasty.HUnit             (Assertion, assertEqual, assertFailure, testCase)
 import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
 import           Wallet.Rollup.Render         (showBlockchain)
 
@@ -410,7 +410,7 @@ knownCurrencyTest :: TestTree
 knownCurrencyTest =
     testCase "should return registered known currencies" $ do
         currencies <- runExceptT $ PI.compile maxInterpretationTime code
-        assertBool "" (hasKnownCurrency currencies)
+        hasKnownCurrency currencies
   where
     code =
         SourceCode $
@@ -430,14 +430,17 @@ knownCurrencyTest =
             , "schemas = []"
             , "iotsDefinitions = \"\""
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2] _))) =
-        cur1 == adaCurrency &&
-        cur2 ==
-        KnownCurrency
-            (ValidatorHash "")
-            "MyCurrency"
-            (TokenName "MyToken" :| [])
-    hasKnownCurrency _ = False
+    expectedCurrencies =
+        [ adaCurrency
+        , KnownCurrency
+              (ValidatorHash "")
+              "MyCurrency"
+              (TokenName "MyToken" :| [])
+        ]
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ currencies _))) =
+        assertEqual "" expectedCurrencies currencies
+    hasKnownCurrency other =
+        assertFailure $ "Compilation failed: " <> show other
 
 compile ::
        Text
@@ -454,7 +457,9 @@ compilationChecks :: Text -> TestTree
 compilationChecks source =
     testCase "should compile" $ do
         compiled <- compile source
-        assertBool "compiled" (isRight compiled)
+        case compiled of
+            Left err -> assertFailure $ "Compilation failed: " <> show err
+            Right _  -> pure ()
 
 -- | Encode a value in JSON, then make a JSON *string* from that
 toJSONString :: JSON.ToJSON a => a -> JSON.Value
