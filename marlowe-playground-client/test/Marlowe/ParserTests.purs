@@ -6,7 +6,8 @@ import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
 import Marlowe.Gen (genAction, genContract, genObservation, genValue)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
-import Marlowe.Parser (Action, Contract, Observation, Value, action, contractTerm, observation, value)
+import Marlowe.Holes (Action, Contract, Observation, Value)
+import Marlowe.Parser (action, contract, observation, value)
 import Marlowe.Pretty (pretty)
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.Unit (TestSuite, Test, suite, test)
@@ -28,7 +29,7 @@ all =
     test "Pretty Contract Parser" $ quickCheckGen prettyContractParser
 
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
+quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
 
 -- NOTE: If a generated value has a hole in it, the start and end positions in that
 --       hole will not be the same as when they have been parsed so we `show` the
@@ -91,7 +92,7 @@ contractParser :: GenWithHoles Result
 contractParser = do
   v <- genContract
   let
-    result = runParser (show v) (parens contractTerm <|> contractTerm)
+    result = runParser (show v) (parens contract <|> contract)
 
     (expected :: Either String Contract) = Right v
   pure (show result === show expected)
@@ -100,7 +101,7 @@ prettyContractParser :: GenWithHoles Result
 prettyContractParser = do
   v <- genContract
   let
-    result = runParser (show $ pretty v) (parens contractTerm <|> contractTerm)
+    result = runParser (show $ pretty v) (parens contract <|> contract)
 
     (expected :: Either String Contract) = Right v
   pure (show result === show expected)

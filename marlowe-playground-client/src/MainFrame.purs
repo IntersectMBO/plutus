@@ -20,8 +20,9 @@ import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (_Just, assign, modifying, over, preview, use, view)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
-import Data.Maybe (Maybe(Just, Nothing))
+import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.Newtype (unwrap)
+import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
@@ -44,15 +45,18 @@ import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(Co
 import Marlowe (SPParams_)
 import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
+import Marlowe.Holes (MarloweHole(..), replaceInPositions)
+import Marlowe.Parser (contract, hole)
 import Marlowe.Pretty (pretty)
-import Marlowe.Semantics (ChoiceId, InputF(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
+import MonadApp (class MonadApp, marloweEditorMoveCursorToPosition, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
 import Prelude (Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _gistUrl, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _slot, _view, emptyMarloweState)
+import Text.Parsing.Parser (runParser)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _gistUrl, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 initialState :: FrontendState
@@ -68,6 +72,7 @@ initialState =
     , gistUrl: Nothing
     , blocklyState: Nothing
     , analysisState: NotAsked
+    , selectedHole: Nothing
     }
 
 ------------------------------------------------------------
@@ -120,6 +125,8 @@ toEvent (MarloweHandleDragEvent _) = Nothing
 
 toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweDropScript"
 
+toEvent (MarloweMoveToPosition _) = Nothing
+
 toEvent CheckAuthStatus = Nothing
 
 toEvent PublishGist = Just $ (defaultEvent "Publish") { label = Just "Gist" }
@@ -153,6 +160,10 @@ toEvent (SetChoice _ _) = Nothing
 toEvent ResetSimulator = Nothing
 
 toEvent Undo = Just $ defaultEvent "Undo"
+
+toEvent (SelectHole _) = Nothing
+
+toEvent (InsertHole _ _ _) = Nothing
 
 toEvent (HandleBlocklyMessage _) = Nothing
 
@@ -190,6 +201,7 @@ handleAction (HandleDropEvent event) = do
   haskellEditorSetValue contents (Just 1)
 
 handleAction (MarloweHandleEditorMessage (TextChanged text)) = do
+  assign _selectedHole Nothing
   saveMarloweBuffer text
   updateContractInState text
 
@@ -200,6 +212,10 @@ handleAction (MarloweHandleDropEvent event) = do
   contents <- readFileFromDragEvent event
   marloweEditorSetValue contents (Just 1)
   updateContractInState contents
+
+handleAction (MarloweMoveToPosition pos) = do
+  marloweEditorMoveCursorToPosition pos
+  assign _selectedHole Nothing
 
 handleAction CheckAuthStatus = do
   assign _authStatus Loading
@@ -353,6 +369,32 @@ handleAction Undo = do
       case NEL.fromList tail of
         Nothing -> ms
         Just netail -> netail
+
+handleAction (SelectHole hole) = assign _selectedHole hole
+
+handleAction (InsertHole constructor firstHole@(MarloweHole { start }) holes) = do
+  mCurrContract <- marloweEditorGetValue
+  case mCurrContract of
+    Just currContract -> do
+      -- If we have a top level hole we don't want surround the value with brackets
+      -- so we parse the editor contents and if it is a hole we strip the parens
+      let
+        contractWithHole = case runParser currContract hole of
+          Right _ -> stripParens $ replaceInPositions constructor firstHole holes currContract
+          Left _ -> replaceInPositions constructor firstHole holes currContract
+
+        prettyContract = case runParser contractWithHole contract of
+          Right c -> show $ pretty c
+          Left _ -> contractWithHole
+      marloweEditorSetValue prettyContract (Just 1)
+    Nothing -> pure unit
+  where
+  stripParens s =
+    fromMaybe s
+      $ do
+          withoutPrefix <- stripPrefix (Pattern "(") $ trim s
+          withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
+          pure withoutSuffix
 
 handleAction (HandleBlocklyMessage Initialized) = pure unit
 

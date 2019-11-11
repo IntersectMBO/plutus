@@ -2,6 +2,7 @@ module Types where
 
 import API (RunResult)
 import Ace (Annotation)
+import Ace as Ace
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
@@ -18,7 +19,7 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
@@ -26,8 +27,8 @@ import Gist (Gist)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
-import Marlowe.Parser (MarloweHole)
-import Marlowe.Semantics (AccountId, Action, ActionF(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Holes (Holes, MarloweHole)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
@@ -50,6 +51,7 @@ data HAction
   | MarloweHandleEditorMessage AceMessage
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
+  | MarloweMoveToPosition Ace.Position
   -- Gist support.
   | CheckAuthStatus
   | PublishGist
@@ -70,6 +72,8 @@ data HAction
   | SetChoice ChoiceId ChosenNum
   | ResetSimulator
   | Undo
+  | SelectHole (Maybe String)
+  | InsertHole String MarloweHole (Array MarloweHole)
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   | SetBlocklyCode
@@ -120,6 +124,7 @@ newtype FrontendState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
   , analysisState :: RemoteData String Result
+  , selectedHole :: Maybe String
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -157,6 +162,9 @@ _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 _analysisState :: Lens' FrontendState (RemoteData String Result)
 _analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
 
+_selectedHole :: Lens' FrontendState (Maybe String)
+_selectedHole = _Newtype <<< prop (SProxy :: SProxy "selectedHole")
+
 -- editable
 _timestamp ::
   forall s a.
@@ -184,7 +192,7 @@ type MarloweState
     , moneyInContract :: Ada
     , contract :: Maybe Contract
     , editorErrors :: Array Annotation
-    , holes :: Array MarloweHole
+    , holes :: Holes
     , payments :: Array Payment
     }
 
@@ -241,7 +249,7 @@ emptyMarloweState sn =
   , moneyInContract: zero
   , contract: Nothing
   , editorErrors: []
-  , holes: []
+  , holes: mempty
   , payments: []
   }
 
@@ -267,7 +275,7 @@ actionToActionInput state (Deposit accountId party value) =
 
     env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
   in
-    Tuple (DepositInputId accountId (unwrap party)) (DepositInput accountId (unwrap party) (evalValue env state value))
+    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
 
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 

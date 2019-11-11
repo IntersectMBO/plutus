@@ -12,8 +12,8 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Parser (AccountId, Action, Case, ChoiceId, Contract, Observation, Payee, Term(..), Value, ValueId, Bound)
-import Marlowe.Semantics (AccountIdF(..), ActionF(..), BoundF(..), CaseF(..), ChoiceIdF(..), ContractF(..), SlotInterval(..), ObservationF(..), PayeeF(..), PubKey, Slot(..), Timeout, ValueF(..), ValueIdF(..))
+import Marlowe.Holes (AccountId(..), Action(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Value(..), ValueId(..), Bound(..))
+import Marlowe.Semantics (PubKey, Slot(..), SlotInterval(..), Timeout)
 import Text.Parsing.Parser.Pos (Position(..))
 import Type.Proxy (Proxy(..))
 
@@ -35,7 +35,7 @@ genTimeout :: forall m. MonadGen m => MonadRec m => m Timeout
 genTimeout = genSlot
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ValueId
-genValueId = ValueId <$> genTerm genString
+genValueId = ValueId <$> genString
 
 genAlphaNum :: forall m. MonadGen m => MonadRec m => m Char
 genAlphaNum = oneOf $ genAlpha :| [ genDigitChar ]
@@ -91,14 +91,14 @@ genChoiceId = do
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm genPubKey ]
+genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genPubKey ]
 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadAsk Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genAccountId <*> genTerm genPubKey <*> genValue' size)
-    :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable genBound)
-      , Notify <$> genObservation' size
+    $ (Deposit <$> genTerm genAccountId <*> genTerm genPubKey <*> genTerm (genValue' size))
+    :| [ Choice <$> genTerm genChoiceId <*> resize (_ - 1) (unfoldable (genTerm genBound))
+      , Notify <$> genTerm (genObservation' size)
       ]
 
 genCase ::
@@ -114,8 +114,8 @@ genCase ::
 genCase size = do
   let
     newSize = size - 1
-  action <- genAction newSize
-  contract <- genContract' newSize
+  action <- genTerm $ genAction newSize
+  contract <- genTerm $ genContract' newSize
   pure (Case action contract)
 
 genCases ::
@@ -127,8 +127,8 @@ genCases ::
   Lazy (m Contract) =>
   MonadAsk Boolean m =>
   Int ->
-  m (Array Case)
-genCases size = resize (_ - 1) (unfoldable (genCase size))
+  m (Array (Term Case))
+genCases size = resize (_ - 1) (unfoldable (genTerm (genCase size)))
 
 genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => MonadAsk Boolean m => m Value
 genValue = genValue' 5
@@ -147,24 +147,24 @@ genValue' size
       let
         newSize = (size - 1)
 
-        genNewValue = genValue' newSize
+        genNewValue = genTerm $ genValue' newSize
       in
         oneOf $ pure SlotIntervalStart
           :| [ pure SlotIntervalEnd
-            , AvailableMoney <$> genAccountId
+            , AvailableMoney <$> genTerm genAccountId
             , Constant <$> genTerm genBigInteger
             , NegValue <$> genNewValue
             , AddValue <$> genNewValue <*> genNewValue
             , SubValue <$> genNewValue <*> genNewValue
-            , ChoiceValue <$> genChoiceId <*> genNewValue
-            , UseValue <$> genValueId
+            , ChoiceValue <$> genTerm genChoiceId <*> genNewValue
+            , UseValue <$> genTerm genValueId
             ]
   | otherwise =
     oneOf $ pure SlotIntervalStart
       :| [ pure SlotIntervalEnd
-        , AvailableMoney <$> genAccountId
+        , AvailableMoney <$> genTerm genAccountId
         , Constant <$> genTerm genBigInteger
-        , UseValue <$> genValueId
+        , UseValue <$> genTerm genValueId
         ]
 
 genObservation ::
@@ -192,15 +192,15 @@ genObservation' size
       let
         newSize = (size - 1)
 
-        genNewValue = genValue' newSize
+        genNewValue = genTerm $ genValue' newSize
 
-        genNewObservation = genObservation' newSize
+        genNewObservation = genTerm $ genObservation' newSize
       in
         oneOf
           $ (AndObs <$> genNewObservation <*> genNewObservation)
           :| [ OrObs <$> genNewObservation <*> genNewObservation
             , NotObs <$> genNewObservation
-            , ChoseSomething <$> genChoiceId
+            , ChoseSomething <$> genTerm genChoiceId
             , ValueGE <$> genNewValue <*> genNewValue
             , ValueGT <$> genNewValue <*> genNewValue
             , ValueLT <$> genNewValue <*> genNewValue
@@ -211,7 +211,7 @@ genObservation' size
     where
     genLeaf ::
       m Observation
-    genLeaf = ChoseSomething <$> genChoiceId
+    genLeaf = ChoseSomething <$> genTerm genChoiceId
 
 genContract ::
   forall m.
@@ -240,17 +240,17 @@ genContract' size
       let
         newSize = (size - 1)
 
-        genNewValue = genValue' newSize
+        genNewValue = genTerm $ genValue' newSize
 
-        genNewObservation = genObservation' newSize
+        genNewObservation = genTerm $ genObservation' newSize
 
-        genNewContract = genContract' newSize
+        genNewContract = genTerm $ genContract' newSize
       in
         oneOf $ pure Close
-          :| [ Pay <$> genAccountId <*> genPayee <*> genNewValue <*> genNewContract
+          :| [ Pay <$> genTerm genAccountId <*> genTerm genPayee <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContract <*> genNewContract
             , When <$> genCases newSize <*> genTerm genTimeout <*> genNewContract
-            , Let <$> genValueId <*> genNewValue <*> genNewContract
+            , Let <$> genTerm genValueId <*> genNewValue <*> genNewContract
             ]
   | otherwise = genLeaf
     where

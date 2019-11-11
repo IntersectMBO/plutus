@@ -4,7 +4,6 @@ import Prelude
 import Blockly (getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, getInputWithName, inputList, workspaceToCode)
-import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Blockly.Headless as Headless
 import Blockly.Types (BlocklyState)
 import Control.Alt ((<|>))
@@ -21,6 +20,8 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, buildGenerator, toBlockly)
 import Marlowe.Gen (genContract)
+import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
+import Marlowe.Holes as Holes
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Contract)
 import Test.QuickCheck (class Testable, Result(..), (===))
@@ -55,7 +56,7 @@ mkTestState = do
 c2b2c :: GenWithHoles Result
 c2b2c = do
   termContract <- genContract
-  case Parser.fromTerm termContract of
+  case Holes.fromTerm termContract of
     -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
     -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
     -- I made the executive decision that it's not worth my time to do it in this specific case
@@ -71,7 +72,7 @@ runContract contract = do
     eCode = workspaceToCode state.blocklyState state.generator
   pure
     $ case eCode of
-        Right code -> lmap show $ runParser code (parens Parser.contract <|> Parser.contract)
+        Right code -> lmap show $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
         Left err -> Left err
 
 buildBlocks :: forall r. BlocklyState -> Contract -> ST r Unit
