@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Spec.Rollup where
 
 
@@ -11,6 +12,7 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
 import           Ledger
 
+import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import           Language.PlutusTx.Coordination.Contracts.Game
 
@@ -33,7 +35,8 @@ tests = testGroup "showBlockchain"
      ]
 
 render
-    :: Contract s T.Text a
+    :: ( ContractRow s )
+    => Contract s T.Text a
     -> ContractTrace s T.Text (EmulatorAction T.Text) a ()
     -> IO ByteString
 render con trace = do

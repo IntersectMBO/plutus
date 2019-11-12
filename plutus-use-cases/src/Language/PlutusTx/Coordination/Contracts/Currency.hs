@@ -17,9 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     ) where
 
 import           Control.Lens               ((&), (.~), (%~))
-import           Data.Bifunctor             (Bifunctor(first))
 import qualified Data.Set                   as Set
-import           Data.String                (IsString(fromString))
 
 import           Language.PlutusTx.Prelude
 
@@ -59,11 +57,11 @@ currencyValue s Currency{curAmounts = amts} =
         values = map (\(tn, i) -> (Value.singleton s tn i)) (AssocMap.toList amts)
     in fold values
 
-mkCurrency :: TxOutRef -> [(String, Integer)] -> Currency
+mkCurrency :: TxOutRef -> [(TokenName, Integer)] -> Currency
 mkCurrency (TxOutRef h i) amts =
     Currency
         { curRefTransactionOutput = (h, i)
-        , curAmounts              = AssocMap.fromList (fmap (first fromString) amts)
+        , curAmounts              = AssocMap.fromList amts
         }
 
 validate :: Currency -> () -> () -> V.PendingTx -> Bool
@@ -126,7 +124,7 @@ forgeContract
     , HasWriteTx s
     , AsContractError e)
     => PubKey
-    -> [(String, Integer)]
+    -> [(TokenName, Integer)]
     -> Contract s e Currency
 forgeContract pk amounts = do
     refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)

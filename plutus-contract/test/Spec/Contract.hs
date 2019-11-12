@@ -71,6 +71,20 @@ tests =
             (endpointAvailable @"ep" w1)
             $ pure ()
 
+        , cp "forever"
+            (let go = endpoint @"ep" @() >> go in go)
+            (endpointAvailable @"ep" w1)
+            (callEndpoint @"ep" w1 ())
+
+        , cp "alternative"
+            (let 
+                oneTwo = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
+                oneThree = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
+             in oneTwo <|> oneThree)
+            (endpointAvailable @"2" w1
+            /\ not (endpointAvailable @"3" w1))
+            (callEndpoint @"1" w1 1)
+
         , cp "call endpoint (1)"
             (void $ endpoint @"1" @Int >> endpoint @"2" @Int)
             (endpointAvailable @"1" w1)
@@ -129,6 +143,11 @@ tests =
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 20)
             /\ assertNoFailedTransactions)
             (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+
+        , cp "ownPubKey"
+            (ownPubKey)
+            (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
+            (handleBlockchainEvents w2)
 
         ]
 

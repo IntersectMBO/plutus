@@ -47,7 +47,7 @@ tests = testGroup "futures" [
     testProperty "close early if margin payment was missed" settleEarly,
     testProperty "increase the margin" increaseMargin,
     Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.mkValidator ||]),
-    HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript contract) 50000)
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript contract) 30000)
     ]
 
 init :: Wallet -> Trace MockWallet Ledger.TxOutRef

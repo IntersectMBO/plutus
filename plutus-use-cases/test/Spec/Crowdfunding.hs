@@ -121,13 +121,13 @@ tests = testGroup "crowdfunding"
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 50000)
+        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 35000)
 
     , goldenVsString
         "renders the context of a trace sensibly"
         "test/Spec/crowdfundingTestOutput.txt"
-        (renderPredicate 
-            (crowdfunding theCampaign) 
+        (renderPredicate
+            (crowdfunding theCampaign)
             successfulCampaign)
 
     , goldenVsString
@@ -138,7 +138,7 @@ tests = testGroup "crowdfunding"
             (startCampaign))
     ]
 
-renderPredicate 
+renderPredicate
     :: Contract CrowdfundingSchema T.Text ()
     -> ContractTrace CrowdfundingSchema T.Text (EmulatorAction T.Text) () ()
     -> IO ByteString
@@ -148,4 +148,3 @@ renderPredicate contract trace = do
             HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
         (Right (_, st), _) -> do
             pure $ BSL.fromStrict $ T.encodeUtf8 $ renderTraceContext mempty st
-            

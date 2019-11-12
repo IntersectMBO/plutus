@@ -3,13 +3,14 @@ module MonadApp where
 import Prelude
 import API (RunResult)
 import Ace (Annotation, Editor)
+import Ace as Ace
 import Ace.EditSession as Session
 import Ace.Editor as AceEditor
 import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
-import Data.Array (fromFoldable)
+import Data.Array (fold, fromFoldable)
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -37,8 +38,9 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, Source
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Parser (MarloweHole(..), contractTerm, fromTerm, getHoles, validateHoles)
-import Marlowe.Semantics (ContractF(..), PubKey, SlotInterval(..), TransactionInputF(..), TransactionInput, TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
+import Marlowe.Parser (parseTerm, contract)
+import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
@@ -58,6 +60,7 @@ class
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
   marloweEditorSetAnnotations :: Array Annotation -> m Unit
+  marloweEditorMoveCursorToPosition :: Ace.Position -> m Unit
   preventDefault :: DragEvent -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateContractInState :: String -> m Unit
@@ -119,6 +122,9 @@ instance monadAppHalogenApp ::
       $ withMarloweEditor \editor -> do
           session <- AceEditor.getSession editor
           Session.setAnnotations annotations session
+  marloweEditorMoveCursorToPosition (Ace.Position { column, row }) = do
+    void $ withMarloweEditor $ AceEditor.focus
+    void $ withMarloweEditor $ AceEditor.navigateTo (row - 1) (column - 1)
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = do
@@ -217,7 +223,7 @@ withMarloweEditor ::
 withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = case runParser text contractTerm of
+updateContractInStateP text state = case runParser text (parseTerm contract) of
   Right pcon ->
     let
       (Tuple duplicates holes) = validateHoles $ getHoles mempty pcon
@@ -231,9 +237,15 @@ updateContractInStateP text state = case runParser text contractTerm of
           let
             holes' = fromFoldable $ Map.values holes
 
+            (Holes m) = getHoles mempty pcon
+
+            holesm = getHoles mempty pcon
+
+            holes'' = fold $ fromFoldable $ Map.values m
+
             errors = map holeToAnnotation holes'
-          (set _editorErrors errors <<< set _holes holes') state
-  Left error -> set _editorErrors [ errorToAnnotation error ] state
+          (set _editorErrors errors <<< set _holes holesm) state
+  Left error -> (set _editorErrors [ errorToAnnotation error ] <<< set _holes mempty) state
   where
   errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
 

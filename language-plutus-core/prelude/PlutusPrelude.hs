@@ -4,100 +4,96 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusPrelude ( -- * Reëxports from base
-                       (&)
-                     , (&&&)
-                     , (<&>)
-                     , toList
-                     , bool
-                     , first
-                     , second
-                     , on
-                     , isNothing
-                     , isJust
-                     , fromMaybe
-                     , guard
-                     , foldl'
-                     , fold
-                     , for
-                     , throw
-                     , join
-                     , (<=<)
-                     , (>=>)
-                     , ($>)
-                     , fromRight
-                     , isRight
-                     , void
-                     , through
-                     , coerce
-                     , Generic
-                     , NFData
-                     , Natural
-                     , NonEmpty (..)
-                     , Word8
-                     , Alternative (..)
-                     , Exception
-                     , PairT (..)
-                     , Coercible
-                     , Typeable
-                     -- * Lens
-                     , Lens'
-                     , lens
-                     , (^.)
-                     , view
-                     , (.~)
-                     , set
-                     , (%~)
-                     , over
-                     -- * Debugging
-                     , traceShowId
-                     , trace
-                     -- * Reëxports from "Control.Composition"
-                     , (.*)
-                     -- * Custom functions
-                     , (<<$>>)
-                     , (<<*>>)
-                     , forBind
-                     , foldMapM
-                     , reoption
-                     , repeatM
-                     , (?)
-                     , hoist
-                     -- * Reëxports from "Data.Text.Prettyprint.Doc"
-                     , (<+>)
-                     , parens
-                     , brackets
-                     , hardline
-                     , squotes
-                     , list
-                     , Doc
-                     , strToBs
-                     , bsToStr
-                     , indent
-                     -- * Pretty-printing
-                     , Pretty (..)
-                     , DefaultPrettyBy (..)
-                     , PrettyBy (..)
-                     , PrettyConfigIgnore (..)
-                     , PrettyConfigAttach (..)
-                     , docString
-                     , docText
-                     , prettyString
-                     , prettyText
-                     , prettyStringBy
-                     , prettyTextBy
-                     -- * Custom pretty-printing functions
-                     , module X
-                     -- * Integer arithmetic
-                     , isqrt
-                     , iasqrt
-                     , ilogFloor
-                     , ilogRound
-                     -- * GHCi
-                     , printPretty
-                     -- * Text
-                     , showText
-                     ) where
+module PlutusPrelude
+    ( -- * Reëxports from base
+                 (&)
+    , (&&&)
+    , (<&>)
+    , toList
+    , bool
+    , first
+    , second
+    , on
+    , isNothing
+    , isJust
+    , fromMaybe
+    , guard
+    , foldl'
+    , fold
+    , for
+    , throw
+    , join
+    , (<=<)
+    , (>=>)
+    , ($>)
+    , fromRight
+    , isRight
+    , void
+    , through
+    , coerce
+    , Generic
+    , NFData
+    , Natural
+    , NonEmpty (..)
+    , Word8
+    , Alternative (..)
+    , Exception
+    , PairT (..)
+    , Coercible
+    , Typeable
+    -- * Lens
+    , Lens'
+    , lens
+    , (^.)
+    , view
+    , (.~)
+    , set
+    , (%~)
+    , over
+    -- * Debugging
+    , traceShowId
+    , trace
+    -- * Reëxports from "Control.Composition"
+    , (.*)
+    -- * Custom functions
+    , (<<$>>)
+    , (<<*>>)
+    , forBind
+    , foldMapM
+    , reoption
+    , repeatM
+    , (?)
+    , hoist
+    -- * Reëxports from "Data.Text.Prettyprint.Doc"
+    , (<+>)
+    , parens
+    , brackets
+    , hardline
+    , squotes
+    , list
+    , Doc
+    , strToBs
+    , bsToStr
+    , indent
+    -- * Pretty-printing
+    , Pretty (..)
+    , DefaultPrettyBy (..)
+    , PrettyBy (..)
+    , PrettyConfigIgnore (..)
+    , PrettyConfigAttach (..)
+    , docString
+    , docText
+    , prettyString
+    , prettyText
+    , prettyStringBy
+    , prettyTextBy
+    -- * Custom pretty-printing functions
+    , module X
+    -- * GHCi
+    , printPretty
+    -- * Text
+    , showText
+    ) where
 
 import           Control.Applicative                     (Alternative (..))
 import           Control.Arrow                           ((&&&))
@@ -256,45 +252,6 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
-
--- | The integer square root.
--- Throws an 'error' on negative input.
-isqrt :: Integer -> Integer
-isqrt n
-    | n < 0     = error "isqrt: negative number"
-    | n <= 1    = n
-    | otherwise = head $ dropWhile (not . isRoot) iters
-    where
-        sqr = (^ (2 :: Int))
-        twopows = iterate sqr 2
-        (lowerRoot, lowerN) = last . takeWhile ((n >=) . snd) $ zip (1 : twopows) twopows
-        newtonStep x = (x + n `div` x) `div` 2
-        iters = iterate newtonStep $ isqrt (n `div` lowerN) * lowerRoot
-        isRoot r = sqr r <= n && n < sqr (r + 1)
-
--- | The integer square root that acts on negative numbers like this:
---
--- >>> iasqrt (-4)
--- -2
-iasqrt :: Integer -> Integer
-iasqrt n = signum n * isqrt (abs n)
-
--- | Compute the maximal @p@ such that @b ^ p <= x@.
-ilogFloor :: Integer -> Integer -> Integer
-ilogFloor b x
-    | x < b     = 0
-    | otherwise = go (x `div` (b ^ l)) l
-    where
-        l = 2 * ilogFloor (b * b) x
-        go x' l' = if x' < b then l' else go (x' `div` b) (l' + 1)
-
--- | Compute the minimal @p@ such that @x <= b ^ p@.
-ilogRound :: Integer -> Integer -> Integer
--- That's a really stupid implementation.
-ilogRound b x
-    | b ^ p == x = p
-    | otherwise  = p + 1
-    where p = ilogFloor b x
 
 -- For GHCi to use this properly it needs to be in a registered package, hence
 -- why we're naming such a trivial thing.

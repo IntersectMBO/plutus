@@ -33,7 +33,7 @@ tests =
                     _ <- step (show err)
                     HUnit.assertFailure "own funds not equal"
                 Right _ ->
-                    Lib.reasonable (Scripts.validatorScript G.scriptInstance) 55000
+                    Lib.reasonable (Scripts.validatorScript G.scriptInstance) 35000
     in
         testGroup "state machine tests" [
             HUnit.testCaseSteps "run a successful game trace"

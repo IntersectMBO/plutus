@@ -25,7 +25,7 @@ import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Parser as Parser
 import Marlowe.Pretty (pretty)
-import Marlowe.Semantics (ContractF(..))
+import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
@@ -93,7 +93,7 @@ handleQuery (Resize next) = do
 handleQuery (SetCode code next) = do
   { blocklyState } <- get
   let
-    contract = case runParser code Parser.contract of
+    contract = case runParser code Parser.contractValue of
       Right c -> c
       Left _ -> Close
   case blocklyState of
@@ -126,7 +126,7 @@ handleAction GetCode = do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ workspaceToCode blocklyState generator
-      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser code (parens Parser.contract <|> Parser.contract)
+      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
       lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
   case res of
     Left e -> assign _errorMessage $ Just e
