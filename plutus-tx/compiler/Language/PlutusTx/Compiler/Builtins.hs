@@ -36,6 +36,7 @@ import qualified Language.PlutusIR.MkPir                     as PIR
 import qualified Language.PlutusCore                         as PLC
 import qualified Language.PlutusCore.Constant                as PLC
 import qualified Language.PlutusCore.Constant.Dynamic        as PLC
+import qualified Language.PlutusCore.Constant.Dynamic.OffChain          as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Bool        as Bool
 import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
