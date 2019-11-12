@@ -22,7 +22,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChecked, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
-import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disabled, draggable, for, id_, name, placeholder, required, type_, value)
+import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disabled, draggable, for, id_, name, pattern, placeholder, required, title, type_, value)
 import Halogen.HTML.Properties as HP
 import Icons (Icon(..), icon)
 import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
@@ -243,7 +243,6 @@ actionArgumentField ::
   forall p.
   Warn (Text "We're still not handling the Unsupported case.") =>
   Warn (Text "We're still not handling the FormMaybe case.") =>
-  Warn (Text "The Hex fields should be forced to comply to [0-9a-fA-F].") =>
   Array String ->
   Boolean ->
   FormArgument ->
@@ -331,7 +330,9 @@ actionArgumentField ancestors _ arg@(FormHex s) =
         , classes (Array.cons formControl (actionArgumentClass ancestors))
         , value $ fromMaybe "" s
         , required true
-        , placeholder "String"
+        , pattern "[0-9A-Fa-f]*"
+        , title "Hexadecimal"
+        , placeholder "Hexadecimal"
         , onValueInput (Just <<< SetField <<< SetHexField)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
