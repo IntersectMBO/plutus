@@ -79,7 +79,7 @@ library
         Language.PlutusCore.Untyped.Constant
         Language.PlutusCore.Untyped.MkPlc
         Language.PlutusCore.Untyped.Pretty
-        Language.PlutusCore.Untyped.Constant.Dynamic
+--        Language.PlutusCore.Untyped.Constant.Dynamic
         Language.PlutusCore.Untyped.Evaluation.CkMachine
         Language.PlutusCore.Untyped.Evaluation.MachineException
         Language.PlutusCore.Untyped.Evaluation.Result
