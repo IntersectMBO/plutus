@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Ledger.Crypto(
     PubKey(..)
     , PrivateKey(..)
@@ -27,47 +27,53 @@ module Ledger.Crypto(
     , privateKey10
     ) where
 
-import           Codec.Serialise.Class      (Serialise)
-import           Control.Newtype.Generics   (Newtype)
-import qualified Crypto.ECC.Ed25519Donna    as ED25519
-import           Crypto.Error               (throwCryptoError)
-import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import qualified Data.ByteArray             as BA
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics               (Generic)
-import           IOTS                       (IotsType)
-import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import qualified Language.PlutusTx.Prelude  as P
-import           Ledger.Orphans             ()
-import           Ledger.TxId
-import           LedgerBytes                (LedgerBytes)
-import qualified LedgerBytes                as KB
-import           Schema                     (ToSchema)
-import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
+import           Codec.Serialise.Class            (Serialise)
+import           Control.Newtype.Generics         (Newtype)
+import qualified Crypto.ECC.Ed25519Donna          as ED25519
+import           Crypto.Error                     (throwCryptoError)
+import           Data.Aeson                       (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
+import qualified Data.Aeson                       as JSON
+import qualified Data.Aeson.Extras                as JSON
+import qualified Data.ByteArray                   as BA
+import qualified Data.ByteString                  as BS
+import qualified Data.ByteString.Lazy             as BSL
+import           Data.Text.Prettyprint.Doc        (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (PrettyShow))
+import           GHC.Generics                     (Generic)
+import           IOTS                             (IotsType)
+import qualified Language.PlutusTx                as PlutusTx
+import qualified Language.PlutusTx.Builtins       as Builtins
+import           Language.PlutusTx.Lift           (makeLift)
+import qualified Language.PlutusTx.Prelude        as P
+import           Ledger.Orphans                   ()
+import           Ledger.TxId                      (TxId (TxId, getTxId))
+import           LedgerBytes                      (LedgerBytes)
+import qualified LedgerBytes                      as KB
+import           Schema                           (FormSchema (FormSchemaHex), ToSchema, toSchema)
+import           Servant.API                      (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 makeLift ''PubKey
 
 deriving via (PrettyShow LedgerBytes) instance Pretty PubKey
 
+instance ToSchema PubKey where
+    toSchema = FormSchemaHex
+
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 deriving via (PrettyShow PrivateKey) instance (Pretty PrivateKey)
+
+instance ToSchema PrivateKey where
+    toSchema = FormSchemaHex
 
 makeLift ''PrivateKey
 
