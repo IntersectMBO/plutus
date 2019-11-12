@@ -35,16 +35,14 @@ data MachineException err = MachineException
     , _machineExceptionCause :: Term Name ()  -- ^ A 'Term' that caused the error.
     } deriving (Eq)
 
-instance (PrettyBy config (Term Name ()) ,
-         Pretty err
-         ) => PrettyBy config (MachineError err) where
+instance Pretty err => PrettyBy config (MachineError err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonPrimitiveApplicationMachineError   =
         "Cannot reduce a not immediately reducible application."
     prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
-    prettyBy config (ConstAppMachineError constAppError)  =
+    prettyBy _ (ConstAppMachineError _)  =
          "constAppError" -- prettyBy config constAppError
     prettyBy _      (OtherMachineError err)               =
         pretty err

@@ -118,7 +118,7 @@ nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
 -- | Evaluate a constant application computation using the given evaluator.
---runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
+runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
 runEvaluateConstApp eval = unInnerT . runEvaluateT eval
 
 -- | Lift the result of a constant application to a constant application computation.

@@ -2,7 +2,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- ^ Lots of currently unused imports because of stuuf that's commented out that we may yet need
+-- Lots of currently unused imports because of stuuf that's commented out that we may yet need
 
 
 {-# LANGUAGE FlexibleInstances #-}

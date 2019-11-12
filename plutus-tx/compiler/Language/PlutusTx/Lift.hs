@@ -24,7 +24,7 @@ import qualified Language.PlutusIR.MkPir                       as PIR
 
 import qualified Language.PlutusCore                           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic          as PLC
-import qualified Language.PlutusCore.Constant.Dynamic.OffChain          as PLC
+
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function      as PLC
 import qualified Language.PlutusCore.StdLib.Meta.Data.Function as PLC
