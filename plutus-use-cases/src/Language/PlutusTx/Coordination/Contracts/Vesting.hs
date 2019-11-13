@@ -113,7 +113,13 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ptx
             + remainingFrom vestingTranche2 pendingTxValidRange
 
     in remainingActual `Value.geq` remainingExpected
+            -- The policy encoded in this contract
+            -- is "vestingOwner can do with the funds what they want" (as opposed
+            -- to "the funds must be paid to vestingOwner"). This is enforcey by
+            -- the following condition:
             && Validation.txSignedBy ptx vestingOwner
+            -- That way the recipient of the funds can pay them to whatever address they
+            -- please, potentially saving one transaction.
 
 data Vesting
 instance Scripts.ScriptType Vesting where
@@ -199,5 +205,8 @@ retrieveFundsC vesting payment = do
                 & validityRange .~ Interval.from nextSlot
                 & requiredSignatures .~ [vestingOwner vesting]
                 & outputs .~ remainingOutputs
+                -- we don't need to add a pubkey output for 'vestingOwner' here
+                -- because this will be done by the wallet when it balances the
+                -- transaction.
     void $ writeTx tx
     return liveness
