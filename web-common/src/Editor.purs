@@ -1,7 +1,6 @@
 module Editor
   ( EditorAction(..)
   , editorPane
-  , demoScriptsPane
   , withEditor
   ) where
 
@@ -10,13 +9,11 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceMessage, AceQuery(..), Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Alternative ((<|>))
-import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (Lens', _Right, preview, to, view)
 import Data.Lens.Record (prop)
-import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.String as String
 import Data.Symbol (class IsSymbol, SProxy(..))
@@ -24,7 +21,7 @@ import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, Slot, liftEffect, query, request)
-import Halogen.HTML (ClassName(ClassName), HTML, ComponentHTML, br_, button, code_, div, div_, h3_, pre_, slot, small, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, br_, button, code_, div, div_, h3_, pre_, slot, small, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
@@ -34,7 +31,6 @@ import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (class Ord, Unit, bind, const, discard, join, map, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import Prim.Row as Row
 import Servant.PureScript.Ajax (AjaxError)
-import StaticData as StaticData
 import Web.HTML.Event.DragEvent (DragEvent)
 
 data EditorAction
@@ -45,20 +41,17 @@ data EditorAction
   | ScrollTo { row :: Int, column :: Int }
   | CompileProgram
 
-loadBuffer :: Effect (Maybe String)
-loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
-
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
 
 initEditor ∷
   forall m.
   MonadAff m =>
-  Maybe String -> Editor -> m Unit
-initEditor initialContents editor =
+  Maybe String -> LocalStorage.Key -> Editor -> m Unit
+initEditor initialContents bufferLocalStorageKey editor =
   liftEffect
     $ do
-        savedContents <- liftEffect loadBuffer
+        savedContents <- liftEffect $ LocalStorage.getItem bufferLocalStorageKey
         let
           contents = fromMaybe "" (savedContents <|> initialContents)
         void $ Editor.setValue contents (Just 1) editor
@@ -78,9 +71,10 @@ editorPane ::
   MonadAff m =>
   Maybe String ->
   SProxy label ->
+  LocalStorage.Key ->
   CompilationState a ->
   ComponentHTML EditorAction slots m
-editorPane initialContents slotLabel state =
+editorPane initialContents slotLabel bufferLocalStorageKey state =
   div_
     [ div
         [ id_ "editor"
@@ -90,7 +84,7 @@ editorPane initialContents slotLabel state =
         [ slot
             slotLabel
             unit
-            (aceComponent (initEditor initialContents) (Just Live))
+            (aceComponent (initEditor initialContents bufferLocalStorageKey) (Just Live))
             unit
             (Just <<< HandleEditorMessage)
         ]
@@ -135,20 +129,6 @@ editorPane initialContents slotLabel state =
               <<< to compilationWarningsPane
           )
           state
-
-demoScriptsPane :: forall p. HTML p EditorAction
-demoScriptsPane =
-  div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
-    )
-
-demoScriptButton :: forall p. String -> HTML p EditorAction
-demoScriptButton key =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript key
-    ]
-    [ text key ]
 
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p EditorAction)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]

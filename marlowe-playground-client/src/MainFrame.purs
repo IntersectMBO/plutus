@@ -472,7 +472,8 @@ render state =
           ]
       , viewContainer stateView HaskellEditor
           [ HaskellEditorAction <$> loadScriptsPane
-          , mapComponent HaskellEditorAction $ editorPane defaultContents _haskellEditorSlot (unwrap <$> (view _compilationResult state))
+          , mapComponent HaskellEditorAction
+              $ editorPane defaultContents _haskellEditorSlot StaticData.bufferLocalStorageKey (unwrap <$> (view _compilationResult state))
           , resultPane state
           ]
       , viewContainer stateView Simulation
