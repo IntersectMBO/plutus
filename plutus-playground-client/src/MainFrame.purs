@@ -39,11 +39,13 @@ import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.Ord (Ordering(..))
 import Data.String as String
+import Editor (EditorAction(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (_GistId, gistFileContent, gistId)
+import Gists (GistAction(..))
 import Gists as Gists
 import Halogen (Component)
 import Halogen as H
@@ -139,29 +141,29 @@ analyticsTracking query = do
 toEvent :: HAction -> Maybe Event
 toEvent Mounted = Just $ defaultEvent "Mounted"
 
-toEvent (HandleEditorMessage _) = Nothing
+toEvent (EditorAction (HandleEditorMessage _)) = Nothing
 
-toEvent (HandleDragEvent _) = Nothing
+toEvent (EditorAction (HandleDragEvent _)) = Nothing
 
-toEvent (HandleDropEvent _) = Just $ defaultEvent "DropScript"
+toEvent (EditorAction (HandleDropEvent _)) = Just $ defaultEvent "DropScript"
+
+toEvent (EditorAction (LoadScript script)) = Just $ (defaultEvent "LoadScript") { label = Just script }
+
+toEvent (EditorAction CompileProgram) = Just $ defaultEvent "CompileProgram"
+
+toEvent (EditorAction (ScrollTo _)) = Nothing
 
 toEvent (HandleBalancesChartMessage _) = Nothing
 
 toEvent CheckAuthStatus = Nothing
 
-toEvent PublishGist = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
 
-toEvent (SetGistUrl _) = Nothing
+toEvent (GistAction (SetGistUrl _)) = Nothing
 
-toEvent LoadGist = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
 toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
-
-toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
-
-toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
-
-toEvent (ScrollTo _) = Nothing
 
 toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
 
@@ -201,7 +203,7 @@ handleAction ::
   HAction -> m Unit
 handleAction Mounted = pure unit
 
-handleAction (HandleEditorMessage (TextChanged text)) = saveBuffer text
+handleAction (EditorAction subEvent) = handleEditorAction subEvent
 
 handleAction (ActionDragAndDrop index DragStart event) = do
   setDataTransferData event textPlain (show index)
@@ -227,14 +229,6 @@ handleAction (ActionDragAndDrop destination Drop event) = do
   preventDefault event
   assign _actionDrag Nothing
 
-handleAction (HandleDragEvent event) = preventDefault event
-
-handleAction (HandleDropEvent event) = do
-  preventDefault event
-  contents <- readFileFromDragEvent event
-  editorSetContents contents (Just 1)
-  saveBuffer contents
-
 -- We just ignore most Chartist events.
 handleAction (HandleBalancesChartMessage _) = pure unit
 
@@ -243,104 +237,9 @@ handleAction CheckAuthStatus = do
   authResult <- getOauthStatus
   assign _authStatus authResult
 
-handleAction PublishGist = do
-  void $ runMaybeT
-    $ do
-        mContents <- lift $ editorGetContents
-        simulations <- use _simulations
-        newGist <- hoistMaybe $ mkNewGist { source: mContents, simulations }
-        mGist <- use _createGistResult
-        assign _createGistResult Loading
-        newResult <-
-          lift
-            $ case preview (_Success <<< gistId) mGist of
-                Nothing -> postGist newGist
-                Just existingGistId -> patchGistByGistId newGist existingGistId
-        assign _createGistResult newResult
-        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
-        assign _gistUrl (Just gistId)
-
-handleAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
-
-handleAction LoadGist =
-  void $ runExceptT
-    $ do
-        mGistId <- ExceptT (note "Gist Url not set." <$> use _gistUrl)
-        eGistId <- except $ Gists.parseGistUrl mGistId
-        --
-        assign _createGistResult Loading
-        aGist <- lift $ getGistByGistId eGistId
-        assign _createGistResult aGist
-        gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
-        --
-        -- Load the source, if available.
-        content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
-        lift $ editorSetContents content (Just 1)
-        lift $ saveBuffer content
-        assign _simulations Cursor.empty
-        assign _evaluationResult NotAsked
-        --
-        -- Load the simulation, if available.
-        simulationString <- noteT "Simulation not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist)
-        simulations <- mapExceptT (pure <<< unwrap) $ withExceptT renderForeignErrors $ decodeJSON simulationString
-        assign _simulations simulations
-  where
-  toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
-  toEither _ (Success a) = Right a
-
-  toEither _ (Failure e) = Left e
-
-  toEither x Loading = x
-
-  toEither x NotAsked = x
+handleAction (GistAction subEvent) = handleGistAction subEvent
 
 handleAction (ChangeView view) = assign _currentView view
-
-handleAction (LoadScript key) = do
-  case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
-    Just contents -> do
-      editorSetContents contents (Just 1)
-      saveBuffer contents
-      assign _currentView Editor
-      assign _compilationResult NotAsked
-      assign _evaluationResult NotAsked
-      assign _simulations Cursor.empty
-
-handleAction CompileProgram = do
-  mContents <- editorGetContents
-  case mContents of
-    Nothing -> pure unit
-    Just contents -> do
-      assign _compilationResult Loading
-      result <- postContract contents
-      assign _compilationResult result
-      -- If we got a successful result, switch tab.
-      case result of
-        Success (JsonEither (Left _)) -> pure unit
-        _ -> replaceViewOnSuccess result Editor Simulations
-      -- Update the error display.
-      editorSetAnnotations
-        $ case result of
-            Success (JsonEither (Left errors)) -> toAnnotations errors
-            _ -> []
-      -- If we have a result with new signatures, we can only hold
-      -- onto the old actions if the signatures still match. Any
-      -- change means we'll have to clear out the existing simulation.
-      -- Same thing for currencies.
-      -- Potentially we could be smarter about this. But for now,
-      -- let's at least be correct.
-      case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
-        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
-          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
-          unless
-            ( ((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
-                && ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies)
-            )
-            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
-        _ -> pure unit
-
-handleAction (ScrollTo { row, column }) = editorGotoLine row (Just column)
 
 handleAction (ModifyActions actionEvent) = modifying (_simulations <<< _current <<< _actions) (handleActionActionEvent actionEvent)
 
@@ -398,6 +297,115 @@ handleAction (SetChainFocus newFocus) = do
   mAnnotatedBlockchain <-
     peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
   zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain
+
+handleEditorAction :: forall m. MonadApp m => MonadState State m => EditorAction -> m Unit
+handleEditorAction (HandleEditorMessage (TextChanged text)) = saveBuffer text
+
+handleEditorAction (HandleDragEvent event) = preventDefault event
+
+handleEditorAction (HandleDropEvent event) = do
+  preventDefault event
+  contents <- readFileFromDragEvent event
+  editorSetContents contents (Just 1)
+  saveBuffer contents
+
+handleEditorAction (LoadScript key) = do
+  case Map.lookup key StaticData.demoFiles of
+    Nothing -> pure unit
+    Just contents -> do
+      editorSetContents contents (Just 1)
+      saveBuffer contents
+      assign _currentView Editor
+      assign _compilationResult NotAsked
+      assign _evaluationResult NotAsked
+      assign _simulations Cursor.empty
+
+handleEditorAction CompileProgram = do
+  mContents <- editorGetContents
+  case mContents of
+    Nothing -> pure unit
+    Just contents -> do
+      assign _compilationResult Loading
+      result <- postContract contents
+      assign _compilationResult result
+      -- If we got a successful result, switch tab.
+      case result of
+        Success (JsonEither (Left _)) -> pure unit
+        _ -> replaceViewOnSuccess result Editor Simulations
+      -- Update the error display.
+      editorSetAnnotations
+        $ case result of
+            Success (JsonEither (Left errors)) -> toAnnotations errors
+            _ -> []
+      -- If we have a result with new signatures, we can only hold
+      -- onto the old actions if the signatures still match. Any
+      -- change means we'll have to clear out the existing simulation.
+      -- Same thing for currencies.
+      -- Potentially we could be smarter about this. But for now,
+      -- let's at least be correct.
+      case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
+        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
+          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
+          unless
+            ( ((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
+                && ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies)
+            )
+            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
+        _ -> pure unit
+
+handleEditorAction (ScrollTo { row, column }) = editorGotoLine row (Just column)
+
+handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
+handleGistAction PublishGist = do
+  void $ runMaybeT
+    $ do
+        mContents <- lift $ editorGetContents
+        simulations <- use _simulations
+        newGist <- hoistMaybe $ mkNewGist { source: mContents, simulations }
+        mGist <- use _createGistResult
+        assign _createGistResult Loading
+        newResult <-
+          lift
+            $ case preview (_Success <<< gistId) mGist of
+                Nothing -> postGist newGist
+                Just existingGistId -> patchGistByGistId newGist existingGistId
+        assign _createGistResult newResult
+        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
+        assign _gistUrl (Just gistId)
+
+handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
+
+handleGistAction LoadGist =
+  void $ runExceptT
+    $ do
+        mGistId <- ExceptT (note "Gist Url not set." <$> use _gistUrl)
+        eGistId <- except $ Gists.parseGistUrl mGistId
+        --
+        assign _createGistResult Loading
+        aGist <- lift $ getGistByGistId eGistId
+        assign _createGistResult aGist
+        gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
+        --
+        -- Load the source, if available.
+        content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
+        lift $ editorSetContents content (Just 1)
+        lift $ saveBuffer content
+        assign _simulations Cursor.empty
+        assign _evaluationResult NotAsked
+        --
+        -- Load the simulation, if available.
+        simulationString <- noteT "Simulation not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist)
+        simulations <- mapExceptT (pure <<< unwrap) $ withExceptT renderForeignErrors $ decodeJSON simulationString
+        assign _simulations simulations
+  where
+  toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
+  toEither _ (Success a) = Right a
+
+  toEither _ (Failure e) = Left e
+
+  toEither x Loading = x
+
+  toEither x NotAsked = x
 
 handleActionWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 handleActionWalletEvent mkWallet AddWallet wallets =
@@ -463,8 +471,8 @@ handleActionForm initialValue = rec
 
   rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
 
-  -- As the code stands, this is the only guarantee we get that every 
-  -- value in the array will conform to the schema: the fact that we 
+  -- As the code stands, this is the only guarantee we get that every
+  -- value in the array will conform to the schema: the fact that we
   -- create the 'empty' version from the same schema template.
   -- Is more type safety than that possible? Probably.
   -- Is it worth the research effort? Perhaps. :thinking_face:

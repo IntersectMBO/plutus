@@ -25,9 +25,11 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
+import Editor (EditorAction(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
+import Gists (GistAction(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
 import MainFrame (handleAction, initialState)
 import MonadApp (class MonadApp)
@@ -43,7 +45,7 @@ import StaticData as StaticData
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (HAction(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (HAction(..), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: TestSuite
 all =
@@ -166,15 +168,15 @@ evalTests =
       test "Bad URL" do
         Tuple _ finalState <-
           execMockApp mockWorld
-            [ SetGistUrl "9cfe"
-            , LoadGist
+            [ GistAction $ SetGistUrl "9cfe"
+            , GistAction LoadGist
             ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Invalid URL" do
         Tuple _ finalState <-
           execMockApp mockWorld
-            [ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            , LoadGist
+            [ GistAction $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            , GistAction LoadGist
             ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Successfully" do
@@ -185,8 +187,8 @@ evalTests =
             Tuple finalWorld finalState <-
               execMockApp
                 (set (_gists <<< at (view gistId gist)) (Just gist) mockWorld)
-                [ SetGistUrl (unwrap (view gistId gist))
-                , LoadGist
+                [ GistAction $ SetGistUrl (unwrap (view gistId gist))
+                , GistAction LoadGist
                 ]
             assert "Gist gets loaded." $ isSuccess (view _createGistResult finalState)
             equal'
@@ -205,7 +207,7 @@ evalTests =
     test "Loading a script works." do
       Tuple finalWorld finalState <-
         execMockApp (set _editorContents Nothing mockWorld)
-          [ LoadScript "Game" ]
+          [ EditorAction $ LoadScript "Game" ]
       equal' "Script gets loaded."
         (Map.lookup "Game" StaticData.demoFiles)
         finalWorld.editorContents
@@ -217,15 +219,15 @@ evalTests =
               Tuple _ intermediateState <-
                 execMockApp (mockWorld { compilationResult = compilationResult })
                   [ ChangeView Simulations
-                  , LoadScript "Game"
-                  , CompileProgram
+                  , EditorAction $ LoadScript "Game"
+                  , EditorAction CompileProgram
                   ]
               assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
               Tuple _ finalState <-
                 execMockApp (mockWorld { compilationResult = compilationResult })
-                  [ LoadScript "Game"
-                  , CompileProgram
-                  , LoadScript "Game"
+                  [ EditorAction $ LoadScript "Game"
+                  , EditorAction CompileProgram
+                  , EditorAction $ LoadScript "Game"
                   ]
               assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
               assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
@@ -238,7 +240,7 @@ evalTests =
               Tuple _ finalState <-
                 execMockApp (mockWorld { compilationResult = compilationResult })
                   [ ChangeView Simulations
-                  , LoadScript "Game"
+                  , EditorAction $ LoadScript "Game"
                   ]
               equal' "View is reset." Editor $ view _currentView finalState
 
