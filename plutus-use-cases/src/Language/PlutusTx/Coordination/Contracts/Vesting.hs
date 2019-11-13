@@ -25,12 +25,13 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     ) where
 
 import           Control.Lens
-import           Control.Monad.Reader
-import           Data.Foldable (fold)
+import           Control.Monad        (void, when)
+import           Control.Monad.Except (throwError)
+import           Data.Foldable        (fold)
 import qualified Data.Text as T
 
 import           GHC.Generics                 (Generic)
-import           Language.Plutus.Contract
+import           Language.Plutus.Contract     hiding (when)
 import qualified Language.Plutus.Contract.Tx  as Tx
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.PlutusTx.Prelude    hiding (fold)
@@ -88,6 +89,12 @@ availableFrom (VestingTranche d v) range =
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
     in if validRange `Interval.contains` range then v else zero
+
+availableAt :: VestingParams -> Slot -> Value
+availableAt VestingParams{vestingTranche1, vestingTranche2} sl =
+    let f VestingTranche{vestingTrancheDate, vestingTrancheAmount} =
+            if sl >= vestingTrancheDate then vestingTrancheAmount else mempty
+    in foldMap f [vestingTranche1, vestingTranche2]
 
 {-# INLINABLE remainingFrom #-}
 -- | The amount that has not been released from this tranche yet
@@ -164,17 +171,32 @@ retrieveFundsC
     -> Contract s T.Text Liveness
 retrieveFundsC vesting payment = do
     let addr = contractAddress vesting
-    currentSlot <- awaitSlot 0
+    nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let 
         currentlyLocked = fold (AM.values unspentOutputs)
         remainingValue = currentlyLocked - payment
-        liveness = if remainingValue `Value.gt` mempty then Alive else Dead
+        mustRemainLocked = totalAmount vesting - availableAt vesting nextSlot
+        maxPayment = currentlyLocked - mustRemainLocked
+
+    when (remainingValue `Value.lt` mustRemainLocked)
+        $ throwError 
+        $ T.unwords 
+            [ "Cannot take out"
+            , T.pack (show payment) `T.append` "."
+            , "The maximum is"
+            , T.pack (show maxPayment) `T.append` "."
+            , "At least"
+            , T.pack (show mustRemainLocked)
+            , "must remain locked by the script."
+            ]
+
+    let liveness = if remainingValue `Value.gt` mempty then Alive else Dead
         remainingOutputs = case liveness of
                             Alive -> [payIntoContract vesting remainingValue]
                             Dead  -> []
-        tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance vesting) ()
-                & validityRange .~ Interval.from currentSlot
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
+                & validityRange .~ Interval.from nextSlot
                 & requiredSignatures .~ [vestingOwner vesting]
                 & outputs .~ remainingOutputs
     void $ writeTx tx

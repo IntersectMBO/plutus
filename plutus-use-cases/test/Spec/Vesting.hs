@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -53,7 +54,7 @@ tests =
     , checkPredicate "cannot retrieve more than allowed"
         con
         (walletFundsChange wallet1 mempty
-        /\ not assertNoFailedTransactions)
+        /\ assertContractError wallet1 "Cannot take out Value {getValue = Map {unMap = [(,Map {unMap = [(,30)]})]}}. The maximum is Value {getValue = Map {unMap = [(,Map {unMap = [(,20)]})]}}. At least Value {getValue = Map {unMap = [(,Map {unMap = [(,40)]})]}} must remain locked by the script." "")
         (callEndpoint @"vest funds" wallet2 ()
         >> handleBlockchainEvents wallet2
         >> addBlocks 10

@@ -256,7 +256,7 @@ redeem escrow = do
     unspentOutputs <- utxoAt (escrowAddress escrow)
     let addr = escrowAddress escrow
         valRange = Interval.to (pred $ escrowDeadline escrow)
-        tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance escrow) Redeem
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance escrow) Redeem
             & validityRange .~ valRange
             & outputs .~ fmap mkTxOutput (escrowTargets escrow)
     if currentSlot >= escrowDeadline escrow
