@@ -13,8 +13,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
--- $vesting
 module Language.PlutusTx.Coordination.Contracts.Vesting (
+    -- $vesting
     VestingParams(..),
     VestingSchema,
     VestingTranche(..),
