@@ -28,12 +28,14 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Editor (EditorAction)
 import Foreign (Foreign)
 import Foreign.Class (class Decode, class Encode, encode)
 import Foreign.Generic (defaultOptions, encodeJSON, genericDecode, genericEncode)
 import Foreign.Generic.Class (Options, aesonSumEncoding)
 import Foreign.Object as FO
 import Gist (Gist)
+import Gists (GistAction)
 import Halogen as H
 import Halogen.Chartist as Chartist
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
@@ -183,22 +185,15 @@ data Query a
 data HAction
   = Mounted
   -- SubEvents.
-  | HandleEditorMessage AceMessage
-  | HandleDragEvent DragEvent
   | ActionDragAndDrop Int DragAndDropEventType DragEvent
-  | HandleDropEvent DragEvent
   | HandleBalancesChartMessage Chartist.Message
   -- Gist support.
   | CheckAuthStatus
-  | PublishGist
-  | SetGistUrl String
-  | LoadGist
+  | GistAction GistAction
   -- Tabs.
   | ChangeView View
   -- Editor.
-  | LoadScript String
-  | CompileProgram
-  | ScrollTo { row :: Int, column :: Int }
+  | EditorAction EditorAction
   -- Simulations
   | AddSimulationSlot
   | SetSimulationSlot Int

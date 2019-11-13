@@ -47,7 +47,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
 
@@ -213,7 +213,7 @@ withHaskellEditor ::
   MonadEffect m =>
   (Editor -> Effect a) ->
   HalogenApp m (Maybe a)
-withHaskellEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
+withHaskellEditor = HalogenApp <<< Editor.withEditor _haskellEditorSlot unit
 
 withMarloweEditor ::
   forall m a.

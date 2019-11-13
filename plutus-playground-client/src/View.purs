@@ -20,6 +20,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
 import Halogen.HTML (ClassName(ClassName), HTML, ComponentHTML, a, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
@@ -39,12 +40,14 @@ render state@(State { currentView, blockchainVisualisationState }) =
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
                 [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
+                , div
+                    [ classes [ colXs12, colSm5 ] ]
+                    [ GistAction <$> gistControls (unwrap state) ]
                 ]
             ]
         , viewContainer currentView Editor
-            [ demoScriptsPane
-            , editorPane defaultContents (unwrap <$> view _compilationResult state)
+            [ EditorAction <$> demoScriptsPane
+            , mapComponent EditorAction $ editorPane defaultContents _editorSlot (unwrap <$> view _compilationResult state)
             , case view _compilationResult state of
                 Failure error -> ajaxErrorPane error
                 _ -> empty

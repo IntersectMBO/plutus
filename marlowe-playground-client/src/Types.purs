@@ -23,7 +23,9 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Editor (EditorAction)
 import Gist (Gist)
+import Gists (GistAction)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
@@ -45,24 +47,17 @@ data HQuery a
 
 data HAction
   -- Haskell Editor
-  = HandleEditorMessage AceMessage
-  | HandleDragEvent DragEvent
-  | HandleDropEvent DragEvent
-  | MarloweHandleEditorMessage AceMessage
+  = MarloweHandleEditorMessage AceMessage
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
   | MarloweMoveToPosition Ace.Position
+  | HaskellEditorAction EditorAction
   -- Gist support.
   | CheckAuthStatus
-  | PublishGist
-  | SetGistUrl String
-  | LoadGist
+  | GistAction GistAction
   -- haskell actions
   | ChangeView View
-  | LoadScript String
-  | CompileProgram
   | SendResult
-  | ScrollTo { row :: Int, column :: Int }
   | LoadMarloweScript String
   -- marlowe actions
   | ApplyTransaction
@@ -85,13 +80,13 @@ data WebsocketMessage
 
 ------------------------------------------------------------
 type ChildSlots
-  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+  = ( haskellEditorSlot :: H.Slot AceQuery AceMessage Unit
     , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     )
 
-_editorSlot :: SProxy "editorSlot"
-_editorSlot = SProxy
+_haskellEditorSlot :: SProxy "haskellEditorSlot"
+_haskellEditorSlot = SProxy
 
 _marloweEditorSlot :: SProxy "marloweEditorSlot"
 _marloweEditorSlot = SProxy
@@ -226,9 +221,6 @@ _holes = prop (SProxy :: SProxy "holes")
 --- Language.Haskell.Interpreter ---
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
-
-_warnings :: forall s a. Lens' { warnings :: a | s } a
-_warnings = prop (SProxy :: SProxy "warnings")
 
 _payments :: forall s a. Lens' { payments :: a | s } a
 _payments = prop (SProxy :: SProxy "payments")
