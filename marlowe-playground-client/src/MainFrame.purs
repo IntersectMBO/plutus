@@ -270,7 +270,9 @@ handleAction (LoadScript key) = do
       haskellEditorSetValue contents (Just 1)
 
 handleAction (LoadMarloweScript key) = do
-  case Map.lookup key StaticData.marloweContracts of
+  let
+    m = Map.fromFoldable StaticData.marloweContracts
+  case Map.lookup key m of
     Nothing -> pure unit
     Just contents -> do
       marloweEditorSetValue contents (Just 1)

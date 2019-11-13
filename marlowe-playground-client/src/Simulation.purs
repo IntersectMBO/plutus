@@ -25,7 +25,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Newtype (unwrap, wrap)
-import Data.Tuple (Tuple(..), snd)
+import Data.Tuple (Tuple(..), fst, snd)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -115,7 +115,7 @@ initEditor editor =
     $ do
         savedContents <- liftEffect loadBuffer
         let
-          defaultContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
+          defaultContents = Just "?contract"
         let
           contents = fromMaybe "" (savedContents <|> defaultContents)
         void $ Editor.setValue contents (Just 1) editor
@@ -220,7 +220,7 @@ demoScriptsPane =
             [ text "Demos: "
             ]
         )
-        (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.marloweContracts))
+        (map (demoScriptButton <<< fst) StaticData.marloweContracts)
     )
 
 demoScriptButton :: forall p. String -> HTML p HAction
