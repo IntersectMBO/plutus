@@ -1,33 +1,38 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main ( main
-            ) where
+module Main
+    ( main
+    ) where
+
+import           PlutusPrelude
 
 import qualified Check.Spec                                 as Check
+import           Evaluation.CkMachine
+import           Evaluation.Constant.All
+import           Normalization.Check
+import           Normalization.Type
+import           Pretty.Readable
+import           TypeSynthesis.Spec                         (test_typecheck)
+
+import           Language.PlutusCore
+import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
+import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Generators.AST         as AST
+import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.Pretty
+
 import           Codec.Serialise
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                       as BSL
 import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
-import           Evaluation.CkMachine
-import           Evaluation.Constant.All
 import           Hedgehog                                   hiding (Var)
-import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Pretty
-import           Normalization.Check
-import           Normalization.Type
-import           PlutusPrelude
-import           Pretty.Readable
+import qualified Hedgehog.Gen                               as Gen
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
-import           TypeSynthesis.Spec                         (test_typecheck)
 
 main :: IO ()
 main = do
@@ -80,21 +85,32 @@ instance Eq a => Eq (TextualProgram a) where
 
 propCBOR :: Property
 propCBOR = property $ do
-    prog <- forAll genProgram
+    prog <- forAll $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
-    prog <- TextualProgram . void <$> forAll genProgram
+    prog <- TextualProgram <$> forAll (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
     Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
 propRename :: Property
 propRename = property $ do
-    prog <- forAll genProgram
-    Hedgehog.assert $ runQuote (rename prog) == prog
+    prog <- forAll $ runAstGen genProgram
+    let progRen = runQuote $ rename prog
+    Hedgehog.assert $ progRen == prog && prog == progRen
+
+propMangle :: Property
+propMangle = property $ do
+    (term, termMangled) <- forAll . Gen.just . runAstGen $ do
+        term <- AST.genTerm
+        mayTermMang <- mangleNames term
+        pure $ do
+            termMang <- mayTermMang
+            Just (term, termMang)
+    Hedgehog.assert $ term /= termMangled && termMangled /= term
 
 propDeBruijn :: Gen (TermOf a) -> Property
 propDeBruijn gen = property . generalizeT $ do
@@ -111,6 +127,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testProperty "equality survives renaming" propRename
+    , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
           fromInterestingTermGens $ \name -> testProperty name . propDeBruijn
     , testsGolden plcFiles

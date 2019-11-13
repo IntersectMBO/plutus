@@ -5,8 +5,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude
-    ( -- * Reëxports from base
-                 (&)
+    ( -- * Reexports from base
+      (&)
     , (&&&)
     , (<&>)
     , toList
@@ -53,7 +53,7 @@ module PlutusPrelude
     -- * Debugging
     , traceShowId
     , trace
-    -- * Reëxports from "Control.Composition"
+    -- * Reexports from "Control.Composition"
     , (.*)
     -- * Custom functions
     , (<<$>>)
@@ -61,10 +61,9 @@ module PlutusPrelude
     , forBind
     , foldMapM
     , reoption
-    , repeatM
     , (?)
-    , hoist
-    -- * Reëxports from "Data.Text.Prettyprint.Doc"
+    , ensure
+    -- * Reexports from "Data.Text.Prettyprint.Doc"
     , (<+>)
     , parens
     , brackets
@@ -110,7 +109,6 @@ import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
 import           Data.Functor                            (void, ($>), (<&>))
-import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (fromMaybe, isJust, isNothing)
@@ -228,11 +226,6 @@ foldMapM f xs = foldr step return xs mempty where
 reoption :: (Foldable f, Alternative g) => f a -> g a
 reoption = foldr (const . pure) empty
 
--- | Make sure your 'Applicative' is sufficiently lazy!
-repeatM :: Applicative f => Int -> f a -> f [a]
-repeatM 0 _ = pure []
-repeatM n x = (:) <$> x <*> repeatM (n-1) x
-
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
     }
@@ -240,12 +233,13 @@ newtype PairT b f a = PairT
 instance Functor f => Functor (PairT b f) where
     fmap f (PairT p) = PairT $ fmap (fmap f) p
 
+-- | @b ? x@ is equal to @pure x@ whenever @b@ holds and is 'empty' otherwise.
 (?) :: Alternative f => Bool -> a -> f a
 (?) b x = x <$ guard b
 
--- | Like a version of 'everywhere' for recursion schemes.
-hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
-hoist f = c where c = embed . f . fmap c . project
+-- | @ensure p x@ is equal to @pure x@ whenever @p x@ holds and is 'empty' otherwise.
+ensure :: Alternative f => (a -> Bool) -> a -> f a
+ensure p x = p x ? x
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack

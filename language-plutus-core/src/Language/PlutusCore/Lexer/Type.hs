@@ -13,6 +13,7 @@ module Language.PlutusCore.Lexer.Type
     , Token (..)
     , prettyBytes
     , allBuiltinNames
+    , allKeywords
     , defaultVersion
     ) where
 
@@ -92,7 +93,7 @@ data Keyword
     | KwBuiltin
     | KwUnwrap
     | KwError
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Enum, Bounded, Generic, NFData)
 
 -- | A special character. This type is only used internally between the lexer
 -- and the parser.
@@ -210,6 +211,9 @@ allBuiltinNames :: [BuiltinName]
 allBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
+
+allKeywords :: [Keyword]
+allKeywords = [minBound .. maxBound]
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann

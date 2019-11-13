@@ -58,13 +58,13 @@ aroundSeparators splice (a:b:l)
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do
-    original <- prettyString <$> genProgram
+    original <- prettyString <$> runAstGen genProgram
     scrambled <- aroundSeparators splice original
     return (original, scrambled)
 
 propRoundTrip :: Property
 propRoundTrip = property $ do
-    code <- prettyText <$> forAllWith prettyString genProgram
+    code <- prettyText <$> forAllWith prettyString (runAstGen genProgram)
     let backward = fmap (prettyText . prog)
         forward = fmap PrettyProg . parse program "test"
     tripping code forward backward
