@@ -38,8 +38,8 @@ import           Control.Monad                  (void)
 import qualified Data.Set                       as Set
 import qualified Data.Text                      as T
 import qualified Ledger
-import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOut, pubKeyTxOut, scriptTxOut')
+import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, DataScriptHash, scriptOutputsAt,
+                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOut, TxOutTx (..), pubKeyTxOut)
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import           Ledger.AddressMap              (values)
@@ -84,7 +84,7 @@ type EscrowSchema =
 -- | Defines where the money should go.
 data EscrowTarget =
     PubKeyTarget PubKey Value
-    | ScriptTarget ValidatorHash DataScript Value
+    | ScriptTarget ValidatorHash DataScriptHash Value
 
 PlutusTx.makeLift ''EscrowTarget
 
@@ -94,7 +94,7 @@ payToPubKeyTarget = PubKeyTarget
 
 -- | An 'EscrowTarget' that pays the value to a script address, with the
 --   given data script.
-payToScriptTarget :: ValidatorHash -> DataScript -> Value -> EscrowTarget
+payToScriptTarget :: ValidatorHash -> DataScriptHash -> Value -> EscrowTarget
 payToScriptTarget = ScriptTarget
 
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
@@ -125,7 +125,7 @@ targetValue = \case
 mkTxOutput :: EscrowTarget -> TxOut
 mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
-    ScriptTarget vs ds vl -> scriptTxOut' vl (Ledger.scriptHashAddress vs) ds
+    ScriptTarget vs ds vl -> Ledger.TxOut (Ledger.scriptHashAddress vs) vl (Ledger.PayToScript ds)
 
 data Action = Redeem | Refund
 
@@ -290,7 +290,7 @@ refund
 refund escrow = do
     pk <- ownPubKey
     unspentOutputs <- utxoAt (escrowAddress escrow)
-    let flt _ txOut = Ledger.txOutData txOut == Just (DataScript (PlutusTx.toData pk))
+    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataScriptHash $ DataScript (PlutusTx.toData pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 & validityRange .~ from (succ $ escrowDeadline escrow)
     if not . Set.null $ tx' ^. inputs

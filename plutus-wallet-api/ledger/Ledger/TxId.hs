@@ -25,13 +25,9 @@ import           Schema                    (ToSchema)
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (ToSchema)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
-
-deriving newtype instance Serialise TxId
-deriving via LedgerBytes instance ToJSON TxId
-deriving via LedgerBytes instance FromJSON TxId
-deriving anyclass instance IotsType TxId
+    deriving anyclass (ToSchema, IotsType)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
+    deriving (ToJSON, FromJSON) via LedgerBytes
 
 instance Pretty TxId where
     pretty t = "TxId:" <+> pretty (JSON.encodeSerialise $ getTxId t)

@@ -36,7 +36,7 @@ import           Language.Plutus.Contract
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Ledger                                            (Address, PubKey, TxOut)
+import           Ledger                                            (Address, PubKey, TxOutTx (..))
 import qualified Ledger                                            as Ledger
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Typed.Scripts                              (ScriptType (..))
@@ -113,10 +113,10 @@ pay owner vl =
     let ds = Ledger.DataScript (PlutusTx.toData owner)
     in writeTxSuccess (payToScript vl address ds)
 
-ownsTxOut :: AccountOwner -> TxOut -> Bool
-ownsTxOut owner txout =
+ownsTxOut :: AccountOwner -> TxOutTx -> Bool
+ownsTxOut owner (TxOutTx tx txout) =
     let fromDataScript = PlutusTx.fromData @AccountOwner . Ledger.getDataScript in
-    Just owner == (Ledger.txOutData txout >>= fromDataScript)
+    Just owner == (Ledger.txOutData txout >>= Ledger.lookupData tx >>= fromDataScript)
 
 -- | Create a transaction that spends all outputs belonging to the 'AccountOwner'.
 redeemTx
@@ -139,7 +139,7 @@ redeem
      , HasWriteTx s
      , HasUtxoAt s
      )
-  => PubKey 
+  => PubKey
   -- ^ Where the token should go after the transaction
   -> AccountOwner
   -- ^ Account owner token
@@ -155,7 +155,7 @@ balance
 balance owner = do
     utxos <- utxoAt (Scripts.scriptAddress scriptInstance)
     let inner =
-            foldMap (view Ledger.outValue)
+            foldMap (view Ledger.outValue . Ledger.txOutTxOut)
             $ Map.filter (ownsTxOut owner)
             $ fromMaybe Map.empty
             $ utxos ^. at (Scripts.scriptAddress scriptInstance)

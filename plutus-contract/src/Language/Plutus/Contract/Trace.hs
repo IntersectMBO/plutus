@@ -335,7 +335,7 @@ addTxEvents
     => Tx
     -> ContractTrace s e m a ()
 addTxEvents tx = do
-    idx <- lift (gets (AM.fromUtxoIndex . view EM.index))
+    idx <- lift (gets (view EM.walletIndex))
     let events = WatchAddress.events idx tx
     traverse_ (addInterestingTxEvents events) allWallets
 
@@ -443,7 +443,7 @@ handleUtxoQueries
     -> ContractTrace s e m a ()
 handleUtxoQueries wllt = do
     addresses <- utxoQueryAddresses wllt
-    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . AM.fromUtxoIndex . view EM.index))
+    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view EM.walletIndex))
     let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
     traverse_ (addEvent wllt . UtxoAt.event) events
 

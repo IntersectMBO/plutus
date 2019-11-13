@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, reverse, zip, (++), (!!)) where
+module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, find, reverse, zip, (++), (!!)) where
 
 import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -133,6 +133,15 @@ findIndices p = go 0
 -- | PlutusTx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
 findIndex p l = listToMaybe (findIndices p l)
+
+{-# INLINABLE find #-}
+-- | PlutusTx version of 'Data.List.find'.
+find :: (a -> Bool) -> [a] -> Maybe a
+find p = go
+    where
+        go l = case l of
+            []     -> Nothing
+            (x:xs) -> if p x then Just x else go xs
 
 {-# INLINABLE (!!) #-}
 -- | PlutusTx version of 'GHC.List.(!!)'.

@@ -64,11 +64,11 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
     -- We'd try and advance both to the new state in one transaction, and validation of the second one
     -- would fail.
     typedIns <- WAPITyped.spendScriptOutputs si redeemer
-    let totalVal = foldMap snd typedIns
+    let totalVal = foldMap Typed.txInValue typedIns
         output = Typed.makeTypedScriptTxOut si dataScript (valueAllocator totalVal)
         txWithOuts = Typed.addTypedTxOut output Typed.baseTx
         fullTx :: Typed.TypedTxSomeIns '[SM.StateMachine s i]
-        fullTx = Typed.addManyTypedTxIns (fmap fst typedIns) txWithOuts
+        fullTx = Typed.addManyTypedTxIns typedIns txWithOuts
 
     pure (fullTx, newState)
 
@@ -101,6 +101,6 @@ mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si) currentState 
     -- would fail.
     typedIns <- WAPITyped.spendScriptOutputs si redeemer
     let fullTx :: Typed.TypedTxSomeIns '[]
-        fullTx = Typed.addManyTypedTxIns (fmap fst typedIns) Typed.baseTx
+        fullTx = Typed.addManyTypedTxIns typedIns Typed.baseTx
 
     pure (fullTx, newState)

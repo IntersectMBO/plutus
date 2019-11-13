@@ -153,7 +153,7 @@ totalInput tx = foldl f zero (pendingTxInputs tx)
     fromScript :: PendingTxIn -> Bool                              -- <1>
     fromScript i = case pendingTxInWitness i of
         Nothing     -> False
-        Just (h, _) -> h == ownHash tx                             -- <2>
+        Just (h, _, _) -> h == ownHash tx                             -- <2>
 ----
 
 <1> Does this transaction input correspond to an output of "our" script?

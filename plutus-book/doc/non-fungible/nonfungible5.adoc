@@ -91,6 +91,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf]
+        [unitData]
 ----
 ////
 
@@ -115,6 +116,7 @@ forge n = do
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf
                                  , mkNonFungibleTxOut nf
                                  ]
@@ -122,14 +124,15 @@ forge n = do
                 , txForge      = v
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
   where
-    f :: (TxOutRef, TxOut) -> Bool
-    f (_, o) = case txOutType o of
-        PayToPubKey _  -> False                                     -- <2>
-        PayToScript ds -> ds == unitData                            -- <3>
+    f :: (TxOutRef, TxOutTx) -> Bool
+    f (_, o) = case txOutTxData o of
+        Nothing  -> False                                     -- <2>
+        Just ds -> ds == unitData                            -- <3>
 ----
 
 <1> We _filter_ the outputs we find at the script address.
@@ -162,6 +165,7 @@ prank w = do
             (DataScript $ toData (42 :: Integer))
         : pubKeyTxOut v pk
         : maybeToList mout)
+        [unitData]
 
 $(mkFunctions ['start, 'forge, 'prank])
 ----

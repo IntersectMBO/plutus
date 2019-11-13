@@ -19,6 +19,9 @@ module Ledger.Tx(
     updateUtxo,
     validValuesTx,
     signatures,
+    dataWitnesses,
+    lookupSignature,
+    lookupData,
     addSignature,
     -- ** Hashing transactions
     txId,
@@ -28,6 +31,7 @@ module Ledger.Tx(
     -- * Transaction outputs
     TxOutType(..),
     TxOut(..),
+    TxOutTx(..),
     TxOutRef(..),
     isPubKeyOut,
     isPayToScriptOut,
@@ -39,6 +43,7 @@ module Ledger.Tx(
     pubKeyTxOut,
     scriptTxOut,
     scriptTxOut',
+    txOutTxData,
     -- * Transaction inputs
     TxInType(..),
     TxIn(..),
@@ -114,8 +119,10 @@ data Tx = Tx {
     -- ^ The fee for this transaction.
     txValidRange :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    txSignatures :: Map PubKey Signature
-    -- ^ Signatures of this transaction
+    txSignatures :: Map PubKey Signature,
+    -- ^ Signatures of this transaction.
+    txData       :: Map DataScriptHash DataScript
+    -- ^ Data values recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
@@ -126,7 +133,7 @@ instance Pretty Tx where
             renderInput TxIn{txInRef,txInType} =
                 let rest =
                         case txInType of
-                            ConsumeScriptAddress _ redeemer ->
+                            ConsumeScriptAddress _ redeemer _ ->
                                 [pretty redeemer]
                             ConsumePublicKeyAddress pk ->
                                 [pretty pk]
@@ -149,11 +156,16 @@ instance Semigroup Tx where
         txForge = txForge tx1 <> txForge tx2,
         txFee = txFee tx1 <> txFee tx2,
         txValidRange = txValidRange tx1 /\ txValidRange tx2,
-        txSignatures = txSignatures tx1 <> txSignatures tx2
+        txSignatures = txSignatures tx1 <> txSignatures tx2,
+        txData = txData tx1 <> txData tx2
         }
 
 instance Monoid Tx where
-    mempty = Tx mempty mempty mempty mempty top mempty
+    mempty = Tx mempty mempty mempty mempty top mempty mempty
+
+instance BA.ByteArrayAccess Tx where
+    length        = BA.length . Write.toStrictByteString . encode
+    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
@@ -177,6 +189,17 @@ signatures :: Lens' Tx (Map PubKey Signature)
 signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
+
+dataWitnesses :: Lens' Tx (Map DataScriptHash DataScript)
+dataWitnesses = lens g s where
+    g = txData
+    s tx dat = tx { txData = dat }
+
+lookupSignature :: PubKey -> Tx -> Maybe Signature
+lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
+
+lookupData :: Tx -> DataScriptHash -> Maybe DataScript
+lookupData Tx{txData} h = Map.lookup h txData
 
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
@@ -215,18 +238,13 @@ txId tx = TxId $ BSL.fromStrict $ BA.convert h' where
 data TxOutRef = TxOutRef {
     txOutRefId  :: TxId,
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
-    } deriving (Show, Eq, Ord, Generic)
+    }
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToSchema, ToJSONKey, FromJSONKey)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
 
-deriving instance Serialise TxOutRef
-deriving anyclass instance IotsType TxOutRef
-deriving instance ToJSON TxOutRef
-deriving instance FromJSON TxOutRef
-deriving instance ToSchema TxOutRef
-deriving instance ToJSONKey TxOutRef
-deriving instance FromJSONKey TxOutRef
 
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
 txOutRefs :: Tx -> [(TxOut, TxOutRef)]
@@ -235,20 +253,18 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 
 -- | The type of a transaction input.
 data TxInType =
-      ConsumeScriptAddress !ValidatorScript !RedeemerScript -- ^ A transaction input that consumes a script address with the given validator and redeemer pair.
+      ConsumeScriptAddress !ValidatorScript !RedeemerScript !DataScript -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
     | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
-    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, IotsType)
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
     txInRef  :: !TxOutRef,
     txInType :: !TxInType
-    } deriving (Show, Eq, Ord, Generic)
-
-deriving instance Serialise TxIn
-deriving anyclass instance IotsType TxIn
-deriving instance ToJSON TxIn
-deriving instance FromJSON TxIn
+    }
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON)
 
 -- | The 'TxOutRef' spent by a transaction input.
 inRef :: Lens TxIn TxIn TxOutRef TxOutRef
@@ -260,17 +276,17 @@ inType :: Lens' TxIn TxInType
 inType = lens txInType s where
     s txi t = txi { txInType = t }
 
--- | Validator and redeemer scripts of a transaction input that spends a
+-- | Validator, redeemer, and data scripts of a transaction input that spends a
 --   "pay to script" output.
-inScripts :: TxIn -> Maybe (ValidatorScript, RedeemerScript)
+inScripts :: TxIn -> Maybe (ValidatorScript, RedeemerScript, DataScript)
 inScripts TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress v r  -> Just (v, r)
-    ConsumePublicKeyAddress _ -> Nothing
+    ConsumeScriptAddress v r d -> Just (v, r, d)
+    ConsumePublicKeyAddress _  -> Nothing
 
 -- | Signature of a transaction input that spends a "pay to public key" output.
 inPubKey :: TxIn -> Maybe PubKey
 inPubKey TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress _ _  -> Nothing
+    ConsumeScriptAddress{}    -> Nothing
     ConsumePublicKeyAddress p -> Just p
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
@@ -278,18 +294,19 @@ pubKeyTxIn :: PubKey -> TxOutRef -> TxIn
 pubKeyTxIn pubK r = TxIn r (ConsumePublicKeyAddress pubK)
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> ValidatorScript -> RedeemerScript -> TxIn
-scriptTxIn r v = TxIn r . ConsumeScriptAddress v
+scriptTxIn :: TxOutRef -> ValidatorScript -> RedeemerScript -> DataScript -> TxIn
+scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | The type of a transaction output.
 data TxOutType =
-    PayToScript !DataScript -- ^ A pay-to-script output with the given data script.
+    PayToScript !DataScriptHash -- ^ A pay-to-script output with the given data script hash.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
-    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
 
 instance Pretty TxOutType where
     pretty = \case
-        PayToScript (DataScript ds) -> "PayToScript:" <+> pretty ds
+        PayToScript ds -> "PayToScript:" <+> pretty ds
         PayToPubKey pk -> "PayToPubKey:" <+> pretty pk
 
 -- | A transaction output, consisting of a target address, a value, and an output type.
@@ -298,15 +315,11 @@ data TxOut = TxOut {
     txOutValue   :: !Value,
     txOutType    :: !TxOutType
     }
-    deriving (Show, Eq, Generic)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
-deriving instance Serialise TxOut
-deriving anyclass instance IotsType TxOut
-deriving instance ToJSON TxOut
-deriving instance FromJSON TxOut
-
--- | The data script attached to a 'TxOut', if there is one.
-txOutData :: TxOut -> Maybe DataScript
+-- | The data script attached to a 'TxOutOf', if there is one.
+txOutData :: TxOut -> Maybe DataScriptHash
 txOutData TxOut{txOutType = t} = case  t of
     PayToScript s -> Just s
     PayToPubKey _ -> Nothing
@@ -342,11 +355,20 @@ isPubKeyOut = isJust . txOutPubKey
 isPayToScriptOut :: TxOut -> Bool
 isPayToScriptOut = isJust . txOutData
 
+-- | A 'TxOut' along with the 'Tx' it comes from, which may have additional information e.g.
+-- the full data script that goes with the 'TxOut'.
+data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
+
+txOutTxData :: TxOutTx -> Maybe DataScript
+txOutTxData (TxOutTx tx out) = txOutData out >>= lookupData tx
+
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
 scriptTxOut' :: Value -> Address -> DataScript -> TxOut
 scriptTxOut' v a ds = TxOut a v tp where
-    tp = PayToScript ds
+    tp = PayToScript (dataScriptHash ds)
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
 scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut

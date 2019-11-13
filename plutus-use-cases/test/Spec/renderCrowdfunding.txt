@@ -101,11 +101,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  100
 
 ==== Slot #2, Tx #0 ====
-TxId:       ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"
+TxId:       "YR6\249\STX\135F\ESC\GS\227E\a\223g\RS_O7\228\189\r+\199U\137\185U.6\234\172\235"
 Fee:        -
 Forge:      -
 Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
-              Signature: 5f582097ef3756d8b8994af1236441a2757ece45...
+              Signature: 5f582079a6856e6bd358dc1544e3026195fa414b...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13... (Wallet 2)
@@ -124,7 +124,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  10
 
@@ -170,16 +170,16 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  10
 
 ==== Slot #3, Tx #0 ====
-TxId:       "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"
+TxId:       "u\179\190\&5b%;\162S-\169\FS#>v\DC1\EOT\137e\174\138y\SUBW\182\164\242\213\DEL\135$\152"
 Fee:        -
 Forge:      -
 Signatures  PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401...
-              Signature: 5f582061adea16706a5b857ec6a3850eeb6a6c25...
+              Signature: 5f5820e86364c67a0a8673e85f077e3043857993...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: 98a5e3a36e67aaba89888bf093de1ad963e77401... (Wallet 3)
@@ -198,7 +198,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  10
 
@@ -244,16 +244,16 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  20
 
 ==== Slot #4, Tx #0 ====
-TxId:       "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"
+TxId:       "\147\234\200\STX\248\245\\\228\167\226\145\v^\246\188\RS\156\196\CAN\247\215E\164(\135a\RS\222M`pZ"
 Fee:        -
 Forge:      -
 Signatures  PubKey: f81fb54a825fced95eb033afcd64314075abfb0a...
-              Signature: 5f58201b380bc7dfc07b773c4361507271355358...
+              Signature: 5f5820323c18d93fd5a776cb22a6783dcf4497b2...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKey: f81fb54a825fced95eb033afcd64314075abfb0a... (Wallet 4)
@@ -272,7 +272,7 @@ Outputs:
     Ada:      Lovelace:  99
   
   ---- Output 1 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  1
 
@@ -318,41 +318,41 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  21
 
 ==== Slot #23, Tx #0 ====
-TxId:       ".T\206l\246\133\192\ESC)\237\SYN+O\133\139\168\207\144\149\163n\184\210\177\245\251\241\150f\236\158\EOT"
+TxId:       "nU\213K\CAN;y`\157\225.\236\241\206\r\237\181\FS\177\227\183\211\223\135\234\143\ACKw\234\186\v#"
 Fee:        -
 Forge:      -
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-              Signature: 5f5820eead494c357fb4dcc0f95bf3f9116256c7...
+              Signature: 5f58209ee9741373ed6d29a14da0d2c4331e5032...
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
-    Ada:      Lovelace:  1
+    Ada:      Lovelace:  10
   Source:
-    Tx:     "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"
+    Tx:     "YR6\249\STX\135F\ESC\GS\227E\a\223g\RS_O7\228\189\r+\199U\137\185U.6\234\172\235"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
   
   ---- Input 1 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  10
   Source:
-    Tx:     ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"
+    Tx:     "u\179\190\&5b%;\162S-\169\FS#>v\DC1\EOT\137e\174\138y\SUBW\182\164\242\213\DEL\135$\152"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
   
   ---- Input 2 ----
-  Destination:  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Destination:  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
-    Ada:      Lovelace:  10
+    Ada:      Lovelace:  1
   Source:
-    Tx:     "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"
+    Tx:     "\147\234\200\STX\248\245\\\228\167\226\145\v^\246\188\RS\156\196\CAN\247\215E\164(\135a\RS\222M`pZ"
     Output #1
     Script: f6f6010000c3f6c3f6c3f6c5f6c1f6f664556e69...
 
@@ -405,6 +405,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
+  Script: 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
   Value:
     Ada:      Lovelace:  0

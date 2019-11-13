@@ -13,9 +13,10 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import qualified Prelude                   as Haskell
-import           Language.PlutusTx.Prelude hiding (Applicative (..))
+import           Language.PlutusTx.Prelude hiding (Applicative (..), foldMap)
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set
+import           Data.Foldable             (foldMap)
 
 import           IOTS
 import qualified Language.PlutusTx         as PlutusTx
@@ -243,29 +244,28 @@ withdraw tranche1 tranche2 ownerWallet vl = do
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr
-            (\txo vl' -> vl' + Ledger.txOutValue txo)
-            zero
-            utxos
+        currentlyLocked = foldMap (Ledger.txOutValue . Ledger.txOutTxOut) utxos
         remaining = currentlyLocked - vl
 
+        dataScript = DataScript $ PlutusTx.toData ()
+
         lockedOutput =
-            Ledger.scriptTxOut remaining validator (DataScript (PlutusTx.toData ()))
-        otherOutputs =
+            Ledger.scriptTxOut remaining validator dataScript
+        (otherOutputs, datas) =
             if Value.isZero remaining
-            then []
-            else [lockedOutput]
+            then ([], [])
+            else ([lockedOutput], [dataScript])
 
         redeemer = RedeemerScript $ PlutusTx.toData ()
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator redeemer
+        mkIn r = Ledger.scriptTxIn r validator redeemer dataScript
 
         ins = Set.map mkIn (Map.keysSet utxos)
 
     -- Finally we have everything we need for `createTxAndSubmit`
-    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
+    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs) datas
 
     Haskell.pure ()
 

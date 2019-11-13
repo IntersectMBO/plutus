@@ -195,6 +195,7 @@ contribute cmp = do
     txId <- writeTxSuccess tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
+
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
@@ -218,9 +219,6 @@ scheduleCollection cmp = do
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
 
-    -- 'trg' describes the conditions for a successful campaign. It returns a
-    -- tuple with the unspent outputs at the campaign address, and the current
-    -- slot.
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 

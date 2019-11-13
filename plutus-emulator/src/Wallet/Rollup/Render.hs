@@ -234,8 +234,8 @@ instance Render TxIn where
         vsep <$> sequence [render txInRef, render txInType]
 
 instance Render TxInType where
-    render (ConsumeScriptAddress validator _) = render validator
-    render (ConsumePublicKeyAddress pubKey)   = render pubKey
+    render (ConsumeScriptAddress validator _ _) = render validator
+    render (ConsumePublicKeyAddress pubKey)     = render pubKey
 
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =
