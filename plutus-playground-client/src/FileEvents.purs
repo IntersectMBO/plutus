@@ -3,21 +3,21 @@ module FileEvents
   , readFileFromDragEvent
   ) where
 
-import Effect.Aff (Aff, Canceler, Error, makeAff)
-import Effect (Effect)
-import Web.HTML.Event.DragEvent (DragEvent)
 import Data.Either (Either(..))
-import Data.Function.Uncurried (Fn3, runFn3)
+import Effect (Effect)
+import Effect.Aff (Aff, Canceler, Error, makeAff)
+import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Prelude (Unit, ($), (<<<))
+import Web.HTML.Event.DragEvent (DragEvent)
 
 foreign import preventDefault :: DragEvent -> Effect Unit
 
 foreign import _readFileFromDragEvent ::
-  Fn3
+  EffectFn3
     (String -> Effect Unit)
     (Error -> Effect Unit)
     DragEvent
-    (Effect Canceler)
+    Canceler
 
 readFileFromDragEvent :: DragEvent -> Aff String
-readFileFromDragEvent event = makeAff $ \callback -> runFn3 _readFileFromDragEvent (callback <<< Right) (callback <<< Left) event
+readFileFromDragEvent event = makeAff $ \callback -> runEffectFn3 _readFileFromDragEvent (callback <<< Right) (callback <<< Left) event
