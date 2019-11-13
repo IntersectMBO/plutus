@@ -62,7 +62,7 @@ import WebSocket (WebSocketResponseMessage(..))
 initialState :: FrontendState
 initialState =
   FrontendState
-    { view: HaskellEditor
+    { view: Simulation
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked
