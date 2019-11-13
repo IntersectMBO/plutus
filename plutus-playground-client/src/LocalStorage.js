@@ -1,4 +1,5 @@
 /*eslint-env node*/
+/*global exports*/
 'use strict';
 
 exports._setItem = function (key, value) {

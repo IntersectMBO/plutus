@@ -1,4 +1,5 @@
 /*eslint-env node*/
+/*global exports gtag*/
 'use strict';
 
 exports.trackEvent_ = function (action, category, label, value) {
