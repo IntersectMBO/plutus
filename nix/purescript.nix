@@ -69,9 +69,11 @@ in yarn2nix-moretea.mkYarnPackage {
     cp -R deps/${name}/* .
     rm .yarnrc
 
-    # Put the generated and common code in place
-    cp -R ${psSrc} generated
-    cp -R ${webCommon} ../web-common
+    # Put links to the generated and common source in the correct place.
+    ln -s ${psSrc} generated
+    ln -s ${webCommon} ../web-common
+
+    # Ask spago to make the PureScript packages available..
     sh ${spagoPackages.installSpagoStyle}
 
     # Compile everything.
