@@ -1039,9 +1039,9 @@ which provides evidence that the transaction has the authority to do
 so;\footnote{The validator plays a role similar to that of BitCoin's
   \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.  } a
 process called \i{validation} is then performed which checks that the
-redeemer satisfies the conditions required by the transaction can
-proceed, all inputs must be successfully validated: if one or more
-inputs fails to validate then the transaction is rejected. 
+redeemer satisfies the conditions required by validator.  Before the
+transaction can proceed, all inputs must be successfully validated: if
+one or more inputs fails to validate then the transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
 redeemer consists of a signature for the current transaction produced
