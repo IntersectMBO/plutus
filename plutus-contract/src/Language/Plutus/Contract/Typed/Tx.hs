@@ -33,3 +33,14 @@ collectFromScriptFilter flt am si red =
         untypedTx = case typed of
             (Typed.TypedTxSomeIns tx) -> Typed.toUntypedTx tx
     in Contract.fromLedgerTx untypedTx
+
+-- | A version of 'collectFromScript' that selects all outputs
+--   at the address
+collectFromScript ::
+    forall a
+    . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
+    => AddressMap
+    -> Scripts.ScriptInstance a
+    -> Scripts.RedeemerType a
+    -> Contract.UnbalancedTx
+collectFromScript = collectFromScriptFilter (\_ _ -> True)

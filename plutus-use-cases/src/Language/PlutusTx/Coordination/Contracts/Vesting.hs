@@ -1,45 +1,59 @@
--- | Vesting scheme as a PLC contract
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
-    Vesting(..),
+    -- $vesting
+    VestingParams(..),
+    VestingSchema,
     VestingTranche(..),
-    VestingData(..),
-    vestFunds,
-    retrieveFunds,
     totalAmount,
-    -- * Script
-    validatorScript,
-    mkValidator
+    vestingContract,
+    validate,
+    vestingScript
     ) where
 
-import           Control.Applicative          (Applicative (..))
-import           Control.Monad.Error.Class    (MonadError (..))
-import           Data.Maybe                   (maybeToList)
-import qualified Data.Set                     as Set
+import           Control.Lens
+import           Control.Monad        (void, when)
+import           Control.Monad.Except (throwError)
+import           Data.Foldable        (fold)
+import qualified Data.Text as T
+
 import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Prelude    hiding (Applicative (..))
+import           Language.Plutus.Contract     hiding (when)
+import qualified Language.Plutus.Contract.Tx  as Tx
+import qualified Language.Plutus.Contract.Typed.Tx as Typed
+import           Language.PlutusTx.Prelude    hiding (fold)
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Ledger                       as Ledger
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
-import qualified Ledger.Ada                   as Ada
+import           Ledger                       (Address, DataScript (..), Slot(..), PubKey (..), ValidatorScript, TxOut)
+import qualified Ledger.AddressMap            as AM
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx, PendingTx' (..), PendingTxIn'(..), PendingTxOut(..), getContinuingOutputs)
-import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
+import           Ledger.Validation            (PendingTx, PendingTx' (..))
+
+-- $vesting
+-- A simple vesting contract that locks some funds until a
+-- predefined slot has been reached.
+
+type VestingSchema =
+    BlockchainActions
+        .\/ Endpoint "vest funds" ()
+        .\/ Endpoint "retrieve funds" Value
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -51,18 +65,18 @@ PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (slot) after which an additional amount can be spent.
-data Vesting = Vesting {
+data VestingParams = VestingParams {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
     vestingOwner    :: PubKey
     } deriving Generic
 
-PlutusTx.makeLift ''Vesting
+PlutusTx.makeLift ''VestingParams
 
 {-# INLINABLE totalAmount #-}
 -- | The total amount vested
-totalAmount :: Vesting -> Value
-totalAmount Vesting{..} =
+totalAmount :: VestingParams -> Value
+totalAmount VestingParams{vestingTranche1,vestingTranche2} =
     vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
 
 {-# INLINABLE availableFrom #-}
@@ -76,103 +90,123 @@ availableFrom (VestingTranche d v) range =
     -- the money in the tranche is available, otherwise nothing is available.
     in if validRange `Interval.contains` range then v else zero
 
--- | Data script for vesting utxo
-data VestingData = VestingData {
-    vestingDataPaidOut :: Value          -- ^ How much of the vested value has already been retrieved
-    } deriving (Generic)
+availableAt :: VestingParams -> Slot -> Value
+availableAt VestingParams{vestingTranche1, vestingTranche2} sl =
+    let f VestingTranche{vestingTrancheDate, vestingTrancheAmount} =
+            if sl >= vestingTrancheDate then vestingTrancheAmount else mempty
+    in foldMap f [vestingTranche1, vestingTranche2]
 
-instance Eq VestingData where
-    {-# INLINABLE (==) #-}
-    (VestingData v1) == (VestingData v2) = v1 == v2
+{-# INLINABLE remainingFrom #-}
+-- | The amount that has not been released from this tranche yet
+remainingFrom :: VestingTranche -> Slot.SlotRange -> Value
+remainingFrom t@VestingTranche{vestingTrancheAmount} range =
+    vestingTrancheAmount - availableFrom t range
 
-PlutusTx.makeIsData ''VestingData
-PlutusTx.makeLift ''VestingData
-
-transactionFee :: Value
-transactionFee = Ada.lovelaceValueOf 0
-
--- | Lock some funds with the vesting validator script and return a
---   [[VestingData]] representing the current state of the process
-vestFunds :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => Vesting
-    -> Value
-    -> m VestingData
-vestFunds vst value = do
-    _ <- if value `Value.lt` totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
-    (payment, change) <- createPaymentWithChange (value + transactionFee)
-    let vs = validatorScript vst
-        o = scriptTxOut value vs (DataScript $ PlutusTx.toData vd)
-        vd =  VestingData zero
-    _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
-    pure vd
-
--- | Retrieve some of the vested funds.
-retrieveFunds :: (
-    Monad m,
-    WalletAPI m)
-    => Vesting
-    -- ^ Definition of vesting scheme
-    -> VestingData
-    -- ^ Value that has already been taken out
-    -> TxOutRef
-    -- ^ Transaction output locked by the vesting validator script
-    -> Value
-    -- ^ Value we want to take out now
-    -> m VestingData
-retrieveFunds vs vd r vnow = do
-    oo <- ownPubKeyTxOut vnow
-    currentSlot <- slot
-    let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ PlutusTx.toData vd')
-        remaining = totalAmount vs - vnow
-        vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
-        inp = scriptTxIn r val (RedeemerScript $ PlutusTx.toData ())
-        range = W.intervalFrom currentSlot
-    (fee, change) <- createPaymentWithChange transactionFee
-    _ <- createTxAndSubmit range (Set.insert inp fee) ([oo, o] ++ maybeToList change)
-    pure vd'
-
-{-# INLINABLE mkValidator #-}
-mkValidator :: Vesting -> VestingData -> () -> PendingTx -> Bool
-mkValidator d@Vesting{..} VestingData{..} _ ptx@PendingTx{pendingTxValidRange = range} =
+{-# INLINABLE validate #-}
+validate :: VestingParams -> () -> () -> PendingTx -> Bool
+validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ptx@PendingTx{pendingTxValidRange} =
     let
-        -- The locked funds which are returned?
-        payBack :: Value
-        payBack = mconcat (map pendingTxOutValue (getContinuingOutputs ptx))
+        remainingActual  = Validation.valueLockedBy ptx (Validation.ownHash ptx)
 
-        -- The funds available in the contract.
-        lockedValue :: Value
-        lockedValue = pendingTxInValue (pendingTxIn ptx)
+        remainingExpected = 
+            remainingFrom vestingTranche1 pendingTxValidRange
+            + remainingFrom vestingTranche2 pendingTxValidRange
 
-        -- The funds that are paid to the owner
-        amountSpent :: Value
-        amountSpent = lockedValue - payBack
+    in remainingActual `Value.geq` remainingExpected
+            -- The policy encoded in this contract
+            -- is "vestingOwner can do with the funds what they want" (as opposed
+            -- to "the funds must be paid to vestingOwner"). This is enforcey by
+            -- the following condition:
+            && Validation.txSignedBy ptx vestingOwner
+            -- That way the recipient of the funds can pay them to whatever address they
+            -- please, potentially saving one transaction.
 
-        -- Value that has been released so far under the scheme
-        released = availableFrom vestingTranche1 range
-            + availableFrom vestingTranche2 range
+data Vesting
+instance Scripts.ScriptType Vesting where
+    type instance RedeemerType Vesting = ()
+    type instance DataType Vesting = ()
 
-        paidOut = vestingDataPaidOut
-        newAmount = paidOut + amountSpent
+vestingScript :: VestingParams -> ValidatorScript
+vestingScript = Scripts.validatorScript . scriptInstance
 
-        -- Verify that the amount taken out, plus the amount already taken
-        -- out before, does not exceed the threshold that is currently
-        -- allowed
-        amountsValid = newAmount `Value.leq` released
+scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
+scriptInstance vesting = Scripts.Validator @Vesting
+    ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode vesting)
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator @() @()
+            
+contractAddress :: VestingParams -> Ledger.Address
+contractAddress = Scripts.scriptAddress . scriptInstance
 
-        -- Check that the remaining output is locked by the same validation
-        -- script
-        txnOutputsValid =
-            let remaining = Validation.valueLockedBy ptx (Validation.ownHash ptx) in
-            remaining == (totalAmount d - newAmount)
+vestingContract :: VestingParams -> Contract VestingSchema T.Text ()
+vestingContract vesting = vest <|> retrieve where
+    retrieve = do
+        payment <- endpoint @"retrieve funds"
+        liveness <- retrieveFundsC vesting payment
+        case liveness of
+            Alive -> retrieve
+            Dead  -> pure ()
+    vest = endpoint @"vest funds" >> vestFundsC vesting
 
-    in amountsValid && txnOutputsValid
+payIntoContract :: VestingParams -> Value -> TxOut
+payIntoContract vp value = 
+    Tx.scriptTxOut' 
+        value 
+        (contractAddress vp)
+        (DataScript (PlutusTx.toData ()))
 
-validatorScript :: Vesting -> ValidatorScript
-validatorScript v = Ledger.mkValidatorScript $
-    $$(PlutusTx.compile [|| validatorParam ||])
-        `PlutusTx.applyCode`
-            PlutusTx.liftCode v
-    where validatorParam vd = Scripts.wrapValidator (mkValidator vd)
+vestFundsC
+    :: ( HasWriteTx s         
+       )
+    => VestingParams
+    -> Contract s T.Text ()
+vestFundsC vesting = do
+    let tx = unbalancedTx [] [payIntoContract vesting (totalAmount vesting)]
+    void $ writeTxSuccess tx
+
+data Liveness = Alive | Dead
+
+retrieveFundsC
+    :: ( HasAwaitSlot s
+       , HasUtxoAt s
+       , HasWriteTx s
+       )
+    => VestingParams
+    -> Value
+    -> Contract s T.Text Liveness
+retrieveFundsC vesting payment = do
+    let addr = contractAddress vesting
+    nextSlot <- awaitSlot 0
+    unspentOutputs <- utxoAt addr
+    let 
+        currentlyLocked = fold (AM.values unspentOutputs)
+        remainingValue = currentlyLocked - payment
+        mustRemainLocked = totalAmount vesting - availableAt vesting nextSlot
+        maxPayment = currentlyLocked - mustRemainLocked
+
+    when (remainingValue `Value.lt` mustRemainLocked)
+        $ throwError 
+        $ T.unwords 
+            [ "Cannot take out"
+            , T.pack (show payment) `T.append` "."
+            , "The maximum is"
+            , T.pack (show maxPayment) `T.append` "."
+            , "At least"
+            , T.pack (show mustRemainLocked)
+            , "must remain locked by the script."
+            ]
+
+    let liveness = if remainingValue `Value.gt` mempty then Alive else Dead
+        remainingOutputs = case liveness of
+                            Alive -> [payIntoContract vesting remainingValue]
+                            Dead  -> []
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
+                & validityRange .~ Interval.from nextSlot
+                & requiredSignatures .~ [vestingOwner vesting]
+                & outputs .~ remainingOutputs
+                -- we don't need to add a pubkey output for 'vestingOwner' here
+                -- because this will be done by the wallet when it balances the
+                -- transaction.
+    void $ writeTx tx
+    return liveness

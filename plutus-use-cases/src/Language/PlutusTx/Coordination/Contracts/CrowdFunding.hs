@@ -224,7 +224,7 @@ scheduleCollection cmp = do
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) Collect
+    let tx = Typed.collectFromScript unspentOutputs (scriptInstance cmp) Collect
             & validityRange .~ collectionRange cmp
     void $ writeTx tx
 
