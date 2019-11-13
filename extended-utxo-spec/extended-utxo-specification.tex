@@ -242,7 +242,7 @@ conventions used in the remainder of the document.
 
 \item \B{} denotes the type of booleans, $\{\false, \true\}$.
 \item \N{} denotes the type of natural numbers, $\{0, 1, 2, \ldots\}$.
-\item \Z{} denotes the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$.
+\item \Z{} denotes the type of integers, $\{\ldots, -2, -1, 0, 1, 2, \ldots\}$.
 \item We regard $\N$ as a subtype of $\Z$ and convert freely between
   natural numbers and non-negative integers.
 \item \H{} denotes the type of bytestrings,
@@ -295,7 +295,7 @@ conventions used in the remainder of the document.
 \subsection {Finitely-supported functions}
 \label{sec:fsfs}
 
-Finitely-supported functions are a generalization of maps to monoidal values.
+Finitely-supported functions are a generalisation of maps to monoidal values.
 They always return an answer (which will in all but finitely many cases be
 zero), and can be queried for the set of non-zero points in their domain.
 
@@ -321,7 +321,7 @@ the function $(-f)$ with the same support, given by
 \[ (-f)(k) = -f(k) \]
 Again, $\FinSup{K}{M}$ is a group with this operation.
 
-See note~\ref{note:finitely-supported-functions} for discussion of using
+See Note~\ref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
 
 \subsection{The \Data{} type}
@@ -333,7 +333,7 @@ a Haskell type, for instance.
 \begin{ruledfigure}{H}
 \begin{alltt}
   \Data =
-      "I" \(\N\)
+      "I" \(\Z\)
     | "B" \(\H\)
     | "Constr" \(\N (\List{\Data})\)
     | "List" \(\List{\Data}\)
@@ -347,7 +347,7 @@ a Haskell type, for instance.
 built up recursively from the base types of integers and
 bytestrings. This allows one to encode a large variety of first-order
 data structures: for example, we could encode values of Haskell's
-\verb|Maybe Integer| type using \verb|Constr 0| to represent
+\verb|Maybe Integer| type using \verb|Constr 0 []| to represent
 \verb|Nothing| and \verb|Constr 1 [I 41]| to encode \verb|Just 41|.
 
 
@@ -372,7 +372,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \item Each unspent output now has an object $\dataval$ of type
   \Data{} associated with it: we call this the output's
-  \textit{data value} (see note~\ref{note:data-values}).
+  \textit{data value} (see Note~\ref{note:data-values}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data{}.
@@ -432,7 +432,7 @@ the ledger.
     \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
-    \s{Output } &=&(\addr: Address,\\
+    \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
                 & &\ \dataval: \Data)\\
     \\
@@ -479,14 +479,20 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
   \label{fig:eutxo-1-types-cardano}
 \end{ruledfigure}
 
-\paragraph{Inputs and outputs. } Note that a transaction has a
+\paragraph{Inputs and outputs.} Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
-note~\ref{note:inputs-and-outputs} for a discussion of why.
+Note~\ref{note:inputs-and-outputs} for a discussion of why.
+
+\paragraph{Validator addresses in outputs.} The \textit{addr} field
+of an output should contain the address of the validator for
+that output: this requirement is enforced in
+Rule~\ref{rule:validator-scripts-hash} of
+Figure~\ref{fig:eutxo-1-validity} below.
 
 \paragraph{Scripts.} Note that data values are modelled as components
 of outputs, but validator scripts as components of inputs, even though
 a validator is conceptually part of an output.  The reasons for this
-are explained in Note~\ref{note:scripts}.
+are explained in Note~\ref{note:scripts}.  
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -1024,19 +1030,18 @@ output could be spendable by anyone, or by no-one.
 In order to deal with this complexity, an output can be locked by a
 \textit{script},%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec} (equivalently, expressions).  }
+  programs~\citep{Plutus-Core-spec} (equivalently, expressions).}
 requiring another script to unlock it.  In the basic model, each input
 to a transaction comes with a \i{validator} script which checks that
-the transaction is allowed to spend the output. In order to spend an
-output, the transaction supplies a value, called the
-\i{redeemer}, which provides evidence that the transaction has the
-authority to do so;\footnote{The validator plays a role similar to
-  that of BitCoin's \texttt{scriptPubKey} and the redeemer to
-  \texttt{scriptSig}.  } a process called \i{validation} is then
-performed which checks that the redeemer satisfies the conditions
-required by the validator. Before a transaction can proceed, all inputs
-must be successfully validated: if one or more inputs fails to
-validate then the transaction is rejected.
+the transaction is allowed to spend the output.  In order to spend an
+output, the transaction supplies a value, called the \i{redeemer},
+which provides evidence that the transaction has the authority to do
+so;\footnote{The validator plays a role similar to that of BitCoin's
+  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.  } a
+process called \i{validation} is then performed which checks that the
+redeemer satisfies the conditions required by the transaction can
+proceed, all inputs must be successfully validated: if one or more
+inputs fails to validate then the transaction is rejected. 
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
 redeemer consists of a signature for the current transaction produced
@@ -1045,6 +1050,9 @@ validator (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
+
+See Note~\ref{note:scripts} for more information about validators in
+the EUTXO setting.
 
 \note{Inputs and outputs}
 \label{note:inputs-and-outputs}
@@ -1064,7 +1072,7 @@ An alternative design would be to include a unique nonce in transaction outputs
 (effectively: their index in the list), and then we could use this to identify
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
-\note{Data values}
+\note{Data values.}
 \label{note:data-values}
 The introduction of data values
 increases the expressivity of the model considerably. For example,
@@ -1094,22 +1102,24 @@ amount covered by the fee then the transaction will fail.
 \note{Scripts.}
 \label{note:scripts} The spendability of an output is determined by
 its validator script, and thus the validator for an output must be
-created at the same time as the output is.  Conceptually the validator
-is  part of the output, so it may be rather unexpected that
-Figure~\ref{fig:eutxo-1-types} defines the validator to be part of an
-\textit{input}, with the output only containing the address of the
-validator.  The rationale for this is that a validator $V$ for an
-output $O$ is not required until $O$ is actually spent, which may be
-some time after $O$ was created.  Recall from Note~\ref{note:fees} that the
-cost of executing a transaction depends on the size of transaction,
-including the associated scripts.  Thus the transaction that produces
-the validator only pays for the size of a hash (32 bytes) and the
-transaction that runs it pays for the full size of the script. This
-strategy also helps to reduce on-chain storage requirements, since
-validators can be stored off-chain until needed (and the presence of
-the hash in the output can be used to check that the correct validator
-is in fact being used when validation occurs), but unspent outputs
-persist on-chain in the UTXO set until they are eventually spent.
+known at the time when the output is created (a completely new validator
+may be created, or an existing validator may be re-used).
+Conceptually the validator is part of the output, so it may be rather
+unexpected that Figure~\ref{fig:eutxo-1-types} defines the validator
+to be part of an \textit{input}, with the output only containing the
+address of the validator.  The rationale for this is that a validator
+$V$ for an output $O$ is not required until $O$ is actually spent,
+which may be some time after $O$ was created.  Recall from
+Note~\ref{note:fees} that the cost of executing a transaction depends
+on the size of transaction, including the associated scripts.  Thus
+the transaction that produces the validator only pays for the size of
+a hash (32 bytes) and the transaction that runs it pays for the full
+size of the script. This strategy also helps to reduce on-chain
+storage requirements, since validators can be stored off-chain until
+needed (and the presence of the hash in the output can be used to
+check that the correct validator is in fact being used when validation
+occurs), but unspent outputs persist on-chain in the UTXO set until
+they are eventually spent.
 
 This strategy is not applied to data values since, as the name
 would suggest, we expect these to be small pieces of data (public
