@@ -33,6 +33,7 @@ library
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.GameStateMachine
+        Language.PlutusTx.Coordination.Contracts.ErrorHandling
         Language.PlutusTx.Coordination.Contracts.MultiSig
         Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
         Language.PlutusTx.Coordination.Contracts.PubKey
@@ -75,6 +76,7 @@ test-suite plutus-use-cases-test
     other-modules:
         Spec.Crowdfunding
         Spec.Currency
+        Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
         Spec.Game

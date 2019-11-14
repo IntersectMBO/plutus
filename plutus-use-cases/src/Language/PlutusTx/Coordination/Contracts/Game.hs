@@ -40,7 +40,7 @@ import           Data.Maybe                     (fromMaybe)
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract.IOTS                      (IotsType)
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
+import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
@@ -127,7 +127,7 @@ game :: Contract GameSchema e ()
 game = guess <|> lock
 
 lockTrace
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => ContractTrace GameSchema e m () ()
 lockTrace =
     let w1 = Trace.Wallet 1
@@ -137,7 +137,7 @@ lockTrace =
         >> Trace.handleBlockchainEvents w1
 
 guessTrace
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => ContractTrace GameSchema e m () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
@@ -146,7 +146,7 @@ guessTrace =
         >> Trace.handleBlockchainEvents w2
 
 guessWrongTrace
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => ContractTrace GameSchema e m () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in

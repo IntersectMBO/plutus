@@ -129,8 +129,7 @@ not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
     :: forall s e a
-    . (EM.AsAssertionError e
-      , Show e
+    . ( Show e
       , AllUniqueLabels (Output s)
       , Forall (Input s) Pretty
       , Forall (Output s) Semigroup
@@ -138,8 +137,8 @@ checkPredicate
       , Forall (Output s) Monoid)
     => String
     -> Contract s e a
-    -> TracePredicate s e a
-    -> ContractTrace s e (EmulatorAction e) a ()
+    -> TracePredicate s (TraceError e) a
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
@@ -455,15 +454,14 @@ assertContractError
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
-    , Eq e
     , Show e
     )
     => Wallet
-    -> e
+    -> (e -> Bool)
     -> String
     -> TracePredicate s e a
-assertContractError w err =
-    assertOutcome w (\case { Error (State.OtherError err') -> err' == err; _ -> False })
+assertContractError w p =
+    assertOutcome w (\case { Error (State.OtherError err) -> p err; _ -> False })
 
 assertOutcome
     :: forall s e a.

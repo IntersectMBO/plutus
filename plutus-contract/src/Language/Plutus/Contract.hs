@@ -14,6 +14,7 @@ module Language.Plutus.Contract(
     , (>>)
     , (<|>)
     , checkpoint
+    , withContractError
     -- * Dealing with time
     , HasAwaitSlot
     , AwaitSlot
@@ -70,7 +71,8 @@ import           Language.Plutus.Contract.Effects.WriteTx
 import           Language.Plutus.Contract.Util                   (both, selectEither)
 
 import           Language.Plutus.Contract.Request                (AsContractError (..), Contract (..),
-                                                                  ContractError (..), ContractRow, checkpoint, select)
+                                                                  ContractError (..), ContractRow, checkpoint, select,
+                                                                  withContractError)
 import           Language.Plutus.Contract.Schema                 (Handlers)
 
 import           Language.Plutus.Contract.Tx                     as Tx
