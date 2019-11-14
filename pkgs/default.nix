@@ -44819,6 +44819,7 @@ license = stdenv.lib.licenses.asl20;
 , stdenv
 , template-haskell
 , utf8-string
+, wl-pprint
 }:
 mkDerivation {
 
@@ -44840,6 +44841,7 @@ servant
 servant-client
 template-haskell
 utf8-string
+wl-pprint
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.bsd3;
@@ -54773,8 +54775,10 @@ license = stdenv.lib.licenses.asl20;
 , criterion
 , cryptonite
 , hedgehog
+, iots-export
 , language-plutus-core
 , lens
+, memory
 , mtl
 , plutus-contract
 , plutus-emulator
@@ -54801,6 +54805,7 @@ aeson
 base
 bytestring
 containers
+iots-export
 lens
 mtl
 plutus-contract
@@ -54840,6 +54845,7 @@ criterion
 cryptonite
 language-plutus-core
 lens
+memory
 plutus-tx
 plutus-wallet-api
 ];
