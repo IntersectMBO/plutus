@@ -108,6 +108,7 @@
 \newcommand{\txId}{\msf{txId}}
 \newcommand{\txrefid}{\mi{id}}
 \newcommand{\Address}{\ensuremath{\s{Address}}}
+\newcommand{\DataHash}{\ensuremath{\s{DataHash}}}
 \newcommand{\idx}{\mi{index}}
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
@@ -118,7 +119,9 @@
 
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
-\newcommand{\dataval}{\mi{dataVal}}
+\newcommand{\dataVal}{\mi{dataVal}}
+\newcommand{\dataHsh}{\mi{dataHash}}
+\newcommand{\dataWits}{\mi{dataWitnesses}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
@@ -370,9 +373,10 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   the current slot number lies within the transaction's validity
   interval.
 
-\item Each unspent output now has an object $\dataval$ of type
-  \Data{} associated with it: we call this the output's
-  \textit{data value} (see Note~\ref{note:data-values}).
+\item Each unspent output now has a hash $\dataHsh$ of a data
+  value of type \Data{} associated with it: we call this the output's
+  \textit{data value hash} (see Note~\ref{note:data-values}). This must
+  be provided in full by the spending input as $\dataVal$, much like the validator.
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data{}.
@@ -423,7 +427,8 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
-    \Address && \mbox{the address of an object in the blockchain}\\
+    \Address && \mbox{the "address" of a script in the blockchain}\\
+    \DataHash && \mbox{the hash of a value of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
@@ -434,17 +439,19 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
-                & &\ \dataval: \Data)\\
+                & &\ \dataHsh: \DataHash)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
+               & &\ \dataVal: \Data,\\
                & &\ \redeemer: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
                    & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                   & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                    & &\ \fee: \qty,\\
                    & &\ \forge: \qty) \\
      \\
@@ -466,6 +473,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
     \qty{} &=& \Z\\
     \slotnum &=& \N\\
     \Address &=& \H\\
+    \DataHash &=& \H\\
     \TxId &=& \H\\
     \txId : \eutxotx \rightarrow \TxId &=& t \mapsto \hash{t}\\
     \script &=& \mbox{a Plutus Core program}\\
@@ -489,10 +497,9 @@ that output: this requirement is enforced in
 Rule~\ref{rule:validator-scripts-hash} of
 Figure~\ref{fig:eutxo-1-validity} below.
 
-\paragraph{Scripts.} Note that data values are modelled as components
-of outputs, but validator scripts as components of inputs, even though
-a validator is conceptually part of an output.  The reasons for this
-are explained in Note~\ref{note:scripts}.
+\paragraph{Scripts.} Note that data values and validator scripts as
+components of inputs, even though they are conceptually part of an output.
+The reasons for this are explained in Note~\ref{note:scripts}.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -528,17 +535,19 @@ related types.
   \begin{array}{rll}
     \s{OutputInfo } &=&(\val: \qty,\\
                     & &\ \i{validatorHash}: \Address,\\
-                    & &\ \dataval: \Data)\\
+                    & &\ \dataHsh: \DataHash)\\
     \\
     \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
-                   & &\ \i{validatorHash}: \s{Address},\\
-                   & &\ \i{redeemerHash}: \s{Address},\\
+                   & &\ \i{validatorHash}: \Address,\\
+                   & &\ \i{dataHash}: \DataHash,\\
+                   & &\ \i{redeemerHash}: \DataHash,\\
                    & &\ \val: \qty)\\
      \\
      \ptx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
                & &\ \i{thisInput}: \N,\\
                & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
@@ -559,7 +568,7 @@ Figure~\ref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
 transaction.  The \i{outputInfo} field contains information about the
 outputs which will be produced if the pending transaction validates
 successfully: it contains only the address of the relevant validator,
-but has the data value for the output in full.\footnote{See
+and the hash of the data value.\footnote{See
   Note~\ref{note:data-values-in-ptx} for further explanation.}
 The \i{inputInfo} field contains information about the
 inputs to the pending transaction, but provides only the hashes of the
@@ -681,7 +690,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (\getSpent(i, l).\dataval,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -703,10 +712,9 @@ $l$ is \textit{valid} if either $l$ is empty or
 $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
-
 In practice, validity imposes a limit on the size of the
-\script{} values of the $\validator$, $\redeemer$ and
-$\dataval$ fields and the result of $\delta$. The validation of a
+$\validator$ \script{}; the $\redeemer$ and
+$\dataVal$ \Data{} fields; and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -772,17 +780,19 @@ currency, as in EUTXO-1.
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
-                 & &\ \dataval: \Data)\\
+                 & &\ \dataHsh: \DataHash)\\
     \\
     \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
+                & &\ \dataVal: \Data,\\
                 & &\ \redeemer: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
                & &\ \forge: \qtymap)\\
     \\
@@ -837,18 +847,20 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
   \begin{displaymath}
   \begin{array}{rll}
     \s{OutputInfo}_2\s{ } &=&(\val: \qtymap,\\
-                          & &\ \i{validatorHash}: \s{Address},\\
-                          & &\ \i{datascriptHash}: \s{Address})\\
+                          & &\ \i{validatorHash}: \Address,\\
+                          & &\ \dataHsh: \DataHash)\\
     \\
     \s{InputInfo}_2\s{ } &=& (\outputref: \s{OutputRef},\\
-                         & &\ \i{validatorHash}: \s{Address},\\
-                         & &\ \i{redeemerHash}: \s{Address}),\\
+                         & &\ \i{validatorHash}: \Address,\\
+                         & &\ \i{dataHash}: \DataHash,\\
+                         & &\ \i{redeemerHash}: \DataHash),\\
                          & &\ \val: \qtymap)\\
      \\
      \ptx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
                  & &\ \i{thisInput}: \N,\\
                  & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
                  & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                 & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qty,\\
                  & &\ \forge: \qtymap)\\
     \\
@@ -942,7 +954,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(\getSpent(i,l).\dataval,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(i.\dataVal,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -1121,15 +1133,19 @@ check that the correct validator is in fact being used when validation
 occurs), but unspent outputs persist on-chain in the UTXO set until
 they are eventually spent.
 
-This strategy is not applied to data values since, as the name
-would suggest, we expect these to be small pieces of data (public
-keys, for example) which would not incur large storage charges.
+The same strategy applies to data values. However, it is useful to
+be able to record the full data value on the transaction that \emph{creates}
+an output. Hence the $\dataWits$ field \emph{may} contain mappings from
+the $\DataHash$es used in the transaction to their \Data{} values. This
+information is also present in \ptx{}.
 
 \note{Data values in \ptx{}}
 \label{note:data-values-in-ptx}
 In Figures~\ref{fig:ptx-1-types} and~\ref{fig:ptx-2-types} the
-\textsf{OutputInfo} type includes the data values for the outputs
-of the pending transaction in full.  This allows a validator to
+\textsf{OutputInfo} does not include the data value attached to the output.
+These may be found in $\dataWits$.
+
+Having access to the data values allows a validator to
 inspect an outgoing data value, for example to confirm that its
 contents are correct in some sense. This can be useful when a data
 value is used to propagate information about the state of a contract to
