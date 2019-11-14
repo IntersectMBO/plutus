@@ -9,6 +9,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests) where
 
+import qualified Data.Text as T
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                 as HUnit
 
@@ -54,7 +55,7 @@ tests =
     , checkPredicate "cannot retrieve more than allowed"
         con
         (walletFundsChange wallet1 mempty
-        /\ assertContractError wallet1 "Cannot take out Value {getValue = Map {unMap = [(,Map {unMap = [(,30)]})]}}. The maximum is Value {getValue = Map {unMap = [(,Map {unMap = [(,20)]})]}}. At least Value {getValue = Map {unMap = [(,Map {unMap = [(,40)]})]}} must remain locked by the script." "")
+        /\ assertContractError wallet1 (== expectedError) "error should match")
         (callEndpoint @"vest funds" wallet2 ()
         >> handleBlockchainEvents wallet2
         >> addBlocks 10
@@ -89,3 +90,6 @@ vesting =
         { vestingTranche1 = VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
         , vestingTranche2 = VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
         , vestingOwner    = walletPubKey wallet1 }
+
+expectedError :: TraceError T.Text
+expectedError = ContractError "Cannot take out Value {getValue = Map {unMap = [(,Map {unMap = [(,30)]})]}}. The maximum is Value {getValue = Map {unMap = [(,Map {unMap = [(,20)]})]}}. At least Value {getValue = Map {unMap = [(,Map {unMap = [(,40)]})]}} must remain locked by the script."

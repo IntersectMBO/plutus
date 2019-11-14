@@ -18,6 +18,7 @@ module Language.Plutus.Contract.Resumable(
     , lowerM
     , mapStep
     , checkpoint
+    , withResumableError
     -- * Records
     , initialise
     , insertAndUpdate
@@ -142,6 +143,18 @@ mapStep f = \case
     CStep con -> CStep (f con)
     CJSONCheckpoint c -> CJSONCheckpoint (mapStep f c)
     CError e -> CError e
+
+-- | Transform any exceptions thrown by the 'Resumable' using the given function.
+withResumableError :: (e -> e') -> Resumable e f a -> Resumable e' f a
+withResumableError f = \case
+    CMap f' c -> CMap f' (withResumableError f c)
+    CAp l r -> CAp (withResumableError f l) (withResumableError f r)
+    CAlt l r -> CAlt (withResumableError f l) (withResumableError f r)
+    CEmpty -> CEmpty
+    CBind l f' -> CBind (withResumableError f l) (fmap (withResumableError f) f')
+    CStep con -> CStep con
+    CJSONCheckpoint c -> CJSONCheckpoint (withResumableError f c)
+    CError e -> CError (f e)
 
 initialise
     :: forall o e i m a.

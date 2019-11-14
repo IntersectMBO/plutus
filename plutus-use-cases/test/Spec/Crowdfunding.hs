@@ -140,7 +140,7 @@ tests = testGroup "crowdfunding"
 
 renderPredicate
     :: Contract CrowdfundingSchema T.Text ()
-    -> ContractTrace CrowdfundingSchema T.Text (EmulatorAction T.Text) () ()
+    -> ContractTrace CrowdfundingSchema T.Text (EmulatorAction (TraceError T.Text)) () ()
     -> IO ByteString
 renderPredicate contract trace = do
     case runTrace contract trace of

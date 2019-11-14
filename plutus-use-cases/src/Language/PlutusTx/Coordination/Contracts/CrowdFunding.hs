@@ -54,7 +54,7 @@ import           IOTS                           (IotsType)
 
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
+import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), (<$>), Applicative (..))
@@ -231,7 +231,7 @@ scheduleCollection cmp = do
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
-    :: ( MonadEmulator e m  )
+    :: ( MonadEmulator (TraceError e) m  )
     => ContractTrace CrowdfundingSchema e m () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
@@ -239,7 +239,7 @@ startCampaign =
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> Value
     -> ContractTrace CrowdfundingSchema e m () ()
@@ -249,7 +249,7 @@ makeContribution w v =
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => ContractTrace CrowdfundingSchema e m () ()
 successfulCampaign =
     startCampaign

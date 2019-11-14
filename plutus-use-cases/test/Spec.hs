@@ -3,6 +3,7 @@ module Main(main) where
 
 import qualified Spec.Crowdfunding
 import qualified Spec.Currency
+import qualified Spec.ErrorHandling
 import qualified Spec.Escrow
 import qualified Spec.Future
 import qualified Spec.Game
@@ -30,6 +31,7 @@ tests :: TestTree
 tests = localOption limit $ testGroup "use cases" [
     Spec.Crowdfunding.tests,
     Spec.Vesting.tests,
+    Spec.ErrorHandling.tests,
     Spec.Future.tests,
     Spec.Game.tests,
     Spec.MultiSig.tests,

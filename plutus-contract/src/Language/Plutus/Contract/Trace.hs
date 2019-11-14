@@ -1,12 +1,14 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE KindSignatures         #-}
+{-# LANGUAGE MonoLocalBinds         #-}
+{-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TupleSections          #-}
+{-# LANGUAGE TypeApplications       #-}
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
@@ -14,6 +16,8 @@ module Language.Plutus.Contract.Trace(
     ContractTraceState
     , ContractTrace
     , EmulatorAction
+    , TraceError(..)
+    , AsTraceError(..)
     , WalletState(..)
     , ctsWalletStates
     , ctsContract
@@ -61,7 +65,7 @@ import           Data.Sequence                                   (Seq)
 import qualified Data.Set                                        as Set
 
 import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx,
-                                                                  waitingForBlockchainActions)
+                                                                  waitingForBlockchainActions, withContractError)
 import qualified Language.Plutus.Contract.Resumable              as State
 import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
 import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
@@ -91,9 +95,16 @@ import           Wallet.API                                      (WalletAPIError
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
 import qualified Wallet.Emulator                                 as EM
 
+-- | Error produced while running a trace. Either a contract-specific
+--   error (of type 'e'), or an 'EM.AssertionError' from the emulator.
+data TraceError e =
+    TraceAssertionError EM.AssertionError
+    | ContractError e
+    deriving (Eq, Show)
+
 type InitialDistribution = [(Wallet, Ada)]
 
-type ContractTrace s e m a = StateT (ContractTraceState s e a) m
+type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
 data WalletState s =
     WalletState
@@ -216,13 +227,12 @@ addEventAll e = traverse_ (flip addEvent e) allWallets
 --   final events for each wallet.
 execTrace
     :: forall s e a.
-       ( EM.AsAssertionError e
-       , AllUniqueLabels (Output s)
+       ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
     => Contract s e a
-    -> ContractTrace s e (EmulatorAction e) a ()
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> Map Wallet [Event s]
 execTrace con action =
     let (e, _) = runTrace con action
@@ -232,16 +242,16 @@ execTrace con action =
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
 runTrace
-    :: ( EM.AsAssertionError e
-       , AllUniqueLabels (Output s)
+    :: ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
     => Contract s e a
-    -> ContractTrace s e (EmulatorAction e) a ()
-    -> (Either e ((), ContractTraceState s e a), EmulatorState)
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTrace con action =
-    withInitialDistribution defaultDist (runStateT action (initState allWallets con))
+    let con' = withContractError ContractError con in
+    withInitialDistribution defaultDist (runStateT action (initState allWallets con'))
 
 -- | Run an 'EmulatorAction' on a blockchain with the given initial distribution
 --   of funds to wallets.
@@ -260,7 +270,7 @@ withInitialDistribution dist action =
 -- | Run a wallet action in the context of the given wallet, notify the wallets,
 --   and return the list of new transactions
 runWallet
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> EM.MockWallet a
     -> m ([Tx], Either WalletAPIError a)
@@ -272,7 +282,7 @@ runWallet w t = do
 -- | Call the endpoint on the contract
 callEndpoint
     :: forall l ep s e m a.
-       ( MonadEmulator e m
+       ( MonadEmulator (TraceError e) m
        , HasEndpoint l ep s
        )
     => Wallet
@@ -284,7 +294,7 @@ callEndpoint w = addEvent w . Endpoint.event @l @_ @s
 --   of the wallet
 submitUnbalancedTx
     :: forall s e m a.
-       ( MonadEmulator e m
+       ( MonadEmulator (TraceError e) m
        , HasType TxSymbol WriteTxResponse (Input s)
        , AllUniqueLabels (Input s)
        , AllUniqueLabels (Output s)
@@ -302,7 +312,7 @@ submitUnbalancedTx wllt tx = do
 addInterestingTxEvents
     :: forall s e m a.
        ( HasWatchAddress s
-       , MonadEmulator e m
+       , MonadEmulator (TraceError e) m
        )
     => Map Address (Event s)
     -> Wallet
@@ -319,7 +329,7 @@ addInterestingTxEvents mp wallet = do
 -- | Respond to all 'WatchAddress' requests from contracts that are waiting
 --   for a change to an address touched by this transaction
 addTxEvents
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
        )
     => Tx
@@ -347,7 +357,7 @@ unbalancedTransactions =
 -- | Get the address that the contract has requested the unspent outputs for.
 utxoQueryAddresses
     :: forall s e m a.
-       ( MonadEmulator e m
+       ( MonadEmulator (TraceError e) m
        , HasUtxoAt s
        )
     => Wallet
@@ -357,7 +367,7 @@ utxoQueryAddresses =
 
 -- | Get the addresses that are of interest to the wallet's contract instance
 interestingAddresses
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
        )
     => Wallet
@@ -369,7 +379,7 @@ interestingAddresses =
 --   contract of the current slot
 notifySlot
     :: forall s e m a.
-       ( MonadEmulator e m
+       ( MonadEmulator (TraceError e) m
        , HasType SlotSymbol Slot (Input s)
        , AllUniqueLabels (Input s)
        , AllUniqueLabels (Output s)
@@ -384,14 +394,14 @@ notifySlot w = do
 
 -- | Add a number of empty blocks to the blockchain.
 addBlocks
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => Integer
     -> ContractTrace s e m a ()
 addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
 handleBlockchainEvents
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasUtxoAt s
        , HasWatchAddress s
        , HasWriteTx s
@@ -413,7 +423,7 @@ handleBlockchainEvents wallet = do
 --   and inform all wallets about new transactions and respond to
 --   UTXO queries
 submitUnbalancedTxns
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
        , HasWriteTx s
        )
@@ -426,7 +436,7 @@ submitUnbalancedTxns wllt = do
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
 handleUtxoQueries
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasUtxoAt s
        )
     => Wallet
@@ -438,7 +448,7 @@ handleUtxoQueries wllt = do
     traverse_ (addEvent wllt . UtxoAt.event) events
 
 handleOwnPubKeyQueries
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasOwnPubKey s
        )
     => Wallet
@@ -451,7 +461,7 @@ handleOwnPubKeyQueries wallet = do
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses
-    :: ( MonadEmulator e m
+    :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
        )
     => Wallet
@@ -463,7 +473,7 @@ notifyInterestingAddresses wllt =
 --   action" that runs independently of any contract, just interacting directly
 --   with the wallet.
 payToWallet
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -- ^ The sender
     -> Wallet
@@ -479,3 +489,8 @@ payToWallet source target amount =
 --   ten wallets because the emulator comes with ten private keys.
 allWallets :: [EM.Wallet]
 allWallets = EM.Wallet <$> [1..10]
+
+makeClassyPrisms ''TraceError
+
+instance EM.AsAssertionError (TraceError e) where
+    _AssertionError = _TraceAssertionError

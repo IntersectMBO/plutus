@@ -7,4 +7,4 @@ Events by wallet:
 Contract result by wallet:
   Wallet: W1
     Error:
-      OtherError "something went wrong"
+      OtherError (ContractError "something went wrong")
