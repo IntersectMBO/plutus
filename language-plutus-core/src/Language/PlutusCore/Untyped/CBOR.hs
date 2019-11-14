@@ -107,15 +107,6 @@ instance Serialise Unique where
     encode (Unique i) = encodeInt i
     decode = Unique <$> decodeInt
 
-instance Serialise a => Serialise (Name a) where
-    -- TODO: should we encode the name or not?
-    encode (Name x txt u) = encode x <> encode txt <> encode u
-    decode = Name <$> decode <*> decode <*> decode
-
-instance Serialise a => Serialise (TyName a) where
-    encode (TyName n) = encode n
-    decode = TyName <$> decode
-
 instance Serialise a => Serialise (Version a) where
     encode (Version x n n' n'') = fold [ encode x, encode n, encode n', encode n'' ]
     decode = Version <$> decode <*> decode <*> decode <*> decode

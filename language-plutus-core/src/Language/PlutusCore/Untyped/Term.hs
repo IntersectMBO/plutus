@@ -24,6 +24,7 @@ module Language.PlutusCore.Untyped.Term ( Term (..)
                                 -- * Normalized
                                 , Normalized (..)
                                 , erase
+                                , eraseProgram
                                 ) where
 
 import           Control.Lens
@@ -85,6 +86,9 @@ type instance Base (Term name a) = TermF name a
 
 type Value = Term
 
+data Program name ann = Program ann (Version ann) (Term name ann)
+    deriving (Show, Eq, Functor, Generic, NFData, Lift)
+
 instance Recursive (Term name a) where
     project (Var x n)           = VarF x n
     project (LamAbs x n t)      = LamAbsF x n t
@@ -118,11 +122,6 @@ termVars f = \case
     Var a n -> Var a <$> f n
     x -> pure x
 
--- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
--- language.
-data Program name a = Program a (Version a) (Term name a)
-                      deriving (Show, Eq, Functor, Generic, NFData, Lift)
-
 newtype Normalized a = Normalized { unNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
     deriving newtype NFData
@@ -135,7 +134,7 @@ instance PrettyBy config a => PrettyBy config (Normalized a) where
     prettyBy config (Normalized x) = prettyBy config x
 
 
-erase :: T.Term tyname name a -> Term name a
+erase :: T.Term _tyname name a -> Term name a
 erase = \case
         T.Var x n        -> Var x n
         T.TyAbs _ _ _ t  -> erase t
@@ -149,3 +148,5 @@ erase = \case
         T.Error x _      -> Error x
 
 
+eraseProgram :: T.Program _ty name a -> Program name a
+eraseProgram (T.Program ann version body) = Program ann version (erase body)

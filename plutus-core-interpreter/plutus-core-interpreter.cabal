@@ -66,6 +66,7 @@ test-suite plutus-core-interpreter-test
     hs-source-dirs: test
     other-modules:
         CekMachine
+        CekMachineUntyped
         DynamicBuiltins.Common
         DynamicBuiltins.Definition
         DynamicBuiltins.Logging

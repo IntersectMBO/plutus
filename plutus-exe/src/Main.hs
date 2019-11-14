@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
+import qualified Language.PlutusCore.CBOR                   as PLC ()
 import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
 import qualified Language.PlutusCore.Generators             as PLC
 import qualified Language.PlutusCore.Generators.Interesting as PLC
@@ -16,6 +18,14 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
+import qualified Language.PlutusCore.Untyped.CBOR                 as U ()
+import qualified Language.PlutusCore.Untyped.Evaluation.CkMachine as U
+import qualified Language.PlutusCore.Untyped.Pretty               as U
+import qualified Language.PlutusCore.Untyped.Term                 as U
+
+    
+
+import           Codec.Serialise                            (serialise)
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
@@ -23,6 +33,7 @@ import           Data.Bifunctor                             (second)
 import           Data.Foldable                              (traverse_)
 
 import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.ByteString.Lazy.Char8                 as BSC
 import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
 import qualified Data.Text.IO                               as T
@@ -55,12 +66,14 @@ stdInput = flag' StdInput
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input NormalizationMode
-data EvalMode = CK | CEK | L deriving (Show, Read)
+data EvalMode = CK | CEK | UCK | UCEK | L deriving (Show, Read, Eq)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions
+data SerialisationMode = Typed | Untyped
+data SerialisationOptions = SerialisationOptions Input SerialisationMode
+data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Serialise SerialisationOptions
 
 plutus :: ParserInfo Command
 plutus = info (plutusOpts <**> helper) (progDesc "Plutus Core tool")
@@ -70,6 +83,7 @@ plutusOpts = hsubparser (
     command "typecheck" (info (Typecheck <$> typecheckOpts) (progDesc "Typecheck a Plutus Core program"))
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
     <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
+    <> command "cbor" (info (Serialise <$> serialisationOpts) (progDesc "Parse a Plutus Core program and output CBOR to standard output. "))
   )
 
 normalizationMode :: Parser NormalizationMode
@@ -90,7 +104,7 @@ evalMode = option auto
   <> metavar "MODE"
   <> value CEK
   <> showDefault
-  <> help "Evaluation mode (one of CK, CEK or L)" )
+  <> help "Evaluation mode (one of CK, CEK, UCK, UCEK, or L)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input <*> evalMode
@@ -117,6 +131,16 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
+serialisationOpts :: Parser SerialisationOptions
+serialisationOpts = SerialisationOptions <$> input <*> serialisationMode
+
+serialisationMode :: Parser SerialisationMode
+serialisationMode = subparser (
+    command "typed"   (info (pure Typed)   (progDesc "Output CBOR for typed AST"))
+ <> command "untyped" (info (pure Untyped) (progDesc "Output CBOR for type-erased AST"))
+ )
+
+              
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp mode) = do
     contents <- getInput inp
@@ -136,18 +160,62 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-    let evalFn = case mode of
-            CK  -> PLC.runCk
-            CEK -> PLC.unsafeRunCek mempty
-            L   -> PLC.runL mempty
-    case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
-        Left (e :: PLC.Error PLC.AlexPosn) -> do
-            T.putStrLn $ PLC.prettyPlcDefText e
-            exitFailure
-        Right v -> do
-            T.putStrLn $ PLC.prettyPlcDefText v
-            exitSuccess
+    if (mode == UCK || mode == UCEK)
+    then  
+        let evalFn = case mode of
+                       UCK  -> U.runCk . U.eraseProgram
+                       UCEK -> error "No untyped CEK machine yet"
+                       _ -> undefined
+        in case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+          Left (e :: PLC.Error PLC.AlexPosn) ->
+              do
+                T.putStrLn $ "U.prettyPlcDefText e"
+                exitFailure
+          Right v ->
+              do
+                T.putStrLn $ U.prettyPlcDefText v
+                exitSuccess
+    else
+        let evalFn = case mode of
+                       CK  -> PLC.runCk
+                       CEK -> PLC.unsafeRunCek mempty
+                       L   -> PLC.runL mempty
+                       _ -> undefined
+        in case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+          Left (e :: PLC.Error PLC.AlexPosn) ->
+              do
+                T.putStrLn $ PLC.prettyPlcDefText e
+                exitFailure
+          Right v ->
+              do
+                T.putStrLn $ PLC.prettyPlcDefText v
+                exitSuccess
+{- If we miss out the type on e we get
+     "Ambiguous type variable ‘e0’ arising from a use of ‘PLC.prettyPlcDefText’
+      prevents the constraint ‘(U.PrettyBy PLC.PrettyConfigPlc e0)’ from being solved.
+      Relevant bindings include e :: e0 (bound at src/Main.hs:184:16)
+      Probable fix: use a type annotation to specify what ‘e0’ should be.
+      These potential instances exist: ..."
+-}
 
+                
+runSerialise :: SerialisationOptions -> IO ()
+runSerialise (SerialisationOptions is mode) = do
+    contents <- getInput is
+    let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
+    let serialiseFn = case mode of
+                        Typed -> serialise
+                        Untyped -> serialise . U.eraseProgram
+    case serialiseFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+      Left (e :: PLC.Error PLC.AlexPosn) ->
+          do
+             T.putStrLn $ PLC.prettyPlcDefText e
+             exitFailure
+          Right y ->
+           do
+             BSC.putStrLn y
+             exitSuccess
+       
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName ())
 data TermExample = TermExample (PLC.Type PLC.TyName ()) (PLC.Term PLC.TyName PLC.Name ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
@@ -214,3 +282,4 @@ main = do
         Typecheck tos -> runTypecheck tos
         Eval eos      -> runEval eos
         Example eos   -> runExample eos
+        Serialise sos -> runSerialise sos

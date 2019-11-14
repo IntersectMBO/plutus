@@ -39,7 +39,8 @@ executable plc
         text -any,
         lens -any,
         prettyprinter -any,
-        optparse-applicative -any
+        optparse-applicative -any,
+        serialise -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
