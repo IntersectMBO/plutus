@@ -19,9 +19,8 @@ You can also use `cabal` and `stack` outside a Nix environment to build
 the project. _However_ there are two caveats:
 
 * You may get different
-versions of packages.
-** This is more of a problem for `cabal` than
-`stack`, since our Nix package set is based off the Stackage resolver.
+versions of packages. 
+** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
 they will use your system GHC and libraries, rather than that ones that
 will be used by Nix.
@@ -38,6 +37,18 @@ dependencies for this project, based on the Stackage resolver in link:./stack.ya
 Regenerate this file if you change any dependencies in cabal files
 or change the Stackage resolver. To regenerate the file, run link:./pkgs/generate.sh[`pkgs/generate.sh`].
 
+[[update-freeze]]
+=== How to update `cabal.project.freeze`
+
+The `cabal.project.freeze` file ensures that Cabal users will get the same versions as 
+are picked by Stack. 
+
+To regenerate it, run `nix-shell --run "cabal v2-freeze"` in the root.
+
+NOTE: This will *build* all the dependencies of the project, so if you have just made a substantial change
+(e.g. changing the snapshot), then you may want to push your change to a PR so Hydra will
+build it before doing this step.
+
 === How to add a new package to the repository
 
 You need to do a few things when adding a new package, in the following
@@ -47,6 +58,7 @@ order:
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
 . Update the xref:update-generated[generated package set].
+. Update the xref:update-freeze[freeze file].
 . Add the project to `plutusPkgList` in link:./lib.nix[lib.nix].
 * This will ensure it gets built by CI and so on.
 
