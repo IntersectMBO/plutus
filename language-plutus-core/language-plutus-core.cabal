@@ -45,6 +45,7 @@ library
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Rename.Internal
+        Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
         Language.PlutusCore.Normalize
         Language.PlutusCore.Normalize.Internal
@@ -97,6 +98,9 @@ library
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Instance.Eq.Internal
+        Language.PlutusCore.Instance.Eq.Monad
+        Language.PlutusCore.Instance.Eq
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable

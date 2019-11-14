@@ -80,7 +80,6 @@ incoherentUse =
 propRenameCheck :: Property
 propRenameCheck = property $ do
     prog <- forAll genProgram
-    -- we didn't generate prog in Quote, so mark all the uniques as non-fresh
     renamed <- runQuoteT $ rename prog
     annotateShow renamed
     Hedgehog.evalExceptT $ checkUniques renamed

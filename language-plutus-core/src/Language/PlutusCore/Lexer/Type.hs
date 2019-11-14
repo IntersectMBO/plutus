@@ -74,7 +74,7 @@ data StagedBuiltinName
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Eq, Functor, Generic, NFData, Lift)
+    deriving (Show, Functor, Generic, NFData, Lift)
 
 -- | A keyword in Plutus Core.
 data Keyword
@@ -121,6 +121,9 @@ data Token ann
     | LexSpecial { loc :: ann, tkSpecial :: Special }
     | EOF { loc :: ann }
     deriving (Show, Eq, Generic, NFData)
+
+instance Eq (Version ann) where
+    Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]
 
 asBytes :: Word8 -> Doc ann
 asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty

@@ -56,7 +56,7 @@ terms can thus be used as backwards compatibility is not required.
 -}
 
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
-    deriving (Functor, Show, Eq, Generic)
+    deriving (Functor, Show, Generic)
 
 instance (Serialise a, Serialise (tyname a) , Serialise (name a)) => Serialise (Datatype tyname name a)
 
@@ -84,7 +84,7 @@ instance Serialise Strictness
 data Binding tyname name a = TermBind a Strictness (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
-    deriving (Functor, Show, Eq, Generic)
+    deriving (Functor, Show, Generic)
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
 
@@ -155,7 +155,7 @@ data Term tyname name a =
                         | Error a (Type tyname a)
                         | IWrap a (Type tyname a) (Type tyname a) (Term tyname name a)
                         | Unwrap a (Term tyname name a)
-                        deriving (Functor, Show, Eq, Generic)
+                        deriving (Functor, Show, Generic)
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
 

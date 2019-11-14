@@ -1,8 +1,8 @@
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
@@ -38,6 +38,8 @@ module Language.PlutusCore.MkPlc
 import           Prelude                               hiding (error)
 
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Instance.Eq
 
 import           Data.List                             (foldl')
 import           GHC.Generics                          (Generic)
@@ -85,23 +87,31 @@ embed = \case
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
--- | A "variable declaration", i.e. a name annnd a type for a variable.
+-- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name ann = VarDecl
     { varDeclAnn  :: ann
     , varDeclName :: name ann
     , varDeclType :: Type tyname ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
+
+instance HasUniques (Term tyname name ann) => Eq (VarDecl tyname name ann) where
+    VarDecl _ name1 ty1 == VarDecl _ name2 ty2 =
+        Global name1 == Global name2 && ty1 == ty2
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name => ann -> VarDecl tyname name ann -> term ann
 mkVar ann = var ann . varDeclName
 
--- | A "type variable declaration", i.e. a name annnd a kind for a type variable.
+-- | A "type variable declaration", i.e. a name and a kind for a type variable.
 data TyVarDecl tyname ann = TyVarDecl
     { tyVarDeclAnn  :: ann
     , tyVarDeclName :: tyname ann
     , tyVarDeclKind :: Kind ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
+
+instance HasUniques (Type tyname ann) => Eq (TyVarDecl tyname ann) where
+    TyVarDecl _ name1 kind1 == TyVarDecl _ name2 kind2 =
+        Global name1 == Global name2 && kind1 == kind2
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname ann
@@ -112,7 +122,11 @@ data TyDecl tyname ann = TyDecl
     { tyDeclAnn  :: ann
     , tyDeclType :: Type tyname ann
     , tyDeclKind :: Kind ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
+
+instance HasUniques (Type tyname ann) => Eq (TyDecl tyname ann) where
+    TyDecl _ ty1 kind1 == TyDecl _ ty2 kind2 =
+        kind1 == kind2 && ty1 == ty2
 
 tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname ann
 tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind

@@ -30,6 +30,7 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
+import           Language.PlutusCore.Instance.Eq    ()
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -72,7 +73,8 @@ makeClassyPrisms ''UniqueError
 data NormCheckError tyname name ann
     = BadType ann (Type tyname ann) T.Text
     | BadTerm ann (Term tyname name ann) T.Text
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Generic, NFData)
+deriving instance (Eq ann, HasUniques (Term tyname name ann)) => Eq (NormCheckError tyname name ann)
 makeClassyPrisms ''NormCheckError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
