@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{11th October 2019}
+\date{15th November 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -292,7 +292,7 @@ conventions used in the remainder of the document.
 
 \item For a type $A$ which forms a total order,  $\Interval{A}$ is the type
   of intervals over that type, whose endpoints may be either closed or open.
-  The type $\Interval{A}$ forms a lattice.
+  The type $\Interval{A}$ forms a lattice under inclusion.
 \end{itemize}
 
 \subsection {Finitely-supported functions}
@@ -311,8 +311,7 @@ Equality on finitely-supported functions is defined as pointwise equality.
 
 If the type $M$ is a monoid then we define the sum of two finitely-supported
 functions
-$f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-support $\support (f+g) = \support(f) \cup \support(g)$ given by
+$f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ given by
 \[(f+g)(k) = f(k) + g(k) \]
 Note that the type $\FinSup{K}{M}$ is a monoid with this
 operation, and the empty function as
@@ -373,13 +372,13 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   the current slot number lies within the transaction's validity
   interval.
 
-\item Each unspent output now has a hash $\dataHsh$ of a data
+\item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
+  replaced with a redeemer object of type \Data{}.
+
+\item Each unspent output now has a hash $\dataHsh$ of a
   value of type \Data{} associated with it: we call this the output's
   \textit{data value hash} (see Note~\ref{note:data-values}). This must
   be provided in full by the spending input as $\dataVal$, much like the validator.
-
-\item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a redeemer object of type \Data{}.
 
 \item Validator scripts make use of information about the pending
   transaction (ie, the transaction which is just about to take place, assuming that
@@ -391,7 +390,7 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   \begin{enumerate}
   \item the data value,
   \item the redeemer,
-  \item the \ptx{}, encoded as \Data{}.
+  \item the \ptx{} information, encoded as \Data{}.
   \end{enumerate}
 
 \end{itemize}
@@ -427,7 +426,7 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
-    \Address && \mbox{the "address" of a script in the blockchain}\\
+    \Address && \mbox{the ``address'' of a script in the blockchain}\\
     \DataHash && \mbox{the hash of a value of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
@@ -465,7 +464,7 @@ the ledger.
 \subsubsection{Remarks}
 \paragraph{ETUXO-1 on Cardano.}
 The Cardano implementation of EUTXO-1 uses the primitives given in
-Fig.~\ref{fig:eutxo-1-types-cardano}.
+Figure~\ref{fig:eutxo-1-types-cardano}.
 
 \begin{ruledfigure}{H}
   \begin{displaymath}
@@ -497,9 +496,14 @@ that output: this requirement is enforced in
 Rule~\ref{rule:validator-scripts-hash} of
 Figure~\ref{fig:eutxo-1-validity} below.
 
-\paragraph{Scripts.} Note that data values and validator scripts as
-components of inputs, even though they are conceptually part of an output.
+\paragraph{Scripts and hashes.} Note that data values and validator scripts are
+provided as parts of transaction inputs, even though they are
+\emph{conceptually} part of the output being spent.
 The reasons for this are explained in Note~\ref{note:scripts}.
+
+\paragraph{Data witnesses.} The transaction \emph{may} include the full
+value for data values in the transaction outputs that it creates.
+See Note~\ref{note:data-witnesses} for more discussion.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -609,7 +613,7 @@ for further discussion.
 A number of conditions must be satisfied in order for a transaction
 $t$ to be considered valid with respect to a ledger $l$.
 
-Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in validation.
+Figure~\ref{fig:validation-functions-1} defines some auxiliary functions used in validation.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{lll}
@@ -806,7 +810,7 @@ currency, as in EUTXO-1.
 \subsubsection{Remarks}
 \paragraph{ETUXO-2 on Cardano.}
 The Cardano implementation of EUTXO-2 uses the primitives given in
-Fig.~\ref{fig:eutxo-2-types-cardano}.
+Figure~\ref{fig:eutxo-2-types-cardano}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
     \begin{array}{rll}
@@ -970,7 +974,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 \end{ruledfigure}
 
 \subsection{Remarks}
-\paragraph{Preservation of value over \qtymap{}s.}
+\paragraph{Preservation of value over \qtymap{}.}
 In rule~\ref{rule:value-is-preserved-2},
 $+$ and $\sum$ operate over \qtymap{}, which is
 a finitely-supported function (which, with their operations,
@@ -1111,33 +1115,49 @@ individual operations during script execution; costs will be monitored
 dynamically during execution, and if the gas consumed ever exceeds the
 amount covered by the fee then the transaction will fail.
 
-\note{Scripts.}
+\note{Scripts and Hashes.}
 \label{note:scripts} The spendability of an output is determined by
 its validator script, and thus the validator for an output must be
 known at the time when the output is created (a completely new validator
 may be created, or an existing validator may be re-used).
+
 Conceptually the validator is part of the output, so it may be rather
 unexpected that Figure~\ref{fig:eutxo-1-types} defines the validator
 to be part of an \textit{input}, with the output only containing the
 address of the validator.  The rationale for this is that a validator
 $V$ for an output $O$ is not required until $O$ is actually spent,
-which may be some time after $O$ was created.  Recall from
+which may be some time after $O$ was created. Recall from
 Note~\ref{note:fees} that the cost of executing a transaction depends
 on the size of transaction, including the associated scripts.  Thus
 the transaction that produces the validator only pays for the size of
 a hash (32 bytes) and the transaction that runs it pays for the full
-size of the script. This strategy also helps to reduce on-chain
+size of the script.
+
+This strategy also helps to reduce on-chain
 storage requirements, since validators can be stored off-chain until
 needed (and the presence of the hash in the output can be used to
 check that the correct validator is in fact being used when validation
 occurs), but unspent outputs persist on-chain in the UTXO set until
 they are eventually spent.
 
-The same strategy applies to data values. However, it is useful to
-be able to record the full data value on the transaction that \emph{creates}
-an output. Hence the $\dataWits$ field \emph{may} contain mappings from
-the $\DataHash$es used in the transaction to their \Data{} values. This
-information is also present in \ptx{}.
+The same strategy applies to data values.
+
+\note{Data witnesses.}
+\label{note:data-witnesses}
+Although data values are only recorded as hashes in transaction outputs, it
+is useful to be able to record the full data value on the transaction
+that \emph{creates} an output.
+
+This allows observers to determine the full data value, without it having to be
+kept in the UTXO set.
+
+This mechanism is \emph{optional}, since it incurs an increase in transaction
+size (and hence cost), and some clients may want to transmit the information
+off-chain instead to minimize these costs.
+
+Hence there is a $\dataWits$ field on transactions, which \emph{may}
+contain mappings from the $\DataHash$es used in the transaction to
+their \Data{} values. This information is also present in \ptx{}.
 
 \note{Data values in \ptx{}}
 \label{note:data-values-in-ptx}
