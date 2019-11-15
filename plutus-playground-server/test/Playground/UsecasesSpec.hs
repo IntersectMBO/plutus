@@ -301,7 +301,7 @@ hasFundsDistribution requiredDistribution (Right InterpreterResult {result = Eva
     unless (requiredDistribution == fundsDistribution) $ do
         Text.putStrLn $
             either id id $ showBlockchain walletKeys resultBlockchain
-        traverse_ (putStrLn . show) $ reverse emulatorLog
+        traverse_ print $ reverse emulatorLog
     assertEqual "" requiredDistribution fundsDistribution
 
 errorHandlingTest :: TestTree
