@@ -63,7 +63,7 @@ import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.String
-import           Data.Text.Prettyprint.Doc                (Pretty)
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                             (Generic)
 import           IOTS                                     (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                      as PLC
@@ -212,12 +212,12 @@ instance BA.ByteArrayAccess ValidatorScript where
 
 -- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype DataScript = DataScript { getDataScript :: Data  }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, Pretty)
+  deriving stock (Generic, Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Show DataScript where
-    show = const "DataScript { <script> }"
+instance Pretty DataScript where
+    pretty (DataScript dat) = "DataScript:" <+> pretty dat
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -227,12 +227,12 @@ instance BA.ByteArrayAccess DataScript where
 
 -- | 'RedeemerScript' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, Pretty)
+  deriving stock (Generic, Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Show RedeemerScript where
-    show = const "RedeemerScript { <script> }"
+instance Pretty RedeemerScript where
+    pretty (RedeemerScript dat) = "RedeemerScript:" <+> pretty dat
 
 instance BA.ByteArrayAccess RedeemerScript where
     length =
@@ -248,6 +248,9 @@ newtype ValidatorHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
 
+instance IotsType ValidatorHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
@@ -255,12 +258,21 @@ newtype DataScriptHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
+instance Pretty DataScriptHash where
+    pretty (DataScriptHash bs) = "DataScriptHash:" <+> pretty (show bs)
+
+instance IotsType DataScriptHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+
+instance IotsType RedeemerHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 dataScriptHash :: DataScript -> DataScriptHash
 dataScriptHash = DataScriptHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert

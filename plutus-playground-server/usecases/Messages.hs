@@ -16,7 +16,7 @@ import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
 
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Tx (Tx, txFee, txForge, txInputs, txOutputs, txSignatures, txValidRange))
+import           Ledger                    (Tx (..))
 import qualified Ledger.Ada                as Ada
 import           Playground.Contract
 import           Wallet                    (MonadWallet, defaultSlotRange, logMsg, submitTxn, throwOtherError)
@@ -35,6 +35,7 @@ submitInvalidTxn = do
                 , txFee = 0
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData = Map.empty
                 }
     submitTxn tx
 

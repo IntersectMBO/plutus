@@ -15,5 +15,7 @@ import           Language.PlutusTx.IsData.TH
 makeIsDataIndexed ''Bool [('False,0),('True,1)]
 makeIsData ''()
 makeIsData ''(,)
+makeIsData ''(,,)
+makeIsData ''(,,,)
 makeIsDataIndexed ''Maybe [('Just,0),('Nothing,1)]
 makeIsDataIndexed ''Either [('Left,0),('Right,1)]

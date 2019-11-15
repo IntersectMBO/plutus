@@ -7,21 +7,21 @@ Events by wallet:
     • {slot:
        Slot: 27}
     • {utxo-at:
-       Utxo at 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff = TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff!1: PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
-         TxId: 5f58203e51d8592914edd6066f52974eafaeb590e30771dcca59640e75e7c93f603f11ff!1: PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff!1: PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
+       Utxo at 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff = TxId: 5f5820595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaacebff!1: PayToScript: DataScriptHash: "\198_>\EOT\EM1'\SOH\165\248w\131\153\&4L\226d+D\175E\180S\192\221\156\RSnD\DC4\222\136" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff!1: PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff!1: PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = ".T\206l\246\133\192\ESC)\237\SYN+O\133\139\168\207\144\149\163n\184\210\177\245\251\241\150f\236\158\EOT"}}
+       WriteTxSuccess: TxId {getTxId = "nU\213K\CAN;y`\157\225.\236\241\206\r\237\181\FS\177\227\183\211\223\135\234\143\ACKw\234\186\v#"}}
   Events for W2:
     • {contribute:
        Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {own-pubkey:
        fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = ">Q\216Y)\DC4\237\214\ACKoR\151N\175\174\181\144\227\aq\220\202Yd\SOu\231\201?`?\DC1"}}
+       WriteTxSuccess: TxId {getTxId = "YR6\249\STX\135F\ESC\GS\227E\a\223g\RS_O7\228\189\r+\199U\137\185U.6\234\172\235"}}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f58203e51d8592914edd6066f52974eafaeb590e30771dcca59640e75e7c93f603f11ff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f5820595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaacebff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!8
               fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
@@ -29,15 +29,15 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
              PayToPubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: "\252Q\205\142b\CAN\161\163\141\164~\208\STX0\240X\b\SYN\237\DC3\186\&3\ETX\172]\235\145\NAKH\144\128%"
+             PayToScript: DataScriptHash: "\198_>\EOT\EM1'\SOH\165\248w\131\153\&4L\226d+D\175E\180S\192\221\156\RSnD\DC4\222\136"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
            fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -45,15 +45,15 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
              PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c"
+             PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -61,7 +61,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
              PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
+             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
@@ -73,10 +73,10 @@ Events by wallet:
     • {own-pubkey:
        98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "E\nL`^\225\&1\190\&3\223n\NUL7U<\231n8\216\200*\128\235\&6\181\169\254\149u\221\213\231"}}
+       WriteTxSuccess: TxId {getTxId = "u\179\190\&5b%;\162S-\169\FS#>v\DC1\EOT\137e\174\138y\SUBW\182\164\242\213\DEL\135$\152"}}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f5820450a4c605ee131be33df6e0037553ce76e38d8c82a80eb36b5a9fe9575ddd5e7ff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -84,15 +84,15 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
              PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: "\152\165\227\163ng\170\186\137\136\139\240\147\222\SUB\217c\231t\SOH;9\STX\191\171\&5m\139\144\ETB\138c"
+             PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -100,7 +100,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
              PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
+             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
@@ -112,10 +112,10 @@ Events by wallet:
     • {own-pubkey:
        f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "\ACK\STXE\190\NAKE\186\SUB\227\167\165\n\197K\169tUa\132\225/\172p\139\SUB\201\164T\166.\248\175"}}
+       WriteTxSuccess: TxId {getTxId = "\147\234\200\STX\248\245\\\228\167\226\145\v^\246\188\RS\156\196\CAN\247\215E\164(\135a\RS\222M`pZ"}}
     • {address:
-       ( 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff
-       , Tx TxId: 5f5820060245be1545ba1ae3a7a50ac54ba974556184e12fac708b1ac9a454a62ef8afff:
+       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
+       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
          {inputs:
             - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -123,7 +123,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
              PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: "\248\US\181J\130_\206\217^\176\&3\175\205d1@u\171\251\n\189 \169p\137%\ETXCo4\184c"
+             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
          forge: Value {getValue = Map {unMap = []}}
          fee: Lovelace {getLovelace = 0}
          signatures:
@@ -134,7 +134,7 @@ Contract result by wallet:
     Done
     Wallet: W2
       Running, waiting for input:
-        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
+        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]
@@ -143,7 +143,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
+        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]
@@ -152,7 +152,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: [ 5f582095115d82788f28c11dd6e8a226a8f792fc39853338f4239fa529ae3de6f414f6ff ]
+        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: ["schedule collection"]

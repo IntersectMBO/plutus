@@ -131,7 +131,8 @@ genInitialTransaction GeneratorModel{..} =
         txForge = t,
         txFee = 0,
         txValidRange = W.intervalFrom 0,
-        txSignatures = Map.empty
+        txSignatures = Map.empty,
+        txData = Map.empty
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -190,6 +191,7 @@ genValidTransactionSpending' g f ins totalVal = do
                         , txFee = fee
                         , txValidRange = Interval.always
                         , txSignatures = Map.empty
+                        , txData = Map.empty
                         }
 
                 -- sign the transaction with all three known wallets

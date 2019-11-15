@@ -82,7 +82,7 @@ tests =
     ]
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a
---   total of 60 lovelace over 20 blocks (20 lovelace can be taken out before 
+--   total of 60 lovelace over 20 blocks (20 lovelace can be taken out before
 --   that, at 10 blocks).
 vesting :: VestingParams
 vesting =

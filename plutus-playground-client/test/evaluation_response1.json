@@ -198,7 +198,8 @@
                   "getSignature": "235c0ebf7f4ee133b68c209bd99fffd1bb5120c1e05b6423185348fd0c4dc7173953598ff25a13e070aca682bbf4f6b56273b5961526443ad449a90a78d8e20b"
                 }
               ]
-            ]
+            ],
+            "txData": []
           }
         ]
       ],
@@ -349,7 +350,8 @@
                   "getSignature": "fa5b9a4f17e81badc4c6ede2c3e2c07568e37230a4994eac3bd1c963ab7b1935d84d92a35d9982e6e82200e1a23d66e3012807d1d0cc85cc2e696a5bcb4da10c"
                 }
               ]
-            ]
+            ],
+            "txData": []
           }
         ]
       ],
@@ -559,7 +561,8 @@
                 }
               }
             ],
-            "txSignatures": []
+            "txSignatures": [],
+            "txData": []
           }
         ]
       ]
@@ -709,7 +712,8 @@
                   "getSignature": "235c0ebf7f4ee133b68c209bd99fffd1bb5120c1e05b6423185348fd0c4dc7173953598ff25a13e070aca682bbf4f6b56273b5961526443ad449a90a78d8e20b"
                 }
               ]
-            ]
+            ],
+            "txData" : []
           },
           "sequenceId": {
             "txIndex": 0,
@@ -1063,7 +1067,8 @@
                   "getSignature": "fa5b9a4f17e81badc4c6ede2c3e2c07568e37230a4994eac3bd1c963ab7b1935d84d92a35d9982e6e82200e1a23d66e3012807d1d0cc85cc2e696a5bcb4da10c"
                 }
               ]
-            ]
+            ],
+            "txData": []
           },
           "sequenceId": {
             "txIndex": 0,
@@ -1476,7 +1481,8 @@
                 }
               }
             ],
-            "txSignatures": []
+            "txSignatures": [],
+            "txData": []
           },
           "sequenceId": {
             "txIndex": 0,

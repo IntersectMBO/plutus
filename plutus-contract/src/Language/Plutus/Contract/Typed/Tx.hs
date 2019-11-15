@@ -8,7 +8,7 @@ module Language.Plutus.Contract.Typed.Tx where
 
 import qualified Language.Plutus.Contract.Tx as Contract
 import qualified Language.PlutusTx           as PlutusTx
-import           Ledger                      (TxOut, TxOutRef)
+import           Ledger                      (TxOutRef, TxOutTx)
 import qualified Ledger                      as L
 import           Ledger.AddressMap           (AddressMap)
 import qualified Ledger.Typed.Scripts        as Scripts
@@ -21,7 +21,7 @@ import qualified Wallet.Typed.API            as Typed
 collectFromScriptFilter ::
     forall a
     . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
-    => (TxOutRef -> TxOut -> Bool)
+    => (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
     -> Scripts.ScriptInstance a
     -> Scripts.RedeemerType a

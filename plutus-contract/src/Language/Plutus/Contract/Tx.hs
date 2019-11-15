@@ -19,7 +19,6 @@ module Language.Plutus.Contract.Tx(
     , toLedgerTx
     , fromLedgerTx
     -- * Constructing transactions
-    , unbalancedTx
     , payToScript
     , collectFromScript
     , collectFromScriptFilter
@@ -33,11 +32,11 @@ module Language.Plutus.Contract.Tx(
     , Tx.scriptTxOut'
     ) where
 
-import           Control.Lens              (at, (^.))
+import           Control.Lens              ((&), (<>~))
 import qualified Control.Lens.TH           as Lens.TH
 import qualified Data.Aeson                as Aeson
+import           Data.Foldable             (toList)
 import qualified Data.Map                  as Map
-import           Data.Maybe                (fromMaybe)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
@@ -46,7 +45,7 @@ import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lattice
 
 import           IOTS                      (IotsType)
-import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef,
+import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOutRef, TxOutTx,
                                             ValidatorScript)
 import qualified Ledger                    as L
 import           Ledger.AddressMap         (AddressMap)
@@ -56,6 +55,8 @@ import           Ledger.Slot               (SlotRange)
 import qualified Ledger.Tx                 as Tx
 import           Ledger.Value              as V
 
+import qualified Wallet.API                as WAPI
+
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].
 data UnbalancedTx = UnbalancedTx
@@ -63,6 +64,7 @@ data UnbalancedTx = UnbalancedTx
         , _outputs            :: [L.TxOut]
         , _forge              :: V.Value
         , _requiredSignatures :: [PubKey]
+        , _dataValues         :: [DataScript]
         , _validityRange      :: SlotRange
         }
         deriving stock (Eq, Show, Generic)
@@ -71,12 +73,13 @@ data UnbalancedTx = UnbalancedTx
 Lens.TH.makeLenses ''UnbalancedTx
 
 instance Pretty UnbalancedTx where
-    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _validityRange} =
+    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange} =
         let lines' =
                 [ "inputs:" <+> prettyShowList (Set.toList _inputs)
                 , "outputs:" <+> prettyShowList _outputs
                 , "forge:" <+> pretty _forge
                 , "required signatures:" <+> prettyShowList _requiredSignatures
+                , "data values:" <+> prettyShowList _dataValues
                 , "validity range:" <+> viaShow _validityRange
                 ]
         in braces $ nest 2 $ vsep lines'
@@ -90,8 +93,9 @@ fromLedgerTx tx = UnbalancedTx
             { _inputs = L.txInputs tx
             , _outputs = L.txOutputs tx
             , _forge = L.txForge tx
-            , _validityRange = L.txValidRange tx
             , _requiredSignatures = Map.keys $ L.txSignatures tx
+            , _dataValues = toList $ L.txData tx
+            , _validityRange = L.txValidRange tx
             }
 
 instance Semigroup UnbalancedTx where
@@ -100,11 +104,12 @@ instance Semigroup UnbalancedTx where
         _outputs = _outputs tx1 <> _outputs tx2,
         _forge = _forge tx1 <> _forge tx2,
         _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
+        _dataValues = _dataValues tx1 <> _dataValues tx2,
         _validityRange = _validityRange tx1 /\ _validityRange tx2
         }
 
 instance Monoid UnbalancedTx where
-    mempty = UnbalancedTx mempty mempty mempty mempty top
+    mempty = UnbalancedTx mempty mempty mempty mempty mempty top
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
@@ -118,17 +123,19 @@ toLedgerTx utx =
             , L.txFee = 0
             , L.txValidRange = _validityRange utx
             , L.txSignatures = Map.empty
+            , L.txData = Map.fromList $ fmap (\ds -> (L.dataScriptHash ds, ds)) (_dataValues utx)
             }
      in tx { L.txFee = minFee tx }
 
 -- | Make an unbalanced transaction that does not forge any value. Note that duplicate inputs
 --   will be ignored.
+--   Note: this doesn't populate the data scripts, so is not exported. Prefer using 'payToScript' etc.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty I.always
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataScript -> UnbalancedTx
-payToScript v a ds = unbalancedTx mempty [outp] where
+payToScript v a ds = unbalancedTx mempty [outp] & dataValues <>~ [ds] where
     outp = Tx.scriptTxOut' v a ds
 
 -- | Create an `UnbalancedTx` that collects script outputs from the
@@ -143,18 +150,14 @@ collectFromScript = collectFromScriptFilter (\_ -> const True)
 
 -- | See 'Wallet.API.collectFromScriptFilter'.
 collectFromScriptFilter
-    :: (TxOutRef -> TxOut -> Bool)
+    :: (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
     -> ValidatorScript
     -> RedeemerScript
     -> UnbalancedTx
 collectFromScriptFilter flt am vls red =
-    let utxo       = fromMaybe Map.empty $ am ^. at (L.scriptAddress vls)
-        ourUtxo    = Map.toList $ Map.filterWithKey flt utxo
-        mkTxIn ref = Tx.scriptTxIn ref vls red
-        txInputs   = mkTxIn . fst  <$> ourUtxo
-    in
-    unbalancedTx txInputs mempty
+    let inp = WAPI.getScriptInputsFilter flt am vls red
+    in unbalancedTx (fmap fst inp) mempty
 
 {- Note [Unbalanced transactions]
 

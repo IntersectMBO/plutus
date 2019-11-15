@@ -209,7 +209,7 @@ invalidScript = property $ do
     let totalVal = Ada.fromValue $ txOutValue (fst outToSpend)
 
     -- try and spend the script output
-    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
+    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer unitData]) totalVal
     Hedgehog.annotateShow (invalidTxn)
 
     let (result, st) = Gen.runTrace m $ do

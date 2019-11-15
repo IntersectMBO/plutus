@@ -81,23 +81,19 @@ spendScriptOutputs
     . (Monad m, WalletAPI m, PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
     => Scripts.ScriptInstance a
     -> Scripts.RedeemerType a
-    -> m [(Typed.TypedScriptTxIn a, Value)]
+    -> m [Typed.TypedScriptTxIn a]
 spendScriptOutputs ct red = do
     am <- WAPI.watchedAddresses
     let
         addr = Scripts.scriptAddress ct
-        utxo :: Map.Map TxOutRef TxOut
+        utxo :: Map.Map TxOutRef TxOutTx
         utxo = fromMaybe Map.empty $ am ^. at addr
-        refs :: [(TxOutRef, TxOut)]
-        refs = Map.toList utxo
-        typeRef :: (TxOutRef, TxOut) -> Either Typed.ConnectionError (Typed.TypedScriptTxOutRef a, Value)
-        typeRef (ref, out) = do
-            tyRef <- Typed.typeScriptTxOutRef @a (\refq -> Map.lookup refq utxo) ct ref
-            pure (tyRef, view outValue out)
-        typedRefs :: [(Typed.TypedScriptTxOutRef a, Value)]
-        typedRefs = rights $ typeRef <$> refs
-        typedIns :: [(Typed.TypedScriptTxIn a, Value)]
-        typedIns = (\(ref, v) -> (Typed.makeTypedScriptTxIn @a ct red ref, v)) <$> typedRefs
+        typeRef :: TxOutRef -> Either Typed.ConnectionError (Typed.TypedScriptTxOutRef a)
+        typeRef = Typed.typeScriptTxOutRef @a (\refq -> Map.lookup refq utxo) ct
+        typedRefs :: [Typed.TypedScriptTxOutRef a]
+        typedRefs = rights $ typeRef <$> Map.keys utxo
+        typedIns :: [Typed.TypedScriptTxIn a]
+        typedIns = Typed.makeTypedScriptTxIn @a ct red <$> typedRefs
 
     pure typedIns
 
@@ -106,23 +102,21 @@ spendScriptOutputs ct red = do
 collectFromScriptFilter ::
     forall a
     . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
-    => (TxOutRef -> TxOut -> Bool)
+    => (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
     -> Scripts.ScriptInstance a
     -> Scripts.RedeemerType a
     -> Typed.TypedTxSomeIns '[]
 collectFromScriptFilter flt am si red =
     let adr     = Scripts.scriptAddress si
-        utxo :: Map.Map TxOutRef TxOut
+        utxo :: Map.Map TxOutRef TxOutTx
         utxo    = fromMaybe Map.empty $ am ^. at adr
-        ourUtxo :: [(TxOutRef, TxOut)]
-        ourUtxo = Map.toList $ Map.filterWithKey flt utxo
-        refs :: [TxOutRef]
-        refs = fst <$> ourUtxo
+        ourUtxo :: Map.Map TxOutRef TxOutTx
+        ourUtxo = Map.filterWithKey flt utxo
         -- We just throw away any outputs at this script address that don't typecheck.
         -- TODO: we should log this, it would make debugging much easier
         typedRefs :: [Typed.TypedScriptTxOutRef a]
-        typedRefs = rights $ Typed.typeScriptTxOutRef @a (\ref -> Map.lookup ref utxo) si <$> refs
+        typedRefs = rights $ Typed.typeScriptTxOutRef @a (\ref -> Map.lookup ref utxo) si <$> Map.keys ourUtxo
         typedIns :: [Typed.TypedScriptTxIn a]
         typedIns = Typed.makeTypedScriptTxIn @a si red <$> typedRefs
     -- We need to add many txins and we've done as much checking as we care to, so we switch to TypedTxSomeIns

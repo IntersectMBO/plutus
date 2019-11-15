@@ -32,11 +32,8 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     lockTrace
     ) where
 
-import           Control.Lens                   (at, (^.))
 import           Control.Monad                  (void)
 import qualified Data.Aeson                     as Aeson
-import qualified Data.Map                       as Map
-import           Data.Maybe                     (fromMaybe)
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract.IOTS                      (IotsType)
 import           Language.Plutus.Contract
@@ -106,11 +103,8 @@ guess = do
     st <- nextTransactionAt gameAddress
     let mp = AM.fromTxOutputs st
     GuessParams theGuess <- endpoint @"guess" @GuessParams
-    let
-        txOutputs  = Map.toList . fromMaybe Map.empty $ mp ^. at gameAddress
-        redeemer   = gameRedeemerScript theGuess
-        inp        = (\o -> Ledger.scriptTxIn (fst o) gameValidator redeemer) <$> txOutputs
-        tx         = unbalancedTx inp []
+    let redeemer = gameRedeemerScript theGuess
+        tx       = collectFromScript mp gameValidator redeemer
     void (writeTx tx)
 
 lock :: Contract GameSchema e ()
@@ -119,8 +113,7 @@ lock = do
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
-        output     = Ledger.TxOut gameAddress vl (Ledger.PayToScript dataScript)
-        tx         = unbalancedTx [] [output]
+        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
     void (writeTx tx)
 
 game :: Contract GameSchema e ()

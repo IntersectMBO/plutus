@@ -22,7 +22,7 @@ import           Data.Set                                      (Set)
 import qualified Data.Set                                      as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                                  (Generic)
-import           Ledger                                        (Address, TxOut (..))
+import           Ledger                                        (Address, TxOut (..), TxOutTx (..))
 import           Ledger.AddressMap                             (AddressMap)
 import qualified Ledger.AddressMap                             as AM
 import           Ledger.Tx                                     (TxOutRef)
@@ -42,7 +42,7 @@ type HasUtxoAt s =
 data UtxoAtAddress =
   UtxoAtAddress
     { address :: Address
-    , utxo    :: Map TxOutRef TxOut
+    , utxo    :: Map TxOutRef TxOutTx
     }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON, IotsType)
@@ -50,7 +50,7 @@ data UtxoAtAddress =
 instance Pretty UtxoAtAddress where
   pretty UtxoAtAddress{address, utxo} =
     let
-      prettyTxOutPair (txoutref, TxOut{txOutValue, txOutType}) =
+      prettyTxOutPair (txoutref, TxOutTx _ TxOut{txOutValue, txOutType}) =
         pretty txoutref <> colon <+> pretty txOutType <+> viaShow txOutValue
       utxos = nest 2 $ vsep $ fmap prettyTxOutPair (Map.toList utxo)
     in "Utxo at" <+> pretty address <+> "=" <+> utxos

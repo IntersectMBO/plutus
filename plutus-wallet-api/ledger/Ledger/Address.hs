@@ -30,18 +30,14 @@ import           Ledger.Scripts
 newtype Address = Address { getAddress :: BSL.ByteString }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (IotsType)
+    deriving newtype (Serialise)
+    deriving (ToJSON, FromJSON, ToJSONKey, FromJSONKey) via LB.LedgerBytes
 
 instance Pretty Address where
     pretty = pretty . encodeSerialise . getAddress
 
 instance Hashable Address where
     hashWithSalt s (Address digest) = hashWithSalt s $ BSL.unpack digest
-
-deriving newtype instance Serialise Address
-deriving via LB.LedgerBytes instance ToJSON Address
-deriving via LB.LedgerBytes instance FromJSON Address
-deriving via LB.LedgerBytes instance ToJSONKey Address
-deriving via LB.LedgerBytes instance FromJSONKey Address
 
 -- | The address that should be targeted by a transaction output locked by the given public key.
 pubKeyAddress :: PubKey -> Address

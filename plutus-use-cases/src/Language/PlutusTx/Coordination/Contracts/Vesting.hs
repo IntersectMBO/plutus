@@ -29,14 +29,14 @@ import           Control.Monad        (void, when)
 import           Control.Monad.Except (throwError)
 import           Data.Foldable        (fold)
 import qualified Data.Text as T
+import qualified Prelude as Haskell
 
 import           GHC.Generics                 (Generic)
 import           Language.Plutus.Contract     hiding (when)
-import qualified Language.Plutus.Contract.Tx  as Tx
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.PlutusTx.Prelude    hiding (fold)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Address, DataScript (..), Slot(..), PubKey (..), ValidatorScript, TxOut)
+import           Ledger                       (Address, DataScript (..), Slot(..), PubKey (..), ValidatorScript)
 import qualified Ledger.AddressMap            as AM
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
@@ -108,7 +108,7 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ptx
     let
         remainingActual  = Validation.valueLockedBy ptx (Validation.ownHash ptx)
 
-        remainingExpected = 
+        remainingExpected =
             remainingFrom vestingTranche1 pendingTxValidRange
             + remainingFrom vestingTranche2 pendingTxValidRange
 
@@ -135,7 +135,7 @@ scriptInstance vesting = Scripts.Validator @Vesting
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @() @()
-            
+
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
 
@@ -149,20 +149,16 @@ vestingContract vesting = vest <|> retrieve where
             Dead  -> pure ()
     vest = endpoint @"vest funds" >> vestFundsC vesting
 
-payIntoContract :: VestingParams -> Value -> TxOut
-payIntoContract vp value = 
-    Tx.scriptTxOut' 
-        value 
-        (contractAddress vp)
-        (DataScript (PlutusTx.toData ()))
+payIntoContract :: VestingParams -> Value -> UnbalancedTx
+payIntoContract vp value = payToScript value (contractAddress vp) (DataScript (PlutusTx.toData ()))
 
 vestFundsC
-    :: ( HasWriteTx s         
+    :: ( HasWriteTx s
        )
     => VestingParams
     -> Contract s T.Text ()
 vestFundsC vesting = do
-    let tx = unbalancedTx [] [payIntoContract vesting (totalAmount vesting)]
+    let tx = payIntoContract vesting (totalAmount vesting)
     void $ writeTxSuccess tx
 
 data Liveness = Alive | Dead
@@ -179,15 +175,15 @@ retrieveFundsC vesting payment = do
     let addr = contractAddress vesting
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
-    let 
+    let
         currentlyLocked = fold (AM.values unspentOutputs)
         remainingValue = currentlyLocked - payment
         mustRemainLocked = totalAmount vesting - availableAt vesting nextSlot
         maxPayment = currentlyLocked - mustRemainLocked
 
     when (remainingValue `Value.lt` mustRemainLocked)
-        $ throwError 
-        $ T.unwords 
+        $ throwError
+        $ T.unwords
             [ "Cannot take out"
             , T.pack (show payment) `T.append` "."
             , "The maximum is"
@@ -199,12 +195,11 @@ retrieveFundsC vesting payment = do
 
     let liveness = if remainingValue `Value.gt` mempty then Alive else Dead
         remainingOutputs = case liveness of
-                            Alive -> [payIntoContract vesting remainingValue]
-                            Dead  -> []
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
+                            Alive -> payIntoContract vesting remainingValue
+                            Dead  -> Haskell.mempty
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) () Haskell.<> remainingOutputs
                 & validityRange .~ Interval.from nextSlot
                 & requiredSignatures .~ [vestingOwner vesting]
-                & outputs .~ remainingOutputs
                 -- we don't need to add a pubkey output for 'vestingOwner' here
                 -- because this will be done by the wallet when it balances the
                 -- transaction.

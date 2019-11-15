@@ -62,8 +62,7 @@ newtype Ada = Lovelace { getLovelace :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
     deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
-
-deriving via (PrettyShow Ada) instance (Pretty Ada)
+    deriving Pretty via (PrettyShow Ada)
 
 instance Haskell.Semigroup Ada where
     Lovelace a1 <> Lovelace a2 = Lovelace (a1 + a2)

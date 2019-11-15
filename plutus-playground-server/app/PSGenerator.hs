@@ -141,6 +141,12 @@ validatorHashBridge = do
     typeModule ^== "Ledger.Scripts"
     pure psString
 
+dataHashBridge :: BridgePart
+dataHashBridge = do
+    typeName ^== "DataScriptHash"
+    typeModule ^== "Ledger.Scripts"
+    pure psString
+
 headersBridge :: BridgePart
 headersBridge = do
     typeModule ^== "Servant.API.ResponseHeaders"
@@ -189,6 +195,7 @@ myBridge =
     headerBridge <|>
     nonEmptyBridge <|>
     validatorHashBridge <|>
+    dataHashBridge <|>
     byteStringBridge <|>
     mapBridge <|>
     ledgerBytesBridge

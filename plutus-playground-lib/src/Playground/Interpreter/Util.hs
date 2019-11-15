@@ -11,7 +11,8 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, PubKey, Tx, TxOut (txOutValue), toPublicKey)
+import           Ledger                     (Blockchain, PubKey, Tx, TxOut (txOutValue), TxOutTx (txOutTxOut),
+                                             toPublicKey)
 import qualified Ledger.Value               as V
 import           Playground.Types           (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
                                              simulatorWalletBalance, simulatorWalletWallet)
@@ -75,7 +76,7 @@ runTrace wallets actions =
                         Left e -> Left . OtherError . show $ e
   where
     walletStateBalance :: WalletState -> V.Value
-    walletStateBalance = foldMap txOutValue . view ownFunds
+    walletStateBalance = foldMap (txOutValue . txOutTxOut) . view ownFunds
     toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
     toSimulatorWallet simulatorWalletWallet walletState = SimulatorWallet {..}
       where

@@ -161,16 +161,17 @@ guess ::
     -> m ()
 guess gss new keepVal restVal = do
 
-    let addr = Scripts.scriptAddress scriptInstance
-        guessedSecret = ClearString (C.pack gss)
+    let guessedSecret = ClearString (C.pack gss)
         newSecret = HashedString (sha2_256 (C.pack new))
         input = Guess guessedSecret newSecret
         newState = Locked gameToken newSecret
+        ds = DataScript $ PlutusTx.toData newState
         redeemer = RedeemerScript $ PlutusTx.toData input
-    ins <- WAPI.spendScriptOutputs addr (Scripts.validatorScript scriptInstance) redeemer
+    ins <- WAPI.spendScriptOutputs (Scripts.validatorScript scriptInstance) redeemer
     ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
 
-    let scriptOut = scriptTxOut restVal (Scripts.validatorScript scriptInstance) (DataScript $ PlutusTx.toData newState)
+    let
+        scriptOut = scriptTxOut restVal (Scripts.validatorScript scriptInstance) ds
 
     (i, own) <- createPaymentWithChange gameTokenVal
 
@@ -181,6 +182,7 @@ guess gss new keepVal restVal = do
                 , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData = Map.singleton (dataScriptHash ds) ds
                 }
 
     WAPI.signTxAndSubmit_ tx
@@ -209,8 +211,9 @@ lock initialWord vl = do
             let input = ForgeToken gameToken
                 newState = Locked gameToken secret
                 redeemer = RedeemerScript $ PlutusTx.toData input
-                scriptOut = scriptTxOut vl (Scripts.validatorScript scriptInstance) (DataScript $ PlutusTx.toData newState)
-            ins <- WAPI.spendScriptOutputs addr (Scripts.validatorScript scriptInstance) redeemer
+                newDs = DataScript $ PlutusTx.toData newState
+                scriptOut = scriptTxOut vl (Scripts.validatorScript scriptInstance) newDs
+            ins <- WAPI.spendScriptOutputs (Scripts.validatorScript scriptInstance) redeemer
 
             let tx = Ledger.Tx
                         { txInputs = Set.fromList (fmap fst ins)
@@ -219,6 +222,7 @@ lock initialWord vl = do
                         , txFee   = zero
                         , txValidRange = defaultSlotRange
                         , txSignatures = Map.empty
+                        , txData = Map.singleton (dataScriptHash newDs) newDs
                         }
 
             WAPI.logMsg $ Text.pack $ "The forging transaction is: " <> show (Ledger.txId tx)
