@@ -23,7 +23,7 @@ import Cursor (_current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
 import Data.Array (deleteAt, snoc) as Array
-import Data.Array.Extra (move) as Array
+import Data.Array.Extra (move, lookup) as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep.Eq (genericEq)
@@ -33,7 +33,6 @@ import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
@@ -310,7 +309,7 @@ handleEditorAction (HandleDropEvent event) = do
   saveBuffer contents
 
 handleEditorAction (LoadScript key) = do
-  case Map.lookup key StaticData.demoFiles of
+  case Array.lookup key StaticData.demoFiles of
     Nothing -> pure unit
     Just contents -> do
       editorSetContents contents (Just 1)
