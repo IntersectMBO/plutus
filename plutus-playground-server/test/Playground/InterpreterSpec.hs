@@ -29,7 +29,7 @@ mkRunScriptTest :: TestTree
 mkRunScriptTest =
     testGroup
         "mkRunScript"
-        [ testCase "Should match a simple template." $ do
+        [ testCase "Should match a simple template" $ do
               let program = JSON.toJSON [AddBlocks 2, AddBlocks 4]
                   wallets =
                       [ SimulatorWallet (Wallet 1) (Ada.toValue 5)
