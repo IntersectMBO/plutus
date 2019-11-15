@@ -10,7 +10,6 @@ import           Control.Monad                (unless)
 import           Control.Monad.Except         (runExceptT)
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Text              as JSON
-import           Data.Either                  (isRight)
 import           Data.Foldable                (traverse_)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Text                    (Text)
