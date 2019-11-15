@@ -38,6 +38,7 @@
 //  @import './node_modules/bootstrap/scss/carousel';
 @import './node_modules/bootstrap/scss/utilities';
 @import './node_modules/bootstrap/scss/print';
+@import './node_modules/bootstrap/scss/spinners';
 
 body {
     font-family: 'Open Sans', sans-serif;
@@ -63,6 +64,12 @@ h1, h2, h3, h4, h5, h6 {
 
 h2 {
     font-size: 1.22rem;
+}
+
+.clickable {
+    &:not(:disabled):not(.disabled) {
+        cursor: pointer;
+    }
 }
 
 .main-title {
@@ -183,6 +190,8 @@ h2 {
 }
 
 .card {
+    margin-bottom: 1rem;
+
     .btn.pull-right, .btn.pull-right:focus {
         border:none;
         background:none;

@@ -8,7 +8,9 @@ let
   enableGithubHooks = plutus.pkgs.lib.hasAttr "githubWebhookKey" secrets;
   deploymentConfigDir = plutus.pkgs.copyPathToStore ../nixops ;
   deploymentServer = plutus.haskellPackages.deployment-server;
-  mkConfig = ghsecrets: redirectUrl: name: plutus.pkgs.writeTextFile {
+  plutusUrl = "https://${machines.environment}.${machines.plutusTld}";
+  marloweUrl = "https://${machines.environment}.${machines.marloweTld}";
+  mkConfig = ghsecrets: redirectUrl: callbackUrl: name: plutus.pkgs.writeTextFile {
     name = name;
     text = ''
     auth:
@@ -21,10 +23,15 @@ let
       github-client-secret: ${ghsecrets.githubClientSecret}
       jwt-signature: ${ghsecrets.jwtSignature}
       redirect-url: ${redirectUrl}
+    marlowe:
+      # The API Gateway url to trigger the marlowe symbolic lambda
+      symbolic-url: "${machines.marloweSymbolicUrl}"
+      api-key: "${secrets.apiGatewayKey}"
+      callback-url: "${callbackUrl}"
     '';
   };
-  playgroundConfig = mkConfig secrets.plutus "https://${machines.environment}.${machines.plutusTld}" "playground.yaml";
-  marlowePlaygroundConfig = mkConfig secrets.marlowe "https://${machines.environment}.${machines.marloweTld}" "marlowe.yaml";
+  playgroundConfig = mkConfig secrets.plutus plutusUrl "" "playground.yaml";
+  marlowePlaygroundConfig = callbackUrl: mkConfig secrets.marlowe marloweUrl callbackUrl "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
   # FIXME: https://github.com/NixOS/nixpkgs/pull/57910
   # Changes from jbgi have been squashed into my repo as jbgi/prometheus2 wasn't working for unrelated reasons
@@ -36,11 +43,11 @@ let
   deploymentName = "playgrounds";
   options = { inherit stdOverlays machines defaultMachine plutus secrets nixpkgsLocation nixosLocation slackChannel nixopsStateFile deploymentName; };
   defaultMachine = (import ./default-machine.nix) options;
-  marlowePlaygroundOptions = options // { serviceConfig = marlowePlaygroundConfig;
-                               serviceName = "marlowe-playground";
-                               server-invoker = plutus.marlowe-playground.server-invoker;
-                               client = plutus.marlowe-playground.client;
-                               };
+  marlowePlaygroundOptions = callbackUrl: options // { serviceConfig = marlowePlaygroundConfig callbackUrl;
+                                                       serviceName = "marlowe-playground";
+                                                       server-invoker = plutus.marlowe-playground.server-invoker;
+                                                       client = plutus.marlowe-playground.client;
+                                                       };
   playgroundOptions = options // { serviceConfig = playgroundConfig;
                                    serviceName = "plutus-playground";
                                    server-invoker = plutus.plutus-playground.server-invoker;
@@ -48,8 +55,8 @@ let
                                    };
   playgroundA = serverTemplate.mkInstance playgroundOptions machines.playgroundA;
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
-  marlowePlaygroundA = serverTemplate.mkInstance marlowePlaygroundOptions machines.marlowePlaygroundA;
-  marlowePlaygroundB = serverTemplate.mkInstance marlowePlaygroundOptions machines.marlowePlaygroundB;
+  marlowePlaygroundA = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-a/api")) machines.marlowePlaygroundA;
+  marlowePlaygroundB = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-b/api")) machines.marlowePlaygroundB;
   nixops = prometheusTemplate.mkInstance 
             (options // {configDir = deploymentConfigDir; inherit deploymentServer enableGithubHooks;}) 
             {dns = "nixops.internal.${machines.environment}.${machines.plutusTld}";

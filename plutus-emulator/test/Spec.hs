@@ -28,6 +28,7 @@ import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
+import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Numeric  as P
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
@@ -35,6 +36,7 @@ import           Language.PlutusTx.AssocMap as AssocMap
 import           Ledger
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.Index               as Index
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Value               as Value
 import           Ledger.Value               (CurrencySymbol, Value (Value))
 import           LedgerBytes                as LedgerBytes
@@ -170,10 +172,10 @@ txnUpdateUtxo = property $ do
         -- Validate a pool that contains `txn` twice. It should succeed the
         -- first and fail the second time
         ValidatedBlock [t1] [e1, e2] [] _ = validateBlock slot idx [txn, txn]
-        txId = hashTx txn
+        tid = txId txn
     Hedgehog.assert (t1 == txn)
     Hedgehog.assert $ case (e1, e2) of
-        (TxnValidate i1, TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == txId && txi == txId
+        (TxnValidate i1, TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
         _                                                                  -> False
 
 validTrace :: Property
@@ -207,7 +209,7 @@ invalidScript = property $ do
     let totalVal = Ada.fromValue $ txOutValue (fst outToSpend)
 
     -- try and spend the script output
-    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
+    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer unitData]) totalVal
     Hedgehog.annotateShow (invalidTxn)
 
     let (result, st) = Gen.runTrace m $ do
@@ -235,7 +237,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ $$(compileScript [|| validator ||])
+        failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
         validator :: () -> () -> PendingTx -> Bool
         validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
 

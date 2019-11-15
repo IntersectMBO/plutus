@@ -1,7 +1,7 @@
-{ stdenv, lib, asciidoctor, python2, playgroundUrl ? null, haddockUrl ? null }:
+{ stdenv, lib, asciidoctor, python2, plutusPlaygroundUrl ? null, haddockUrl ? null, ... }:
 
 let
-  extraArgs = (lib.optionals (playgroundUrl != null) [ "-a" "playground=${playgroundUrl}" ]) ++ (lib.optionals (haddockUrl != null) [ "-a" "haddock=${haddockUrl}" ]);
+  extraArgs = (lib.optionals (plutusPlaygroundUrl != null) [ "-a" "playground=${plutusPlaygroundUrl}" ]) ++ (lib.optionals (haddockUrl != null) [ "-a" "haddock=${haddockUrl}" ]);
 in stdenv.mkDerivation {
   name = "plutus-tutorial";
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];

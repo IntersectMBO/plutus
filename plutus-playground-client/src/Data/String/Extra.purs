@@ -14,12 +14,15 @@ import Data.String as String
 import Data.String.CodeUnits as CodeUnits
 import Prelude (map, max, (-), (<>), (==), (>>>))
 
-abbreviate :: String -> String
-abbreviate str =
-  let prefix = String.take 7 str
-  in if str == prefix
-     then str
-     else prefix <> "..."
+abbreviate :: Int -> String -> String
+abbreviate n str =
+  let
+    prefix = String.take n str
+  in
+    if str == prefix then
+      str
+    else
+      prefix <> "..."
 
 toHex :: String -> String
 toHex =

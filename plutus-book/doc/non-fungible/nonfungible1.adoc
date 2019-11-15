@@ -12,6 +12,7 @@ module NonFungible.NonFungible1 where
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -70,21 +71,18 @@ We create some helper functions next:
 [source,haskell]
 ----
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
-mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
-                       . lifted
+mkNonFungibleValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
+                       . liftCode
 
 nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 -- Given a token name (represented by a string for convenience),
 -- return the value of the corresponding token.
@@ -127,6 +125,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf]
+        [unitData]
 ----
 
 <1> We will be the issuer, of course.
@@ -157,6 +156,7 @@ forge n = do
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf        -- <5>
                                  , mkNonFungibleTxOut nf
                                  ]
@@ -164,6 +164,7 @@ forge n = do
                 , txForge      = v                                  -- <6>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $                                   -- <7>
                         OtherError $ T.pack "'start' has not run"

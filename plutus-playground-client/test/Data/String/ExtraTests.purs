@@ -5,6 +5,8 @@ module Data.String.ExtraTests
 import Prelude
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
+import Test.QuickCheck (arbitrary)
+import Test.QuickCheck.Gen (Gen, suchThat)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
@@ -21,11 +23,17 @@ abbreviateTests :: TestSuite
 abbreviateTests = do
   suite "abbreviate" do
     test "Always limits the string length" do
-      quickCheck \str -> String.length (abbreviate str) <= 10
+      quickCheck \str -> String.length (abbreviate 7 str) <= 10
     test "Never affects the start of the string" do
       quickCheck \str ->
         String.take 5 str
-          == String.take 5 (abbreviate str)
+          == String.take 5 (abbreviate 10 str)
+    test "Repeated application gives the same result" do
+      quickCheck
+        $ do
+            str <- arbitrary :: Gen String
+            n <- arbitrary `suchThat` (\n -> n >= 0)
+            pure $ abbreviate n (abbreviate n str) == str
 
 toHexTests :: TestSuite
 toHexTests = do

@@ -7,21 +7,28 @@ import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.Function (on)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Iso', lens, wander)
 import Data.Lens.At (class At)
 import Data.Lens.Index (class Index)
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Map as Map
+import Data.Map as Data.Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.RawJson (JsonTuple(..))
+import Data.Newtype as Newtype
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Foreign.Class (class Decode, class Encode)
-import Foreign.Generic (aesonSumEncoding, defaultOptions, genericDecode, genericEncode)
+import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
+import Foreign.Generic.Class (aesonSumEncoding)
 
 newtype Map a b
   = Map (Array (JsonTuple a b))
+
+keys :: forall k v. Ord k => Map k v -> Set k
+keys (Map entries) = Set.fromFoldable $ map (fst <<< unwrap) entries
 
 derive instance functorMap :: Functor (Map a)
 
@@ -50,7 +57,7 @@ derive instance genericMap :: Generic (Map a b) _
 derive instance newtypeMap :: Newtype (Map a b) _
 
 instance eqMap :: (Ord k, Eq k, Eq v) => Eq (Map k v) where
-  eq = eq `on` (Map.fromFoldable <<< map unwrap <<< unwrap)
+  eq = eq `on` (Data.Map.fromFoldable <<< map unwrap <<< unwrap)
 
 --------------------------------------------------------------------------------
 _Map :: forall a b. Iso' (Map a b) (Array (JsonTuple a b))
@@ -75,14 +82,10 @@ instance indexMap :: Eq k => Index (Map k a) k a where
       map Map
         $ sequence
         $ map
-            ( \(JsonTuple (Tuple k v)) ->
-                JsonTuple <<< Tuple k
-                  <$> ( if k == key then
-                        f
-                      else
-                        pure
-                    )
-                      v
+            ( Newtype.traverse JsonTuple
+                ( \(Tuple k v) ->
+                    Tuple k <$> (if k == key then f v else pure v)
+                )
             )
             values
 
@@ -101,14 +104,10 @@ instance atMap :: Eq k => At (Map k a) k a where
             Nothing -> Array.snoc xs (JsonTuple (Tuple key new))
             _ ->
               map
-                ( \(JsonTuple (Tuple k v)) ->
-                    JsonTuple
-                      $ Tuple k
-                          ( if k == key then
-                              new
-                            else
-                              v
-                          )
+                ( Newtype.over JsonTuple
+                    ( \(Tuple k v) ->
+                        Tuple k (if k == key then new else v)
+                    )
                 )
                 xs
 
@@ -132,8 +131,8 @@ null = Array.null <<< unwrap
 unionWith :: forall k v. Ord k => (v -> v -> v) -> Map k v -> Map k v -> Map k v
 unionWith f a b =
   fromTuples
-    $ Map.toUnfoldable
-    $ on (Map.unionWith f) (Map.fromFoldableWith f <<< toTuples)
+    $ Data.Map.toUnfoldable
+    $ on (Data.Map.unionWith f) (Data.Map.fromFoldableWith f <<< toTuples)
         a
         b
 
@@ -142,3 +141,6 @@ instance semigroupMap :: (Ord k, Semigroup v) => Semigroup (Map k v) where
 
 instance monoidMap :: (Ord k, Semigroup v) => Monoid (Map k v) where
   mempty = Map mempty
+
+toDataMap :: forall k v. Ord k => Map k v -> Data.Map.Map k v
+toDataMap (Map m) = Data.Map.fromFoldable (unwrap <$> m)

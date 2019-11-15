@@ -9,8 +9,6 @@ import           Evaluation.Constant.Apply
 
 import qualified Data.ByteString.Lazy           as BSL
 import qualified Data.ByteString.Lazy.Hash      as Hash
-import           Data.Maybe
-import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -145,17 +143,8 @@ test_applyBuiltinNameSuccess =
         , test_typedSHA3Success
         ]
 
--- | Generates in-bounds constants and checks that their evaluation results in an 'EvaluationSuccess'.
-test_evalInBounds :: TestTree
-test_evalInBounds =
-    testProperty "evalInBounds" . property $ do
-        mayTermWithValue <-
-            forAllPrettyPlcMaybeT $ withCheckedTermGen genTypedBuiltinDef $ const return
-        assert $ isJust mayTermWithValue
-
 test_constantSuccess :: TestTree
 test_constantSuccess =
     testGroup "constantSuccess"
        [ test_applyBuiltinNameSuccess
-       , test_evalInBounds
        ]

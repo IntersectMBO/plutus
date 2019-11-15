@@ -76,7 +76,7 @@ postulate
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
 {-# COMPILE GHC SHA2-256 = BS.fromStrict . B.convert . hashlazy @SHA256 #-}
 {-# COMPILE GHC SHA3-256 = BS.fromStrict . B.convert . hashlazy @SHA3_256 #-}
-
+{-# COMPILE GHC equals = (==) #-}
 
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}

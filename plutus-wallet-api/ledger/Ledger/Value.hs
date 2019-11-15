@@ -14,6 +14,8 @@
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-spec-constr #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 -- | Functions for working with 'Value'.
 module Ledger.Value(
     -- ** Currency symbols
@@ -50,8 +52,11 @@ import qualified Data.ByteString.Lazy.Char8   as C8
 import           Data.Hashable                (Hashable)
 import           Data.String                  (IsString(fromString))
 import qualified Data.Text                    as Text
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                 (Generic)
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Lift       (makeLift)
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap   as Map
@@ -64,7 +69,7 @@ import           Ledger.Orphans               ()
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
     deriving anyclass (Hashable, ToSchema, IotsType)
 
 instance ToJSON CurrencySymbol where
@@ -82,7 +87,7 @@ instance FromJSON CurrencySymbol where
     JSON.withObject "CurrencySymbol" $ \object -> do
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
-      pure . CurrencySymbol . BSL.fromStrict $ bytes
+      Haskell.pure . CurrencySymbol . BSL.fromStrict $ bytes
 
 makeLift ''CurrencySymbol
 
@@ -93,7 +98,7 @@ currencySymbol = CurrencySymbol
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
     deriving anyclass (Hashable, ToSchema, IotsType)
 
 instance IsString TokenName where
@@ -114,7 +119,7 @@ instance FromJSON TokenName where
     parseJSON =
         JSON.withObject "TokenName" $ \object -> do
         raw <- object .: "unTokenName"
-        pure . fromString . Text.unpack $ raw
+        Haskell.pure . fromString . Text.unpack $ raw
 
 makeLift ''TokenName
 
@@ -139,8 +144,9 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable,  IotsType)
-    deriving newtype (Serialise)
+    deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
+    deriving newtype (Serialise, PlutusTx.IsData)
+    deriving Pretty via (PrettyShow Value)
 
 instance ToSchema Value where
     toSchema = FormSchemaValue

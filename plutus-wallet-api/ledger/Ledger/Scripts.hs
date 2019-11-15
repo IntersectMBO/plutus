@@ -1,18 +1,20 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE DerivingVia  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
@@ -20,29 +22,25 @@ module Ledger.Scripts(
     Script (..),
     scriptSize,
     fromCompiledCode,
-    compileScript,
-    lifted,
-    applyScript,
     Checking (..),
     ScriptError (..),
     evaluateScript,
     runScript,
+    applyScript,
     -- * Script wrappers
-    ValidatorScript(..),
+    mkValidatorScript,
+    ValidatorScript,
+    unValidatorScript,
     RedeemerScript(..),
     DataScript(..),
-    DataScripts,
     ValidationData(..),
     -- * Hashes
     DataScriptHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
-    plcDataScriptHash,
-    plcValidatorDigest,
-    plcValidatorHash,
-    plcRedeemerHash,
-    -- * Data script evidence
-    HashedDataScript (..),
+    dataScriptHash,
+    redeemerHash,
+    validatorHash,
     -- * Example scripts
     unitRedeemer,
     unitData
@@ -56,8 +54,7 @@ import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Monad                            (unless)
 import           Control.Monad.Except                     (MonadError(..), runExcept)
 import           Control.DeepSeq                          (NFData)
-import           Crypto.Hash                              (Digest, SHA256)
-import           Data.List                                (foldl')
+import           Crypto.Hash                              (Digest, SHA256, hash)
 import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson                               as JSON
 import qualified Data.Aeson.Extras                        as JSON
@@ -66,21 +63,20 @@ import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.String
-import           Data.Traversable
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                             (Generic)
-import qualified Language.Haskell.TH                      as TH
+import           IOTS                                     (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
 import qualified Language.PlutusCore.Evaluation.Result    as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusTx.Lift                   (unsafeLiftCode)
-import           Language.PlutusTx.Lift.Class             (Lift)
-import           Language.PlutusTx                        (CompiledCode, compile, getPlc, makeLift)
+import           Language.PlutusTx.Lift                   (liftCode)
+import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
-import           Ledger.Crypto
+import           Ledger.Orphans                           ()
 import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -88,6 +84,9 @@ import           Schema                                   (ToSchema)
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
+
+instance IotsType Script where
+  iotsDefinition = iotsDefinition @Haskell.String
 
 {- Note [Normalized types in Scripts]
 The Plutus Tx plugin and lifting machinery does not necessarily produce programs
@@ -146,33 +145,28 @@ fromCompiledCode = fromPlc . getPlc
 fromPlc :: PLC.Program PLC.TyName PLC.Name () -> Script
 fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 
--- | Compile a quoted Haskell expression to a 'Script'.
-compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
-compileScript a = [|| fromCompiledCode $$(compile a) ||]
-
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
-data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String]
+data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String] | EvaluationException Haskell.String
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
-
-instance ToJSON ScriptError
-instance FromJSON ScriptError
+    deriving anyclass (ToJSON, FromJSON)
 
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
     case checking of
-      DontCheck -> pure ()
+      DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
     let (logOut, result) = evaluateCekTrace (unScript s)
-    unless (PLC.isEvaluationSuccess result) $ throwError $ EvaluationError logOut
-    pure logOut
+    res <- either (throwError . EvaluationException . show) Haskell.pure result
+    unless (PLC.isEvaluationSuccess res) $ throwError $ EvaluationError logOut
+    Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
 typecheckScript (unScript -> p) =
-    either (throwError . TypecheckError . show . PLC.prettyPlcDef) pure $ act
+    either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure act
       where
         act :: Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         act = runExcept $ PLC.runQuoteT $ do
@@ -189,17 +183,23 @@ instance ToJSON Script where
 instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
 
--- See Note [Normalized types in Scripts]
--- | Lift a Haskell value into the corresponding 'Script'. This allows you to create
--- 'Script's at runtime, whereas 'compileScript' allows you to do so at compile time.
-lifted :: Lift a => a -> Script
-lifted = fromCompiledCode . unsafeLiftCode
+instance ToJSON Data where
+    toJSON = JSON.String . JSON.encodeSerialise
+
+instance FromJSON Data where
+    parseJSON = JSON.decodeSerialise
+
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> ValidatorScript
+mkValidatorScript = ValidatorScript . fromCompiledCode
+
+unValidatorScript :: ValidatorScript -> Script
+unValidatorScript = getValidator
 
 -- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
@@ -210,14 +210,14 @@ instance BA.ByteArrayAccess ValidatorScript where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'DataScript' is a wrapper around 'Script's which are used as data scripts in transaction outputs.
-newtype DataScript = DataScript { getDataScript :: Script  }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+-- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
+newtype DataScript = DataScript { getDataScript :: Data  }
+  deriving stock (Generic, Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Show DataScript where
-    show = const "DataScript { <script> }"
+instance Pretty DataScript where
+    pretty (DataScript dat) = "DataScript:" <+> pretty dat
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -225,14 +225,14 @@ instance BA.ByteArrayAccess DataScript where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'RedeemerScript' is a wrapper around 'Script's that are used as redeemer scripts in transaction inputs.
-newtype RedeemerScript = RedeemerScript { getRedeemer :: Script }
-  deriving stock (Generic)
+-- | 'RedeemerScript' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
+newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
+  deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Show RedeemerScript where
-    show = const "RedeemerScript { <script> }"
+instance Pretty RedeemerScript where
+    pretty (RedeemerScript dat) = "RedeemerScript:" <+> pretty dat
 
 instance BA.ByteArrayAccess RedeemerScript where
     length =
@@ -245,144 +245,76 @@ newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
+
+instance IotsType ValidatorHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+
+instance Pretty DataScriptHash where
+    pretty (DataScriptHash bs) = "DataScriptHash:" <+> pretty (show bs)
+
+instance IotsType DataScriptHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
     deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
-{-# INLINABLE plcDataScriptHash #-}
-plcDataScriptHash :: DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcSHA2_256 . BSL.pack . BA.unpack
+instance IotsType RedeemerHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
-{-# INLINABLE plcValidatorDigest #-}
--- | Compute the hash of a validator script.
-plcValidatorDigest :: Digest SHA256 -> ValidatorHash
-plcValidatorDigest = ValidatorHash . BSL.pack . BA.unpack
+dataScriptHash :: DataScript -> DataScriptHash
+dataScriptHash = DataScriptHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
--- TODO: Is this right? Make it obvious
-{-# INLINABLE plcValidatorHash #-}
--- | Compute the hash of a validator script.
-plcValidatorHash :: ValidatorScript -> ValidatorHash
-plcValidatorHash = ValidatorHash . plcSHA2_256 . BSL.pack . BA.unpack
+redeemerHash :: RedeemerScript -> RedeemerHash
+redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-{-# INLINABLE plcRedeemerHash #-}
-plcRedeemerHash :: RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcSHA2_256 . BSL.pack . BA.unpack
+validatorHash :: ValidatorScript -> ValidatorHash
+validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h' :: Digest SHA256 = hash h
+    e = encode vl
 
 -- | Information about the state of the blockchain and about the transaction
---   that is currently being validated, represented as a value in a 'Script'.
-newtype ValidationData = ValidationData Script
+--   that is currently being validated, represented as a value in 'Data'.
+newtype ValidationData = ValidationData Data
     deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
 
-type DataScripts = [DataScript]
-
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
 runScript
     :: (MonadError ScriptError m)
     => Checking
     -> ValidationData
-    -> DataScripts
     -> ValidatorScript
     -> DataScript
     -> RedeemerScript
     -> m [Haskell.String]
-runScript checking (ValidationData valData) dataScripts (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
-    -- See Note [Sealing data scripts]
-    dsSealed <- for dataScripts $ \ds -> do
-        let script = getDataScript ds
-        dsTy <- typecheckScript script
-        pure $ (sealScript dsTy `applyScript` script) `applyScript` (lifted (plcDataScriptHash ds))
-    let appliedRedeemer = foldl' applyScript redeemer dsSealed
-    let appliedValidator = ((validator `applyScript` dataScript) `applyScript` appliedRedeemer) `applyScript` valData
-    -- See Note [Scripts returning Bool]
-    let appliedChecker = checker `applyScript` appliedValidator
-    evaluateScript checking appliedChecker
-
-{- Note [Scripts returning Bool]
-It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
-you can determine whether the script evaluation is error-or-not without having to look at what the result actually
-*is* if there is one.
-
-However, from the script author's point of view, it would be nicer to return a Bool, since otherwise you end up doing a
-lot of `if realCondition then () else error ()` which is rubbish.
-
-So we changed the result type to be Bool. But now we have to answer the question of how the validator knows what the
-result value is. All *sorts* of terms can be True or False in disguise. The easiest way to tell is by reducing it
-to the previous problem: apply a function which does a pattern match and returns error in the case of False and ()
-otherwise. Then, as before, we just check for error in the overall evaluation.
--}
-
-{- Note [Sealing data scripts]
-To pass data scripts securely through the redeemer, we need to *seal* them. This means applying the 'seal' builtin
-to the data script value, and then applying the redeemer to all the (sealed) values.
-
-However, 'seal' is *polymorphic*, so we need to instantiate it at the correct type first. So we need to know the
-type of all the data scripts, which means we need to typecheck them. This is annoying, but I don't have
-another solution at the moment.
--}
-
-{- Note [Impredicative polymorphism and seal]
-We need to turn 'seal :: forall a . a -> Sealed a' into a PLC term, which we
-can instantiate at a PLC type (which we do *not* have the corresponding Haskell type
-for). But this causes GHC to get its knickers in a twist in two ways:
-- GHC is very eager to replace the quantified type variable with 'Any', which we can't
-currently reconstruct. See Note [Polymorphic values and Any] for more complaining.
-- If you try and specify the type you end up asking for a 'CompiledCode (forall a . a -> Sealed a)'.
-But this is impredicative polymorphism, and Banned.
-
-So we apply the usual trick of wrapping it in a newtype wrapper. However, we then need
-to *unwrap* it to actually apply the function, and the function which does *that* is
-also going to be polymorphic, so we hit exactly the same problem defining it.
-
-At this point we deploy a CURSED HACK. We compile newtypes into precisely their
-underlying type... so we actually don't have to unwrap it at all! We just leave
-it there to satisfy GHC and act as though it's unwrapped later. It's horrible, but
-it seems to work.
--}
-
--- | A data script of type @a@, along with its hash. The hash can be cross-referenced into
--- a 'PendingTx' to determine which output this data script comes from.
-data HashedDataScript a = HashedDataScript { getData :: a, getHash :: DataScriptHash }
-
--- See Note [Impredicative polymorphism and seal]
-newtype Sealer = Sealer (forall a . a -> DataScriptHash -> Sealed (HashedDataScript a))
-
--- | @seal@ as a term at a particular type.
-sealScript :: PLC.Type PLC.TyName () -> Script
-sealScript ty =
-    -- See Note [Impredicative polymorphism and seal]
-    let compiled :: CompiledCode (Sealer)
-        compiled = $$(compile [|| Sealer (\a hsh -> seal (HashedDataScript a hsh)) ||])
-        PLC.Program _ v t = getPlc $ compiled
-    in fromPlc $ PLC.Program ()  v $ PLC.TyInst () t ty
+runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+    evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
 unitData :: DataScript
-unitData = DataScript $ fromCompiledCode $$(compile [|| () ||])
+unitData = DataScript $ toData ()
 
 -- | @()@ as a redeemer.
 unitRedeemer :: RedeemerScript
-unitRedeemer = RedeemerScript $ fromCompiledCode $$(compile [|| () ||])
-
--- | @()@ as a redeemer.
-checker :: Script
-checker = fromCompiledCode $$(compile [|| check ||])
+unitRedeemer = RedeemerScript $ toData ()
 
 makeLift ''ValidatorHash
 
@@ -390,4 +322,4 @@ makeLift ''DataScriptHash
 
 makeLift ''RedeemerHash
 
-makeLift ''HashedDataScript
+makeLift ''DataScript

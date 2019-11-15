@@ -1,82 +1,129 @@
 module Marlowe.ContractTests where
 
 import Prelude
+import Control.Monad.State (class MonadState, StateT, runState)
+import Data.Array (snoc)
 import Data.Either (Either(..))
+import Data.Identity (Identity)
 import Data.Integral (fromIntegral)
-import Data.Lens (set)
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.List as List
-import Data.Map as Map
-import Data.Newtype (wrap)
-import Data.Set as Set
+import Data.Lens (modifying, over, use, (^.))
+import Data.List.NonEmpty as NEL
+import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
-import Marlowe.Contracts as Contracts
-import Marlowe.Parser (contract)
-import Marlowe.Semantics (AnyInput(..), CommitInfo(..), CommitInfoRecord(..), Input(..), State(..))
-import Marlowe.Test (Action(..), TestState, _state, initialState, run)
-import Marlowe.Types (IdAction(..), IdChoice(..), IdCommit(..), Person(..), WIdChoice(..))
-import Test.Unit (TestSuite, Test, failure, suite, test)
-import Test.Unit.Assert (assert)
-import Text.Parsing.Parser (runParser)
+import Examples.Marlowe.Contracts as Contracts
+import Marlowe.Semantics (AccountId(..), Ada(..), ChoiceId(..), Contract(..), Input(..))
+import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
+import Network.RemoteData (RemoteData(..))
+import Test.Unit (TestSuite, suite, test)
+import Test.Unit.Assert (equal)
+import Types (FrontendState(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
+
+-- | For these tests we only need to worry about the MarloweState that is being carried around
+--   However we can use similar techniques to mock other parts of the App
+newtype MockApp a
+  = MockApp (StateT FrontendState Identity a)
+
+derive instance newtypeMockApp :: Newtype (MockApp a) _
+
+derive newtype instance functorMockApp :: Functor MockApp
+
+derive newtype instance applicativeMockApp :: Applicative MockApp
+
+derive newtype instance applyMockApp :: Apply MockApp
+
+derive newtype instance bindMockApp :: Bind MockApp
+
+derive newtype instance monadMockApp :: Monad MockApp
+
+derive newtype instance monadStateMockApp :: MonadState FrontendState MockApp
+
+instance monadAppState :: MonadApp MockApp where
+  haskellEditorSetValue _ _ = pure unit
+  haskellEditorGetValue = pure Nothing
+  haskellEditorSetAnnotations _ = pure unit
+  haskellEditorGotoLine _ _ = pure unit
+  marloweEditorSetValue _ _ = pure unit
+  marloweEditorGetValue = pure (Just Contracts.escrow)
+  marloweEditorSetAnnotations _ = pure unit
+  marloweEditorMoveCursorToPosition _ = pure unit
+  preventDefault _ = pure unit
+  readFileFromDragEvent _ = pure ""
+  updateContractInState contract = do
+    updateContractInStateImpl contract
+    annotations <- use (_marloweState <<< _Head <<< _editorErrors)
+    marloweEditorSetAnnotations annotations
+  updateState = do
+    -- saveInitialStateImpl
+    wrap $ modifying _currentMarloweState updateStateP
+  saveInitialState = pure unit -- saveInitialStateImpl
+  updateMarloweState f = wrap $ modifying _marloweState (extendWith f)
+  applyTransactions = wrap $ modifying _marloweState (extendWith updateStateP)
+  resetContract = pure unit
+  saveBuffer _ = pure unit
+  saveMarloweBuffer _ = pure unit
+  getOauthStatus = pure Loading
+  getGistByGistId _ = pure Loading
+  postGist _ = pure Loading
+  patchGistByGistId _ _ = pure Loading
+  postContractHaskell _ = pure Loading
+  resizeBlockly = pure Nothing
+  setBlocklyCode _ = pure unit
+  checkContractForWarnings _ = pure unit
+
+updateContractInStateImpl :: String -> MockApp Unit
+updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
+
+initialState :: FrontendState
+initialState =
+  FrontendState
+    { view: HaskellEditor
+    , compilationResult: NotAsked
+    , marloweCompileResult: Right unit
+    , authStatus: NotAsked
+    , createGistResult: NotAsked
+    , marloweState: NEL.singleton (emptyMarloweState zero)
+    , oldContract: Nothing
+    , gistUrl: Nothing
+    , blocklyState: Nothing
+    , analysisState: NotAsked
+    , selectedHole: Nothing
+    }
+
+runTests :: forall a. MockApp a -> Tuple a FrontendState
+runTests app = runState (unwrap app) initialState
 
 all :: TestSuite
 all =
   suite "Contract Tests" do
     test "Escrow" do
-      case runParser Contracts.escrow contract of
-        Left parseError -> failure "could not parse escrow contract"
-        Right escrow ->
-          let
-            choiceA = IdChoice { choice: (fromIntegral 1), person: Person (fromIntegral 1) }
+      -- A simple test that runs the Escrow contract to completion
+      let
+        alice = "alice"
 
-            choiceB = IdChoice { choice: (fromIntegral 1), person: Person (fromIntegral 2) }
+        bob = "bob"
 
-            actions =
-              [ ApplyTransaction
-                  ( Tuple
-                      ( List.fromFoldable
-                          [ Input (IChoice choiceA (fromIntegral 1))
-                          , Input (IChoice choiceB (fromIntegral 1))
-                          , Action (IdAction (fromIntegral 1))
-                          , Action (IdAction (fromIntegral 2))
-                          ]
-                      )
-                      (Set.fromFoldable [ Person (fromIntegral 1), Person (fromIntegral 2) ])
-                  )
-              ]
+        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice (Lovelace (fromIntegral 450))
 
-            finalState = run escrow actions
+        choice = ChoiceId "choice"
 
-            expectedState =
-              State
-                { choices:
-                  Map.fromFoldable
-                    [ Tuple (WIdChoice choiceA) (fromIntegral 1)
-                    , Tuple (WIdChoice choiceB) (fromIntegral 1)
-                    ]
-                , commits:
-                  CommitInfo
-                    { currentCommitsById:
-                      Map.fromFoldable
-                        [ Tuple (wrap (fromIntegral 1))
-                            ( CommitInfoRecord
-                                { amount: (fromIntegral 0)
-                                , person: wrap (fromIntegral 1)
-                                , timeout: wrap (fromIntegral 100)
-                                }
-                            )
-                        ]
-                    , expiredCommitIds: mempty
-                    , redeemedPerPerson: mempty
-                    , timeoutData: Map.fromFoldable [ (Tuple (wrap (fromIntegral 100)) (Set.fromFoldable [ IdCommit (fromIntegral 1) ])) ]
-                    }
-                , oracles: mempty
-                , usedIds: Set.fromFoldable [ (wrap <<< fromIntegral $ 1), (wrap <<< fromIntegral $ 2) ]
-                }
+        choice1 = IChoice (choice alice) (fromIntegral 0)
 
-            expectedTestState = set (_Newtype <<< _state) expectedState initialState
-          in
-            assertState expectedTestState finalState
+        choice2 = IChoice (choice bob) (fromIntegral 0)
 
-assertState :: TestState -> TestState -> Test
-assertState a b = assert ("TestState not equal, expected: \n\n" <> show a <> "\n\n but got:\n\n" <> show b) $ a == b
+        (Tuple _ finalState) =
+          runTests
+            $ do
+                updateContractInState Contracts.escrow
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit (Just alice))))
+                applyTransactions
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 (Just alice))))
+                updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 (Just bob))))
+                applyTransactions
+
+        finalContract = finalState ^. _marloweState <<< _Head <<< _contract
+
+        txError = finalState ^. _marloweState <<< _Head <<< _transactionError
+      equal Nothing txError
+      equal (Just Close) finalContract
+      pure unit

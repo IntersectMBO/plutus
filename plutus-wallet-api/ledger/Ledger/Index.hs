@@ -1,8 +1,9 @@
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -24,34 +25,37 @@ module Ledger.Index(
     validateTransaction
     ) where
 
-import           Prelude                   hiding (lookup)
+import           Prelude                          hiding (lookup)
 
 
-import           Control.Lens              (at, (^.))
+import           Control.Lens                     (at, (^.))
 import           Control.Monad
-import           Control.Monad.Except      (MonadError (..), runExcept)
-import           Control.Monad.Reader      (MonadReader (..), ReaderT (..), ask)
-import           Crypto.Hash               (Digest, SHA256)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Foldable             (fold, foldl', traverse_)
-import qualified Data.Map                  as Map
-import           Data.Maybe                (mapMaybe)
-import           Data.Semigroup            (Semigroup)
-import qualified Data.Set                  as Set
-import           GHC.Generics              (Generic)
-import qualified Language.PlutusTx.Numeric as P
-import qualified Ledger.Ada                as Ada
+import           Control.Monad.Except             (MonadError (..), runExcept)
+import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Foldable                    (fold, foldl', traverse_)
+import qualified Data.Map                         as Map
+import           Data.Maybe (mapMaybe)
+import           Data.Semigroup                   (Semigroup)
+import qualified Data.Set                         as Set
+import           Data.Text.Prettyprint.Doc        (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
+import           GHC.Generics                     (Generic)
+import           Language.PlutusTx                (toData)
+import qualified Language.PlutusTx.Numeric        as P
+import           Ledger.Address
+import qualified Ledger.Ada                       as Ada
 import           Ledger.Blockchain
 import           Ledger.Crypto
-import qualified Ledger.Interval           as Interval
+import qualified Ledger.Interval                  as Interval
 import           Ledger.Scripts
-import qualified Ledger.Scripts            as Scripts
-import qualified Ledger.Slot               as Slot
+import qualified Ledger.Scripts                   as Scripts
+import qualified Ledger.Slot                      as Slot
 import           Ledger.Tx
 import           Ledger.TxId
-import           Ledger.Validation         (PendingTx (..))
-import qualified Ledger.Validation         as Validation
-import qualified Ledger.Value              as V
+import           Ledger.Validation                (PendingTx' (..))
+import qualified Ledger.Validation                as Validation
+import qualified Ledger.Value                     as V
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
@@ -87,8 +91,10 @@ data ValidationError =
     | TxOutRefNotFound TxOutRef
     -- ^ The transaction output consumed by a transaction input could not be found (either because it was already spent, or because
     -- there was no transaction with the given hash on the blockchain).
-    | InvalidScriptHash DataScript
+    | InvalidScriptHash ValidatorScript
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
+    | InvalidDataHash DataScript DataScriptHash
+    -- ^ For pay-to-script outputs: the data value provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
     | ValueNotPreserved V.Value V.Value
@@ -110,6 +116,7 @@ data ValidationError =
 
 instance FromJSON ValidationError
 instance ToJSON ValidationError
+deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
@@ -158,9 +165,9 @@ checkSlotRange sl tx =
 --   can be unlocked by the signatures or validator scripts of the inputs.
 checkValidInputs :: ValidationMonad m => Tx -> m ()
 checkValidInputs tx = do
-    let txId = hashTx tx
+    let tid = txId tx
         sigs = tx ^. signatures
-    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput txId sigs))
+    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput tid sigs))
     vld     <- validationData tx
     traverse_ (checkMatch vld) matches
 
@@ -186,17 +193,15 @@ the blockchain.
 checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
 checkForgingAuthorised tx =
     let
-        forgedCurrencies =
-            V.unCurrencySymbol <$> V.symbols (txForge tx)
+        forgedCurrencies = V.symbols (txForge tx)
 
-        spendsOutput i =
-            let spentAddresses = Set.map inAddress (txInputs tx) in
-            Set.member i spentAddresses
+        mpsScriptHashes = Scripts.ValidatorHash . V.unCurrencySymbol <$> forgedCurrencies
 
-        forgedWithoutScript = filter (not . spendsOutput) forgedCurrencies
+        lockingScripts = (\(v,_,_) -> validatorHash v) <$> (mapMaybe inScripts $ Set.toList (txInputs tx))
 
+        forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
-        traverse_ (throwError . ForgeWithoutScript . Scripts.ValidatorHash) forgedWithoutScript
+        traverse_ (throwError . ForgeWithoutScript) forgedWithoutScript
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -205,7 +210,7 @@ data InOutMatch =
         ValidatorScript
         RedeemerScript
         DataScript
-        (AddressOf (Digest SHA256))
+        Address
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -222,8 +227,10 @@ matchInputOutput :: ValidationMonad m
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
 matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
-    (ConsumeScriptAddress v r, PayToScript d) ->
-        pure $ ScriptMatch i v r d (txOutAddress txo)
+    (ConsumeScriptAddress v r d, PayToScript dh) ->
+        if dataScriptHash d == dh
+        then pure $ ScriptMatch i v r d (txOutAddress txo)
+        else throwError $ InvalidDataHash d dh
     (ConsumePublicKeyAddress pk', PayToPubKey pk)
         | pk == pk' -> case mp ^. at pk' of
                         Nothing  -> throwError (SignatureMissing pk')
@@ -235,17 +242,17 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => (PendingTx, [DataScript]) -> InOutMatch -> m ()
-checkMatch (pendingTx, dataScripts) = \case
+checkMatch :: ValidationMonad m => PendingTxNoIn -> InOutMatch -> m ()
+checkMatch pendingTx = \case
     ScriptMatch txin vl r d a
         | a /= scriptAddress vl ->
-                throwError $ InvalidScriptHash d
+                throwError $ InvalidScriptHash vl
         | otherwise -> do
-            pTxIn <- mkIn txin
-            let vd = ValidationData
-                    $ lifted
-                    $ pendingTx { pendingTxIn = pTxIn }
-            case runExcept $ runScript Typecheck vd dataScripts vl d r of
+            pTxIn <- pendingTxInScript (txInRef txin) vl r d
+            let
+                ptx' = pendingTx { pendingTxIn = pTxIn }
+                vd = ValidationData (toData ptx')
+            case runExcept $ runScript Typecheck vd vl d r of
                 Left e  -> throwError $ ScriptFailure e
                 Right _ -> pure ()
     PubKeyMatch msg pk sig ->
@@ -281,8 +288,11 @@ checkTransactionFee tx =
     then pure ()
     else throwError $ TransactionFeeTooLow (txFee tx) (minFee tx)
 
+-- | A 'PendingTx' without a current transaction input in 'pendingTxIn'
+type PendingTxNoIn = Validation.PendingTx' ()
+
 -- | Create the data about the transaction which will be passed to a validator script.
-validationData :: ValidationMonad m => Tx -> m (PendingTx, DataScripts)
+validationData :: ValidationMonad m => Tx -> m PendingTxNoIn
 validationData tx = do
     txins <- traverse mkIn $ Set.toList $ txInputs tx
     let ptx = PendingTx
@@ -290,42 +300,55 @@ validationData tx = do
             , pendingTxOutputs = mkOut <$> txOutputs tx
             , pendingTxForge = txForge tx
             , pendingTxFee = txFee tx
-            , pendingTxIn = head txins -- this is changed accordingly in `checkMatch` during validation
+            , pendingTxIn = () -- this is changed accordingly in `checkMatch` during validation
             , pendingTxValidRange = txValidRange tx
             , pendingTxSignatures = Map.toList (tx ^. signatures)
-            , pendingTxHash = Validation.plcTxHash $ hashTx tx
+            , pendingTxData = Map.toList (tx ^. dataWitnesses)
+            , pendingTxId = txId tx
             }
-        ds = mapMaybe txOutData $ txOutputs tx
-    pure (ptx, ds)
+    pure ptx
 
 -- | Create the data about a transaction output which will be passed to a validator script.
 mkOut :: TxOut -> Validation.PendingTxOut
-mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
-    (d, tp) = case txOutType t of
-        PayToScript scrpt ->
-            let
-                dataScriptHash = Scripts.plcDataScriptHash scrpt
-                validatorHash  = Scripts.plcValidatorDigest (getAddress $ txOutAddress t)
-            in
-                (Just (validatorHash, dataScriptHash), Validation.DataTxOut)
-        PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
+mkOut t = Validation.PendingTxOut (txOutValue t) tp where
+    tp = case txOutType t of
+        PayToScript dh ->
+            let vh  = Scripts.ValidatorHash (unsafeGetAddress $ txOutAddress t)
+            in Validation.ScriptTxOut vh dh
+        PayToPubKey pk -> Validation.PubKeyTxOut pk
+
+pendingTxInScript
+    :: ValidationMonad m
+    => TxOutRef
+    -> ValidatorScript
+    -> RedeemerScript
+    -> DataScript
+    -> m Validation.PendingTxInScript
+pendingTxInScript outRef val red dat = txInFromRef outRef witness where
+        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.dataScriptHash dat)
+
+txInFromRef
+    :: ValidationMonad m
+    => TxOutRef
+    -> a
+    -> m (Validation.PendingTxIn' a)
+txInFromRef outRef witness = Validation.PendingTxIn ref witness <$> vl where
+    vl = lkpValue outRef
+    ref =
+        let tid = txOutRefId outRef
+            idx  = txOutRefIdx outRef
+        in Validation.PendingTxOutRef tid idx
+
+pendingTxInPubkey
+    :: ValidationMonad m
+    => TxOutRef
+    -> m Validation.PendingTxIn
+pendingTxInPubkey outRef = txInFromRef outRef Nothing
 
 -- | Create the data about a transaction input which will be passed to a validator script.
 mkIn :: ValidationMonad m => TxIn -> m Validation.PendingTxIn
-mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
-    ref =
-        let hash = Validation.plcTxHash . txOutRefId $ txInRef i
-            idx  = txOutRefIdx $ txInRef i
-        in
-            Validation.PendingTxOutRef hash idx
-    red = case txInType i of
-        ConsumeScriptAddress v r  ->
-            let h = getAddress $ scriptAddress v in
-            Just (Scripts.plcValidatorDigest h, Scripts.plcRedeemerHash r)
-        ConsumePublicKeyAddress _ ->
-            Nothing
-    vl = valueOf i
-
--- | Get the 'Value' attached to a transaction input.
-valueOf :: ValidationMonad m => TxIn -> m V.Value
-valueOf = lkpValue . txInRef
+mkIn TxIn{txInRef, txInType} = case txInType of
+    ConsumeScriptAddress v r d ->
+        Validation.toLedgerTxIn <$> pendingTxInScript txInRef v r d
+    ConsumePublicKeyAddress _ ->
+        pendingTxInPubkey txInRef

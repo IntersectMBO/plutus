@@ -1,3 +1,14 @@
-module Language.Marlowe (module Export) where
+module Language.Marlowe
+    ( module Language.Marlowe.Semantics
+    , module Language.Marlowe.Client
+    , module Language.Marlowe.Util
+    , module Language.Marlowe.Pretty
+    , Slot(..)
+    )
+where
 
-import           Language.Marlowe.Common as Export
+import           Language.Marlowe.Client
+import           Language.Marlowe.Pretty
+import           Language.Marlowe.Semantics
+import           Language.Marlowe.Util
+import           Ledger                     (Slot (..))

@@ -12,6 +12,7 @@ module Token.Fungible where
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -54,8 +55,8 @@ monetary policy of our currency:
 validateFungible :: Fungible -> FungibleValidator
 validateFungible f () n tx =
     case pendingTxOutputs tx of
-        [o] -> case pendingTxOutData o of
-            DataTxOut       -> False
+        [o] -> case pendingTxOutType o of
+            ScriptTxOut _ _ -> False
             PubKeyTxOut key ->
                    key == issuer f          -- <1>
                 && txSignedBy tx (issuer f) -- <2>
@@ -88,22 +89,21 @@ and addresses:
 [source,haskell]
 ----
 fungibleDataScript :: DataScript
-fungibleDataScript = DataScript $ lifted ()
+fungibleDataScript = DataScript $ toData ()
 
 mkFungibleRedeemerScript :: Integer -> RedeemerScript
-mkFungibleRedeemerScript = RedeemerScript . lifted
+mkFungibleRedeemerScript = RedeemerScript . toData
 
 mkFungibleValidator :: Fungible -> ValidatorScript
-mkFungibleValidator = ValidatorScript
-                    . applyScript $$(compileScript [|| validateFungible ||])
-                    . lifted
+mkFungibleValidator = mkValidatorScript
+                    . applyCode $$(compile [|| \f -> wrapValidator (validateFungible f) ||])
+                    . liftCode
 
 fungibleAddress :: Fungible -> Address
 fungibleAddress = scriptAddress . mkFungibleValidator
 
 fungibleSymbol :: Fungible -> CurrencySymbol
-fungibleSymbol f = case validatorScriptHash $ mkFungibleValidator f of
-    ValidatorHash h -> V.currencySymbol h
+fungibleSymbol f = scriptCurrencySymbol $ mkFungibleValidator f
 
 fungibleValue :: Fungible -> Integer -> Value
 fungibleValue f = V.singleton (fungibleSymbol f) (name f)
@@ -142,6 +142,7 @@ forge n s = do
             (mkFungibleValidator f)
             fungibleDataScript
         ]
+        [fungibleDataScript]
 
     go f
 
@@ -167,11 +168,13 @@ forge n s = do
                                         ref
                                         (mkFungibleValidator f)
                                         (mkFungibleRedeemerScript s)
+                                        unitData
                     , txOutputs    = [pubKeyTxOut v $ issuer f]      -- <7>
                     , txFee        = zero
                     , txForge      = v                               -- <8>
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
+                    , txData = Map.singleton (dataScriptHash unitData) unitData
                     }
             _         -> go f                                        -- <9>
 ----
@@ -238,13 +241,14 @@ trade:
 data TradeAction = Execute | Reclaim
     deriving Show
 
+makeIsData ''TradeAction
 makeLift ''TradeAction
 
 type TradeValidator = () -> TradeAction -> PendingTx -> Bool
 
 validateTrade :: Trade -> TradeValidator
 validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
-    [o1, o2] -> case (pendingTxOutData o1, pendingTxOutData o2) of -- <2>
+    [o1, o2] -> case (pendingTxOutType o1, pendingTxOutType o2) of -- <2>
         (PubKeyTxOut key1, PubKeyTxOut key2) ->                    -- <3>
                intervalTo (deadline t)                             -- <4>
                     `contains` pendingTxValidRange tx
@@ -255,7 +259,7 @@ validateTrade t () Execute tx = case pendingTxOutputs tx of        -- <1>
         _                                    -> False
     _        -> False
 validateTrade t () Reclaim tx = case pendingTxOutputs tx of
-    [o] -> case pendingTxOutData o of
+    [o] -> case pendingTxOutType o of
         PubKeyTxOut key ->
                intervalFrom (deadline t)
                     `contains` pendingTxValidRange tx
@@ -289,15 +293,16 @@ We write the usual helper functions and have completed the on-chain part:
 ----
 mkTradeValidator :: Trade -> ValidatorScript
 mkTradeValidator =
-      ValidatorScript
-    . applyScript $$(compileScript [|| validateTrade ||])
-    . lifted
+      mkValidatorScript
+    . applyCode $$(compile [|| v ||])
+    . liftCode
+    where v t = wrapValidator (validateTrade t)
 
 tradeDataScript :: DataScript
-tradeDataScript = DataScript $ lifted ()
+tradeDataScript = DataScript $ toData ()
 
 mkTradeRedeemerScript :: TradeAction -> RedeemerScript
-mkTradeRedeemerScript = RedeemerScript . lifted
+mkTradeRedeemerScript = RedeemerScript . toData
 
 tradeAddress :: Trade -> Address
 tradeAddress = scriptAddress . mkTradeValidator
@@ -377,6 +382,7 @@ sell i c n v2 p2 dl = do
                     r
                     (mkTradeValidator t)
                     (mkTradeRedeemerScript Execute)
+                    unitData
                 | r <- Map.keys m
                 ]
             outs =
@@ -387,6 +393,7 @@ sell i c n v2 p2 dl = do
             (intervalTo $ deadline t)
             ins
             outs
+            [unitData]
 
     handler2 :: Trade -> Tx -> EventHandler m       -- <5>
     handler2 t tx = EventHandler $ const $ do
@@ -395,7 +402,7 @@ sell i c n v2 p2 dl = do
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
             (mkTradeRedeemerScript Reclaim)
-            (hashTx tx)
+            (txId tx)
 ----
 
 <1> Lock the currency at the trade script.
@@ -461,7 +468,7 @@ buy i c n p1 v2 dl = do
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
             (mkTradeRedeemerScript Reclaim)
-            (hashTx tx)
+            (txId tx)
 
 $(mkFunctions ['forge, 'sell, 'buy])
 ----

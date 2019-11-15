@@ -10,7 +10,10 @@ module Language.PlutusTx.Prelude (
     module Monoid,
     module Numeric,
     module Functor,
+    module Applicative,
     module Lattice,
+    -- * Standard functions
+    ($),
     -- * String and tracing functions
     toPlutusString,
     trace,
@@ -41,35 +44,40 @@ module Language.PlutusTx.Prelude (
     dropByteString,
     concatenate,
     emptyByteString,
-    -- * Sealed
-    Sealed,
-    seal,
-    unseal,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
     verifySignature,
+    -- * Rational numbers
+    Rational,
+    (%),
+    fromInteger,
+    round,
     module Prelude
     ) where
 
-import           Language.PlutusTx.Bool      as Bool
-import           Language.PlutusTx.Builtins  (ByteString, Sealed, concatenate, dropByteString, emptyByteString,
-                                              equalsByteString, greaterThanByteString, lessThanByteString, seal,
-                                              sha2_256, sha3_256, takeByteString, unseal, verifySignature)
-import qualified Language.PlutusTx.Builtins  as Builtins
-import           Language.PlutusTx.Eq        as Eq
-import           Language.PlutusTx.Functor   as Functor
-import           Language.PlutusTx.Lattice   as Lattice
-import           Language.PlutusTx.List      as List
-import           Language.PlutusTx.Maybe     as Maybe
-import           Language.PlutusTx.Monoid    as Monoid
-import           Language.PlutusTx.Numeric   as Numeric
-import           Language.PlutusTx.Ord       as Ord
-import           Language.PlutusTx.Semigroup as Semigroup
-import           Prelude                     as Prelude hiding (Eq (..), Functor (..), Monoid (..), Num (..), Ord (..),
-                                                         Semigroup (..), all, any, const, elem, error, filter, foldMap,
-                                                         foldl, foldr, fst, length, map, max, maybe, min, not, null,
-                                                         snd, (!!), (&&), (++), (<$>), (||))
+import           Language.PlutusTx.Applicative as Applicative
+import           Language.PlutusTx.Bool        as Bool
+import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString,
+                                                equalsByteString, greaterThanByteString, lessThanByteString, sha2_256,
+                                                sha3_256, takeByteString, verifySignature)
+import qualified Language.PlutusTx.Builtins    as Builtins
+import           Language.PlutusTx.Eq          as Eq
+import           Language.PlutusTx.Functor     as Functor
+import           Language.PlutusTx.Lattice     as Lattice
+import           Language.PlutusTx.List        as List
+import           Language.PlutusTx.Maybe       as Maybe
+import           Language.PlutusTx.Monoid      as Monoid
+import           Language.PlutusTx.Numeric     as Numeric
+import           Language.PlutusTx.Ord         as Ord
+import           Language.PlutusTx.Ratio       as Ratio
+import           Language.PlutusTx.Semigroup   as Semigroup
+import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
+                                                           Num (..), Ord (..), Rational, Semigroup (..), all, any,
+                                                           const, elem, error, filter, foldMap, foldl, foldr, fst, id,
+                                                           length, map, max, maybe, min, not, null, reverse, round,
+                                                           sequence, snd, traverse, zip, (!!), ($), (&&), (++), (<$>),
+                                                           (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -167,3 +175,10 @@ fold = foldr (<>) mempty
 {-# INLINABLE foldMap #-}
 foldMap :: Monoid m => (a -> m) -> [a] -> m
 foldMap f = foldr (\a m -> f a <> m) mempty
+
+infixr 0 $
+-- Normal $ is levity-polymorphic, which we can't handle.
+{-# INLINABLE ($) #-}
+-- | Plutus Tx version of 'Data.Function.($)'.
+($) :: (a -> b) -> a -> b
+f $ a = f a

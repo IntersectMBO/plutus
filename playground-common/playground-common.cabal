@@ -64,6 +64,7 @@ library
         servant-client -any,
         servant-purescript -any,
         servant-server -any,
+        servant-websockets -any,
         temporary -any,
         template-haskell -any,
         text -any,
@@ -78,7 +79,6 @@ library
 test-suite playground-common-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
         Paths_playground_common
@@ -95,9 +95,8 @@ test-suite playground-common-test
         bytestring -any,
         containers -any,
         cryptonite -any,
-        Diff -any,
-        hspec -any,
+        tasty -any,
+        tasty-hunit -any,
         playground-common -any,
         text -any,
-        HUnit -any,
         wl-pprint-text -any

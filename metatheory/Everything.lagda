@@ -30,9 +30,7 @@ import Builtin.Constant.Type
 import Builtin.Constant.Term
 
 import Declarative
---import Declarative.RenamingSubstitution
---import Declarative.Reduction
---import Declarative.Evaluation
+import Declarative.RenamingSubstitution
 --import Declarative.Erasure
 
 --import Declarative.Examples
@@ -47,16 +45,18 @@ import Main
 -- types
 
 import Algorithmic
---import Algorithmic.RenamingSubstitution
---import Algorithmic.Reduction
---import Algorithmic.Evaluation
+import Algorithmic.Equality
+import Algorithmic.RenamingSubstitution
+import Algorithmic.Reduction
+import Algorithmic.Evaluation
 --import Algorithmic.Examples
 --import Algorithmic.Main
---import Algorithmic.Soundness
---import Algorithmic.Completeness
---import Algorithmic.Erasure
+import Algorithmic.Soundness
+import Algorithmic.Completeness
+import Algorithmic.Erasure
+--import Algorithmic.Erasure.RenamingSubstitution
 --import Algorithmic.Erasure.Reduction
---import Algorithmic.CK
+import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
 --import AlgorithmicRed.Term

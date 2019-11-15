@@ -1,12 +1,17 @@
 {
   pkgs ? (import ../lib.nix {}).pkgs,
-  stdenv ? pkgs.stdenv,
+  latex,
   texlive ? pkgs.texlive,
   Agda ? pkgs.haskellPackages.Agda
 }:
 
 let
-  tex = texlive.combine {
+  artifacts = pkgs.callPackage ./artifacts.nix {};
+in
+latex.buildLatex {
+  name = "unraveling-recursion";
+  texFiles = ["unraveling-recursion.tex"];
+  texInputs = {
     # more than we need at the moment, but doesn't cost much to include it
     inherit (texlive)
     scheme-small
@@ -18,26 +23,18 @@ let
     collection-fontsrecommended
     collection-mathscience
     acmart
-    bibtex biblatex
-    latexmk;
+    bibtex biblatex;
   };
-  artifacts = pkgs.callPackage ./artifacts.nix {};
-in
-stdenv.mkDerivation {
-  name = "unraveling-recursion";
-  buildInputs = [ tex Agda pkgs.zip ];
+  buildInputs = [ Agda pkgs.zip ];
   src = pkgs.lib.sourceFilesBySuffices ./. [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
-  buildPhase = ''
+  preBuild = ''
     for file in *.lagda; do
       agda --latex $file --latex-dir .
     done
 
     echo "\toggletrue{lagda}" > agdaswitch.tex
-      
-    latexmk -view=pdf compiling-to-fomega
   '';
-  installPhase = ''
-    install -Dt $out *.pdf
+  postInstall = ''
     cp ${artifacts}/* $out
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';

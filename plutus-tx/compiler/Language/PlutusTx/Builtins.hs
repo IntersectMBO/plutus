@@ -31,10 +31,8 @@ module Language.PlutusTx.Builtins (
                                 , equalsInteger
                                 -- * Error
                                 , error
-                                -- * Sealed
-                                , Sealed
-                                , seal
-                                , unseal
+                                -- * Data
+                                , Data (..)
                                 -- * Strings
                                 , String
                                 , appendString
@@ -50,7 +48,7 @@ import qualified Data.ByteString.Lazy.Hash as Hash
 import           Data.Maybe                (fromMaybe)
 import           Prelude                   hiding (String, error)
 
-import           Language.PlutusTx.Sealed
+import           Language.PlutusTx.Data
 import           Language.PlutusTx.Utils   (mustBeReplaced)
 
 {- Note [Builtin name definitions]
@@ -188,4 +186,4 @@ charToString = mustBeReplaced "charToString"
 {-# NOINLINE trace #-}
 -- | Logs the given 'String' to the evaluation log.
 trace :: String -> ()
-trace = mustBeReplaced "trace"
+trace _ = () --mustBeReplaced "trace"

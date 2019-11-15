@@ -2,8 +2,8 @@ module StaticData (bufferLocalStorageKey, demoFiles, marloweBufferLocalStorageKe
 
 import Data.Map (Map)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Contracts (crowdFunding, depositIncentive, escrow) as S
-import Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed) as E
+import Examples.Marlowe.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as ME
+import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Data.Map as Map
 import LocalStorage as LocalStorage
 
@@ -17,18 +17,20 @@ demoFiles ::
   Map Label Contents
 demoFiles =
   Map.fromFoldable
-    [ "Escrow" /\ E.escrow
-    , "ZeroCouponBond" /\ E.zeroCouponBond
-    , "CouponBondGuaranteed" /\ E.couponBondGuaranteed
+    [ "Escrow" /\ HE.escrow
+    , "ZeroCouponBond" /\ HE.zeroCouponBond
+    , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
+    , "Swap" /\ HE.swap
     ]
 
 marloweContracts ::
   Map Label Contents
 marloweContracts =
   Map.fromFoldable
-    [ "Deposit Incentive" /\ S.depositIncentive
-    , "Crowd Funding" /\ S.crowdFunding
-    , "Escrow" /\ S.escrow
+    [ "Escrow" /\ ME.escrow
+    , "ZeroCouponBond" /\ ME.zeroCouponBond
+    , "CouponBondGuaranteed" /\ ME.couponBondGuaranteed
+    , "Swap" /\ ME.swap
     ]
 
 marloweContract ::

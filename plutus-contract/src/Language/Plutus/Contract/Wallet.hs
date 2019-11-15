@@ -41,8 +41,8 @@ balanceWallet utx = do
     WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
-    let utxo = addr ^. at (Tx.pubKeyAddress pk) . to (fromMaybe mempty)
-    balanceTx utxo pk utx
+    let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)
+    balanceTx (fmap Tx.txOutTxOut utxo) pk utx
 
 -- | Compute the difference between the value of the inputs consumed and the
 --   value of the outputs produced by the transaction. If the result is zero
@@ -53,14 +53,16 @@ balanceWallet utx = do
 computeBalance :: WAPI.MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
-    left = foldM go P.zero (tx ^. Tx.inputs)
-    go cur inp = do
+    left = do
+        inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
+        pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
+    lookupValue outputRef = do
         am <- WAPI.watchedAddresses
-        let txout = AM.outRefMap am ^. at (Tx.txInRef inp)
+        let txout = AM.outRefMap am ^. at (Tx.txInRef outputRef)
         case txout of
-            Just vl -> pure (cur P.+ Tx.txOutValue vl)
+            Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
             Nothing ->
-                WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show inp)
+                WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
 
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.
@@ -106,7 +108,7 @@ addInputs mp pk vl tx = do
     let
 
         addTxIns  =
-            let ins = Set.fromList (flip Tx.pubKeyTxIn pk . fst <$> spend)
+            let ins = Set.fromList (Tx.pubKeyTxIn pk . fst <$> spend)
             in over Tx.inputs (Set.union ins)
 
         addTxOuts = if Value.isZero change
@@ -121,9 +123,9 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: MonadWallet m => UnbalancedTx -> m ()
+handleTx :: MonadWallet m => UnbalancedTx -> m Tx
 handleTx utx =
-    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit_
+    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
 
 -- | Add signatures of the private keys belonging to the given
 --   public keys to the transaction, provided that they are

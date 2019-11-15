@@ -29,14 +29,18 @@ module Ledger.Interval(
     , isEmpty
     , before
     , after
+    , strictLowerBound
+    , strictUpperBound
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import qualified Prelude                   as Haskell
 
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
@@ -48,12 +52,12 @@ import           Language.PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
 
 -- | Whether a bound is inclusive or not.
 type Closure = Bool
@@ -61,12 +65,17 @@ type Closure = Bool
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
+
+PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
+PlutusTx.makeIsData ''UpperBound
+PlutusTx.makeIsData ''LowerBound
+PlutusTx.makeIsData ''Interval
 
 makeLift ''Extended
 makeLift ''LowerBound
@@ -115,6 +124,14 @@ instance Ord a => Ord (LowerBound a) where
         -- An open lower bound is bigger than a closed lower bound. This corresponds
         -- to the *reverse* of the normal order on Bool.
         EQ -> in2 `compare` in1
+
+{-# INLINABLE strictUpperBound #-}
+strictUpperBound :: a -> UpperBound a
+strictUpperBound a = UpperBound (Finite a) False
+
+{-# INLINABLE strictLowerBound #-}
+strictLowerBound :: a -> LowerBound a
+strictLowerBound a = LowerBound (Finite a) False
 
 {-# INLINABLE lowerBound #-}
 lowerBound :: a -> LowerBound a

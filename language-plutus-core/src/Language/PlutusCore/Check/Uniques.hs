@@ -1,9 +1,10 @@
-module Language.PlutusCore.Check.Uniques (
-    checkProgram
+module Language.PlutusCore.Check.Uniques
+    ( checkProgram
     , checkTerm
     , checkType
     , UniqueError (..)
-    , AsUniqueError (..)) where
+    , AsUniqueError (..)
+    ) where
 
 import           Language.PlutusCore.Analysis.Definitions
 import           Language.PlutusCore.Error
@@ -16,36 +17,36 @@ import           Control.Monad.Except
 import           Data.Foldable
 
 checkProgram
-    :: (Ord a,
-        HasUnique (name a) TermUnique,
-        HasUnique (tyname a) TypeUnique,
-        AsUniqueError e a,
+    :: (Ord ann,
+        HasUnique (name ann) TermUnique,
+        HasUnique (tyname ann) TypeUnique,
+        AsUniqueError e ann,
         MonadError e m)
-    => (UniqueError a -> Bool)
-    -> Program tyname name a
+    => (UniqueError ann -> Bool)
+    -> Program tyname name ann
     -> m ()
 checkProgram p (Program _ _ t) = checkTerm p t
 
 checkTerm
-    :: (Ord a,
-        HasUnique (name a) TermUnique,
-        HasUnique (tyname a) TypeUnique,
-        AsUniqueError e a,
+    :: (Ord ann,
+        HasUnique (name ann) TermUnique,
+        HasUnique (tyname ann) TypeUnique,
+        AsUniqueError e ann,
         MonadError e m)
-    => (UniqueError a -> Bool)
-    -> Term tyname name a
+    => (UniqueError ann -> Bool)
+    -> Term tyname name ann
     -> m ()
 checkTerm p t = do
     (_, errs) <- runTermDefs t
     for_ errs $ \e -> when (p e) $ throwing _UniqueError e
 
 checkType
-    :: (Ord a,
-        HasUnique (tyname a) TypeUnique,
-        AsUniqueError e a,
+    :: (Ord ann,
+        HasUnique (tyname ann) TypeUnique,
+        AsUniqueError e ann,
         MonadError e m)
-    => (UniqueError a -> Bool)
-    -> Type tyname a
+    => (UniqueError ann -> Bool)
+    -> Type tyname ann
     -> m ()
 checkType p t = do
     (_, errs) <- runTypeDefs t

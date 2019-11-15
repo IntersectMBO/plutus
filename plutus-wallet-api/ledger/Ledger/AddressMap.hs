@@ -14,16 +14,18 @@ module Ledger.AddressMap(
     values,
     singleton,
     fromTxOutputs,
-    fromUtxoIndex,
     knownAddresses,
     updateAddresses,
+    updateAllAddresses,
     restrict,
     addressesTouched,
-    outRefMap
+    outRefMap,
+    fromChain
     ) where
 
 import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, view, (&), (.~), (^.))
+import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import           Control.Monad         (join)
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson            as JSON
 import qualified Data.Aeson.Extras     as JSON
@@ -36,23 +38,21 @@ import           Data.Semigroup        (Semigroup (..))
 import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 
-import           Ledger                (Address, Tx (..), TxInOf (..), TxOut, TxOutOf (..), TxOutRef, TxOutRefOf (..),
-                                        Value, hashTx)
-import           Ledger.Index          (UtxoIndex)
-import qualified Ledger.Index          as Index
-import           Ledger.Tx             (outAddress)
+import           Ledger                (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), Value,
+                                        txId)
+import           Ledger.Blockchain
 
 -- | A map of 'Address'es and their unspent outputs.
-newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
+newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOutTx) }
     deriving Show
     deriving stock (Generic)
     deriving newtype (Serialise)
 
 -- | An address map with a single unspent transaction output.
-singleton :: (Address, TxOutRef, TxOut) -> AddressMap
-singleton (addr, ref, ot) = AddressMap $ Map.singleton addr (Map.singleton ref ot)
+singleton :: (Address, TxOutRef, Tx, TxOut) -> AddressMap
+singleton (addr, ref, tx, ot) = AddressMap $ Map.singleton addr (Map.singleton ref (TxOutTx tx ot))
 
-outRefMap :: AddressMap -> Map TxOutRef TxOut
+outRefMap :: AddressMap -> Map TxOutRef TxOutTx
 outRefMap (AddressMap am) = Map.unions (snd <$> Map.toList am)
 
 -- NB: The ToJSON and FromJSON instance for AddressMap use the `Serialise`
@@ -77,7 +77,7 @@ instance Monoid AddressMap where
     mempty = AddressMap Map.empty
 
 type instance Index AddressMap = Address
-type instance IxValue AddressMap = Map TxOutRef TxOut
+type instance IxValue AddressMap = Map TxOutRef TxOutTx
 
 instance Ixed AddressMap where
     ix adr f (AddressMap mp) = AddressMap <$> ix adr f mp
@@ -91,7 +91,7 @@ instance At AddressMap where
 --   exists, do nothing.
 addAddress :: Address -> AddressMap -> AddressMap
 addAddress adr (AddressMap mp) = AddressMap $ Map.alter upd adr mp where
-    upd :: Maybe (Map TxOutRef TxOut) -> Maybe (Map TxOutRef TxOut)
+    upd :: Maybe (Map TxOutRef TxOutTx) -> Maybe (Map TxOutRef TxOutTx)
     upd = maybe (Just Map.empty) Just
 
 -- | Add a list of 'Address'es with no unspent outputs to the map.
@@ -100,27 +100,20 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs (which the map knows about) at an address.
 values :: AddressMap -> Map Address Value
-values = Map.map (fold . Map.map txOutValue) . getAddressMap
+values = Map.map (fold . Map.map (txOutValue . txOutTxOut)) . getAddressMap
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap
 fromTxOutputs tx =
     AddressMap . Map.fromListWith Map.union . fmap mkUtxo . zip [0..] . txOutputs $ tx where
-    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRefOf h i) t)
-    h = hashTx tx
-
--- | Take all unspent outputs from the 'UtxoIndex' and put them in
---   an 'AddressMap'.
-fromUtxoIndex :: UtxoIndex -> AddressMap
-fromUtxoIndex utxo = foldMap (singleton . addr) mp' where
-    mp' = Map.toList (Index.getIndex utxo)
-    addr (ref, ot) = (view outAddress ot, ref, ot)
+    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) (TxOutTx tx t))
+    h = txId tx
 
 -- | Create a map of unspent transaction outputs to their addresses (the
 -- "inverse" of an 'AddressMap', without the values)
 knownAddresses :: AddressMap -> Map TxOutRef Address
 knownAddresses = Map.fromList . unRef . Map.toList . getAddressMap where
-    unRef :: [(Address, Map TxOutRef TxOut)] -> [(TxOutRef, Address)]
+    unRef :: [(Address, Map TxOutRef TxOutTx)] -> [(TxOutRef, Address)]
     unRef lst = do
         (a, outRefs) <- lst
         (rf, _) <- Map.toList outRefs
@@ -132,10 +125,11 @@ updateAddresses :: Tx -> AddressMap -> AddressMap
 updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) where
     -- adds the newly produced outputs, and removes the consumed outputs, for
     -- an address `adr`
+    upd :: Address -> Map TxOutRef TxOutTx -> Map TxOutRef TxOutTx
     upd adr mp = Map.union (producedAt adr) mp `Map.difference` consumedFrom adr
 
     -- The TxOutRefs produced by the transaction, for a given address
-    producedAt :: Address -> Map TxOutRef TxOut
+    producedAt :: Address -> Map TxOutRef TxOutTx
     producedAt adr = Map.findWithDefault Map.empty adr outputs
 
     -- The TxOutRefs consumed by the transaction, for a given address
@@ -145,6 +139,14 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
     AddressMap outputs = fromTxOutputs tx
 
     consumedInputs = inputs (knownAddresses utxo) tx
+
+-- | Update an 'AddressMap' with the inputs and outputs of a new
+-- transaction, including all addresses in the transaction.
+updateAllAddresses :: Tx -> AddressMap -> AddressMap
+-- updateAddresses handles getting rid of spent outputs, so all we have to do is add in the
+-- new things. We can do this by just merging in `fromTxOutputs`, which will have many of the
+-- things that are already there, but also the new things.
+updateAllAddresses tx utxo = updateAddresses tx utxo <> fromTxOutputs tx
 
 -- | The inputs consumed by a transaction, indexed by address.
 inputs ::
@@ -171,3 +173,7 @@ addressesTouched :: AddressMap -> Tx -> Set.Set Address
 addressesTouched utxo t = ins <> outs where
     ins = Map.keysSet (inputs (knownAddresses utxo) t)
     outs = Map.keysSet (getAddressMap (fromTxOutputs t))
+
+-- | The unspent transaction outputs of the ledger as a whole.
+fromChain :: Blockchain -> AddressMap
+fromChain = foldr updateAllAddresses mempty . join

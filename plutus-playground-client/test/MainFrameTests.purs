@@ -5,7 +5,6 @@ module MainFrameTests
 import Prelude
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Except (runExcept)
-import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
@@ -14,49 +13,44 @@ import Cursor as Cursor
 import Data.Array as Array
 import Data.Either (Either(Right, Left))
 import Data.Identity (Identity)
+import Data.Json.JsonEither (JsonEither)
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Record (prop)
-import Data.List (List(..))
-import Data.List.NonEmpty (NonEmptyList(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Newtype (class Newtype, unwrap)
-import Data.NonEmpty ((:|))
-import Data.RawJson (JsonEither, JsonNonEmptyList(..))
 import Data.Symbol (SProxy(..))
+import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
-import Data.Tuple.Nested ((/\))
+import Editor (EditorAction(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
+import Gists (GistAction(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
-import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import MainFrame (eval, initialState, mkInitialValue)
+import MainFrame (handleAction, initialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
-import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Playground.Server (SPParams_(..))
+import Playground.Types (CompilationResult, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import TestUtils (equalGenericShow)
-import Types (Query(LoadScript, ChangeView, CompileProgram, LoadGist, SetGistUrl, CheckAuthStatus), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (HAction(..), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
 
 all :: TestSuite
 all =
   suite "MainFrame" do
     evalTests
-    mkInitialValueTests
 
 ------------------------------------------------------------
 type World
@@ -76,7 +70,7 @@ _editorContents = prop (SProxy :: SProxy "editorContents")
 _localStorage :: forall r a. Lens' { localStorage :: a | r } a
 _localStorage = prop (SProxy :: SProxy "localStorage")
 
--- | A dummy implementation of `MonadApp`, for testing the main eval loop.
+-- | A dummy implementation of `MonadApp`, for testing the main handleAction loop.
 newtype MockApp m a
   = MockApp (RWST (SPSettings_ SPParams_) Unit (Tuple World State) m a)
 
@@ -111,6 +105,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorSetAnnotations annotations = pure unit
   editorGotoLine row column = pure unit
   --
+  delay time = pure unit
   saveBuffer contents =
     MockApp
       $ assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)
@@ -139,18 +134,14 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
       Loop cont -> tailRecM step cont
       Done result -> pure result
 
-execMockApp :: forall m a. Monad m => World -> Free Query a -> m (Tuple World State)
-execMockApp world query = do
+execMockApp :: forall m. Monad m => World -> Array HAction -> m (Tuple World State)
+execMockApp world queries = do
   RWSResult state result writer <-
     runRWST
-      (unwrap (foldFree eval query :: MockApp m a))
+      (unwrap (traverse_ handleAction queries :: MockApp m Unit))
       (defaultSettings (SPParams_ { baseURL: "/" }))
       (Tuple world initialState)
   pure state
-
--- | Simulate dispatching a Query.
-send :: forall f a. (Unit -> f a) -> Free f a
-send f = liftF $ f unit
 
 ------------------------------------------------------------
 mockWorld :: World
@@ -164,28 +155,29 @@ mockWorld =
 
 evalTests :: TestSuite
 evalTests =
-  suite "eval" do
+  suite "handleAction" do
     test "CheckAuthStatus" do
-      Tuple _ finalState <- execMockApp mockWorld $ send CheckAuthStatus
+      Tuple _ finalState <- execMockApp mockWorld [ CheckAuthStatus ]
       assert "Auth Status loaded." $ isSuccess (view _authStatus finalState)
     test "ChangeView" do
       quickCheck \aView -> do
         let
-          Tuple _ finalState = unwrap (execMockApp mockWorld (send $ ChangeView aView) :: Identity (Tuple World State))
+          Tuple _ finalState = unwrap (execMockApp mockWorld [ ChangeView aView ] :: Identity (Tuple World State))
         aView == view _currentView finalState
     suite "LoadGist" do
       test "Bad URL" do
         Tuple _ finalState <-
-          execMockApp mockWorld do
-            send $ SetGistUrl "9cfe"
-            send $ LoadGist
+          execMockApp mockWorld
+            [ GistAction $ SetGistUrl "9cfe"
+            , GistAction LoadGist
+            ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Invalid URL" do
         Tuple _ finalState <-
           execMockApp mockWorld
-            $ do
-                send $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                send $ LoadGist
+            [ GistAction $ SetGistUrl "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            , GistAction LoadGist
+            ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
       test "Successfully" do
         contents <- liftEffect $ FS.readTextFile UTF8 "test/gist1.json"
@@ -195,9 +187,9 @@ evalTests =
             Tuple finalWorld finalState <-
               execMockApp
                 (set (_gists <<< at (view gistId gist)) (Just gist) mockWorld)
-                $ do
-                    send $ SetGistUrl (unwrap (view gistId gist))
-                    send $ LoadGist
+                [ GistAction $ SetGistUrl (unwrap (view gistId gist))
+                , GistAction LoadGist
+                ]
             assert "Gist gets loaded." $ isSuccess (view _createGistResult finalState)
             equal'
               "Simulation gets loaded."
@@ -214,8 +206,8 @@ evalTests =
                   (preview (_localStorage <<< ix (unwrap bufferLocalStorageKey)) finalWorld)
     test "Loading a script works." do
       Tuple finalWorld finalState <-
-        execMockApp (set _editorContents Nothing mockWorld) do
-          send $ LoadScript "Game"
+        execMockApp (set _editorContents Nothing mockWorld)
+          [ EditorAction $ LoadScript "Game" ]
       equal' "Script gets loaded."
         (Map.lookup "Game" StaticData.demoFiles)
         finalWorld.editorContents
@@ -225,16 +217,18 @@ evalTests =
             Left err -> failure err
             Right compilationResult -> do
               Tuple _ intermediateState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ ChangeView Simulations
-                  send $ LoadScript "Game"
-                  send $ CompileProgram
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ ChangeView Simulations
+                  , EditorAction $ LoadScript "Game"
+                  , EditorAction CompileProgram
+                  ]
               assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
               Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ LoadScript "Game"
-                  send $ CompileProgram
-                  send $ LoadScript "Game"
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ EditorAction $ LoadScript "Game"
+                  , EditorAction CompileProgram
+                  , EditorAction $ LoadScript "Game"
+                  ]
               assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
               assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
               assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
@@ -244,9 +238,10 @@ evalTests =
             Left err -> failure err
             Right compilationResult -> do
               Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult }) do
-                  send $ ChangeView Simulations
-                  send $ LoadScript "Game"
+                execMockApp (mockWorld { compilationResult = compilationResult })
+                  [ ChangeView Simulations
+                  , EditorAction $ LoadScript "Game"
+                  ]
               equal' "View is reset." Editor $ view _currentView finalState
 
 loadCompilationResponse1 ::
@@ -258,42 +253,3 @@ loadCompilationResponse1 = do
   case runExcept $ decodeJSON contents of
     Left err -> pure $ Left $ show err
     Right value -> pure $ Right $ Success value
-
-mkInitialValueTests :: TestSuite
-mkInitialValueTests =
-  suite "mkInitialValue" do
-    test "balance" do
-      equalGenericShow
-        ( Value
-            { getValue:
-              AssocMap.fromTuples
-                [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
-                , currencies
-                    /\ AssocMap.fromTuples
-                        [ usdToken /\ 10
-                        , eurToken /\ 10
-                        ]
-                ]
-            }
-        )
-        ( mkInitialValue
-            [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName: "" }))) }
-            , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList (NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName: "EURToken" }) Nil))) }
-            ]
-            10
-        )
-
-ada :: CurrencySymbol
-ada = CurrencySymbol { unCurrencySymbol: "" }
-
-currencies :: CurrencySymbol
-currencies = CurrencySymbol { unCurrencySymbol: "Currency" }
-
-adaToken :: TokenName
-adaToken = TokenName { unTokenName: "" }
-
-usdToken :: TokenName
-usdToken = TokenName { unTokenName: "USDToken" }
-
-eurToken :: TokenName
-eurToken = TokenName { unTokenName: "EURToken" }

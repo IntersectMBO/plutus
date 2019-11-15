@@ -1,64 +1,64 @@
 module Halogen.Chartist
   ( chartist
-  , ChartistQuery(..)
-  , ChartistMessage(..)
+  , Query(..)
+  , Message(..)
   ) where
 
 import Chartist (Chart, ChartistData, ChartistOptions, updateData)
 import Chartist as Chartist
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Data.Function (($))
+import Control.Bind (bind, (>>=))
+import Control.Category ((<<<))
+import Data.Function (const, ($))
 import Data.Maybe (Maybe(Just, Nothing))
-import Data.NaturalTransformation (type (~>))
-import Data.Unit (unit)
+import Data.Unit (Unit, unit)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Halogen (RefLabel(..))
+import Effect.Class (class MonadEffect, liftEffect)
+import Halogen (HalogenM, RefLabel(..))
 import Halogen as H
 import Halogen.HTML (ClassName(..))
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (classes)
 import Halogen.HTML.Properties as HP
 
-type ChartistState
+type State
   = { chart :: Maybe Chart
     }
 
-data ChartistQuery a
-  = Init ChartistOptions a
-  | SetData ChartistData a
+data Query a
 
-data ChartistMessage
+data Action
+  = Init ChartistOptions
+  | SetData ChartistData
+
+data Message
   = Initialized
-
-type HTML
-  = H.ComponentHTML ChartistQuery
-
-type DSL m
-  = H.ComponentDSL ChartistState ChartistQuery ChartistMessage m
 
 chartist ::
   forall m.
   MonadAff m =>
+  MonadEffect m =>
   ChartistOptions ->
-  H.Component HH.HTML ChartistQuery ChartistData ChartistMessage m
+  H.Component HH.HTML Query ChartistData Message m
 chartist options =
-  H.lifecycleComponent
-    { initialState: \_ -> { chart: Nothing }
+  H.mkComponent
+    { initialState: const { chart: Nothing }
     , render
-    , eval
-    , initializer: Just $ H.action $ Init options
-    , finalizer: Nothing
-    , receiver: HE.input SetData
+    , eval:
+      H.mkEval
+        { handleAction
+        , handleQuery
+        , initialize: Just $ Init options
+        , receive: Just <<< SetData
+        , finalize: Nothing
+        }
     }
 
-eval ::
-  forall m.
-  MonadAff m =>
-  ChartistQuery ~> DSL m
-eval (Init options next) = do
+handleQuery :: forall a input m. Query a -> HalogenM State Action input Message m (Maybe a)
+handleQuery _ = pure Nothing
+
+handleAction :: forall slots m. MonadEffect m => Action -> HalogenM State Action slots Message m Unit
+handleAction (Init options) = do
   mElement <- H.getHTMLElementRef chartRefLabel
   case mElement of
     Nothing -> pure unit
@@ -66,19 +66,17 @@ eval (Init options next) = do
       chart <- liftEffect $ Chartist.barChart element options
       _ <- H.modify _ { chart = Just chart }
       H.raise Initialized
-  pure next
 
-eval (SetData chartistData next) = do
+handleAction (SetData chartistData) = do
   H.gets _.chart
     >>= case _ of
         Nothing -> pure unit
         Just chart -> liftEffect $ updateData chart chartistData
-  pure next
 
 chartRefLabel :: RefLabel
 chartRefLabel = RefLabel "chartist"
 
-render ∷ ChartistState → HTML
+render ∷ forall p i. State -> HH.HTML p i
 render state =
   HH.div
     [ classes

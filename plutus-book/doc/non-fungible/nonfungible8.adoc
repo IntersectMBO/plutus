@@ -10,9 +10,12 @@
 
 module NonFungible.NonFungible8 where
 
+import           Prelude                    (Applicative (..))
+
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding (Applicative (..))
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -21,7 +24,6 @@ import           Wallet
 import           Control.Monad (void)
 import           Control.Monad.Except       (MonadError (..))
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.List                  (find)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
@@ -33,12 +35,12 @@ import qualified Data.Text                  as T
 -- The admin token is parameterized by a transaction
 -- output, which in turn is given by the hash of a
 -- transaction and the output index.
-type Admin = (TxHash, Integer)
+type Admin = (TxId, Integer)
 
 -- Convert the reference to an output to a hash-index
 -- pair.
 mkAdmin :: TxOutRef -> Admin
-mkAdmin (TxOutRefOf h i) = (plcTxHash h, i)
+mkAdmin (TxOutRef h i) = (h, i)
 
 -- We need no data in data- and redeemer-scripts,
 -- so both can be of unit type.
@@ -68,19 +70,18 @@ We add some standard helpers:
 [source,haskell]
 ----
 adminRedeemer :: RedeemerScript
-adminRedeemer = RedeemerScript $$(compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
+adminRedeemer = RedeemerScript $ toData ()
 
 mkAdminValidator :: Admin -> ValidatorScript
-mkAdminValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateAdmin ||])
-                       . lifted
+mkAdminValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \a -> wrapValidator (validateAdmin a) ||])
+                       . liftCode
 
 adminAddress :: Admin -> Address
 adminAddress = scriptAddress . mkAdminValidator
 
 adminSymbol :: Admin -> CurrencySymbol
-adminSymbol admin = case validatorScriptHash $ mkAdminValidator admin of
-    ValidatorHash h -> V.currencySymbol h
+adminSymbol admin = scriptCurrencySymbol $ mkAdminValidator admin
 
 adminTokenName :: TokenName
 adminTokenName = TokenName emptyByteString
@@ -130,9 +131,9 @@ validateNonFungible nf () name tx =
                     (adminCurrency nf)                     -- <2>
                     adminTokenName
                    == 1
-                && case pendingTxOutHashes o of
-                    Just (vh, _) -> vh == ownHash tx
-                    Nothing      -> False
+                && case pendingTxOutType o of
+                    ScriptTxOut vh _ -> vh == ownHash tx
+                    _                -> False
         _                 -> False
   where
     s :: CurrencySymbol
@@ -151,21 +152,18 @@ validateNonFungible nf () name tx =
 [source,haskell]
 ----
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
-mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
-                       . lifted
+mkNonFungibleValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
+                       . liftCode
 
 nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 nonFungibleValue :: NonFungible -> String -> Value
 nonFungibleValue nf name = V.singleton
@@ -187,18 +185,18 @@ transaction output:
 
 [source,haskell]
 ----
-hasAdminToken :: CurrencySymbol -> (TxOutRef, TxOut) -> Bool
+hasAdminToken :: CurrencySymbol -> (TxOutRef, TxOutTx) -> Bool
 hasAdminToken s (_, o) =
-    V.valueOf (txOutValue o) s adminTokenName == 1
+    V.valueOf (txOutValue $ txOutTxOut o) s adminTokenName == 1
 ----
 
 Now we can write our endpoints. The biggest change is in `start`, where
 we now first have to forge the admin token before we can start our policy.
 
-We also rename `start` to `start'`, because for later use we want a version 
+We also rename `start` to `start'`, because for later use we want a version
 of `start` that _returns_ the symbol of our policy
 .
-It is not allowed to have wallet endpoints in the Playground return types other than `()`, though, 
+It is not allowed to have wallet endpoints in the Playground return types other than `()`, though,
 so afterwards we will define `start` in terms of `start'`.
 
 [source,haskell]
@@ -223,7 +221,8 @@ start' = do
                     zero
                     (mkAdminValidator admin)
                     unitData]
-            go1 ref $ txOutValue o                         -- <3>
+                [unitData]
+            go1 ref $ txOutValue $ txOutTxOut o                         -- <3>
             pure (adminSymbol admin)
 
   where
@@ -245,11 +244,12 @@ start' = do
             []         -> go1 ref v                        -- <4>
             (ref' : _) -> do
                 key <- ownPubKey
-                let i1 = pubKeyTxIn ref key                -- <5>
+                let i1 = pubKeyTxIn key ref                -- <5>
                     i2 = scriptTxIn                        -- <6>
                             ref'
                             (mkAdminValidator admin)
                             unitRedeemer
+                            unitData
                     o  = pubKeyTxOut                       -- <7>
                             (v + adminValue admin)
                             key
@@ -260,6 +260,7 @@ start' = do
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
+                    , txData       = Map.empty
                     }
                 logMsg $ T.pack $
                     "forging admin token " ++
@@ -286,18 +287,19 @@ start' = do
                 logMsg $ T.pack $
                     "starting tokens " ++ show nf
                 let v  = V.singleton s adminTokenName 1
-                    i  = pubKeyTxIn ref key                -- <10>
+                    i  = pubKeyTxIn key ref                -- <10>
                     o1 = scriptTxOut                       -- <11>
                             v
                             (mkNonFungibleValidator nf)
                             unitData
                     o2 = pubKeyTxOut                       -- <12>
-                            (txOutValue o - v)
+                            ((txOutValue $ txOutTxOut o) - v)
                             key
                 void $ createTxAndSubmit
                     defaultSlotRange
                     (Set.singleton i)
                     [o1, o2]
+                    [unitData]
 
 start :: MonadWallet m => m ()
 start = void start'
@@ -344,7 +346,7 @@ forge s n = do
                 , adminCurrency = s
                 }
     logMsg $ T.pack $
-        "forging " ++ n ++ 
+        "forging " ++ n ++
         " (symbol " ++ show (nonFungibleSymbol nf) ++
         ") of " ++ show nf
 
@@ -353,13 +355,14 @@ forge s n = do
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
                 v2   = v + v
-                vIn  = txOutValue o
+                vIn  = txOutValue $ txOutTxOut o
                 vOut = vIn + v
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
@@ -367,13 +370,14 @@ forge s n = do
                 , txForge      = v2                               -- <1>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
   where
     findOut :: CurrencySymbol
-            -> [(TxOutRef, TxOut)]
-            -> Maybe (TxOutRef, TxOut)
+            -> [(TxOutRef, TxOutTx)]
+            -> Maybe (TxOutRef, TxOutTx)
     findOut = find . hasAdminToken                                -- <2>
 
 $(mkFunctions ['start, 'forge])

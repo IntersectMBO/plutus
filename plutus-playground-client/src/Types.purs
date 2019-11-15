@@ -3,53 +3,60 @@ module Types where
 import Prelude
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
-import Control.Comonad (class Comonad, extract)
-import Control.Extend (class Extend, extend)
+import Chain.Types (ChainFocus)
+import Chain.Types as Chain
+import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
-import Data.Either.Nested (Either2)
-import Data.Functor.Coproduct.Nested (Coproduct2)
+import Data.Foldable (fold, foldMap)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens, Lens', Prism', lens, prism', to, view)
+import Data.Json.JsonEither (JsonEither)
+import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Lens (Lens, Lens', Prism', _Right, prism', to, view)
+import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
-import Data.RawJson (JsonEither, JsonTuple(..), RawJson(..))
+import Data.RawJson (RawJson(..))
 import Data.String.Extra (toHex) as String
 import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Editor (EditorAction)
 import Foreign (Foreign)
 import Foreign.Class (class Decode, class Encode, encode)
-import Foreign.Generic (aesonSumEncoding, defaultOptions, encodeJSON, genericDecode, genericEncode)
-import Foreign.Generic.Types (Options)
+import Foreign.Generic (defaultOptions, encodeJSON, genericDecode, genericEncode)
+import Foreign.Generic.Class (Options, aesonSumEncoding)
 import Foreign.Object as FO
 import Gist (Gist)
-import Halogen.Chartist (ChartistMessage, ChartistQuery)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
-import Language.Haskell.Interpreter (SourceCode, InterpreterError, InterpreterResult)
+import Gists (GistAction)
+import Halogen as H
+import Halogen.Chartist as Chartist
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
-import Ledger.TxId (TxIdOf)
-import Ledger.Value (CurrencySymbol, TokenName, Value, _CurrencySymbol, _TokenName, _Value)
+import Ledger.TxId (TxId)
+import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
 import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
-import Network.RemoteData (RemoteData)
-import Playground.API (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
-import Playground.API as API
+import Network.RemoteData (RemoteData, _Success)
+import Playground.Types (CompilationResult, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.Types as Playground
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(..), WithPath, addPath, noPath, validate)
 import Wallet.Emulator.Types (Wallet, _Wallet)
+import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 _simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a
@@ -135,52 +142,6 @@ _functionName = prop (SProxy :: SProxy "functionName")
 _blocks :: forall a b r. Lens { blocks :: a | r } { blocks :: b | r } a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
-_ivFrom :: forall a r. Lens' { ivFrom :: a | r } a
-_ivFrom = prop (SProxy :: SProxy "ivFrom")
-
-_ivTo :: forall a r. Lens' { ivTo :: a | r } a
-_ivTo = prop (SProxy :: SProxy "ivTo")
-
-_LowerBoundExtended :: forall a. Lens' (LowerBound a) (Extended a)
-_LowerBoundExtended = lens get set
-  where
-    get (LowerBound e _) = e
-    set (LowerBound _ i) e = LowerBound e i
-
-_LowerBoundInclusive :: forall a. Lens' (LowerBound a) Boolean
-_LowerBoundInclusive = lens get set
-  where
-    get (LowerBound _ i) = i
-    set (LowerBound e _) i = LowerBound e i
-
-_UpperBoundExtended :: forall a. Lens' (UpperBound a) (Extended a)
-_UpperBoundExtended = lens get set
-  where
-    get (UpperBound e _) = e
-    set (UpperBound _ i) e = UpperBound e i
-
-_UpperBoundInclusive :: forall a. Lens' (UpperBound a) Boolean
-_UpperBoundInclusive = lens get set
-  where
-    get (UpperBound _ i) = i
-    set (UpperBound e _) i = UpperBound e i
-
-_a :: forall a r. Lens' { a :: a | r } a
-_a = prop (SProxy :: SProxy "a")
-
--- | Any type that contains an `Extended a` value and an inclusive/exclusive flag.
-class HasBound a v | a -> v where
-  hasBound :: a -> Extended v
-  isInclusive :: a -> Boolean
-
-instance lowerBoundHasBound :: HasBound (LowerBound v) v where
-  hasBound (LowerBound x _) = x
-  isInclusive (LowerBound _ x) = x
-
-instance upperBoundHasBound :: HasBound (UpperBound v) v where
-  hasBound (UpperBound x _) = x
-  isInclusive (UpperBound _ x) = x
-
 instance actionValidation :: Validation Action where
   validate (Wait _) = []
   validate (Action action) = Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
@@ -192,14 +153,14 @@ instance actionValidation :: Validation Action where
 -- | TODO: It should always be true that either toExpression returns a
 -- `Just value` OR validate returns a non-empty array.
 -- This suggests they should be the same function, returning either a group of error messages, or a valid expression.
-toExpression :: Action -> Maybe API.Expression
-toExpression (Wait wait) = Just $ API.Wait wait
+toExpression :: Action -> Maybe Playground.Expression
+toExpression (Wait wait) = Just $ Playground.Wait wait
 
 toExpression (Action action) = do
   let
     wallet = view _simulatorWalletWallet action.simulatorWallet
   arguments <- jsonArguments
-  pure $ API.Action { wallet, function, arguments }
+  pure $ Playground.Action { wallet, function, arguments }
   where
   function = view (_functionSchema <<< to unwrap <<< _functionName) action
 
@@ -215,38 +176,35 @@ toEvaluation sourceCode (Simulation { actions, wallets }) = do
         { wallets
         , program
         , sourceCode
-        , blockchain: []
         }
 
 ------------------------------------------------------------
 data Query a
+
+data HAction
+  = Mounted
   -- SubEvents.
-  = HandleEditorMessage AceMessage a
-  | HandleDragEvent DragEvent a
-  | ActionDragAndDrop Int DragAndDropEventType DragEvent a
-  | HandleDropEvent DragEvent a
-  | HandleBalancesChartMessage ChartistMessage a
+  | ActionDragAndDrop Int DragAndDropEventType DragEvent
+  | HandleBalancesChartMessage Chartist.Message
   -- Gist support.
-  | CheckAuthStatus a
-  | PublishGist a
-  | SetGistUrl String a
-  | LoadGist a
+  | CheckAuthStatus
+  | GistAction GistAction
   -- Tabs.
-  | ChangeView View a
+  | ChangeView View
   -- Editor.
-  | LoadScript String a
-  | CompileProgram a
-  | ScrollTo { row :: Int, column :: Int } a
+  | EditorAction EditorAction
   -- Simulations
-  | AddSimulationSlot a
-  | SetSimulationSlot Int a
-  | RemoveSimulationSlot Int a
+  | AddSimulationSlot
+  | SetSimulationSlot Int
+  | RemoveSimulationSlot Int
   -- Wallets.
-  | ModifyWallets WalletEvent a
+  | ModifyWallets WalletEvent
   -- Actions.
-  | ModifyActions ActionEvent a
-  | EvaluateActions a
-  | PopulateAction Int Int (FormEvent a)
+  | ModifyActions ActionEvent
+  | EvaluateActions
+  | PopulateAction Int Int FormEvent
+  -- Chain.
+  | SetChainFocus (Maybe ChainFocus)
 
 data WalletEvent
   = AddWallet
@@ -287,56 +245,30 @@ data FieldEvent
   | SetValueField ValueEvent
   | SetSlotRangeField (Interval Slot)
 
-data FormEvent a
-  = SetField FieldEvent a
-  | SetSubField Int (FormEvent a)
-  | AddSubField a
-  | RemoveSubField Int a
-
-derive instance functorFormEvent :: Functor FormEvent
-
-instance extendFormEvent :: Extend FormEvent where
-  extend f event@(SetField fieldEvent a) = SetField fieldEvent (f event)
-  extend f event@(SetSubField n _) = SetSubField n $ extend f event
-  extend f event@(AddSubField _) = AddSubField $ f event
-  extend f event@(RemoveSubField n _) = RemoveSubField n $ f event
-
-instance comonadFormEvent :: Comonad FormEvent where
-  extract (SetField _ a) = a
-  extract (SetSubField _ subEvent) = extract subEvent
-  extract (AddSubField a) = a
-  extract (RemoveSubField _ a) = a
+data FormEvent
+  = SetField FieldEvent
+  | SetSubField Int FormEvent
+  | AddSubField
+  | RemoveSubField Int
 
 ------------------------------------------------------------
-type ChildQuery
-  = Coproduct2 AceQuery ChartistQuery
+type ChildSlots
+  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+    , balancesChartSlot :: H.Slot Chartist.Query Chartist.Message Unit
+    )
 
-type ChildSlot
-  = Either2 EditorSlot BalancesChartSlot
+_editorSlot :: SProxy "editorSlot"
+_editorSlot = SProxy
 
-data EditorSlot
-  = EditorSlot
-
-derive instance eqComponentEditorSlot :: Eq EditorSlot
-
-derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data BalancesChartSlot
-  = BalancesChartSlot
-
-derive instance eqComponentBalancesChartSlot :: Eq BalancesChartSlot
-
-derive instance ordComponentBalancesChartSlot :: Ord BalancesChartSlot
-
-cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
-cpEditor = cp1
-
-cpBalancesChart :: ChildPath ChartistQuery ChildQuery BalancesChartSlot ChildSlot
-cpBalancesChart = cp2
+_balancesChartSlot :: SProxy "balancesChartSlot"
+_balancesChartSlot = SProxy
 
 -----------------------------------------------------------
+type ChainSlot
+  = Array (JsonTuple TxId Tx)
+
 type Blockchain
-  = Array (Array (JsonTuple (TxIdOf String) Tx))
+  = Array ChainSlot
 
 type Signatures
   = Array (FunctionSchema FormSchema)
@@ -372,6 +304,7 @@ newtype State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
+  , blockchainVisualisationState :: Chain.State
   }
 
 derive instance newtypeState :: Newtype State _
@@ -397,6 +330,9 @@ _wallets = _Newtype <<< prop (SProxy :: SProxy "wallets")
 _evaluationResult :: Lens' State (WebData (JsonEither PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
+_resultRollup :: Lens' EvaluationResult (Array (Array AnnotatedTx))
+_resultRollup = _Newtype <<< prop (SProxy :: SProxy "resultRollup")
+
 _compilationResult :: Lens' State (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
@@ -412,8 +348,20 @@ _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
 _resultBlockchain :: Lens' EvaluationResult Blockchain
 _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
+_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKey Wallet))
+_walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
+
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)
 _knownCurrencies = _Newtype <<< prop (SProxy :: SProxy "knownCurrencies")
+
+_blockchainVisualisationState :: Lens' State Chain.State
+_blockchainVisualisationState = _Newtype <<< prop (SProxy :: SProxy "blockchainVisualisationState")
+
+_x :: forall r a. Lens' { x :: a | r } a
+_x = prop (SProxy :: SProxy "x")
+
+_y :: forall r a. Lens' { y :: a | r } a
+_y = prop (SProxy :: SProxy "y")
 
 data View
   = Editor
@@ -657,3 +605,27 @@ _result = prop (SProxy :: SProxy "result")
 
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
+
+getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
+getKnownCurrencies = do
+  knownCurrencies <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _knownCurrencies)
+  pure $ fromMaybe [] knownCurrencies
+
+mkInitialValue :: Array KnownCurrency -> Int -> Value
+mkInitialValue currencies initialBalance = Value { getValue: value }
+  where
+  value =
+    map (map unwrap)
+      $ fold
+      $ foldMap
+          ( \(KnownCurrency { hash, knownTokens }) ->
+              map
+                ( \tokenName ->
+                    AssocMap.fromTuples
+                      [ CurrencySymbol { unCurrencySymbol: hash }
+                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
+                      ]
+                )
+                $ Array.fromFoldable knownTokens
+          )
+          currencies

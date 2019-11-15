@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Functor (Functor(..), (<$>), (<$), const) where
+module Language.PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
 
-import           Prelude hiding (Functor (..), const, (<$), (<$>))
+import           Prelude hiding (Functor (..), const, id, (<$), (<$>))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -51,5 +51,10 @@ instance Functor ((,) c) where
 
 {-# INLINABLE const #-}
 -- | Plutus Tx version of 'Prelude.const'.
-const                   :: a -> b -> a
-const x _               =  x
+const :: a -> b -> a
+const x _ =  x
+
+{-# INLINABLE id #-}
+-- | Plutus Tx version of 'Prelude.id'.
+id :: a -> a
+id x = x

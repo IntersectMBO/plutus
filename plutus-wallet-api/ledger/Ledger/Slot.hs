@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
@@ -21,27 +22,32 @@ module Ledger.Slot(
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Hashable             (Hashable)
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Prelude                   as Haskell
 import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
 
 
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
 import           Ledger.Interval
 
-{-# ANN module "HLint: ignore Redundant if" #-}
+{-# ANN module ("HLint: ignore Redundant if" :: String) #-}
 
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
-    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable)
+    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''Slot
+
+instance Pretty Slot where
+    pretty (Slot i) = "Slot:" <+> pretty i
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot

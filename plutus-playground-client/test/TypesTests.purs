@@ -3,8 +3,12 @@ module TypesTests
   ) where
 
 import Prelude
+import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
+import Data.Json.JsonTuple (JsonTuple(..))
+import Data.List (List(..))
+import Data.List.NonEmpty (NonEmptyList(..))
 import Data.Maybe (Maybe(..))
-import Data.RawJson (JsonTuple(..))
+import Data.NonEmpty ((:|))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (Aff)
@@ -14,11 +18,12 @@ import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.API (Fn(Fn), FunctionSchema(FunctionSchema), SimulatorWallet(SimulatorWallet))
+import Playground.Types (Fn(Fn), FunctionSchema(FunctionSchema), KnownCurrency(..), SimulatorWallet(SimulatorWallet))
 import Schema (FormSchema(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
-import Types (Action(Action, Wait), FormArgument(..), formArgumentToJson, toArgument)
+import TestUtils (equalGenericShow)
+import Types (Action(Action, Wait), FormArgument(..), formArgumentToJson, mkInitialValue, toArgument)
 import Validation (class Validation, ValidationError(..), validate, withPath)
 import Wallet.Emulator.Types (Wallet(..))
 
@@ -28,6 +33,7 @@ all =
     validateTests
     toArgumentTests
     formArgumentToJsonTests
+    mkInitialValueTests
 
 validateTests :: TestSuite
 validateTests = do
@@ -208,6 +214,45 @@ formArgumentToJsonTests = do
                 ]
             )
         )
+
+mkInitialValueTests :: TestSuite
+mkInitialValueTests =
+  suite "mkInitialValue" do
+    test "balance" do
+      equalGenericShow
+        ( Value
+            { getValue:
+              AssocMap.fromTuples
+                [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
+                , currencies
+                    /\ AssocMap.fromTuples
+                        [ usdToken /\ 10
+                        , eurToken /\ 10
+                        ]
+                ]
+            }
+        )
+        ( mkInitialValue
+            [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName: "" }))) }
+            , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList (NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName: "EURToken" }) Nil))) }
+            ]
+            10
+        )
+
+ada :: CurrencySymbol
+ada = CurrencySymbol { unCurrencySymbol: "" }
+
+currencies :: CurrencySymbol
+currencies = CurrencySymbol { unCurrencySymbol: "Currency" }
+
+adaToken :: TokenName
+adaToken = TokenName { unTokenName: "" }
+
+usdToken :: TokenName
+usdToken = TokenName { unTokenName: "USDToken" }
+
+eurToken :: TokenName
+eurToken = TokenName { unTokenName: "EURToken" }
 
 equalJson :: Maybe String -> Maybe Foreign -> Test
 equalJson expected actual = equal expected (encodeJSON <$> actual)

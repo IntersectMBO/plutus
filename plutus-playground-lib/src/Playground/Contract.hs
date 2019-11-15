@@ -48,18 +48,23 @@ import           GHC.Generics                (Generic)
 import           IOTS                        (IotsType (iotsDefinition))
 import           Ledger.Interval             (always)
 import           Ledger.Scripts              (ValidatorHash (ValidatorHash))
+import           Ledger.Tx                   (Tx)
 import           Ledger.Value                (TokenName (TokenName), Value)
-import           Playground.API              (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Playground.Interpreter.Util
 import           Playground.TH               (ensureIotsDefinitions, mkFunction, mkFunctions, mkIotsDefinitions,
                                               mkKnownCurrencies, mkSingleFunction)
+import           Playground.Types            (FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Schema                      (FormSchema, ToSchema)
 import           Wallet.API                  (WalletAPI, payToPublicKey_)
-import           Wallet.Emulator             (addBlocksAndNotify, runWalletActionAndProcessPending, walletPubKey)
-import           Wallet.Emulator.Types       (MockWallet, Wallet (..))
+import           Wallet.Emulator             (addBlocksAndNotify, walletPubKey)
+import qualified Wallet.Emulator             as Emulator
+import           Wallet.Emulator.Types       (MockWallet, Trace, Wallet (..))
 
 payToWallet_ :: (Monad m, WalletAPI m) => Value -> Wallet -> m ()
 payToWallet_ v = payToPublicKey_ always v . walletPubKey
+
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m a -> Trace m [Tx]
+runWalletActionAndProcessPending wllts wllt a = fmap fst (Emulator.runWalletActionAndProcessPending wllts wllt a)
 
 -- We need to work with lazy 'ByteString's in contracts,
 -- but 'ByteArrayAccess' (which we need for hashing) is only defined for strict

@@ -1,6 +1,6 @@
 = Plutus Tutorial
 :email: plutus@iohk.io
-:orgname: IOHK
+:orgname: Input Output HK Limited
 :doctype: article
 :toc: left
 :sectnums:
@@ -25,6 +25,7 @@
 :playground: https://prod.playground.plutus.iohkdev.io/
 :haddock: https://input-output-hk.github.io/plutus
 :wallet-api-haddock: {haddock}/plutus-wallet-api-0.1.0.0/html
+:repo: https://github.com/input-output-hk/plutus
 
 include::overview.adoc[leveloffset=+ 1]
 include::intro.adoc[leveloffset=+ 1]

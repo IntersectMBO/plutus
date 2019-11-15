@@ -1,54 +1,36 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-
--- ToJSON/FromJSON/Serialise (Digest SHA256)
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -fno-strictness   #-}
 -- | The type of transaction IDs
 module Ledger.TxId(
-    TxIdOf(..)
-    , TxId
+    TxId (..)
     ) where
 
-import           Codec.Serialise.Class  (Serialise, decode, encode)
-import           Crypto.Hash            (Digest, SHA256, digestFromByteString)
-import           Data.Aeson             (FromJSON (parseJSON), ToJSON (toJSON))
-import qualified Data.Aeson             as JSON
-import qualified Data.Aeson.Extras      as JSON
-import qualified Data.ByteArray         as BA
-import qualified Data.ByteString        as BSS
-import           GHC.Generics           (Generic)
-import           Language.PlutusTx.Lift (makeLift)
-import           Schema                 (ToSchema)
+import           Codec.Serialise.Class     (Serialise)
+import           Data.Aeson                (FromJSON, ToJSON)
+import qualified Data.Aeson.Extras         as JSON
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
+import qualified Language.PlutusTx         as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
+import           Ledger.Orphans            ()
+import           LedgerBytes               (LedgerBytes (..))
+import           Schema                    (ToSchema)
 
-instance Serialise (Digest SHA256) where
-    encode = encode . BA.unpack
-    decode = do
-      d <- decode
-      let md = digestFromByteString . BSS.pack $ d
-      case md of
-        Nothing -> fail "couldn't decode to Digest SHA256"
-        Just v  -> pure v
-
-instance ToJSON (Digest SHA256) where
-    toJSON = JSON.String . JSON.encodeSerialise
-
-instance FromJSON (Digest SHA256) where
-    parseJSON = JSON.decodeSerialise
-
--- | A transaction ID, using some id type.
-newtype TxIdOf h = TxIdOf { getTxId :: h }
+-- | A transaction ID, using a SHA256 hash as the transaction id.
+newtype TxId = TxId { getTxId :: BSL.ByteString }
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (ToSchema)
+    deriving anyclass (ToSchema, IotsType)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
+    deriving (ToJSON, FromJSON) via LedgerBytes
 
-makeLift ''TxIdOf
+instance Pretty TxId where
+    pretty t = "TxId:" <+> pretty (JSON.encodeSerialise $ getTxId t)
 
--- | A transaction id, using a SHA256 hash as the transaction id type.
-type TxId = TxIdOf (Digest SHA256)
-
-deriving newtype instance Serialise TxId
-deriving anyclass instance ToJSON a => ToJSON (TxIdOf a)
-deriving anyclass instance FromJSON a => FromJSON (TxIdOf a)
+PlutusTx.makeLift ''TxId
+PlutusTx.makeIsData ''TxId

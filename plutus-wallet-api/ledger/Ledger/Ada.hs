@@ -1,6 +1,6 @@
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
@@ -31,8 +31,11 @@ import           Data.Fixed
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc (Pretty)
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
+import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (divide)
 import qualified Language.PlutusTx.Prelude as P
@@ -58,7 +61,8 @@ newtype Ada = Lovelace { getLovelace :: Integer }
     deriving (Enum)
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
-    deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise)
+    deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
+    deriving Pretty via (PrettyShow Ada)
 
 instance Haskell.Semigroup Ada where
     Lovelace a1 <> Lovelace a2 = Lovelace (a1 + a2)

@@ -2,32 +2,32 @@
 = State Machines - Building an Auction System
 
 While waiting for our negotiations with the Louvre to come to a satisfactory
-conclusion, we run a bit short on funds. We consider selling one of the other
+conclusion, we run short of funds. We consider selling one of the other
 tokens in our possession, the _Guernica_ token.
 In the <<token#token,chapter on custom tokens>>
-we have seen to securely sell a token,
+we covered how to securely sell a token,
 but we think that we might get a better price
 if we run an _auction_ instead. So let us build an auction system!
 
-We want to implement a simple _English auction_ with fixed deadline: After the
-start of the auction, people can make _bids_. Once the deadline has been
-reached, the token owner gets the highest bid, and the highest bidder gets the
+We want to implement a simple _English auction_ with a fixed deadline: After the
+uction has started, people can make _bids_. Once the deadline has been
+reached, the token owner receives the highest bid, and the highest bidder gets the
 token.
 
 Of course we want to enforce all auction rules automatically with Plutus.
-We want to make sure that each bid is guaranteed (so that the highest bidder will
-have to pay) and that the owner of the token will have to transfer ownership of
+We want to make sure that each bid is guaranteed, so that the highest bidder will
+have to pay, and that the owner of the token will have to transfer ownership of
 the token to the highest bidder once the auction has ended.
 
 The auction will _start_ when the token owner sends the token to the auction
 contract. Bidders can then _bid_ by sending ada to the same contract. If a bidder is
 outbid by a higher bid, she can _reclaim_ her previous bid(s). When the auction
-ends, the token owner can take the highest bid out of the contract, finally the
+ends, the token owner can remove the highest bid from the contract, so that finally the
 highest bidder can take the token.
 
 One problem we discussed in the last chapter was the problem of how to deal with
 several outputs to a contract. We want to keep the state in one output, but
-nobody can prevent others from creating arbitrarily many more outputs.
+nobody can prevent others from arbitrarily creating many more outputs.
 
 We solved the problem by creating a unique "admin token" and using its
 uniqueness to identify the "right" contract output.
@@ -35,18 +35,18 @@ uniqueness to identify the "right" contract output.
 For our auction, we are in the fortunate situation that the token we want to
 auction is unique by assumption. We can therefore always identify the "right"
 output as the one containing this token, as long as we make sure that the token
-remains locked in the contract till the very end.
+remains locked in the contract until the very end.
 
 This is the reason why the last action in a successful auction will be the
 highest bidder taking the token out of the contract.
 
-Can there be unsuccessful auctions? Well, yes, nobody can force anybody to place
+Can there be unsuccessful auctions? Well, yes there can, as nobody can force anybody to place
 a bid, so if the deadline arrives without any bids having been made, the token
 owner must be able to _reclaim_ his token from the contract.
 
 In both cases, the auction starts when potential bidders start watching the
 contract address and when the token owner locks the token into the
-contract, and it ends when the highest bidder or the token owner take the token
+contract, and it ends when the highest bidder or the token owner takes the token
 back out of the contract again.
 
 We therefore need the following wallet endpoints:
@@ -58,7 +58,7 @@ We therefore need the following wallet endpoints:
 * `reclaimBid` for bidders who have been outbid to reclaim their bids,
 * `claimBid` for the token owner to claim the highest bid after the auction has
   ended,
-* `claimToken` for the highest bidder to claim the token in the end and
+* `claimToken` for the highest bidder to claim the token in the end,
 * `reclaimToken` for the token owner to reclaim the token if the auction ends
   without any bid having been placed.
 
@@ -89,13 +89,13 @@ image:auction-actions1.png[]
 
 image:auction-logs.png[]
 
-Finally we use endpoints `autoBid` for the bidders (Wallets #2 and #3) and `runAuction` for the seller (Wallet #1). 
+Finally, we use endpoints `autoBid` for the bidders (wallets #2 and #3) and `runAuction` for the seller (wallet #1). 
 We also need to add a sufficiently long wait-action of for example 20 slots at the end (not shown in the screenshot).
-In our example, we use a minimal bid of 2, an increment of 1, and we set Wallet #2's maximal bid to 6 and Wallet #3's maximal bid to 4.
+In our example, we use a minimal bid of 2, an increment of 1, and we set wallet #2's maximum bid to 6 and wallet #3's maximum bid to 4.
 
 image:auction-actions2.png[]
 
-As expected, Wallet #2 wins the auction with a highest bid of 5 and gets the Guernica token:
+As expected, wallet #2 wins the auction with a highest bid of 5 and gets the Guernica token:
 
 image:auction-balances.png[]
 

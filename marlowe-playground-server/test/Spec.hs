@@ -23,46 +23,125 @@ runBasicSpec :: Spec
 runBasicSpec = describe "Basic Contract" $
     it "should compile" $ runHaskell escrow >>= (`shouldBe` escrowResult)
     where
-        escrowResult = Right . InterpreterResult [] . RunResult $ [r|Commit 1 1 1
-  (Constant 450) 10 100
-  (When
-     (OrObs
-        (OrObs
-           (AndObs
-              (ChoseThis (1, 1) 0)
-              (OrObs
-                 (ChoseThis (1, 2) 0)
-                 (ChoseThis (1, 3) 0)))
-           (AndObs
-              (ChoseThis (1, 2) 0)
-              (ChoseThis (1, 3) 0)))
-        (OrObs
-           (AndObs
-              (ChoseThis (1, 1) 1)
-              (OrObs
-                 (ChoseThis (1, 2) 1)
-                 (ChoseThis (1, 3) 1)))
-           (AndObs
-              (ChoseThis (1, 2) 1)
-              (ChoseThis (1, 3) 1)))) 90
-     (Choice
-        (OrObs
-           (AndObs
-              (ChoseThis (1, 1) 1)
-              (OrObs
-                 (ChoseThis (1, 2) 1)
-                 (ChoseThis (1, 3) 1)))
-           (AndObs
-              (ChoseThis (1, 2) 1)
-              (ChoseThis (1, 3) 1)))
-        (Pay 2 1 2
-           (Committed 1) 100 Null Null)
-        (Pay 3 1 1
-           (Committed 1) 100 Null Null))
-     (Pay 4 1 1
-        (Committed 1) 100 Null Null)) Null
+        escrowResult = Right . InterpreterResult [] . RunResult $ [r|When [
+  (Case
+     (Deposit
+        (AccountId 0 "alice") "alice"
+        (Constant 450))
+     (When [
+           (Case
+              (Choice
+                 (ChoiceId "choice" "alice") [
+                 (Bound 0 1)])
+              (When [
+                 (Case
+                    (Choice
+                       (ChoiceId "choice" "bob") [
+                       (Bound 0 1)])
+                    (If
+                       (ValueEQ
+                          (ChoiceValue
+                             (ChoiceId "choice" "alice")
+                             (Constant 42))
+                          (ChoiceValue
+                             (ChoiceId "choice" "bob")
+                             (Constant 42)))
+                       (If
+                          (ValueEQ
+                             (ChoiceValue
+                                (ChoiceId "choice" "alice")
+                                (Constant 42))
+                             (Constant 0))
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Close) Close)
+                       (When [
+                             (Case
+                                (Choice
+                                   (ChoiceId "choice" "carol") [
+                                   (Bound 1 1)]) Close)
+                             ,
+                             (Case
+                                (Choice
+                                   (ChoiceId "choice" "carol") [
+                                   (Bound 0 0)])
+                                (Pay
+                                   (AccountId 0 "alice")
+                                   (Party "bob")
+                                   (Constant 450) Close))] 100 Close)))] 60
+                 (When [
+                       (Case
+                          (Choice
+                             (ChoiceId "choice" "carol") [
+                             (Bound 1 1)]) Close)
+                       ,
+                       (Case
+                          (Choice
+                             (ChoiceId "choice" "carol") [
+                             (Bound 0 0)])
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Close))] 100 Close)))
+           ,
+           (Case
+              (Choice
+                 (ChoiceId "choice" "bob") [
+                 (Bound 0 1)])
+              (When [
+                 (Case
+                    (Choice
+                       (ChoiceId "choice" "alice") [
+                       (Bound 0 1)])
+                    (If
+                       (ValueEQ
+                          (ChoiceValue
+                             (ChoiceId "choice" "alice")
+                             (Constant 42))
+                          (ChoiceValue
+                             (ChoiceId "choice" "bob")
+                             (Constant 42)))
+                       (If
+                          (ValueEQ
+                             (ChoiceValue
+                                (ChoiceId "choice" "alice")
+                                (Constant 42))
+                             (Constant 0))
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Close) Close)
+                       (When [
+                             (Case
+                                (Choice
+                                   (ChoiceId "choice" "carol") [
+                                   (Bound 1 1)]) Close)
+                             ,
+                             (Case
+                                (Choice
+                                   (ChoiceId "choice" "carol") [
+                                   (Bound 0 0)])
+                                (Pay
+                                   (AccountId 0 "alice")
+                                   (Party "bob")
+                                   (Constant 450) Close))] 100 Close)))] 60
+                 (When [
+                       (Case
+                          (Choice
+                             (ChoiceId "choice" "carol") [
+                             (Bound 1 1)]) Close)
+                       ,
+                       (Case
+                          (Choice
+                             (ChoiceId "choice" "carol") [
+                             (Bound 0 0)])
+                          (Pay
+                             (AccountId 0 "alice")
+                             (Party "bob")
+                             (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close
 |]
 
 runHaskell :: ByteString -> IO (Either InterpreterError (InterpreterResult RunResult))
-runHaskell = let maxInterpretationTime :: Microsecond = fromMicroseconds 10000000 in
+runHaskell = let maxInterpretationTime :: Microsecond = fromMicroseconds 15000000 in
                 runExceptT . Interpreter.runHaskell maxInterpretationTime . SourceCode . Text.pack . BSC.unpack

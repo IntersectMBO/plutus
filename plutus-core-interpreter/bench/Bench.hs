@@ -4,7 +4,7 @@ import           Control.Monad                              (void)
 import           Criterion.Main
 import qualified Data.ByteString.Lazy                       as BSL
 import           Language.PlutusCore
-import           Language.PlutusCore.Interpreter.CekMachine (runCek)
+import           Language.PlutusCore.Interpreter.CekMachine (unsafeRunCek)
 
 main :: IO ()
 main =
@@ -16,8 +16,8 @@ main =
                     in
 
                     bgroup "runCek"
-                      [ bench "valid" $ nf (fmap (runCek mempty)) f'
-                      , bench "invalid" $ nf (fmap (runCek mempty)) g'
+                      [ bench "valid" $ nf (fmap (unsafeRunCek mempty)) f'
+                      , bench "invalid" $ nf (fmap (unsafeRunCek mempty)) g'
                       ]
 
                 ]

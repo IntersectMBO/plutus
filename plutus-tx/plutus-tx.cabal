@@ -43,7 +43,10 @@ library
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
+        Language.PlutusTx.Applicative
         Language.PlutusTx.Bool
+        Language.PlutusTx.IsData
+        Language.PlutusTx.IsData.Class
         Language.PlutusTx.Eq
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
@@ -51,10 +54,14 @@ library
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
         Language.PlutusTx.Numeric
+        Language.PlutusTx.Ratio
         Language.PlutusTx.Semigroup
         Language.PlutusTx.Monoid
         Language.PlutusTx.AssocMap
         Language.PlutusTx.These
+    other-modules:
+        Language.PlutusTx.IsData.Instances
+        Language.PlutusTx.IsData.TH
     reexported-modules:
         Language.PlutusTx.Code,
         Language.PlutusTx.Lift,
@@ -66,6 +73,7 @@ library
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
+        th-abstraction -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx-compiler -any
@@ -76,7 +84,7 @@ library plutus-tx-compiler
     exposed-modules:
         Language.PlutusTx.Plugin
         Language.PlutusTx.Builtins
-        Language.PlutusTx.Sealed
+        Language.PlutusTx.Data
         Language.PlutusTx.PLCTypes
         Language.PlutusTx.PIRTypes
         Language.PlutusTx.Utils
@@ -100,6 +108,7 @@ library plutus-tx-compiler
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cborg -any,
         containers -any,
         extra -any,
         ghc >=8.6 && <8.7,
@@ -131,20 +140,25 @@ test-suite plutus-tx-tests
         Plugin.Typeclasses.Spec
         Plugin.Typeclasses.Lib
         Plugin.Lib
+        StdLib.Spec
         TH.Spec
         TH.TestTH
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        integer-gmp -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx -any,
+        plutus-tx-compiler -any,
         plutus-ir -any,
         prettyprinter -any,
         mtl -any,
         bytestring -any,
         template-haskell -any,
         tasty -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        tasty-hedgehog -any,
+        hedgehog -any,
     -- this makes the plugin give better errors
     ghc-options: -g

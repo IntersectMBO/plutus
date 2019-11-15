@@ -7,7 +7,8 @@ module Playground.APISpec
 import           Data.Aeson                   (encode, object, toJSON)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
                                                text)
-import           Playground.API               (adaCurrency, parseErrorText)
+import           Playground.API               (parseErrorText)
+import           Playground.Types             (adaCurrency)
 import           Test.Hspec                   (Spec, describe, it, shouldBe)
 
 spec :: Spec

@@ -40,8 +40,8 @@ data UtxOwner
   deriving (Eq, Ord, Show, Generic, ToJSON)
 
 -- | Given a set of known public keys, compute the owner of a given transaction output.
-owner :: Set.Set PubKey -> TxOutOf h -> UtxOwner
-owner keys TxOutOf {..} =
+owner :: Set.Set PubKey -> TxOut -> UtxOwner
+owner keys TxOut {..} =
   case txOutType of
     PayToScript _ -> ScriptOwner
     PayToPubKey pk
@@ -80,7 +80,7 @@ data FlowLink = FlowLink
 data FlowGraph = FlowGraph
   { flowGraphLinks :: [FlowLink]
   , flowGraphNodes :: [TxRef]
-  } deriving (Generic, ToJSON)
+  } deriving (Show, Generic, ToJSON)
 
 -- | Construct a graph from a list of 'FlowLink's.
 graph :: [FlowLink] -> FlowGraph
@@ -106,7 +106,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
 
     extract :: (UtxoLocation, Tx) -> [Maybe FlowLink]
     extract (loc, tx) =
-      let targetRef = mkRef $ hashTx tx in
+      let targetRef = mkRef $ txId tx in
       fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ txInputs tx)
     -- make a flow for a TxOutRef
 
@@ -130,6 +130,6 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
 outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef, UtxoLocation)]
 outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
 
--- | Create a 'TxRef' from a 'TxOutRefOf'.
-utxoTargets :: Show a => TxOutRefOf a -> TxRef
-utxoTargets (TxOutRefOf rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]
+-- | Create a 'TxRef' from a 'TxOutRef'.
+utxoTargets :: TxOutRef -> TxRef
+utxoTargets (TxOutRef rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]

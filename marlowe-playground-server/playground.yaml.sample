@@ -8,3 +8,8 @@ auth:
 
   # This should match the client-facing schema/host/port.
   redirect-url: https://localhost:8009
+marlowe:
+  # The API Gateway url to trigger the marlowe symbolic lambda
+  symbolic-url: "https://some-aws-api-gateway-url"
+  api-key: "the_aws_api_gateway_key"
+  callback-url: "https://david.marlowe.iohkdev.io/machine-a/api"

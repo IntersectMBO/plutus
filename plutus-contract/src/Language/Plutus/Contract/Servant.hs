@@ -1,7 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
@@ -18,6 +17,7 @@ module Language.Plutus.Contract.Servant(
     , Response(..)
     ) where
 
+import           Control.Lens                       (from, view)
 import           Control.Monad.Except               (MonadError (..), runExcept)
 import           Control.Monad.Writer               (runWriterT)
 import           Data.Aeson                         (FromJSON, ToJSON)
@@ -29,8 +29,9 @@ import           GHC.Generics                       (Generic)
 import           Servant                            ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
 import           Servant.Server                     (Application, ServantErr, Server, serve)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Record
+import           Language.Plutus.Contract.Record    (Record)
+import qualified Language.Plutus.Contract.Record    as Rec
+import           Language.Plutus.Contract.Request   (Contract (..))
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import qualified Language.Plutus.Contract.Resumable as Resumable
 import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
@@ -63,18 +64,22 @@ type ContractAPI s =
 
 -- | Serve a 'PlutusContract' via the contract API.
 contractServer
-    :: forall s.
+    :: forall s e.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
+       , Show e
        )
-    => Contract s ()
+    => Contract s e ()
     -> Server (ContractAPI s)
 contractServer con = initialise :<|> run where
     initialise = servantResp (initialResponse con)
     run req = servantResp (runUpdate con req)
 
-servantResp :: MonadError ServantErr m => Either ResumableError (Response s) -> m (Response s)
+servantResp
+    :: (Show e, MonadError ServantErr m)
+    => Either (ResumableError e) (Response s)
+    -> m (Response s)
 servantResp = \case
         Left err ->
             let bd = "'insertAndUpdate' failed. " in
@@ -83,38 +88,42 @@ servantResp = \case
 
 -- | A servant 'Application' that serves a Plutus contract
 contractApp
-    :: forall s.
+    :: forall s e.
        ( AllUniqueLabels (Output s)
        , AllUniqueLabels (Input s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
-       , Forall (Output s) ToJSON )
-    => Contract s () -> Application
+       , Forall (Output s) ToJSON
+       , Show e)
+    => Contract s e () -> Application
 contractApp = serve (Proxy @(ContractAPI s)) . contractServer @s
 
 runUpdate
-    :: forall s.
+    :: forall s e.
        (AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
-    => Contract s () -> Request s -> Either ResumableError (Response s)
+    => Contract s e ()
+    -> Request s
+    -> Either (ResumableError e) (Response s)
 runUpdate con (Request o e) =
     (\(r, h) -> Response (State r) h)
-    <$> Resumable.insertAndUpdate con (record o) e
+    <$> Resumable.insertAndUpdate (unContract con) (record o) e
 
 initialResponse
-    :: forall s.
+    :: forall s e.
        ( AllUniqueLabels (Output s)
        , Forall (Output s) Monoid
        , Forall (Output s) Semigroup
        )
-    => Contract s ()
-    -> Either ResumableError (Response s)
+    => Contract s e ()
+    -> Either (ResumableError e) (Response s)
 initialResponse =
-    fmap (uncurry Response . first (State . fmap fst))
+    fmap (uncurry Response . first (State . view (from Rec.record) . fmap fst))
     . runExcept
     . runWriterT
     . Resumable.initialise
+    . unContract

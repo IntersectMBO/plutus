@@ -1,22 +1,25 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE ScopedTypeVariables         #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Spec.MultiSigStateMachine(tests) where
 
-import           Control.Monad                                                 (foldM, void, (>=>))
-import           Control.Monad.Except                                          (throwError)
+import           Control.Monad                                                 (foldM, foldM_, void, (>=>))
 import           Data.Either                                                   (isLeft, isRight)
 import           Data.Foldable                                                 (traverse_)
 import qualified Data.Map                                                      as Map
-import qualified Data.Text                                                     as Text
 import           Test.Tasty                                                    (TestTree, testGroup)
 import qualified Test.Tasty.HUnit                                              as HUnit
 
 import           Spec.Lib                                                      as Lib
 
 import qualified Ledger.Ada                                                    as Ada
-import qualified Ledger.Typed.Tx                                               as Typed
-import           Ledger.Value                                                  (Value)
+import qualified Ledger.Typed.Scripts                                          as Scripts
+import           Ledger.Value                                                  (Value, scale)
 import           Wallet.API                                                    (WalletAPI,
                                                                                 WalletDiagnostics)
 import qualified Wallet.Emulator                                               as EM
@@ -28,13 +31,15 @@ import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine a
 
 tests :: TestTree
 tests = testGroup "multi sig state machine tests" [
-    HUnit.testCaseSteps "lock, propose, sign 3x, pay - SUCCESS" (runTrace (lockProposeSignPay 3) isRight),
-    HUnit.testCaseSteps "lock, propose, sign 2x, pay - FAILURE" (runTrace (lockProposeSignPay 2) isLeft),
+    HUnit.testCaseSteps "lock, propose, sign 3x, pay - SUCCESS" (runTrace (lockProposeSignPay 3 1) isRight),
+    HUnit.testCaseSteps "lock, propose, sign 2x, pay - FAILURE" (runTrace (lockProposeSignPay 2 1) isLeft),
+    HUnit.testCaseSteps "lock, propose, sign 3x, pay x2 - SUCCESS" (runTrace (lockProposeSignPay 3 2) isRight),
+    HUnit.testCaseSteps "lock, propose, sign 3x, pay x3 - FAILURE" (runTrace (lockProposeSignPay 3 3) isLeft),
     Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||]),
-    HUnit.testCase "script size is reasonable" (Lib.reasonable (Typed.validatorScript $ MS.scriptInstance params) 350000)
+    HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 50000)
     ]
 
-runTrace :: EM.EmulatorAction a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()
+runTrace :: EM.EmulatorAction EM.AssertionError a -> (Either EM.AssertionError a -> Bool) -> (String -> IO ()) -> IO ()
 runTrace t f step = do
     let initialState = EM.emulatorStateInitialDist (Map.singleton (EM.walletPubKey (EM.Wallet 1)) (Ada.adaValueOf 10))
         (result, st) = EM.runEmulator initialState t
@@ -83,35 +88,38 @@ addSignature' = MS.addSignature params
 makePayment' :: (WalletAPI m, WalletDiagnostics m) => State -> m State
 makePayment' = MS.makePayment params
 
-lockProposeSignPay :: (EM.MonadEmulator m) => Int -> m ()
-lockProposeSignPay i = do
+initialise'' :: WalletAPI m => EM.Trace m ()
+initialise'' =
+    -- instruct all three wallets to start watching the contract address
+    traverse_ (\w -> EM.walletAction w initialise') [w1, w2, w3]
 
-    let getResult = EM.processEmulated >=> extract where
-        extract = either (throwError . EM.AssertionError . Text.pack . show) pure . fst
+lock'' :: (WalletAPI m, WalletDiagnostics m) => Value -> EM.Trace m State
+-- wallet 1 locks the funds
+lock'' value = processAndNotify >> fst <$> EM.walletAction w1 (lock' value)
+
+proposePayment'' :: (WalletAPI m, WalletDiagnostics m) => State -> EM.Trace m State
+proposePayment'' st = processAndNotify >> fst <$> EM.walletAction w2 (proposePayment' st payment)
+
+addSignature'' :: (WalletAPI m, WalletDiagnostics m) => Integer -> State -> EM.Trace m State
+-- i wallets add their signatures
+addSignature'' i inSt = foldM (\st w -> (processAndNotify >> fst <$> EM.walletAction w (addSignature' st))) inSt (take (fromIntegral i) [w1, w2, w3])
+
+makePayment'' :: (WalletAPI m, WalletDiagnostics m) => State -> EM.Trace m State
+makePayment'' st = processAndNotify >> fst <$> EM.walletAction w3 (makePayment' st)
+
+proposeSignPay :: (WalletAPI m, WalletDiagnostics m) => Integer -> State -> EM.Trace m State
+proposeSignPay i = proposePayment'' >=> addSignature'' i >=> makePayment''
+
+lockProposeSignPay :: forall e m . (EM.MonadEmulator e m) => Integer -> Integer -> m ()
+lockProposeSignPay i j = EM.processEmulated $ do
 
     -- stX contain the state of the contract. See note [Current state of the
     -- contract] in
     -- Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
-    st1 <- getResult $ do
-        processAndNotify
+    initialise''
+    st1 <- lock'' (Ada.adaValueOf 10)
 
-        -- instruct all three wallets to start watching the contract address
-        traverse_ (\w -> EM.walletAction w initialise') [w1, w2, w3]
-        processAndNotify
+    foldM_ (\st _ -> proposeSignPay i st) st1 [1..j]
 
-        -- wallet 1 locks the funds
-        EM.runWalletAction w1 (lock' (Ada.adaValueOf 10))
-
-    -- wallet 2 proposes the payment
-    st2 <- getResult $ do
-        processAndNotify
-        EM.runWalletAction w2 (proposePayment' st1 payment)
-
-    -- i wallets add their signatures
-    st3 <- foldM (\st w -> getResult (processAndNotify >> EM.runWalletAction w (addSignature' st))) st2 (take i [w1, w2, w3])
-
-    EM.processEmulated $ do
-        processAndNotify
-        void $ EM.walletAction w3 (makePayment' st3)
-        processAndNotify
-        EM.assertOwnFundsEq w2 (Ada.adaValueOf 5)
+    processAndNotify
+    EM.assertOwnFundsEq w2 (scale j (Ada.adaValueOf 5))

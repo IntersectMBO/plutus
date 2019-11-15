@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -14,6 +15,12 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
+import           Language.PlutusTx.Plugin
+
+-- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
+-- explicitly here, so we need to see the constructors.
+import           GHC.Integer.GMP.Internals
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -22,6 +29,7 @@ errors = testNested "Errors" [
     goldenPlcCatch "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     --, goldenPlcCatch "negativeInt" negativeInt
+    , goldenPlcCatch "caseInt" caseInt
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
@@ -32,6 +40,9 @@ machInt = plc @"machInt" (1::Int)
 
 negativeInt :: CompiledCode Integer
 negativeInt = plc @"negativeInt" (-1 :: Integer)
+
+caseInt :: CompiledCode (Integer -> Bool)
+caseInt = plc @"caseInt" (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

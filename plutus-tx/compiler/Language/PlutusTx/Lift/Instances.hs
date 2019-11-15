@@ -1,7 +1,6 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -63,7 +62,7 @@ instance Lift ByteString where
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 
-makeLift ''Sealed
+makeLift ''Data
 makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either

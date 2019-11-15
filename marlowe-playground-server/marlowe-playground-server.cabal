@@ -2,7 +2,7 @@ cabal-version: >=1.10
 name: marlowe-playground-server
 version: 0.1.0.0
 license: Apache-2.0
-license-files: 
+license-files:
   LICENSE
   NOTICE
 author: Pablo Lamela
@@ -26,7 +26,9 @@ library
         Server
         API
         Interpreter
+        WebSocket
         Marlowe.Contracts
+        Marlowe.Config
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
@@ -48,6 +50,7 @@ library
         jwt <0.10.0,
         lens -any,
         marlowe -any,
+        marlowe-symbolic -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
@@ -57,11 +60,15 @@ library
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
+        servant-websockets -any,
+        stm -any,
         temporary -any,
         text -any,
         time -any,
         time-units -any,
-        transformers -any
+        transformers -any,
+        uuid -any,
+        websockets -any
 
 executable marlowe-playground-server
     main-is: Main.hs
@@ -69,11 +76,14 @@ executable marlowe-playground-server
         Webserver
         PSGenerator
         Types
-    hs-source-dirs: app
+        Escrow
+        CouponBondGuaranteed
+        ZeroCouponBond
+        Swap
+    hs-source-dirs: app contracts
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists
     build-depends:
         aeson -any,
         base -any,
@@ -82,15 +92,21 @@ executable marlowe-playground-server
         data-default-class -any,
         directory -any,
         filepath -any,
+        http-client -any,
+        http-client-tls -any,
         http-types -any,
         playground-common -any,
         lens -any,
+        marlowe -any,
         marlowe-playground-server -any,
+        marlowe-symbolic -any,
         monad-logger -any,
         mtl -any,
+        plutus-wallet-api,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,
+        servant-client -any,
         servant-foreign -any,
         servant-server -any,
         servant-purescript -any,

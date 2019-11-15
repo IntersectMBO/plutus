@@ -1,34 +1,39 @@
 module Types where
 
 import API (RunResult)
+import Ace (Annotation)
+import Ace as Ace
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
+import Data.Array (uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)
-import Data.Either.Nested (Either3)
-import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens, Lens', lens)
+import Data.Json.JsonEither (JsonEither)
+import Data.Lens (Lens, Lens', lens, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.List (List)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
-import Data.RawJson (JsonEither)
+import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple(..))
+import Editor (EditorAction)
 import Gist (Gist)
+import Gists (GistAction)
+import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
-import Marlowe.Semantics (DetachedPrimitiveWIA, AnyInput, State, ErrorResult, DynamicProblem)
-import Marlowe.Types (BlockNumber, Choice, Contract, IdChoice, IdOracle, Person)
+import Marlowe.Holes (Holes, MarloweHole)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
-import Prelude (class Eq, class Ord, class Show, Unit, (<<<))
+import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -37,77 +42,57 @@ _Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a
 _Head = lens NEL.head (\l new -> let { head, tail } = NEL.uncons l in NEL.cons' new tail)
 
 ------------------------------------------------------------
-data Query a
+data HQuery a
+  = ReceiveWebsocketMessage String a
+
+data HAction
   -- Haskell Editor
-  = HandleEditorMessage AceMessage a
-  | HandleDragEvent DragEvent a
-  | HandleDropEvent DragEvent a
-  | MarloweHandleEditorMessage AceMessage a
-  | MarloweHandleDragEvent DragEvent a
-  | MarloweHandleDropEvent DragEvent a
+  = MarloweHandleEditorMessage AceMessage
+  | MarloweHandleDragEvent DragEvent
+  | MarloweHandleDropEvent DragEvent
+  | MarloweMoveToPosition Ace.Position
+  | HaskellEditorAction EditorAction
   -- Gist support.
-  | CheckAuthStatus a
-  | PublishGist a
-  | SetGistUrl String a
-  | LoadGist a
+  | CheckAuthStatus
+  | GistAction GistAction
   -- haskell actions
-  | ChangeView View a
-  | LoadScript String a
-  | CompileProgram a
-  | SendResult a
-  | ScrollTo { row :: Int, column :: Int } a
-  | LoadMarloweScript String a
+  | ChangeView View
+  | SendResult
+  | LoadMarloweScript String
   -- marlowe actions
-  | SetSignature { person :: Person, isChecked :: Boolean } a
-  | ApplyTransaction a
-  | NextBlock a
-  | AddAnyInput { person :: Maybe Person, anyInput :: AnyInput } a
-  | RemoveAnyInput AnyInput a
-  | SetChoice { idChoice :: IdChoice, value :: Choice } a
-  | SetOracleVal { idOracle :: IdOracle, value :: BigInteger } a
-  | SetOracleBn { idOracle :: IdOracle, blockNumber :: BlockNumber } a
-  | ResetSimulator a
-  | Undo a
+  | ApplyTransaction
+  | NextSlot
+  | AddInput (Maybe PubKey) Input (Array Bound)
+  | RemoveInput (Maybe PubKey) Input
+  | SetChoice ChoiceId ChosenNum
+  | ResetSimulator
+  | Undo
+  | SelectHole (Maybe String)
+  | InsertHole String MarloweHole (Array MarloweHole)
   -- blockly
-  | HandleBlocklyMessage BlocklyMessage a
-  | SetBlocklyCode a
+  | HandleBlocklyMessage BlocklyMessage
+  | SetBlocklyCode
+  -- websocket
+  | AnalyseContract
+
+data WebsocketMessage
+  = WebsocketMessage String
 
 ------------------------------------------------------------
-type ChildQuery
-  = Coproduct3 AceQuery AceQuery BlocklyQuery
+type ChildSlots
+  = ( haskellEditorSlot :: H.Slot AceQuery AceMessage Unit
+    , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
+    , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
+    )
 
-type ChildSlot
-  = Either3 EditorSlot MarloweEditorSlot BlocklySlot
+_haskellEditorSlot :: SProxy "haskellEditorSlot"
+_haskellEditorSlot = SProxy
 
-data EditorSlot
-  = EditorSlot
+_marloweEditorSlot :: SProxy "marloweEditorSlot"
+_marloweEditorSlot = SProxy
 
-derive instance eqComponentEditorSlot :: Eq EditorSlot
-
-derive instance ordComponentEditorSlot :: Ord EditorSlot
-
-data MarloweEditorSlot
-  = MarloweEditorSlot
-
-derive instance eqComponentMarloweEditorSlot :: Eq MarloweEditorSlot
-
-derive instance ordComponentMarloweEditorSlot :: Ord MarloweEditorSlot
-
-data BlocklySlot
-  = BlocklySlot
-
-derive instance eqBlocklySlot :: Eq BlocklySlot
-
-derive instance ordBlocklySlot :: Ord BlocklySlot
-
-cpEditor :: ChildPath AceQuery ChildQuery EditorSlot ChildSlot
-cpEditor = cp1
-
-cpMarloweEditor :: ChildPath AceQuery ChildQuery MarloweEditorSlot ChildSlot
-cpMarloweEditor = cp2
-
-cpBlockly :: ChildPath BlocklyQuery ChildQuery BlocklySlot ChildSlot
-cpBlockly = cp3
+_blocklySlot :: SProxy "blocklySlot"
+_blocklySlot = SProxy
 
 -----------------------------------------------------------
 data View
@@ -133,6 +118,8 @@ newtype FrontendState
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
+  , analysisState :: RemoteData String Result
+  , selectedHole :: Maybe String
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -167,10 +154,11 @@ _oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
--- Oracles should not be grouped (only one line per oracle) like:
---    Oracle 3: Provide value [$value] for block [$timestamp]
-type OracleEntry
-  = { blockNumber :: BlockNumber, value :: BigInteger }
+_analysisState :: Lens' FrontendState (RemoteData String Result)
+_analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
+
+_selectedHole :: Lens' FrontendState (Maybe String)
+_selectedHole = _Newtype <<< prop (SProxy :: SProxy "selectedHole")
 
 -- editable
 _timestamp ::
@@ -181,78 +169,42 @@ _timestamp = prop (SProxy :: SProxy "timestamp")
 _value :: forall s a. Lens' { value :: a | s } a
 _value = prop (SProxy :: SProxy "value")
 
-type InputData
-  = { inputs :: Map Person (List DetachedPrimitiveWIA)
-    , choiceData :: Map Person (Map BigInteger Choice)
-    , oracleData :: Map IdOracle OracleEntry
-    }
+data ActionInputId
+  = DepositInputId AccountId Party
+  | ChoiceInputId ChoiceId (Array Bound)
+  | NotifyInputId
 
-_inputs :: forall s a. Lens' { inputs :: a | s } a
-_inputs = prop (SProxy :: SProxy "inputs")
+derive instance eqActionInputId :: Eq ActionInputId
 
-_choiceData :: forall s a. Lens' { choiceData :: a | s } a
-_choiceData = prop (SProxy :: SProxy "choiceData")
+derive instance ordActionInputId :: Ord ActionInputId
 
-_oracleData ::
-  forall s a.
-  Lens' { oracleData :: a | s } a
-_oracleData = prop (SProxy :: SProxy "oracleData")
-
-data TransactionValidity
-  = EmptyTransaction
-  | ValidTransaction (List DynamicProblem)
-  | InvalidTransaction ErrorResult
-
-derive instance eqTransactionValidity :: Eq TransactionValidity
-
-derive instance ordTransactionValidity :: Ord TransactionValidity
-
-isValidTransaction :: TransactionValidity -> Boolean
-isValidTransaction (ValidTransaction _) = true
-
-isValidTransaction _ = false
-
-isInvalidTransaction :: TransactionValidity -> Boolean
-isInvalidTransaction (InvalidTransaction _) = true
-
-isInvalidTransaction _ = false
-
-type TransactionData
-  = { inputs :: Array AnyInput, signatures :: Map Person Boolean, outcomes :: Map Person BigInteger, validity :: TransactionValidity }
-
--- table under checkboxes
-_signatures ::
-  forall s a.
-  Lens' { signatures :: a | s } a
-_signatures = prop (SProxy :: SProxy "signatures")
-
-_outcomes :: forall s a. Lens' { outcomes :: a | s } a
-_outcomes = prop (SProxy :: SProxy "outcomes")
-
-_validity :: forall s a. Lens' { validity :: a | s } a
-_validity = prop (SProxy :: SProxy "validity")
-
--- "Choice $IdChoice: Choose value [$Choice]"
 type MarloweState
-  = { input :: InputData
-    , transaction :: TransactionData
+  = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
+    , pendingInputs :: Array (Tuple Input (Maybe PubKey))
+    , transactionError :: Maybe TransactionError
     , state :: State
-    , blockNum :: BlockNumber
-    , moneyInContract :: BigInteger
+    , slot :: Slot
+    , moneyInContract :: Ada
     , contract :: Maybe Contract
+    , editorErrors :: Array Annotation
+    , holes :: Holes
+    , payments :: Array Payment
     }
 
-_input :: forall s a. Lens' { input :: a | s } a
-_input = prop (SProxy :: SProxy "input")
+_possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
+_possibleActions = prop (SProxy :: SProxy "possibleActions")
 
-_transaction :: forall s a. Lens' { transaction :: a | s } a
-_transaction = prop (SProxy :: SProxy "transaction")
+_pendingInputs :: forall s a. Lens' { pendingInputs :: a | s } a
+_pendingInputs = prop (SProxy :: SProxy "pendingInputs")
 
 _state :: forall s a. Lens' { state :: a | s } a
 _state = prop (SProxy :: SProxy "state")
 
-_blockNum :: forall s a. Lens' { blockNum :: a | s } a
-_blockNum = prop (SProxy :: SProxy "blockNum")
+_transactionError :: forall s a. Lens' { transactionError :: a | s } a
+_transactionError = prop (SProxy :: SProxy "transactionError")
+
+_slot :: forall s a. Lens' { slot :: a | s } a
+_slot = prop (SProxy :: SProxy "slot")
 
 _moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
 _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
@@ -260,12 +212,18 @@ _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 _contract :: forall s a. Lens' { contract :: a | s } a
 _contract = prop (SProxy :: SProxy "contract")
 
+_editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
+_editorErrors = prop (SProxy :: SProxy "editorErrors")
+
+_holes :: forall s a. Lens' { holes :: a | s } a
+_holes = prop (SProxy :: SProxy "holes")
+
 --- Language.Haskell.Interpreter ---
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_warnings :: forall s a. Lens' { warnings :: a | s } a
-_warnings = prop (SProxy :: SProxy "warnings")
+_payments :: forall s a. Lens' { payments :: a | s } a
+_payments = prop (SProxy :: SProxy "payments")
 
 _currentMarloweState :: Lens' FrontendState MarloweState
 _currentMarloweState = _marloweState <<< _Head
@@ -273,11 +231,44 @@ _currentMarloweState = _marloweState <<< _Head
 _currentContract :: Lens' FrontendState (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
 
-_currentTransaction :: Lens' FrontendState TransactionData
-_currentTransaction = _currentMarloweState <<< _transaction
-
-_currentInput :: Lens' FrontendState InputData
-_currentInput = _currentMarloweState <<< _input
+emptyMarloweState :: Slot -> MarloweState
+emptyMarloweState sn =
+  { possibleActions: mempty
+  , pendingInputs: mempty
+  , transactionError: Nothing
+  , state: emptyState sn
+  , slot: zero
+  , moneyInContract: zero
+  , contract: Nothing
+  , editorErrors: []
+  , holes: mempty
+  , payments: []
+  }
 
 type WebData
   = RemoteData AjaxError
+
+-- | On the front end we need Actions however we also need to keep track of the current
+-- | choice that has been set for Choices
+data ActionInput
+  = DepositInput AccountId Party BigInteger
+  | ChoiceInput ChoiceId (Array Bound) ChosenNum
+  | NotifyInput
+
+minimumBound :: Array Bound -> ChosenNum
+minimumBound bnds = case uncons (map boundFrom bnds) of
+  Just { head, tail } -> foldl1 min (head :| tail)
+  Nothing -> zero
+
+actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
+actionToActionInput state (Deposit accountId party value) =
+  let
+    minSlot = state ^. _minSlot
+
+    env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
+  in
+    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+
+actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
+
+actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput

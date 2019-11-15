@@ -21,6 +21,7 @@ import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Evaluation
+import           Language.PlutusTx
 
 import qualified Language.PlutusIR          as PIR
 
@@ -41,15 +42,17 @@ goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlcCek values = do
-     ps <- traverse getProgram values
+     ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluate $ evaluateCek p
+     either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
 runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResultDef)
 runPlcCekTrace values = do
-     ps <- traverse getProgram values
+     ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluate $ evaluateCekTrace p
+     let (logOut, result) = evaluateCekTrace p
+     res <- either (throwError . SomeException) Haskell.pure result
+     Haskell.pure (logOut, res)
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
@@ -67,6 +70,8 @@ tests = testNested "TH" [
     , goldenEvalCekLog "traceDirect" [traceDirect]
     , goldenEvalCekLog "tracePrelude" [tracePrelude]
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
+    -- want to see the raw structure, so using Show
+    , nestedGoldenVsDoc "someData" (pretty $ show someData)
   ]
 
 simple :: CompiledCode (Bool -> Integer)
@@ -99,3 +104,10 @@ traceRepeatedly = $$(compile
                    i3 = traceH "Adding them up" (i1 + i2)
               in i3
     ||])
+
+data SomeType = One Integer | Two | Three ()
+
+someData :: (Data, Data, Data)
+someData = (toData (One 1), toData Two, toData (Three ()))
+
+makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]

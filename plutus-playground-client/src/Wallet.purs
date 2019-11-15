@@ -5,17 +5,17 @@ import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
-import Halogen (HTML)
-import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, h2_, h3_, h4_, p_, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, br_, button, div, div_, h2_, h3_, h4_, p_, span, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (input_, onClick)
+import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
-import Playground.API (FunctionSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
-import Prelude (show, ($), (<$>), (<<<), (<>))
+import Playground.Types (FunctionSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
+import Prelude (const, show, ($), (<$>), (<<<), (<>))
 import Schema (FormSchema)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Types (Wallet)
@@ -25,7 +25,7 @@ walletsPane ::
   Signatures ->
   Value ->
   Array SimulatorWallet ->
-  HTML p Query
+  HTML p HAction
 walletsPane signatures initialValue simulatorWallets =
   div_
     [ h2_ [ text "Wallets" ]
@@ -41,7 +41,7 @@ walletPane ::
   Value ->
   Int ->
   SimulatorWallet ->
-  Tuple String (HTML p Query)
+  Tuple String (HTML p HAction)
 walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
     { simulatorWalletWallet: wallet
   , simulatorWalletBalance: balance
@@ -54,7 +54,7 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
                 [ cardBody_
                     [ button
                         [ classes [ btn, pullRight ]
-                        , onClick $ input_ $ ModifyWallets $ RemoveWallet walletIndex
+                        , onClick $ const $ Just $ ModifyWallets $ RemoveWallet walletIndex
                         ]
                         [ icon Close ]
                     , cardTitle_ [ h3_ [ walletIdPane wallet ] ]
@@ -69,7 +69,7 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
             ]
         ]
 
-addWalletPane :: forall p. Tuple String (HTML p Query)
+addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =
   Tuple "add-wallet"
     $ responsiveThird
@@ -77,7 +77,7 @@ addWalletPane =
             [ class_ $ ClassName "add-wallet" ]
             [ div
                 [ class_ card
-                , onClick $ input_ $ ModifyWallets AddWallet
+                , onClick $ const $ Just $ ModifyWallets AddWallet
                 ]
                 [ cardBody_
                     [ icon Plus
@@ -92,11 +92,11 @@ actionButton ::
   Value ->
   SimulatorWallet ->
   FunctionSchema FormSchema ->
-  HTML p Query
+  HTML p HAction
 actionButton initialValue simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
-    , onClick $ input_ $ ModifyActions $ AddAction
+    , onClick $ const $ Just $ ModifyActions $ AddAction
         $ Action
             { functionSchema: toArgument initialValue <$> functionSchema
             , simulatorWallet

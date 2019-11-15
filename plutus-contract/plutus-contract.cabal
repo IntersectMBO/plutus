@@ -46,6 +46,8 @@ library
         Language.Plutus.Contract.App
         Language.Plutus.Contract.Effects.AwaitSlot
         Language.Plutus.Contract.Effects.ExposeEndpoint
+        Language.Plutus.Contract.Effects.OwnPubKey
+        Language.Plutus.Contract.Effects.UtxoAt
         Language.Plutus.Contract.Effects.WatchAddress
         Language.Plutus.Contract.Effects.WriteTx
         Language.Plutus.Contract.Request
@@ -85,7 +87,8 @@ library
         mmorph -any,
         tasty -any,
         tasty-hunit -any,
-        row-types -any
+        row-types -any,
+        prettyprinter >=1.1.0.1
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0
@@ -113,6 +116,7 @@ test-suite plutus-contract-test
     hs-source-dirs: test
     other-modules:
         Spec.Contract
+        Spec.Rows
         Spec.State
     build-depends:
         base >=4.9 && <5,
@@ -129,4 +133,5 @@ test-suite plutus-contract-test
         plutus-emulator -any,
         plutus-contract -any,
         plutus-wallet-api -any,
-        plutus-tx -any
+        plutus-tx -any,
+        aeson -any

@@ -1,7 +1,7 @@
 module Main where
 
 import Prelude
-import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
+import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -18,6 +18,11 @@ import LocalStorage as LocalStorage
 import MainFrame (mainFrame)
 import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
+import Web.HTML as W
+import Web.HTML.Location as WL
+import Web.HTML.Window as WW
+import Web.Socket.WebSocket as WS
+import Websockets (wsConsumer, wsProducer, wsSender)
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -32,10 +37,25 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 
 main ::
   Effect Unit
-main =
+main = do
+  -- TODO: need to get the proper url, same as the client
+  window <- W.window
+  location <- WW.location window
+  protocol <- WL.protocol location
+  hostname <- WL.hostname location
+  port <- WL.port location
+  let
+    wsProtocol = case protocol of
+      "https:" -> "wss"
+      _ -> "ws"
+
+    wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
+  socket <- WS.create wsPath []
   runHalogenAff do
     body <- awaitBody
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
+    driver.subscribe $ wsSender socket
+    runProcess (wsProducer socket $$ wsConsumer driver.query)
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit

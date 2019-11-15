@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeApplications         #-}
 module Spec.GameStateMachine(tests) where
 
 import           Control.Monad                                             (void)
@@ -15,6 +16,7 @@ import qualified Language.PlutusTx as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
 import qualified Ledger.Ada                                                as Ada
 import           Ledger.Value                                              (Value)
+import qualified Ledger.Typed.Scripts                                      as Scripts
 import qualified Wallet.API                                                as W
 import qualified Wallet.Emulator                                           as EM
 
@@ -31,15 +33,15 @@ tests =
                     _ <- step (show err)
                     HUnit.assertFailure "own funds not equal"
                 Right _ ->
-                    Lib.reasonable G.gameValidator 55000
+                    Lib.reasonable (Scripts.validatorScript G.scriptInstance) 35000
     in
         testGroup "state machine tests" [
             HUnit.testCaseSteps "run a successful game trace"
-                (checkResult (EM.runEmulator initialState runGameSuccess)),
+                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameSuccess)),
             HUnit.testCaseSteps "run a 2nd successful game trace"
-                (checkResult (EM.runEmulator initialState runGameSuccess2)),
+                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameSuccess2)),
             HUnit.testCaseSteps "run a failed trace"
-                (checkResult (EM.runEmulator initialState runGameFailure)),
+                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameFailure)),
             Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
         ]
 
@@ -61,7 +63,7 @@ processAndNotify = void (EM.addBlocksAndNotify [w1, w2, w3] 1)
 -- Wallet 1 locks some funds using the secret "hello". Then wallet 1
 -- transfers the token to wallet 2, and wallet 2 makes a correct guess
 -- and locks the remaining funds using the secret "new secret".
-runGameSuccess :: (EM.MonadEmulator m) => m ()
+runGameSuccess :: (EM.MonadEmulator e m) => m ()
 runGameSuccess = void $ EM.processEmulated $ do
         processAndNotify
         _   <- EM.runWalletAction w1 G.startGame
@@ -78,7 +80,7 @@ runGameSuccess = void $ EM.processEmulated $ do
 
 -- Runs 'runGameSuccess', then wallet 2 transfers the token to wallet 1, which takes
 -- out another couple of Ada.
-runGameSuccess2 :: (EM.MonadEmulator m) => m ()
+runGameSuccess2 :: (EM.MonadEmulator e m) => m ()
 runGameSuccess2 = do
     runGameSuccess
 
@@ -90,7 +92,7 @@ runGameSuccess2 = do
         EM.assertOwnFundsEq w1 (Ada.adaValueOf 4 <> G.gameTokenVal)
 
 -- Wallet 2 makes a wrong guess and fails to take out the funds
-runGameFailure :: (EM.MonadEmulator m) => m ()
+runGameFailure :: (EM.MonadEmulator e m) => m ()
 runGameFailure = void $ EM.processEmulated $ do
         processAndNotify
         _   <- EM.runWalletAction w1 G.startGame

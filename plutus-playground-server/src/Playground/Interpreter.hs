@@ -22,12 +22,11 @@ import           Language.Haskell.Interpreter (CompilationError (CompilationErro
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
                                                avoidUnsafe, runghc)
-import           Playground.API               (CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                               Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, OtherError), program,
-                                               simulatorWalletWallet, wallets)
-import qualified Playground.API               as API
 import           Playground.Interpreter.Util  (TraceResult)
+import           Playground.Types             (CompilationResult (CompilationResult), Evaluation (sourceCode),
+                                               Expression (Action, Wait), Fn (Fn),
+                                               PlaygroundError (DecodeJsonTypeError, InterpreterError, OtherError),
+                                               program, simulatorWalletWallet, wallets)
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
 import           System.IO.Extras             (withFile)
@@ -163,13 +162,13 @@ runFunction ::
     -> m (InterpreterResult TraceResult)
 runFunction timeout evaluation = do
     let source = sourceCode evaluation
-    mapError API.InterpreterError $ avoidUnsafe source
+    mapError InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
     withSystemTempDirectory "playgroundrun" $ \dir -> do
         let file = dir </> "Main.hs"
         withFile file ReadWriteMode $ \handle -> do
             (InterpreterResult warnings result) <-
-                mapError API.InterpreterError . runscript handle file timeout $
+                mapError InterpreterError . runscript handle file timeout $
                 mkRunScript
                     (Newtype.unpack source)
                     (Text.pack . BS8.unpack $ expr)
@@ -193,12 +192,15 @@ mkRunScript script expr =
 runghcOpts :: [String]
 runghcOpts =
     [ "-XDataKinds"
+    , "-XDerivingStrategies"
     , "-XDeriveAnyClass"
     , "-XDeriveFoldable"
     , "-XDeriveFunctor"
     , "-XDeriveGeneric"
     , "-XDeriveLift"
     , "-XDeriveTraversable"
+    , "-XGeneralizedNewtypeDeriving"
+    , "-XTypeApplications"
     , "-XExplicitForAll"
     , "-XFlexibleContexts"
     , "-XOverloadedStrings"
@@ -213,8 +215,8 @@ runghcOpts =
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
     -- FIXME: stupid GHC bug still
-    , "-package plutus-tx"
-    -- , "-package plutus-wallet-api"
+    --, "-package plutus-tx"
+    --, "-package plutus-wallet-api"
     ]
 
 jsonToString :: ToJSON a => a -> String
@@ -249,8 +251,8 @@ walletActionExpr allWallets (Action (Fn f) wallet args) = do
 -- We return an empty list to fix types as wallets have already been notified
 walletActionExpr allWallets (Wait blocks) =
     pure $
-    "pure $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
-    " >> pure []"
+    "return $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
+    " >> return []"
 
 {-# ANN mkApplyExpr ("HLint: ignore" :: String) #-}
 

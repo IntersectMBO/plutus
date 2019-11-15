@@ -25,7 +25,9 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }  # The nixpkgs configuration file
+, crossSystem ? builtins.currentSystem
+ # The nixpkgs configuration file
+, config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }
 
 # Use a pinned version nixpkgs.
 , pkgs ? (import ./lib.nix { inherit config system; }).pkgs
@@ -37,18 +39,11 @@
 # Profiling slows down performance by 50% so we don't enable it by default.
 , enableProfiling ? false
 
-# Enable separation of build/check derivations.
-, enableSplitCheck ? true
-
 # Keeps the debug information for all haskell packages.
 , enableDebugging ? false
 
 # Build (but don't run) benchmarks for all local packages.
 , enableBenchmarks ? true
-
-# Overrides all nix derivations to add build timing information in
-# their build output.
-, enablePhaseMetrics ? true
 
 # Overrides all nix derivations to add haddock hydra output.
 , enableHaddockHydra ? true
@@ -67,34 +62,26 @@
 with pkgs.lib;
 
 let
-  nativePkgs = import pkgs.path { config = {}; overlays = []; };
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   latex = pkgs.callPackage ./nix/latex.nix {};
+  sources = import ./nix/sources.nix;
 
-  pp2nSrc = nativePkgs.fetchFromGitHub {
-    owner = "justinwoo";
-    repo = "psc-package2nix";
-    rev = "6e8f6dc6dea896c71b30cc88a2d95d6d1e48a6f0";
-    sha256 = "0fa6zaxxmqxva1xmnap9ng7b90zr9a55x1l5xk8igdw2nldqfa46";
-  };
+  # easy-purescript-nix has some kind of wacky internal IFD
+  # usage that breaks the logic that makes source fetchers
+  # use native dependencies. This isn't easy to fix, since
+  # the only places that need to use native dependencies
+  # are deep inside, and we don't want to build the whole 
+  # thing native. Fortunately, we only want to build the
+  # client on Linux, so that's okay. However, it does
+  # mean that e.g. we can't build the client dep updating
+  # script on Darwin.
+  easyPS = pkgs.callPackage sources.easy-purescript-nix { }; 
 
-  yarn2nixSrc = nativePkgs.fetchFromGitHub {
-    owner = "moretea";
-    repo = "yarn2nix";
-    rev = "780e33a07fd821e09ab5b05223ddb4ca15ac663f";
-    sha256 = "1f83cr9qgk95g3571ps644rvgfzv2i4i7532q8pg405s4q5ada3h";
-  };
-
-  pp2n = import pp2nSrc { inherit pkgs; };
-  yarn2nix = import yarn2nixSrc { inherit pkgs; };
+  purty = pkgs.callPackage ./purty { };
 
   packages = self: (rec {
     inherit pkgs localLib;
-
-    # Upstream nixpkgs has the asciidoctor-epub3 gem, ours doesn't. So I've backported it here.
-    # Our nixpkgs is so old it doesn't have epubcheck.
-    asciidoctorWithEpub3 = pkgs.callPackage ./nix/asciidoctor { epubcheck = null; };
 
     # The git revision comes from `rev` if available (Hydra), otherwise
     # it is read using IFD and git, which is avilable on local builds.
@@ -123,9 +110,13 @@ let
       # so we make sure it uses the same one.
       pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
-      inherit forceDontCheck enableProfiling enablePhaseMetrics
+      inherit forceDontCheck enableProfiling 
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays pkgsGenerated;
+      customOverlays pkgsGenerated;
+      # Broken on vanilla 19.09, require the IOHK fork. Will be abandoned when
+      # we go to haskell.nix anyway.
+      enablePhaseMetrics = false;
+      enableSplitCheck = false;
 
       filter = localLib.isPlutus;
       filterOverrides = {
@@ -144,7 +135,7 @@ let
 
         ];
       };
-      requiredOverlay = ./nix/overlays/required.nix;
+      requiredOverlay = ./nix/overlays/haskell-overrides.nix;
     };
 
     localPackages = localLib.getPackages {
@@ -161,13 +152,17 @@ let
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
       };
+      purty = pkgs.callPackage ./nix/tests/purty.nix {
+        inherit (self.haskellPackages) purty;
+        inherit src;
+      };
     };
 
     docs = {
       # this version of asciidoctor is also more recent, although we don't care about the epub bit
-      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { asciidoctor = asciidoctorWithEpub3; };
-      plutus-contract = pkgs.callPackage ./plutus-contract/doc {};
-      plutus-book = pkgs.callPackage ./plutus-book/doc { asciidoctor = asciidoctorWithEpub3; };
+      plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
+      plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
+      plutus-book = pkgs.callPackage ./plutus-book/doc { };
 
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
       multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
@@ -186,24 +181,16 @@ let
             text = "Combined documentation for all the public Plutus libraries.";
         };
       };
+
+      marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
     };
 
     papers = {
-      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; };
-      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; };
+      unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; inherit latex; };
+      system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
     };
 
     plutus-playground = rec {
-      documentation-site = let
-        # TODO: the playgroundUrl needs to be set to whatever will actually be appropriate when it's bundled
-        # with the playground
-        adjustedTutorial = docs.plutus-tutorial.override { playgroundUrl = "../.."; haddockUrl = "../haddock"; };
-      in pkgs.runCommand "documentation-site" {} ''
-        mkdir -p $out
-        cp -aR ${adjustedTutorial} $out/tutorial
-        cp -aR ${docs.public-combined-haddock}/share/doc $out/haddock
-      '';
-
       playground-exe = set-git-rev haskellPackages.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -228,9 +215,11 @@ let
           mkdir $out
           ${playground-exe}/bin/plutus-playground-server psgenerator $out
         '';
+
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit pkgs yarn2nix pp2nSrc haskellPackages;
+          inherit easyPS;
+          inherit (sources) nodejs-headers;
           psSrc = generated-purescript;
           src = ./plutus-playground-client;
           webCommonPath = ./web-common;
@@ -238,6 +227,7 @@ let
           yarnLock = ./plutus-playground-client/yarn.lock;
           yarnNix = ./plutus-playground-client/yarn.nix;
           packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
+          spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -268,7 +258,8 @@ let
         '';
         in
         pkgs.callPackage ./nix/purescript.nix rec {
-          inherit pkgs yarn2nix pp2nSrc haskellPackages;
+          inherit (sources) nodejs-headers;
+          inherit easyPS;
           psSrc = generated-purescript;
           src = ./marlowe-playground-client;
           webCommonPath = ./web-common;
@@ -276,6 +267,7 @@ let
           yarnLock = ./marlowe-playground-client/yarn.lock;
           yarnNix = ./marlowe-playground-client/yarn.nix;
           packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
+          spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
         };
     };
@@ -304,6 +296,33 @@ let
         contents = [ client server-invoker defaultPlaygroundConfig ];
         config = {
           Cmd = ["${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}"];
+        };
+      };
+
+      development = pkgs.dockerTools.buildImage {
+        name = "plutus-development";
+        contents =
+          let runtimeGhc =
+                haskellPackages.ghcWithPackages (ps: [
+                  haskellPackages.language-plutus-core
+                  haskellPackages.plutus-core-interpreter
+                  haskellPackages.plutus-emulator
+                  haskellPackages.plutus-wallet-api
+                  haskellPackages.plutus-tx
+                  haskellPackages.plutus-use-cases
+                  haskellPackages.plutus-ir
+                  haskellPackages.plutus-contract
+                ]);
+          in  [
+                runtimeGhc
+                pkgs.binutils-unwrapped
+                pkgs.coreutils
+                pkgs.bash
+                pkgs.git # needed by cabal-install
+                haskellPackages.cabal-install
+              ];
+        config = {
+          Cmd = ["bash"];
         };
       };
     };
@@ -344,14 +363,19 @@ let
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.0.1";
-        src = pkgs.fetchFromGitHub {
-          owner = "agda";
-          repo = "agda-stdlib";
-          rev = "v1.0.1";
-          sha256 = "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2";
-        };
+        src = sources.agda-stdlib;
       });
     };
+
+    marlowe-symbolic-lambda =
+      let
+        staticHaskellOverlay = import ./nix/overlays/static-haskell.nix { inherit pkgs; };
+        # We must use musl because glibc can't do static linking properly
+        muslHaskellPackages = (haskellPackages.override (old: {
+          pkgsGenerated = pkgs.pkgsMusl.callPackage ./pkgs {};
+          customOverlays = old.customOverlays ++ [ staticHaskellOverlay ];
+        }));
+      in pkgs.pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = muslHaskellPackages; };
 
     metatheory = import ./metatheory {
       inherit (agdaPackages) agda AgdaStdlib;
@@ -360,16 +384,16 @@ let
     };
 
     dev = rec {
-      purty = (import ./purty {
-        inherit pkgs;
-      });
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
       };
+
       scripts = {
         inherit (localLib) regeneratePackages;
 
         fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
+          #!${pkgs.runtimeShell}
+
           ${pkgs.git}/bin/git diff > pre-stylish.diff
           ${pkgs.fd}/bin/fd \
             --extension hs \
@@ -389,13 +413,16 @@ let
         '';
 
         fixPurty = pkgs.writeScript "fix-purty" ''
+          #!${pkgs.runtimeShell}
+
           ${pkgs.git}/bin/git diff > pre-purty.diff
           ${pkgs.fd}/bin/fd \
             --extension purs \
             --exclude '*/.psc-package/*' \
+            --exclude '*/.spago/*' \
             --exclude '*/node_modules/*' \
             --exclude '*/generated/*' \
-            --exec ${purty}/bin/purty --write {}
+            --exec ${packages.purty}/bin/purty --write {}
           ${pkgs.git}/bin/git diff > post-purty.diff
           diff pre-purty.diff post-purty.diff > /dev/null
           if [ $? != 0 ]
@@ -409,6 +436,30 @@ let
         '';
 
         updateClientDeps = pkgs.writeScript "update-client-deps" ''
+          #!${pkgs.runtimeShell}
+
+          set -eou pipefail
+
+          export PATH=${pkgs.stdenv.lib.makeBinPath [
+            pkgs.coreutils
+            pkgs.git
+            pkgs.python
+            pkgs.gnumake
+            pkgs.gcc
+            pkgs.gnused
+            pkgs.nodejs-10_x
+            pkgs.nodePackages_10_x.node-gyp
+            pkgs.yarn
+            # yarn2nix won't seem to build on hydra, see
+            # https://github.com/moretea/yarn2nix/pull/103
+            # I can't figure out how to fix this...
+            #pkgs.yarn2nix-moretea.yarn2nix
+            easyPS.purs
+            easyPS.psc-package
+            easyPS.spago
+            easyPS.spago2nix
+          ]}
+
           if [ ! -f package.json ]
           then
               echo "package.json not found. Please run this script from the client directory." >&2
@@ -416,20 +467,25 @@ let
           fi
 
           echo Installing JavaScript Dependencies
-          ${pkgs.yarn}/bin/yarn
-          echo Generating psc-package config
-          ${pkgs.yarn}/bin/yarn spago psc-package-insdhall
-          echo Installing PureScript Dependencies
-          ${pkgs.yarn}/bin/yarn psc-package install
-          echo Generating nix config
-          ${pp2n}/bin/pp2n psc-package2nix
-          ${yarn2nix.yarn2nix}/bin/yarn2nix > yarn.nix
-          cp .psc-package/local/.set/packages.json packages.json
+          yarn
+
+          echo Generating nix configs.
+          yarn2nix > yarn.nix
+          spago2nix generate
+
           echo Done
         '';
       };
 
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ packages.cabal-install ]; });
+      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ 
+                                                                        [ packages.cabal-install 
+                                                                          pkgs.git 
+                                                                          pkgs.cacert 
+                                                                          pkgs.yarn
+                                                                          easyPS.purs
+                                                                          easyPS.spago
+                                                                          easyPS.purty
+                                                                          ]; });
     };
   });
 

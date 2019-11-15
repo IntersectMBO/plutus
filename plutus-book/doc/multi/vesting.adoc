@@ -10,13 +10,15 @@
 module Multi.Vesting where
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding (foldMap)
 import           Ledger
 import           Ledger.Ada
+import           Ledger.Typed.Scripts       (wrapValidator)
 import           Playground.Contract
 import           Wallet
 
 import           Control.Monad              (void)
+import           Data.Foldable              (foldMap)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Set                   (Set)
@@ -74,15 +76,11 @@ So we can choose `()` for the redeemer scripts, too.
 [source,haskell]
 ----
 dataScript :: DataScript
-dataScript = DataScript $ lifted ()
+dataScript = DataScript $ toData ()
 
-redeemerScript1 :: RedeemerScript
-redeemerScript1 = RedeemerScript $
-    -- The redeemer is passed the data script (unit), which it just ignores.
-    $$(Ledger.compileScript [|| \(_ :: Sealed (HashedDataScript ())) -> () ||])
-
-redeemerScript0 :: RedeemerScript
-redeemerScript0 = RedeemerScript $ $$(Ledger.compileScript [|| () ||])
+-- The redeemer is passed the data script (unit), which it just ignores.
+redeemerScript :: RedeemerScript
+redeemerScript = RedeemerScript $ toData ()
 ----
 
 We are now in a position to define the validator script.
@@ -107,10 +105,10 @@ validate v () () tx =
     in     (remaining >= unreleased)
         && (tx `txSignedBy` owner v)
 
-mkValidatorScript :: Vesting -> ValidatorScript
-mkValidatorScript = ValidatorScript
-                  . applyScript $$(compileScript [|| validate ||])
-                  . lifted
+mkValidator :: Vesting -> ValidatorScript
+mkValidator = mkValidatorScript
+                  . applyCode $$(compile [|| \v -> wrapValidator (validate v) ||])
+                  . liftCode
 ----
 
 <1> Our validator hash.
@@ -130,7 +128,7 @@ Now we are ready to define our wallet endpoints, of which we need three:
 [source,haskell]
 ----
 vestingAddress :: Vesting -> Address
-vestingAddress = scriptAddress . mkValidatorScript
+vestingAddress = scriptAddress . mkValidator
 
 registerScheme :: MonadWallet m => Tranche -> Tranche -> m ()
 registerScheme t1 t2 = do
@@ -187,39 +185,36 @@ withdraw t1 t2 ada = do
     let o = pubKeyTxOut (toValue ada) key
 
     let change = locked utxos - ada         -- <2>
-        fundsRemaining = change > 0
-        outs = if fundsRemaining
-            then [ o
+        (outs, datas) = if change > 0
+            then ([ o
                  , scriptTxOut
                     (toValue change)
-                    (mkValidatorScript v)
+                    (mkValidator v)
                     dataScript
-                 ]
-            else [o]
+                 ], [dataScript])
+            else ([o], [])
 
     void $ createTxAndSubmit
         range
-        (ins v utxos fundsRemaining)
+        (ins v utxos)
         outs
+        datas
 
   where
     ins :: Vesting                                -- <3>
-        -> Map TxOutRef TxOut
-        -> Bool
+        -> Map TxOutRef TxOutTx
         -> Set TxIn
-    ins v utxos outputsUseDataScript = Set.fromList
+    ins v utxos = Set.fromList
         [ scriptTxIn
             r
-            (mkValidatorScript v)
-            (if outputsUseDataScript then redeemerScript1 else redeemerScript0)
+            (mkValidator v)
+            redeemerScript
+            dataScript
         | r <- Map.keys utxos
         ]
 
-    locked :: Map TxOutRef TxOut -> Ada           -- <4>
-    locked = Map.foldl' f zero
-      where
-        f :: Ada -> TxOut -> Ada
-        f a o = a + fromValue (txOutValue o)
+    locked :: Map TxOutRef TxOutTx -> Ada           -- <4>
+    locked utxo = fromValue $ foldMap (txOutValue . txOutTxOut) utxo
 
 $(mkFunctions ['registerScheme, 'vest, 'withdraw])
 ----

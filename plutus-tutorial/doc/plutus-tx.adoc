@@ -326,7 +326,7 @@ addOneToN :: Integer -> CompiledCode Integer
 addOneToN n =
     addOne
     `applyCode` -- <.>
-    unsafeLiftCode n -- <.>
+    liftCode n -- <.>
 
 {- |
 >>> pretty $ getPlc addOne
@@ -360,15 +360,16 @@ addOneToN n =
 -}
 ----
 <.> `applyCode` applies one `CompiledCode` to another.
-<.> `unsafeLiftCode` lifts the argument `n` into a `CompiledCode Integer`.
+<.> `liftCode` lifts the argument `n` into a `CompiledCode Integer`.
 
-We lifted the argument using the `unsafeLiftCode` function. In order to use this, a type
+We lifted the argument using the `liftCode` function. In order to use this, a type
 must have an instance of the `Lift` class. In practice, you should
 generate these with the `makeLift` TH function from
 `Language.PlutusTx.Lift`.
 
-NOTE: `unsafeLiftCode` is "unsafe" because it ignores any errors that might occur from
-lifting something that isn't supported.
+NOTE: `liftCode` is a little "unsafe" because it ignores any errors that might occur from
+lifting something that isn't supported. There is a `safeLiftCode` if you want to explicitly
+handle these.
 
 The combined program applies the original compiled lambda to the lifted
 value (notice that the lambda is a bit complicated now since we have
@@ -385,9 +386,9 @@ pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
     `applyCode`
-    unsafeLiftCode end
+    liftCode end
     `applyCode`
-    unsafeLiftCode current
+    liftCode current
 
 {- |
 >>> let program = getPlc $ pastEndAt Never 5

@@ -4,18 +4,18 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term and type names.
-module Language.PlutusCore.DeBruijn (
-                                Index (..)
-                                , DeBruijn (..)
-                                , TyDeBruijn (..)
-                                , FreeVariableError (..)
-                                , deBruijnTy
-                                , deBruijnTerm
-                                , deBruijnProgram
-                                , unDeBruijnTy
-                                , unDeBruijnTerm
-                                , unDeBruijnProgram
-                                ) where
+module Language.PlutusCore.DeBruijn
+    ( Index (..)
+    , DeBruijn (..)
+    , TyDeBruijn (..)
+    , FreeVariableError (..)
+    , deBruijnTy
+    , deBruijnTerm
+    , deBruijnProgram
+    , unDeBruijnTy
+    , unDeBruijnTerm
+    , unDeBruijnProgram
+    ) where
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -41,31 +41,31 @@ newtype Index = Index Natural
     deriving newtype (Show, Num, Eq, Ord)
 
 -- | A term name as a de Bruijn index.
-data DeBruijn a = DeBruijn { dbnAttribute :: a, dbnString :: T.Text, dbnIndex :: Index }
+data DeBruijn ann = DeBruijn { dbnAttribute :: ann, dbnString :: T.Text, dbnIndex :: Index }
     deriving (Show, Functor, Generic)
 
 -- | A type name as a de Bruijn index.
-newtype TyDeBruijn a = TyDeBruijn (DeBruijn a)
+newtype TyDeBruijn ann = TyDeBruijn (DeBruijn ann)
     deriving (Show, Functor, Generic)
-instance Wrapped (TyDeBruijn a)
+instance Wrapped (TyDeBruijn ann)
 
-instance HasPrettyConfigName config => PrettyBy config (DeBruijn a) where
+instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
     prettyBy config (DeBruijn _ txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique _ = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn a)
+deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
 
 class HasIndex a where
     index :: Lens' a Index
 
-instance HasIndex (DeBruijn a) where
+instance HasIndex (DeBruijn ann) where
     index = lens g s where
         g = dbnIndex
         s n i = n{dbnIndex=i}
 
-instance HasIndex (TyDeBruijn a) where
+instance HasIndex (TyDeBruijn ann) where
     index = _Wrapped' . index
 
 -- Converting from normal names to DeBruijn indices, and vice versa
@@ -103,7 +103,8 @@ levelToIndex (Level current) (Level l) = current - l
 
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
-declareUnique n = local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
+declareUnique n =
+    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
 
 -- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
 declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a
@@ -112,12 +113,15 @@ declareIndex n act = do
     local (\(Levels current ls) -> Levels current $ BM.insert newU (ixToLevel current (n ^. index)) ls) act
 
 -- | Enter a scope, incrementing the current 'Level' by one
-withScope :: (MonadReader Levels m) => m a -> m a
+withScope :: MonadReader Levels m => m a -> m a
 withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 
 -- | We cannot do a correct translation to or from de Bruijn indices if the program is not well-scoped.
 -- So we throw an error in such a case.
-data FreeVariableError = FreeUnique Unique | FreeIndex Index deriving (Show, Typeable, Eq, Ord)
+data FreeVariableError
+    = FreeUnique Unique
+    | FreeIndex Index
+    deriving (Show, Typeable, Eq, Ord)
 instance Exception FreeVariableError
 
 -- | Get the 'Index' corresponding to a given 'Unique'.
@@ -136,29 +140,43 @@ getUnique ix = do
         Just u  -> pure u
         Nothing -> throwError $ FreeIndex ix
 
-nameToDeBruijn :: (MonadReader Levels m, MonadError FreeVariableError m) => Name a -> m (DeBruijn a)
-nameToDeBruijn (Name x str u) = DeBruijn x str <$> getIndex u
+nameToDeBruijn
+    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    => Name ann -> m (DeBruijn ann)
+nameToDeBruijn (Name ann str u) = DeBruijn ann str <$> getIndex u
 
-tyNameToDeBruijn :: (MonadReader Levels m, MonadError FreeVariableError m) => TyName a -> m (TyDeBruijn a)
+tyNameToDeBruijn
+    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    => TyName ann -> m (TyDeBruijn ann)
 tyNameToDeBruijn (TyName n) = TyDeBruijn <$> nameToDeBruijn n
 
-deBruijnToName :: (MonadReader Levels m, MonadError FreeVariableError m) => DeBruijn a -> m (Name a)
-deBruijnToName (DeBruijn x str ix) = Name x str <$> getUnique ix
+deBruijnToName
+    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    => DeBruijn ann -> m (Name ann)
+deBruijnToName (DeBruijn ann str ix) = Name ann str <$> getUnique ix
 
-deBruijnToTyName :: (MonadReader Levels m, MonadError FreeVariableError m) => TyDeBruijn a -> m (TyName a)
+deBruijnToTyName
+    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    => TyDeBruijn ann -> m (TyName ann)
 deBruijnToTyName (TyDeBruijn n) = TyName <$> deBruijnToName n
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'TyDeBruijn's.
-deBruijnTy :: (MonadError FreeVariableError m) => Type TyName a -> m (Type TyDeBruijn a)
+deBruijnTy
+    :: MonadError FreeVariableError m
+    => Type TyName ann -> m (Type TyDeBruijn ann)
 deBruijnTy = flip runReaderT (Levels 0 BM.empty) . deBruijnTyM
 
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'TyDeBruijn's and 'DeBruijn's.
-deBruijnTerm :: (MonadError FreeVariableError m) => Term TyName Name a -> m (Term TyDeBruijn DeBruijn a)
+deBruijnTerm
+    :: MonadError FreeVariableError m
+    => Term TyName Name ann -> m (Term TyDeBruijn DeBruijn ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'TyDeBruijn's and 'DeBruijn's.
-deBruijnProgram :: (MonadError FreeVariableError m) => Program TyName Name a -> m (Program TyDeBruijn DeBruijn a)
-deBruijnProgram (Program x v t) = Program x v <$> deBruijnTerm t
+deBruijnProgram
+    :: MonadError FreeVariableError m
+    => Program TyName Name ann -> m (Program TyDeBruijn DeBruijn ann)
+deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
 {- Note [De Bruijn conversion and recursion schemes]
 These are quite repetitive, but we can't use a catamorphism for this, because
@@ -167,102 +185,108 @@ These are normally constant in a catamorphic application.
 -}
 deBruijnTyM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Type TyName a
-    -> m (Type TyDeBruijn a)
+    => Type TyName ann
+    -> m (Type TyDeBruijn ann)
 deBruijnTyM = \case
     -- variable case
-    TyVar x n -> TyVar x <$> tyNameToDeBruijn n
+    TyVar ann n -> TyVar ann <$> tyNameToDeBruijn n
     -- binder cases
-    TyForall x tn k ty -> declareUnique tn $ do
+    TyForall ann tn k ty -> declareUnique tn $ do
         tn' <- tyNameToDeBruijn tn
-        withScope $ TyForall x tn' k <$> deBruijnTyM ty
-    TyLam x tn k ty -> declareUnique tn $ do
+        withScope $ TyForall ann tn' k <$> deBruijnTyM ty
+    TyLam ann tn k ty -> declareUnique tn $ do
         tn' <- tyNameToDeBruijn tn
-        withScope $ TyLam x tn' k <$> deBruijnTyM ty
+        withScope $ TyLam ann tn' k <$> deBruijnTyM ty
     -- boring recursive cases
-    TyFun x i o -> TyFun x <$> deBruijnTyM i <*> deBruijnTyM o
-    TyApp x fun arg -> TyApp x <$> deBruijnTyM fun <*> deBruijnTyM arg
-    TyIFix x pat arg -> TyIFix x <$> deBruijnTyM pat <*> deBruijnTyM arg
+    TyFun ann i o -> TyFun ann <$> deBruijnTyM i <*> deBruijnTyM o
+    TyApp ann fun arg -> TyApp ann <$> deBruijnTyM fun <*> deBruijnTyM arg
+    TyIFix ann pat arg -> TyIFix ann <$> deBruijnTyM pat <*> deBruijnTyM arg
     -- boring non-recursive cases
-    TyBuiltin x bn -> pure $ TyBuiltin x bn
+    TyBuiltin ann con -> pure $ TyBuiltin ann con
 
 deBruijnTermM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Term TyName Name a
-    -> m (Term TyDeBruijn DeBruijn a)
+    => Term TyName Name ann
+    -> m (Term TyDeBruijn DeBruijn ann)
 deBruijnTermM = \case
     -- variable case
-    Var x n -> Var x <$> nameToDeBruijn n
+    Var ann n -> Var ann <$> nameToDeBruijn n
     -- binder cases
-    TyAbs x tn k t -> declareUnique tn $ do
+    TyAbs ann tn k t -> declareUnique tn $ do
         tn' <- tyNameToDeBruijn tn
-        withScope $ TyAbs x tn' k <$> deBruijnTermM t
-    LamAbs x n ty t -> declareUnique n $ do
+        withScope $ TyAbs ann tn' k <$> deBruijnTermM t
+    LamAbs ann n ty t -> declareUnique n $ do
         n' <- nameToDeBruijn n
-        withScope $ LamAbs x n' <$> deBruijnTyM ty <*> deBruijnTermM t
+        withScope $ LamAbs ann n' <$> deBruijnTyM ty <*> deBruijnTermM t
     -- boring recursive cases
-    Apply x t1 t2 -> Apply x <$> deBruijnTermM t1 <*> deBruijnTermM t2
-    TyInst x t ty -> TyInst x <$> deBruijnTermM t <*> deBruijnTyM ty
-    Unwrap x t -> Unwrap x <$> deBruijnTermM t
-    IWrap x pat arg t -> IWrap x <$> deBruijnTyM pat <*> deBruijnTyM arg <*> deBruijnTermM t
-    Error x ty -> Error x <$> deBruijnTyM ty
+    Apply ann t1 t2 -> Apply ann <$> deBruijnTermM t1 <*> deBruijnTermM t2
+    TyInst ann t ty -> TyInst ann <$> deBruijnTermM t <*> deBruijnTyM ty
+    Unwrap ann t -> Unwrap ann <$> deBruijnTermM t
+    IWrap ann pat arg t -> IWrap ann <$> deBruijnTyM pat <*> deBruijnTyM arg <*> deBruijnTermM t
+    Error ann ty -> Error ann <$> deBruijnTyM ty
     -- boring non-recursive cases
-    Constant x con -> pure $ Constant x con
-    Builtin x bn -> pure $ Builtin x bn
+    Constant ann con -> pure $ Constant ann con
+    Builtin ann bn -> pure $ Builtin ann bn
 
 -- | Convert a 'Type' with 'TyDeBruijn's into a 'Type' with 'TyName's.
-unDeBruijnTy :: (MonadQuote m, MonadError FreeVariableError m) => Type TyDeBruijn a -> m (Type TyName a)
+unDeBruijnTy
+    :: (MonadQuote m, MonadError FreeVariableError m)
+    => Type TyDeBruijn ann -> m (Type TyName ann)
 unDeBruijnTy = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTyM
 
 -- | Convert a 'Term' with 'TyDeBruijn's and 'DeBruijn's into a 'Term' with 'TyName's and 'Name's.
-unDeBruijnTerm :: (MonadQuote m, MonadError FreeVariableError m) => Term TyDeBruijn DeBruijn a -> m (Term TyName Name a)
+unDeBruijnTerm
+    :: (MonadQuote m, MonadError FreeVariableError m)
+    => Term TyDeBruijn DeBruijn ann -> m (Term TyName Name ann)
 unDeBruijnTerm = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTermM
 
 -- | Convert a 'Program' with 'TyDeBruijn's and 'DeBruijn's into a 'Program' with 'TyName's and 'Name's.
-unDeBruijnProgram :: (MonadQuote m, MonadError FreeVariableError m) => Program TyDeBruijn DeBruijn a -> m (Program TyName Name a)
-unDeBruijnProgram (Program x v t) = Program x v <$> unDeBruijnTerm t
+unDeBruijnProgram
+    :: (MonadQuote m, MonadError FreeVariableError m)
+    => Program TyDeBruijn DeBruijn ann -> m (Program TyName Name ann)
+unDeBruijnProgram (Program ann ver term) = Program ann ver <$> unDeBruijnTerm term
 
 unDeBruijnTyM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Type TyDeBruijn a
-    -> m (Type TyName a)
+    => Type TyDeBruijn ann
+    -> m (Type TyName ann)
 unDeBruijnTyM = \case
     -- variable case
-    TyVar x n -> TyVar x <$> deBruijnToTyName n
+    TyVar ann n -> TyVar ann <$> deBruijnToTyName n
     -- binder cases
-    TyForall x tn k ty -> declareIndex tn $ do
+    TyForall ann tn k ty -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
-        withScope $ TyForall x tn' k <$> unDeBruijnTyM ty
-    TyLam x tn k ty -> declareIndex tn $ do
+        withScope $ TyForall ann tn' k <$> unDeBruijnTyM ty
+    TyLam ann tn k ty -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
-        withScope $ TyLam x tn' k <$> unDeBruijnTyM ty
+        withScope $ TyLam ann tn' k <$> unDeBruijnTyM ty
     -- boring recursive cases
-    TyFun x i o -> TyFun x <$> unDeBruijnTyM i <*> unDeBruijnTyM o
-    TyApp x fun arg -> TyApp x <$> unDeBruijnTyM fun <*> unDeBruijnTyM arg
-    TyIFix x pat arg -> TyIFix x <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg
+    TyFun ann i o -> TyFun ann <$> unDeBruijnTyM i <*> unDeBruijnTyM o
+    TyApp ann fun arg -> TyApp ann <$> unDeBruijnTyM fun <*> unDeBruijnTyM arg
+    TyIFix ann pat arg -> TyIFix ann <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg
     -- boring non-recursive cases
-    TyBuiltin x bn -> pure $ TyBuiltin x bn
+    TyBuiltin ann con -> pure $ TyBuiltin ann con
 
 unDeBruijnTermM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Term TyDeBruijn DeBruijn a
-    -> m (Term TyName Name a)
+    => Term TyDeBruijn DeBruijn ann
+    -> m (Term TyName Name ann)
 unDeBruijnTermM = \case
     -- variable case
-    Var x n -> Var x <$> deBruijnToName n
+    Var ann n -> Var ann <$> deBruijnToName n
     -- binder cases
-    TyAbs x tn k t -> declareIndex tn $ do
+    TyAbs ann tn k t -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
-        withScope $ TyAbs x tn' k <$> unDeBruijnTermM t
-    LamAbs x n ty t -> declareIndex n $ do
+        withScope $ TyAbs ann tn' k <$> unDeBruijnTermM t
+    LamAbs ann n ty t -> declareIndex n $ do
         n' <- deBruijnToName n
-        withScope $ LamAbs x n' <$> unDeBruijnTyM ty <*> unDeBruijnTermM t
+        withScope $ LamAbs ann n' <$> unDeBruijnTyM ty <*> unDeBruijnTermM t
     -- boring recursive cases
-    Apply x t1 t2 -> Apply x <$> unDeBruijnTermM t1 <*> unDeBruijnTermM t2
-    TyInst x t ty -> TyInst x <$> unDeBruijnTermM t <*> unDeBruijnTyM ty
-    Unwrap x t -> Unwrap x <$> unDeBruijnTermM t
-    IWrap x pat arg t -> IWrap x <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg <*> unDeBruijnTermM t
-    Error x ty -> Error x <$> unDeBruijnTyM ty
+    Apply ann t1 t2 -> Apply ann <$> unDeBruijnTermM t1 <*> unDeBruijnTermM t2
+    TyInst ann t ty -> TyInst ann <$> unDeBruijnTermM t <*> unDeBruijnTyM ty
+    Unwrap ann t -> Unwrap ann <$> unDeBruijnTermM t
+    IWrap ann pat arg t -> IWrap ann <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg <*> unDeBruijnTermM t
+    Error ann ty -> Error ann <$> unDeBruijnTyM ty
     -- boring non-recursive cases
-    Constant x con -> pure $ Constant x con
-    Builtin x bn -> pure $ Builtin x bn
+    Constant ann con -> pure $ Constant ann con
+    Builtin ann bn -> pure $ Builtin ann bn

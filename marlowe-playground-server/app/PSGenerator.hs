@@ -22,42 +22,51 @@ import qualified Auth
 import           Control.Applicative                        (empty, (<|>))
 import           Control.Lens                               (set, (&))
 import           Control.Monad.Reader                       (MonadReader)
+import qualified CouponBondGuaranteed
 import qualified Data.ByteString                            as BS
+import qualified Data.ByteString.Char8                      as BS8
 import           Data.Monoid                                ()
 import           Data.Proxy                                 (Proxy (Proxy))
 import qualified Data.Set                                   as Set ()
 import qualified Data.Text.Encoding                         as T ()
 import qualified Data.Text.IO                               as T ()
+import qualified Escrow
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
+import           Language.Marlowe.Pretty                    (pretty)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, haskType,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, haskType,
                                                              isTuple, mkSumType, order, psTypeParameters, typeModule,
                                                              typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.Builder         (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, zeroCouponBond)
+import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import qualified Marlowe.Symbolic.Types.Request             as MSReq
+import qualified Marlowe.Symbolic.Types.Response            as MSRes
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings, _generateSubscriberAPI)
+import qualified Swap
 import           System.Directory                           (createDirectoryIfMissing)
 import           System.FilePath                            ((</>))
+import           WebSocket                                  (WebSocketRequestMessage, WebSocketResponseMessage)
+import qualified ZeroCouponBond
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "" "Data.RawJson" "JsonNonEmptyList" <$> psTypeParameters
+psNonEmpty = TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$> psTypeParameters
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither = TypeInfo "" "Data.RawJson" "JsonEither" <$> psTypeParameters
+psJsonEither = TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
 
 psJsonTuple :: MonadReader BridgeData m => m PSType
-psJsonTuple = TypeInfo "" "Data.RawJson" "JsonTuple" <$> psTypeParameters
+psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -138,7 +147,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
-    , (equal <*> (order <*> mkSumType)) (Proxy @GistId)
+    , (order <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
     , mkSumType (Proxy @NewGist)
@@ -146,6 +155,11 @@ myTypes =
     , mkSumType (Proxy @Owner)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
+    , mkSumType (Proxy @MSRes.Response)
+    , mkSumType (Proxy @MSRes.Result)
+    , mkSumType (Proxy @MSReq.Request)
+    , mkSumType (Proxy @WebSocketRequestMessage)
+    , mkSumType (Proxy @WebSocketResponseMessage)
     ]
 
 mySettings :: Settings
@@ -162,13 +176,23 @@ psModule name body = "module " <> name <> " where" <> body
 
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
-    let usecases =
+    let haskellUsecases =
             multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
-        usecasesModule = psModule "Haskell.Contracts" usecases
-    createDirectoryIfMissing True (outputDir </> "Haskell")
-    BS.writeFile (outputDir </> "Haskell" </> "Contracts.purs") usecasesModule
+         <> multilineString "swap" swap
+        haskellUsecasesModule = psModule "Examples.Haskell.Contracts" haskellUsecases
+    createDirectoryIfMissing True (outputDir </> "Examples" </> "Haskell")
+    BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
+    let contractToString = BS8.pack . show . pretty
+        marloweUsecases =
+            multilineString "escrow" (contractToString Escrow.contract)
+         <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
+         <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
+         <> multilineString "swap" (contractToString Swap.contract)
+        marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
+    createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
+    BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
 generate :: FilePath -> IO ()

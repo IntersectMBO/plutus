@@ -2,8 +2,10 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -28,21 +30,22 @@ module Language.PlutusTx.Coordination.Contracts.Future(
 
 import           Control.Monad                (void)
 import           Control.Monad.Error.Class    (MonadError (..))
+import           Control.Applicative          (Applicative (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude    hiding (Applicative (..))
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Interval              as Interval
-import           Ledger.Scripts               (HashedDataScript)
-import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..))
+import qualified Ledger.Typed.Scripts         as Scripts
+import           Ledger.Validation            (OracleValue (..), PendingTx, PendingTx' (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
 import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
 
 {- note [Futures in Plutus]
 
@@ -74,93 +77,6 @@ The current value of the underlying asset is determined by an oracle. See note
 
 -}
 
--- | Initialise the futures contract by paying the initial margin.
---
-initialise :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => PubKey
-    -- ^ Identity of the holder of the long position
-    -> PubKey
-    -- ^ Identity of the holder of the short position
-    -> Future
-    -> m ()
-initialise long short f = do
-    let
-        im = futureInitialMargin f
-        o  = scriptTxOut (Ada.toValue im) (validatorScript f) ds
-        ds = DataScript $ Ledger.lifted $ FutureData long short im im
-
-    (payment, change) <- createPaymentWithChange (Ada.toValue im)
-    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
-
--- | Close the position by extracting the payment
-settle :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> OracleValue Ada
-    -> m ()
-settle refs ft fd ov = do
-    let
-        delDate = futureDeliveryDate ft
-        forwardPrice = futureUnitPrice ft
-        OracleValue _ _ spotPrice = ov
-        delta = (Ada.lovelaceOf $ futureUnits ft) * (spotPrice - forwardPrice)
-        longOut = Ada.toValue ((futureDataMarginLong fd) + delta)
-        shortOut = Ada.toValue ((futureDataMarginShort fd) - delta)
-        red = redeemerScript0 $ Settle ov
-        outs = [
-            Ledger.pubKeyTxOut longOut (futureDataLong fd),
-            Ledger.pubKeyTxOut shortOut (futureDataShort fd)
-            ]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        range = W.intervalFrom delDate
-    void $ createTxAndSubmit range (Set.fromList inp) outs
-
--- | Settle the position early if a margin payment has been missed.
-settleEarly :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> OracleValue Ada
-    -> m ()
-settleEarly refs ft fd ov = do
-    let totalVal = Ada.toValue ((futureDataMarginLong fd) + (futureDataMarginShort fd))
-        outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = redeemerScript0 $ Settle ov
-    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs
-
-adjustMargin :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> Ada
-    -> m ()
-adjustMargin refs ft fd vl = do
-    pk <- ownPubKey
-    (payment, change) <- createPaymentWithChange (Ada.toValue vl)
-    fd' <- let fd''
-                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
-                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
-                | otherwise = throwOtherError "Private key is not part of futures contrat"
-            in fd''
-    let
-        red = redeemerScript AdjustMargin
-        ds  = DataScript $ Ledger.lifted fd'
-        o = scriptTxOut outVal (validatorScript ft) ds
-        outVal = Ada.toValue (vl + futureDataMarginLong fd + futureDataMarginShort fd)
-        inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change)
-
-
 -- | Basic data of a futures contract. `Future` contains all values that do not
 --   change during the lifetime of the contract.
 --
@@ -190,6 +106,8 @@ data FutureData = FutureData {
     -- ^ Current balance of the margin account of the short position
     } deriving Generic
 
+PlutusTx.makeIsData ''FutureData
+
 -- | Actions that either participant may take. This is the redeemer script.
 data FutureRedeemer =
       AdjustMargin
@@ -197,6 +115,98 @@ data FutureRedeemer =
     | Settle (OracleValue Ada)
     -- ^ Settle the contract
     deriving Generic
+
+PlutusTx.makeIsData ''FutureRedeemer
+
+-- | Initialise the futures contract by paying the initial margin.
+--
+initialise :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => PubKey
+    -- ^ Identity of the holder of the long position
+    -> PubKey
+    -- ^ Identity of the holder of the short position
+    -> Future
+    -> m ()
+initialise long short f = do
+    let
+        im = futureInitialMargin f
+        o  = scriptTxOut (Ada.toValue im) (validatorScript f) ds
+        ds = DataScript $ PlutusTx.toData $ FutureData long short im im
+
+    (payment, change) <- createPaymentWithChange (Ada.toValue im)
+    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change) [ds]
+
+-- | Close the position by extracting the payment
+settle :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => [TxOutRef]
+    -> Future
+    -> FutureData
+    -> OracleValue Ada
+    -> m ()
+settle refs ft fd ov = do
+    let
+        delDate = futureDeliveryDate ft
+        forwardPrice = futureUnitPrice ft
+        OracleValue _ _ spotPrice = ov
+        delta = (Ada.lovelaceOf $ futureUnits ft) * (spotPrice - forwardPrice)
+        longOut = Ada.toValue ((futureDataMarginLong fd) + delta)
+        shortOut = Ada.toValue ((futureDataMarginShort fd) - delta)
+        red = RedeemerScript $ PlutusTx.toData $ Settle ov
+        dat = DataScript $ PlutusTx.toData $ fd
+        outs = [
+            Ledger.pubKeyTxOut longOut (futureDataLong fd),
+            Ledger.pubKeyTxOut shortOut (futureDataShort fd)
+            ]
+        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
+        range = W.intervalFrom delDate
+    void $ createTxAndSubmit range (Set.fromList inp) outs []
+
+-- | Settle the position early if a margin payment has been missed.
+settleEarly :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => [TxOutRef]
+    -> Future
+    -> FutureData
+    -> OracleValue Ada
+    -> m ()
+settleEarly refs ft fd ov = do
+    let totalVal = Ada.toValue ((futureDataMarginLong fd) + (futureDataMarginShort fd))
+        outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
+        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
+        red = RedeemerScript $ PlutusTx.toData $ Settle ov
+        dat = DataScript $ PlutusTx.toData $ fd
+    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs []
+
+adjustMargin :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => [TxOutRef]
+    -> Future
+    -> FutureData
+    -> Ada
+    -> m ()
+adjustMargin refs ft fd vl = do
+    pk <- ownPubKey
+    (payment, change) <- createPaymentWithChange (Ada.toValue vl)
+    fd' <- let fd''
+                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
+                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
+                | otherwise = throwOtherError "Private key is not part of futures contrat"
+            in fd''
+    let
+        red = RedeemerScript $ PlutusTx.toData AdjustMargin
+        dat  = DataScript $ PlutusTx.toData fd
+        dat'  = DataScript $ PlutusTx.toData fd'
+        o = scriptTxOut outVal (validatorScript ft) dat'
+        outVal = Ada.toValue (vl + futureDataMarginLong fd + futureDataMarginShort fd)
+        inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
+    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change) [dat']
+
 
 -- | Compute the required margin from the current price of the
 --   underlying asset.
@@ -206,15 +216,6 @@ requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMargin
         delta  = (Ada.lovelaceOf units) * (spotPrice - unitPrice)
     in
         pnlty + delta
-
-redeemerScript :: FutureRedeemer -> RedeemerScript
-redeemerScript fr = RedeemerScript $
-    $$(Ledger.compileScript [|| \(d :: FutureRedeemer) -> \(_ :: Sealed (HashedDataScript FutureData)) -> d ||])
-        `Ledger.applyScript`
-            Ledger.lifted fr
-
-redeemerScript0 :: FutureRedeemer -> RedeemerScript
-redeemerScript0 fr = RedeemerScript $ Ledger.lifted fr
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
@@ -227,7 +228,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
         --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
         paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
         paidOutTo vl pk txo =
-            let PendingTxOut vl' _ _ = txo
+            let PendingTxOut vl' _ = txo
                 adaVl' = Ada.fromValue vl'
             in
             isPubKeyOutput txo pk && vl == adaVl'
@@ -284,16 +285,17 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             --
             AdjustMargin ->
                 let
-                    ownHash = fst (Validation.ownHashes p)
+                    (ownHash, _, _) = Validation.ownHashes p
                     vl = Validation.adaLockedBy p ownHash
                 in
                     vl > (futureDataMarginShort + futureDataMarginLong)
 
 validatorScript :: Future -> ValidatorScript
-validatorScript ft = ValidatorScript $
-    $$(Ledger.compileScript [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted ft
+validatorScript ft = Ledger.mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode ft
+    where validatorParam f = Scripts.wrapValidator (mkValidator f)
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData

@@ -64,13 +64,14 @@ renameDatatypeCM
     => Datatype tyname name ann
     -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Datatype tyname name ann))
 renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
-    -- The first stage.
+    -- The first stage (the data type itself, its constructors and its matcher get renamed).
     dataDeclFr  <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
-    paramsFr    <- traverse (ContT . PLC.withFreshenedTyVarDecl) params
-    matchNameFr <- ContT $ PLC.withFreshenedName matchName
     constrsRen  <- traverse (ContT . PLC.withFreshenedVarDecl) constrs
-    -- The second stage (the types of constructors get renamed).
-    pure $ Datatype x dataDeclFr paramsFr matchNameFr <$> sequence constrsRen
+    matchNameFr <- ContT $ PLC.withFreshenedName matchName
+    -- The second stage (the type parameters and types of constructors get renamed).
+    pure $
+        runContT (traverse (ContT . PLC.withFreshenedTyVarDecl) params) $ \paramsFr ->
+            Datatype x dataDeclFr paramsFr matchNameFr <$> sequence constrsRen
 
 -- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingCM
@@ -79,14 +80,14 @@ renameBindingCM
     -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Binding tyname name ann))
 renameBindingCM = \case
     TermBind x s var term -> do
-        -- The first stage.
+        -- The first stage (the variable gets renamed).
         varRen <- ContT $ PLC.withFreshenedVarDecl var
         -- The second stage (the type of the variable and the RHS get renamed).
         pure $ TermBind x s <$> varRen <*> renameTermM term
     TypeBind x var ty -> do
-        -- The First stage.
+        -- The first stage (the variable gets renamed).
         varFr <- ContT $ PLC.withFreshenedTyVarDecl var
-        -- The second stage (the RHS get renamed).
+        -- The second stage (the RHS gets renamed).
         pure $ TypeBind x varFr <$> PLC.renameTypeM ty
     DatatypeBind x datatype ->
         -- Both the stages of 'renameDatatypeCM'.

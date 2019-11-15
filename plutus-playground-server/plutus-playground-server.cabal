@@ -52,6 +52,7 @@ library
         bytestring -any,
         containers -any,
         cookie -any,
+        cryptonite -any,
         exceptions -any,
         file-embed -any,
         filepath -any,
@@ -72,6 +73,7 @@ library
         plutus-tx -any,
         process -any,
         regex-compat -any,
+        serialise -any,
         servant <0.16,
         servant-client -any,
         servant-client-core -any,
@@ -146,6 +148,7 @@ executable plutus-playground-server
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
+        plutus-tx -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
         plutus-playground-usecases -any,
@@ -168,7 +171,6 @@ executable plutus-playground-server
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    build-tool-depends: hspec-discover:hspec-discover -any
     hs-source-dirs: test
     other-modules:
         Playground.UsecasesSpec
@@ -178,11 +180,14 @@ test-suite plutus-playground-server-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists -Wredundant-constraints
+                 -fprint-potential-instances
     build-depends:
         aeson -any,
         base >=4.7 && <5,
         bytestring -any,
-        hspec -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-golden -any,
         insert-ordered-containers -any,
         playground-common -any,
         iots-export -any,

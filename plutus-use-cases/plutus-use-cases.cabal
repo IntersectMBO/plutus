@@ -26,19 +26,19 @@ flag defer-plugin-errors
 library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
+        Language.PlutusTx.Coordination.Contracts.TokenAccount
         Language.PlutusTx.Coordination.Contracts.CrowdFunding
         Language.PlutusTx.Coordination.Contracts.Currency
+        Language.PlutusTx.Coordination.Contracts.Escrow
         Language.PlutusTx.Coordination.Contracts.Future
         Language.PlutusTx.Coordination.Contracts.Game
         Language.PlutusTx.Coordination.Contracts.GameStateMachine
+        Language.PlutusTx.Coordination.Contracts.ErrorHandling
         Language.PlutusTx.Coordination.Contracts.MultiSig
         Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
         Language.PlutusTx.Coordination.Contracts.PubKey
         Language.PlutusTx.Coordination.Contracts.Vesting
         Language.PlutusTx.Coordination.Contracts.Swap
-    other-modules:
-        Language.PlutusTx.Coordination.Contracts.GameStateMachine.Types
-        Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine.Types
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -51,7 +51,8 @@ library
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
-        plutus-contract -any
+        plutus-contract -any,
+        iots-export -any
     build-depends:
         base -any,
         aeson -any,
@@ -75,12 +76,17 @@ test-suite plutus-use-cases-test
     other-modules:
         Spec.Crowdfunding
         Spec.Currency
+        Spec.ErrorHandling
+        Spec.Escrow
         Spec.Future
         Spec.Game
         Spec.GameStateMachine
+        Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine
-        Spec.Lib
+        Spec.PubKey
+        Spec.Rollup
+        Spec.TokenAccount
         Spec.Vesting
     default-language: Haskell2010
     ghc-options: -Wall -Wnoncanonical-monad-instances
@@ -94,6 +100,8 @@ test-suite plutus-use-cases-test
         plutus-emulator -any
     build-depends:
         base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
         containers -any,
         hedgehog -any,
         prettyprinter -any,
@@ -124,6 +132,7 @@ benchmark plutus-use-cases-bench
         cryptonite -any,
         language-plutus-core -any,
         lens -any,
+        memory -any,
         plutus-tx -any,
         plutus-use-cases -any,
         plutus-wallet-api -any,

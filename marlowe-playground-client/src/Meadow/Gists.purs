@@ -16,8 +16,9 @@ import Prelude (($), (<$>), (<<<))
 mkNewGist ::
   Maybe SourceCode ->
   Maybe NewGist
-mkNewGist source = if Array.null gistFiles
-  then Nothing
+mkNewGist source =
+  if Array.null gistFiles then
+    Nothing
   else
     Just
       $ NewGist

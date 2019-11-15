@@ -92,15 +92,15 @@ While the flexible pretty-printing infrastructure is useful when you want it,
 it's helpful to have an implementation of the default Pretty typeclass that
 does the default thing.
 -}
-instance Pretty (Kind a) where
+instance Pretty (Kind ann) where
     pretty = prettyClassicDef
-instance Pretty (Constant a) where
+instance Pretty (Constant ann) where
     pretty = prettyClassicDef
-instance Pretty (Builtin a) where
+instance Pretty (Builtin ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (Type tyname a) => Pretty (Type tyname a) where
+instance PrettyClassic (Type tyname ann) => Pretty (Type tyname ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (Term tyname name a) => Pretty (Term tyname name a) where
+instance PrettyClassic (Term tyname name ann) => Pretty (Term tyname name ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (Program tyname name a) => Pretty (Program tyname name a) where
+instance PrettyClassic (Program tyname name ann) => Pretty (Program tyname name ann) where
     pretty = prettyClassicDef

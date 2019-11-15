@@ -1,34 +1,36 @@
-{-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Validation
     (
     -- * Pending transactions and related types
-      PendingTx(..)
+      PendingTx'(..)
+    , PendingTx
     , PendingTxOut(..)
     , PendingTxOutRef(..)
-    , PendingTxIn(..)
+    , toLedgerTxIn
+    , PendingTxIn'(..)
+    , PendingTxIn
+    , PendingTxInScript
     , PendingTxOutType(..)
-    , findDataScriptOutputs
+    , findData
     , findContinuingOutputs
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
-    , TxHash(..)
-    , plcTxHash
-    , plcDigest
-    , plcCurrencySymbol
-    , validatorScriptHash
+    , scriptCurrencySymbol
     -- * Oracles
     , OracleValue(..)
     -- * Validator functions
@@ -50,26 +52,21 @@ module Ledger.Validation
     , fromSymbol
     ) where
 
-import           Codec.Serialise              (Serialise)
-import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.Hashable                (Hashable)
-import           Data.String                  (IsString)
-import           GHC.Generics                 (Generic)
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Lift       (makeLift)
+import           GHC.Generics              (Generic)
+import           Language.PlutusTx
+import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
-import qualified Prelude                      as Haskell
+import qualified Prelude                   as Haskell
 
-import           Ledger.Ada                   (Ada)
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Crypto                (PubKey (..), Signature (..), plcDigest)
+import           Ledger.Ada                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Crypto             (PubKey (..), Signature (..))
 import           Ledger.Scripts
-import           Ledger.Slot                  (Slot, SlotRange)
-import           Ledger.Tx                    (Address, getAddress, scriptAddress)
-import qualified Ledger.TxId                  as Tx
-import           Ledger.Value                 (CurrencySymbol (..), Value)
-import qualified Ledger.Value                 as Value
-import           LedgerBytes                  (LedgerBytes (..))
+import           Ledger.Slot               (Slot, SlotRange)
+import           Ledger.TxId
+import           Ledger.Value              (CurrencySymbol (..), Value)
+import qualified Ledger.Value              as Value
+import           LedgerBytes               (LedgerBytes (..))
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of
@@ -85,73 +82,79 @@ redeemer and data scripts of all of its inputs and outputs.
 -- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
-    | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    | ScriptTxOut ValidatorHash DataScriptHash -- ^ The hash of the validator script and the data script (see note [Script types in pending transactions])
     deriving (Generic)
 
 -- | An output of a pending transaction.
 data PendingTxOut = PendingTxOut
-    { pendingTxOutValue  :: Value
-    , pendingTxOutHashes :: Maybe (ValidatorHash, DataScriptHash) -- ^ Hashes of validator script and data script.
-    , pendingTxOutData   :: PendingTxOutType
+    { pendingTxOutValue :: Value
+    , pendingTxOutType  :: PendingTxOutType
     } deriving (Generic)
 
 -- | A reference to a transaction output in a pending transaction.
 data PendingTxOutRef = PendingTxOutRef
-    { pendingTxOutRefId  :: TxHash -- ^ Transaction whose output are consumed.
+    { pendingTxOutRefId  :: TxId -- ^ Transaction whose output are consumed.
     , pendingTxOutRefIdx :: Integer -- ^ Index into the referenced transaction's list of outputs.
     } deriving (Generic)
 
--- | An input of a pending transaction.
-data PendingTxIn = PendingTxIn
+-- | An input of a pending transaction, parameterised by its witness.
+data PendingTxIn' w = PendingTxIn
     { pendingTxInRef     :: PendingTxOutRef
-    , pendingTxInWitness :: Maybe (ValidatorHash, RedeemerHash)
+    , pendingTxInWitness :: w
     -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue   :: Value -- ^ Value consumed by this txn input
-    } deriving (Generic)
+    } deriving (Generic, Haskell.Functor)
+
+instance Functor PendingTxIn' where
+    fmap f p = p{pendingTxInWitness = f (pendingTxInWitness p) }
+
+type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash, DataScriptHash))
+type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash, DataScriptHash)
+
+toLedgerTxIn :: PendingTxInScript -> PendingTxIn
+toLedgerTxIn = fmap Just
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
-data PendingTx = PendingTx
+data PendingTx' i = PendingTx
     { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
     , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
     , pendingTxFee        :: Ada -- ^ The fee paid by this transaction.
     , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
-    , pendingTxIn         :: PendingTxIn -- ^ The 'PendingTxIn' being validated against currently.
+    , pendingTxIn         :: i -- ^ The 'PendingTxIn' being validated against currently.
     , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
     , pendingTxSignatures :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
-    , pendingTxHash       :: TxHash
+    , pendingTxData       :: [(DataScriptHash, DataScript)]
+    , pendingTxId         :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
-    } deriving (Generic)
+    } deriving (Generic, Haskell.Functor)
 
-{-# INLINABLE findDataScriptOutputs #-}
--- | Look up a 'DataScriptHash' in the transaction outputs, returning the indexs of the outputs that have
--- that hash, if there are any.
-findDataScriptOutputs :: DataScriptHash -> PendingTx -> [Integer]
-findDataScriptOutputs hsh PendingTx{pendingTxOutputs=outs} = findIndices f outs
+instance Functor PendingTx' where
+    fmap f p = p { pendingTxIn = f (pendingTxIn p) }
+
+type PendingTx = PendingTx' PendingTxInScript
+
+{-# INLINABLE findData #-}
+-- | Find the data corresponding to a data hash, if there is one
+findData :: DataScriptHash -> PendingTx -> Maybe DataScript
+findData dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
     where
-        f PendingTxOut{pendingTxOutHashes=(Just (_, dsh))} = dsh == hsh
-        f _ = False
+        f (dsh', _) = dsh' == dsh
 
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: PendingTx -> [Integer]
-findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = findIndices f outs
+findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = findIndices f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
-        f _ = False
--- Not spending a script output
-findContinuingOutputs _ = []
+        f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
+        f _                                                     = False
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: PendingTx -> [PendingTxOut]
-getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=Just(inpHsh, _)}, pendingTxOutputs=outs} = filter f outs
+getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = filter f outs
     where
-        f PendingTxOut{pendingTxOutHashes=(Just (outHsh, _))} = outHsh == inpHsh
-        f _ = False
--- Not spending a script output
-getContinuingOutputs _ = []
-
-
+        f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
+        f _                                                     = False
 
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this
@@ -207,33 +210,21 @@ them from the correct types in Haskell, and for comparing them (in
 
 -}
 
--- | Script runtime representation of a @Digest SHA256@.
-newtype TxHash =
-    TxHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable)
-
-{-# INLINABLE plcTxHash #-}
--- | Compute the hash of a redeemer script.
-plcTxHash :: Tx.TxId -> TxHash
-plcTxHash = TxHash . plcDigest . Tx.getTxId
-
-{-# INLINABLE plcCurrencySymbol #-}
--- | The 'CurrencySymbol' of an 'Address'
-plcCurrencySymbol :: Address -> CurrencySymbol
-plcCurrencySymbol = Value.currencySymbol . plcDigest . getAddress
+{-# INLINABLE scriptCurrencySymbol #-}
+-- | The 'CurrencySymbol' of an 'ValidatorScript'
+scriptCurrencySymbol :: ValidatorScript -> CurrencySymbol
+scriptCurrencySymbol scrpt = let (ValidatorHash hsh) = validatorHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: PendingTx -> PubKey -> Bool
-txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
+txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxId=txId} k =
     let
         signedBy' :: Signature -> Bool
         signedBy' (Signature sig) =
             let
                 PubKey (LedgerBytes pk) = k
-                TxHash msg           = hash
+                TxId msg                = txId
             in verifySignature pk msg sig
 
         go :: [(PubKey, Signature)] -> Bool
@@ -250,22 +241,20 @@ txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxHash=hash} k =
 {-# INLINABLE pubKeyOutput #-}
 -- | Get the public key that locks the transaction output, if any.
 pubKeyOutput :: PendingTxOut -> Maybe PubKey
-pubKeyOutput o = case pendingTxOutData o of
+pubKeyOutput o = case pendingTxOutType o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
 
 {-# INLINABLE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
-ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash)
-ownHashes (PendingTx _ _ _ _ i _ _ _) = case i of
-    PendingTxIn _ (Just h) _ -> h
-    _                        -> error ()
+ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DataScriptHash)
+ownHashes PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=h}} = h
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: PendingTx -> ValidatorHash
-ownHash p = fst (ownHashes p)
+ownHash p = let (vh, _, _) = ownHashes p in vh
 
 {-# INLINABLE fromSymbol #-}
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
@@ -278,11 +267,9 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
-            case pendingTxOutHashes ptxo of
-                Just (h', ds) -> if h == h'
-                                 then Just (ds, pendingTxOutValue ptxo)
-                                 else Nothing
-                Nothing -> Nothing
+            case pendingTxOutType ptxo of
+                ScriptTxOut h' ds | h == h' -> Just (ds, pendingTxOutValue ptxo)
+                _                           -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
 {-# INLINABLE valueLockedBy #-}
@@ -297,12 +284,9 @@ valueLockedBy ptx h =
 pubKeyOutputsAt :: PubKey -> PendingTx -> [Value]
 pubKeyOutputsAt pk p =
     let flt ptxo =
-            case pendingTxOutData ptxo of
-                PubKeyTxOut pk' ->
-                    if pk' == pk
-                    then Just (pendingTxOutValue ptxo)
-                    else Nothing
-                _ -> Nothing
+            case pendingTxOutType ptxo of
+                PubKeyTxOut pk' | pk' == pk -> Just (pendingTxOutValue ptxo)
+                _                           -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
 {-# INLINABLE valuePaidTo #-}
@@ -320,7 +304,7 @@ adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> PendingTx -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
-    verifySignature pk (let TxHash h = pendingTxHash p in h) sig
+    verifySignature pk (let TxId h = pendingTxId p in h) sig
 
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
@@ -333,14 +317,14 @@ valueSpent p =
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: PendingTx -> CurrencySymbol
 ownCurrencySymbol p =
-    let ValidatorHash h = fst (ownHashes p)
+    let (ValidatorHash h, _, _) = ownHashes p
     in  Value.currencySymbol h
 
 {-# INLINABLE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
-spendsOutput :: PendingTx -> TxHash -> Integer -> Bool
+spendsOutput :: PendingTx -> TxId -> Integer -> Bool
 spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = pendingTxInRef inp
@@ -349,24 +333,20 @@ spendsOutput p h i =
 
     in any spendsOutRef (pendingTxInputs p)
 
-{-# INLINABLE validatorScriptHash #-}
--- | The hash of a 'ValidatorScript'.
-validatorScriptHash :: ValidatorScript -> ValidatorHash
-validatorScriptHash =
-    plcValidatorDigest
-    . getAddress
-    . scriptAddress
-
 makeLift ''PendingTxOutType
+makeIsDataIndexed ''PendingTxOutType [('PubKeyTxOut,0),('ScriptTxOut,1)]
 
 makeLift ''PendingTxOut
+makeIsData ''PendingTxOut
 
 makeLift ''PendingTxOutRef
+makeIsData ''PendingTxOutRef
 
-makeLift ''PendingTxIn
+makeLift ''PendingTxIn'
+makeIsData ''PendingTxIn'
 
-makeLift ''PendingTx
+makeLift ''PendingTx'
+makeIsData ''PendingTx'
 
 makeLift ''OracleValue
-
-makeLift ''TxHash
+makeIsData ''OracleValue

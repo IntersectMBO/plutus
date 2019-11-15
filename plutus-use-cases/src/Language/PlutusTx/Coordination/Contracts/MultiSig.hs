@@ -22,9 +22,11 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
 
 import qualified Data.Map                     as Map
 import qualified Data.Set                     as Set
-import           Language.PlutusTx.Prelude
+import           Data.Foldable                (foldMap)
+import           Language.PlutusTx.Prelude    hiding (foldMap)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
 import           Wallet.API                   as WAPI
 
@@ -38,23 +40,24 @@ data MultiSig = MultiSig
 PlutusTx.makeLift ''MultiSig
 
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
-validate (MultiSig keys num) () () p =
+validate (MultiSig keys num) _ _ p =
     let present = length (filter (V.txSignedBy p) keys)
     in present >= num
 
 msValidator :: MultiSig -> ValidatorScript
-msValidator sig = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| validate ||])
-        `Ledger.applyScript`
-            Ledger.lifted sig
+msValidator sig = mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode sig
+    where validatorParam s = Scripts.wrapValidator (validate s)
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
-msDataScript = DataScript $ Ledger.lifted ()
+msDataScript = DataScript $ PlutusTx.toData ()
 
 -- | Multisig redeemer (unit value).
 msRedeemer :: RedeemerScript
-msRedeemer = RedeemerScript $ Ledger.lifted ()
+msRedeemer = RedeemerScript $ PlutusTx.toData ()
 
 -- | The address of a 'MultiSig' contract.
 msAddress :: MultiSig -> Address
@@ -81,10 +84,10 @@ unlockTx ms = do
     let
 
         mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator msRedeemer
+        mkIn r = Ledger.scriptTxIn r validator msRedeemer msDataScript
 
         ins = Set.map mkIn (Map.keysSet utxos)
-        val = fold (Ledger.txOutValue . snd <$> Map.toList utxos)
+        val = foldMap (Ledger.txOutValue . Ledger.txOutTxOut) utxos
 
     ownOutput <- WAPI.ownPubKeyTxOut val
 
@@ -95,6 +98,7 @@ unlockTx ms = do
                 , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData = Map.empty
                 }
 
     signTxn tx

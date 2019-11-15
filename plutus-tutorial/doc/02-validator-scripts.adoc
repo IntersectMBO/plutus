@@ -2,21 +2,22 @@
 = Ledger and Wallet basics
 ifndef::imagesdir[:imagesdir: ./images]
 
-This tutorial explains how to get Plutus onto the blockchain, using a
+This tutorial explains the basics of writing a Plutus contract, using a
 simple guessing game as an example.
 
 You can run this code in the
-link:{playground}[Plutus Playground] - see <<testing-contract-02>>.
+link:{playground}[Plutus Playground] - see <<02-testing-contract>>.
 
 WARNING: The wallet API and by extension the wallet API tutorial is a
 work in progress and may be changed without notice.
 
-This tutorial has three parts. In part 1 we write the contract,
+This tutorial has three parts. In <<02-contract>> we write the contract,
 including all the data types we need, validator scripts, and contract
 endpoints that handle the interactions between wallet and blockchain. In
-part 2 we show how to test the contract. Part 3 contains a number of
+<<02-testing-contract>> we show how to test the contract. <<02-exercises>> contains a number of
 questions and exercises.
 
+[#02-contract]
 == Contract definition
 
 We need some language extensions and imports:
@@ -25,47 +26,43 @@ We need some language extensions and imports:
 ----
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE ScopedTypeVariables #-} -- <1>
-
-{-# LANGUAGE DeriveGeneric       #-} -- <2>
-
-{-# LANGUAGE OverloadedStrings   #-} -- <3>
-
-{-# LANGUAGE NoImplicitPrelude   #-} -- <4>
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ScopedTypeVariables #-} -- <.>
+{-# LANGUAGE DeriveGeneric       #-} -- <.>
+{-# LANGUAGE OverloadedStrings   #-} -- <.>
+{-# LANGUAGE NoImplicitPrelude   #-} -- <.>
 module Tutorial.ValidatorScripts where
 
-import           Language.PlutusTx.Prelude -- <5>
+import           Language.PlutusTx.Prelude    hiding (Applicative (..)) -- <.>
 
-import qualified Language.PlutusTx            as PlutusTx -- <6>
+import qualified Language.PlutusTx            as PlutusTx -- <.>
 
-import qualified Ledger.Interval              as I
-import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..),
-                                               Signature(..), Slot(..), TxId, ValidatorScript(..))
-import qualified Ledger                       as L -- <7>
+import           Ledger                       (Address, DataScript(..), RedeemerScript(..),
+                                               ValidatorScript, mkValidatorScript)
+import qualified Ledger                       as L -- <.>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
-import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
-import qualified Ledger.Validation            as V -- <8>
+import           Ledger.Typed.Scripts         (wrapValidator)
+import           Ledger.Validation            as V -- <.>
 
-import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet,
-                                               EventHandler(..), EventTrigger)
-import qualified Wallet                       as W -- <9>
+import           Wallet                       (MonadWallet)
 
-import           GHC.Generics                 (Generic)
+import qualified Wallet                       as W -- <.>
 
 import qualified Data.ByteString.Lazy.Char8   as C
 ----
-<1> Needed by the Plutus Tx compiler plugin.
-<2> Needed to allow contract endpoints to be automatically generated in the Plutus Playground.
-<3> Allows us to use string literals for log messages without having to convert them to `Text` first.
-<4> Allows us to use the Plutus Tx Prelude as a replacement for the Haskell Prelude.
-<5> The Plutus Tx Prelude.
-<6> `Language.PlutusTx` lets us translate code between
+<.> Needed by the Plutus Tx compiler plugin.
+<.> Needed to allow contract endpoints to be automatically generated in the Plutus Playground.
+<.> Allows us to use string literals for log messages without having to convert them to `Text` first.
+<.> Allows us to use the Plutus Tx Prelude as a replacement for the Haskell Prelude.
+<.> The Plutus Tx Prelude.
+<.> `Language.PlutusTx` lets us translate code between
 Haskell and Plutus Core (see the xref:01-plutus-tx#plutus-tx[PlutusTx tutorial]).
-<7> link:{wallet-api-haddock}/Ledger.html[`Ledger`] has data types for the ledger model.
-<8> link:{wallet-api-haddock}/Ledger-Validation.html[`Ledger.Validation`] contains types and
+<.> link:{wallet-api-haddock}/Ledger.html[`Ledger`] has data types for the ledger model.
+<.> link:{wallet-api-haddock}/Ledger-Validation.html[`Ledger.Validation`] contains types and
 functions that can be used in on-chain code.
-<9> link:{wallet-api-haddock}/Wallet.html[`Wallet`]
+<.> link:{wallet-api-haddock}/Wallet.html[`Wallet`]
 is the wallet API. It covers interactions with the wallet, for example
 generating the transactions that actually get the crowdfunding contract
 onto the blockchain.
@@ -73,53 +70,65 @@ onto the blockchain.
 === Datatypes
 
 The guessing game involves two moves: First, player A chooses a secret
-word, and uses the game validator script to lock some Ada (the prize),
-providing the hash of the secret word as the data script. Second, player
-B guesses the secret, by attempting to spend A’s transaction output
+word, and uses the game validator script to lock some Ada (the prize)
+in a transaction output, providing the hash of the secret word as the data script. Second, player
+B guesses the secret, by attempting to spend the locked transaction output
 using the guess as a redeemer script.
 
+[NOTE]
+.Why does the data script need to be hashed?
+====
+We need to store enough information that we can validate the guess, but the data script will be
+posted on the blockchain, so if we put the real answer there then someone could just look at it
+to work out what to guess! Storing the hash means we can verify the guess without giving the
+answer away.
+====
+
 Both the hashed secret and the cleartext guess are represented as
-`ByteString` values in on-chain code. `ByteString` represents the usual
-Haskell bytestrings in on-chain code.
+`ByteString` values in the on-chain code.
 
 [source,haskell]
 ----
-data HashedText = HashedText ByteString
-data ClearText = ClearText ByteString -- <1>
+newtype HashedText = HashedText ByteString
+    deriving newtype PlutusTx.IsData
+newtype ClearText = ClearText ByteString -- <.>
+    deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedText
-PlutusTx.makeLift ''ClearText -- <2>
+PlutusTx.makeLift ''ClearText -- <.>
 
 mkDataScript :: String -> DataScript
 mkDataScript word =
-    let hashedWord = L.plcSHA2_256 (C.pack word)
-    in  DataScript (L.lifted (HashedText hashedWord)) -- <3>
+    let hashedWord = sha2_256 (C.pack word)
+    in  DataScript (PlutusTx.toData (HashedText hashedWord)) -- <.>
 
 mkRedeemerScript :: String -> RedeemerScript
 mkRedeemerScript word =
     let clearWord = C.pack word
-    in RedeemerScript (L.lifted (ClearText clearWord)) -- <4>
+    in RedeemerScript (PlutusTx.toData (ClearText clearWord)) -- <.>
 ----
-<1> To avoid any confusion between cleartext and hash we wrap them in data
+<.> To avoid any confusion between cleartext and hash we wrap them in data
 types called `HashedText` and `ClearText`, respectively.
-<2> To enable values of our string types to be lifted to Plutus Core, we
+<.> To enable values of our string types to be lifted to Plutus Core, we
 need to call `makeLift`.
-<3> `mkDataScript` creates a data script for the guessing game by hashing
+<.> `mkDataScript` creates a data script for the guessing game by hashing
 the string and lifting the hash to its on-chain representation.
-<4> `mkRedeemerScript` creates a redeemer script for the guessing game by
-lifting the string to its on-chain representation
+<.> `mkRedeemerScript` creates a redeemer script for the guessing game by
+lifting the string to its on-chain representation.
 
 === The validator script
 
+-- TODO: Update for Data
+
 The general form of a validator script is
-`DataScript -> Redeemer -> PendingTx -> Bool`. That is, the validator
+`Data -> Redeemer -> PendingTx -> Bool`. That is, the validator
 script is a function of three arguments that produces a value of type
 `Bool` indicating whether the validation was a success (or fails with an
 error). As contract authors we can freely choose the types of
-`DataScript`, `Redeemer`. The third argument has to be of type
+`Data`, and `Redeemer`. The third argument has to be of type
 link:{wallet-api-haddock}/Ledger-Validation.html#t:PendingTx[`PendingTx`]
 because that is the information about the current transaction, provided
-by the slot leader.
+by the validating node.
 
 In our case, the data script is a `HashedText`, and the redeemer is a
 `ClearText`. This gives us a script with the signature
@@ -129,51 +138,49 @@ In our case, the data script is a `HashedText`, and the redeemer is a
 ----
 -- | The validator script of the game.
 validator
-  :: HashedText -- <1>
-  -> ClearText -- <2>
+  :: HashedText
+  -> ClearText
   -> PendingTx
   -> Bool
 ----
-<1> The type of the data script is `HashedText`.
-<2> The type of the redeemer is `ClearText`.
 
-The actual game logic is very simple: We compare the hash of the
-`guessed` argument with the `actual` secret hash, and throw an error if
-the two don’t match. We can use functions from the Plutus prelude, imported as `P`.
+The actual game logic is very simple: we compare the hash of the
+`guessed` argument with the `actual` secret hash, returning whether
+or not they match.
 
 [source,haskell]
 ----
 validator (HashedText actual) (ClearText guessed) _ =
-    if actual == (sha2_256 guessed) -- <1>
-    then traceH "RIGHT!" True -- <2>
+    if actual == (sha2_256 guessed) -- <.>
+    then traceH "RIGHT!" True -- <.>
     else traceH "WRONG!" False
 ----
-<1> We have an instance of `Eq` for `ByteString`, so we can just use `==` here to compare for equality.
-<2> `traceH {2c} String -> a -> a` returns its second argument after adding
+<.> We have an instance of `Eq` for `ByteString`, so we can just use `==` here to compare for equality.
+<.> `traceH {2c} String -> a -> a` returns its second argument after adding
 its first argument to the log output of this script. The log output is
 only available in the emulator and on the playground, and will be
 ignored when the code is run on the real blockchain.
 
-Finally, we can use `L.compileScript` to compile this into on-chain
-code. The reference to the validator script that we defined needs to be
-wrapped in Template Haskell _quotes_ (`[||` and `||]`), and then the
-result of `L.compileScript` must be _spliced_ in with `$$`. However, the
-form that we use here is the same every time, so you don’t need to
-understand how Template Haskell works in detail.
+Finally, we can compile this into on-chain code.
 
 [source,haskell]
 ----
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript $$(L.compileScript [|| validator ||])
+gameValidator = mkValidatorScript $$(PlutusTx.compile [|| v ||]) -- <.>
+    where v = wrapValidator validator
 ----
+<.> The reference to the validator script that we defined
+is wrapped in Template Haskell quotes, and then the
+result of `PlutusTx.compile` is spliced in (see xref:01-plutus-tx#plutus-tx[PlutusTx tutorial] for further explanation of this pattern).
 
 === Contract endpoints
 
 We can now use the wallet API to create a transaction that produces an
-output locked by the game validator. This means the address of the
+output locked by the game validator. This means that the _address_ of the
 output is the hash of the validator script, and the output can only be
-spent if the correct redeemer is provided.
+spent if the correct redeemer is provided so that the validator accepts
+the spend.
 
 To create the output we need to know the address, that is the hash of
 the `gameValidator` script:
@@ -186,37 +193,39 @@ gameAddress = L.scriptAddress gameValidator
 
 Contract endpoints are functions that use the wallet API to interact
 with the blockchain. To contract users, endpoints are the visible
-interface of the contract. They provide a UI (HTML form) for entering
-the parameters of the actions we may take as part of the contract.
+interface of the contract. A contract environment (such as the Playground)
+may provide a UI for entering
+the parameters of the actions provided by the endpoints.
 
 When writing smart contracts we define their endpoints as functions that
 return a value of type `MonadWallet m => m ()`. This type indicates that
 the function uses the wallet API to produce and spend transaction
 outputs on the blockchain.
 
-Since `MonadWallet` is a sub-class of `Monad` we can use Haskell’s `do`
-notation, allowing us to list our instructions to the wallet in a
-sequence (see https://en.wikibooks.org/wiki/Haskell/do_notation[here]
-for more information).
-
 The first endpoint we need for our game is the function `lock`. It pays
-the specified amount of Ada to the script address. Paying to a script
-address is a common task at the beginning of a contract, and the wallet
-API implements it in
-link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`].
-The underscore is a Haskell naming convention, indicating that
-link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`]
-is a variant of
-link:{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`]
-which ignores its return value and produces a `()` instead.
+the specified amount of Ada to the script address.
 
 [source,haskell]
 ----
 -- | The "lock" contract endpoint.
 lock :: MonadWallet m => String -> Ada -> m ()
-lock word adaValue =
-    W.payToScript_ W.defaultSlotRange gameAddress (Ada.toValue adaValue) (mkDataScript word)
+lock word adaValue = W.payToScript_ -- <.>
+     W.defaultSlotRange -- <.>
+     gameAddress
+     (Ada.toValue adaValue) -- <.>
+     (mkDataScript word)
 ----
+<.> `payToScript_` is a function of the wallet API. It makes a payment to a script address
+of the specified value.footnote:[
+The underscore is a Haskell naming convention, indicating that
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript_[`payToScript_`]
+is a variant of
+link:{wallet-api-haddock}/Wallet-API.html#v:payToScript[`payToScript`]
+which ignores its return value and produces a `()` instead.]
+<.> Transactions have a _validity range_ of slots that controls when they can be validated.
+The default range is "always".
+<.> "Value" on Cardano is more general than just `Ada`. We will see more about this later,
+but for now `toValue` allows us to convert our `Ada` into a general `Value`.
 
 The second endpoint, `guess`, creates a transaction that spends the game
 output using the guessed word as a redeemer.
@@ -225,16 +234,19 @@ output using the guessed word as a redeemer.
 ----
 -- | The "guess" contract endpoint.
 guess :: MonadWallet m => String -> m ()
-guess word = W.collectFromScript W.defaultSlotRange gameValidator (mkRedeemerScript word) -- <1>
+guess word = W.collectFromScript -- <.>
+      W.defaultSlotRange
+      gameValidator
+      (mkRedeemerScript word)
 ----
-<1> `collectFromScript` is a function of the wallet API. It consumes the
+<.> `collectFromScript` is a function of the wallet API. It consumes the
 unspent transaction outputs at a script address and pays them to a
 public key address owned by this wallet. It takes the validator script
 and the redeemer scripts as arguments.
 
 If we run `guess` now, nothing will happen. Why? Because in order to
 spend all outputs at the script address, the wallet needs to be aware of
-this address before the outputs are produced. That way, it can scan
+this address _before_ the outputs are produced. That way, it can scan
 incoming blocks from the blockchain for outputs at that address, and
 doesn’t have to keep a record of all unspent outputs of the entire
 blockchain. So before the game starts, players need to run the following
@@ -245,13 +257,20 @@ action:
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script.
 startGame :: MonadWallet m => m ()
-startGame = W.startWatching gameAddress -- <1>
+startGame = W.startWatching gameAddress -- <.>
 ----
-<1> `startWatching` is a function of the wallet API. It instructs the wallet
+<.> `startWatching` is a function of the wallet API. It instructs the wallet
 to keep track of all outputs at the address.
 
+[NOTE]
+.What if I need to know about transactions that happened in the past?
+====
+At the moment, the wallet API assumes that you only care about transactions
+that happen after the contract begins. This may well change in the future, however.
+====
+
 Player 2 needs to call `startGame` before Player 1 uses the `lock` endpoint,
-to ensure that Player 2's wallet is aware of the game address.
+to ensure that Player 2's wallet is watching of the game address.
 
 Endpoints can have any number of parameters: `lock` has two parameters,
 `guess` has one and `startGame` has none. For each endpoint we include a
@@ -262,15 +281,18 @@ Haskell compiler to generate a schema for the endpoint. The Plutus
 Playground then uses this schema to present an HTML form to the user
 where the parameters can be entered.
 
-[#testing-contract-02]
+[#02-testing-contract]
 == Testing the contract
 
 To test this contract, open the
 link:{playground}[Plutus Playground] and click
 the "Game" button above the editor field. Then click "Compile".
 
-You can now create a trace using the endpoints `lock`, `guess` and
-`startGame`. For a successful run of the game, click Wallet 1’s
+You can now create a _trace_ using the endpoints `lock`, `guess` and
+`startGame`. A trace represents a series of events in the execution of
+a conract, such as participants taking actions or time passing.
+
+For a successful run of the game, click Wallet 1’s
 `startGame` button, then Wallet 2’s `lock` button and finally Wallet 1’s
 `guess` button. Three boxes appear in the "Actions" section, numbered
 1 to 3. In the second box, type "plutus" in the first input and 8 in

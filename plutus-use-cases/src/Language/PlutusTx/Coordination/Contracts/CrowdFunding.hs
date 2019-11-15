@@ -4,21 +4,26 @@
 -- number of inputs a transaction can have.
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
+    , CrowdfundingSchema
     , crowdfunding
     , theCampaign
     -- * Functionality for campaign contributors
@@ -39,27 +44,32 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative            (Alternative(..))
+import           Data.Aeson                     (ToJSON, FromJSON)
+import           Control.Applicative            (Alternative(..), Applicative(..))
 import           Control.Lens                   ((&), (.~), (^.))
 import           Control.Monad                  (Monad((>>)), void)
 import qualified Data.Set                       as Set
+import           GHC.Generics                   (Generic)
+import           IOTS                           (IotsType)
+
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
+import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude hiding ((>>), return, (>>=))
+import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), (<$>), Applicative (..))
 import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Interval                as Interval
 import           Ledger.Slot                    (SlotRange)
-import qualified Ledger.Typed.Tx                as Typed
+import qualified Ledger.Typed.Scripts           as Scripts
 import           Ledger.Validation              as V
 import           Ledger.Value                   (Value)
 import qualified Ledger.Value                   as VTH
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as Emulator
+import qualified Prelude                        as Haskell
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -82,12 +92,19 @@ PlutusTx.makeLift ''Campaign
 --
 data CampaignAction = Collect | Refund
 
+PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 type CrowdfundingSchema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
-        .\/ Endpoint "contribute" (PubKey, Value)
+        .\/ Endpoint "contribute" Contribution
+
+newtype Contribution = Contribution
+        { contribValue :: Value
+        -- ^ how much to contribute
+        } deriving stock (Haskell.Eq, Show, Generic)
+          deriving anyclass (ToJSON, FromJSON, IotsType)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -110,14 +127,17 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
-
 data CrowdFunding
-instance Typed.ScriptType CrowdFunding where
+instance Scripts.ScriptType CrowdFunding where
     type instance RedeemerType CrowdFunding = CampaignAction
     type instance DataType CrowdFunding = PubKey
 
-scriptInstance :: Campaign -> Typed.ScriptInstance CrowdFunding
-scriptInstance cmp = Typed.Validator $ $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.unsafeLiftCode cmp
+scriptInstance :: Campaign -> Scripts.ScriptInstance CrowdFunding
+scriptInstance cmp = Scripts.Validator @CrowdFunding
+    ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator @PubKey @CampaignAction
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
@@ -133,7 +153,7 @@ validCollection campaign p =
     && (p `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Campaign -> (PubKey -> CampaignAction -> PendingTx -> Bool)
+mkValidator :: Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool
 mkValidator c con act p = case act of
     Refund  -> validRefund c con p
     Collect -> validCollection c p
@@ -142,14 +162,14 @@ mkValidator c con act p = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> ValidatorScript
-contributionScript = Typed.validatorScript . scriptInstance
+contributionScript = Scripts.validatorScript . scriptInstance
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
-campaignAddress = Typed.scriptAddress . scriptInstance
+campaignAddress = Scripts.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: Campaign -> Contract CrowdfundingSchema ()
+crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 crowdfunding c = contribute c <|> scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
@@ -165,25 +185,25 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: Campaign -> Contract CrowdfundingSchema ()
+contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
-    (ownPK, contribution) <- endpoint @"contribute"
-    let ds = Ledger.DataScript (Ledger.lifted ownPK)
-        tx = payToScript contribution (campaignAddress cmp) ds
+    Contribution{contribValue} <- endpoint @"contribute"
+    contributor <- ownPubKey
+    let ds = Ledger.DataScript (PlutusTx.toData contributor)
+        tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
-    writeTx tx
+    txId <- writeTxSuccess tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
+
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
 
-    -- Finding "our" output is a bit fiddly since we don't know the transaction
-    -- ID of 'tx'. So we use `collectFromScriptFilter` to collect only those
-    -- outputs whose data script is our own public key (in 'ds')
-    let flt _ txOut = Ledger.txOutData txOut == Just ds
-        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Refund)
+    let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
+        tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
+                & requiredSignatures .~ [contributor]
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
     else pure ()
@@ -191,7 +211,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: Campaign -> Contract CrowdfundingSchema ()
+scheduleCollection :: Campaign -> Contract CrowdfundingSchema e ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
@@ -199,44 +219,36 @@ scheduleCollection cmp = do
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
 
-    -- 'trg' describes the conditions for a successful campaign. It returns a
-    -- tuple with the unspent outputs at the campaign address, and the current
-    -- slot.
-    let trg = both
-                (fundsAtAddressGt (campaignAddress cmp) (campaignTarget cmp))
-                (awaitSlot (campaignDeadline cmp))
+    _ <- awaitSlot (campaignDeadline cmp)
+    unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    -- We can only collect the contributions if 'trg' returns before the
-    -- campaign collection deadline, so we use the 'timeout' combinator.
-    void $ timeout (campaignCollectionDeadline cmp) $ do
-        (outxo, _) <- trg
-        let tx = Typed.collectFromScriptFilter (\_ _ -> True) outxo (scriptInstance cmp) (PlutusTx.unsafeLiftCode Collect)
-                    & validityRange .~ collectionRange cmp
-        writeTx tx
+    let tx = Typed.collectFromScript unspentOutputs (scriptInstance cmp) Collect
+            & validityRange .~ collectionRange cmp
+    void $ writeTx tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
-    :: ( MonadEmulator m  )
-    => ContractTrace CrowdfundingSchema m a ()
+    :: ( MonadEmulator (TraceError e) m  )
+    => ContractTrace CrowdfundingSchema e m () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
         >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator m )
+    :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> Value
-    -> ContractTrace CrowdfundingSchema m a ()
+    -> ContractTrace CrowdfundingSchema e m () ()
 makeContribution w v =
-    Trace.callEndpoint @"contribute" w (Trace.walletPubKey w, v)
+    Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator m )
-    => ContractTrace CrowdfundingSchema m a ()
+    :: ( MonadEmulator (TraceError e) m )
+    => ContractTrace CrowdfundingSchema e m () ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)

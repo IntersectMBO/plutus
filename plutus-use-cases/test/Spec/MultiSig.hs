@@ -1,11 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 module Spec.MultiSig(tests) where
 
 import           Control.Lens
 import           Control.Monad                                     (void)
-import           Control.Monad.Except
+import           Control.Monad.Error.Lens
 import           Data.Either                                       (isLeft, isRight)
 import qualified Data.Map                                          as Map
 import qualified Data.Text                                         as T
@@ -18,7 +19,7 @@ import qualified Test.Tasty.HUnit                                  as HUnit
 import qualified Language.PlutusTx as PlutusTx
 
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import           Ledger                                            (PrivateKey, Tx, hashTx, signatures, toPublicKey)
+import           Ledger                                            (PrivateKey, Tx, txId, signatures, toPublicKey)
 import qualified Ledger.Ada                                        as Ada
 import qualified Ledger.Crypto                                     as Crypto
 import qualified Wallet.API                                        as WAPI
@@ -34,7 +35,7 @@ tests = testGroup "multisig" [
 nOutOfFiveTest :: Int -> HUnit.Assertion
 nOutOfFiveTest i = do
     let initialState = EM.emulatorStateInitialDist (Map.singleton (EM.walletPubKey (EM.Wallet 1)) (Ada.adaValueOf 10))
-        (result, _) = EM.runEmulator initialState (threeOutOfFive i)
+        (result, _) = EM.runEmulator @EM.AssertionError initialState (threeOutOfFive i)
         isOk = if i < 3 then isLeft result else isRight result
     HUnit.assertBool "transaction failed to validate" isOk
 
@@ -42,7 +43,7 @@ nOutOfFiveTest i = do
 --   contract, and attempts to spend them using the given number of signatures.
 --   @threeOutOfFive 3@ passes, @threeOutOfFive 2@ results in an
 --   'EM.AssertionError'.
-threeOutOfFive :: (EM.MonadEmulator m) => Int -> m ()
+threeOutOfFive :: (EM.MonadEmulator e m) => Int -> m ()
 threeOutOfFive n = do
 
     let
@@ -66,7 +67,7 @@ threeOutOfFive n = do
             processAndNotify
             EM.runWalletAction w2 (unlockTx ms)
 
-    tx <- either (throwError . EM.AssertionError . T.pack . show) pure r
+    tx <- either (throwing EM._AssertionError . EM.GenericAssertion . T.pack . show) pure r
 
     let
         -- Attach signatures of the first @n@ wallets' private keys to 'tx'.
@@ -84,5 +85,5 @@ threeOutOfFive n = do
 -- | Attach a signature to a transaction.
 attachSignature :: PrivateKey -> Tx -> Tx
 attachSignature pk tx' =
-    let sig = Crypto.signTx (hashTx tx') pk
+    let sig = Crypto.signTx (txId tx') pk
     in  tx' & signatures . at (toPublicKey pk) ?~ sig

@@ -1,9 +1,9 @@
 [#intro]
-= Introduction to Plutus
+= Introduction to the Plutus Platform
 
-Plutus is the smart contract platform of the Cardano blockchain. Plutus
-contracts consist of pieces that go on the blockchain (on-chain code)
-and pieces that run on the user’s machine (off-chain or client code).
+The Plutus Platform is the smart contract platform of the Cardano blockchain. Plutus
+contracts consist of pieces that run on the blockchain (_on-chain_ code)
+and pieces that run on a user’s machine (_off-chain_ or _client_ code).
 
 Both on-chain and off-chain code is written in Haskell, and Plutus smart
 contracts are Haskell programs. Off-chain code is compiled by GHC, the
@@ -19,30 +19,25 @@ identified by their public keys, and they may be people or machines.
 
 Smart contracts are programs that control the transfer of resources on
 the blockchain. When two parties decide to enter a smart contract, they
-place some of their own assets under the control of the contract. Every
-time somenone wants to take assets out of the contract, the program is
-run and only if its output is positive are the assets released.
+place some of their own assets under the control of an on-chain program
+which enforces the rules of the contract. Every
+time someone wants to take assets out of the contract, the program is
+run, and only if its output is positive are the assets released.
 
-On the Cardano blockchain, the programs that run on the blockchain are
+On the Cardano blockchain, the on-chain programs are
 written in a language called _Plutus Core_. However, smart contract
 authors do not write Plutus Core directly. The Plutus Platform is a
-software development kit to enable smart contract authors to easily
+software development kit which enables smart contract authors to easily
 write smart contracts, including the logic that will eventually be run
 on the blockchain as Plutus Core.
 
-To code a smart contract in Plutus, you can code directly in the 
-{playground}[Plutus Playground]. 
-The Plutus Playground is a lightweight, web-based environment 
-for exploratory Plutus development. Here you can easily write and deploy your 
-contracts without the overhead of installing and maintaining a full development 
-environment and blockchain. 
+To write a smart contract using the Plutus Platform, you can code directly in the
+{playground}[Plutus Playground].
+The Plutus Playground is a lightweight, web-based environment
+for exploratory Plutus development. Here you can easily write and
+simulate deployment of  your
+contracts without the overhead of installing and maintaining a full development
+environment.
 
-You can also use your preferred code editor and save the 
-files in Haskell format (`.hs`) to get the syntax highlighting, 
-and most important, you can write on-chain and off-chain code in the same file, 
-with the same syntax. You can use the same data types on both sides, 
-and they will be converted automatically.
-
-Once you have coded your smart contract, you can copy it in the 
-Plutus Playground where you will be able to compile it to Plutus Core 
-and test its behavior.
+You can also use a normal Haskell development environment on your computer to
+write Plutus programs. See the main {repo}[Plutus repository] for more information.

@@ -264,7 +264,9 @@ resource "aws_security_group" "bastion" {
 }
 
 resource "aws_route53_zone" "plutus_private_zone" {
-  vpc_id = "${aws_vpc.plutus.id}"
+  vpc = {
+    vpc_id = "${aws_vpc.plutus.id}"
+  }
   name   = "internal.${var.env}.${var.plutus_tld}"
 
   tags = {

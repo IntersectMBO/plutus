@@ -3,9 +3,9 @@ module Marlowe.Pretty where
 import Prelude
 import Data.BigInt (BigInt, toString)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
-import Data.Monoid (mempty)
+import Data.List (List)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
-import Text.PrettyPrint.Leijen (Doc, hang, line, parens, space, text)
+import Text.PrettyPrint.Leijen (Doc, hang, line, list, parens, space, text)
 import Type.Data.Boolean (kind Boolean)
 
 pretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
@@ -13,6 +13,15 @@ pretty x = pretty1 true (from x)
 
 class Pretty a where
   prettyFragment :: a -> Doc
+
+instance prettyString :: Pretty String where
+  prettyFragment = text <<< show
+
+instance prettyList :: Pretty a => Pretty (List a) where
+  prettyFragment = text <<< show <<< map prettyFragment
+
+instance prettyArray :: Pretty a => Pretty (Array a) where
+  prettyFragment xs = list (map prettyFragment xs)
 
 genericPretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
 genericPretty x = pretty1 false (from x)

@@ -2,16 +2,14 @@ module Marlowe.ParserTests where
 
 import Prelude
 import Control.Alternative ((<|>))
-import Control.Lazy (class Lazy)
-import Control.Monad.Gen (class MonadGen)
-import Control.Monad.Rec.Class (class MonadRec)
+import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
-import Marlowe.Gen (genContract, genObservation, genValue)
-import Marlowe.Parser (contract, observation, value)
+import Marlowe.Gen (genAction, genContract, genObservation, genValue)
+import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
+import Marlowe.Holes (Action, Contract, Observation, Value)
+import Marlowe.Parser (action, contract, observation, value)
 import Marlowe.Pretty (pretty)
-import Marlowe.Types (Contract, Observation, Value)
 import Test.QuickCheck (class Testable, Result, (===))
-import Test.QuickCheck.Gen (Gen)
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import Text.Parsing.Parser (runParser)
@@ -25,38 +23,85 @@ all =
     test "Pretty Value Parser" $ quickCheckGen prettyValueParser
     test "Observation Parser" $ quickCheckGen observationParser
     test "Pretty Observation Parser" $ quickCheckGen prettyObservationParser
+    test "Action Parser" $ quickCheckGen actionParser
+    test "Pretty Action Parser" $ quickCheckGen prettyActionParser
     test "Contract Parser" $ quickCheckGen contractParser
     test "Pretty Contract Parser" $ quickCheckGen prettyContractParser
 
-quickCheckGen :: forall prop. Testable prop => Gen prop -> Test
-quickCheckGen = quickCheck
+quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
+quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
 
-valueParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Result
+-- NOTE: If a generated value has a hole in it, the start and end positions in that
+--       hole will not be the same as when they have been parsed so we `show` the
+--       results to avoid this issue
+valueParser :: GenWithHoles Result
 valueParser = do
   v <- genValue
-  pure (runParser (show v) (parens value <|> value) === Right v)
+  let
+    result = runParser (show v) (parens value <|> value)
 
-prettyValueParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => m Result
+    (expected :: Either String Value) = Right v
+  pure (show result === show expected)
+
+prettyValueParser :: GenWithHoles Result
 prettyValueParser = do
   v <- genValue
-  pure (runParser (show $ pretty v) (parens value <|> value) === Right v)
+  let
+    result = runParser (show $ pretty v) (parens value <|> value)
 
-observationParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => m Result
+    (expected :: Either String Value) = Right v
+  pure (show result === show expected)
+
+observationParser :: GenWithHoles Result
 observationParser = do
   v <- genObservation
-  pure (runParser (show v) (parens observation <|> observation) === Right v)
+  let
+    result = runParser (show v) (parens observation <|> observation)
 
-prettyObservationParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => m Result
+    (expected :: Either String Observation) = Right v
+  pure (show result === show expected)
+
+prettyObservationParser :: GenWithHoles Result
 prettyObservationParser = do
   v <- genObservation
-  pure (runParser (show $ flatten $ pretty v) (parens observation <|> observation) === Right v)
+  let
+    result = runParser (show $ flatten $ pretty v) (parens observation <|> observation)
 
-contractParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => Lazy (m Contract) => m Result
+    (expected :: Either String Observation) = Right v
+  pure (show result === show expected)
+
+actionParser :: GenWithHoles Result
+actionParser = do
+  v <- genAction 5
+  let
+    result = runParser (show v) (parens action <|> action)
+
+    (expected :: Either String Action) = Right v
+  pure (show result === show expected)
+
+prettyActionParser :: GenWithHoles Result
+prettyActionParser = do
+  v <- genAction 5
+  let
+    result = runParser (show $ flatten $ pretty v) (parens action <|> action)
+
+    (expected :: Either String Action) = Right v
+  pure (show result === show expected)
+
+contractParser :: GenWithHoles Result
 contractParser = do
   v <- genContract
-  pure (runParser (show v) (parens contract <|> contract) === Right v)
+  let
+    result = runParser (show v) (parens contract <|> contract)
 
-prettyContractParser :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => Lazy (m Contract) => m Result
+    (expected :: Either String Contract) = Right v
+  pure (show result === show expected)
+
+prettyContractParser :: GenWithHoles Result
 prettyContractParser = do
   v <- genContract
-  pure (runParser (show $ pretty v) (parens contract <|> contract) === Right v)
+  let
+    result = runParser (show $ pretty v) (parens contract <|> contract)
+
+    (expected :: Either String Contract) = Right v
+  pure (show result === show expected)

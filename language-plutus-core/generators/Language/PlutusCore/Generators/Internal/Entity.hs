@@ -22,6 +22,7 @@ module Language.PlutusCore.Generators.Internal.Entity
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.Dependent
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
@@ -103,13 +104,13 @@ withTypedBuiltinGen k = Gen.choice
 withCheckedTermGen
     :: Monad m
     => TypedBuiltinGenT m
-    -> (forall a. AsKnownType a -> Maybe (TermOf (Value TyName Name ())) -> GenT m c)
+    -> (forall a. AsKnownType a -> TermOf EvaluationResultDef -> GenT m c)
     -> GenT m c
 withCheckedTermGen genTb k =
     withTypedBuiltinGen $ \akt@AsKnownType -> do
         termWithMetaValue <- genTb akt
-        let mayTermWithValue = unsafeTypeEvalCheck termWithMetaValue
-        k akt mayTermWithValue
+        let termWithResult = unsafeTypeEvalCheck termWithMetaValue
+        k akt termWithResult
 
 -- | Generate an 'IterAppValue' from a 'Denotation'.
 -- If the 'Denotation' has a functional type, then all arguments are generated and

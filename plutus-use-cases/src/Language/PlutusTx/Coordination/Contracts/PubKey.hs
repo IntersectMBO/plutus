@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -10,46 +11,59 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(lock) where
+module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract) where
 
-import           Data.Maybe (listToMaybe)
+import           Control.Monad.Error.Lens (throwing)
+
 import qualified Data.Map   as Map
-import qualified Data.Text  as Text
+import qualified Data.Text  as T
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
-import           Wallet.API                   as WAPI
+
+import           Language.Plutus.Contract     as Contract
 
 mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
-mkValidator pk' () () p = V.txSignedBy p pk'
+mkValidator pk' _ _ p = V.txSignedBy p pk'
 
 pkValidator :: PubKey -> ValidatorScript
-pkValidator pk = ValidatorScript $
-    Ledger.fromCompiledCode $$(PlutusTx.compile [|| mkValidator ||])
-        `Ledger.applyScript`
-            Ledger.lifted pk
+pkValidator pk = mkValidatorScript $
+    $$(PlutusTx.compile [|| validatorParam ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode pk
+    where validatorParam k = Scripts.wrapValidator (mkValidator k)
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
-lock :: (WalletAPI m, WalletDiagnostics m) => PubKey -> Value -> m (Address, TxIn)
-lock pk vl = getRef =<< payToScript defaultSlotRange addr vl pkDataScript where
-    addr = Ledger.scriptAddress (pkValidator pk)
-    pkDataScript = DataScript $ Ledger.lifted ()
-    pkRedeemer = RedeemerScript $ Ledger.lifted ()
+pubKeyContract
+    :: forall s e.
+    ( HasWatchAddress s
+    , HasWriteTx s
+    , AsContractError e)
+    => PubKey
+    -> Value
+    -> Contract s e TxIn
+pubKeyContract pk vl = do
+    let address = Ledger.scriptAddress (pkValidator pk)
+        tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
+    tid <- writeTxSuccess tx
 
-    getRef tx = do
-        let scriptOuts = listToMaybe
-                            $ fmap fst
-                            $ filter ((==) addr . txOutAddress . snd)
-                            $ Map.toList (unspentOutputsTx tx)
-
-        txin <- case scriptOuts of
-                    Nothing -> throwOtherError
-                                $ "transaction did not contain script output"
-                                <> "for public key '"
-                                <> Text.pack (show pk)
-                                <> "'"
-                    Just o  -> pure (scriptTxIn o (pkValidator pk) pkRedeemer)
-
-        pure (addr, txin)
+    ledgerTx <- awaitTransactionConfirmed address tid
+    let output = Map.keys
+                $ Map.filter ((==) address . txOutAddress)
+                $ unspentOutputsTx ledgerTx
+    ref <- case output of
+        [] -> throwing _OtherError $
+            "Transaction did not contain script output"
+            <> "for public key '"
+            <> T.pack (show pk)
+            <> "'"
+        [o] -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ()) (DataScript $ PlutusTx.toData ())
+        _ -> throwing _OtherError $
+            "Transaction contained multiple script outputs"
+            <> "for public key '"
+            <> T.pack (show pk)
+            <> "'"
+    pure ref

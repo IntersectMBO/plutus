@@ -6,6 +6,10 @@ import Halogen.HTML.Properties (class_)
 data Icon
   = CreditCard
   | LongArrowAltDown
+  | ArrowUp
+  | ArrowRight
+  | ArrowDown
+  | ArrowLeft
   | Close
   | Check
   | Bitcoin
@@ -24,13 +28,20 @@ data Icon
   | HourglassEnd
 
 icon :: forall p i. Icon -> HTML p i
-icon iconType =
-  i [ class_ (iconClass iconType) ] []
+icon iconType = i [ class_ (iconClass iconType) ] []
 
 iconClass :: Icon -> ClassName
 iconClass CreditCard = ClassName "fa fa-credit-card"
 
 iconClass LongArrowAltDown = ClassName "fa fa-long-arrow-alt-down"
+
+iconClass ArrowUp = ClassName "fa fa-arrow-up"
+
+iconClass ArrowRight = ClassName "fa fa-arrow-right"
+
+iconClass ArrowDown = ClassName "fa fa-arrow-down"
+
+iconClass ArrowLeft = ClassName "fa fa-arrow-left"
 
 iconClass Close = ClassName "fa fa-close"
 

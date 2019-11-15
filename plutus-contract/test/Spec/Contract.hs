@@ -1,16 +1,24 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests) where
 
-import           Data.Either                           (isLeft)
+import           Control.Lens                          ((&), (.~))
+import           Control.Monad                         (void)
+import           Control.Monad.Error.Lens
 import           Test.Tasty
 
 import           Language.Plutus.Contract              as Con
+import           Language.Plutus.Contract.Tx           as Tx
 import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
 import           Language.PlutusTx.Lattice
+import qualified Language.PlutusTx                     as PlutusTx
 import           Ledger                                (Address)
 import qualified Ledger                                as Ledger
 import qualified Ledger.Ada                            as Ada
@@ -20,41 +28,41 @@ import qualified Wallet.Emulator                       as EM
 import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 
 tests :: TestTree
-tests = 
-    let cp = checkPredicate @Schema in
+tests =
+    let cp = checkPredicate @Schema @ContractError in
     testGroup "contracts"
         [ cp "awaitSlot"
-            (awaitSlot 10)
+            (void $ awaitSlot 10)
             (waitingForSlot w1 10)
             $ pure ()
 
         , cp "selectEither"
-            (selectEither (awaitSlot 10) (awaitSlot 5))
+            (void $ selectEither (awaitSlot 10) (awaitSlot 5))
             (waitingForSlot w1 5)
             $ pure ()
 
         , cp "until"
-            (awaitSlot 10 `Con.until` 5)
+            (void $ awaitSlot 10 `Con.until` 5)
             (waitingForSlot w1 5)
             $ pure ()
 
         , cp "both"
-            (Con.both (awaitSlot 10) (awaitSlot 20))
+            (void $ Con.both (awaitSlot 10) (awaitSlot 20))
             (waitingForSlot w1 10)
             $ pure ()
 
         , cp "both (2)"
-            (Con.both (awaitSlot 10) (awaitSlot 20))
+            (void $ Con.both (awaitSlot 10) (awaitSlot 20))
             (waitingForSlot w1 20)
             $ addEvent w1 (AwaitSlot.event 10)
 
         , cp "fundsAtAddressGt"
-            (fundsAtAddressGt someAddress (Ada.adaValueOf 10))
+            (void $ fundsAtAddressGt someAddress (Ada.adaValueOf 10))
             (interestingAddress w1 someAddress)
             $ pure ()
 
         , cp "watchAddressUntil"
-            (watchAddressUntil someAddress 5)
+            (void $ watchAddressUntil someAddress 5)
             (interestingAddress w1 someAddress /\ waitingForSlot w1 5)
             $ pure ()
 
@@ -63,57 +71,98 @@ tests =
             (endpointAvailable @"ep" w1)
             $ pure ()
 
+        , cp "forever"
+            (let go = endpoint @"ep" @() >> go in go)
+            (endpointAvailable @"ep" w1)
+            (callEndpoint @"ep" w1 ())
+
+        , cp "alternative"
+            (let 
+                oneTwo = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
+                oneThree = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
+             in oneTwo <|> oneThree)
+            (endpointAvailable @"2" w1
+            /\ not (endpointAvailable @"3" w1))
+            (callEndpoint @"1" w1 1)
+
         , cp "call endpoint (1)"
-            (endpoint @"1" @Int >> endpoint @"2" @Int)
+            (void $ endpoint @"1" @Int >> endpoint @"2" @Int)
             (endpointAvailable @"1" w1)
             $ pure ()
 
         , cp "call endpoint (2)"
-            (endpoint @"1" @Int >> endpoint @"2" @Int)
+            (void $ endpoint @"1" @Int >> endpoint @"2" @Int)
             (endpointAvailable @"2" w1 /\ not (endpointAvailable @"1" w1))
             (callEndpoint @"1" @Int w1 1)
 
         , cp "call endpoint (3)"
-            (endpoint @"1" @Int >> endpoint @"2" @Int)
+            (void $ endpoint @"1" @Int >> endpoint @"2" @Int)
             (not (endpointAvailable @"2" w1) /\ not (endpointAvailable @"1" w1))
             (callEndpoint @"1" @Int w1 1 >> callEndpoint @"2" @Int w1 1)
 
         , cp "submit tx"
-            (writeTx mempty >> watchAddressUntil someAddress 20)
+            (void $ writeTx mempty >> watchAddressUntil someAddress 20)
             (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
-            (handleBlockchainEvents w1)
+            (handleBlockchainEvents w1 >> addBlocks 1)
+
+        , let smallTx = mempty & Tx.outputs .~ [Tx.pubKeyTxOut (Ada.lovelaceValueOf 10) (walletPubKey (Wallet 2))]
+          in cp "handle several blockchain events"
+                (writeTx smallTx >> writeTx smallTx)
+                (assertDone w1 (const True) "all blockchain events should be processed"
+                /\ assertNoFailedTransactions
+                /\ walletFundsChange w1 (Ada.lovelaceValueOf (-20)))
+                (handleBlockchainEvents w1)
 
         , cp "select either"
             (let l = endpoint @"1" >> endpoint @"2"
                  r = endpoint @"3" >> endpoint @"4"
-            in selectEither l r)
-            (assertResult w1 (maybe False isLeft) "left branch should finish")
+                 s :: Contract _ ContractError _
+                 s = selectEither l r
+            in void s)
+            (assertDone w1 (const True) "left branch should finish")
             (callEndpoint @"3" w1 3 >> callEndpoint @"1" w1 1 >> callEndpoint @"2" w1 2)
 
         , cp "loopM"
-            (loopM (\_ -> Left <$> endpoint @"1" @Int) 0)
+            (void $ loopM (\_ -> Left <$> endpoint @"1" @Int) 0)
             (endpointAvailable @"1" w1)
             (callEndpoint @"1" @Int w1 1)
 
         , cp "collect until"
-            (collectUntil (+) 0 (endpoint @"1") 10)
+            (void $ collectUntil (+) 0 (endpoint @"1") 10)
             (endpointAvailable @"1" w1 /\ waitingForSlot w1 10)
             (callEndpoint @"1" @Int w1 1)
+
+        , cp "throw an error"
+            (void $ throwing Con._ContractError $ OtherError "error")
+            (assertContractError w1 (\case { ContractError (OtherError "error") -> True; _ -> False}) "failed to throw error")
+            (pure ())
+
+        , cp "pay to wallet"
+            (pure ())
+            (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
+            /\ walletFundsChange w2 (Ada.lovelaceValueOf 20)
+            /\ assertNoFailedTransactions)
+            (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+
+        , cp "ownPubKey"
+            (ownPubKey)
+            (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
+            (handleBlockchainEvents w2)
+
         ]
 
 w1 :: EM.Wallet
 w1 = EM.Wallet 1
 
-someAddress :: Address
-someAddress =
-    -- this isn't the address of a valid validator script,
-    -- but it doesn't matter because we only need the address,
-    -- not the script
-    Ledger.scriptAddress $
-        Ledger.ValidatorScript $$(Ledger.compileScript [|| \(i :: Integer) -> i ||])
+w2 :: EM.Wallet
+w2 = EM.Wallet 2
 
-type Schema = 
-    BlockchainActions 
+someAddress :: Address
+someAddress = Ledger.scriptAddress $
+    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
+
+type Schema =
+    BlockchainActions
         .\/ Endpoint "1" Int
         .\/ Endpoint "2" Int
         .\/ Endpoint "3" Int

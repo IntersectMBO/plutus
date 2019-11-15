@@ -3,20 +3,21 @@ module AjaxUtilsTests
   ) where
 
 import Prelude
-
 import Auth (AuthStatus)
 import Control.Monad.Except (runExcept)
 import Cursor (Cursor)
 import Cursor as Cursor
 import Data.Either (Either(..))
-import Data.RawJson (JsonEither(..), JsonNonEmptyList(..), JsonTuple(..))
+import Data.Json.JsonEither (JsonEither(JsonEither))
+import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Tuple (Tuple(..))
 import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.API (CompilationResult, EvaluationResult, KnownCurrency(..), PlaygroundError)
+import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..), PlaygroundError)
 import Test.QuickCheck (arbitrary, withHelp)
 import Test.QuickCheck.Gen (Gen, chooseInt, vectorOf)
 import Test.Unit (TestSuite, failure, success, suite, test)

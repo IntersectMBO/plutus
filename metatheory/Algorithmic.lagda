@@ -7,8 +7,6 @@ module Algorithmic where
 \begin{code}
 open import Function hiding (_∋_)
 
-
-
 open import Type
 open import Type.BetaNormal
 
@@ -159,7 +157,7 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → Tel Γ Δ σ As
     → {B : Φ ⊢Nf⋆ *}
     → substNf σ C ≡Nf B
-      ----------------------------------
+      -------------------------------
     → Γ ⊢ B
 
   error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
@@ -214,7 +212,8 @@ open import Type.BetaNBE.RenamingSubstitution
 conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡Ctx Γ'
  → A ≡Nf A'
- → (Γ ⊢ A) → Γ' ⊢ A'
+ → Γ ⊢ A
+ → Γ' ⊢ A'
 
 convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → Γ ≡Ctx Γ'
@@ -232,14 +231,18 @@ conv⊢ p (Π≡Nf q)   (Λ x t)           = Λ _ (conv⊢ (p ,⋆ _) q t)
 conv⊢ p q          (·⋆ t A r)        = ·⋆ (conv⊢ p reflNf t) A (transNf r q) 
 conv⊢ p (ne≡Nf (·≡Ne {B' = arg'} (·≡Ne {B' = pat'} μ≡Ne q) r)) (wrap1 pat arg t)
   =
-  wrap1 _ _ (conv⊢ p (completeness
-    {s = embNf pat · (μ1 · embNf pat) · embNf arg}
-    {t = embNf pat'  · (μ1 · embNf pat') · embNf arg'}
-    (α2β (·≡α (·≡α (embNf-cong q) (·≡α μ≡α (embNf-cong q))) (embNf-cong r)))) t)
+  wrap1
+    _
+    _
+    (conv⊢ p (completeness
+        {s = embNf pat · (μ1 · embNf pat) · embNf arg}
+        {t = embNf pat'  · (μ1 · embNf pat') · embNf arg'}
+        (α2β (·≡α (·≡α (embNf-cong q) (·≡α μ≡α (embNf-cong q)))
+                  (embNf-cong r)))) t)
 conv⊢ p q          (unwrap1 t r)       =
   unwrap1 (conv⊢ p reflNf t) (transNf r q)
-conv⊢ p con≡Nf     (con c)           = con c
+conv⊢ p con≡Nf     (con c)             = con c
 conv⊢ p q          (builtin bn σ ts r) =
   builtin bn σ (convTel p σ _ ts) (transNf r q)
-conv⊢ p q          (error A)         = error _
+conv⊢ p q          (error A)           = error _
 \end{code}

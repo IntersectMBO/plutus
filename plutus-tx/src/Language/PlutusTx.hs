@@ -4,14 +4,20 @@ module Language.PlutusTx (
     getPlc,
     getPir,
     applyCode,
+    Data (..),
+    IsData (..),
+    makeIsData,
+    makeIsDataIndexed,
     Lift,
     Typeable,
     makeLift,
+    safeLiftCode,
     liftCode,
-    unsafeLiftCode,
-    unsafeConstCode) where
+    constCode) where
 
 import           Language.PlutusTx.Code       (CompiledCode, applyCode, getPir, getPlc)
-import           Language.PlutusTx.Lift       (liftCode, makeLift, unsafeConstCode, unsafeLiftCode)
+import           Language.PlutusTx.Data       (Data (..))
+import           Language.PlutusTx.IsData     (IsData (..), makeIsData, makeIsDataIndexed)
+import           Language.PlutusTx.Lift       (constCode, liftCode, makeLift, safeLiftCode)
 import           Language.PlutusTx.Lift.Class (Lift, Typeable)
 import           Language.PlutusTx.TH         as Export

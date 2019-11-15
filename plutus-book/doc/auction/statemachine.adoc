@@ -24,6 +24,7 @@ First of all, a _state machine_ is defined as
 data StateMachine s i = StateMachine 
     { smTransition :: s -> i -> Maybe s
     , smCheck      :: s -> i -> PendingTx -> Bool
+    , smFinal      :: s -> Bool
     }
 ----
 
@@ -31,8 +32,11 @@ Here `s` is the state type, and `i` is the type of inputs.
 Function `smTransition` takes the current state and the input and returns either
 `Nothing`, if the input is not valid for that state, or `Just` the new state.
 
-Function `smCheck` additionally takes a pending transaction and checks whether
+The function `smCheck` additionally takes a pending transaction and checks whether
 the given input is valid for the given state in the context of that transaction.
+
+The function `smFinal` checks whether a state machine state is _final_, that is, whether
+the machine halts when it enters this state.
 
 How are such state machines used? - To create a script acting like a state machine,
 the script output will have a data script of type `s`. To consume such an

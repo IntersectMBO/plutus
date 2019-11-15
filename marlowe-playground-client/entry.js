@@ -1,4 +1,4 @@
-import 'font-awesome/scss/font-awesome.scss';
+import '@fortawesome/fontawesome-free/css/all.css';
 import './static/main.scss';
 
 import 'ace-builds/src-min-noconflict/ace.js';

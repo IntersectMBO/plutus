@@ -1,5 +1,8 @@
 = https://github.com/input-output-hk/plutus[Plutus Platform]
-:author: Input Output HK
+:email: plutus@iohk.io
+:author: Input Output HK Limited
+:toc: left
+:reproducible:
 
 The Plutus Platform enables you to:
 
@@ -33,10 +36,15 @@ Even if you already have Nix installed, make sure to set up the xref:iohk-binary
 * https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
 * https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
 
+=== How to get started using the libraries
+
+There is an example project in the `example` folder, see its link:./example/README.md[README]
+for more details.
+
 === How to build the Haskell packages and other artifacts
 
 [[building-with-nix]]
-=== How to build Haskell packages and other artifacts with Nix
+==== How to build Haskell packages and other artifacts with Nix
 
 Run `nix build -f default.nix localPackages.language-plutus-core`
 from the root to build the Plutus Core library.
@@ -44,7 +52,7 @@ from the root to build the Plutus Core library.
 See the section on xref:nix-build-attributes[Nix build attributes] to find out
 what other attributes you can build.
 
-=== How to build Haskell packages with `cabal`
+==== How to build Haskell packages with `cabal`
 
 Run `cabal v2-build language-plutus-core` from the root to build the
 Plutus Core library.
@@ -52,7 +60,7 @@ Plutus Core library.
 See the link:./cabal.project[cabal project file] to see the other
 projects that you can build with `cabal`.
 
-=== How to build the Haskell packages with `stack`
+==== How to build the Haskell packages with `stack`
 
 Run `stack build language-plutus-core` from the root to build the
 Plutus Core library.
@@ -66,9 +74,20 @@ projects that you can build with stack.
 2. Run `nix build -f default.nix docker.plutusPlaygroundImage`, to build
 3. Run `docker load < docker-image-plutus-playgrounds.tar.gz` - this will
 print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
-4. Run `docker run -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
-using the image name from the previous step.
+4. Run `docker run --mount ‘type=bind,source=/tmp,target=/tmp’ -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp` using the image name from the previous step.
 5. Open http://localhost:8080/ in a web browser.
+
+=== How to get the most recent documentation PDFs from CI
+
+==== Specifications and design
+
+- https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
+- https://hydra.iohk.io/job/Cardano/plutus/docs.extended-utxo-spec.x86_64-linux/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
+
+==== Academic papers
+
+- https://hydra.iohk.io/job/Cardano/plutus/papers.unraveling-recursion.x86_64-linux/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/papers.system-f-in-agda.x86_64-linux/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
 
 == Where to go next
 
@@ -93,7 +112,9 @@ other discussions to the forum.
 
 === How to contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail.
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail;
+and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
+
 
 [[nix]]
 == Nix
@@ -110,15 +131,34 @@ not have this set up properly.
 
 To set up the cache:
 
-. If you are a not a trusted user (or you do not
-know whether you are a trusted user), then edit `/etc/nix/nix.conf`. If
-you are not a trusted user, you may edit `~/.config/nix/nix.conf`
-instead.
-. Add the following lines:
+. On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
 +
 ----
 substituters        = https://hydra.iohk.io https://cache.nixos.org/
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+----
+. On NixOS, set the following NixOS options:
++
+----
+nix = {
+  binaryCaches          = [ "https://hydra.iohk.io" ];
+  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+};
+----
+
+NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] you may add the
+`nix.conf` lines to `~/.config/nix/nix.conf` instead.
+
+=== Nix on macOS
+
+Nix on macOS can be a bit tricky. In particular, sandboxing is disabled by default, which can lead to strange failures.
+
+These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings,
+in the same way as in xref:iohk-binary-cache[previous section]:
+
+----
+sandbox = true
+extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
 ----
 
 === How to get a development environment

@@ -20,22 +20,21 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.Vesting where
 
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude hiding (Applicative (..), foldMap)
 import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript(..))
+import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript, mkValidatorScript)
 import qualified Ledger                    as L
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Ada                as ATH
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
-import           Ledger.Validation         (PendingTx(..))
+import           Ledger.Typed.Scripts      (wrapValidator)
+import           Ledger.Validation         (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
@@ -43,19 +42,19 @@ import qualified Ledger.Value              as Value
 import           Wallet                    (MonadWallet, PubKey)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
-import qualified Wallet.Emulator.Types     as EM
 
 import qualified Data.Map                  as Map
-import qualified Data.Set                  as Set -- <1>
+import qualified Data.Set                  as Set -- <.>
+import           Data.Foldable             (foldMap)
 
 import           GHC.Generics              (Generic)
 ----
-<1> We need a few more standard Haskell data structures for this tutorial.
+<.> We need a few more standard Haskell data structures for this tutorial.
 
 In our vesting scheme the money will be released in two _tranches_ (parts):
 A smaller part will be available after an initial number of slots have
 passed, and the entire amount will be released at the end. The owner of the
-vesting scheme does not have to take out all the money at once: They can take out
+vesting scheme does not have to take out all the money at once: they can take out
 any amount up to the total that has been released so far. The remaining
 funds stay locked and can be retrieved later.
 
@@ -69,7 +68,7 @@ Let's start with the data types.
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
     -- ^ When this tranche is released
-    vestingTrancheAmount :: Value -- <1>
+    vestingTrancheAmount :: Value -- <.>
     -- ^ How much money is locked in this tranche
     } deriving (Generic)
 
@@ -104,7 +103,7 @@ availableFrom (VestingTranche d v) range =
     -- the money in the tranche is available, otherwise nothing is available.
     in if validRange `Interval.contains` range then v else zero
 ----
-<1> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
+<.> `Value` is the general type of assets on chain, which includes tokens other than `Ada`.
 Most of the functions work very similarly, so there is usually little reason not
 to use `Value` instead of `Ada`.
 
@@ -127,8 +126,8 @@ That gives our validator script the signature: `Vesting -> () -> () -> PendingTx
 [source,haskell]
 ----
 vestingValidatorScript :: Vesting -> ValidatorScript
-vestingValidatorScript v = ValidatorScript $
-    $$(L.compileScript [|| vestingValidator ||]) `L.applyScript` L.lifted v
+vestingValidatorScript v = mkValidatorScript $
+    $$(PlutusTx.compile [|| \vd -> wrapValidator (vestingValidator vd) ||]) `PlutusTx.applyCode` PlutusTx.liftCode v
 
 vestingValidator :: Vesting -> () -> () -> PendingTx -> Bool
 vestingValidator v@(Vesting {vestingTranche1, vestingTranche2, vestingOwner}) _ _ p@PendingTx{pendingTxValidRange = range} =
@@ -159,7 +158,7 @@ We will call these conditions `con1` and `con2`.
         -- is greater than or equal to 'unreleased'.
         con1 :: Bool
         con1 =
-            let remaining = V.valueLockedBy p ownHash -- <1>
+            let remaining = V.valueLockedBy p ownHash -- <.>
             in remaining `Value.geq` unreleased
 
         -- 'con2' is true if the pending transaction 'p' has  been signed
@@ -169,7 +168,7 @@ We will call these conditions `con1` and `con2`.
 
     in con1 && con2
 ----
-<1> We use the `valueLockedBy` function to get the amount of value paid by pending
+<.> We use the `valueLockedBy` function to get the amount of value paid by pending
 transaction `p` to the script address `ownHash`.
 
 === Contract endpoints
@@ -192,7 +191,7 @@ vestFunds :: MonadWallet m => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (L.lifted ())
+        dataScript = DataScript (PlutusTx.toData ())
     W.payToScript_ W.defaultSlotRange adr amt dataScript
 
 registerVestingScheme :: MonadWallet m =>  Vesting -> m ()
@@ -222,19 +221,20 @@ withdraw vst vl = do
     range <- Haskell.fmap WAPI.intervalFrom WAPI.slot
 
     -- The input should be the UTXO of the vesting scheme.
-    utxos <- WAPI.outputsAt address -- <1>
+    utxos <- WAPI.outputsAt address -- <.>
 
     let
-        -- the redeemer script containing the unit value ()
-        redeemer  = RedeemerScript (L.lifted ())
+        -- the redeemer and data scripts containing the unit value ()
+        redeemer   = RedeemerScript (PlutusTx.toData ())
+        dataScript = DataScript (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = L.scriptTxIn r validator redeemer
+        mkIn r = L.scriptTxIn r validator redeemer dataScript
 
         ins = Set.map mkIn (Map.keysSet utxos)
 ----
-<1> We can get the outputs at an address (as far as they are known by the wallet) with
+<.> We can get the outputs at an address (as far as they are known by the wallet) with
 `outputsAt`, which returns a map of `TxOutRef` to `TxOut`.
 
 Our transaction has either one or two outputs.
@@ -247,25 +247,24 @@ that keeps the remaining value.
 
 [source,haskell]
 ----
-    ownOutput <- W.ownPubKeyTxOut vl -- <1>
+    ownOutput <- W.ownPubKeyTxOut vl -- <.>
 
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr (\txo vl' -> vl' + L.txOutValue txo) zero utxos
+        currentlyLocked = foldMap (L.txOutValue . L.txOutTxOut) utxos
         remaining = currentlyLocked - vl
 
-        otherOutputs = if Value.isZero remaining
-                       then []
-                       else [L.scriptTxOut remaining validator (DataScript (L.lifted ()))]
+        (otherOutputs, datas) = if Value.isZero remaining
+                       then ([], [])
+                       else ([L.scriptTxOut remaining validator dataScript], [dataScript])
 
     -- Finally we have everything we need for `createTxAndSubmit`
-    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
+    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs) datas
 
-    pure ()
+    Haskell.pure ()
 ----
-<1> We can create a public key output to our own key with `ownPubKeyTxOut`.
-
+<.> We can create a public key output to our own key with `ownPubKeyTxOut`.
 
 == Exercises
 

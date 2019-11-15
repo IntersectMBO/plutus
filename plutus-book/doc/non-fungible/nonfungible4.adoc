@@ -13,6 +13,7 @@ module NonFungible.NonFungible4 where
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger
+import           Ledger.Typed.Scripts       (wrapValidator)
 import qualified Ledger.Ada                 as A
 import qualified Ledger.Value               as V
 import           Playground.Contract
@@ -51,21 +52,18 @@ validateNonFungible nf () name tx =
             1
 
 mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name =
-    let s = $$(compileScript [|| \(t :: TokenName) (_ :: Sealed (HashedDataScript ())) -> t ||])
-    in  RedeemerScript $ applyScript s $ lifted $ TokenName $ C.pack name
+mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
 
 mkNonFungibleValidator :: NonFungible -> ValidatorScript
-mkNonFungibleValidator = ValidatorScript
-                       . applyScript $$(compileScript [|| validateNonFungible ||])
-                       . lifted
+mkNonFungibleValidator = mkValidatorScript
+                       . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
+                       . liftCode
 
 nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 nonFungibleValue :: NonFungible -> String -> Value
 nonFungibleValue nf name = V.singleton
@@ -93,6 +91,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf]
+        [unitData]
 
 forge :: forall m. MonadWallet m
       => String -- token name
@@ -118,6 +117,7 @@ forge n = do
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf
                                  , mkNonFungibleTxOut nf
                                  ]
@@ -125,6 +125,7 @@ forge n = do
                 , txForge      = v
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
@@ -150,9 +151,10 @@ prank w = do
         ( scriptTxOut
             zero
             (mkNonFungibleValidator nf)
-            (DataScript $ lifted (42 :: Integer)) -- <1>
+            (DataScript $ toData (42 :: Integer)) -- <1>
         : pubKeyTxOut v pk
         : maybeToList mout)
+        [unitData]
 
 $(mkFunctions ['start, 'forge, 'prank])
 ----

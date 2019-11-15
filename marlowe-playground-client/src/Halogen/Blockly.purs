@@ -9,25 +9,24 @@ import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), runExceptT, lift)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
+import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.NaturalTransformation (type (~>))
 import Data.Symbol (SProxy(..))
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, ComponentDSL, ComponentHTML, RefLabel(..), action, get, lifecycleComponent, liftEffect, modify, raise)
-import Halogen.HTML (button, div, text)
-import Halogen.HTML as HH
-import Halogen.HTML.Events (input_, onClick)
-import Halogen.HTML.Events as HE
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), get, liftEffect, mkComponent, raise)
+import Halogen as H
+import Halogen.HTML (HTML, button, div, text)
+import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Parser as Parser
 import Marlowe.Pretty (pretty)
-import Marlowe.Types (Contract(..))
-import Prelude (Unit, bind, discard, pure, show, unit, ($), map, (<>), (<<<), const)
+import Marlowe.Semantics (Contract(..))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
 
@@ -44,35 +43,67 @@ _errorMessage :: Lens' BlocklyState (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
 data BlocklyQuery a
-  = Inject (Array BlockDefinition) a
-  | Resize a
-  | SetData Unit a
-  | GetCode a
+  = Resize a
   | SetCode String a
+
+data BlocklyAction
+  = Inject (Array BlockDefinition)
+  | SetData Unit
+  | GetCode
 
 data BlocklyMessage
   = Initialized
   | CurrentCode String
 
-type HTML
-  = ComponentHTML BlocklyQuery
+type Slots
+  = ()
 
-type DSL m
-  = ComponentDSL BlocklyState BlocklyQuery BlocklyMessage m
+type DSL m a
+  = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
 
-blockly :: forall m. MonadEffect m => Array BlockDefinition -> Component HH.HTML BlocklyQuery Unit BlocklyMessage m
+blockly :: forall m. MonadEffect m => Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly blockDefinitions =
-  lifecycleComponent
-    { initialState: \_ -> { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+  mkComponent
+    { initialState: const { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
     , render
-    , eval
-    , initializer: Just $ action (Inject blockDefinitions)
-    , finalizer: Nothing
-    , receiver: HE.input SetData
+    , eval:
+      H.mkEval
+        { handleQuery
+        , handleAction
+        , initialize: Just $ Inject blockDefinitions
+        , finalize: Nothing
+        , receive: Just <<< SetData
+        }
     }
 
-eval :: forall m. MonadEffect m => BlocklyQuery ~> DSL m
-eval (Inject blockDefinitions next) = do
+handleQuery :: forall m a. MonadEffect m => BlocklyQuery a -> DSL m (Maybe a)
+handleQuery (Resize next) = do
+  mState <- use _blocklyState
+  case mState of
+    Just state ->
+      pure
+        $ ST.run
+            ( do
+                workspaceRef <- STRef.new state.workspace
+                Blockly.resize state.blockly workspaceRef
+            )
+    Nothing -> pure unit
+  pure $ Just next
+
+handleQuery (SetCode code next) = do
+  { blocklyState } <- get
+  let
+    contract = case runParser code Parser.contractValue of
+      Right c -> c
+      Left _ -> Close
+  case blocklyState of
+    Nothing -> pure unit
+    Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)
+  assign _errorMessage Nothing
+  pure $ Just next
+
+handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
+handleAction (Inject blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
@@ -85,55 +116,28 @@ eval (Inject blockDefinitions next) = do
         )
 
     generator = buildGenerator blocklyState
-  _ <- modify _ { blocklyState = Just blocklyState, generator = Just generator }
-  pure next
+  modify_ _ { blocklyState = Just blocklyState, generator = Just generator }
 
-eval (Resize next) = do
-  mState <- use _blocklyState
-  case mState of
-    Just state ->
-      pure
-        $ ST.run
-            ( do
-                workspaceRef <- STRef.new state.workspace
-                Blockly.resize state.blockly workspaceRef
-            )
-    Nothing -> pure unit
-  pure next
+handleAction (SetData _) = pure unit
 
-eval (SetData _ next) = pure next
-
-eval (GetCode next) = do
+handleAction GetCode = do
   res <-
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ workspaceToCode blocklyState generator
-      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser code (parens Parser.contract <|> Parser.contract)
+      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
       lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
   case res of
     Left e -> assign _errorMessage $ Just e
     Right _ -> assign _errorMessage Nothing
-  pure next
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
-
-eval (SetCode code next) = do
-  { blocklyState } <- get
-  let
-    contract = case runParser code Parser.contract of
-      Right c -> c
-      Left _ -> Null
-  case blocklyState of
-    Nothing -> pure unit
-    Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)
-  assign _errorMessage Nothing
-  pure next
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: BlocklyState -> HTML
+render :: forall p. BlocklyState -> HTML p BlocklyAction
 render state =
   div []
     [ div
@@ -146,15 +150,15 @@ render state =
         ]
     ]
 
-toCodeButton :: String -> HTML
+toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ input_ GetCode
+    , onClick $ const $ Just GetCode
     ]
     [ text key ]
 
-errorMessage :: Maybe String -> HTML
+errorMessage :: forall p i. Maybe String -> HTML p i
 errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]
 
 errorMessage Nothing = div [ class_ (ClassName "blocklyError") ] []

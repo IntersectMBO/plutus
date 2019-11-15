@@ -7,6 +7,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE MonoLocalBinds #-}
@@ -15,6 +16,7 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,
     game,
+    GameSchema,
     GuessParams(..),
     LockParams(..),
     -- * Scripts
@@ -30,19 +32,17 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     lockTrace
     ) where
 
-import           Control.Lens                   (at, (^.))
 import           Control.Monad                  (void)
 import qualified Data.Aeson                     as Aeson
-import qualified Data.Map                       as Map
-import           Data.Maybe                     (fromMaybe)
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract.IOTS                      (IotsType)
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
+import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                         (Ada, Address, DataScript, PendingTx, RedeemerScript, ValidatorScript)
+import           Ledger.Typed.Scripts           (wrapValidator)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.AddressMap              as AM
@@ -51,11 +51,11 @@ import qualified Prelude
 
 import qualified Data.ByteString.Lazy.Char8     as C
 
-newtype HashedString = HashedString ByteString
+newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString
+newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
@@ -64,24 +64,21 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
-correctGuess :: HashedString -> ClearString -> Bool
-correctGuess (HashedString actual) (ClearString guess') = actual == sha2_256 guess'
-
 -- | The validator (datascript -> redeemer -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
-validateGuess dataScript redeemerScript _ = correctGuess dataScript redeemerScript
+validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 gameValidator :: ValidatorScript
-gameValidator =
-    Ledger.ValidatorScript ($$(Ledger.compileScript [|| validateGuess ||]))
+gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
+    where validator = wrapValidator validateGuess
 
 gameDataScript :: String -> DataScript
 gameDataScript =
-    Ledger.DataScript . Ledger.lifted . HashedString . Ledger.plcSHA2_256 . C.pack
+    Ledger.DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack
 
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =
-    Ledger.RedeemerScript . Ledger.lifted . ClearString . C.pack
+    Ledger.RedeemerScript . PlutusTx.toData . ClearString . C.pack
 
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
@@ -101,55 +98,51 @@ newtype GuessParams = GuessParams
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
     deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
-guess :: Contract GameSchema ()
+guess :: Contract GameSchema e ()
 guess = do
     st <- nextTransactionAt gameAddress
     let mp = AM.fromTxOutputs st
     GuessParams theGuess <- endpoint @"guess" @GuessParams
-    let
-        txOutputs  = Map.toList . fromMaybe Map.empty $ mp ^. at gameAddress
-        redeemer   = gameRedeemerScript theGuess
-        inp        = (\o -> Ledger.scriptTxIn (fst o) gameValidator redeemer) <$> txOutputs
-        tx         = unbalancedTx inp []
+    let redeemer = gameRedeemerScript theGuess
+        tx       = collectFromScript mp gameValidator redeemer
     void (writeTx tx)
 
-lock :: Contract GameSchema ()
+lock :: Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
-        output     = Ledger.TxOutOf gameAddress vl (Ledger.PayToScript dataScript)
-        tx         = unbalancedTx [] [output]
+        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
     void (writeTx tx)
 
-game :: Contract GameSchema ()
+game :: Contract GameSchema e ()
 game = guess <|> lock
 
 lockTrace
-    :: ( MonadEmulator m )
-    => ContractTrace GameSchema m a ()
+    :: ( MonadEmulator (TraceError e) m )
+    => ContractTrace GameSchema e m () ()
 lockTrace =
-    let w1 = Trace.Wallet 1 
+    let w1 = Trace.Wallet 1
         w2 = Trace.Wallet 2 in
-    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10) 
+    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10)
         >> Trace.notifyInterestingAddresses w2
         >> Trace.handleBlockchainEvents w1
 
 guessTrace
-    :: ( MonadEmulator m )
-    => ContractTrace GameSchema m a ()
+    :: ( MonadEmulator (TraceError e) m )
+    => ContractTrace GameSchema e m () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
-    lockTrace 
-        >> Trace.callEndpoint @"guess" w2 (GuessParams "secret") 
+    lockTrace
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "secret")
         >> Trace.handleBlockchainEvents w2
 
 guessWrongTrace
-    :: ( MonadEmulator m )
-    => ContractTrace GameSchema m a ()
+    :: ( MonadEmulator (TraceError e) m )
+    => ContractTrace GameSchema e m () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
-    lockTrace 
-        >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET") 
+    lockTrace
+        >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET")
         >> Trace.handleBlockchainEvents w2

@@ -7,9 +7,7 @@ import Blockly.Generator (Generator, getInputWithName, inputList, workspaceToCod
 import Blockly.Headless as Headless
 import Blockly.Types (BlocklyState)
 import Control.Alt ((<|>))
-import Control.Lazy (class Lazy)
-import Control.Monad.Gen (class MonadGen)
-import Control.Monad.Rec.Class (class MonadRec)
+import Control.Monad.Reader (runReaderT)
 import Control.Monad.ST (ST)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
@@ -22,10 +20,11 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, buildGenerator, toBlockly)
 import Marlowe.Gen (genContract)
+import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
+import Marlowe.Holes as Holes
 import Marlowe.Parser as Parser
-import Marlowe.Types (Contract, Observation, Value)
-import Test.QuickCheck (class Testable, Result, (===))
-import Test.QuickCheck.Gen (Gen)
+import Marlowe.Semantics (Contract)
+import Test.QuickCheck (class Testable, Result(..), (===))
 import Test.Unit (Test, TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import Text.Parsing.Parser (runParser)
@@ -36,8 +35,8 @@ all =
   suite "Marlowe.Blockly" do
     test "c2b2c" $ quickCheckGen c2b2c
 
-quickCheckGen :: forall prop. Testable prop => Gen prop -> Test
-quickCheckGen = quickCheck
+quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
+quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
 
 mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
 mkTestState = do
@@ -54,16 +53,16 @@ mkTestState = do
     generator = buildGenerator blocklyState
   pure { blocklyState: blocklyState, generator: generator }
 
-c2b2c :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => Lazy (m Contract) => m Result
+c2b2c :: GenWithHoles Result
 c2b2c = do
-  contract <- genContract
-  -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
-  -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
-  -- I made the executive decision that it's not worth my time to do it in this specific case
-  -- I have created https://github.com/purescript/purescript-quickcheck/issues/102
-  let
-    result = unsafePerformEffect $ runContract contract
-  pure (result === Right contract)
+  termContract <- genContract
+  case Holes.fromTerm termContract of
+    -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
+    -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
+    -- I made the executive decision that it's not worth my time to do it in this specific case
+    -- I have created https://github.com/purescript/purescript-quickcheck/issues/102
+    Just contract -> let result = unsafePerformEffect $ runContract contract in pure (result === Right contract)
+    Nothing -> pure $ Failed $ "Contract could not be coerced from a Term contract" <> show termContract
 
 runContract :: Contract -> Effect (Either String Contract)
 runContract contract = do
@@ -73,7 +72,7 @@ runContract contract = do
     eCode = workspaceToCode state.blocklyState state.generator
   pure
     $ case eCode of
-        Right code -> lmap show $ runParser code (parens Parser.contract <|> Parser.contract)
+        Right code -> lmap show $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
         Left err -> Left err
 
 buildBlocks :: forall r. BlocklyState -> Contract -> ST r Unit

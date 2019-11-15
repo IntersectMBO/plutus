@@ -222,17 +222,15 @@ inferTypeBuiltin modInteger [] []  = return ((con integer ⇒ con integer ⇒ co
 inferTypeBuiltin lessThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin lessThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin lessThanEqualsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin greaterThanInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
-inferTypeBuiltin greaterThanEqualsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
-inferTypeBuiltin equalsInteger As ts = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin greaterThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin greaterThanEqualsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
+inferTypeBuiltin equalsInteger [] [] = return ((con integer ⇒ con integer ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsInteger (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin concatenate [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin concatenate (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin takeByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin takeByteString (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin dropByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ "" (ƛ "" (builtin dropByteString (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
-{-
-inferTypeBuiltin sha2-256 As ts = {!!}
-inferTypeBuiltin sha3-256 As ts = {!!}
-inferTypeBuiltin verifySignature As ts = {!!}
-inferTypeBuiltin equalsByteString As ts = {!!}
--}
+inferTypeBuiltin sha2-256 [] [] = return ((con bytestring ⇒ con bytestring) ,, ƛ "" (builtin sha2-256 (λ()) (` (Z reflNf) ,, _) reflNf))
+inferTypeBuiltin sha3-256 [] [] = return ((con bytestring ⇒ con bytestring) ,, ƛ "" (builtin sha3-256 (λ()) (` (Z reflNf) ,, _) reflNf))
+inferTypeBuiltin verifySignature [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring ⇒ booleanNf) ,, ƛ "" (ƛ "" (ƛ "" (builtin verifySignature (λ()) (` (S (S (Z reflNf))) ,, ` (S (Z reflNf)) ,, (` (Z reflNf)) ,, _) reflNf))))
+inferTypeBuiltin equalsByteString [] [] = return ((con bytestring ⇒ con bytestring ⇒ booleanNf) ,, ƛ "" (ƛ "" (builtin equalsByteString (λ()) (` (S (Z reflNf)) ,, ` (Z reflNf) ,, _) reflNf)))
 inferTypeBuiltin _ _ _ = inj₂ builtinError
 
 inferType Γ (` x)             =
