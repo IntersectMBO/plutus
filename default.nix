@@ -484,6 +484,7 @@ let
                                                                           pkgs.yarn
                                                                           easyPS.purs
                                                                           easyPS.spago
+                                                                          easyPS.purty
                                                                           ]; });
     };
   });
