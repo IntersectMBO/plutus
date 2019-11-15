@@ -144,10 +144,6 @@ let
 
     tests = {
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
-      hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
-        inherit src;
-        projects = localLib.plutusPkgList;
-      };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
