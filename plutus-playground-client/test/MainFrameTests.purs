@@ -10,7 +10,8 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Array as Array
+import Data.Array (head) as Array
+import Data.Array.Extra (lookup) as Array
 import Data.Either (Either(Right, Left))
 import Data.Identity (Identity)
 import Data.Json.JsonEither (JsonEither)
@@ -209,7 +210,7 @@ evalTests =
         execMockApp (set _editorContents Nothing mockWorld)
           [ EditorAction $ LoadScript "Game" ]
       equal' "Script gets loaded."
-        (Map.lookup "Game" StaticData.demoFiles)
+        (Array.lookup "Game" StaticData.demoFiles)
         finalWorld.editorContents
     test "Loading a script clears out some state." do
       loadCompilationResponse1

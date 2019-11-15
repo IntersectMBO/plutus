@@ -6,15 +6,15 @@ import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array as Array
+import Data.Array (cons) as Array
+import Data.Array.Extra (lookup) as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (view)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
+import Data.Tuple (Tuple(Tuple), fst)
 import Data.Tuple.Nested ((/\))
 import Editor (EditorAction(..), editorPane)
 import Effect.Aff.Class (class MonadAff)
@@ -25,7 +25,7 @@ import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-import Prelude (const, show, ($), (<$>), (<>), (==))
+import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 
 render ::
@@ -91,12 +91,12 @@ render state@(State { currentView, blockchainVisualisationState }) =
         ]
     ]
   where
-  defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+  defaultContents = Array.lookup "Vesting" StaticData.demoFiles
 
 demoScriptsPane :: forall p. HTML p EditorAction
 demoScriptsPane =
   div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <<< fst <$> StaticData.demoFiles)
     )
 
 demoScriptButton :: forall p. String -> HTML p EditorAction

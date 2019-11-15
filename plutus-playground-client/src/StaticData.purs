@@ -3,9 +3,7 @@ module StaticData
   , bufferLocalStorageKey
   ) where
 
-import Data.Map (Map)
-import Data.Map as Map
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import LocalStorage as LocalStorage
 import Playground.Usecases (vesting, game, crowdfunding, errorHandling, starter)
 
@@ -15,15 +13,16 @@ type Label
 type Contents
   = String
 
-demoFiles :: Map Label Contents
+-- | This would be a `Map`, were it not for the fact that we want a
+-- certain key ordering. (Simpler examples first.)
+demoFiles :: Array (Label /\ Contents)
 demoFiles =
-  Map.fromFoldable
-    [ "Crowdfunding" /\ crowdfunding
-    , "Game" /\ game
-    , "Error Handling" /\ errorHandling
-    , "Vesting" /\ vesting
-    , "Starter" /\ starter
-    ]
+  [ "Starter" /\ starter
+  , "Game" /\ game
+  , "Vesting" /\ vesting
+  , "Crowdfunding" /\ crowdfunding
+  , "Error Handling" /\ errorHandling
+  ]
 
 bufferLocalStorageKey :: LocalStorage.Key
 bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
