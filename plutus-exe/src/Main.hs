@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE PartialTypeSignatures #-}
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
@@ -18,10 +17,11 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
-import qualified Language.PlutusCore.Untyped.CBOR                 as U ()
-import qualified Language.PlutusCore.Untyped.Evaluation.CkMachine as U
-import qualified Language.PlutusCore.Untyped.Pretty               as U
-import qualified Language.PlutusCore.Untyped.Term                 as U
+import qualified Language.PlutusCore.Untyped.CBOR                   as U ()
+import qualified Language.PlutusCore.Untyped.Evaluation.CkMachine   as U
+import qualified Language.PlutusCore.Untyped.Pretty                 as U
+import qualified Language.PlutusCore.Untyped.Term                   as U
+import qualified Language.PlutusCore.Interpreter.Untyped.CekMachine as U
 
     
 
@@ -164,12 +164,15 @@ runEval (EvalOptions inp mode) = do
     then  
         let evalFn = case mode of
                        UCK  -> U.runCk . U.eraseProgram
-                       UCEK -> error "No untyped CEK machine yet"
-                       _ -> undefined
+                       UCEK -> U.unsafeRunCek mempty . U.eraseProgram
+                       _ -> undefined  -- oh dear
         in case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
           Left (e :: PLC.Error PLC.AlexPosn) ->
               do
-                T.putStrLn $ "U.prettyPlcDefText e"
+--              T.putStrLn $ U.prettyPlcDefText e
+                putStrLn $ show e
+                -- FIXME.  PLC.Error is Language.PlutusCore.Error.Error
+                -- There's a lot of stuff at the end of Error.hs that we'd have to copy.
                 exitFailure
           Right v ->
               do
@@ -190,15 +193,7 @@ runEval (EvalOptions inp mode) = do
               do
                 T.putStrLn $ PLC.prettyPlcDefText v
                 exitSuccess
-{- If we miss out the type on e we get
-     "Ambiguous type variable ‘e0’ arising from a use of ‘PLC.prettyPlcDefText’
-      prevents the constraint ‘(U.PrettyBy PLC.PrettyConfigPlc e0)’ from being solved.
-      Relevant bindings include e :: e0 (bound at src/Main.hs:184:16)
-      Probable fix: use a type annotation to specify what ‘e0’ should be.
-      These potential instances exist: ..."
--}
 
-                
 runSerialise :: SerialisationOptions -> IO ()
 runSerialise (SerialisationOptions is mode) = do
     contents <- getInput is
@@ -211,8 +206,8 @@ runSerialise (SerialisationOptions is mode) = do
           do
              T.putStrLn $ PLC.prettyPlcDefText e
              exitFailure
-          Right y ->
-           do
+      Right y ->
+          do
              BSC.putStrLn y
              exitSuccess
        

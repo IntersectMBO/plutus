@@ -227,6 +227,8 @@ instance PrettyReadableBy configName (name a) =>
 --        rayL = rayDoc      config Backward
 --        rayR = rayDoc      config Forward
         comp = compoundDoc config
+--        inBot    = prettyInBotBy config
+--        inBraces = enclose "{" "}" . inBot
 
 instance PrettyReadableBy configName (Term name a) =>
         PrettyBy (PrettyConfigReadable configName) (Program name a) where

@@ -66,7 +66,7 @@ import           Language.PlutusCore.Untyped.Pretty.Plc      as Export
 import           Language.PlutusCore.Untyped.Pretty.Readable as Export
 import           Language.PlutusCore.Untyped.Term
 import           PlutusPrelude
-
+    
 import           Data.Text                           (Text)
 
 -- | Pretty-print a value in the default mode using the classic view.
@@ -91,11 +91,12 @@ While the flexible pretty-printing infrastructure is useful when you want it,
 it's helpful to have an implementation of the default Pretty typeclass that
 does the default thing.
 -}
-instance Pretty (Constant a) where
+instance Pretty (Constant ann) where
     pretty = prettyClassicDef
-instance Pretty (Builtin a) where
+instance Pretty (Builtin ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (Term name a) => Pretty (Term name a) where
+instance PrettyClassic (Term name ann) => Pretty (Term name ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (Program name a) => Pretty (Program name a) where
+instance PrettyClassic (Program name ann) => Pretty (Program name ann) where
     pretty = prettyClassicDef
+

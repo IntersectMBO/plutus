@@ -33,6 +33,7 @@ library
     exposed-modules:
         Language.PlutusCore.Interpreter.CekMachine
         Language.PlutusCore.Interpreter.LMachine
+        Language.PlutusCore.Interpreter.Untyped.CekMachine
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -66,7 +67,6 @@ test-suite plutus-core-interpreter-test
     hs-source-dirs: test
     other-modules:
         CekMachine
-        CekMachineUntyped
         DynamicBuiltins.Common
         DynamicBuiltins.Definition
         DynamicBuiltins.Logging

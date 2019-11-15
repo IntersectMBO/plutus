@@ -80,6 +80,8 @@ library
         Language.PlutusCore.Untyped.MkPlc
         Language.PlutusCore.Untyped.Pretty
         Language.PlutusCore.Untyped.Term
+        Language.PlutusCore.Untyped.View
+        Language.PlutusCore.Untyped.Constant.Typed
         Language.PlutusCore.Untyped.Evaluation.CkMachine
         Language.PlutusCore.Untyped.Evaluation.MachineException
         Language.PlutusCore.Untyped.Evaluation.Result
@@ -123,11 +125,9 @@ library
         Language.PlutusCore.Generators.Internal.Utils
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
-        Language.PlutusCore.Untyped.View
         Language.PlutusCore.Untyped.Constant.Apply
         Language.PlutusCore.Untyped.Constant.Make
         Language.PlutusCore.Untyped.Constant.Name
-        Language.PlutusCore.Untyped.Constant.Typed
         Language.PlutusCore.Untyped.Constant.Dynamic.Instances
         Language.PlutusCore.Untyped.Pretty.Classic
         Language.PlutusCore.Untyped.Pretty.Plc
