@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE NoImplicitPrelude      #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -46,6 +47,7 @@ import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lattice
 
 import           IOTS                      (IotsType)
+import qualified Language.PlutusTx.Prelude as PlutusPrelude
 import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOut, TxOutRef,
                                             ValidatorScript)
 import qualified Ledger                    as L
@@ -55,6 +57,7 @@ import qualified Ledger.Interval           as I
 import           Ledger.Slot               (SlotRange)
 import qualified Ledger.Tx                 as Tx
 import           Ledger.Value              as V
+import           Prelude                   as Haskell
 
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].
@@ -103,8 +106,14 @@ instance Semigroup UnbalancedTx where
         _validityRange = _validityRange tx1 /\ _validityRange tx2
         }
 
+instance PlutusPrelude.Semigroup UnbalancedTx where
+    tx1 <> tx2 = tx1 <> tx2
+
 instance Monoid UnbalancedTx where
     mempty = UnbalancedTx mempty mempty mempty mempty top
+
+instance PlutusPrelude.Monoid UnbalancedTx where
+    mempty = mempty
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
