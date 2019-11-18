@@ -71,12 +71,12 @@ let
   # usage that breaks the logic that makes source fetchers
   # use native dependencies. This isn't easy to fix, since
   # the only places that need to use native dependencies
-  # are deep inside, and we don't want to build the whole 
+  # are deep inside, and we don't want to build the whole
   # thing native. Fortunately, we only want to build the
   # client on Linux, so that's okay. However, it does
   # mean that e.g. we can't build the client dep updating
   # script on Darwin.
-  easyPS = pkgs.callPackage sources.easy-purescript-nix { }; 
+  easyPS = pkgs.callPackage sources.easy-purescript-nix { };
 
   purty = pkgs.callPackage ./purty { };
 
@@ -110,7 +110,7 @@ let
       # so we make sure it uses the same one.
       pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
-      inherit forceDontCheck enableProfiling 
+      inherit forceDontCheck enableProfiling
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       customOverlays pkgsGenerated;
       # Broken on vanilla 19.09, require the IOHK fork. Will be abandoned when
