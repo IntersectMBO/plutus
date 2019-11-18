@@ -60,3 +60,4 @@ TAGS
 gh-pages
 .importify/
 marlowe-playground-server/playground.yaml
+.envrc
