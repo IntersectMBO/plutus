@@ -49,16 +49,24 @@ of Haskell libraries.
 ## Installation
 
 The formalisation requires version 2.6 or higher of Agda, the latest
-corresonnding version of the Agda standard library, and a version of
-ghc that is supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
+corresonnding version of the Agda standard library.
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
+The metatheory package is not currently included in the main plutus
+`cabal.project`. This is a workaround to enable building with `cabal
+v2-*`. Run it from the `plutus` repo root folder:
+
+```
+$ echo "packages: metatheory" > cabal.project.local
+```
+
 The `plc-agda` tool can be installed by running the following commands
 starting in the root folder of the `plutus` repository:
+
 
 ```
 $ cd metatheory
