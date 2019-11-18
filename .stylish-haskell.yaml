@@ -32,6 +32,7 @@ language_extensions:
   - FlexibleContexts
   - GeneralizedNewtypeDeriving
   - MultiParamTypeClasses
+  - NamedFieldPuns
   - PackageImports
   - QuasiQuotes
   - ScopedTypeVariables
