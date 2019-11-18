@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -25,15 +26,17 @@ module Language.PlutusCore.Untyped.Term ( Term (..)
                                 , Normalized (..)
                                 , erase
                                 , eraseProgram
+                                , anonProgram
                                 ) where
 
-import           Control.Lens
+import           Control.Lens                   hiding (anon)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
 import           Instances.TH.Lift              ()
 import           Language.Haskell.TH.Syntax     (Lift)
 import           Language.PlutusCore.Lexer.Type
 import qualified Language.PlutusCore.Type       as T
+import qualified Language.PlutusCore.Name       as N
 import           PlutusPrelude
 
 termLoc :: Term name a -> a
@@ -142,7 +145,7 @@ erase = \case
         T.Apply x t1 t2  -> Apply x (erase t1) (erase t2)
         T.Constant x c   -> Constant x (translateConstant c)
         T.Builtin x b    -> Builtin x (translateBuiltin b)
-        T.TyInst _ t _  -> erase t
+        T.TyInst _ t _   -> erase t
         T.Unwrap _ t     -> erase t
         T.IWrap _ _ _ t  -> erase t
         T.Error x _      -> Error x
@@ -150,3 +153,25 @@ erase = \case
 
 eraseProgram :: T.Program _ty name a -> Program name a
 eraseProgram (T.Program ann version body) = Program ann version (erase body)
+
+
+-- Let's also try getting rid of names
+
+anon :: N.Name ann -> N.Name ann
+anon (N.Name ann _str uniq) = N.Name ann "" uniq
+
+anonTerm :: T.Term tyname N.Name ann -> T.Term tyname N.Name ann
+anonTerm = \case
+           T.Var x n          -> T.Var x (anon n)
+           T.TyAbs x tn k e   -> T.TyAbs x tn k (anonTerm e)
+           T.LamAbs x n ty e  -> T.LamAbs x (anon n) ty (anonTerm e)
+           T.Apply x e1 e2    -> T.Apply x (anonTerm e1) (anonTerm e2)
+           T.Constant x c     -> T.Constant x c
+           T.Builtin x b      -> T.Builtin x b
+           T.TyInst x e ty    -> T.TyInst x (anonTerm e) ty
+           T.Unwrap x e       -> T.Unwrap x (anonTerm e)
+           T.IWrap x ty ty' e -> T.IWrap x ty ty' (anonTerm e)
+           T.Error x ty       -> T.Error x ty
+
+anonProgram :: T.Program ty N.Name a -> T.Program ty N.Name a
+anonProgram (T.Program ann version body) = T.Program ann version (anonTerm body)

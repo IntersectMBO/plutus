@@ -138,20 +138,20 @@ instance Serialise a => Serialise (Constant a) where
 instance (Serialise a, Serialise (name a)) => Serialise (Term name a) where
     encode = cata a where
         a (VarF x n)           = encodeTag 0 <> encode x <> encode n
-        a (LamAbsF x n t)   =    encodeTag 2 <> encode x <> encode n <> t
-        a (ApplyF x t t')      = encodeTag 3 <> encode x <> t <> t'
-        a (ConstantF x c)      = encodeTag 4 <> encode x <> encode c
-        a (ErrorF x)           = encodeTag 8 <> encode x
-        a (BuiltinF x bi)      = encodeTag 9 <> encode x <> encode bi
+        a (LamAbsF x n t)   =    encodeTag 1 <> encode x <> encode n <> t
+        a (ApplyF x t t')      = encodeTag 2 <> encode x <> t <> t'
+        a (ConstantF x c)      = encodeTag 3 <> encode x <> encode c
+        a (ErrorF x)           = encodeTag 4 <> encode x
+        a (BuiltinF x bi)      = encodeTag 5 <> encode x <> encode bi
 
     decode = go =<< decodeTag
         where go 0 = Var <$> decode <*> decode
-              go 2 = LamAbs <$> decode <*> decode <*> decode
-              go 3 = Apply <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 8 = Error <$> decode
-              go 9 = Builtin <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+              go 1 = LamAbs <$> decode <*> decode <*> decode
+              go 2 = Apply <$> decode <*> decode <*> decode
+              go 3 = Constant <$> decode <*> decode
+              go 4 = Error <$> decode
+              go 5 = Builtin <$> decode <*> decode
+              go _ = fail "Failed to decode Term Name ()"
 
 instance (Serialise a, Serialise (name a)) => Serialise (Program name a) where
     encode (Program x v t) = encode x <> encode v <> encode t

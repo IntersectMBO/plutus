@@ -71,7 +71,7 @@ data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data SerialisationMode = Typed | Untyped
+data SerialisationMode = Typed | Untyped | UntypedAnon
 data SerialisationOptions = SerialisationOptions Input SerialisationMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Serialise SerialisationOptions
 
@@ -138,6 +138,7 @@ serialisationMode :: Parser SerialisationMode
 serialisationMode = subparser (
     command "typed"   (info (pure Typed)   (progDesc "Output CBOR for typed AST"))
  <> command "untyped" (info (pure Untyped) (progDesc "Output CBOR for type-erased AST"))
+ <> command "anon"    (info (pure UntypedAnon) (progDesc "Output CBOR for type-erased AST with empty names"))
  )
 
               
@@ -201,6 +202,7 @@ runSerialise (SerialisationOptions is mode) = do
     let serialiseFn = case mode of
                         Typed -> serialise
                         Untyped -> serialise . U.eraseProgram
+                        UntypedAnon -> serialise . U.eraseProgram . U.anonProgram
     case serialiseFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
       Left (e :: PLC.Error PLC.AlexPosn) ->
           do
