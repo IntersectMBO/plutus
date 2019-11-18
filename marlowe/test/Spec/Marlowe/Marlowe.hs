@@ -176,8 +176,8 @@ uniqueContractHash :: IO ()
 uniqueContractHash = do
     let pk1 = toPublicKey privateKey1
     let pk2 = toPublicKey privateKey2
-    let hash1 = plcValidatorHash $ validatorScript pk1
-    let hash2 = plcValidatorHash $ validatorScript pk2
+    let hash1 = validatorHash $ validatorScript pk1
+    let hash2 = validatorHash $ validatorScript pk2
     assertBool "Hashes must be different" (hash1 /= hash2)
 
 

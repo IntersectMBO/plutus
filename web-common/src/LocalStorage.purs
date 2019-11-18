@@ -9,7 +9,7 @@ module LocalStorage
 
 import Control.Coroutine (Producer, producer)
 import Data.Either (Either(..))
-import Data.Function.Uncurried (Fn1, Fn2, Fn3, mkFn3, runFn1, runFn2)
+import Data.Function.Uncurried (Fn3, mkFn3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe)
@@ -17,6 +17,7 @@ import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff, Canceler, makeAff)
+import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Prelude (class Show, Unit, map, (<$>), (<<<))
 
 newtype Key
@@ -52,29 +53,29 @@ toEvent key oldValue newValue =
     }
 
 ------------------------------------------------------------
-foreign import _setItem :: Fn2 Key String (Effect Unit)
+foreign import _setItem :: EffectFn2 Key String Unit
 
-foreign import _getItem :: Fn1 Key (Effect (Nullable String))
+foreign import _getItem :: EffectFn1 Key (Nullable String)
 
 foreign import _listen ::
-  Fn2
+  EffectFn2
     (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent)
     (RawStorageEvent -> Effect Unit)
-    (Effect Canceler)
+    Canceler
 
 foreign import _getItems ::
-  Fn1
+  EffectFn1
     (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent)
-    (Effect (Array RawStorageEvent))
+    (Array RawStorageEvent)
 
 setItem :: Key -> String -> Effect Unit
-setItem = runFn2 _setItem
+setItem = runEffectFn2 _setItem
 
 getItem :: Key -> Effect (Maybe String)
-getItem = map toMaybe <$> runFn1 _getItem
+getItem = map toMaybe <$> runEffectFn1 _getItem
 
 listen :: Producer RawStorageEvent Aff Unit
-listen = producer (makeAff \callback -> runFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left))
+listen = producer (makeAff \callback -> runEffectFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left))
 
 getItems :: Effect (Array RawStorageEvent)
-getItems = runFn1 _getItems (mkFn3 toEvent)
+getItems = runEffectFn1 _getItems (mkFn3 toEvent)

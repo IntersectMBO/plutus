@@ -58,7 +58,8 @@ let
     papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
     tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
     dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
-    dev.scripts = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.scripts; 
+    # See note on 'easyPS' in 'default.nix'
+    dev.scripts = lib.mapAttrs (n: _: if n == "updateClientDeps" then linux else supportedSystems) packageSet.dev.scripts; 
   };
   
   testJobsets = mapTestOn systemMapping;

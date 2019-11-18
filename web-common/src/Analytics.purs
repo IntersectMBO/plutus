@@ -4,14 +4,14 @@ module Analytics
   , defaultEvent
   ) where
 
-import Data.Function.Uncurried (Fn4, runFn4)
 import Data.Maybe (Maybe(..))
 import Data.Undefinable (Undefinable, toUndefinable)
 import Data.Unit (Unit)
 import Effect (Effect)
+import Effect.Uncurried (EffectFn4, runEffectFn4)
 
 foreign import trackEvent_ ::
-  Fn4 String (Undefinable String) (Undefinable String) (Undefinable Number) (Effect Unit)
+  EffectFn4 String (Undefinable String) (Undefinable String) (Undefinable Number) Unit
 
 type Event
   = { action :: String
@@ -30,7 +30,7 @@ defaultEvent action =
 
 trackEvent :: Event -> Effect Unit
 trackEvent { action, category, label, value } =
-  runFn4 trackEvent_
+  runEffectFn4 trackEvent_
     action
     (toUndefinable category)
     (toUndefinable label)

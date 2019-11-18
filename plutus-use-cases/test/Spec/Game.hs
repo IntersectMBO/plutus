@@ -21,9 +21,9 @@ w2 = Wallet 2
 
 tests :: TestTree
 tests = testGroup "game"
-    [ checkPredicate @_ @AssertionError "Expose 'lock' endpoint and watch game address"
+    [ checkPredicate @_ @AssertionError "Expose 'lock' and 'guess' endpoints"
         game
-        (endpointAvailable @"lock" w1 /\ interestingAddress w1 gameAddress)
+        (endpointAvailable @"lock" w1 /\ endpointAvailable @"guess" w1)
         $ pure ()
 
     , checkPredicate @_ @AssertionError "'lock' endpoint submits a transaction"
@@ -48,5 +48,5 @@ tests = testGroup "game"
             /\ walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 25000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 15000)
     ]

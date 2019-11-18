@@ -39,20 +39,12 @@ tests =
 
         , HUnit.testCase "run a contract with checkpoints, recording the result as JSON" $
             let con = S.checkpoint $ (,) <$> S.checkpoint ep <*> (ep >> ep)
-                res = run con [inp, inp]
+                res = run con [inp, inp, inp]
             in HUnit.assertBool "checkpoint" (res == Right (ClosedRec (jsonLeaf ("asd", "asd"))))
 
         , HUnit.testCase "run a parallel contract with checkpoints, recording the result as JSON" $
         let con = S.checkpoint $ (ep >> ep) <|> (ep >> ep >> ep)
             res = run con [inp, inp]
         in HUnit.assertBool "checkpoint" (res == Right (ClosedRec (jsonLeaf "asd")))
-
-        , HUnit.testCase "run a parallel contract in which the right branch finished first" $
-        let con = S.checkpoint $ do
-                    (l, r) <- both ep ((ep >> ep >> ep) <|> (ep >> ep))
-                    _ <- ep
-                    pure (l <> r)
-            res = run con [inp, inp, inp, inp]
-        in HUnit.assertBool "checkpoint" (res == Right (ClosedRec (jsonLeaf "asdasd")))
 
         ]

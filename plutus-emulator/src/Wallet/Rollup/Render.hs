@@ -29,11 +29,12 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Tx (Tx), TxId, TxIn (TxIn, txInRef, txInType),
+import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId,
+                                                        TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getAddress, getPubKey, getTxId, txFee, txForge,
-                                                        txOutValue, txOutputs)
+                                                        Value, getPubKey, getTxId, txFee, txForge, txOutValue,
+                                                        txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
@@ -50,7 +51,7 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         dereferencedInputs, toBeneficialOwner, tx, txId)
 
 
-showBlockchain :: [(PubKey, Wallet)] -> [[(TxId, Tx)]]  -> Either Text Text
+showBlockchain :: [(PubKey, Wallet)] -> [[Tx]]  -> Either Text Text
 showBlockchain walletKeys blockchain =
     flip runReaderT walletKeys $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
@@ -76,7 +77,7 @@ instance Render [[AnnotatedTx]] where
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
-                       , tx = Tx {txOutputs, txForge, txFee}
+                       , tx = Tx {txOutputs, txForge, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
                        } =
@@ -85,6 +86,7 @@ instance Render AnnotatedTx where
             [ heading "TxId:" txId
             , heading "Fee:" txFee
             , heading "Forge:" txForge
+            , heading "Signatures" txSignatures
             , pure "Inputs:"
             , indent 2 <$> numbered "----" "Input" dereferencedInputs
             , pure line
@@ -146,6 +148,19 @@ instance Render (Map BeneficialOwner Value) where
                     (Map.toList xs)
             pure $ vsep $ intersperse mempty entries
 
+instance Render (Map PubKey Signature) where
+    render xs
+        | Map.null xs = pure "-"
+        | otherwise = do
+            entries <-
+                traverse
+                    (\(k, v) -> do
+                         rk <- render k
+                         rv <- render v
+                         pure $ vsep [rk, indent 2 rv])
+                    (Map.toList xs)
+            pure $ vsep $ intersperse mempty entries
+
 instance Render Text where
     render = pure . pretty
 
@@ -159,7 +174,7 @@ instance Render Wallet where
     render (Wallet n) = pure $ "Wallet" <+> viaShow n
 
 instance Render Address where
-    render = render . getAddress
+    render = pure . pretty
 
 instance Render BeneficialOwner where
     render (OwnedByScript address) = ("Script:" <+>) <$> render address
@@ -187,6 +202,12 @@ instance Render PubKey where
         let v = Text.pack (show (getPubKey pubKey))
          in "PubKey:" <+> pretty (abbreviate 40 v)
 
+instance Render Signature where
+    render sig  =
+        pure $
+        let v = JSON.encodeSerialise sig
+         in "Signature:" <+> pretty (abbreviate 40 v)
+
 instance Render Script where
     render script =
         pure $
@@ -213,8 +234,8 @@ instance Render TxIn where
         vsep <$> sequence [render txInRef, render txInType]
 
 instance Render TxInType where
-    render (ConsumeScriptAddress validator _) = render validator
-    render (ConsumePublicKeyAddress pubKey)   = render pubKey
+    render (ConsumeScriptAddress validator _ _) = render validator
+    render (ConsumePublicKeyAddress pubKey)     = render pubKey
 
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =

@@ -63,8 +63,7 @@ nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 nonFungibleValue :: NonFungible -> String -> Value
 nonFungibleValue nf name = V.singleton
@@ -92,6 +91,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf]
+        [unitData]
 ----
 ////
 
@@ -116,6 +116,7 @@ forge n = do
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf
                                  , mkNonFungibleTxOut nf
                                  ]
@@ -123,6 +124,7 @@ forge n = do
                 , txForge      = v
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
@@ -153,6 +155,7 @@ prank w = do
             unitData
         : pubKeyTxOut v pk
         : maybeToList mout)
+        [unitData]
 
 $(mkFunctions ['start, 'forge, 'prank])
 ----

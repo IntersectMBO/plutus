@@ -23,7 +23,6 @@ import           Wallet
 import           Control.Monad (void)
 import           Control.Monad.Except       (MonadError (..))
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.List                  (find)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
@@ -76,8 +75,7 @@ nonFungibleAddress :: NonFungible -> Address
 nonFungibleAddress = scriptAddress . mkNonFungibleValidator
 
 nonFungibleSymbol :: NonFungible -> CurrencySymbol
-nonFungibleSymbol nf = case validatorScriptHash $ mkNonFungibleValidator nf of
-    ValidatorHash h -> V.currencySymbol h
+nonFungibleSymbol nf = scriptCurrencySymbol $ mkNonFungibleValidator nf
 
 nonFungibleValue :: NonFungible -> String -> Value
 nonFungibleValue nf name = V.singleton
@@ -105,6 +103,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf zero]
+        [unitData]
 ----
 ////
 
@@ -126,13 +125,14 @@ forge n = do
             let v    = nonFungibleValue nf n
                 v2   = v + v
                 v3   = v2 + v
-                vIn  = txOutValue o
+                vIn  = txOutValue $ txOutTxOut o
                 vOut = vIn + v2
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
@@ -140,23 +140,24 @@ forge n = do
                 , txForge      = v3
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
   where
     findOut :: CurrencySymbol
-            -> [(TxOutRef, TxOut)]
-            -> Maybe (TxOutRef, TxOut)
+            -> [(TxOutRef, TxOutTx)]
+            -> Maybe (TxOutRef, TxOutTx)
     findOut s xs =
         let ys = filter f xs
-        in  case find (zeroValue . snd) ys of                            -- <1>
+        in  case find (zeroValue . txOutTxOut . snd) ys of                            -- <1>
                 Just x  -> Just x
-                Nothing -> find (ours s . snd) ys
+                Nothing -> find (ours s . txOutTxOut . snd) ys
 
-    f :: (TxOutRef, TxOut) -> Bool
-    f (_, o) = case txOutType o of
-        PayToPubKey _  -> False
-        PayToScript ds -> ds == unitData
+    f :: (TxOutRef, TxOutTx) -> Bool
+    f (_, o) = case txOutTxData o of
+        Nothing  -> False
+        Just ds -> ds == unitData
 
     ours :: CurrencySymbol -> TxOut -> Bool
     ours s o = case AM.lookup s $ V.getValue $ txOutValue o of

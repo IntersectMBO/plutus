@@ -1,6 +1,6 @@
 module Editor
-  ( editorPane
-  , demoScriptsPane
+  ( EditorAction(..)
+  , editorPane
   , withEditor
   ) where
 
@@ -9,20 +9,19 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceMessage, AceQuery(..), Autocomplete(Live), aceComponent)
 import Ace.Types (Editor)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Alternative ((<|>))
-import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (_Right, preview, to, view)
-import Data.Map as Map
+import Data.Lens (Lens', _Right, preview, to, view)
+import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.String as String
-import Data.Symbol (class IsSymbol, SProxy)
+import Data.Symbol (class IsSymbol, SProxy(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, Slot, liftEffect, query, request)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, br_, button, code_, div, div_, h3_, pre_, slot, small, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, br_, button, code_, div, div_, h3_, pre_, slot, small, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
@@ -32,20 +31,27 @@ import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (class Ord, Unit, bind, const, discard, join, map, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import Prim.Row as Row
 import Servant.PureScript.Ajax (AjaxError)
-import StaticData as StaticData
-import Types (ChildSlots, HAction(ScrollTo, LoadScript, CompileProgram, HandleEditorMessage, HandleDropEvent, HandleDragEvent), _editorSlot, _warnings)
+import Web.HTML.Event.DragEvent (DragEvent)
 
-loadBuffer :: Effect (Maybe String)
-loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
+data EditorAction
+  = HandleEditorMessage AceMessage
+  | HandleDragEvent DragEvent
+  | HandleDropEvent DragEvent
+  | LoadScript String
+  | ScrollTo { row :: Int, column :: Int }
+  | CompileProgram
+
+_warnings :: forall s a. Lens' { warnings :: a | s } a
+_warnings = prop (SProxy :: SProxy "warnings")
 
 initEditor ∷
   forall m.
   MonadAff m =>
-  Maybe String -> Editor -> m Unit
-initEditor initialContents editor =
+  Maybe String -> LocalStorage.Key -> Editor -> m Unit
+initEditor initialContents bufferLocalStorageKey editor =
   liftEffect
     $ do
-        savedContents <- liftEffect loadBuffer
+        savedContents <- liftEffect $ LocalStorage.getItem bufferLocalStorageKey
         let
           contents = fromMaybe "" (savedContents <|> initialContents)
         void $ Editor.setValue contents (Just 1) editor
@@ -59,10 +65,16 @@ type CompilationState a
   = RemoteData AjaxError (Either InterpreterError (InterpreterResult a))
 
 editorPane ::
-  forall m a.
+  forall m label _1 slots a.
+  Row.Cons label (Slot AceQuery AceMessage Unit) _1 slots =>
+  IsSymbol label =>
   MonadAff m =>
-  Maybe String -> CompilationState a -> ComponentHTML HAction ChildSlots m
-editorPane initialContents state =
+  Maybe String ->
+  SProxy label ->
+  LocalStorage.Key ->
+  CompilationState a ->
+  ComponentHTML EditorAction slots m
+editorPane initialContents slotLabel bufferLocalStorageKey state =
   div_
     [ div
         [ id_ "editor"
@@ -70,9 +82,9 @@ editorPane initialContents state =
         , onDrop $ Just <<< HandleDropEvent
         ]
         [ slot
-            _editorSlot
+            slotLabel
             unit
-            (aceComponent (initEditor initialContents) (Just Live))
+            (aceComponent (initEditor initialContents bufferLocalStorageKey) (Just Live))
             unit
             (Just <<< HandleEditorMessage)
         ]
@@ -118,26 +130,12 @@ editorPane initialContents state =
           )
           state
 
-demoScriptsPane :: forall p. HTML p HAction
-demoScriptsPane =
-  div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
-    )
-
-demoScriptButton :: forall p. String -> HTML p HAction
-demoScriptButton key =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript key
-    ]
-    [ text key ]
-
-interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p HAction)
+interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p EditorAction)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]
 
 interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
 
-compilationErrorPane :: forall p. CompilationError -> HTML p HAction
+compilationErrorPane :: forall p. CompilationError -> HTML p EditorAction
 compilationErrorPane (RawError error) = div_ [ text error ]
 
 compilationErrorPane (CompilationError error) =
@@ -150,10 +148,10 @@ compilationErrorPane (CompilationError error) =
     , code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
 
-compilationWarningsPane :: forall p. Array Warning -> HTML p HAction
+compilationWarningsPane :: forall p. Array Warning -> HTML p EditorAction
 compilationWarningsPane warnings = listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
-compilationWarningPane :: forall p. Warning -> HTML p HAction
+compilationWarningPane :: forall p. Warning -> HTML p EditorAction
 compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text $ view _Warning warning ]
 
 -- | Handles the messy business of running an editor command if the

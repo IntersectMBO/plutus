@@ -15,7 +15,6 @@ module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract) where
 
 import           Control.Monad.Error.Lens (throwing)
 
-import           Data.Maybe (listToMaybe)
 import qualified Data.Map   as Map
 import qualified Data.Text  as T
 
@@ -49,19 +48,22 @@ pubKeyContract
 pubKeyContract pk vl = do
     let address = Ledger.scriptAddress (pkValidator pk)
         tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
-    txId <- writeTxSuccess tx
+    tid <- writeTxSuccess tx
 
-    ledgerTx <- awaitTransactionConfirmed address txId
-    let output = listToMaybe
-                $ fmap fst
-                $ filter ((==) address . txOutAddress . snd)
-                $ Map.toList
+    ledgerTx <- awaitTransactionConfirmed address tid
+    let output = Map.keys
+                $ Map.filter ((==) address . txOutAddress)
                 $ unspentOutputsTx ledgerTx
     ref <- case output of
-        Nothing -> throwing _OtherError $
+        [] -> throwing _OtherError $
             "Transaction did not contain script output"
             <> "for public key '"
             <> T.pack (show pk)
             <> "'"
-        Just o -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ())
+        [o] -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ()) (DataScript $ PlutusTx.toData ())
+        _ -> throwing _OtherError $
+            "Transaction contained multiple script outputs"
+            <> "for public key '"
+            <> T.pack (show pk)
+            <> "'"
     pure ref

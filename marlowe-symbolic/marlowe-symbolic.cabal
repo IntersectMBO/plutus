@@ -35,4 +35,5 @@ library
                         servant,
                         servant-client -any,
                         template-haskell,
-                        utf8-string
+                        utf8-string,
+                        wl-pprint

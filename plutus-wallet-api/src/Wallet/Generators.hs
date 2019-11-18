@@ -105,10 +105,10 @@ genMockchain' :: MonadGen m
     -> m Mockchain
 genMockchain' gm = do
     let (txn, ot) = genInitialTransaction gm
-        txId = hashTx txn
+        tid = txId txn
     pure Mockchain {
         mockchainInitialBlock = [txn],
-        mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
+        mockchainUtxo = Map.fromList $ first (TxOutRef tid) <$> zip [0..] ot
         }
 
 -- | Generate a mockchain using the default 'GeneratorModel'.
@@ -131,7 +131,8 @@ genInitialTransaction GeneratorModel{..} =
         txForge = t,
         txFee = 0,
         txValidRange = W.intervalFrom 0,
-        txSignatures = Map.empty
+        txSignatures = Map.empty,
+        txData = Map.empty
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -190,6 +191,7 @@ genValidTransactionSpending' g f ins totalVal = do
                         , txFee = fee
                         , txValidRange = Interval.always
                         , txSignatures = Map.empty
+                        , txData = Map.empty
                         }
 
                 -- sign the transaction with all three known wallets

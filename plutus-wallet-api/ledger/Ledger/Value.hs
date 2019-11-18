@@ -146,9 +146,7 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
     deriving newtype (Serialise, PlutusTx.IsData)
-
-deriving via (PrettyShow Value) instance Pretty Value
-
+    deriving Pretty via (PrettyShow Value)
 
 instance ToSchema Value where
     toSchema = FormSchemaValue

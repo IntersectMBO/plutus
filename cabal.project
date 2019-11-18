@@ -17,7 +17,6 @@ packages: language-plutus-core
           plutus-contract
           deployment-server
           iots-export
-          metatheory
 optimization: 2
 constraints: language-plutus-core +development
            , plutus-wallet-api +development

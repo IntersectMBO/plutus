@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -18,6 +19,7 @@ import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           Prelude                          hiding (until)
+import           IOTS                             (IotsType)
 
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Input, Handlers (..), Output)
@@ -39,6 +41,7 @@ newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Maybe Slot }
   deriving Semigroup via Maybe (Min Slot)
   deriving Monoid via Maybe (Min Slot)
   deriving Pretty via (PrettyShow WaitingForSlot)
+  deriving anyclass (IotsType)
 
 type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 

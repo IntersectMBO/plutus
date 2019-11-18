@@ -24,7 +24,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE NoImplicitPrelude   #-}
 module Tutorial.Vesting where
 
-import           Language.PlutusTx.Prelude hiding (Applicative (..))
+import           Language.PlutusTx.Prelude hiding (Applicative (..), foldMap)
 import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -45,6 +45,7 @@ import qualified Wallet.API                as WAPI
 
 import qualified Data.Map                  as Map
 import qualified Data.Set                  as Set -- <.>
+import           Data.Foldable             (foldMap)
 
 import           GHC.Generics              (Generic)
 ----
@@ -223,12 +224,13 @@ withdraw vst vl = do
     utxos <- WAPI.outputsAt address -- <.>
 
     let
-        -- the redeemer script containing the unit value ()
-        redeemer  = RedeemerScript (PlutusTx.toData ())
+        -- the redeemer and data scripts containing the unit value ()
+        redeemer   = RedeemerScript (PlutusTx.toData ())
+        dataScript = DataScript (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = L.scriptTxIn r validator redeemer
+        mkIn r = L.scriptTxIn r validator redeemer dataScript
 
         ins = Set.map mkIn (Map.keysSet utxos)
 ----
@@ -250,15 +252,15 @@ that keeps the remaining value.
     -- Now to compute the difference between 'vl' and what is currently in the
     -- scheme:
     let
-        currentlyLocked = Map.foldr (\txo vl' -> vl' + L.txOutValue txo) zero utxos
+        currentlyLocked = foldMap (L.txOutValue . L.txOutTxOut) utxos
         remaining = currentlyLocked - vl
 
-        otherOutputs = if Value.isZero remaining
-                       then []
-                       else [L.scriptTxOut remaining validator (DataScript (PlutusTx.toData ()))]
+        (otherOutputs, datas) = if Value.isZero remaining
+                       then ([], [])
+                       else ([L.scriptTxOut remaining validator dataScript], [dataScript])
 
     -- Finally we have everything we need for `createTxAndSubmit`
-    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs)
+    _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs) datas
 
     Haskell.pure ()
 ----

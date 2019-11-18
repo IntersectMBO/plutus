@@ -9,9 +9,8 @@ module Ledger.Typed.Scripts where
 import           Language.PlutusTx
 
 import           Language.PlutusTx.Prelude (check)
+import qualified Ledger.Address            as Addr
 import           Ledger.Scripts
-import           Ledger.Tx                 hiding (scriptAddress)
-import qualified Ledger.Tx                 as Tx
 import qualified Ledger.Validation         as Validation
 
 import           Data.Kind
@@ -42,8 +41,8 @@ data ScriptInstance (a :: Type) where
         -> ScriptInstance a
 
 -- | Get the address for a script instance.
-scriptAddress :: ScriptInstance a -> Address
-scriptAddress = Tx.scriptAddress . validatorScript
+scriptAddress :: ScriptInstance a -> Addr.Address
+scriptAddress = Addr.scriptAddress . validatorScript
 
 -- | Get the validator script for a script instance.
 validatorScript :: ScriptInstance a -> ValidatorScript

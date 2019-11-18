@@ -23,8 +23,8 @@ tests = testGroup "escrow"
     [ checkPredicate @EscrowSchema "can pay"
         (void $ payEp escrowParams)
         (assertDone w1 (const True) "escrow pay not done" /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
-        (callEndpoint @"pay-escrow" (Wallet 1) (walletPubKey w1, Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents (Wallet 1))
+        (callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 10)
+        >> handleBlockchainEvents w1)
 
     , checkPredicate @EscrowSchema "can redeem"
         (void $ selectEither (payEp escrowParams) (redeemEp escrowParams))
@@ -33,15 +33,15 @@ tests = testGroup "escrow"
           /\ walletFundsChange w2  (Ada.lovelaceValueOf 10)
           /\ walletFundsChange w3 mempty
         )
-        ( callEndpoint @"pay-escrow" (Wallet 1) (walletPubKey w1, Ada.lovelaceValueOf 20)
-        >> callEndpoint @"pay-escrow" (Wallet 2) (walletPubKey w2, Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents (Wallet 1)
-        >> handleBlockchainEvents (Wallet 2)
-        >> callEndpoint @"redeem-escrow" (Wallet 3) ()
+        ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
+        >> callEndpoint @"pay-escrow" w2 (Ada.lovelaceValueOf 10)
+        >> handleBlockchainEvents w1
+        >> handleBlockchainEvents w2
+        >> callEndpoint @"redeem-escrow" w3 ()
         >> notifySlot w3
-        >> handleBlockchainEvents (Wallet 3)
-        >> handleBlockchainEvents (Wallet 1)
-        >> handleBlockchainEvents (Wallet 2))
+        >> handleBlockchainEvents w3
+        >> handleBlockchainEvents w1
+        >> handleBlockchainEvents w2)
 
     , checkPredicate @EscrowSchema "can redeem even if more money than required has been paid in"
           (both (payEp escrowParams) (redeemEp escrowParams))
@@ -68,29 +68,29 @@ tests = testGroup "escrow"
             /\ walletFundsChange w3 (Ada.lovelaceValueOf (-10))
           )
 
-          ( callEndpoint @"pay-escrow" (Wallet 1) (walletPubKey w1, Ada.lovelaceValueOf 20)
-          >> callEndpoint @"pay-escrow" (Wallet 2) (walletPubKey w2, Ada.lovelaceValueOf 10)
-          >> callEndpoint @"pay-escrow" (Wallet 3) (walletPubKey w3, Ada.lovelaceValueOf 10)
-          >> handleBlockchainEvents (Wallet 1)
-          >> handleBlockchainEvents (Wallet 2)
-          >> handleBlockchainEvents (Wallet 3)
-          >> callEndpoint @"redeem-escrow" (Wallet 1) ()
+          ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
+          >> callEndpoint @"pay-escrow" w2 (Ada.lovelaceValueOf 10)
+          >> callEndpoint @"pay-escrow" w3 (Ada.lovelaceValueOf 10)
+          >> handleBlockchainEvents w1
+          >> handleBlockchainEvents w2
+          >> handleBlockchainEvents w3
+          >> callEndpoint @"redeem-escrow" w1 ()
           >> notifySlot w1
-          >> handleBlockchainEvents (Wallet 1)
-          >> handleBlockchainEvents (Wallet 3)
-          >> handleBlockchainEvents (Wallet 2))
+          >> handleBlockchainEvents w1
+          >> handleBlockchainEvents w3
+          >> handleBlockchainEvents w2)
 
     , checkPredicate @EscrowSchema "can refund"
-        (payEp escrowParams >> refundEp escrowParams (walletPubKey w1))
+        (payEp escrowParams >> refundEp escrowParams)
         ( walletFundsChange w1 mempty
           /\ assertDone w1 (\case { RefundOK _ -> True; _ -> False}) "refund should succeed")
-        ( callEndpoint @"pay-escrow" (Wallet 1) (walletPubKey w1, Ada.lovelaceValueOf 20)
-        >> handleBlockchainEvents (Wallet 1)
+        ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
+        >> handleBlockchainEvents w1
         >> addBlocks 200
-        >> callEndpoint @"refund-escrow" (Wallet 1) ()
-        >> handleBlockchainEvents (Wallet 1))
+        >> callEndpoint @"refund-escrow" w1 ()
+        >> handleBlockchainEvents w1)
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 50000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 35000)
     ]
 
 w1, w2, w3 :: Wallet
@@ -107,4 +107,3 @@ escrowParams =
         , payToPubKeyTarget (walletPubKey w2) (Ada.lovelaceValueOf 20)
         ]
     }
-

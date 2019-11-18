@@ -1,4 +1,7 @@
+{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE ExplicitNamespaces         #-}
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DeriveLift                 #-}
@@ -11,15 +14,17 @@
 module Playground.Types where
 
 import           Control.Lens                 (makeLenses)
+import           Control.Newtype.Generics     (Newtype)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.Aeson                   as JSON
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import           Data.Row (type Row)
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (Blockchain, PubKey, Tx, TxId, fromSymbol)
+import           Ledger                       (PubKey, Tx, fromSymbol)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
@@ -45,23 +50,30 @@ adaCurrency =
         }
 
 --------------------------------------------------------------------------------
-newtype Fn =
-    Fn Text
+newtype EndpointName =
+    EndpointName Text
     deriving (Eq, Show, Generic, TH.Lift)
     deriving newtype (ToJSON, FromJSON)
 
-data Expression
-    = Action
-          { function  :: Fn
-          , wallet    :: Wallet
-          , arguments :: [JSON.Value]
-          }
-    | Wait
+instance Newtype EndpointName
+
+data Expression (schema :: Row *)
+    = AddBlocks
           { blocks :: Int
+          }
+    | PayToWallet
+          { source :: Wallet
+          , destination :: Wallet
+          , value :: V.Value
+          }
+    | CallEndpoint
+          { endpointName :: EndpointName
+          , wallet :: Wallet
+          , arguments :: JSON.Value
           }
     deriving (Show, Generic, ToJSON, FromJSON)
 
-type Program = [Expression]
+type Program schema = [Expression schema]
 
 data SimulatorWallet =
     SimulatorWallet
@@ -74,9 +86,10 @@ data SimulatorWallet =
 data Evaluation =
     Evaluation
         { wallets    :: [SimulatorWallet]
-        , program    :: Program
         , sourceCode :: SourceCode
-        , blockchain :: Blockchain
+        , program    :: JSON.Value
+        -- ^ This will be a '[Expression s]' where 's' is the schema from the compiled 'SourceCode'.
+        -- It has to be JSON, because we can't know the type of 's' until the 'SourceCode' has been compiled.
         }
     deriving (Generic, ToJSON, FromJSON)
 
@@ -85,13 +98,13 @@ pubKeys Evaluation {..} = walletPubKey . simulatorWalletWallet <$> wallets
 
 data EvaluationResult =
     EvaluationResult
-        { resultBlockchain  :: [[(TxId, Tx)]] -- Blockchain annotated with hashes.
+        { resultBlockchain  :: [[Tx]]
         , resultRollup      :: [[AnnotatedTx]]
         , emulatorLog       :: [EmulatorEvent]
         , fundsDistribution :: [SimulatorWallet]
         , walletKeys        :: [(PubKey, Wallet)]
         }
-    deriving (Generic, ToJSON)
+    deriving (Generic, ToJSON, FromJSON)
 
 data CompilationResult =
     CompilationResult
@@ -103,7 +116,7 @@ data CompilationResult =
 
 data FunctionSchema a =
     FunctionSchema
-        { functionName   :: Fn
+        { functionName   :: EndpointName
         , argumentSchema :: [a]
         }
     deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
@@ -113,11 +126,13 @@ data PlaygroundError
     = CompilationErrors [CompilationError]
     | InterpreterError HI.InterpreterError
     | FunctionSchemaError
-    | DecodeJsonTypeError String String
     | PlaygroundTimeout
     | RollupError Text
     | OtherError String
-    deriving (Show, Generic)
+    | JsonDecodingError { expected :: String
+                        , decodingError:: String
+                        , input :: String}
+    deriving (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeLenses 'EvaluationResult

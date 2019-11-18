@@ -1,4 +1,4 @@
-module AjaxUtils where
+module AjaxUtils (ajaxErrorPane, renderForeignErrors) where
 
 import Prelude hiding (div)
 import Bootstrap (alertDanger_)
@@ -6,22 +6,7 @@ import Data.Foldable (intercalate)
 import Foreign (MultipleErrors, renderForeignError)
 import Halogen.HTML (ClassName(..), HTML, br_, div, text)
 import Halogen.HTML.Properties (class_)
-import Playground.Server (SPParams_(..))
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
-import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-
-ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
-
-showAjaxError :: forall p i. AjaxError -> HTML p i
-showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
-
-showErrorDescription :: forall p i. ErrorDescription -> HTML p i
-showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
-
-showErrorDescription (ResponseFormatError err) = text $ "ResponseFormatError: " <> err
-
-showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
@@ -33,6 +18,16 @@ ajaxErrorPane error =
         , text "Please try again or contact support for assistance."
         ]
     ]
+
+showAjaxError :: forall p i. AjaxError -> HTML p i
+showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
+
+showErrorDescription :: forall p i. ErrorDescription -> HTML p i
+showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
+
+showErrorDescription (ResponseFormatError err) = text $ "ResponseFormatError: " <> err
+
+showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 renderForeignErrors :: MultipleErrors -> String
 renderForeignErrors = intercalate "\n" <<< map renderForeignError

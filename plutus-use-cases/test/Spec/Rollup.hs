@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Spec.Rollup where
 
 
@@ -11,6 +12,7 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
 import           Ledger
 
+import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import           Language.PlutusTx.Coordination.Contracts.Game
 
@@ -33,13 +35,13 @@ tests = testGroup "showBlockchain"
      ]
 
 render
-    :: Contract s T.Text a
-    -> ContractTrace s T.Text (EmulatorAction T.Text) a ()
+    :: ( ContractRow s )
+    => Contract s T.Text a
+    -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
     -> IO ByteString
 render con trace = do
-    let (result, EmulatorState{_chainNewestFirst=blockchain, _walletStates=wallets}) = runTrace con trace
+    let (result, EmulatorState{_chainNewestFirst = resultBlockchain, _walletStates = wallets}) = runTrace con trace
     let walletKeys = flip fmap (Map.toList wallets) $ \(w, ws) -> (toPublicKey (_ownPrivateKey ws), w)
-    let resultBlockchain = flip (fmap . fmap) blockchain $ \tx -> (hashTx tx, tx)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->

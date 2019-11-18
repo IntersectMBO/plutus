@@ -43,7 +43,7 @@ If we compiled `c1` and deployed it, it would finish right away without doing an
 
 === Waiting
 
-For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract s Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `HasAwaitSlot s` constraint tells us that `awaitSlot` requires the contract's schema to contain the 'AwaitSlot' effect. This ensures that we can see all the effects that a contract may have just from the contract's type signature, without having to look at its implementation.
+For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract s e Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `HasAwaitSlot s` constraint tells us that `awaitSlot` requires the contract's schema (the type variable `s`) to contain the `AwaitSlot` effect. This ensures that we can see all the effects that a contract may have just from the contract's type signature, without having to look at its implementation. The second type variable `e` describes the errors that the contract can produce.
 
 [source,haskell]
 ----
@@ -56,9 +56,9 @@ c2 = awaitSlot 2765 -- <1>
 
 Smart contracts often involve multiple participants that synchronise their actions over the blockchain. To be notified of changes to the contract state we need the `WatchAddress` effect. It lets us watch any address on the blockchain for transactions that modify them. `Language.Plutus.Contract` contains a couple of basic functions for watching addresses.
 
-`nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract s Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
+`nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract s e Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
 
-Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract s AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
+Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract s e AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
 
 === Unspent outputs
 
@@ -88,7 +88,7 @@ c3 = endpoint @"amount" -- <2>
 
 Given two contracts we can combine them by running them in parallel, in sequence, or by selecting the one that finishes first.
 
-Let's say we have two contracts `collect {2c} Contract r e AddressMap` and `recipient {2c} Contract r e PubKey'`. `collect` watches the blockchain for payments to a script address, and after a while returns an address map with all the inputs that are currently there. `recipient` asks the user for an address to make the payment to. Now we would like to build a contract that combines `collect` and `recipient` and then submits a transaction that spends all inputs and pays the value to the given address.
+Let's say we have two contracts `collect {2c} Contract s e AddressMap` and `recipient {2c} Contract s e PubKey'`. `collect` watches the blockchain for payments to a script address, and after a while returns an address map with all the inputs that are currently there. `recipient` asks the user for an address to make the payment to. Now we would like to build a contract that combines `collect` and `recipient` and then submits a transaction that spends all inputs and pays the value to the given address.
 
 === Parallel
 

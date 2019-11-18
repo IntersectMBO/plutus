@@ -1,6 +1,6 @@
 = Plutus Tutorial
 :email: plutus@iohk.io
-:orgname: IOHK
+:orgname: Input Output HK Limited
 :doctype: article
 :toc: left
 :sectnums:

@@ -1,6 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus Core.
-module Language.PlutusCore.Analysis.Definitions (UniqueInfos, ScopeType, termDefs, typeDefs, runTermDefs, runTypeDefs) where
+module Language.PlutusCore.Analysis.Definitions
+    ( UniqueInfos
+    , ScopeType
+    , termDefs
+    , typeDefs
+    , runTermDefs
+    , runTypeDefs
+    ) where
 
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
@@ -23,21 +30,21 @@ them all and allow the client to chose if they want to throw some of them.
 -}
 
 -- | Information about a unique, a pair of a definition if we have one and a set of uses.
-type UniqueInfo a = (Maybe (ScopedLoc a), Set.Set (ScopedLoc a))
-type UniqueInfos a = UniqueMap Unique (UniqueInfo a)
+type UniqueInfo ann = (Maybe (ScopedLoc ann), Set.Set (ScopedLoc ann))
+type UniqueInfos ann = UniqueMap Unique (UniqueInfo ann)
 
-data ScopedLoc a = ScopedLoc ScopeType a deriving (Eq, Ord)
+data ScopedLoc ann = ScopedLoc ScopeType ann deriving (Eq, Ord)
 
 -- | Tag for distinguishing between whether we are talking about the term scope
 -- for variables or the type scope for variables.
 data ScopeType = TermScope | TypeScope deriving (Eq, Ord)
 
 lookupDef
-    :: (Ord a,
+    :: (Ord ann,
         HasUnique name unique,
-        MonadState (UniqueInfos a) m)
+        MonadState (UniqueInfos ann) m)
     => name
-    -> m (UniqueInfo a)
+    -> m (UniqueInfo ann)
 lookupDef n = do
     previousDef <- gets $ lookupNameIndex n
     case previousDef of
@@ -48,12 +55,12 @@ lookupDef n = do
             pure empty
 
 addDef
-    :: (Ord a,
+    :: (Ord ann,
         HasUnique n unique,
-        MonadState (UniqueInfos a) m,
-        MonadWriter [UniqueError a] m)
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
     => n -- ^ The variable
-    -> a -- ^ The annotation of the variable
+    -> ann -- ^ The annotation of the variable
     -> ScopeType -- ^ The scope type
     -> m ()
 addDef n newDef tpe = do
@@ -66,23 +73,23 @@ addDef n newDef tpe = do
 -- | Check that a variable is currently undefined.
 checkUndefined
     :: (HasUnique n u,
-        MonadState (UniqueInfos a) m,
-        MonadWriter [UniqueError a] m)
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
     => n -- ^ The variable
-    -> ScopedLoc a -- ^ The new definition
-    -> UniqueInfo a -- ^ The existing info
+    -> ScopedLoc ann -- ^ The new definition
+    -> UniqueInfo ann -- ^ The existing info
     -> m ()
 checkUndefined n (ScopedLoc _ newDef) info = case info of
     (Just (ScopedLoc _ prevDef), _) -> tell [MultiplyDefined (n ^. unique . coerced) prevDef newDef]
     _                               -> pure ()
 
 addUsage
-    :: (Ord a,
+    :: (Ord ann,
         HasUnique n unique,
-        MonadState (UniqueInfos a) m,
-        MonadWriter [UniqueError a] m)
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
     => n -- ^ The variable
-    -> a -- ^ The annotation of the variable
+    -> ann -- ^ The annotation of the variable
     -> ScopeType -- ^ The scope type
     -> m ()
 addUsage n newUse tpe = do
@@ -95,10 +102,10 @@ addUsage n newUse tpe = do
 
 checkDefined
     :: (HasUnique n u,
-        MonadWriter [UniqueError a] m)
+        MonadWriter [UniqueError ann] m)
     => n -- ^ The variable
-    -> ScopedLoc a -- ^ The new definition
-    -> UniqueInfo a -- ^ The existing info
+    -> ScopedLoc ann -- ^ The new definition
+    -> UniqueInfo ann -- ^ The existing info
     -> m ()
 checkDefined n (ScopedLoc _ loc) (def, _) = case def of
     Nothing -> tell [FreeVariable (n ^. unique . coerced) loc]
@@ -106,10 +113,10 @@ checkDefined n (ScopedLoc _ loc) (def, _) = case def of
 
 checkCoherency
     :: (HasUnique n u,
-        MonadWriter [UniqueError a] m)
+        MonadWriter [UniqueError ann] m)
     => n -- ^ The variable
-    -> ScopedLoc a -- ^ The new definition
-    -> UniqueInfo a -- ^ The existing info
+    -> ScopedLoc ann -- ^ The new definition
+    -> UniqueInfo ann -- ^ The existing info
     -> m ()
 checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
     for_ def checkLoc
@@ -120,47 +127,47 @@ checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
             tell [IncoherentUsage (n ^. unique . coerced) loc' loc]
 
 termDefs
-    :: (Ord a,
-        HasUnique (name a) TermUnique,
-        HasUnique (tyname a) TypeUnique,
-        MonadState (UniqueInfos a) m,
-        MonadWriter [UniqueError a] m)
-    => Term tyname name a
+    :: (Ord ann,
+        HasUnique (name ann) TermUnique,
+        HasUnique (tyname ann) TypeUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term tyname name ann
     -> m ()
 termDefs = cata $ \case
-    VarF a n           -> addUsage n a TermScope
-    LamAbsF a n ty t   -> addDef n a TermScope >> typeDefs ty >> t
+    VarF ann n           -> addUsage n ann TermScope
+    LamAbsF ann n ty t   -> addDef n ann TermScope >> typeDefs ty >> t
     IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
-    TyAbsF a tn _ t    -> addDef tn a TypeScope >> t
+    TyAbsF ann tn _ t    -> addDef tn ann TypeScope >> t
     TyInstF _ t ty     -> t >> typeDefs ty
     x                  -> sequence_ x
 
 typeDefs
-    :: (Ord a,
-        HasUnique (tyname a) TypeUnique,
-        MonadState (UniqueInfos a) m,
-        MonadWriter [UniqueError a] m)
-    => Type tyname a
+    :: (Ord ann,
+        HasUnique (tyname ann) TypeUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Type tyname ann
     -> m ()
 typeDefs = cata $ \case
-    TyVarF a n         -> addUsage n a TypeScope
-    TyForallF a tn _ t -> addDef tn a TypeScope >> t
-    TyLamF a tn _ t    -> addDef tn a TypeScope >> t
+    TyVarF ann n         -> addUsage n ann TypeScope
+    TyForallF ann tn _ t -> addDef tn ann TypeScope >> t
+    TyLamF ann tn _ t    -> addDef tn ann TypeScope >> t
     x                  -> sequence_ x
 
 runTermDefs
-    :: (Ord a,
-        HasUnique (name a) TermUnique,
-        HasUnique (tyname a) TypeUnique,
+    :: (Ord ann,
+        HasUnique (name ann) TermUnique,
+        HasUnique (tyname ann) TypeUnique,
         Monad m)
-    => Term tyname name a
-    -> m (UniqueInfos a, [UniqueError a])
+    => Term tyname name ann
+    -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
 
 runTypeDefs
-    :: (Ord a,
-        HasUnique (tyname a) TypeUnique,
+    :: (Ord ann,
+        HasUnique (tyname ann) TypeUnique,
         Monad m)
-    => Type tyname a
-    -> m (UniqueInfos a, [UniqueError a])
+    => Type tyname ann
+    -> m (UniqueInfos ann, [UniqueError ann])
 runTypeDefs = runWriterT . flip execStateT mempty . typeDefs

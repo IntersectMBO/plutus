@@ -63,9 +63,11 @@ library
         Data.Text.Prettyprint.Doc.Extras,
         Ledger,
         Ledger.Ada,
+        Ledger.Address,
         Ledger.AddressMap,
         Ledger.Blockchain,
         Ledger.Crypto,
+        Ledger.Orphans,
         Ledger.Slot,
         Ledger.Scripts,
         Ledger.Tx,
@@ -85,6 +87,7 @@ library
         containers -any,
         hedgehog -any,
         hashable -any,
+        iots-export -any,
         lens -any,
         memory -any,
         mtl -any,
@@ -112,6 +115,7 @@ library plutus-ledger
         Data.Text.Prettyprint.Doc.Extras
         Ledger
         Ledger.Ada
+        Ledger.Address
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto

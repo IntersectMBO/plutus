@@ -73,6 +73,7 @@ module Wallet.Emulator.Types(
     txPool,
     walletStates,
     index,
+    walletIndex,
     MonadEmulator,
     validateEm,
     validateBlock,
@@ -96,7 +97,7 @@ import           Control.Newtype.Generics  (Newtype)
 import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Foldable             (traverse_)
+import           Data.Foldable             (foldr, traverse_)
 import           Data.Hashable             (Hashable)
 import           Data.HashMap.Strict       (HashMap)
 import qualified Data.HashMap.Strict       as HashMap
@@ -105,6 +106,7 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
+import           Data.String               (fromString)
 import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc hiding (annotate)
 import           Data.Traversable          (for)
@@ -118,8 +120,9 @@ import           Servant.API               (FromHttpApiData (..), ToHttpApiData 
 import qualified Language.PlutusTx.Prelude as PlutusTx
 
 import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                            TxId, TxIn (..), TxOut (..), TxOutRef, Value, addSignature, hashTx,
-                                            lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txOutAddress)
+                                            TxId, TxIn (..), TxOut (..), TxOutRef, TxOutTx (..), Value, addSignature,
+                                            lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId,
+                                            txOutAddress)
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
 import qualified Ledger.Index              as Index
@@ -207,7 +210,7 @@ ownAddress :: WalletState -> Address
 ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 
 -- | Get the funds available at the user's own public-key address.
-ownFunds :: Lens' WalletState (Map TxOutRef TxOut)
+ownFunds :: Lens' WalletState (Map TxOutRef TxOutTx)
 ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
@@ -310,7 +313,7 @@ instance WalletAPI MockWallet where
         else do
           -- If the requested value is not covered by the change, then we need to
           -- select new inputs, after deducting the oldChange from the value.
-          (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds)
+          (spend, change) <- selectCoin (second (txOutValue . txOutTxOut) <$> Map.toList fnds)
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
@@ -406,6 +409,7 @@ data EmulatorState = EmulatorState {
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
     _walletStates     :: Map Wallet WalletState, -- ^ The state of each wallet.
     _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
+    _walletIndex      :: AM.AddressMap, -- ^ A richer index used by wallets.
     _emulatorLog      :: [EmulatorEvent] -- ^ The emulator events, with the newest first.
     } deriving (Show)
 
@@ -413,7 +417,7 @@ makeLenses ''EmulatorState
 
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (foldMap txOutValue . view ownFunds) . view walletStates
+fundsDistribution = Map.map (foldMap (txOutValue . txOutTxOut) . view ownFunds) . view walletStates
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -432,6 +436,7 @@ emptyEmulatorState = EmulatorState {
     _txPool = [],
     _walletStates = Map.empty,
     _index = mempty,
+    _walletIndex = mempty,
     _emulatorLog = []
     }
 
@@ -447,7 +452,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwing _AssertionError $ GenericAssertion "Wallet not found"
         Just ws -> pure ws
-    let total = foldMap txOutValue $ ws ^. ownFunds
+    let total = foldMap (txOutValue . txOutTxOut) $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwing _AssertionError . GenericAssertion $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
@@ -468,6 +473,7 @@ emulatorState :: Blockchain -> EmulatorState
 emulatorState bc = emptyEmulatorState
     & chainNewestFirst .~ bc
     & index .~ Index.initialise bc
+    & walletIndex .~ AM.fromChain bc
 
 -- | Initialise the emulator state with a pool of pending transactions.
 emulatorStatePool :: TxPool -> EmulatorState
@@ -485,6 +491,7 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             , txFee = PlutusTx.zero
             , txValidRange = WAPI.defaultSlotRange
             , txSignatures = Map.empty
+            , txData = Map.empty
             }
 
 -- | Validate a transaction in the current emulator state.
@@ -506,7 +513,7 @@ liftMockWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
         ((out, newState), (msgs, txns)) = runWriter $ runStateT (runExceptT (runMockWallet act)) walletState
-        events = (TxnSubmit . hashTx <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
+        events = (TxnSubmit . txId <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
     put emState {
         _txPool = txns ++ _txPool emState,
         _walletStates = Map.insert wallet newState $ _walletStates emState,
@@ -533,11 +540,15 @@ evalEmulated = \case
             pool        = _txPool emState
             (ValidatedBlock block events rest idx') =
                 validateBlock currentSlot idx pool
+            walletIndex' = foldr AM.updateAllAddresses (_walletIndex emState) block
             newChain = block : _chainNewestFirst emState
+        unless (Index.getIndex idx' == (fmap txOutTxOut $ AM.outRefMap walletIndex')) $
+            throwing _AssertionError $ GenericAssertion $ "Indices don't match\n" <> (fromString $ show idx') <> "\n" <> (fromString $ show walletIndex')
         put emState {
             _chainNewestFirst = newChain,
             _txPool = rest,
             _index = idx',
+            _walletIndex = walletIndex',
             _emulatorLog   = SlotAdd (lastSlot newChain) : events ++ _emulatorLog emState
             }
         pure block
@@ -590,8 +601,8 @@ canValidateNow currentSlot tx = Interval.member currentSlot (txValidRange tx)
 mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
 mkEvent t result =
     case result of
-        Nothing  -> TxnValidate (hashTx t)
-        Just err -> TxnValidationFail (hashTx t) err
+        Nothing  -> TxnValidate (txId t)
+        Just err -> TxnValidationFail (txId t) err
 
 processEmulated :: (MonadEmulator e m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated

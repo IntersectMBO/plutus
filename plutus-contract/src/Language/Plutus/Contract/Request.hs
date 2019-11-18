@@ -115,3 +115,7 @@ select = (<|>)
 
 checkpoint :: forall s e a. (Aeson.FromJSON a, Aeson.ToJSON a) => Contract s e a -> Contract s e a
 checkpoint = Contract . CJSONCheckpoint . unContract
+
+-- | Transform any exceptions thrown by the 'Contract' using the given function.
+withContractError :: forall s e e' a. (e -> e') -> Contract s e a -> Contract s e' a
+withContractError f = Contract . withResumableError f . unContract

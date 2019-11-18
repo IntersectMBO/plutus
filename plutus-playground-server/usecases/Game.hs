@@ -1,17 +1,21 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE ExplicitNamespaces         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TupleSections              #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+
 module Game where
+
 -- TRIM TO HERE
 -- A game with two players. Player 1 thinks of a secret word
 -- and uses its hash, and the game validator script, to lock
@@ -19,19 +23,21 @@ module Game where
 -- Player 2 guesses the word by attempting to spend the transaction
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
-
-import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, DataScript (DataScript), PendingTx,
-                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
-                                             plcSHA2_256, scriptAddress)
-import           Ledger.Typed.Scripts       (wrapValidator)
-import           Ledger.Value               (Value)
-import           Playground.Contract
-import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
-                                             defaultSlotRange, payToScript_, startWatching)
-
+import           Control.Applicative        ((<|>))
+import           Control.Monad              (void)
 import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Language.PlutusTx          as PlutusTx
+import           Language.PlutusTx.Prelude  hiding (pure, (<$>))
+import           Ledger                     (Address, DataScript (DataScript), PendingTx,
+                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript, scriptAddress)
+import           Ledger.Ada                 (Ada)
+import qualified Ledger.Ada                 as Ada
+import           Ledger.Typed.Scripts       (wrapValidator)
+import           Language.Plutus.Contract.Tx
+import           Playground.Contract
+import           Prelude                    (Eq, Ord, Show)
+
+------------------------------------------------------------
 
 newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
@@ -41,77 +47,72 @@ newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
-correctGuess :: HashedString -> ClearString -> Bool
-correctGuess (HashedString actual) (ClearString guess') =
-    actual == (sha2_256 guess')
+type GameSchema =
+    BlockchainActions
+        .\/ Endpoint "lock" LockParams
+        .\/ Endpoint "guess" GuessParams
 
+-- | The validator (datascript -> redeemer -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
-validateGuess dataScript redeemerScript _ =
-    correctGuess dataScript redeemerScript
+validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator =
-    mkValidatorScript $$(PlutusTx.compile [|| wrap validateGuess ||])
-    where wrap = wrapValidator @HashedString @ClearString
+gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
+    where validator = wrapValidator validateGuess
 
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation
 gameDataScript :: String -> DataScript
 gameDataScript =
-    DataScript . PlutusTx.toData . HashedString . plcSHA2_256 . C.pack
+    Ledger.DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation
 gameRedeemerScript :: String -> RedeemerScript
 gameRedeemerScript =
-    RedeemerScript . PlutusTx.toData . ClearString . C.pack
+    Ledger.RedeemerScript . PlutusTx.toData . ClearString . C.pack
 
 -- | The address of the game (the hash of its validator script)
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
--- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: MonadWallet m => String -> Value -> m ()
-lock word vl =
-    -- 'payToScript_' is a function of the wallet API. It takes a script
-    -- address, a currency value and a data script, and submits a transaction
-    -- that pays the value to the address, using the data script.
-    --
-    -- The underscore at the end of the name indicates that 'payToScript_'
-    -- discards its result. If you want to hold on to the transaction you can
-    -- use 'payToScript'.
-    payToScript_ defaultSlotRange gameAddress vl (gameDataScript word)
+-- | Parameters for the "lock" endpoint
+data LockParams = LockParams
+    { secretWord :: String
+    , amount     :: Ada
+    }
+    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+--  | Parameters for the "guess" endpoint
+newtype GuessParams = GuessParams
+    { guessWord :: String
+    }
+    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()
-guess word = do
-    let redeemer = gameRedeemerScript word
-    -- 'collectFromScript' is a function of the wallet API. It consumes the
-    -- unspent transaction outputs at a script address and pays them to a
-    -- public key address owned by this wallet. It takes the validator script
-    -- and the redeemer scripts as arguments.
-    --
-    -- Note that before we can use 'collectFromScript', we need to tell the
-    -- wallet to start watching the address for transaction outputs (because
-    -- the wallet does not keep track of the UTXO set of the entire chain).
-    collectFromScript defaultSlotRange gameValidator redeemer
+guess :: Contract GameSchema e ()
+guess = do
+    GuessParams theGuess <- endpoint @"guess" @GuessParams
+    mp <- utxoAt gameAddress
+    let redeemer = gameRedeemerScript theGuess
+        tx       = collectFromScript mp gameValidator redeemer
+    void (writeTx tx)
 
--- | The "startGame" contract endpoint, telling the wallet to start watching
---   the address of the game script. See note [Contract endpoints]
-startGame :: MonadWallet m => m ()
-startGame =
-    -- 'startWatching' is a function of the wallet API. It instructs the wallet
-    -- to keep track of all outputs at the address. Player 2 needs to call
-    -- 'startGame' before Player 1 uses the 'lock' endpoint, to ensure that
-    -- Player 2's wallet is aware of the game address.
-    startWatching gameAddress
+-- | The "lock" contract endpoint. See note [Contract endpoints]
+lock :: Contract GameSchema e ()
+lock = do
+    LockParams secret amt <- endpoint @"lock" @LockParams
+    let
+        vl         = Ada.toValue amt
+        dataScript = gameDataScript secret
+        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
+    void (writeTx tx)
 
-$(mkFunctions
-    ['lock
-    , 'guess
-    , 'startGame
-    ])
+game :: Contract GameSchema e ()
+game = guess <|> lock
 
 {- Note [Contract endpoints]
 
@@ -138,3 +139,12 @@ Playground then uses this schema to present an HTML form to the user where the
 parameters can be entered.
 
 -}
+
+endpoints :: Contract GameSchema e ()
+endpoints = game
+
+mkSchemaDefinitions ''GameSchema
+
+myCurrency :: KnownCurrency
+myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])
+$(mkKnownCurrencies ['myCurrency])

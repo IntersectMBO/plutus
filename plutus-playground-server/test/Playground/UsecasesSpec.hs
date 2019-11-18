@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -5,32 +6,37 @@ module Playground.UsecasesSpec
     ( tests
     ) where
 
+import           Control.Monad                (unless)
 import           Control.Monad.Except         (runExceptT)
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Text              as JSON
-import           Data.Aeson.Types             (object, (.=))
-import           Data.Either                  (isRight)
+import           Data.Foldable                (traverse_)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
+import qualified Data.Text.IO                 as Text
 import qualified Data.Text.Lazy               as TL
 import           Data.Time.Units              (Microsecond, fromMicroseconds)
-import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
+import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult, result),
                                                SourceCode (SourceCode))
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
 import           Ledger.Value                 (TokenName (TokenName), Value)
 import qualified Playground.Interpreter       as PI
-import           Playground.Interpreter.Util  (TraceResult)
-import           Playground.Types             (CompilationResult (CompilationResult), Evaluation (Evaluation),
-                                               Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
-                                               KnownCurrency (KnownCurrency), PlaygroundError,
-                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
-                                               functionName, simulatorWalletBalance, simulatorWalletWallet)
-import           Playground.Usecases          (crowdfunding, game, messages, vesting)
-import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaValue))
+import           Playground.Types             (CompilationResult (CompilationResult), EndpointName (EndpointName),
+                                               Evaluation (Evaluation, program, sourceCode, wallets),
+                                               EvaluationResult (EvaluationResult, emulatorLog, fundsDistribution, resultBlockchain, walletKeys),
+                                               Expression (AddBlocks, CallEndpoint, PayToWallet, arguments, destination, endpointName, source, value, wallet),
+                                               FunctionSchema (FunctionSchema), KnownCurrency (KnownCurrency),
+                                               PlaygroundError, SimulatorWallet (SimulatorWallet), adaCurrency,
+                                               argumentSchema, functionName, simulatorWalletBalance,
+                                               simulatorWalletWallet)
+import           Playground.Usecases          (crowdfunding, errorHandling, game, vesting)
+import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaUnit, FormSchemaValue))
 import           Test.Tasty                   (TestTree, testGroup)
-import           Test.Tasty.HUnit             (Assertion, assertBool, assertEqual, assertFailure, testCase)
-import           Wallet.Emulator.Types        (Wallet (Wallet))
+import           Test.Tasty.HUnit             (Assertion, assertEqual, assertFailure, testCase)
+import           Wallet.Emulator.Types        (Wallet (Wallet), walletPubKey)
+import           Wallet.Rollup.Render         (showBlockchain)
 
 tests :: TestTree
 tests =
@@ -38,7 +44,7 @@ tests =
         "Playground.Usecases"
         [ vestingTest
         , gameTest
-        , messagesTest
+        , errorHandlingTest
         , crowdfundingTest
         , knownCurrencyTest
         ]
@@ -73,62 +79,15 @@ vestingTest =
                   ""
                   result
                   [ FunctionSchema
-                        { functionName = Fn "vestFunds"
-                        , argumentSchema =
-                              [ FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject [("getWallet", FormSchemaInt)]
-                              ]
+                        { functionName = EndpointName "retrieve funds"
+                        , argumentSchema = [FormSchemaValue]
                         }
                   , FunctionSchema
-                        { functionName = Fn "registerVestingScheme"
-                        , argumentSchema =
-                              [ FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject [("getWallet", FormSchemaInt)]
-                              ]
+                        { functionName = EndpointName "vest funds"
+                        , argumentSchema = [FormSchemaUnit]
                         }
                   , FunctionSchema
-                        { functionName = Fn "withdraw"
-                        , argumentSchema =
-                              [ FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject
-                                    [ ( "vestingTrancheDate"
-                                      , FormSchemaObject
-                                            [("getSlot", FormSchemaInt)])
-                                    , ("vestingTrancheAmount", FormSchemaValue)
-                                    ]
-                              , FormSchemaObject [("getWallet", FormSchemaInt)]
-                              , FormSchemaValue
-                              ]
-                        }
-                  , FunctionSchema
-                        { functionName = Fn "payToWallet_"
+                        { functionName = EndpointName "payToWallet_"
                         , argumentSchema =
                               [ FormSchemaValue
                               , FormSchemaObject [("getWallet", FormSchemaInt)]
@@ -136,114 +95,217 @@ vestingTest =
                         }
                   ]
         , testCase "should run simple evaluation" $
-          evaluate simpleEvaluation >>= assertBool "" . isRight
+          evaluate simpleEvaluation >>=
+          hasFundsDistribution
+              [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 tenAda]
         , testCase "should run simple wait evaluation" $
-          evaluate simpleWaitEval >>= assertBool "" . isRight
+          evaluate simpleAddBlocksEval >>=
+          hasFundsDistribution
+              [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 tenAda]
         , testCase "should run vest funds evaluation" $
-          evaluate vestFundsEval >>= assertBool "" . isRight
+          evaluate vestFundsEval >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 $ Ada.adaValueOf 10
+              , mkSimulatorWallet w2 $ Ada.adaValueOf 2
+              ]
+        , testCase "should run vest and a partial retrieve of funds" $
+          evaluate vestAndPartialRetrieveEval >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 $ Ada.adaValueOf 15
+              , mkSimulatorWallet w2 $ Ada.adaValueOf 2
+              ]
+        , testCase "should run vest and a partial retrieve of funds" $
+          evaluate vestAndFullRetrieveEval >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 $ Ada.adaValueOf 18
+              , mkSimulatorWallet w2 $ Ada.adaValueOf 2
+              ]
         ]
   where
-    ten = Ada.adaValueOf 10
+    tenAda = Ada.adaValueOf 10
+    wallets = [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 tenAda]
+    sourceCode = SourceCode vesting
     simpleEvaluation =
-        Evaluation [mkSimulatorWallet w1 ten] [] (SourceCode vesting) []
-    simpleWaitEval =
-        Evaluation [mkSimulatorWallet w1 ten] [Wait 10] (SourceCode vesting) []
+        Evaluation
+            {wallets, sourceCode, program = toJSONString ([] :: [Expression s])}
+    simpleAddBlocksEval =
+        Evaluation {wallets, sourceCode, program = toJSONString [AddBlocks 10]}
     vestFundsEval =
         Evaluation
-            [mkSimulatorWallet w1 ten]
-            [ Action
-                  (Fn "vestFunds")
-                  w1
-                  [theVestingTranche, theVestingTranche, theVestingOwner]
-            ]
-            (SourceCode vesting)
-            []
-    theVestingTranche =
-        toJSONString $
-        object
-            [ "vestingTrancheDate" .= object ["getSlot" .= mkI 1]
-            , "vestingTrancheAmount" .= JSON.toJSON (Ada.adaValueOf 1)
-            ]
-    theVestingOwner = toJSONString $ JSON.toJSON w1
+            { wallets
+            , sourceCode
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "vest funds"
+                            , wallet = w2
+                            , arguments = toEndpointParam ()
+                            }
+                      ]
+            }
+    vestAndPartialRetrieveEval =
+        Evaluation
+            { wallets
+            , sourceCode
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "vest funds"
+                            , wallet = w2
+                            , arguments = toEndpointParam ()
+                            }
+                      , AddBlocks 10
+                      , CallEndpoint
+                            { endpointName = EndpointName "retrieve funds"
+                            , wallet = w1
+                            , arguments = toEndpointParam $ Ada.adaValueOf 5
+                            }
+                      , AddBlocks 5
+                      ]
+            }
+    vestAndFullRetrieveEval =
+        Evaluation
+            { wallets
+            , sourceCode
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "vest funds"
+                            , wallet = w2
+                            , arguments = toEndpointParam ()
+                            }
+                      , AddBlocks 40
+                      , CallEndpoint
+                            { endpointName = EndpointName "retrieve funds"
+                            , wallet = w1
+                            , arguments = toEndpointParam $ Ada.adaValueOf 8
+                            }
+                      , AddBlocks 5
+                      ]
+            }
 
 gameTest :: TestTree
 gameTest =
     testGroup
         "game"
         [ compilationChecks game
+        , testCase "should keep the funds" $
+          evaluate gameEvalFailure >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 tenAda
+              , mkSimulatorWallet w2 (Ada.adaValueOf 8)
+              ]
         , testCase "should unlock the funds" $
           evaluate gameEvalSuccess >>=
           hasFundsDistribution
               [ mkSimulatorWallet w1 (Ada.adaValueOf 12)
               , mkSimulatorWallet w2 (Ada.adaValueOf 8)
               ]
-        , testCase "should keep the funds" $
-          evaluate gameEvalFailure >>=
-          hasFundsDistribution
-              [ mkSimulatorWallet w1 ten
-              , mkSimulatorWallet w2 (Ada.adaValueOf 8)
-              ]
         , testCase
               "Sequential fund transfer - deleting wallets 'payToWallet_' action" $
           evaluate (payAll w3 w4 w5) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w3 ten
-              , mkSimulatorWallet w4 ten
-              , mkSimulatorWallet w5 ten
+              [ mkSimulatorWallet w3 tenAda
+              , mkSimulatorWallet w4 tenAda
+              , mkSimulatorWallet w5 tenAda
               ]
         , testCase "Sequential fund transfer - 'payToWallet_' action" $
           evaluate (payAll w1 w2 w3) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 ten
-              , mkSimulatorWallet w2 ten
-              , mkSimulatorWallet w3 ten
+              [ mkSimulatorWallet w1 tenAda
+              , mkSimulatorWallet w2 tenAda
+              , mkSimulatorWallet w3 tenAda
               ]
         ]
   where
-    ten = Ada.adaValueOf 10
+    tenAda = Ada.adaValueOf 10
+    sourceCode = SourceCode game
+    wallets = [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 tenAda]
     gameEvalFailure =
         Evaluation
-            [mkSimulatorWallet w1 ten, mkSimulatorWallet w2 ten]
-            [ Action (Fn "startGame") w1 []
-            , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
-            , Action (Fn "guess") w1 [JSON.String "\"ade\""]
-            ]
-            (SourceCode game)
-            []
+            { sourceCode
+            , wallets
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "lock"
+                            , wallet = w2
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object
+                                      [ ("secretWord", "abcde")
+                                      , ("amount", JSON.toJSON twoAda)
+                                      ]
+                            }
+                      , CallEndpoint
+                            { endpointName = EndpointName "guess"
+                            , wallet = w1
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object [("guessWord", "ade")]
+                            }
+                      ]
+            }
     gameEvalSuccess =
         Evaluation
-            [mkSimulatorWallet w1 ten, mkSimulatorWallet w2 ten]
-            [ Action (Fn "startGame") w1 []
-            , Action (Fn "lock") w2 [JSON.String "\"abcde\"", twoAda]
-            , Action (Fn "guess") w1 [JSON.String "\"abcde\""]
-            ]
-            (SourceCode game)
-            []
+            { sourceCode
+            , wallets
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "lock"
+                            , wallet = w2
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object
+                                      [ ("secretWord", "abcde")
+                                      , ("amount", JSON.toJSON twoAda)
+                                      ]
+                            }
+                      , CallEndpoint
+                            { endpointName = EndpointName "guess"
+                            , wallet = w1
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object [("guessWord", "abcde")]
+                            }
+                      ]
+            }
     payAll a b c =
         Evaluation
-            [ mkSimulatorWallet a ten
-            , mkSimulatorWallet b ten
-            , mkSimulatorWallet c ten
-            ]
-            [ Action (Fn "payToWallet_") a [nineAda, toJSONString b]
-            , Action (Fn "payToWallet_") b [nineAda, toJSONString c]
-            , Action (Fn "payToWallet_") c [nineAda, toJSONString a]
-            ]
-            (SourceCode game)
-            []
-    nineAda = toJSONString $ Ada.adaValueOf 9
-    twoAda = toJSONString $ Ada.adaValueOf 2
+            { sourceCode
+            , wallets =
+                  [ mkSimulatorWallet a tenAda
+                  , mkSimulatorWallet b tenAda
+                  , mkSimulatorWallet c tenAda
+                  ]
+            , program =
+                  toJSONString
+                      [ PayToWallet
+                            {source = a, destination = b, value = nineAda}
+                      , PayToWallet
+                            {source = b, destination = c, value = nineAda}
+                      , PayToWallet
+                            {source = c, destination = a, value = nineAda}
+                      ]
+            }
+    nineAda = Ada.adaValueOf 9
+    twoAda = Ada.adaOf 2
 
 hasFundsDistribution ::
        [SimulatorWallet]
-    -> Either PlaygroundError (InterpreterResult TraceResult)
+    -> Either PlaygroundError (InterpreterResult EvaluationResult)
     -> Assertion
 hasFundsDistribution _ (Left err) = assertFailure $ show err
-hasFundsDistribution requiredDistribution (Right (InterpreterResult _ (_, _, actualDistribution, _))) =
-    assertEqual "" requiredDistribution actualDistribution
+hasFundsDistribution requiredDistribution (Right InterpreterResult {result = EvaluationResult {..}}) = do
+    unless (requiredDistribution == fundsDistribution) $ do
+        Text.putStrLn $
+            either id id $ showBlockchain walletKeys resultBlockchain
+        traverse_ print $ reverse emulatorLog
+    assertEqual "" requiredDistribution fundsDistribution
 
-messagesTest :: TestTree
-messagesTest = testGroup "messages" [compilationChecks messages]
+errorHandlingTest :: TestTree
+errorHandlingTest = testGroup "errorHandling" [compilationChecks errorHandling]
 
 crowdfundingTest :: TestTree
 crowdfundingTest =
@@ -253,86 +315,101 @@ crowdfundingTest =
         , testCase "should run successful campaign" $
           evaluate successfulCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 (Ada.adaValueOf 26)
-              , mkSimulatorWallet w2 (Ada.adaValueOf 2)
-              , mkSimulatorWallet w3 (Ada.adaValueOf 2)
+              [ mkSimulatorWallet w1 (Ada.lovelaceValueOf 20000020)
+              , mkSimulatorWallet w2 (Ada.lovelaceValueOf 19999990)
+              , mkSimulatorWallet w3 (Ada.lovelaceValueOf 19999990)
               ]
-        , testCase "should run failed campaign" $
+        , testCase "should run failed campaign and return the funds" $
           evaluate failedCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 ten
-              , mkSimulatorWallet w2 ten
-              , mkSimulatorWallet w3 ten
+              [ mkSimulatorWallet w1 twentyAda
+              , mkSimulatorWallet w2 twentyAda
+              , mkSimulatorWallet w3 twentyAda
               ]
         ]
   where
-    ten = Ada.adaValueOf 10
-    failedCampaign =
-        Evaluation
-            [ mkSimulatorWallet w1 ten
-            , mkSimulatorWallet w2 ten
-            , mkSimulatorWallet w3 ten
-            ]
-            [ Action
-                  (Fn "scheduleCollection")
-                  w1
-                  [theDeadline, theTarget, theCollectionDeadline, theWallet]
-            , Action
-                  (Fn "contribute")
-                  w2
-                  [ theDeadline
-                  , theTarget
-                  , theCollectionDeadline
-                  , theWallet
-                  , theContribution
-                  ]
-            , Wait 20
-            ]
-            (SourceCode crowdfunding)
-            []
+    twentyAda = Ada.adaValueOf 20
     successfulCampaign =
         Evaluation
-            [ mkSimulatorWallet w1 ten
-            , mkSimulatorWallet w2 ten
-            , mkSimulatorWallet w3 ten
-            ]
-            [ Action
-                  (Fn "scheduleCollection")
-                  w1
-                  [theDeadline, theTarget, theCollectionDeadline, theWallet]
-            , Action
-                  (Fn "contribute")
-                  w2
-                  [ theDeadline
-                  , theTarget
-                  , theCollectionDeadline
-                  , theWallet
-                  , theContribution
+            { wallets =
+                  [ mkSimulatorWallet w1 twentyAda
+                  , mkSimulatorWallet w2 twentyAda
+                  , mkSimulatorWallet w3 twentyAda
                   ]
-            , Action
-                  (Fn "contribute")
-                  w3
-                  [ theDeadline
-                  , theTarget
-                  , theCollectionDeadline
-                  , theWallet
-                  , theContribution
+            , program =
+                  toJSONString
+                      [ AddBlocks 1
+                      , CallEndpoint
+                            { endpointName = EndpointName "schedule collection"
+                            , wallet = w1
+                            , arguments = toEndpointParam ()
+                            }
+                      , CallEndpoint
+                            { endpointName = EndpointName "contribute"
+                            , wallet = w2
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object
+                                      [ ( "contributor"
+                                        , JSON.toJSON $ walletPubKey w2)
+                                      , ( "contribValue"
+                                        , JSON.toJSON $ Ada.lovelaceValueOf 10)
+                                      ]
+                            }
+                      , CallEndpoint
+                            { endpointName = EndpointName "contribute"
+                            , wallet = w3
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object
+                                      [ ( "contributor"
+                                        , JSON.toJSON $ walletPubKey w3)
+                                      , ( "contribValue"
+                                        , JSON.toJSON $ Ada.lovelaceValueOf 10)
+                                      ]
+                            }
+                      , AddBlocks 10
+                      ]
+            , sourceCode = SourceCode crowdfunding
+            }
+    failedCampaign =
+        Evaluation
+            { wallets =
+                  [ mkSimulatorWallet w1 twentyAda
+                  , mkSimulatorWallet w2 twentyAda
+                  , mkSimulatorWallet w3 twentyAda
                   ]
-            , Wait 10
-            ]
-            (SourceCode crowdfunding)
-            []
-    theDeadline = toJSONString (object ["getSlot" .= mkI 10])
-    theTarget = toJSONString (Ada.adaValueOf 10)
-    theCollectionDeadline = toJSONString (object ["getSlot" .= mkI 20])
-    theWallet = toJSONString w1
-    theContribution = toJSONString $ Ada.adaValueOf 8
+            , program =
+                  toJSONString
+                      [ CallEndpoint
+                            { endpointName = EndpointName "schedule collection"
+                            , wallet = w1
+                            , arguments = toEndpointParam ()
+                            }
+                      , AddBlocks 1
+                      , CallEndpoint
+                            { endpointName = EndpointName "contribute"
+                            , wallet = w2
+                            , arguments =
+                                  toEndpointParam $
+                                  JSON.object
+                                      [ ( "contributor"
+                                        , JSON.toJSON $ walletPubKey w2)
+                                      , ( "contribValue"
+                                        , JSON.toJSON $ Ada.lovelaceValueOf 10)
+                                      ]
+                            }
+                      , AddBlocks 10
+                      , AddBlocks 40
+                      ]
+            , sourceCode = SourceCode crowdfunding
+            }
 
 knownCurrencyTest :: TestTree
 knownCurrencyTest =
     testCase "should return registered known currencies" $ do
         currencies <- runExceptT $ PI.compile maxInterpretationTime code
-        assertBool "" (hasKnownCurrency currencies)
+        hasKnownCurrency currencies
   where
     code =
         SourceCode $
@@ -344,39 +421,48 @@ knownCurrencyTest =
             , "import Ledger.Scripts (ValidatorHash (..))"
             , "import Playground.Types (KnownCurrency (..))"
             , "import Language.PlutusTx.Prelude"
+            , ""
             , "myCurrency :: KnownCurrency"
             , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
+            , ""
+            , "schemas = []"
             , "iotsDefinitions = \"\""
             ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ [cur1, cur2] _))) =
-        cur1 == adaCurrency &&
-        cur2 ==
-        KnownCurrency
-            (ValidatorHash "")
-            "MyCurrency"
-            (TokenName "MyToken" :| [])
-    hasKnownCurrency _ = False
+    expectedCurrencies =
+        [ adaCurrency
+        , KnownCurrency
+              (ValidatorHash "")
+              "MyCurrency"
+              (TokenName "MyToken" :| [])
+        ]
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ currencies _))) =
+        assertEqual "" expectedCurrencies currencies
+    hasKnownCurrency other =
+        assertFailure $ "Compilation failed: " <> show other
 
 compile ::
-       Text.Text
+       Text
     -> IO (Either InterpreterError (InterpreterResult CompilationResult))
 compile = runExceptT . PI.compile maxInterpretationTime . SourceCode
 
 evaluate ::
-       Evaluation -> IO (Either PlaygroundError (InterpreterResult TraceResult))
+       Evaluation
+    -> IO (Either PlaygroundError (InterpreterResult EvaluationResult))
 evaluate evaluation =
     runExceptT $ PI.runFunction maxInterpretationTime evaluation
 
-compilationChecks :: Text.Text -> TestTree
+compilationChecks :: Text -> TestTree
 compilationChecks source =
     testCase "should compile" $ do
         compiled <- compile source
-        assertBool "compiled" (isRight compiled)
-
-mkI :: Int -> JSON.Value
-mkI = JSON.toJSON
+        case compiled of
+            Left err -> assertFailure $ "Compilation failed: " <> show err
+            Right _  -> pure ()
 
 -- | Encode a value in JSON, then make a JSON *string* from that
 toJSONString :: JSON.ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
+
+toEndpointParam :: JSON.ToJSON a => a -> JSON.Value
+toEndpointParam arg = toJSONString [arg]

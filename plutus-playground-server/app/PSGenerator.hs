@@ -31,7 +31,6 @@ import qualified Data.Text.IO                               as T ()
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
-import           Language.PlutusTx                          (Data)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
                                                              TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
                                                              genericShow, haskType, isTuple, mkSumType, order,
@@ -52,10 +51,10 @@ import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
-import           Playground.Types                           (CompilationResult, Evaluation, EvaluationResult,
-                                                             Expression, Fn, FunctionSchema, KnownCurrency,
+import           Playground.Types                           (CompilationResult, EndpointName, Evaluation,
+                                                             EvaluationResult, FunctionSchema, KnownCurrency,
                                                              PlaygroundError, SimulatorWallet)
-import           Playground.Usecases                        (crowdfunding, game, messages, starter, vesting)
+import           Playground.Usecases                        (crowdfunding, errorHandling, game, starter, vesting)
 import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -76,10 +75,13 @@ psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty = TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$> psTypeParameters
+psNonEmpty =
+    TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
+    psTypeParameters
 
 psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither = TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
+psJsonEither =
+    TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
 
 psJsonTuple :: MonadReader BridgeData m => m PSType
 psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
@@ -88,6 +90,12 @@ integerBridge :: BridgePart
 integerBridge = do
     typeName ^== "Integer"
     pure psInt
+
+dataBridge :: BridgePart
+dataBridge = do
+    typeName ^== "Data"
+    typeModule ^== "Language.PlutusTx.Data"
+    pure psString
 
 assocMapBridge :: BridgePart
 assocMapBridge = do
@@ -141,6 +149,12 @@ validatorHashBridge = do
     typeModule ^== "Ledger.Scripts"
     pure psString
 
+dataHashBridge :: BridgePart
+dataHashBridge = do
+    typeName ^== "DataScriptHash"
+    typeModule ^== "Ledger.Scripts"
+    pure psString
+
 headersBridge :: BridgePart
 headersBridge = do
     typeModule ^== "Servant.API.ResponseHeaders"
@@ -184,11 +198,13 @@ myBridge =
     aesonBridge <|>
     setBridge <|>
     digestBridge <|>
+    dataBridge <|>
     scriptBridge <|>
     headersBridge <|>
     headerBridge <|>
     nonEmptyBridge <|>
     validatorHashBridge <|>
+    dataHashBridge <|>
     byteStringBridge <|>
     mapBridge <|>
     ledgerBytesBridge
@@ -208,7 +224,7 @@ myTypes =
           (Proxy @(FunctionSchema A))
     , (genericShow <*> mkSumType) (Proxy @CompilationResult)
     , (genericShow <*> mkSumType) (Proxy @Warning)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Fn)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointName)
     , (genericShow <*> mkSumType) (Proxy @SourceCode)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
@@ -217,7 +233,6 @@ myTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
-    , (genericShow <*> mkSumType) (Proxy @Expression)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EmulatorEvent)
@@ -226,7 +241,6 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @ScriptError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
     , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @Data)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
@@ -282,7 +296,7 @@ writeUsecases outputDir = do
     let usecases =
             multilineString "vesting" vesting <> multilineString "game" game <>
             multilineString "crowdfunding" crowdfunding <>
-            multilineString "messages" messages <>
+            multilineString "errorHandling" errorHandling <>
             multilineString "starter" starter
         usecasesModule = psModule "Playground.Usecases" usecases
     BS.writeFile

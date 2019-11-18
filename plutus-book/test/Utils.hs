@@ -45,10 +45,10 @@ initialAda = lovelaceOf 100000
 initialChain :: Mockchain
 initialChain =
     let (txn, ot) = genInitialTransaction generatorModel
-        txId      = hashTx txn
+        tid      = txId txn
     in  Mockchain {
             mockchainInitialBlock = [txn],
-            mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
+            mockchainUtxo = Map.fromList $ first (TxOutRef tid) <$> zip [0..] ot
         }
 
 updateWallets :: Trace MockWallet ()

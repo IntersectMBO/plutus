@@ -10,6 +10,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -34,6 +35,8 @@ module Wallet.API(
     payToPublicKey_,
     payToScripts,
     payToScripts_,
+    getScriptInputs,
+    getScriptInputsFilter,
     collectFromScript,
     collectFromScriptTxn,
     spendScriptOutputs,
@@ -87,8 +90,6 @@ import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
 import           Control.Monad.Error.Class (MonadError (..))
 import           Data.Aeson                (FromJSON, FromJSON1, ToJSON, ToJSON1)
-import           Data.Bifunctor            (Bifunctor (bimap))
-import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Eq.Deriving          (deriveEq1)
 import           Data.Foldable             (fold)
@@ -97,17 +98,15 @@ import           Data.Functor.Foldable     (Corecursive (..), Fix (..), Recursiv
 import           Data.Hashable             (Hashable, hashWithSalt)
 import           Data.Hashable.Lifted      (Hashable1, hashWithSalt1)
 import qualified Data.Map                  as Map
-import           Data.Maybe                (fromMaybe, maybeToList)
+import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
+import           IOTS                      (IotsType)
 
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic, Generic1)
-import           Ledger                    (Address, DataScript, PubKey (..), RedeemerScript, Signature, Slot,
-                                            SlotRange, Tx (..), TxId, TxIn, TxOut (..), TxOutRef, TxOutType (..),
-                                            ValidatorScript, Value, getTxId, hashTx, outValue, pubKeyTxOut,
-                                            scriptAddress, scriptTxIn, signatures, singleton, txOutRefId, width)
+import           Ledger                    hiding (inputs, out, sign, to, value)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
@@ -252,7 +251,7 @@ data WalletAPIError =
     -- ^ The private key of this public key is not known to the wallet.
     | OtherError Text
     -- ^ Some other error occurred.
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Show, Eq, Ord, Generic, IotsType)
 
 instance Pretty WalletAPIError where
     pretty = \case
@@ -381,7 +380,7 @@ signTxnWithKey tx pubK = do
 signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
 signTxn tx = do
     pubK <- ownPubKey
-    sig <- sign (BSL.pack $ BA.unpack $ getTxId $ hashTx tx)
+    sig <- sign (getTxId $ txId tx)
     pure $ tx & signatures . at pubK ?~ sig
 
 -- | Transfer some funds to a number of script addresses, returning the
@@ -390,9 +389,10 @@ payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScr
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
-        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (dataScriptHash ds))) ins
+        datas        = fmap (\(_, _, d) -> d) ins
     (i, ownChange) <- createPaymentWithChange totalVal
-    createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange)
+    createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
 
 -- | Transfer some funds to a number of script addresses.
 payToScripts_ :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScript)] -> m ()
@@ -407,14 +407,43 @@ payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
+getScriptInputs
+    :: AddressMap
+    -> ValidatorScript
+    -> RedeemerScript
+    -> [(TxIn, Value)]
+getScriptInputs = getScriptInputsFilter (\_ _ -> True)
+
+getScriptInputsFilter
+    :: (TxOutRef -> TxOutTx -> Bool)
+    -> AddressMap
+    -> ValidatorScript
+    -> RedeemerScript
+    -> [(TxIn, Value)]
+getScriptInputsFilter flt am vls red =
+    let utxo    = fromMaybe Map.empty $ am ^. at (scriptAddress vls)
+        ourUtxo = Map.filterWithKey flt utxo
+        mkIn :: TxOutRef -> DataScript -> TxIn
+        mkIn ref = scriptTxIn ref vls red
+        inputs =
+            fmap (\(ref, dat, val) -> (mkIn ref dat, val)) $
+            mapMaybe (\(ref, out) -> (ref,,txOutValue $ txOutTxOut out) <$> txOutTxData out) $
+            Map.toList ourUtxo
+    in inputs
+
+spendScriptOutputs :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> m [(TxIn, Value)]
+spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
+
 -- | Take all known outputs at an 'Address' and spend them using the
 --   validator and redeemer scripts.
-spendScriptOutputs :: (Monad m, WalletAPI m) => Address -> ValidatorScript -> RedeemerScript -> m [(TxIn, Value)]
-spendScriptOutputs addr  val redeemer = do
+spendScriptOutputsFilter :: (Monad m, WalletAPI m)
+    => (TxOutRef -> TxOutTx -> Bool)
+    -> ValidatorScript
+    -> RedeemerScript
+    -> m [(TxIn, Value)]
+spendScriptOutputsFilter flt vls red = do
     am <- watchedAddresses
-    let inputs' = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
-        con = bimap (\r -> scriptTxIn r val redeemer) (view outValue)
-    pure (fmap con inputs')
+    pure $ getScriptInputsFilter flt am vls red
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
@@ -439,23 +468,20 @@ collectFromScriptTxn range vls red txid =
 --   all the outputs that match a predicate, using the 'RedeemerScript'.
 collectFromScriptFilter ::
     (WalletAPI m, WalletDiagnostics m)
-    => (TxOutRef -> TxOut -> Bool)
+    => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> ValidatorScript
     -> RedeemerScript
     -> m ()
 collectFromScriptFilter flt range vls red = do
-    am <- watchedAddresses
+    inputsWithValues <- spendScriptOutputsFilter flt vls red
     let adr     = Ledger.scriptAddress vls
-        utxo    = fromMaybe Map.empty $ am ^. at adr
-        ourUtxo = Map.toList $ Map.filterWithKey flt utxo
-        i ref = scriptTxIn ref vls red
-        inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = fold $ fmap (txOutValue . snd) ourUtxo
+        inputs = Set.fromList $ fmap fst inputsWithValues
+        value  = foldMap snd inputsWithValues
 
     out <- ownPubKeyTxOut value
     warnEmptyTransaction value adr
-    void $ createTxAndSubmit range inputs [out]
+    void $ createTxAndSubmit range inputs [out] []
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
@@ -463,7 +489,7 @@ payToPublicKey :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m Tx
 payToPublicKey range v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    createTxAndSubmit range i (other : maybeToList own)
+    createTxAndSubmit range i (other : maybeToList own) []
 
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ :: (Monad m, WalletAPI m) => SlotRange -> Value -> PubKey -> m ()
@@ -474,7 +500,7 @@ ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> ownPubKey
 
 -- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
-outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOut)
+outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOutTx)
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
@@ -485,8 +511,9 @@ createTxAndSubmit ::
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
+    -> [DataScript]
     -> m Tx
-createTxAndSubmit range ins outs = do
+createTxAndSubmit range ins outs datas = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
@@ -494,6 +521,7 @@ createTxAndSubmit range ins outs = do
             , txFee = 0
             , txValidRange = range
             , txSignatures = Map.empty
+            , txData = Map.fromList $ fmap (\ds -> (dataScriptHash ds, ds)) datas
             }
     signTxAndSubmit $ tx { txFee = minFee tx }
 

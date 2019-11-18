@@ -13,10 +13,6 @@ module Ledger.Crypto(
     , signTx
     , fromHex
     , toPublicKey
-    -- * Hashes
-    , plcSHA2_256
-    , plcSHA3_256
-    , plcDigest
     -- $privateKeys
     , knownPrivateKeys
     , privateKey1
@@ -35,14 +31,12 @@ import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
-import           Crypto.Hash                (Digest, SHA256)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.ByteString.Lazy.Hash  as Hash
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics               (Generic)
@@ -86,7 +80,7 @@ instance FromHttpApiData PrivateKey where
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema)
+    deriving anyclass (ToSchema, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
 
 instance ToJSON Signature where
@@ -113,11 +107,11 @@ signedBy :: Signature -> PubKey -> TxId -> Bool
 signedBy (Signature s) (PubKey k) txId =
     let k' = ED25519.publicKey $ BSL.toStrict $ KB.getLedgerBytes k
         s' = ED25519.signature $ BSL.toStrict s
-    in throwCryptoError $ ED25519.verify <$> k' <*> pure (getTxId txId) <*> s' -- TODO: is this what we want
+    in throwCryptoError $ ED25519.verify <$> k' <*> pure (BSL.toStrict $ getTxId txId) <*> s' -- TODO: is this what we want
 
 -- | Sign the hash of a transaction using a private key.
 signTx :: TxId -> PrivateKey -> Signature
-signTx (TxId txId) = sign txId
+signTx (TxId txId) = sign $ BSL.toStrict txId
 
 -- | Sign a message using a private key.
 sign :: BA.ByteArrayAccess a => a -> PrivateKey -> Signature
@@ -135,21 +129,6 @@ fromHex = PrivateKey . KB.fromHex
 toPublicKey :: PrivateKey -> PubKey
 toPublicKey = PubKey . KB.fromBytes . BSL.pack . BA.unpack . ED25519.toPublic . f . KB.bytes . getPrivateKey where
     f = throwCryptoError . ED25519.secretKey . BSL.toStrict
-
-{-# INLINABLE plcSHA2_256 #-}
--- | PLC-compatible SHA-256 hash of a hashable value
-plcSHA2_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA2_256 = Hash.sha2
-
-{-# INLINABLE plcSHA3_256 #-}
--- | PLC-compatible SHA3-256 hash of a hashable value
-plcSHA3_256 :: Builtins.ByteString -> Builtins.ByteString
-plcSHA3_256 = Hash.sha3
-
-{-# INLINABLE plcDigest #-}
--- | Convert a `Digest SHA256` to a PLC `Hash`
-plcDigest :: Digest SHA256 -> Builtins.ByteString
-plcDigest = BSL.pack . BA.unpack
 
 -- $privateKeys
 -- 'privateKey1', 'privateKey2', ... 'privateKey10' are ten predefined 'PrivateKey' values.

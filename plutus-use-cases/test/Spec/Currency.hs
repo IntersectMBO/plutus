@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Spec.Currency(tests) where
 
 import           Language.Plutus.Contract
@@ -22,7 +23,7 @@ tests = testGroup "currency"
 
     , checkPredicate "script size is reasonable"
         theContract
-        (assertDone w1 ((50000 >=) . Ledger.scriptSize . Ledger.unValidatorScript . Cur.curValidator) "script too large")
+        (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unValidatorScript . Cur.curValidator) "script too large")
         (handleBlockchainEvents (Wallet 1))
 
     ]

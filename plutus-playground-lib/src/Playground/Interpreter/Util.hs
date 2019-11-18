@@ -1,25 +1,45 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens               (to, view)
-import           Control.Monad.Error.Class  (MonadError, throwError)
-import           Data.Aeson                 (FromJSON)
-import qualified Data.Aeson                 as JSON
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.Map                   as Map
-import qualified Data.Set                   as Set
-import qualified Data.Typeable              as T
-import           Ledger                     (Blockchain, PubKey, Tx, TxOut (txOutValue), toPublicKey)
-import qualified Ledger.Value               as V
-import           Playground.Types           (PlaygroundError (OtherError), SimulatorWallet (SimulatorWallet),
-                                             simulatorWalletBalance, simulatorWalletWallet)
-import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
-                                             Trace, Wallet, WalletState, ownFunds, ownPrivateKey, processPending,
-                                             runTraceTxPool, walletPubKey, walletStates, walletsNotifyBlock)
-import           Wallet.Generators          (GeneratorModel (GeneratorModel))
-import qualified Wallet.Generators          as Gen
+import           Control.Lens                    (to, view)
+import           Control.Monad.Except            (throwError)
+import qualified Control.Newtype.Generics        as Newtype
+import           Data.Aeson                      (FromJSON, eitherDecode)
+import qualified Data.Aeson                      as JSON
+import           Data.Bifunctor                  (first)
+import           Data.ByteString.Lazy            (ByteString)
+import qualified Data.ByteString.Lazy.Char8      as BSL
+import           Data.Foldable                   (traverse_)
+import           Data.Map                        (Map)
+import qualified Data.Map                        as Map
+import           Data.Row                        (Forall)
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
+import qualified Data.Text.Encoding              as Text
+import           Language.Haskell.Interpreter    (InterpreterResult (InterpreterResult), result, warnings)
+import           Language.Plutus.Contract        (Contract, ContractRow, HasBlockchainActions)
+import           Language.Plutus.Contract.Schema (Event, Input)
+import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (ContractError, TraceAssertionError),
+                                                  addBlocks, addEvent, handleBlockchainEvents,
+                                                  notifyInterestingAddresses, notifySlot, payToWallet,
+                                                  runTraceWithDistribution)
+import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), toPublicKey, txOutTxOut)
+import           Ledger.Value                    (Value)
+import qualified Ledger.Value                    as Value
+import           Playground.Types                (EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
+                                                  Expression (AddBlocks, CallEndpoint, PayToWallet, arguments, blocks, destination, endpointName, source, value, wallet),
+                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError, decodingError, expected, input),
+                                                  SimulatorWallet (SimulatorWallet), blocks, emulatorLog,
+                                                  simulatorWalletBalance, simulatorWalletWallet)
+import           Wallet.Emulator                 (MonadEmulator)
+import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainNewestFirst, _emulatorLog, _index, _txPool, _walletStates),
+                                                  Wallet, WalletState, ownFunds, ownPrivateKey)
+import           Wallet.Rollup                   (doAnnotateBlockchain)
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
@@ -31,246 +51,142 @@ import qualified Wallet.Generators          as Gen
 type TraceResult
      = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
 
-runTrace ::
-       [SimulatorWallet]
-    -> [Either PlaygroundError (Trace MockWallet [Tx])]
-    -> Either PlaygroundError TraceResult
-runTrace wallets actions =
-    let walletToBalance SimulatorWallet {..} =
-            (walletPubKey simulatorWalletWallet, simulatorWalletBalance)
-        initialBalance = Map.fromList $ fmap walletToBalance wallets
-        pubKeys =
-            Set.fromList $ fmap (walletPubKey . simulatorWalletWallet) wallets
-        eActions = sequence actions
-     in case eActions of
-            Left e -> Left e
-            Right actions' ->
-                let notifyAll =
-                        processPending >>=
-                        walletsNotifyBlock (simulatorWalletWallet <$> wallets)
-                    action = notifyAll >> sequence actions'
-                    (initialTx, _) =
-                        Gen.genInitialTransaction $
-                        GeneratorModel initialBalance pubKeys
-                    (eRes, newState) = runTraceTxPool [initialTx] action
-                    blockchain = _chainNewestFirst newState
-                    emulatorLog = _emulatorLog newState
-                    fundsDistribution :: [SimulatorWallet]
-                    fundsDistribution =
-                        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) $
-                        view walletStates newState
-                    walletKeys :: [(PubKey, Wallet)]
-                    walletKeys =
-                        Map.foldMapWithKey
-                            (\k v ->
-                                 [(view (ownPrivateKey . to toPublicKey) v, k)]) $
-                        view walletStates newState
-                 in case eRes of
-                        Right _ ->
-                            Right
-                                ( blockchain
-                                , emulatorLog
-                                , fundsDistribution
-                                , walletKeys)
-                        Left e -> Left . OtherError . show $ e
+analyzeEmulatorState :: EmulatorState -> Either PlaygroundError EvaluationResult
+analyzeEmulatorState EmulatorState { _chainNewestFirst
+                                   , _txPool
+                                   , _walletStates
+                                   , _index
+                                   , _emulatorLog
+                                   } =
+    postProcessEvaluation $
+    InterpreterResult
+        { warnings = []
+        , result =
+              ( _chainNewestFirst
+              , _emulatorLog
+              , fundsDistribution
+              , Map.foldMapWithKey toKeyWalletPair _walletStates)
+        }
   where
-    walletStateBalance :: WalletState -> V.Value
-    walletStateBalance = foldMap txOutValue . view ownFunds
+    fundsDistribution :: [SimulatorWallet]
+    fundsDistribution =
+        filter (not . Value.isZero . simulatorWalletBalance) $
+        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) _walletStates
     toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
-    toSimulatorWallet simulatorWalletWallet walletState = SimulatorWallet {..}
-      where
-        simulatorWalletBalance = walletStateBalance walletState
+    toSimulatorWallet simulatorWalletWallet walletState =
+        SimulatorWallet
+            { simulatorWalletWallet
+            , simulatorWalletBalance = walletStateBalance walletState
+            }
+    walletStateBalance :: WalletState -> Value
+    walletStateBalance = foldMap (txOutValue . txOutTxOut) . view ownFunds
+    toKeyWalletPair :: Wallet -> WalletState -> [(PubKey, Wallet)]
+    toKeyWalletPair k v = [(view (ownPrivateKey . to toPublicKey) v, k)]
 
--- | This will throw an exception if it cannot decode the json however it should
---   never do this as long as it is only called in places where we have already
---   decoded and encoded the value since it came from an HTTP API call
-{-# ANN decode' ("HLint: ignore" :: String) #-}
+postProcessEvaluation ::
+       InterpreterResult TraceResult -> Either PlaygroundError EvaluationResult
+postProcessEvaluation (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) = do
+    rollup <- first RollupError $ doAnnotateBlockchain blockchain
+    pure $
+        EvaluationResult
+            { resultBlockchain = blockchain
+            , resultRollup = rollup
+            , emulatorLog = emulatorLog
+            , fundsDistribution = fundsDistribution
+            , walletKeys = walletAddresses
+            }
 
-decode' :: (FromJSON a, T.Typeable a) => String -> a
-decode' v =
-    let x = JSON.eitherDecode . BSL.pack $ v
-     in case x of
-            Right a -> a
-            Left e ->
-                error $
-                "couldn't decode " ++
-                v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
+playgroundDecode ::
+       FromJSON a => String -> ByteString -> Either PlaygroundError a
+playgroundDecode expected input =
+    first
+        (\err ->
+             JsonDecodingError
+                 {expected, input = BSL.unpack input, decodingError = err}) $
+    eitherDecode input
 
-decode ::
-       (FromJSON a, T.Typeable a, MonadError PlaygroundError m) => String -> m a
-decode v =
-    let x = JSON.eitherDecode . BSL.pack $ v
-     in case x of
-            Right a -> pure a
-            Left e ->
-                throwError . OtherError $
-                "couldn't decode " ++
-                v ++ " :: " ++ show (T.typeOf x) ++ " (" ++ show e ++ ")"
+stage ::
+       forall s a.
+       (ContractRow s, HasBlockchainActions s, Forall (Input s) FromJSON)
+    => Contract s Text a
+    -> BSL.ByteString
+    -> BSL.ByteString
+    -> Either PlaygroundError EvaluationResult
+stage endpoints programJson simulatorWalletsJson = do
+    simulationJson :: String <- playgroundDecode "String" programJson
+    simulation :: [Expression s] <-
+        playgroundDecode "[Expression schema]" $ BSL.pack simulationJson
+    simulatorWallets :: [SimulatorWallet] <-
+        playgroundDecode "[SimulatorWallet]" simulatorWalletsJson
+    let allWallets = simulatorWalletWallet <$> simulatorWallets
+    let (final, emulatorState) =
+            runTraceWithDistribution
+                (toInitialDistribution simulatorWallets)
+                endpoints
+                (buildSimulation allWallets (expressionToTrace <$> simulation))
+    case final of
+        Left (ContractError err)                          -> throwError . OtherError . Text.unpack $ err
+        Left (TraceAssertionError (GenericAssertion err)) -> throwError . OtherError . Text.unpack $ err
+        Right _                                           -> analyzeEmulatorState emulatorState
 
-{-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
+buildSimulation ::
+       (MonadEmulator (TraceError e) m, HasBlockchainActions s)
+    => [Wallet]
+    -> [ContractTrace s e m a ()]
+    -> ContractTrace s e m a ()
+buildSimulation allWallets =
+    sequence_ . afterEach (traverse_ triggerEvents allWallets)
+  where
+    afterEach a = foldMap (\x -> [x, a])
 
-apply :: (MonadError PlaygroundError m) => a -> m a
-apply = pure
+triggerEvents ::
+       (MonadEmulator (TraceError e) m, HasBlockchainActions s)
+    => Wallet
+    -> ContractTrace s e m a ()
+triggerEvents w = do
+    handleBlockchainEvents w
+    notifyInterestingAddresses w
+    notifySlot w
 
-apply1 ::
-       (T.Typeable a, FromJSON a, MonadError PlaygroundError m)
-    => (a -> b)
-    -> String
-    -> m b
-apply1 fun v = fun <$> decode v
+toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
+toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
 
-apply2 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c)
-    -> String
-    -> String
-    -> m c
-apply2 fun a b = do
-    a' <- decode a
-    b' <- decode b
-    pure $ fun a' b'
-
-apply3 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , T.Typeable c
-       , FromJSON c
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c -> d)
-    -> String
-    -> String
-    -> String
-    -> m d
-apply3 fun a b c = do
-    a' <- decode a
-    b' <- decode b
-    c' <- decode c
-    pure $ fun a' b' c'
-
-apply4 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , T.Typeable c
-       , FromJSON c
-       , T.Typeable d
-       , FromJSON d
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c -> d -> e)
-    -> String
-    -> String
-    -> String
-    -> String
-    -> m e
-apply4 fun a b c d = do
-    a' <- decode a
-    b' <- decode b
-    c' <- decode c
-    d' <- decode d
-    pure $ fun a' b' c' d'
-
-apply5 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , T.Typeable c
-       , FromJSON c
-       , T.Typeable d
-       , FromJSON d
-       , T.Typeable e
-       , FromJSON e
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c -> d -> e -> f)
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> m f
-apply5 fun a b c d e = do
-    a' <- decode a
-    b' <- decode b
-    c' <- decode c
-    d' <- decode d
-    e' <- decode e
-    pure $ fun a' b' c' d' e'
-
-apply6 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , T.Typeable c
-       , FromJSON c
-       , T.Typeable d
-       , FromJSON d
-       , T.Typeable e
-       , FromJSON e
-       , T.Typeable f
-       , FromJSON f
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c -> d -> e -> f -> g)
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> m g
-apply6 fun a b c d e f = do
-    a' <- decode a
-    b' <- decode b
-    c' <- decode c
-    d' <- decode d
-    e' <- decode e
-    f' <- decode f
-    pure $ fun a' b' c' d' e' f'
-
-apply7 ::
-       ( T.Typeable a
-       , FromJSON a
-       , T.Typeable b
-       , FromJSON b
-       , T.Typeable c
-       , FromJSON c
-       , T.Typeable d
-       , FromJSON d
-       , T.Typeable e
-       , FromJSON e
-       , T.Typeable f
-       , FromJSON f
-       , T.Typeable g
-       , FromJSON g
-       , MonadError PlaygroundError m
-       )
-    => (a -> b -> c -> d -> e -> f -> g -> h)
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> String
-    -> m h
-apply7 fun a b c d e f g = do
-    a' <- decode a
-    b' <- decode b
-    c' <- decode c
-    d' <- decode d
-    e' <- decode e
-    f' <- decode f
-    g' <- decode g
-    pure $ fun a' b' c' d' e' f' g'
+expressionToTrace ::
+       (ContractRow s, MonadEmulator (TraceError Text) m, Forall (Input s) FromJSON)
+    => Expression s
+    -> ContractTrace s Text m a ()
+expressionToTrace AddBlocks {blocks} = addBlocks (fromIntegral blocks)
+expressionToTrace PayToWallet {source, destination, value} =
+    payToWallet source destination value
+expressionToTrace CallEndpoint {endpointName, wallet, arguments} =
+    case arguments of
+        JSON.String string ->
+            let bytestring = BSL.fromStrict $ Text.encodeUtf8 string
+             in case JSON.eitherDecode bytestring of
+                    Left err ->
+                        throwError . ContractError $
+                        "Error extracting JSON from arguments. Expected a JSON string. " <>
+                        Text.pack err
+                    Right [value] ->
+                        case JSON.fromJSON $
+                             JSON.object
+                                 [ ( "tag"
+                                   , JSON.String $ Newtype.unpack endpointName)
+                                 , ("value", value)
+                                 ] of
+                            JSON.Error err ->
+                                throwError .
+                                ContractError $
+                                "Error '" <> Text.pack err <>
+                                "' while decoding JSON arguments: " <>
+                                Text.pack (show value) <>
+                                "  for endpoint: " <>
+                                Text.pack (show endpointName)
+                            JSON.Success (event :: Event s) ->
+                                addEvent wallet event
+                    Right value ->
+                        throwError .
+                        ContractError $
+                        "Expected a singleton list, but got: " <>
+                        Text.pack (show value)
+        _ -> fail $ "Expected a String, but got: " <> show arguments

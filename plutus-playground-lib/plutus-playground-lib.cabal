@@ -32,6 +32,7 @@ library
       Playground.TH
       Playground.Interpreter.Util
   other-modules:
+      Playground.Schema
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wnoncanonical-monad-instances
@@ -50,10 +51,12 @@ library
     , memory
     , mtl
     , newtype-generics
+    , row-types
     , servant
     , template-haskell
     , text
     , transformers
+    , plutus-contract
     , plutus-tx
     , plutus-wallet-api
     , plutus-emulator

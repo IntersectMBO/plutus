@@ -1,3 +1,6 @@
+/*eslint-env node*/
+/*global exports require*/
+
 window = {};
 var ace = require('ace-builds');
 

@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-import AjaxUtils (ajaxSettings)
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(Nothing))
@@ -15,7 +14,12 @@ import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame (mainFrame)
+import Playground.Server (SPParams_(..))
+import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (HAction(..))
+
+ajaxSettings :: SPSettings_ SPParams_
+ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
 main :: Effect Unit
 main =

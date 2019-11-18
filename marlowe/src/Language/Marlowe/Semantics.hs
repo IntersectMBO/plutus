@@ -42,7 +42,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Ledger                     (PubKey (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
@@ -50,6 +50,7 @@ import           Ledger.Interval            (Extended (..), Interval (..), Lower
 import           Ledger.Scripts             (DataScript (..))
 import           Ledger.Validation
 import qualified Prelude                    as P
+import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 
@@ -236,7 +237,8 @@ newtype Environment = Environment { slotInterval :: SlotInterval }
 data Input = IDeposit AccountId Party Money
            | IChoice ChoiceId ChosenNum
            | INotify
-  deriving stock (Show,P.Eq,P.Ord)
+  deriving stock (Show,P.Eq,P.Ord,Generic)
+  deriving anyclass (Pretty)
 
 
 {-| Slot interval errors.
@@ -318,7 +320,8 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Integer
                                                -- ^ src    ^ dest ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (Pretty)
 
 
 -- | Transaction error
@@ -335,6 +338,14 @@ data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
   deriving stock (Show)
+
+instance Pretty TransactionInput where
+    prettyFragment tInp = text "TransactionInput" <> space <> lbrace <> line <> txIntLine <> line <> txInpLine
+        where
+            txIntLine = hang 2 $ text "txInterval = " <> prettyFragment (txInterval tInp) <> comma
+            txInpLine = hang 2 $ text "txInputs = " <> prettyFragment (txInputs tInp) <> rbrace
+
+
 
 
 {-| Marlowe transaction output.
@@ -747,9 +758,9 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
             -- otherwise check the continuation
             _ -> case getContinuingOutputs pendingTx of
                     [PendingTxOut
-                        { pendingTxOutType=(ScriptTxOut _ (DataScript ds))
+                        { pendingTxOutType=(ScriptTxOut _ dsh)
                         , pendingTxOutValue
-                        }] -> case PlutusTx.fromData ds of
+                        }] | Just (DataScript ds) <- findData dsh pendingTx -> case PlutusTx.fromData ds of
                             Just (MarloweData expectedCreator expectedState expectedContract) -> let
                                 scriptOutputValue = Ada.fromValue pendingTxOutValue
                                 validContract = expectedCreator == creator

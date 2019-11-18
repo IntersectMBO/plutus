@@ -4,13 +4,13 @@ module Chain
   , extractAmount
   ) where
 
-import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
 import Chain.Types (State)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
 import Data.Array as Array
+import Data.Array.Extra (collapse)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)

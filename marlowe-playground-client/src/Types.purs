@@ -2,6 +2,7 @@ module Types where
 
 import API (RunResult)
 import Ace (Annotation)
+import Ace as Ace
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
@@ -18,16 +19,18 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Editor (EditorAction)
 import Gist (Gist)
+import Gists (GistAction)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
-import Marlowe.Parser (MarloweHole)
-import Marlowe.Semantics (AccountId, Action, ActionF(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Holes (Holes, MarloweHole)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
@@ -44,23 +47,17 @@ data HQuery a
 
 data HAction
   -- Haskell Editor
-  = HandleEditorMessage AceMessage
-  | HandleDragEvent DragEvent
-  | HandleDropEvent DragEvent
-  | MarloweHandleEditorMessage AceMessage
+  = MarloweHandleEditorMessage AceMessage
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
+  | MarloweMoveToPosition Ace.Position
+  | HaskellEditorAction EditorAction
   -- Gist support.
   | CheckAuthStatus
-  | PublishGist
-  | SetGistUrl String
-  | LoadGist
+  | GistAction GistAction
   -- haskell actions
   | ChangeView View
-  | LoadScript String
-  | CompileProgram
   | SendResult
-  | ScrollTo { row :: Int, column :: Int }
   | LoadMarloweScript String
   -- marlowe actions
   | ApplyTransaction
@@ -70,6 +67,8 @@ data HAction
   | SetChoice ChoiceId ChosenNum
   | ResetSimulator
   | Undo
+  | SelectHole (Maybe String)
+  | InsertHole String MarloweHole (Array MarloweHole)
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   | SetBlocklyCode
@@ -81,13 +80,13 @@ data WebsocketMessage
 
 ------------------------------------------------------------
 type ChildSlots
-  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+  = ( haskellEditorSlot :: H.Slot AceQuery AceMessage Unit
     , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     )
 
-_editorSlot :: SProxy "editorSlot"
-_editorSlot = SProxy
+_haskellEditorSlot :: SProxy "haskellEditorSlot"
+_haskellEditorSlot = SProxy
 
 _marloweEditorSlot :: SProxy "marloweEditorSlot"
 _marloweEditorSlot = SProxy
@@ -120,6 +119,7 @@ newtype FrontendState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
   , analysisState :: RemoteData String Result
+  , selectedHole :: Maybe String
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -157,6 +157,9 @@ _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 _analysisState :: Lens' FrontendState (RemoteData String Result)
 _analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
 
+_selectedHole :: Lens' FrontendState (Maybe String)
+_selectedHole = _Newtype <<< prop (SProxy :: SProxy "selectedHole")
+
 -- editable
 _timestamp ::
   forall s a.
@@ -184,7 +187,7 @@ type MarloweState
     , moneyInContract :: Ada
     , contract :: Maybe Contract
     , editorErrors :: Array Annotation
-    , holes :: Array MarloweHole
+    , holes :: Holes
     , payments :: Array Payment
     }
 
@@ -219,9 +222,6 @@ _holes = prop (SProxy :: SProxy "holes")
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_warnings :: forall s a. Lens' { warnings :: a | s } a
-_warnings = prop (SProxy :: SProxy "warnings")
-
 _payments :: forall s a. Lens' { payments :: a | s } a
 _payments = prop (SProxy :: SProxy "payments")
 
@@ -241,7 +241,7 @@ emptyMarloweState sn =
   , moneyInContract: zero
   , contract: Nothing
   , editorErrors: []
-  , holes: []
+  , holes: mempty
   , payments: []
   }
 
@@ -267,7 +267,7 @@ actionToActionInput state (Deposit accountId party value) =
 
     env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
   in
-    Tuple (DepositInputId accountId (unwrap party)) (DepositInput accountId (unwrap party) (evalValue env state value))
+    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
 
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 

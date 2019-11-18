@@ -1,5 +1,8 @@
 = https://github.com/input-output-hk/plutus[Plutus Platform]
-:author: Input Output HK
+:email: plutus@iohk.io
+:author: Input Output HK Limited
+:toc: left
+:reproducible:
 
 The Plutus Platform enables you to:
 
@@ -76,9 +79,10 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 === How to get the most recent documentation PDFs from CI
 
-==== Specifications
+==== Specifications and design
 
 - https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
+- https://hydra.iohk.io/job/Cardano/plutus/docs.extended-utxo-spec.x86_64-linux/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
 
 ==== Academic papers
 
@@ -108,7 +112,9 @@ other discussions to the forum.
 
 === How to contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail.
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail;
+and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
+
 
 [[nix]]
 == Nix
@@ -147,11 +153,11 @@ NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] y
 
 Nix on macOS can be a bit tricky. In particular, sandboxing is disabled by default, which can lead to strange failures.
 
-These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings, 
+These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings,
 in the same way as in xref:iohk-binary-cache[previous section]:
 
 ----
-sandbox = true 
+sandbox = true
 extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
 ----
 

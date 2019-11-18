@@ -19,11 +19,13 @@
 -- type errors at validation time.
 module Ledger.Typed.Tx where
 
+import           Ledger.Address             hiding (scriptAddress)
 import           Ledger.Crypto
 import qualified Ledger.Interval            as Interval
 import           Ledger.Scripts
 import           Ledger.Slot
-import           Ledger.Tx                  hiding (scriptAddress)
+import           Ledger.Tx
+import           Ledger.TxId
 import           Ledger.Typed.Scripts
 import qualified Ledger.Value               as Value
 
@@ -41,26 +43,31 @@ import qualified Language.PlutusIR.Compiler as PIR
 import           Data.Coerce
 import           Data.Kind
 import           Data.List                  (foldl')
+import qualified Data.Map                   as Map
 import           Data.Proxy
 import qualified Data.Set                   as Set
 
 import           Control.Monad.Except
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
-newtype TypedScriptTxIn a = TypedScriptTxIn { unTypedScriptTxIn :: TxIn }
+data TypedScriptTxIn a = TypedScriptTxIn { tyTxInTxIn :: TxIn, tyTxInOutRef :: TypedScriptTxOutRef a }
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn
-    . (IsData (RedeemerType inn))
+    . (IsData (RedeemerType inn), IsData (DataType inn))
     => ScriptInstance inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn inn
-makeTypedScriptTxIn si r (TypedScriptTxOutRef ref) =
+makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
         rs = RedeemerScript (toData r)
-        txInType = ConsumeScriptAddress vs rs
-    in TypedScriptTxIn @inn $ TxIn ref txInType
+        ds = DataScript (toData d)
+        txInType = ConsumeScriptAddress vs rs ds
+    in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
+
+txInValue :: TypedScriptTxIn a -> Value.Value
+txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
 
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
@@ -69,7 +76,7 @@ makePubKeyTxIn :: TxOutRef -> PubKey -> PubKeyTxIn
 makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxIn ref $ ConsumePublicKeyAddress pubkey
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
-newtype TypedScriptTxOut a = TypedScriptTxOut { unTypedScriptTxOut :: TxOut }
+data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
@@ -79,11 +86,11 @@ makeTypedScriptTxOut
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = PayToScript (DataScript (toData d))
-    in TypedScriptTxOut @out $ TxOut (scriptAddress ct) value outTy
+    let outTy = PayToScript $ dataScriptHash $ DataScript $ toData d
+    in TypedScriptTxOut @out (TxOut (scriptAddress ct) value outTy) d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
-newtype TypedScriptTxOutRef a = TypedScriptTxOutRef { unTypedScriptTxOutRef :: TxOutRef }
+data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
 
 -- | A public-key 'TxOut'. We need this to be sure that it is not a script output.
 newtype PubKeyTxOut = PubKeyTxOut { unPubKeyTxOut :: TxOut }
@@ -193,32 +200,36 @@ toUntypedTx TypedTx{
     tyTxPubKeyTxIns,
     tyTxForge,
     tyTxValidRange } = Tx {
-    txOutputs = hfOut coerce tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
-    txInputs = Set.fromList (hfOut coerce tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
+    txOutputs = hfOut tyTxOutTxOut tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
+    txInputs = Set.fromList (hfOut tyTxInTxIn tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
     txForge = tyTxForge,
     txFee = zero,
     txValidRange = tyTxValidRange,
-    txSignatures = mempty }
+    txSignatures = mempty,
+    txData = Map.fromList $ hfOut dsEntry tyTxTypedTxOuts}
+    where
+        dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataScript $ toData d in (dataScriptHash ds, ds)
 
 -- Checking
 -- TODO: these could be in a separate module
 
 -- | An error we can get while trying to type an existing transaction part.
 data ConnectionError =
-    WrongValidatorHash ValidatorHash ValidatorHash
+    WrongValidatorAddress Address Address
     | WrongOutType TxOutType
     | WrongInType TxInType
     | WrongValidatorType String
     | WrongRedeemerType
     | WrongDataType
+    | NoData TxId DataScriptHash
     | UnknownRef
     deriving (Show, Eq, Ord)
 
 -- | Checks that the given validator hash is consistent with the actual validator.
-checkValidatorHash :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> ValidatorHash -> m ()
-checkValidatorHash ct actualHash = do
-    let expectedHash = plcValidatorDigest $ getAddress $ scriptAddress ct
-    unless (actualHash == expectedHash) $ throwError $ WrongValidatorHash expectedHash actualHash
+checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()
+checkValidatorAddress ct actualAddr = do
+    let expectedAddr = scriptAddress ct
+    unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
 
 -- | Checks that the given validator script has the right type.
 checkValidatorScript
@@ -261,17 +272,17 @@ typeScriptTxIn
     . ( IsData (RedeemerType inn)
       , IsData (DataType inn)
       , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOut)
+    => (TxOutRef -> Maybe TxOutTx)
     -> ScriptInstance inn
     -> TxIn
     -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
-    (vs, rs) <- case txInType of
-        ConsumeScriptAddress vs rs -> pure (vs, rs)
-        x                          -> throwError $ WrongInType x
+    (vs, rs, ds) <- case txInType of
+        ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
+        x                             -> throwError $ WrongInType x
     _ <- checkValidatorScript si vs
     rsVal <- checkRedeemerScript si rs
-    -- If this succeeds we're okay
+    _ <- checkDataScript si ds
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef
     pure $ makeTypedScriptTxIn si rsVal typedOut
 
@@ -293,13 +304,16 @@ typeScriptTxOut
     . ( IsData (DataType out)
       , MonadError ConnectionError m)
     => ScriptInstance out
-    -> TxOut
+    -> TxOutTx
     -> m (TypedScriptTxOut out)
-typeScriptTxOut si TxOut{txOutAddress=Address addrHash,txOutValue,txOutType} = do
-    ds <- case txOutType of
+typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutType}} = do
+    dsh <- case txOutType of
         PayToScript ds -> pure ds
         x              -> throwError $ WrongOutType x
-    checkValidatorHash si (plcValidatorDigest addrHash)
+    ds <- case lookupData tx dsh of
+        Just ds -> pure ds
+        Nothing -> throwError $ NoData (txId tx) dsh
+    checkValidatorAddress si txOutAddress
     dsVal <- checkDataScript si ds
     pure $ makeTypedScriptTxOut si dsVal txOutValue
 
@@ -310,17 +324,16 @@ typeScriptTxOutRef
     :: forall out m
     . ( IsData (DataType out)
       , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOut)
+    => (TxOutRef -> Maybe TxOutTx)
     -> ScriptInstance out
     -> TxOutRef
     -> m (TypedScriptTxOutRef out)
 typeScriptTxOutRef lookupRef ct ref = do
     out <- case lookupRef ref of
-        Just out -> pure out
+        Just res -> pure res
         Nothing  -> throwError UnknownRef
-    -- If this succeeds, we're good
-    _ <- typeScriptTxOut @out ct out
-    pure $ TypedScriptTxOutRef ref
+    tyOut <- typeScriptTxOut @out ct out
+    pure $ TypedScriptTxOutRef ref tyOut
 
 -- | Create a 'PubKeyTxOUt' from an existing 'TxOut' by checking that it has the right payment type.
 typePubKeyTxOut

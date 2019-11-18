@@ -6,6 +6,7 @@ module Ledger (
     ) where
 
 import           Ledger.Ada        (Ada)
+import           Ledger.Address    as Export
 import           Ledger.Blockchain as Export
 import           Ledger.Crypto     as Export
 import           Ledger.Index      as Export

@@ -1,6 +1,19 @@
 module Bootstrap.Extra where
 
-import Halogen.HTML (ClassName(..))
+import Halogen.HTML (ClassName(..), IProp, prop, PropName(..))
+import Prelude (show)
 
 clickable :: ClassName
 clickable = ClassName "clickable"
+
+dataToggle :: forall r i. String -> IProp r i
+dataToggle = prop (PropName "data-toggle")
+
+ariaHasPopup :: forall r i. Boolean -> IProp r i
+ariaHasPopup hasPopup = prop (PropName "data-toggle") (show hasPopup)
+
+ariaExpanded :: forall r i. Boolean -> IProp r i
+ariaExpanded expanded = prop (PropName "data-toggle") (show expanded)
+
+ariaLabelledBy :: forall r i. String -> IProp r i
+ariaLabelledBy label = prop (PropName "data-toggle") label

@@ -38,13 +38,12 @@ import           Control.Monad                  (void)
 import qualified Data.Set                       as Set
 import qualified Data.Text                      as T
 import qualified Ledger
-import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOut, pubKeyTxOut, scriptTxOut')
+import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, DataScriptHash, scriptOutputsAt,
+                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOut, TxOutTx (..), pubKeyTxOut)
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import           Ledger.AddressMap              (values)
 import qualified Ledger.Typed.Scripts           as Scripts
-import qualified Ledger.Scripts                 as Scripts
 import           Ledger.Validation              (PendingTx, PendingTx' (..))
 import           Ledger.Value                   (Value, lt, geq)
 
@@ -57,7 +56,7 @@ import qualified Prelude                        as Haskell
 
 type EscrowSchema =
     BlockchainActions
-        .\/ Endpoint "pay-escrow" (PubKey, Value)
+        .\/ Endpoint "pay-escrow" Value
         .\/ Endpoint "redeem-escrow" ()
         .\/ Endpoint "refund-escrow" ()
 
@@ -85,7 +84,7 @@ type EscrowSchema =
 -- | Defines where the money should go.
 data EscrowTarget =
     PubKeyTarget PubKey Value
-    | ScriptTarget ValidatorHash DataScript Value
+    | ScriptTarget ValidatorHash DataScriptHash Value
 
 PlutusTx.makeLift ''EscrowTarget
 
@@ -95,8 +94,8 @@ payToPubKeyTarget = PubKeyTarget
 
 -- | An 'EscrowTarget' that pays the value to a script address, with the
 --   given data script.
-payToScriptTarget :: Address -> DataScript -> Value -> EscrowTarget
-payToScriptTarget (Ledger.Address hsh) = ScriptTarget (Scripts.plcValidatorDigest hsh)
+payToScriptTarget :: ValidatorHash -> DataScriptHash -> Value -> EscrowTarget
+payToScriptTarget = ScriptTarget
 
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
 data EscrowParams =
@@ -126,7 +125,7 @@ targetValue = \case
 mkTxOutput :: EscrowTarget -> TxOut
 mkTxOutput = \case
     PubKeyTarget pk vl -> pubKeyTxOut vl pk
-    ScriptTarget hsh ds vl -> scriptTxOut' vl (Ledger.Address (Scripts.unsafePlcAddress hsh)) ds
+    ScriptTarget vs ds vl -> Ledger.TxOut (Ledger.scriptHashAddress vs) vl (Ledger.PayToScript ds)
 
 data Action = Redeem | Refund
 
@@ -185,10 +184,10 @@ escrowAddress = Scripts.scriptAddress . scriptInstance
 escrowContract :: EscrowParams -> Contract EscrowSchema T.Text ()
 escrowContract escrow =
     let payAndRefund = do
-            (ownPubKey, vl) <- endpoint @"pay-escrow"
-            _ <- pay escrow ownPubKey vl
+            vl <- endpoint @"pay-escrow"
+            _ <- pay escrow vl
             _ <- awaitSlot (escrowDeadline escrow)
-            refund escrow ownPubKey
+            refund escrow
     in void payAndRefund <|> void (redeemEp escrow)
 
 -- | 'pay' with an endpoint that gets the owner's public key and the
@@ -196,26 +195,28 @@ escrowContract escrow =
 payEp
     ::
     ( HasWriteTx s
-    , HasEndpoint "pay-escrow" (PubKey, Value) s
+    , HasOwnPubKey s
+    , HasEndpoint "pay-escrow" Value s
     )
     => EscrowParams
     -> Contract s T.Text TxId
 payEp escrow = do
-    (ownPubKey, vl) <- endpoint @"pay-escrow"
-    pay escrow ownPubKey vl
+    vl <- endpoint @"pay-escrow"
+    pay escrow vl
 
 -- | Pay some money into the escrow contract.
 pay
-    :: (HasWriteTx s)
+    :: ( HasWriteTx s
+       , HasOwnPubKey s
+       )
     => EscrowParams
     -- ^ The escrow contract
-    -> PubKey
-    -- ^ Public key of the contributor (used for refunds)
     -> Value
     -- ^ How much money to pay in
     -> Contract s T.Text TxId
-pay escrow ownPubKey vl = do
-    let ds = DataScript (PlutusTx.toData ownPubKey)
+pay escrow vl = do
+    pk <- ownPubKey
+    let ds = DataScript (PlutusTx.toData pk)
         tx = payToScript vl (escrowAddress escrow) ds
                 & validityRange .~ Ledger.interval 1 (escrowDeadline escrow)
     writeTxSuccess tx
@@ -255,7 +256,7 @@ redeem escrow = do
     unspentOutputs <- utxoAt (escrowAddress escrow)
     let addr = escrowAddress escrow
         valRange = Interval.to (pred $ escrowDeadline escrow)
-        tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance escrow) Redeem
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance escrow) Redeem
             & validityRange .~ valRange
             & outputs .~ fmap mkTxOutput (escrowTargets escrow)
     if currentSlot >= escrowDeadline escrow
@@ -272,23 +273,24 @@ refundEp
     ::
     ( HasUtxoAt s
     , HasWriteTx s
+    , HasOwnPubKey s
     , HasEndpoint "refund-escrow" () s
     )
     => EscrowParams
-    -> PubKey
     -> Contract s T.Text RefundResult
-refundEp escrow txid = endpoint @"refund-escrow" >> refund escrow txid
+refundEp escrow = endpoint @"refund-escrow" >> refund escrow
 
 -- | Claim a refund of the contribution.
 refund
     :: ( HasUtxoAt s
+       , HasOwnPubKey s
        , HasWriteTx s)
     => EscrowParams
-    -> PubKey
     -> Contract s T.Text RefundResult
-refund escrow pk = do
+refund escrow = do
+    pk <- ownPubKey
     unspentOutputs <- utxoAt (escrowAddress escrow)
-    let flt _ txOut = Ledger.txOutData txOut == Just (DataScript (PlutusTx.toData pk))
+    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataScriptHash $ DataScript (PlutusTx.toData pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 & validityRange .~ from (succ $ escrowDeadline escrow)
     if not . Set.null $ tx' ^. inputs

@@ -2,25 +2,28 @@
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
-    Campaign(..)
+      Campaign(..)
     , CrowdfundingSchema
     , crowdfunding
     , theCampaign
@@ -42,28 +45,33 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative            (Alternative(..), Applicative(..))
-import           Control.Lens                   ((&), (.~), (^.))
-import           Control.Monad                  (Monad((>>)), void)
-import qualified Data.Set                       as Set
+import           Control.Applicative               (Alternative (..), Applicative (..))
+import           Control.Lens                      ((&), (.~), (^.))
+import           Control.Monad                     (Monad ((>>)), void)
+import           Data.Aeson                        (FromJSON, ToJSON)
+import qualified Data.Set                          as Set
+import           GHC.Generics                      (Generic)
+import           IOTS                              (IotsType)
+
 import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Trace    (ContractTrace, MonadEmulator, TraceError)
+import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator)
-import qualified Language.Plutus.Contract.Trace as Trace
-import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding ((>>), return, (>>=), (<$>), Applicative (..))
-import           Ledger                         (Address, PendingTx, PubKey, Slot, ValidatorScript)
-import qualified Ledger                         as Ledger
-import qualified Ledger.Ada                     as Ada
-import qualified Ledger.Interval                as Interval
-import           Ledger.Slot                    (SlotRange)
-import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Validation              as V
-import           Ledger.Value                   (Value)
-import qualified Ledger.Value                   as VTH
-import           Wallet.Emulator                (Wallet)
-import qualified Wallet.Emulator                as Emulator
-import qualified Prelude                        as Haskell
+import qualified Language.PlutusTx                 as PlutusTx
+import           Language.PlutusTx.Prelude         hiding (Applicative (..), return, (<$>), (>>), (>>=))
+import           Ledger                            (Address, PendingTx, PubKey, Slot, ValidatorScript)
+import qualified Ledger                            as Ledger
+import qualified Ledger.Ada                        as Ada
+import qualified Ledger.Interval                   as Interval
+import           Ledger.Slot                       (SlotRange)
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Validation                 as V
+import           Ledger.Value                      (Value)
+import qualified Ledger.Value                      as Value
+import qualified Prelude                           as Haskell
+import           Schema                            (ToSchema)
+import           Wallet.Emulator                   (Wallet)
+import qualified Wallet.Emulator                   as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -76,7 +84,7 @@ data Campaign = Campaign
     , campaignOwner              :: PubKey
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the
     --   funds if the campaign is successful.
-    }
+    } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
 
@@ -92,7 +100,13 @@ PlutusTx.makeLift ''CampaignAction
 type CrowdfundingSchema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
-        .\/ Endpoint "contribute" (PubKey, Value)
+        .\/ Endpoint "contribute" Contribution
+
+newtype Contribution = Contribution
+        { contribValue :: Value
+        -- ^ how much to contribute
+        } deriving stock (Haskell.Eq, Show, Generic)
+          deriving anyclass (ToJSON, FromJSON, IotsType)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -130,20 +144,35 @@ scriptInstance cmp = Scripts.Validator @CrowdFunding
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool
 validRefund campaign contributor ptx =
+    -- Check that the transaction falls in the refund range of the campaign
     Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
+    -- Check that the transaction is signed by the contributor
     && (ptx `V.txSignedBy` contributor)
 
 {-# INLINABLE validCollection #-}
 validCollection :: Campaign -> PendingTx -> Bool
 validCollection campaign p =
+    -- Check that the transaction falls in the collection range of the campaign
     (collectionRange campaign `Interval.contains` pendingTxValidRange p)
-    && (valueSpent p `VTH.geq` campaignTarget campaign)
+    -- Check that the transaction is trying to spend more money than the campaign
+    -- target (and hence the target was reached)
+    && (valueSpent p `Value.geq` campaignTarget campaign)
+    -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
+-- | The validator script is of type 'CrowdfundingValidator', and is
+-- additionally parameterized by a 'Campaign' definition. This argument is
+-- provided by the Plutus client, using 'Ledger.applyScript'.
+-- As a result, the 'Campaign' definition is part of the script address,
+-- and different campaigns have different addresses. The Campaign{..} syntax
+-- means that all fields of the 'Campaign' value are in scope
+-- (for example 'campaignDeadline' in l. 70).
 mkValidator :: Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool
 mkValidator c con act p = case act of
-    Refund  -> validRefund c con p
+    -- the "refund" branch
+    Refund -> validRefund c con p
+    -- the "collection" branch
     Collect -> validCollection c p
 
 -- | The validator script that determines whether the campaign owner can
@@ -175,13 +204,15 @@ theCampaign = Campaign
 --   refund if the funding target was not met.
 contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
-    (ownPK, contribution) <- endpoint @"contribute"
-    let ds = Ledger.DataScript (PlutusTx.toData ownPK)
-        tx = payToScript contribution (campaignAddress cmp) ds
+    Contribution{contribValue} <- endpoint @"contribute"
+    contributor <- ownPubKey
+    let ds = Ledger.DataScript (PlutusTx.toData contributor)
+        tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     txId <- writeTxSuccess tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
+
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
@@ -189,6 +220,7 @@ contribute cmp = do
     let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
                 & validityRange .~ refundRange cmp
+                & requiredSignatures .~ [contributor]
     if not . Set.null $ tx' ^. inputs
     then void (writeTx tx')
     else pure ()
@@ -204,20 +236,17 @@ scheduleCollection cmp = do
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
 
-    -- 'trg' describes the conditions for a successful campaign. It returns a
-    -- tuple with the unspent outputs at the campaign address, and the current
-    -- slot.
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) Collect
+    let tx = Typed.collectFromScript unspentOutputs (scriptInstance cmp) Collect
             & validityRange .~ collectionRange cmp
     void $ writeTx tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
-    :: ( MonadEmulator e m  )
+    :: ( MonadEmulator (TraceError e) m  )
     => ContractTrace CrowdfundingSchema e m () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
@@ -225,17 +254,17 @@ startCampaign =
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> Value
     -> ContractTrace CrowdfundingSchema e m () ()
 makeContribution w v =
-    Trace.callEndpoint @"contribute" w (Trace.walletPubKey w, v)
+    Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator e m )
+    :: ( MonadEmulator (TraceError e) m )
     => ContractTrace CrowdfundingSchema e m () ()
 successfulCampaign =
     startCampaign

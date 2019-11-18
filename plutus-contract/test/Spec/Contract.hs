@@ -71,6 +71,20 @@ tests =
             (endpointAvailable @"ep" w1)
             $ pure ()
 
+        , cp "forever"
+            (let go = endpoint @"ep" @() >> go in go)
+            (endpointAvailable @"ep" w1)
+            (callEndpoint @"ep" w1 ())
+
+        , cp "alternative"
+            (let 
+                oneTwo = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
+                oneThree = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
+             in oneTwo <|> oneThree)
+            (endpointAvailable @"2" w1
+            /\ not (endpointAvailable @"3" w1))
+            (callEndpoint @"1" w1 1)
+
         , cp "call endpoint (1)"
             (void $ endpoint @"1" @Int >> endpoint @"2" @Int)
             (endpointAvailable @"1" w1)
@@ -119,13 +133,29 @@ tests =
             (callEndpoint @"1" @Int w1 1)
 
         , cp "throw an error"
-            (void $ throwing _ContractError $ OtherError "error")
-            (assertContractError w1 (OtherError "error") "failed to throw error")
+            (void $ throwing Con._ContractError $ OtherError "error")
+            (assertContractError w1 (\case { ContractError (OtherError "error") -> True; _ -> False}) "failed to throw error")
             (pure ())
+
+        , cp "pay to wallet"
+            (pure ())
+            (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
+            /\ walletFundsChange w2 (Ada.lovelaceValueOf 20)
+            /\ assertNoFailedTransactions)
+            (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+
+        , cp "ownPubKey"
+            (ownPubKey)
+            (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
+            (handleBlockchainEvents w2)
+
         ]
 
 w1 :: EM.Wallet
 w1 = EM.Wallet 1
+
+w2 :: EM.Wallet
+w2 = EM.Wallet 2
 
 someAddress :: Address
 someAddress = Ledger.scriptAddress $

@@ -1,10 +1,10 @@
 %% Extended UTXO Specification
 \newcommand\version{-1}
 
-\title{Formal Specification of the Extended UTXO Model (\red{\textsf{DRAFT}})}
+\title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{11th October 2019}
+\date{15th November 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -32,15 +32,24 @@
 \usepackage{subfiles}
 \usepackage{geometry}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{verbatim}
 \usepackage{alltt}
 
 %\usepackage{todonotes}
 \usepackage[disable]{todonotes}
 
-\usepackage{hyperref}  % This has to go at the end of the packages.
+% These have to go at the end of the packages.
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum]{hyperref}
+\usepackage[capitalise, noabbrev]{cleveref}
 
+% Mild hack to get cleveref to refer to things as "Rules": we alias the
+% enumerate counters to "rule". This would be annoying if we ever wanted to
+% refer to items or lists as something other than "rule", but we don't.
+\crefname{rule}{rule}{rules}
+\crefname{rule}{Rule}{Rules}
+\crefalias{enumi}{rule}
+\crefalias{enumii}{rule}
 
 % Stuff for splitting figures over page breaks
 %\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
@@ -107,6 +116,7 @@
 \newcommand{\txId}{\msf{txId}}
 \newcommand{\txrefid}{\mi{id}}
 \newcommand{\Address}{\ensuremath{\s{Address}}}
+\newcommand{\DataHash}{\ensuremath{\s{DataHash}}}
 \newcommand{\idx}{\mi{index}}
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
@@ -117,7 +127,9 @@
 
 \newcommand{\validator}{\mi{validator}}
 \newcommand{\redeemer}{\mi{redeemer}}
-\newcommand{\valdata}{\mi{valData}}
+\newcommand{\dataVal}{\mi{dataVal}}
+\newcommand{\dataHsh}{\mi{dataHash}}
+\newcommand{\dataWits}{\mi{dataWitnesses}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
@@ -170,7 +182,7 @@ owned by the user.  Every core node on the blockchain maintains a
 record of all of the currently unspent outputs, the \textit{UTXO set};
 when outputs are spent, they are removed from the UTXO set.
 
-This document contains a specification of some extensions of the
+This document contains a description of some extensions of the
 UTXO model: the main aim of these extensions is to facilitate the
 implementation of \textit{smart contracts}, programs which perform
 automated and irrevocable transfer of funds on the blockchain, subject
@@ -189,7 +201,7 @@ agnostic as to the scripting language.
 \label{sec:doc-structure}
 The papers~\citep{Zahnentferner18-Chimeric} and
 \citep{Zahnentferner18-UTxO} give a formal specification of a basic
-UTXO model. See Note~\ref{note:basic-utxo} for some background on
+UTXO model. See \cref{note:basic-utxo} for some background on
 this model.
 
 \medskip
@@ -197,10 +209,10 @@ this model.
 model (EUTXO stands for \textit{Extended UTXO}):
 
 \begin{itemize}
-  \item \textbf{EUTXO-1} (Section~\ref{sec:eutxo-1}): this extends the
+  \item \textbf{EUTXO-1} (\cref{sec:eutxo-1}): this extends the
     basic UTXO model with enhanced scripting features, allowing the
     implementation of complex smart contracts.
-  \item \textbf{EUTXO-2} (Section~\ref{sec:eutxo-2}): this adds
+  \item \textbf{EUTXO-2} (\cref{sec:eutxo-2}): this adds
     multicurrency features to EUTXO-1, allowing users to define
     \textit{custom currencies} and \textit{non-fungible tokens}.
 \end{itemize}
@@ -208,7 +220,7 @@ model (EUTXO stands for \textit{Extended UTXO}):
 
 \medskip
 
-The rationale for providing two separate specifications is that (1)
+The rationale for providing two separate extensions is that (1)
 introducing the extensions separately clarifies the structure of the
 models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
@@ -218,8 +230,8 @@ perhaps with less computational overhead.
 \medskip
 
 For ease of reference we have kept exposition to a minimum in the main
-text.  Some aspects of the specification are explained in more detail
-in Appendix~\ref{appendix:comments}, with cross-references in the main
+text.  Some aspects of the models are explained in more detail
+in \cref{appendix:comments}, with cross-references in the main
 text.  Further explanation and many examples are contained in the
 book~\citep{Plutus-book}.
 
@@ -241,7 +253,7 @@ conventions used in the remainder of the document.
 
 \item \B{} denotes the type of booleans, $\{\false, \true\}$.
 \item \N{} denotes the type of natural numbers, $\{0, 1, 2, \ldots\}$.
-\item \Z{} denotes the type of integers, $\{,\ldots, -2, -1, 0, 1, 2, \ldots\}$.
+\item \Z{} denotes the type of integers, $\{\ldots, -2, -1, 0, 1, 2, \ldots\}$.
 \item We regard $\N$ as a subtype of $\Z$ and convert freely between
   natural numbers and non-negative integers.
 \item \H{} denotes the type of bytestrings,
@@ -288,13 +300,13 @@ conventions used in the remainder of the document.
 
 \item For a type $A$ which forms a total order,  $\Interval{A}$ is the type
   of intervals over that type, whose endpoints may be either closed or open.
-  The type $\Interval{A}$ forms a lattice.
+  The type $\Interval{A}$ forms a lattice under inclusion.
 \end{itemize}
 
 \subsection {Finitely-supported functions}
 \label{sec:fsfs}
 
-Finitely-supported functions are a generalization of maps to monoidal values.
+Finitely-supported functions are a generalisation of maps to monoidal values.
 They always return an answer (which will in all but finitely many cases be
 zero), and can be queried for the set of non-zero points in their domain.
 
@@ -307,8 +319,7 @@ Equality on finitely-supported functions is defined as pointwise equality.
 
 If the type $M$ is a monoid then we define the sum of two finitely-supported
 functions
-$f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-support $\support (f+g) = \support(f) \cup \support(g)$ given by
+$f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ given by
 \[(f+g)(k) = f(k) + g(k) \]
 Note that the type $\FinSup{K}{M}$ is a monoid with this
 operation, and the empty function as
@@ -320,19 +331,19 @@ the function $(-f)$ with the same support, given by
 \[ (-f)(k) = -f(k) \]
 Again, $\FinSup{K}{M}$ is a group with this operation.
 
-See note~\ref{note:finitely-supported-functions} for discussion of using
+See \cref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
 
 \subsection{The \Data{} type}
 We also define a type \Data{} which can be used to pass information
-into scripts in a type-safe manner: see Figure~\ref{fig:data-defn}. The
+into scripts in a type-safe manner: see \cref{fig:data-defn}. The
 definition is given here in EBNF form, but can easily be translated to
 a Haskell type, for instance.
 
 \begin{ruledfigure}{H}
 \begin{alltt}
   \Data =
-      "I" \(\N\)
+      "I" \(\Z\)
     | "B" \(\H\)
     | "Constr" \(\N (\List{\Data})\)
     | "List" \(\List{\Data}\)
@@ -346,7 +357,7 @@ a Haskell type, for instance.
 built up recursively from the base types of integers and
 bytestrings. This allows one to encode a large variety of first-order
 data structures: for example, we could encode values of Haskell's
-\verb|Maybe Integer| type using \verb|Constr 0| to represent
+\verb|Maybe Integer| type using \verb|Constr 0 []| to represent
 \verb|Nothing| and \verb|Constr 1 [I 41]| to encode \verb|Just 41|.
 
 
@@ -369,24 +380,25 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   the current slot number lies within the transaction's validity
   interval.
 
-\item Each unspent output now has an object $\valdata$ of type
-  \Data{} associated with it: we (\red{provisionally}) call this the output's
-  \textit{validation data} (see note~\ref{note:valdata}).
-
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
   replaced with a redeemer object of type \Data{}.
+
+\item Each unspent output now has a hash $\dataHsh$ of a
+  value of type \Data{} associated with it: we call this the output's
+  \textit{data value hash} (see \cref{note:data-values}). This must
+  be provided in full by the spending input as $\dataVal$, much like the validator.
 
 \item Validator scripts make use of information about the pending
   transaction (ie, the transaction which is just about to take place, assuming that
   validation succeeds). This information is contained in a structure
-  which we call \ptx{} (see Section~\ref{sec:pendingtx} for its definition).
+  which we call \ptx{} (see \cref{sec:pendingtx} for its definition).
 
 \item Validation of an output is performed by running the validator
   script with three inputs:
   \begin{enumerate}
-  \item the validation data,
+  \item the data value,
   \item the redeemer,
-  \item the \ptx{}, encoded as \Data{}.
+  \item the \ptx{} information, encoded as \Data{}.
   \end{enumerate}
 
 \end{itemize}
@@ -407,12 +419,12 @@ for automatic contract analysis.
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
 \citep{Zahnentferner18-UTxO}, except that we have added the new
-features mentioned above (the validity interval, the validation data
+features mentioned above (the validity interval, the data value
 and the \ptx{} structure), changed the type of the redeemer from
 \script{} to \Data{}, and used finitely-supported functions in place
 of maps.
 
-Figure~\ref{fig:eutxo-1-types} lists the types and operations used in the
+\Cref{fig:eutxo-1-types} lists the types and operations used in the
 the basic EUTXO model. Some of these are defined, the others must be provided by
 the ledger.
 %%
@@ -422,7 +434,8 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
-    \Address && \mbox{the address of an object in the blockchain}\\
+    \Address && \mbox{the ``address'' of a script in the blockchain}\\
+    \DataHash && \mbox{the hash of a value of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
@@ -431,19 +444,21 @@ the ledger.
     \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
-    \s{Output } &=&(\addr: Address,\\
+    \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
-                & &\ \valdata: \Data)\\
+                & &\ \dataHsh: \DataHash)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
+               & &\ \dataVal: \Data,\\
                & &\ \redeemer: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
                    & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                   & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                    & &\ \fee: \qty,\\
                    & &\ \forge: \qty) \\
      \\
@@ -457,7 +472,7 @@ the ledger.
 \subsubsection{Remarks}
 \paragraph{ETUXO-1 on Cardano.}
 The Cardano implementation of EUTXO-1 uses the primitives given in
-Fig.~\ref{fig:eutxo-1-types-cardano}.
+\cref{fig:eutxo-1-types-cardano}.
 
 \begin{ruledfigure}{H}
   \begin{displaymath}
@@ -465,6 +480,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
     \qty{} &=& \Z\\
     \slotnum &=& \N\\
     \Address &=& \H\\
+    \DataHash &=& \H\\
     \TxId &=& \H\\
     \txId : \eutxotx \rightarrow \TxId &=& t \mapsto \hash{t}\\
     \script &=& \mbox{a Plutus Core program}\\
@@ -478,19 +494,29 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
   \label{fig:eutxo-1-types-cardano}
 \end{ruledfigure}
 
-\paragraph{Inputs and outputs. } Note that a transaction has a
+\paragraph{Inputs and outputs.} Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
-note~\ref{note:inputs-and-outputs} for a discussion of why.
+\cref{note:inputs-and-outputs} for a discussion of why.
 
-\paragraph{Scripts.} Note that validation data are modelled as components
-of outputs, but validator scripts as components of inputs, even though
-a validator is conceptually part of an output.  The reasons for this
-are explained in Note~\ref{note:scripts}.
+\paragraph{Validator addresses in outputs.} The \textit{addr} field
+of an output should contain the address of the validator for
+that output: this requirement is enforced in
+\cref{rule:validator-scripts-hash} of
+\cref{fig:eutxo-1-validity} below.
+
+\paragraph{Scripts and hashes.} Note that data values and validator scripts are
+provided as parts of transaction inputs, even though they are
+\emph{conceptually} part of the output being spent.
+The reasons for this are explained in \cref{note:scripts}.
+
+\paragraph{Data witnesses.} The transaction \emph{may} include the full
+value for data values in the transaction outputs that it creates.
+See \cref{note:data-witnesses} for more discussion.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
 EUTXO models.  The details are not important for the purposes of the
-models, but see Note~\ref{note:fees} for some more discussion.
+models, but see \cref{note:fees} for some more discussion.
 
 \paragraph{Special types of transaction.} In a practical
 implementation it might be useful to include special cases for common
@@ -509,11 +535,11 @@ to be uniquely identified and retrieved.
 
 \subsubsection{The \ptx{} type}
 \label{sec:pendingtx}
-Recall from the introduction to Section~\ref{sec:eutxo-1} that when a
+Recall from the introduction to \cref{sec:eutxo-1} that when a
 transaction input is being validated, the validator script is supplied
 with an object of type \ptx{} which contains information about the
 pending transaction.  The \ptx{} type for the current version of
-EUTXO-1 is defined in Figure~\ref{fig:ptx-1-types}, along with some
+EUTXO-1 is defined in \cref{fig:ptx-1-types}, along with some
 related types.
 
 \begin{ruledfigure}{H}
@@ -521,17 +547,19 @@ related types.
   \begin{array}{rll}
     \s{OutputInfo } &=&(\val: \qty,\\
                     & &\ \i{validatorHash}: \Address,\\
-                    & &\ \valdata: \Data)\\
+                    & &\ \dataHsh: \DataHash)\\
     \\
     \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
-                   & &\ \i{validatorHash}: \s{Address},\\
-                   & &\ \i{redeemerHash}: \s{Address},\\
+                   & &\ \i{validatorHash}: \Address,\\
+                   & &\ \i{dataHash}: \DataHash,\\
+                   & &\ \i{redeemerHash}: \DataHash,\\
                    & &\ \val: \qty)\\
      \\
      \ptx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
                & &\ \i{thisInput}: \N,\\
                & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
@@ -547,13 +575,13 @@ related types.
 \paragraph{The contents of \ptx{}.}
 The \ptx{} type is essentially a summary of the information
 contained in the $\eutxotx$ type in
-Figure~\ref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
+\cref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
 \i{validityInterval} fields are copied directly from the pending
 transaction.  The \i{outputInfo} field contains information about the
 outputs which will be produced if the pending transaction validates
 successfully: it contains only the address of the relevant validator,
-but has the validation data for the output in full.\footnote{See
-  Note~\ref{note:validation-data} for further explanation.}
+and the hash of the data value.\footnote{See
+  \cref{note:data-values-in-ptx} for further explanation.}
 The \i{inputInfo} field contains information about the
 inputs to the pending transaction, but provides only the hashes of the
 validator and redeemer scripts for the inputs.  The \i{thisInput}
@@ -574,7 +602,7 @@ their scripts pass or fail regardless of what particular permutation
 of transaction inputs they are presented with.
 
 Apart from that, the function $\delta$ is implementation-dependent and
-we will not discuss it further. 
+we will not discuss it further.
 
 \todokwxm{But with the advent of \Data{} we \textit{can}
   specify $\delta$.  Maybe we should?}
@@ -584,7 +612,7 @@ we will not discuss it further.
 The information provided in the \ptx{}
 structure is sufficiently limited that the validation process
 becomes \textit{deterministic},  which has important implications
-for fee calculations.  See Note~\ref{note:validation-determinism}
+for fee calculations.  See \cref{note:validation-determinism}
 for further discussion.
 
 
@@ -593,7 +621,7 @@ for further discussion.
 A number of conditions must be satisfied in order for a transaction
 $t$ to be considered valid with respect to a ledger $l$.
 
-Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in validation.
+\Cref{fig:validation-functions-1} defines some auxiliary functions used in validation.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{lll}
@@ -619,15 +647,15 @@ Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in v
 
 \noindent The function $\lookupTx{l}{id}$ looks up the unique transaction
 $T$ whose $\TxId$ is $id$. This can of course fail, but we will assume it does
-not, since rule~\ref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
+not, since \cref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
 of the transaction inputs refer to existing unspent outputs, and hence that
 looking up the input cannot fail.
 
 We can now define what it means for a transaction $t$ of
 type $\eutxotx$ to be valid for a ledger: see
-Figure~\ref{fig:eutxo-1-validity}.  Our definition combines
+\cref{fig:eutxo-1-validity}.  Our definition combines
 Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
-the latter in rule~\ref{rule:all-inputs-validate}.
+the latter in \cref{rule:all-inputs-validate}.
 \todokwxm{Check this.}
 
 \begin{ruledfigure}{H}
@@ -674,7 +702,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (\getSpent(i, l).\valdata,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -696,10 +724,9 @@ $l$ is \textit{valid} if either $l$ is empty or
 $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
-
 In practice, validity imposes a limit on the size of the
-\script{} values of the $\validator$, $\redeemer$ and
-$\valdata$ fields and the result of $\delta$. The validation of a
+$\validator$ \script{}; the $\redeemer$ and
+$\dataVal$ \Data{} fields; and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -745,7 +772,7 @@ sub-currency has an unlimited supply and NFTs have a number of tokens
 with the sub-currency for each token limited to a supply of one.
 
 The changes to the basic EUTXO-1 types are now quite simple:
-see Figure~\ref{fig:eutxo-2-types}.  We change the type of the $\val$ field
+see \cref{fig:eutxo-2-types}.  We change the type of the $\val$ field
 in the \s{Output} type to be \qtymap{}, representing values of all currencies;
 we also change the type of the \forge{} field on transactions to \qtymap{}, to
 allow the creation and destruction of funds in all currencies; the
@@ -765,17 +792,19 @@ currency, as in EUTXO-1.
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
-                 & &\ \valdata: \Data)\\
+                 & &\ \dataHsh: \DataHash)\\
     \\
     \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
+                & &\ \dataVal: \Data,\\
                 & &\ \redeemer: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
                & &\ \forge: \qtymap)\\
     \\
@@ -789,7 +818,7 @@ currency, as in EUTXO-1.
 \subsubsection{Remarks}
 \paragraph{ETUXO-2 on Cardano.}
 The Cardano implementation of EUTXO-2 uses the primitives given in
-Fig.~\ref{fig:eutxo-2-types-cardano}.
+\cref{fig:eutxo-2-types-cardano}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
     \begin{array}{rll}
@@ -818,30 +847,32 @@ in the native currency, as fees can only be paid in that.
 
 It may be desirable to choose \nativeCur{} outside the range
 of \scriptAddr{}, since this will prevent forging of the native currency
-except in the initial transaction (see rule~\ref{rule:forging-2}).
+except in the initial transaction (see \cref{rule:forging-2}).
 
 \subsection{The \ptx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
 The \ptx{} type must be also be updated for the EUTXO-2 model.  All
 that is required is to replace \qty{} by \qtymap{} everywhere in
-Figure~\ref{fig:ptx-1-types} except for the \fee{} field: for reference
-the details are given in Figure~\ref{fig:ptx-2-types}.
+\cref{fig:ptx-1-types} except for the \fee{} field: for reference
+the details are given in \cref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
     \s{OutputInfo}_2\s{ } &=&(\val: \qtymap,\\
-                          & &\ \i{validatorHash}: \s{Address},\\
-                          & &\ \i{datascriptHash}: \s{Address})\\
+                          & &\ \i{validatorHash}: \Address,\\
+                          & &\ \dataHsh: \DataHash)\\
     \\
     \s{InputInfo}_2\s{ } &=& (\outputref: \s{OutputRef},\\
-                         & &\ \i{validatorHash}: \s{Address},\\
-                         & &\ \i{redeemerHash}: \s{Address}),\\
+                         & &\ \i{validatorHash}: \Address,\\
+                         & &\ \i{dataHash}: \DataHash,\\
+                         & &\ \i{redeemerHash}: \DataHash),\\
                          & &\ \val: \qtymap)\\
      \\
      \ptx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
                  & &\ \i{thisInput}: \N,\\
                  & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
                  & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
+                 & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qty,\\
                  & &\ \forge: \qtymap)\\
     \\
@@ -858,13 +889,13 @@ the details are given in Figure~\ref{fig:ptx-2-types}.
 
 \bigskip
 \noindent The validity conditions from
-Figure~\ref{fig:eutxo-1-validity} must also be updated to take account
+\cref{fig:eutxo-1-validity} must also be updated to take account
 of multiple currencies.
 
 We use the definitions of \unspent{}  and
-\getSpent{} from Figure~\ref{fig:validation-functions-1} unchanged,
+\getSpent{} from \cref{fig:validation-functions-1} unchanged,
 but we also require a function to inject a \qty{} of the native currency
-into \qtymap{}. We define it in Figure~\ref{fig:validation-functions-2}.
+into \qtymap{}. We define it in \cref{fig:validation-functions-2}.
 \begin{displaymath}
 \end{displaymath}
 \begin{ruledfigure}{H}
@@ -881,8 +912,8 @@ into \qtymap{}. We define it in Figure~\ref{fig:validation-functions-2}.
 \end{ruledfigure}
 
 We can now adapt the definition of validity for EUTXO-1
-(Figure~\ref{fig:eutxo-1-validity}) to obtain a definition of validity for
-EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
+(\cref{fig:eutxo-1-validity}) to obtain a definition of validity for
+EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \begin{ruledfigure}{H}
 \begin{enumerate}
@@ -935,7 +966,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(\getSpent(i,l).\valdata,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(i.\dataVal,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -951,11 +982,11 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 \end{ruledfigure}
 
 \subsection{Remarks}
-\paragraph{Preservation of value over \qtymap{}s.}
-In rule~\ref{rule:value-is-preserved-2},
+\paragraph{Preservation of value over \qtymap{}.}
+In \cref{rule:value-is-preserved-2},
 $+$ and $\sum$ operate over \qtymap{}, which is
 a finitely-supported function (which, with their operations,
-are defined in Section~\ref{sec:fsfs}). Preservation of value
+are defined in \cref{sec:fsfs}). Preservation of value
 in this model essentially requires that the
 quantities of each of the individual currencies involved in the
 transaction are preserved.
@@ -964,19 +995,18 @@ transaction are preserved.
 Recall that values in $\forge$ can
 be negative whereas values in outputs must be non-negative. This allows
 currency to be destroyed as well as created. The
-rule~\ref{rule:value-is-preserved-2} implies that a
+\cref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
 
 \subsection{The EUTXO-2 model in practice.}
 See~\cite{Plutus-book} for examples of contracts which make use of the
 features of the EUTXO-2 model.  See also
-Notes~\ref{note:monetary-policies}, \ref{note:eutxo-2-implications},
-and \ref{note:eutxo-2-performance} for comments on some technical
-aspects of the model.
+\cref{note:monetary-policies,note:eutxo-2-implications,note:eutxo-2-performance}
+for comments on some technical aspects of the model.
 
 \appendix
-\section{Comments on the specification}
+\section{Comments}
 \label{appendix:comments}
 
 \note{Computing with finitely-supported functions}
@@ -1001,7 +1031,7 @@ support for the finitely-supported function it represents.
 We can compute the support from the weak support by simply checking the function
 at each value and removing those that are zero. This is potentially expensive,
 but we only need to do it when we need the support, which we only do during the
-computation of rule~\ref{rule:value-is-preserved-2}.
+computation of \cref{rule:value-is-preserved-2}.
 
 Pointwise equality between two finitely-supported functions $f$ and $g$ is
 equivalent to checking pointwise equality only over the union of $\support(f)$
@@ -1023,19 +1053,18 @@ output could be spendable by anyone, or by no-one.
 In order to deal with this complexity, an output can be locked by a
 \textit{script},%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec} (equivalently, expressions).  }
+  programs~\citep{Plutus-Core-spec} (equivalently, expressions).}
 requiring another script to unlock it.  In the basic model, each input
 to a transaction comes with a \i{validator} script which checks that
-the transaction is allowed to spend the output. In order to spend an
-output, the transaction supplies a value, called the
-\i{redeemer}, which provides evidence that the transaction has the
-authority to do so;\footnote{The validator plays a role similar to
-  that of BitCoin's \texttt{scriptPubKey} and the redeemer to
-  \texttt{scriptSig}.  } a process called \i{validation} is then
-performed which checks that the redeemer satisfies the conditions
-required by the validator. Before a transaction can proceed, all inputs
-must be successfully validated: if one or more inputs fails to
-validate then the transaction is rejected.
+the transaction is allowed to spend the output.  In order to spend an
+output, the transaction supplies a value, called the \i{redeemer},
+which provides evidence that the transaction has the authority to do
+so;\footnote{The validator plays a role similar to that of BitCoin's
+  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.  } a
+process called \i{validation} is then performed which checks that the
+redeemer satisfies the conditions required by the validator.  Before a
+transaction can proceed, all inputs must be successfully validated: if
+one or more inputs fails to validate then the transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
 redeemer consists of a signature for the current transaction produced
@@ -1044,6 +1073,9 @@ validator (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
+
+See \cref{note:scripts} for more information about validators in
+the EUTXO setting.
 
 \note{Inputs and outputs}
 \label{note:inputs-and-outputs}
@@ -1063,13 +1095,13 @@ An alternative design would be to include a unique nonce in transaction outputs
 (effectively: their index in the list), and then we could use this to identify
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
-\note{Validation data}
-\label{note:valdata}
-The introduction of the validation data
+\note{Data values.}
+\label{note:data-values}
+The introduction of data values
 increases the expressivity of the model considerably. For example,
-one can use the validation data to propagate state between
+one can use a data value to propagate state between
 transactions, and this can be used to give a contract the structure
-of a finite state machine; the fact that the validation data is part
+of a finite state machine; the fact that the data value is part
 of the output and not the transaction means that the state can
 change without the transaction changing, which makes it easier to
 have an ``identity'' for an ongoing contract.
@@ -1090,38 +1122,60 @@ individual operations during script execution; costs will be monitored
 dynamically during execution, and if the gas consumed ever exceeds the
 amount covered by the fee then the transaction will fail.
 
-\note{Scripts.}
+\note{Scripts and Hashes.}
 \label{note:scripts} The spendability of an output is determined by
 its validator script, and thus the validator for an output must be
-created at the same time as the output is.  Conceptually the validator
-is  part of the output, so it may be rather unexpected that
-Figure~\ref{fig:eutxo-1-types} defines the validator to be part of an
-\textit{input}, with the output only containing the address of the
-validator.  The rationale for this is that a validator $V$ for an
-output $O$ is not required until $O$ is actually spent, which may be
-some time after $O$ was created.  Recall from Note~\ref{note:fees} that the
-cost of executing a transaction depends on the size of transaction,
-including the associated scripts.  Thus the transaction that produces
-the validator only pays for the size of a hash (32 bytes) and the
-transaction that runs it pays for the full size of the script. This
-strategy also helps to reduce on-chain storage requirements, since
-validators can be stored off-chain until needed (and the presence of
-the hash in the output can be used to check that the correct validator
-is in fact being used when validation occurs), but unspent outputs
-persist on-chain in the UTXO set until they are eventually spent.
+known at the time when the output is created (a completely new validator
+may be created, or an existing validator may be re-used).
 
-This strategy is not applied to validation data since, as the name
-would suggest, we expect these to be small pieces of data (public
-keys, for example) which would not incur large storage charges.
+Conceptually the validator is part of the output, so it may be rather
+unexpected that \cref{fig:eutxo-1-types} defines the validator
+to be part of an \textit{input}, with the output only containing the
+address of the validator.  The rationale for this is that a validator
+$V$ for an output $O$ is not required until $O$ is actually spent,
+which may be some time after $O$ was created. Recall from
+\cref{note:fees} that the cost of executing a transaction depends
+on the size of transaction, including the associated scripts.  Thus
+the transaction that produces the validator only pays for the size of
+a hash (32 bytes) and the transaction that runs it pays for the full
+size of the script.
 
-\note{Validation data in \ptx{}}
-\label{note:validation-data}
-In Figures~\ref{fig:ptx-1-types} and~\ref{fig:ptx-2-types} the
-\textsf{OutputInfo} type includes the validation data for the outputs
-of the pending transaction in full.  This allows a validator to
-inspect outgoing validation data, for example to confirm that its
-contents are correct in some sense. This can be useful when validation
-data is used to propagate information about the state of a contract to
+This strategy also helps to reduce on-chain
+storage requirements, since validators can be stored off-chain until
+needed (and the presence of the hash in the output can be used to
+check that the correct validator is in fact being used when validation
+occurs), but unspent outputs persist on-chain in the UTXO set until
+they are eventually spent.
+
+The same strategy applies to data values.
+
+\note{Data witnesses.}
+\label{note:data-witnesses}
+Although data values are only recorded as hashes in transaction outputs, it
+is useful to be able to record the full data value on the transaction
+that \emph{creates} an output.
+
+This allows observers to determine the full data value, without it having to be
+kept in the UTXO set.
+
+This mechanism is \emph{optional}, since it incurs an increase in transaction
+size (and hence cost), and some clients may want to transmit the information
+off-chain instead to minimize these costs.
+
+Hence there is a $\dataWits$ field on transactions, which \emph{may}
+contain mappings from the $\DataHash$es used in the transaction to
+their \Data{} values. This information is also present in \ptx{}.
+
+\note{Data values in \ptx{}}
+\label{note:data-values-in-ptx}
+In \cref{fig:ptx-1-types,fig:ptx-2-types} the
+\textsf{OutputInfo} does not include the data value attached to the output.
+These may be found in $\dataWits$.
+
+Having access to the data values allows a validator to
+inspect an outgoing data value, for example to confirm that its
+contents are correct in some sense. This can be useful when a data
+value is used to propagate information about the state of a contract to
 later transactions.  See~\cite{Plutus-book} for examples of this.
 \todokwxm{More specific reference?}
 
@@ -1157,7 +1211,7 @@ also avoids overpayment due to overestimating the fees).
 \note{Monetary policies for custom currencies.}
 \label{note:monetary-policies}
 The new \textbf{Forging} rule in
-Figure~\ref{fig:eutxo-2-validity} enables custom currencies to
+\cref{fig:eutxo-2-validity} enables custom currencies to
 implement their own monetary policies: for example, one might wish to
 place some limit on the amount of a currency that can be forged, or
 restrict the creation of the currency to owners of particular public
@@ -1168,8 +1222,8 @@ defined by some script $H$, and the address $h = \scriptAddr(H)$ is used as the
 identifier of the currency.
 
 Whenever a new quantity of the currency is forged,
-rules~\ref{rule:custom-forge}, \ref{rule:all-inputs-validate-2}, and
-\ref{rule:validator-scripts-hash-2} imply that $H$ must be executed;
+\cref{rule:custom-forge,rule:all-inputs-validate-2,rule:validator-scripts-hash-2}
+imply that $H$ must be executed;
 $H$ is provided with the \forge{} field of the transaction via the
 \ptx{} object, and so it knows how much of the currency is to be
 forged and can respond appropriately.
@@ -1215,7 +1269,7 @@ output is spent at the same time, so it can only be forged once.
 \note{Implications of the EUTXO-2 model.}
 \label{note:eutxo-2-implications}
 The EUTXO-2 model and the techniques described in
-Note~\ref{note:monetary-policies} allow us to implement fungible
+\cref{note:monetary-policies} allow us to implement fungible
 (normal) and non-fungible token currencies, as well as ``mixed
 states'':
 \begin{itemize}
@@ -1230,7 +1284,7 @@ states'':
   currencies can have many \token{}s, but these can have more than unit
   quantities in circulation.  These can be useful to model distinct
   categories of thing where there are fungible quantities within
-  those, for example share classes. \red{Eh?}
+  those, for example share classes.
 \end{itemize}
 
 \note{Performance issues for EUTXO-2.}
