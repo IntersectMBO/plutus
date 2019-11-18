@@ -29,12 +29,12 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId,
+import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId (getTxId),
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getPubKey, getTxId, txFee, txForge, txOutValue,
-                                                        txOutputs, txSignatures)
+                                                        Value, getPubKey, txFee, txForge, txOutValue, txOutputs,
+                                                        txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
@@ -42,6 +42,7 @@ import           Ledger.Scripts                        (DataScript (getDataScrip
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
+import           LedgerBytes                           (LedgerBytes (..))
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 import           Wallet.Rollup                         (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
@@ -188,13 +189,13 @@ instance Render BeneficialOwner where
 instance Render Ada where
     render ada@(Lovelace l)
         | Ada.isZero ada = pure "-"
-        | otherwise = pure $ "Ada" <+> pretty l
+        | otherwise = pure $ "Lovelace" <+> pretty l
 
 instance Render (Digest SHA256) where
     render = render . abbreviate 40 . JSON.encodeSerialise
 
 instance Render TxId where
-    render t = pure $ viaShow (getTxId t)
+    render = pure . pretty . LedgerBytes . getTxId
 
 instance Render PubKey where
     render pubKey =

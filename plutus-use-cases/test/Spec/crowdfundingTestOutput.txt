@@ -3,159 +3,159 @@ Test outputs:
 Events by wallet:
   Events for W1:
     • {schedule collection:
-       ()}
+       EndpointValue: ()}
     • {slot:
        Slot: 27}
     • {utxo-at:
-       Utxo at 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff = TxId: 5f5820595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaacebff!1: PayToScript: DataScriptHash: "\198_>\EOT\EM1'\SOH\165\248w\131\153\&4L\226d+D\175E\180S\192\221\156\RSnD\DC4\222\136" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff!1: PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152" Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff!1: PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\" Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
+       Utxo at Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b = TxId: 595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaaceb!1: PayToScript: DataScriptHash: c65f3e0419312701a5f8778399344ce2642b44af45b453c0dd9c1e6e4414de88 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 75b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498!1: PayToScript: DataScriptHash: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         TxId: 93eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705a!1: PayToScript: DataScriptHash: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "nU\213K\CAN;y`\157\225.\236\241\206\r\237\181\FS\177\227\183\211\223\135\234\143\ACKw\234\186\v#"}}
+       WriteTxSuccess: TxId: 6e55d54b183b79609de12eecf1ce0dedb51cb1e3b7d3df87ea8f0677eaba0b23}
   Events for W2:
     • {contribute:
-       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+       EndpointValue: Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {own-pubkey:
-       fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
+       PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "YR6\249\STX\135F\ESC\GS\227E\a\223g\RS_O7\228\189\r+\199U\137\185U.6\234\172\235"}}
+       WriteTxSuccess: TxId: 595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaaceb}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f5820595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaacebff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 595236f90287461b1de34507df671e5f4f37e4bd0d2bc75589b9552e36eaaceb:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!8
-              fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!8
+              PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
-             PayToPubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+             PayToPubKey: PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: DataScriptHash: "\198_>\EOT\EM1'\SOH\165\248w\131\153\&4L\226d+D\175E\180S\192\221\156\RSnD\DC4\222\136"
+             PayToScript: DataScriptHash: c65f3e0419312701a5f8778399344ce2642b44af45b453c0dd9c1e6e4414de88
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+           PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 75b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
-              98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!3
+              PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
-             PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+             PayToPubKey: PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152"
+             PayToScript: DataScriptHash: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+           PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 93eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705a:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
-              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!7
+              PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
-             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+             PayToPubKey: PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
+             PayToScript: DataScriptHash: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W3:
     • {contribute:
-       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
+       EndpointValue: Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {own-pubkey:
-       98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
+       PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "u\179\190\&5b%;\162S-\169\FS#>v\DC1\EOT\137e\174\138y\SUBW\182\164\242\213\DEL\135$\152"}}
+       WriteTxSuccess: TxId: 75b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f582075b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498ff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 75b3be3562253ba2532da91c233e7611048965ae8a791a57b6a4f2d57f872498:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!3
-              98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!3
+              PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,90)]})]}} locked by
-             PayToPubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+             PayToPubKey: PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} locked by
-             PayToScript: DataScriptHash: "\227\212\243\ETB\171]nmncM\154{\137\230\NUL\177\223\180\154t\152-f\233\137\163\GS\181\167-\152"
+             PayToScript: DataScriptHash: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
+           PubKey: 98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 93eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705a:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
-              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!7
+              PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
-             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+             PayToPubKey: PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
+             PayToScript: DataScriptHash: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
   Events for W4:
     • {contribute:
-       Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}}
+       EndpointValue: Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}}
     • {own-pubkey:
-       f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
+       PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
     • {tx:
-       WriteTxSuccess: TxId {getTxId = "\147\234\200\STX\248\245\\\228\167\226\145\v^\246\188\RS\156\196\CAN\247\215E\164(\135a\RS\222M`pZ"}}
+       WriteTxSuccess: TxId: 93eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705a}
     • {address:
-       ( 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff
-       , Tx TxId: 5f582093eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705aff:
+       ( Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b
+       , Tx TxId: 93eac802f8f55ce4a7e2910b5ef6bc1e9cc418f7d745a42887611ede4d60705a:
          {inputs:
-            - TxId: 5f5820f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2fff!7
-              f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+            - TxId: f75c1cc14c1210eea84fa04d4f1cbfecc5dbd4f2815b915745eea182eae1bb2f!7
+              PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          outputs:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,99)]})]}} locked by
-             PayToPubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+             PayToPubKey: PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} locked by
-             PayToScript: DataScriptHash: "]\156R\131g\227\199ea&u\SI\228\228\161\195\193b(\SUB9f\202\253V\191\DLE,\204\207\US\\"
+             PayToScript: DataScriptHash: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c
          forge: Value {getValue = Map {unMap = []}}
-         fee: Lovelace {getLovelace = 0}
+         fee: Lovelace: 0
          signatures:
-           f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
+           PubKey: f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
 Contract result by wallet:
   Wallet: W1
     Done
     Wallet: W2
       Running, waiting for input:
-        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
+        {address: [ Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
+         schedule collection: [ExposeEndpoint: schedule collection]
+         slot: WaitingForSlot: Slot: 30
          tx: []
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
+        {address: [ Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
+         schedule collection: [ExposeEndpoint: schedule collection]
+         slot: WaitingForSlot: Slot: 30
          tx: []
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: [ 5f58201cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680bff ]
+        {address: [ Address: 1cf3e0ed060618856033237a483e8a88dec790fca845183bab7a8e13c6c0680b ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
-         schedule collection: ["schedule collection"]
-         slot: WaitingForSlot {unWaitingForSlot = Just (Slot {getSlot = 30})}
+         schedule collection: [ExposeEndpoint: schedule collection]
+         slot: WaitingForSlot: Slot: 30
          tx: []
          utxo-at: []}

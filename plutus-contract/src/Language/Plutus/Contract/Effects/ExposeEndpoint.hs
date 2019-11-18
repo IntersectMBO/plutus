@@ -30,14 +30,14 @@ newtype EndpointDescription = EndpointDescription { getEndpointDescription :: St
     deriving stock (Eq, Ord, Generic, Show)
     deriving newtype (ToJSON, FromJSON)
     deriving anyclass (IotsType)
-    deriving Pretty via (PrettyShow String)
+    deriving Pretty via (Tagged "ExposeEndpoint:" String)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
     deriving newtype (ToJSON, FromJSON)
     deriving anyclass (IotsType)
 
-deriving via (PrettyShow a) instance (Show a => Pretty (EndpointValue a))
+deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
 
 type HasEndpoint l a s =
   ( HasType l (EndpointValue a) (Input s)

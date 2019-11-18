@@ -40,7 +40,7 @@ data WriteTxResponse =
 instance Pretty WriteTxResponse where
   pretty = \case
     WriteTxFailed e -> "WriteTxFailed:" <+> pretty e
-    WriteTxSuccess i -> "WriteTxSuccess:" <+> viaShow i
+    WriteTxSuccess i -> "WriteTxSuccess:" <+> pretty i
 
 writeTxResponse :: Iso' WriteTxResponse (Either WalletAPIError TxId)
 writeTxResponse = iso f g where

@@ -340,7 +340,7 @@ emulatorLog f nm = PredF $ \(_, r) ->
     else do
         tell $ vsep
             [ "Emulator log:"
-            , nest 2 (vsep (fmap viaShow lg))
+            , nest 2 (vsep (fmap pretty lg))
             , "Fails" <+> squotes (fromString nm)
             ]
         pure False
