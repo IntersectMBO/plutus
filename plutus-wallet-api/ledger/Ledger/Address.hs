@@ -20,7 +20,6 @@ import qualified Data.ByteString.Lazy      as BSL
 import           Data.String               (IsString(..))
 import           Data.Hashable             (Hashable, hashWithSalt)
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
@@ -35,7 +34,7 @@ newtype Address = Address { getAddress :: BSL.ByteString }
     deriving anyclass (IotsType)
     deriving newtype (Serialise)
     deriving (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IsString) via LedgerBytes
-    deriving Pretty via (Tagged "Address:" LedgerBytes)
+    deriving Pretty via LedgerBytes
 
 instance Hashable Address where
     hashWithSalt s (Address digest) = hashWithSalt s $ BSL.unpack digest

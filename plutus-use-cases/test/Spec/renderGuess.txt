@@ -124,7 +124,7 @@ Outputs:
     Ada:      Lovelace:  90
   
   ---- Output 1 ----
-  Destination:  Script: Address: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
+  Destination:  Script: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
   Value:
     Ada:      Lovelace:  10
 
@@ -170,7 +170,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: Address: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
+  Script: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
   Value:
     Ada:      Lovelace:  10
 
@@ -182,7 +182,7 @@ Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
               Signature: 5f582042f2ded0d4814e36e2fc57fbeffe03ce52...
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: Address: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
+  Destination:  Script: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
   Value:
     Ada:      Lovelace:  10
   Source:
@@ -239,6 +239,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100
   
-  Script: Address: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
+  Script: f9e3c15b0601249c2b31f70e58c1c0358a970012557058ed5bdf5ce22500af07
   Value:
     Ada:      Lovelace:  0

@@ -29,7 +29,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId (getTxId),
+import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId,
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
@@ -42,7 +42,6 @@ import           Ledger.Scripts                        (DataScript (getDataScrip
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
-import           LedgerBytes                           (LedgerBytes (..))
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 import           Wallet.Rollup                         (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
@@ -189,13 +188,13 @@ instance Render BeneficialOwner where
 instance Render Ada where
     render ada@(Lovelace l)
         | Ada.isZero ada = pure "-"
-        | otherwise = pure $ "Lovelace" <+> pretty l
+        | otherwise = pure (pretty l)
 
 instance Render (Digest SHA256) where
     render = render . abbreviate 40 . JSON.encodeSerialise
 
 instance Render TxId where
-    render = pure . pretty . LedgerBytes . getTxId
+    render = pure . pretty
 
 instance Render PubKey where
     render pubKey =

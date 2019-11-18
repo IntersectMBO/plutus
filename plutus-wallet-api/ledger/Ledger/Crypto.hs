@@ -38,7 +38,6 @@ import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
@@ -57,7 +56,7 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
-    deriving Pretty via (Tagged "PubKey:" LedgerBytes)
+    deriving Pretty via LedgerBytes
 makeLift ''PubKey
 
 -- | A cryptographic private key.
@@ -65,7 +64,7 @@ newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
-    deriving Pretty via (Tagged "PrivateKey:" LedgerBytes)
+    deriving Pretty via LedgerBytes
 
 makeLift ''PrivateKey
 
@@ -80,7 +79,7 @@ newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToSchema, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
-    deriving Pretty via (Tagged "Signature:" LedgerBytes)
+    deriving Pretty via LedgerBytes
 
 instance ToJSON Signature where
   toJSON signature =

@@ -217,7 +217,7 @@ newtype DataScript = DataScript { getDataScript :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
-  deriving Pretty via (Tagged "DataScript:" Data)
+  deriving Pretty via Data
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -243,8 +243,7 @@ instance BA.ByteArrayAccess RedeemerScript where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving Pretty via (Tagged "ValidatorHash:" LedgerBytes)
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
@@ -255,8 +254,7 @@ instance IotsType ValidatorHash where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving Pretty via (Tagged "DataScriptHash:" LedgerBytes)
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
@@ -266,8 +264,7 @@ instance IotsType DataScriptHash where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
-    deriving Pretty via (Tagged "RedeemerHash:" LedgerBytes)
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
