@@ -154,7 +154,7 @@ test-suite test-plc-agda
 	Raw
         Scoped
         Opts
-  other-modules:
+  autogen-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
         MAlonzo.Code.Agda.Builtin.Equality
@@ -299,7 +299,7 @@ test-suite test2-plc-agda
 	Raw
         Scoped
         Opts
-  other-modules:
+  autogen-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
         MAlonzo.Code.Agda.Builtin.Equality
