@@ -4,13 +4,13 @@ module Chain
   , extractAmount
   ) where
 
-import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
 import Chain.Types (State)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
 import Data.Array as Array
+import Data.Array.Extra (collapse)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
@@ -36,6 +36,7 @@ import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
 import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
+import Wallet.Emulator.NodeClient (ChainEvent(..))
 
 evaluationPane ::
   forall m.
@@ -72,15 +73,15 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (TxnSubmit (TxId txId)) =
+emulatorEventPane (ChainEvent (TxnSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidate (TxId txId)) =
+emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidationFail (TxId txId) error) =
+emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_
@@ -88,7 +89,7 @@ emulatorEventPane (TxnValidationFail (TxId txId) error) =
     , text $ show error
     ]
 
-emulatorEventPane (SlotAdd (Slot slot)) =
+emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 

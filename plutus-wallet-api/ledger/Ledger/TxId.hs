@@ -11,28 +11,22 @@ module Ledger.TxId(
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
-import qualified Data.Aeson.Extras         as JSON
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Prelude as PlutusTx
+import           LedgerBytes               (LedgerBytes(..))
 import           Ledger.Orphans            ()
-import           LedgerBytes               (LedgerBytes (..))
 import           Schema                    (ToSchema)
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }
-    deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (ToSchema)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
-
-deriving newtype instance Serialise TxId
-deriving via LedgerBytes instance ToJSON TxId
-deriving via LedgerBytes instance FromJSON TxId
-
-instance Pretty TxId where
-    pretty t = "TxId:" <+> pretty (JSON.encodeSerialise $ getTxId t)
+    deriving (Eq, Ord, Generic, Show)
+    deriving anyclass (ToSchema, IotsType)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
+    deriving (ToJSON, FromJSON, Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId
 PlutusTx.makeIsData ''TxId

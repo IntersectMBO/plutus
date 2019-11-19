@@ -17,18 +17,6 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-flag eventlog
-    description:
-        Pass `-eventlog` flag to GHC
-    default: False
-    manual: True
-
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     exposed-modules:
         Language.PlutusCore.Interpreter.CekMachine
@@ -53,12 +41,6 @@ library
         mtl -any,
         lens -any,
         language-plutus-core -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
 
 test-suite plutus-core-interpreter-test
     type: exitcode-stdio-1.0
@@ -87,15 +69,6 @@ test-suite plutus-core-interpreter-test
         tasty-hedgehog -any,
         mtl -any
 
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
 benchmark plutus-core-interpreter-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
@@ -111,15 +84,6 @@ benchmark plutus-core-interpreter-bench
         criterion -any,
         bytestring -any
 
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
 benchmark plutus-core-interpreter-weigh
     type: exitcode-stdio-1.0
     main-is: Bench.hs
@@ -134,12 +98,3 @@ benchmark plutus-core-interpreter-weigh
         plutus-core-interpreter -any,
         weigh -any,
         bytestring -any
-
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists

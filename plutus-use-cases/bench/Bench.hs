@@ -276,10 +276,11 @@ mockPendingTx = PendingTx
             { pendingTxOutRefId = TxId P.emptyByteString
             , pendingTxOutRefIdx = 0
             }
-        , pendingTxInWitness = ("", "")
+        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DataScriptHash "")
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
     , pendingTxSignatures = []
     , pendingTxId = TxId P.emptyByteString
+    , pendingTxData = []
     }

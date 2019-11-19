@@ -19,8 +19,8 @@ vesting = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Vesting.hs" >>=
 game :: T.Text
 game = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Game.hs" >>= embedFile)
 
-messages :: T.Text
-messages = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Messages.hs" >>= embedFile)
+errorHandling :: T.Text
+errorHandling = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/ErrorHandling.hs" >>= embedFile)
 
 crowdfunding :: T.Text
 crowdfunding = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)

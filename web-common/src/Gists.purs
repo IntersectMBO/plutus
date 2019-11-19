@@ -1,5 +1,6 @@
 module Gists
-  ( gistControls
+  ( GistAction(..)
+  , gistControls
   , parseGistUrl
   , firstMatch
   ) where
@@ -22,13 +23,17 @@ import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Prelude (bind, const, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Servant.PureScript.Ajax (AjaxError)
-import Types (HAction(SetGistUrl, LoadGist, PublishGist))
 
 idPublishGist :: forall r i. IProp ( id :: String | r ) i
 idPublishGist = id_ "publish-gist"
 
 idLoadGist :: forall r i. IProp ( id :: String | r ) i
 idLoadGist = id_ "load-gist"
+
+data GistAction
+  = PublishGist
+  | SetGistUrl String
+  | LoadGist
 
 gistControls ::
   forall a p.
@@ -37,7 +42,7 @@ gistControls ::
   , gistUrl :: Maybe String
   | a
   } ->
-  HTML p HAction
+  HTML p GistAction
 gistControls { authStatus, createGistResult, gistUrl } =
   div [ classes [ ClassName "gist-controls" ] ]
     [ authButton

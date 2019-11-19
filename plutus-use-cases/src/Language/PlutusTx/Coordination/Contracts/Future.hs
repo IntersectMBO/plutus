@@ -136,7 +136,7 @@ initialise long short f = do
         ds = DataScript $ PlutusTx.toData $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange (Ada.toValue im)
-    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
+    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change) [ds]
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -156,13 +156,14 @@ settle refs ft fd ov = do
         longOut = Ada.toValue ((futureDataMarginLong fd) + delta)
         shortOut = Ada.toValue ((futureDataMarginShort fd) - delta)
         red = RedeemerScript $ PlutusTx.toData $ Settle ov
+        dat = DataScript $ PlutusTx.toData $ fd
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
             ]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
+        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
         range = W.intervalFrom delDate
-    void $ createTxAndSubmit range (Set.fromList inp) outs
+    void $ createTxAndSubmit range (Set.fromList inp) outs []
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -176,9 +177,10 @@ settleEarly :: (
 settleEarly refs ft fd ov = do
     let totalVal = Ada.toValue ((futureDataMarginLong fd) + (futureDataMarginShort fd))
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
+        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
         red = RedeemerScript $ PlutusTx.toData $ Settle ov
-    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs
+        dat = DataScript $ PlutusTx.toData $ fd
+    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs []
 
 adjustMargin :: (
     MonadError WalletAPIError m,
@@ -198,11 +200,12 @@ adjustMargin refs ft fd vl = do
             in fd''
     let
         red = RedeemerScript $ PlutusTx.toData AdjustMargin
-        ds  = DataScript $ PlutusTx.toData fd'
-        o = scriptTxOut outVal (validatorScript ft) ds
+        dat  = DataScript $ PlutusTx.toData fd
+        dat'  = DataScript $ PlutusTx.toData fd'
+        o = scriptTxOut outVal (validatorScript ft) dat'
         outVal = Ada.toValue (vl + futureDataMarginLong fd + futureDataMarginShort fd)
-        inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change)
+        inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
+    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change) [dat']
 
 
 -- | Compute the required margin from the current price of the
@@ -282,7 +285,7 @@ mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pe
             --
             AdjustMargin ->
                 let
-                    ownHash = fst (Validation.ownHashes p)
+                    (ownHash, _, _) = Validation.ownHashes p
                     vl = Validation.adaLockedBy p ownHash
                 in
                     vl > (futureDataMarginShort + futureDataMarginLong)

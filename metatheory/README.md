@@ -13,37 +13,93 @@ a much higher degree of assurance.
 This repository contains a formalisation of Plutus Core in Agda. Agda
 is both a dependently typed functional programming language and a
 proof assistant. It is particularly suited to formalising programming
-languages.
+languages. Agda programs can be compiled to Haskell and can make use
+of Haskell libraries.
 
+## Roadmap
+
+### Stage 1 (basic metatheory)
+
+- [X] Intrinsically typed representation of the syntax (of Plutus Core);
+- [X] Intrinsically typed representation of the reduction semantics;
+- [X] Formal Proofs of progress and (type) preservation;
+- [X] Evaluator that can be run inside Agda;
+- [X] Correspondence to untyped syntax;
+- [X] Correspondence to untyped (reduction) semantics;
+- [X] Published paper.
+
+### Stage 2 (testing producation against Agda model)
+
+- [X] An extrinsically typed evaluator that can be compiled to Haskell;
+- [X] Typechecker + compilation to Haskell;
+- [X] Automated building under CI;
+- [X] Automated testing of evaluation under CI;
+- [X] Automated testing of typechecking under CI.
+
+### Stage 3 (further metatheory)
+
+- [X] Intrinsically typed CK machine;
+- [X] Extrinsically typed CK machine;
+- [ ] Correspondence between CK executation and reduction;
+- [ ] Correspondence between extrinsic and intrinsic semantics;
+- [X] Soundness of typechecking;
+- [ ] Completeness of typechecking;
+- [ ] Intrinsic evaluation, compiled to Haskell.
 
 ## Installation
 
 The formalisation requires version 2.6 or higher of Agda, the latest
-version of the Agda standard library, and a version of ghc that is
-supported by Agda (e.g., 8.0.2, 8.2.2, 8.4.4, 8.6.5).
+corresonnding version of the Agda standard library.
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
-Building it requires the `language-plutus-core` Haskell library from
-[here](https://github.com/input-output-hk/plutus). After installing
-this (via `cabal`), `plc-agda` can then be built like this:
+The metatheory package is not currently included in the main plutus
+`cabal.project`. This is a workaround to enable building with `cabal
+v2-*`. Run it from the `plutus` repo root folder:
+
 ```
+$ echo "packages: metatheory" > cabal.project.local
+```
+
+The `plc-agda` tool can be installed by running the following commands
+starting in the root folder of the `plutus` repository:
+
+
+```
+$ cd metatheory
 $ agda --compile --ghc-dont-call-ghc Main.lagda
-$ cabal install
+$ cd ..
+$ cabal v2-install metatheory
 ```
 
-## Status
+The `plc-agda` can to execute Plutus Core programs. It is intended to
+be used for testing the `plc` command against. The tests can be
+executed by running the following command from the `plutus` root
+folder:
 
-The formalisation currently covers the full language of Plutus Core:
-System F omega with (deep) iso-recursive types, and builtin-types for
-integers and bytestrings. Progress and preservation have been shown to
-hold for the small-step operational semantics. An evaluator can be used to execute
-small examples in Agda and also compile them to Haskell.
+```
+$ cd metatheory
+$ agda --compile --ghc-dont-call-ghc Main.lagda
+$ cd ..
+$ cabal v2-test metatheory
+```
 
-There are three versions of the operational semantics:
+## Features:
+
+* The formalisation currently covers the full language of Plutus Core:
+  System F omega with (deep) iso-recursive types, and builtin-types
+  for integers and bytestrings. Progress and preservation have been
+  shown to hold for the small-step operational semantics.
+
+* The Agda formalisation contains an executable `plc-agda` which makes
+  use of the parser and pretty printer from `language-plutus-core` in
+  conjunction with an interpreter written in Agda. It has the same
+  interface as `plc`.
+
+There are three versions of the reduction semantics:
 
 1. The intrinsically typed semantics which is the most high-assurance
 and described in the paper "System F for Fun and Profit" which will be
@@ -58,10 +114,15 @@ is the case. It also provides a check that other versions of the
 syntax and semantics match by seeing if they erase to the same untyped
 syntax/semantics.
 
-The command line tool `plc-agda` does not include a typechecker. So,
-it currently uses a separate extrinsically typed evaluator.
+We have proved that the three versions of the syntax/reduction
+semantics match.
 
-We have proved that the three versions of the syntax/semantics match.
+There are two versions of the CK machine:
+
+1. Intrinsically typed.
+2. Extrinsically typed.
+
+There is an evidence producing typechecker.
 
 ## Structure of the intrinsically typed formalisation
 

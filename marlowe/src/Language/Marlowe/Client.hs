@@ -60,7 +60,7 @@ createContract contract = do
         slotRange = interval slot (slot + 10)
         outputs = o : maybeToList change
 
-    void $ createTxAndSubmit slotRange payment outputs
+    void $ createTxAndSubmit slotRange payment outputs [ds]
     return marloweData
 
 
@@ -134,11 +134,12 @@ applyInputs :: (
     -> MarloweData
     -> [Input]
     -> m MarloweData
-applyInputs tx MarloweData{..} inputs = do
+applyInputs tx marloweData@MarloweData{..} inputs = do
     let depositAmount = Ada.adaOf 1
         depositPayment = Payment marloweCreator depositAmount
         redeemer = mkRedeemer inputs
         validator = validatorScript marloweCreator
+        dataScript = DataScript (PlutusTx.toData marloweData)
         address = scriptAddress validator
     slot <- slot
 
@@ -156,7 +157,7 @@ applyInputs tx MarloweData{..} inputs = do
         _ -> throwOtherError ("Tx has multiple contracts of address "
             <> Text.pack (show address))
 
-    let scriptIn = scriptTxIn ref validator redeemer
+    let scriptIn = scriptTxIn ref validator redeemer dataScript
     let computedResult = computeTransaction txInput marloweState marloweContract
 
     (deducedTxOutputs, marloweData) <- case computedResult of
@@ -190,6 +191,7 @@ applyInputs tx MarloweData{..} inputs = do
         slotRange
         (Set.insert scriptIn payment)
         (deducedTxOutputs ++ maybeToList change)
+        [DataScript (PlutusTx.toData marloweData)]
 
     return marloweData
   where

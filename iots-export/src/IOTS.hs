@@ -266,6 +266,13 @@ instance IotsType Int where
       iotsOutput = False
       iotsRef = "t.number"
 
+instance IotsType Bool where
+  iotsDefinition = pure [Node (IotsDef {..}) []]
+    where
+      iotsRep = someTypeRep (Proxy @Bool)
+      iotsOutput = False
+      iotsRef = "t.boolean"
+
 instance IotsType a => IotsType (Proxy a) where
   iotsDefinition = iotsDefinition @a
 
@@ -308,11 +315,29 @@ instance (IotsType a, Typeable a) => IotsType (Maybe a) where
         iotsRef = "t.union" <> parens (jsArray (toRef <$> children))
     pure [Node (IotsDef {..}) children]
 
+instance (IotsType a, Typeable a, IotsType b, Typeable b) => IotsType (Either a b) where
+  iotsDefinition = do
+    aChildren <- iotsDefinition @a
+    bChildren <- iotsDefinition @b
+    let children = aChildren <> bChildren
+        iotsRep = someTypeRep (Proxy @(Either a b))
+        iotsOutput = False
+        iotsRef = "t.union" <> parens (jsArray (toRef <$> children))
+    pure [Node (IotsDef {..}) children]
+
 ------------------------------------------------------------
 instance {-# OVERLAPPABLE #-} (IotsType a, Typeable a) => IotsType [a] where
   iotsDefinition = do
     child <- iotsDefinition @a
     let iotsRep = someTypeRep (Proxy @[a])
+        iotsOutput = False
+        iotsRef = "t.array" <> jsParams (toRef <$> child)
+    pure [Node (IotsDef {..}) child]
+
+instance  (IotsType a, Typeable a) => IotsType (Set a) where
+  iotsDefinition = do
+    child <- iotsDefinition @a
+    let iotsRep = someTypeRep (Proxy @(Set a))
         iotsOutput = False
         iotsRef = "t.array" <> jsParams (toRef <$> child)
     pure [Node (IotsDef {..}) child]

@@ -14,7 +14,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
-import Playground.Types (FunctionSchema, SimulatorWallet(..), _Fn, _FunctionSchema)
+import Playground.Types (FunctionSchema, SimulatorWallet(..), _EndpointName, _FunctionSchema)
 import Prelude (const, show, ($), (<$>), (<<<), (<>))
 import Schema (FormSchema)
 import ValueEditor (valueForm)
@@ -102,7 +102,7 @@ actionButton initialValue simulatorWallet functionSchema =
             , simulatorWallet
             }
     ]
-    [ text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
+    [ text $ view (_FunctionSchema <<< _functionName <<< _EndpointName) functionSchema
     , span
         [ class_ pullRight ]
         [ icon Plus ]

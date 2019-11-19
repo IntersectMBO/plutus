@@ -22,6 +22,7 @@ import           GHC.Generics             (Generic)
 import           Language.PlutusTx.Monoid (inv)
 import           Ledger                   (Tx (Tx), TxId (TxId), TxIn (TxIn), TxOut (TxOut), Value, getTxId, outValue,
                                            txInRef, txInputs, txOutRefId, txOutRefIdx, txOutValue, txOutputs)
+import qualified Ledger.Tx                as Tx
 import           Wallet.Rollup.Types      (AnnotatedTx (AnnotatedTx), BeneficialOwner,
                                            DereferencedInput (DereferencedInput, refersTo), SequenceId (SequenceId),
                                            balances, dereferencedInputs, sequenceId, slotIndex, toBeneficialOwner, tx,
@@ -52,13 +53,8 @@ txInputKey TxIn {txInRef} =
         }
 
 annotateTransaction ::
-       MonadError Text m
-    => SequenceId
-    -> (TxId, Tx)
-    -> StateT Rollup m AnnotatedTx
-annotateTransaction sequenceId (txIdOf@(TxId txId), tx@Tx { txInputs
-                                                            , txOutputs
-                                                            }) = do
+       MonadError Text m => SequenceId -> Tx -> StateT Rollup m AnnotatedTx
+annotateTransaction sequenceId tx@Tx {txInputs, txOutputs} = do
     cPreviousOutputs <- use previousOutputs
     cRollingBalances <- use rollingBalances
     dereferencedInputs <-
@@ -73,7 +69,8 @@ annotateTransaction sequenceId (txIdOf@(TxId txId), tx@Tx { txInputs
                              "Could not find referenced transaction: " <>
                              show key)
             (Set.toList txInputs)
-    let newOutputs =
+    let txIdOf@(TxId txId) = Tx.txId tx
+        newOutputs =
             ifoldr
                 (\outputIndex ->
                      Map.insert
@@ -109,15 +106,15 @@ annotateTransaction sequenceId (txIdOf@(TxId txId), tx@Tx { txInputs
             }
 
 annotateChainSlot ::
-       MonadError Text m => Int -> [(TxId, Tx)] -> StateT Rollup m [AnnotatedTx]
+       MonadError Text m => Int -> [Tx] -> StateT Rollup m [AnnotatedTx]
 annotateChainSlot slotIndex =
     itraverse (\txIndex -> annotateTransaction SequenceId {..})
 
 annotateBlockchain ::
-       MonadError Text m => [[(TxId, Tx)]] -> StateT Rollup m [[AnnotatedTx]]
+       MonadError Text m => [[Tx]] -> StateT Rollup m [[AnnotatedTx]]
 annotateBlockchain = fmap reverse . itraverse annotateChainSlot . reverse
 
-doAnnotateBlockchain :: MonadError Text m => [[(TxId, Tx)]] -> m [[AnnotatedTx]]
+doAnnotateBlockchain :: MonadError Text m => [[Tx]] -> m [[AnnotatedTx]]
 doAnnotateBlockchain blockchain =
     evalStateT
         (annotateBlockchain blockchain)

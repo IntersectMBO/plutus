@@ -26,6 +26,7 @@ myPayToWallet wallet ada = do
         defaultSlotRange                                -- <3>
         ins
         (o : maybeToList mo)
+        []
 
 $(mkFunctions ['myPayToWallet])
 ----

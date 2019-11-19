@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns       #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
@@ -51,7 +52,7 @@ import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
 import           Control.Monad                            (unless)
-import           Control.Monad.Except                     (MonadError(..), runExcept)
+import           Control.Monad.Except                     (MonadError, throwError, runExcept)
 import           Control.DeepSeq                          (NFData)
 import           Crypto.Hash                              (Digest, SHA256, hash)
 import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
@@ -62,8 +63,10 @@ import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.String
-import           Data.Text.Prettyprint.Doc                (Pretty)
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                             (Generic)
+import           IOTS                                     (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
@@ -82,6 +85,9 @@ import           Schema                                   (ToSchema)
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving newtype (Serialise)
+
+instance IotsType Script where
+  iotsDefinition = iotsDefinition @Haskell.String
 
 {- Note [Normalized types in Scripts]
 The Plutus Tx plugin and lifting machinery does not necessarily produce programs
@@ -194,7 +200,8 @@ unValidatorScript = getValidator
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving Pretty via (PrettyShow ValidatorScript)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
@@ -207,12 +214,10 @@ instance BA.ByteArrayAccess ValidatorScript where
 
 -- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype DataScript = DataScript { getDataScript :: Data  }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, Pretty)
-  deriving anyclass (ToJSON, FromJSON)
-
-instance Show DataScript where
-    show = const "DataScript { <script> }"
+  deriving stock (Generic, Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving Pretty via Data
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -222,12 +227,12 @@ instance BA.ByteArrayAccess DataScript where
 
 -- | 'RedeemerScript' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, Pretty)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving stock (Generic, Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Show RedeemerScript where
-    show = const "RedeemerScript { <script> }"
+instance Pretty RedeemerScript where
+    pretty (RedeemerScript dat) = "RedeemerScript:" <+> pretty dat
 
 instance BA.ByteArrayAccess RedeemerScript where
     length =
@@ -238,24 +243,33 @@ instance BA.ByteArrayAccess RedeemerScript where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
 
+instance IotsType ValidatorHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+
+instance IotsType DataScriptHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+
+instance IotsType RedeemerHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 dataScriptHash :: DataScript -> DataScriptHash
 dataScriptHash = DataScriptHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert

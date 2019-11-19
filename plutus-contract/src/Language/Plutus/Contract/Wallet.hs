@@ -17,6 +17,7 @@ import qualified Data.Map                    as Map
 import           Data.Maybe                  (fromMaybe)
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
+import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
 import qualified Language.PlutusTx.Prelude   as P
@@ -38,11 +39,11 @@ balanceWallet
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
-    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show utx)
+    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
     let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)
-    balanceTx utxo pk utx
+    balanceTx (fmap Tx.txOutTxOut utxo) pk utx
 
 -- | Compute the difference between the value of the inputs consumed and the
 --   value of the outputs produced by the transaction. If the result is zero
@@ -60,7 +61,7 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
         am <- WAPI.watchedAddresses
         let txout = AM.outRefMap am ^. at (Tx.txInRef outputRef)
         case txout of
-            Just vl -> pure $ Tx.txOutValue vl
+            Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
             Nothing ->
                 WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
 

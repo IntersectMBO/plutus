@@ -125,6 +125,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf]
+        [unitData]
 ----
 
 <1> We will be the issuer, of course.
@@ -155,6 +156,7 @@ forge n = do
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ pubKeyTxOut v $ issuer nf        -- <5>
                                  , mkNonFungibleTxOut nf
                                  ]
@@ -162,6 +164,7 @@ forge n = do
                 , txForge      = v                                  -- <6>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $                                   -- <7>
                         OtherError $ T.pack "'start' has not run"

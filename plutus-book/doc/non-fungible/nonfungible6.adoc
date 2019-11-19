@@ -23,7 +23,6 @@ import           Wallet
 import           Control.Monad (void)
 import           Control.Monad.Except       (MonadError (..))
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.List                  (find)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
@@ -138,6 +137,7 @@ start = do
         defaultSlotRange
         Set.empty
         [mkNonFungibleTxOut nf zero]
+        [unitData]
 ----
 ////
 
@@ -159,13 +159,14 @@ forge n = do
             let v    = nonFungibleValue nf n
                 v2   = v + v
                 v3   = v2 + v
-                vIn  = txOutValue o
+                vIn  = txOutValue $ txOutTxOut o
                 vOut = vIn + v2
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut       -- <2>
                                  , pubKeyTxOut v key                -- <3>
                                  ]
@@ -173,23 +174,24 @@ forge n = do
                 , txForge      = v3                                 -- <4>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
   where
     findOut :: CurrencySymbol
-            -> [(TxOutRef, TxOut)]
-            -> Maybe (TxOutRef, TxOut)
+            -> [(TxOutRef, TxOutTx)]
+            -> Maybe (TxOutRef, TxOutTx)
     findOut s xs =
         let ys = filter f xs                                        -- <5>
-        in  case find (ours s . snd) ys of                          -- <6>
+        in  case find (ours s . txOutTxOut . snd) ys of               -- <6>
                 Just x  -> Just x
-                Nothing -> find (zeroValue . snd) ys                     -- <7>
+                Nothing -> find (zeroValue . txOutTxOut . snd) ys                     -- <7>
 
-    f :: (TxOutRef, TxOut) -> Bool
-    f (_, o) = case txOutType o of
-        PayToPubKey _  -> False
-        PayToScript ds -> ds == unitData
+    f :: (TxOutRef, TxOutTx) -> Bool
+    f (_, o) = case txOutTxData o of
+        Nothing  -> False
+        Just ds -> ds == unitData
 
     ours :: CurrencySymbol -> TxOut -> Bool
     ours s o = case AM.lookup s $ V.getValue $ txOutValue o of

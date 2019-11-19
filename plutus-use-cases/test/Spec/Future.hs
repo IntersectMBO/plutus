@@ -24,6 +24,7 @@ import           Ledger.Validation                               (OracleValue (.
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
+import qualified Wallet.Emulator.NodeClient                      as NC
 import qualified Wallet.Emulator.Generators                      as Gen
 import qualified Wallet.Generators                               as Gen
 
@@ -216,7 +217,7 @@ checkTrace t = property $ do
         model = Gen.generatorModel { Gen.gmInitialBalance = ib }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert ([] == NC._txPool (_chainState st))
 
 -- | Validate all pending transactions and notify all wallets
 updateAll :: Trace MockWallet ()

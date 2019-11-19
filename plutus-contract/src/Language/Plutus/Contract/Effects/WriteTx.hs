@@ -25,6 +25,7 @@ import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Tx      (UnbalancedTx)
 
+import           IOTS                             (IotsType)
 import           Ledger.TxId                      (TxId)
 import           Wallet.API                       (WalletAPIError)
 
@@ -39,7 +40,7 @@ data WriteTxResponse =
 instance Pretty WriteTxResponse where
   pretty = \case
     WriteTxFailed e -> "WriteTxFailed:" <+> pretty e
-    WriteTxSuccess i -> "WriteTxSuccess:" <+> viaShow i
+    WriteTxSuccess i -> "WriteTxSuccess:" <+> pretty i
 
 writeTxResponse :: Iso' WriteTxResponse (Either WalletAPIError TxId)
 writeTxResponse = iso f g where
@@ -58,6 +59,7 @@ newtype PendingTransactions =
     deriving stock (Eq, Generic, Show)
     deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
     deriving Pretty via (PrettyFoldable [] UnbalancedTx)
+    deriving anyclass (IotsType)
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction, or an error.

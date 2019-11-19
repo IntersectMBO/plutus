@@ -3,27 +3,29 @@ module View (render) where
 import Types
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
+import Data.Array (cons) as Array
+import Data.Array.Extra (lookup) as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (view)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
+import Data.Tuple (Tuple(Tuple), fst)
 import Data.Tuple.Nested ((/\))
-import Editor (demoScriptsPane, editorPane)
+import Editor (EditorAction(..), editorPane)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
-import Halogen.HTML (ClassName(ClassName), HTML, ComponentHTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-import Prelude (const, show, ($), (<$>), (<>), (==))
+import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 
 render ::
@@ -39,12 +41,14 @@ render state@(State { currentView, blockchainVisualisationState }) =
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
                 [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
-                , div [ classes [ colXs12, colSm5 ] ] [ gistControls (unwrap state) ]
+                , div
+                    [ classes [ colXs12, colSm5 ] ]
+                    [ GistAction <$> gistControls (unwrap state) ]
                 ]
             ]
         , viewContainer currentView Editor
-            [ demoScriptsPane
-            , editorPane defaultContents (unwrap <$> view _compilationResult state)
+            [ EditorAction <$> demoScriptsPane
+            , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey (unwrap <$> view _compilationResult state)
             , case view _compilationResult state of
                 Failure error -> ajaxErrorPane error
                 _ -> empty
@@ -87,7 +91,21 @@ render state@(State { currentView, blockchainVisualisationState }) =
         ]
     ]
   where
-  defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+  defaultContents = Array.lookup "Vesting" StaticData.demoFiles
+
+demoScriptsPane :: forall p. HTML p EditorAction
+demoScriptsPane =
+  div [ id_ "demos" ]
+    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <<< fst <$> StaticData.demoFiles)
+    )
+
+demoScriptButton :: forall p. String -> HTML p EditorAction
+demoScriptButton key =
+  button
+    [ classes [ btn, btnInfo, btnSmall ]
+    , onClick $ const $ Just $ LoadScript key
+    ]
+    [ text key ]
 
 bannerMessage :: forall p i. HTML p i
 bannerMessage =

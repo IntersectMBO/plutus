@@ -28,7 +28,6 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Ada (Ada(..))
-import Ledger.Address (Address)
 import Ledger.Crypto (PubKey(..))
 import Ledger.Extra (humaniseInterval, adaToValue)
 import Ledger.Tx (TxOut(..))

@@ -18,12 +18,6 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     exposed-modules:
         Language.PlutusIR
@@ -79,9 +73,6 @@ library
         transformers -any,
         algebraic-graphs >= 0.3,
         megaparsec -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
 
 test-suite plutus-ir-test
     type: exitcode-stdio-1.0

@@ -133,8 +133,8 @@ tests =
             (callEndpoint @"1" @Int w1 1)
 
         , cp "throw an error"
-            (void $ throwing _ContractError $ OtherError "error")
-            (assertContractError w1 (OtherError "error") "failed to throw error")
+            (void $ throwing Con._ContractError $ OtherError "error")
+            (assertContractError w1 (\case { ContractError (OtherError "error") -> True; _ -> False}) "failed to throw error")
             (pure ())
 
         , cp "pay to wallet"

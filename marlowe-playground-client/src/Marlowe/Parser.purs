@@ -381,9 +381,10 @@ testString =
 input :: Parser String S.Input
 input =
   maybeParens
-    (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
-    <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
-    <|> ((const S.INotify) <$> (string "INotify"))
+    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
+        <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
+        <|> ((const S.INotify) <$> (string "INotify"))
+    )
 
 accountIdValue :: Parser String S.AccountId
 accountIdValue = parseToValue accountId

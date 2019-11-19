@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -7,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
 module LedgerBytes ( LedgerBytes (..)
@@ -23,6 +25,7 @@ import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.String                (IsString (..))
 import qualified Data.Text                  as Text
+import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow(..))
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType (iotsDefinition))
@@ -62,8 +65,10 @@ fromHex = LedgerBytes . asBSLiteral
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
-    deriving (Eq, Ord, Serialise, Generic)
-    deriving newtype (P.Eq, P.Ord, PlutusTx.IsData)
+    deriving stock (Eq, Ord, Generic)
+    deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.IsData)
+    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey)
+    deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes
@@ -94,9 +99,5 @@ instance ToHttpApiData LedgerBytes where
 
 instance FromHttpApiData LedgerBytes where
     parseUrlPiece = bimap Text.pack (fromBytes . BSL.fromStrict) . JSON.tryDecode
-
-instance JSON.ToJSONKey LedgerBytes where
-
-instance JSON.FromJSONKey LedgerBytes where
 
 makeLift ''LedgerBytes

@@ -44819,6 +44819,7 @@ license = stdenv.lib.licenses.asl20;
 , stdenv
 , template-haskell
 , utf8-string
+, wl-pprint
 }:
 mkDerivation {
 
@@ -44840,6 +44841,7 @@ servant
 servant-client
 template-haskell
 utf8-string
+wl-pprint
 ];
 doHaddock = false;
 license = stdenv.lib.licenses.bsd3;
@@ -53992,56 +53994,13 @@ license = stdenv.lib.licenses.mit;
 "plutus-book" = callPackage
 ({
   mkDerivation
-, base
-, bytestring
-, containers
-, hspec
-, language-plutus-core
-, mtl
-, plutus-emulator
-, plutus-playground-lib
-, plutus-tx
-, plutus-wallet-api
-, prettyprinter
 , stdenv
-, template-haskell
-, text
-, unlit
-, wl-pprint
 }:
 mkDerivation {
 
 pname = "plutus-book";
 version = "0.1.0.0";
 src = .././plutus-book;
-libraryHaskellDepends = [
-base
-bytestring
-containers
-language-plutus-core
-mtl
-plutus-emulator
-plutus-playground-lib
-plutus-tx
-plutus-wallet-api
-prettyprinter
-template-haskell
-text
-wl-pprint
-];
-libraryToolDepends = [
-unlit
-];
-testHaskellDepends = [
-base
-bytestring
-containers
-hspec
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-text
-];
 doHaddock = false;
 description = "The Plutus Book";
 license = stdenv.lib.licenses.asl20;
@@ -54413,11 +54372,13 @@ license = stdenv.lib.licenses.asl20;
 , mtl
 , newtype-generics
 , playground-common
+, plutus-contract
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
 , QuickCheck
+, row-types
 , serialise
 , servant
 , stdenv
@@ -54446,10 +54407,12 @@ memory
 mtl
 newtype-generics
 playground-common
+plutus-contract
 plutus-emulator
 plutus-tx
 plutus-wallet-api
 prettyprinter
+row-types
 serialise
 servant
 template-haskell
@@ -54509,6 +54472,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , optparse-applicative
 , playground-common
+, plutus-contract
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -54571,6 +54535,7 @@ monad-logger
 mtl
 newtype-generics
 playground-common
+plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
@@ -54773,9 +54738,12 @@ license = stdenv.lib.licenses.asl20;
 , criterion
 , cryptonite
 , hedgehog
+, iots-export
 , language-plutus-core
 , lens
+, memory
 , mtl
+, playground-common
 , plutus-contract
 , plutus-emulator
 , plutus-tx
@@ -54801,8 +54769,10 @@ aeson
 base
 bytestring
 containers
+iots-export
 lens
 mtl
+playground-common
 plutus-contract
 plutus-emulator
 plutus-tx
@@ -54840,6 +54810,7 @@ criterion
 cryptonite
 language-plutus-core
 lens
+memory
 plutus-tx
 plutus-wallet-api
 ];

@@ -33,18 +33,13 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     import: lang
     exposed-modules:
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Generators
+        Wallet.Emulator.NodeClient
         Wallet.Rollup
         Wallet.Rollup.Types
         Wallet.Rollup.Render
@@ -59,6 +54,7 @@ library
         base16-bytestring -any,
         bytestring -any,
         cborg -any,
+        conduit -any,
         containers -any,
         unordered-containers -any,
         cryptonite >=0.25,
@@ -87,9 +83,6 @@ library
         http-api-data,
         playground-common,
         cardano-crypto
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
 
 test-suite plutus-emulator-test
     type: exitcode-stdio-1.0

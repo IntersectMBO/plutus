@@ -28,7 +28,8 @@ import           GHC.Generics ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Generi
         #-}
 
 data FormSchema
-    = FormSchemaBool
+    = FormSchemaUnit
+    | FormSchemaBool
     | FormSchemaInt
     | FormSchemaString
     | FormSchemaHex
@@ -53,6 +54,9 @@ class ToSchema a where
     default toSchema :: (Generic a, GenericToSchema (Rep a)) =>
         FormSchema
     toSchema = genericToSchema $ from (undefined :: a)
+
+instance ToSchema () where
+    toSchema = FormSchemaUnit
 
 instance ToSchema Bool where
     toSchema = FormSchemaBool

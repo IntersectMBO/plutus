@@ -24,7 +24,6 @@ import           Wallet
 import           Control.Monad (void)
 import           Control.Monad.Except       (MonadError (..))
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.List                  (find)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
@@ -186,9 +185,9 @@ transaction output:
 
 [source,haskell]
 ----
-hasAdminToken :: CurrencySymbol -> (TxOutRef, TxOut) -> Bool
+hasAdminToken :: CurrencySymbol -> (TxOutRef, TxOutTx) -> Bool
 hasAdminToken s (_, o) =
-    V.valueOf (txOutValue o) s adminTokenName == 1
+    V.valueOf (txOutValue $ txOutTxOut o) s adminTokenName == 1
 ----
 
 Now we can write our endpoints. The biggest change is in `start`, where
@@ -222,7 +221,8 @@ start' = do
                     zero
                     (mkAdminValidator admin)
                     unitData]
-            go1 ref $ txOutValue o                         -- <3>
+                [unitData]
+            go1 ref $ txOutValue $ txOutTxOut o                         -- <3>
             pure (adminSymbol admin)
 
   where
@@ -249,6 +249,7 @@ start' = do
                             ref'
                             (mkAdminValidator admin)
                             unitRedeemer
+                            unitData
                     o  = pubKeyTxOut                       -- <7>
                             (v + adminValue admin)
                             key
@@ -259,6 +260,7 @@ start' = do
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
+                    , txData       = Map.empty
                     }
                 logMsg $ T.pack $
                     "forging admin token " ++
@@ -291,12 +293,13 @@ start' = do
                             (mkNonFungibleValidator nf)
                             unitData
                     o2 = pubKeyTxOut                       -- <12>
-                            (txOutValue o - v)
+                            ((txOutValue $ txOutTxOut o) - v)
                             key
                 void $ createTxAndSubmit
                     defaultSlotRange
                     (Set.singleton i)
                     [o1, o2]
+                    [unitData]
 
 start :: MonadWallet m => m ()
 start = void start'
@@ -352,13 +355,14 @@ forge s n = do
         Just (ref, o) -> do
             let v    = nonFungibleValue nf n
                 v2   = v + v
-                vIn  = txOutValue o
+                vIn  = txOutValue $ txOutTxOut o
                 vOut = vIn + v
             signTxAndSubmit_ Tx
                 { txInputs     = Set.singleton $ scriptTxIn
                                     ref
                                     (mkNonFungibleValidator nf)
                                     (mkNonFungibleRedeemer n)
+                                    unitData
                 , txOutputs    = [ mkNonFungibleTxOut nf vOut
                                  , pubKeyTxOut v key
                                  ]
@@ -366,13 +370,14 @@ forge s n = do
                 , txForge      = v2                               -- <1>
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData       = Map.singleton (dataScriptHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
   where
     findOut :: CurrencySymbol
-            -> [(TxOutRef, TxOut)]
-            -> Maybe (TxOutRef, TxOut)
+            -> [(TxOutRef, TxOutTx)]
+            -> Maybe (TxOutRef, TxOutTx)
     findOut = find . hasAdminToken                                -- <2>
 
 $(mkFunctions ['start, 'forge])

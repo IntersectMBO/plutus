@@ -15,10 +15,13 @@ import           Ledger
 import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import           Language.PlutusTx.Coordination.Contracts.Game
+import           Language.PlutusTx.Coordination.Contracts.Vesting
+import qualified Spec.Vesting
 
 import           Test.Tasty                                            (TestTree, testGroup)
 import           Test.Tasty.Golden                                     (goldenVsString)
 import           Test.Tasty.HUnit                                      (assertFailure)
+import qualified Wallet.Emulator.NodeClient                            as NC
 import           Wallet.Emulator.Types
 import           Wallet.Rollup.Render                                  (showBlockchain)
 
@@ -32,20 +35,23 @@ tests = testGroup "showBlockchain"
           "renders a guess scenario sensibly"
           "test/Spec/renderGuess.txt"
           (render game guessTrace)
+     , goldenVsString
+          "renders a vesting scenario sensibly"
+          "test/Spec/renderVesting.txt"
+          (render (vestingContract Spec.Vesting.vesting) Spec.Vesting.retrieveFundsTrace)
      ]
 
 render
     :: ( ContractRow s )
     => Contract s T.Text a
-    -> ContractTrace s T.Text (EmulatorAction T.Text) a ()
+    -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
     -> IO ByteString
 render con trace = do
-    let (result, EmulatorState{_chainNewestFirst=blockchain, _walletStates=wallets}) = runTrace con trace
+    let (result, EmulatorState{ _chainState = cs, _walletStates = wallets}) = runTrace con trace
     let walletKeys = flip fmap (Map.toList wallets) $ \(w, ws) -> (toPublicKey (_ownPrivateKey ws), w)
-    let resultBlockchain = flip (fmap . fmap) blockchain $ \tx -> (txId tx, tx)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->
-            case showBlockchain walletKeys resultBlockchain of
+            case showBlockchain walletKeys (NC._chainNewestFirst cs) of
                 Left err       -> assertFailure $ show err
                 Right rendered -> pure . LBS.fromStrict . encodeUtf8 $ rendered

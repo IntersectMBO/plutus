@@ -22,7 +22,8 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
 
 import qualified Data.Map                     as Map
 import qualified Data.Set                     as Set
-import           Language.PlutusTx.Prelude
+import           Data.Foldable                (foldMap)
+import           Language.PlutusTx.Prelude    hiding (foldMap)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
 import qualified Ledger.Typed.Scripts         as Scripts
@@ -83,10 +84,10 @@ unlockTx ms = do
     let
 
         mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator msRedeemer
+        mkIn r = Ledger.scriptTxIn r validator msRedeemer msDataScript
 
         ins = Set.map mkIn (Map.keysSet utxos)
-        val = fold (Ledger.txOutValue . snd <$> Map.toList utxos)
+        val = foldMap (Ledger.txOutValue . Ledger.txOutTxOut) utxos
 
     ownOutput <- WAPI.ownPubKeyTxOut val
 
@@ -97,6 +98,7 @@ unlockTx ms = do
                 , txFee   = zero
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
+                , txData = Map.empty
                 }
 
     signTxn tx

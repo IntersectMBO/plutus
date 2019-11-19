@@ -35,33 +35,33 @@ module Language.Plutus.Contract.Test(
     , renderTraceContext
     ) where
 
-import           Control.Lens                          (at, from, view, (^.))
-import           Control.Monad                         (unless)
-import           Control.Monad.Writer                  (MonadWriter (..), Writer, runWriter)
-import           Data.Foldable                         (toList)
-import           Data.Functor.Contravariant            (Contravariant (..), Op(..))
-import qualified Data.Map                              as Map
-import           Data.Maybe                            (fromMaybe, mapMaybe)
-import           Data.Proxy                            (Proxy(..))
-import           Data.Row
-import           Data.String                           (IsString(..))
+import           Control.Lens                                    (at, from, view, (^.))
+import           Control.Monad                                   (unless)
+import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
+import           Data.Foldable                                   (fold, toList)
+import           Data.Functor.Contravariant                      (Contravariant (..), Op (..))
+import qualified Data.Map                                        as Map
+import           Data.Maybe                                      (fromMaybe, mapMaybe)
+import           Data.Proxy                                      (Proxy (..))
+import           Data.Row                                        (AllUniqueLabels, Forall, HasType)
+import qualified Data.Set                                        as Set
+import           Data.String                                     (IsString (..))
+import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import qualified Data.Text                             as Text
-import qualified Data.Set                              as Set
+import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import           Data.Void
-import           GHC.TypeLits                          (Symbol, KnownSymbol, symbolVal)
-import qualified Test.Tasty.HUnit                      as HUnit
-import           Test.Tasty.Providers                  (TestTree)
+import           GHC.TypeLits                                    (KnownSymbol, Symbol, symbolVal)
+import qualified Test.Tasty.HUnit                                as HUnit
+import           Test.Tasty.Providers                            (TestTree)
 
-import qualified Language.PlutusTx.Prelude             as P
+import qualified Language.PlutusTx.Prelude                       as P
 
-import           Language.Plutus.Contract.Record       (Record)
-import qualified Language.Plutus.Contract.Record       as Rec
-import           Language.Plutus.Contract.Request      (Contract(..))
-import           Language.Plutus.Contract.Resumable    (ResumableError)
-import qualified Language.Plutus.Contract.Resumable    as State
-import           Language.Plutus.Contract.Tx           (UnbalancedTx)
+import           Language.Plutus.Contract.Record                 (Record)
+import qualified Language.Plutus.Contract.Record                 as Rec
+import           Language.Plutus.Contract.Request                (Contract (..))
+import           Language.Plutus.Contract.Resumable              (ResumableError)
+import qualified Language.Plutus.Contract.Resumable              as State
+import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
 import           Language.PlutusTx.Lattice
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
@@ -71,16 +71,16 @@ import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
-import           Ledger.Address                        (Address)
-import qualified Ledger.Ada                            as Ada
-import qualified Ledger.AddressMap                     as AM
-import           Ledger.Slot                           (Slot)
-import           Ledger.Value                          (Value)
-import           Wallet.Emulator                       (EmulatorAction, EmulatorEvent, Wallet)
-import qualified Wallet.Emulator                       as EM
+import           Ledger.Address                                  (Address)
+import qualified Ledger.AddressMap                               as AM
+import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (Value)
+import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
+import qualified Wallet.Emulator                                 as EM
+import qualified Wallet.Emulator.NodeClient                      as NC
 
-import           Language.Plutus.Contract.Schema       (Event(..), Handlers(..), Input, Output)
-import           Language.Plutus.Contract.Trace        as X
+import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Trace                  as X
 
 newtype PredF f a = PredF { unPredF :: a -> f Bool }
     deriving Contravariant via (Op (f Bool))
@@ -129,8 +129,7 @@ not = PredF . fmap (fmap Prelude.not) . unPredF
 
 checkPredicate
     :: forall s e a
-    . (EM.AsAssertionError e
-      , Show e
+    . ( Show e
       , AllUniqueLabels (Output s)
       , Forall (Input s) Pretty
       , Forall (Output s) Semigroup
@@ -138,8 +137,8 @@ checkPredicate
       , Forall (Output s) Monoid)
     => String
     -> Contract s e a
-    -> TracePredicate s e a
-    -> ContractTrace s e (EmulatorAction e) a ()
+    -> TracePredicate s (TraceError e) a
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
@@ -165,9 +164,9 @@ renderTraceContext
     -> ContractTraceState s e a
     -> Text.Text
 renderTraceContext testOutputs st =
-    let nonEmptyLogs = 
-            Map.toList 
-            $ Map.filter (P.not . null) 
+    let nonEmptyLogs =
+            Map.toList
+            $ Map.filter (P.not . null)
             $ eventsByWallet st
         theContract = unContract (view ctsContract st)
         results = fmap (\(wallet, events) -> (wallet, State.runResumable events theContract)) nonEmptyLogs
@@ -186,7 +185,7 @@ renderTraceContext testOutputs st =
 
 prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
 prettyWalletEvents cts =
-    let nonEmptyLogs = 
+    let nonEmptyLogs =
             Map.toList
             $ Map.filter (P.not . null)
             $ eventsByWallet cts
@@ -341,7 +340,7 @@ emulatorLog f nm = PredF $ \(_, r) ->
     else do
         tell $ vsep
             [ "Emulator log:"
-            , nest 2 (vsep (fmap viaShow lg))
+            , nest 2 (vsep (fmap pretty lg))
             , "Fails" <+> squotes (fromString nm)
             ]
         pure False
@@ -455,15 +454,14 @@ assertContractError
     , AllUniqueLabels (Output s)
     , Forall (Output s) Semigroup
     , Forall (Output s) Monoid
-    , Eq e
     , Show e
     )
     => Wallet
-    -> e
+    -> (e -> Bool)
     -> String
     -> TracePredicate s e a
-assertContractError w err =
-    assertOutcome w (\case { Error (State.OtherError err') -> err' == err; _ -> False })
+assertContractError w p =
+    assertOutcome w (\case { Error (State.OtherError err) -> p err; _ -> False })
 
 assertOutcome
     :: forall s e a.
@@ -528,7 +526,7 @@ walletFundsChange
     -> Value
     -> TracePredicate s e a
 walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulatorState = st}) ->
-        let initialValue = foldMap Ada.toValue (Map.fromList initialDist ^. at w)
+        let initialValue = fold (initialDist ^. at w)
             finalValue   = fromMaybe mempty (EM.fundsDistribution st ^. at w)
         in if initialValue P.+ dlt == finalValue
         then pure True
@@ -542,7 +540,7 @@ assertNoFailedTransactions
     :: forall s e a.
     TracePredicate s e a
 assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) ->
-    let failedTransactions = mapMaybe (\case { EM.TxnValidationFail txid err -> Just (txid, err); _ -> Nothing}) (EM.emLog st)
+    let failedTransactions = mapMaybe (\case { EM.ChainEvent (NC.TxnValidationFail txid err) -> Just (txid, err); _ -> Nothing}) (EM.emLog st)
     in case failedTransactions of
         [] -> pure True
         xs -> do

@@ -68,15 +68,14 @@ module Wallet.Emulator.Types(
     emulatorState,
     emulatorStatePool,
     emulatorStateInitialDist,
-    chainNewestFirst,
+    NC.chainNewestFirst,
     chainOldestFirst,
-    txPool,
+    NC.txPool,
     walletStates,
-    index,
+    walletIndex,
+    NC.index,
+    chainState,
     MonadEmulator,
-    validateEm,
-    validateBlock,
-    ValidatedBlock(..),
     liftMockWallet,
     evalEmulated,
     processEmulated,
@@ -86,48 +85,47 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
-import           Control.Lens              hiding (index)
+import           Control.Lens               hiding (index)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import           Control.Monad.Operational as Op hiding (view)
+import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
-import           Control.Newtype.Generics  (Newtype)
-import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
-import           Data.Bifunctor            (Bifunctor (..))
-import qualified Data.ByteString.Lazy      as BSL
-import           Data.Foldable             (traverse_)
-import           Data.Hashable             (Hashable)
-import           Data.HashMap.Strict       (HashMap)
-import qualified Data.HashMap.Strict       as HashMap
-import           Data.List                 (partition)
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
+import           Control.Newtype.Generics   (Newtype)
+import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
+import           Data.Bifunctor             (Bifunctor (..))
+import qualified Data.ByteString.Lazy       as BSL
+import           Data.Foldable              (traverse_)
+import           Data.Hashable              (Hashable)
+import           Data.HashMap.Strict        (HashMap)
+import qualified Data.HashMap.Strict        as HashMap
+import           Data.Map                   (Map)
+import qualified Data.Map                   as Map
 import           Data.Maybe
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc hiding (annotate)
-import           Data.Traversable          (for)
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType (iotsDefinition))
-import qualified Ledger.Crypto             as Crypto
-import           Prelude                   as P
-import           Schema                    (ToSchema)
-import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
+import qualified Data.Set                   as Set
+import           Data.String                (fromString)
+import qualified Data.Text                  as T
+import           Data.Text.Prettyprint.Doc  hiding (annotate)
+import           GHC.Generics               (Generic)
+import           IOTS                       (IotsType (iotsDefinition))
+import qualified Ledger.Crypto              as Crypto
+import           Prelude                    as P
+import           Schema                     (ToSchema)
+import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
 
-import qualified Language.PlutusTx.Prelude as PlutusTx
+import qualified Language.PlutusTx.Prelude  as PlutusTx
 
-import           Ledger                    (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                            TxId, TxIn (..), TxOut (..), TxOutRef, Value, addSignature, lastSlot,
-                                            pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId, txOutAddress)
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.AddressMap         as AM
-import qualified Ledger.Index              as Index
-import qualified Ledger.Interval           as Interval
-import qualified Ledger.Value              as Value
-import           Wallet.API                (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
-                                            WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
-import qualified Wallet.API                as WAPI
+import           Ledger                     (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
+                                             TxIn (..), TxOut (..), TxOutRef, TxOutTx (..), Value, addSignature,
+                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId, txOutAddress)
+import qualified Ledger.Ada                 as Ada
+import qualified Ledger.AddressMap          as AM
+import qualified Ledger.Index               as Index
+import qualified Ledger.Value               as Value
+import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
+                                             WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
+import qualified Wallet.API                 as WAPI
+import qualified Wallet.Emulator.NodeClient as NC
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
@@ -207,7 +205,7 @@ ownAddress :: WalletState -> Address
 ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 
 -- | Get the funds available at the user's own public-key address.
-ownFunds :: Lens' WalletState (Map TxOutRef TxOut)
+ownFunds :: Lens' WalletState (Map TxOutRef TxOutTx)
 ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
@@ -223,14 +221,8 @@ emptyWalletState w = WalletState pk 0 oa mempty where
 
 -- | Events produced by the blockchain emulator.
 data EmulatorEvent =
-    TxnSubmit TxId
-    -- ^ A transaction has been added to the pool of pending transactions.
-    | TxnValidate TxId
-    -- ^ A transaction has been validated and added to the blockchain.
-    | TxnValidationFail TxId Index.ValidationError
-    -- ^ A transaction failed  to validate.
-    | SlotAdd Slot
-    -- ^ A slot has passed, and a block was added to the blockchain.
+    ChainEvent NC.ChainEvent
+    -- ^ A blockchain event
     | WalletError Wallet WalletAPIError
     -- ^ A 'WalletAPI' action produced an error.
     | WalletInfo Wallet T.Text
@@ -239,6 +231,15 @@ data EmulatorEvent =
 
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
+
+instance Pretty EmulatorEvent where
+    pretty = \case
+        ChainEvent (NC.TxnSubmit t) -> "TxnSubmit" <+> pretty t
+        ChainEvent (NC.TxnValidate t) -> "TxnValidate" <+> pretty t
+        ChainEvent (NC.TxnValidationFail t e) -> "TxnValidationFail" <+> pretty t <> colon <+> pretty e
+        ChainEvent (NC.SlotAdd sl) -> "SlotAdd" <+> pretty sl
+        WalletError w e -> "WalletError" <+> pretty w <> colon <+> pretty e
+        WalletInfo w t -> "WalletInfo" <+> pretty w <> colon <+> pretty t
 
 -- | Delete all 'EventHandler' values that are registered for an
 --   'EventTrigger'.
@@ -310,7 +311,7 @@ instance WalletAPI MockWallet where
         else do
           -- If the requested value is not covered by the change, then we need to
           -- select new inputs, after deducting the oldChange from the value.
-          (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds)
+          (spend, change) <- selectCoin (second (txOutValue . txOutTxOut) <$> Map.toList fnds)
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
@@ -402,18 +403,17 @@ type Trace m = Op.Program (Event m)
 
 -- | The state of the emulator itself.
 data EmulatorState = EmulatorState {
-    _chainNewestFirst :: Blockchain, -- ^ The current chain, with the newest transactions first in the list.
-    _txPool           :: TxPool, -- ^ The pool of pending transactions.
-    _walletStates     :: Map Wallet WalletState, -- ^ The state of each wallet.
-    _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
-    _emulatorLog      :: [EmulatorEvent] -- ^ The emulator events, with the newest first.
+    _walletIndex  :: AM.AddressMap, -- ^ A richer index used by wallets.
+    _chainState   :: NC.ChainState,
+    _walletStates :: Map Wallet WalletState, -- ^ The state of each wallet.
+    _emulatorLog  :: [EmulatorEvent] -- ^ The emulator events, with the newest first.
     } deriving (Show)
 
 makeLenses ''EmulatorState
 
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (foldMap txOutValue . view ownFunds) . view walletStates
+fundsDistribution = Map.map (foldMap (txOutValue . txOutTxOut) . view ownFunds) . view walletStates
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -422,16 +422,15 @@ emLog = view emulatorLog
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
 chainOldestFirst :: Lens' EmulatorState Blockchain
-chainOldestFirst = chainNewestFirst . reversed
+chainOldestFirst = chainState . NC.chainNewestFirst . reversed
 
 type MonadEmulator e m = (MonadError e m, AsAssertionError e, MonadState EmulatorState m)
 
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState {
-    _chainNewestFirst = [],
-    _txPool = [],
+    _chainState = NC.emptyChainState,
     _walletStates = Map.empty,
-    _index = mempty,
+    _walletIndex = mempty,
     _emulatorLog = []
     }
 
@@ -447,7 +446,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwing _AssertionError $ GenericAssertion "Wallet not found"
         Just ws -> pure ws
-    let total = foldMap txOutValue $ ws ^. ownFunds
+    let total = foldMap (txOutValue . txOutTxOut) $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwing _AssertionError . GenericAssertion $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
@@ -459,20 +458,21 @@ ownFundsEqual wallet value = do
 isValidated :: (MonadEmulator e m) => Tx -> m ()
 isValidated txn = do
     emState <- get
-    if notElem txn (join $ _chainNewestFirst emState)
+    if notElem txn (join $ emState ^. chainState . NC.chainNewestFirst)
         then throwing _AssertionError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 
 -- | Initialise the emulator state with a blockchain.
 emulatorState :: Blockchain -> EmulatorState
 emulatorState bc = emptyEmulatorState
-    & chainNewestFirst .~ bc
-    & index .~ Index.initialise bc
+    & walletIndex .~ AM.fromChain bc
+    & chainState . NC.chainNewestFirst .~ bc
+    & chainState . NC.index .~ Index.initialise bc
 
 -- | Initialise the emulator state with a pool of pending transactions.
 emulatorStatePool :: TxPool -> EmulatorState
 emulatorStatePool tp = emptyEmulatorState
-    & txPool .~ tp
+    & chainState . NC.txPool .~ tp
 
 -- | Initialise the emulator state with a single pending transaction that
 --   creates the initial distribution of funds to public key addresses.
@@ -485,18 +485,8 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             , txFee = PlutusTx.zero
             , txValidRange = WAPI.defaultSlotRange
             , txSignatures = Map.empty
+            , txData = Map.empty
             }
-
--- | Validate a transaction in the current emulator state.
-validateEm :: MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationError)
-validateEm h txn = do
-    idx <- get
-    let result = Index.runValidation (Index.validateTransaction h txn) idx
-    case result of
-        Left e -> pure (Just e)
-        Right idx' -> do
-            _ <- put idx'
-            pure Nothing
 
 -- | Lift an action that runs in 'MockWallet' into one that runs in an @MonadState EmulatorState@ monad by
 -- running it for a particular 'Wallet'. This produces a list of transactions to be submitted, and either
@@ -506,13 +496,16 @@ liftMockWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
         ((out, newState), (msgs, txns)) = runWriter $ runStateT (runExceptT (runMockWallet act)) walletState
-        events = (TxnSubmit . txId <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
-    put emState {
-        _txPool = txns ++ _txPool emState,
-        _walletStates = Map.insert wallet newState $ _walletStates emState,
-        _emulatorLog = events ++ _emulatorLog emState
-        }
+        events = (ChainEvent . NC.TxnSubmit . txId <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
+    liftNodeClient $ mapM_ NC.publishTx txns
+    modify $ set walletStates (Map.insert wallet newState $ _walletStates emState)
+           . set emulatorLog  (events ++ _emulatorLog emState)
     pure (txns, out)
+
+liftNodeClient :: MonadState EmulatorState m => State NC.ChainState a -> m a
+liftNodeClient ncAction = state $ \st ->
+    let (v, newNcState) = runState ncAction (_chainState st)
+    in  (v, st & chainState .~ newNcState)
 
 -- | Evaluate an 'Event' in a 'MonadEmulator' monad.
 evalEmulated :: (MonadEmulator e m) => Event MockWallet a -> m a
@@ -526,72 +519,22 @@ evalEmulated = \case
                 pure (Left err, txns)
     WalletRecvNotification wallet trigger -> fst <$> liftMockWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
-        emState <- get
+        initialState <- get
+        validatedBlock <- liftNodeClient NC.processBlock
+        finalState <- get
         let
-            currentSlot = lastSlot (_chainNewestFirst emState)
-            idx         = _index emState
-            pool        = _txPool emState
-            (ValidatedBlock block events rest idx') =
-                validateBlock currentSlot idx pool
-            newChain = block : _chainNewestFirst emState
-        put emState {
-            _chainNewestFirst = newChain,
-            _txPool = rest,
-            _index = idx',
-            _emulatorLog   = SlotAdd (lastSlot newChain) : events ++ _emulatorLog emState
-            }
+            (NC.ValidatedBlock block events _) = validatedBlock
+            walletIndex' = foldr AM.updateAllAddresses (_walletIndex initialState) block
+            idx' = view (chainState . NC.index) finalState
+        unless (Index.getIndex idx' == (fmap txOutTxOut $ AM.outRefMap walletIndex')) $
+            throwing _AssertionError $ GenericAssertion $ "Indices don't match\n" <> (fromString $ show idx') <> "\n" <> (fromString $ show walletIndex')
+        put finalState {
+            _emulatorLog   = map ChainEvent events ++ _emulatorLog finalState,
+            _walletIndex   = walletIndex'
+        }
         pure block
     Assertion a -> assert a
     Failure message -> throwing _AssertionError $ GenericAssertion message
-
--- | The result of validating a block.
-data ValidatedBlock = ValidatedBlock
-    { vlbValid  :: [Tx]
-    -- ^ The transactions that have been validated in this block.
-    , vlbEvents :: [EmulatorEvent]
-    -- ^ Transaction validation events for the transactions in this block.
-    , vlbRest   :: [Tx]
-    -- ^ The transactions that haven't been validated because the current slot is
-    --   not in their validation interval.
-    , vlbIndex  :: Index.UtxoIndex
-    -- ^ The updated UTxO index.
-    }
-
--- | Validate a block given the current slot and UTxO index, returning the valid
---   transactions, success/failure events, remaining transactions and the
---   updated UTxO set.
-validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> ValidatedBlock
-validateBlock currentSlot idx txns =
-    let
-        -- Select those transactions that can be validated in the
-        -- current slot
-        (eligibleTxns, rest) = partition (canValidateNow currentSlot) txns
-
-        -- Validate eligible transactions, updating the UTXO index each time
-        (processed, idx') =
-            flip runState idx $ for eligibleTxns $ \t -> do
-                r <- validateEm currentSlot t
-                pure (t, r)
-
-        -- The new block contains all transaction that were validated
-        -- successfully
-        block = fst <$> filter (isNothing . snd) processed
-
-        -- Also return an `EmulatorEvent` for each transaction that was
-        -- processed
-        events = uncurry mkEvent <$> processed
-
-    in ValidatedBlock block events rest idx'
-
--- | Check whether the given transaction can be validated in the given slot.
-canValidateNow :: Slot -> Tx -> Bool
-canValidateNow currentSlot tx = Interval.member currentSlot (txValidRange tx)
-
-mkEvent :: Tx -> Maybe Index.ValidationError -> EmulatorEvent
-mkEvent t result =
-    case result of
-        Nothing  -> TxnValidate (txId t)
-        Just err -> TxnValidationFail (txId t) err
 
 processEmulated :: (MonadEmulator e m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated

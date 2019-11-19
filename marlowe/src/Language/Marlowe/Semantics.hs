@@ -758,9 +758,9 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
             -- otherwise check the continuation
             _ -> case getContinuingOutputs pendingTx of
                     [PendingTxOut
-                        { pendingTxOutType=(ScriptTxOut _ (DataScript ds))
+                        { pendingTxOutType=(ScriptTxOut _ dsh)
                         , pendingTxOutValue
-                        }] -> case PlutusTx.fromData ds of
+                        }] | Just (DataScript ds) <- findData dsh pendingTx -> case PlutusTx.fromData ds of
                             Just (MarloweData expectedCreator expectedState expectedContract) -> let
                                 scriptOutputValue = Ada.fromValue pendingTxOutValue
                                 validContract = expectedCreator == creator
