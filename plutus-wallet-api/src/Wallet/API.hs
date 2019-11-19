@@ -62,8 +62,6 @@ module Wallet.API(
     throwPrivateKeyNotFoundError,
     throwInsufficientFundsError,
     throwOtherError,
-    -- * Logging
-    WalletLog(..)
     ) where
 
 import           Control.Lens              hiding (contains)
@@ -111,13 +109,6 @@ instance Pretty WalletAPIError where
 
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
-
-newtype WalletLog = WalletLog { getWalletLog :: [Text] }
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (Semigroup, Monoid)
-
-instance FromJSON WalletLog
-instance ToJSON WalletLog
 
 type MonadWallet m = (WalletAPI m, WalletDiagnostics m)
 

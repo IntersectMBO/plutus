@@ -61,6 +61,8 @@ import           Control.Lens                                      (at, from, ma
                                                                     (%=))
 import           Control.Monad                                     (void, when, (>=>))
 import           Control.Monad.Except
+import qualified Control.Monad.Freer                               as Eff
+import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
 import           Control.Monad.Trans.Class                         (lift)
@@ -108,7 +110,9 @@ import           Wallet.API                                        (WalletAPIErr
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
-import qualified Wallet.Emulator.NodeClient                        as NC
+import qualified Wallet.Emulator.MultiAgent                        as EM
+import qualified Wallet.Emulator.NodeClient                        as EM
+import qualified Wallet.Emulator.Wallet                            as EM
 
 -- | Maximum number of iterations of `handleBlockchainEvents`.
 newtype MaxIterations = MaxIterations Natural
@@ -325,8 +329,8 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> EM.MockWallet a
-    -> m ([Tx], Either WalletAPIError a)
+    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError] a
+    -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
     _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
@@ -361,7 +365,7 @@ submitUnbalancedTx wallet tx = do
     signingProcess <- fmap
                         (maybe Wallet.defaultSigningProcess walletSigningProcess . Map.lookup wallet)
                         (use ctsWalletStates)
-    (txns, res) <- lift (runWallet wallet (Wallet.handleTx signingProcess tx))
+    (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx signingProcess tx) `Eff.catchError` \e -> pure $ Left e))
     let event = WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res
     addEvent wallet event
     pure txns
@@ -407,9 +411,9 @@ addTxEvents
     => Tx
     -> ContractTrace s e m a ()
 addTxEvents tx = do
-    idx <- lift (gets (view EM.walletIndex))
-    let watchAddressEvents = WatchAddress.events idx tx
     let addTxEventsWallet wllt = do
+            idx <- lift (gets (view (EM.walletState wllt . EM.addressMap)))
+            let watchAddressEvents = WatchAddress.events idx tx
             addInterestingTxEvents watchAddressEvents wllt
             addTxConfirmedEvent (txId tx) wllt
     traverse_ addTxEventsWallet allWallets
@@ -464,8 +468,8 @@ notifySlot
     => Wallet
     -> ContractTrace s e m a ()
 notifySlot w = do
-    st <- lift $ gets (view (EM.walletStates . at w))
-    addEvent w $ AwaitSlot.event (maybe 0 (view EM.walletSlot) st)
+    st <- lift $ gets (view (EM.walletClientStates . at w))
+    addEvent w $ AwaitSlot.event (maybe 0 (view EM.clientSlot) st)
 
 -- | Add a number of empty blocks to the blockchain.
 addBlocks
@@ -481,7 +485,7 @@ addBlocksUntil
     => Slot
     -> ContractTrace s e m a ()
 addBlocksUntil sl = do
-    currentSlot <- lift $ gets (Blockchain.lastSlot . NC._chainNewestFirst . EM._chainState)
+    currentSlot <- lift $ gets (Blockchain.lastSlot . view (EM.chainState . EM.chainNewestFirst))
     let Slot missing = sl - currentSlot
     addBlocks (max 0 missing)
 
@@ -549,7 +553,7 @@ handleUtxoQueries
     -> ContractTrace s e m a ()
 handleUtxoQueries wllt = do
     addresses <- utxoQueryAddresses wllt
-    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view EM.walletIndex))
+    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletState wllt . EM.addressMap)))
     let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
     traverse_ (addEvent wllt . UtxoAt.event) events
 

@@ -82,7 +82,7 @@ import           Ledger.TxId                                     (TxId)
 import           Ledger.Value                                    (Value)
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                                 as EM
-import qualified Wallet.Emulator.NodeClient                      as NC
+import qualified Wallet.Emulator.Chain                      as EM
 
 import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Trace                  as X
@@ -317,10 +317,11 @@ fundsAtAddress
     -> (Value -> Bool)
     -> TracePredicate s e a
 fundsAtAddress address check = PredF $ \(_, r) -> do
-    let funds = 
-            Map.findWithDefault mempty address 
+    let funds =
+            Map.findWithDefault mempty address
             $ AM.values
-            $ view EM.walletIndex
+            $ AM.fromChain
+            $ view (EM.chainState . EM.chainNewestFirst)
             $ _ctrEmulatorState r
         passes = check funds
     unless passes
@@ -583,7 +584,7 @@ assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState 
             pure False
 
 failedTransactions :: [EM.EmulatorEvent] -> [(TxId, ValidationError)]
-failedTransactions = mapMaybe $ 
+failedTransactions = mapMaybe $
     \case
-        EM.ChainEvent (NC.TxnValidationFail txid err) -> Just (txid, err)
+        EM.ChainEvent (EM.TxnValidationFail txid err) -> Just (txid, err)
         _ -> Nothing

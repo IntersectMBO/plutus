@@ -44,8 +44,7 @@ import           Ledger.Blockchain
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOutTx) }
-    deriving Show
-    deriving stock (Generic)
+    deriving stock (Show, Eq, Generic)
     deriving newtype (Serialise)
 
 -- | An address map with a single unspent transaction output.

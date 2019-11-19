@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module Language.Marlowe.Client where
-import           Control.Monad              (Monad (..), void)
+import           Control.Monad              (Monad (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
@@ -41,7 +41,7 @@ createContract :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => Contract
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 createContract contract = do
     slot <- slot
     creator <- ownPubKey
@@ -60,8 +60,8 @@ createContract contract = do
         slotRange = interval slot (slot + 10)
         outputs = o : maybeToList change
 
-    void $ createTxAndSubmit slotRange payment outputs [ds]
-    return marloweData
+    tx <- createTxAndSubmit slotRange payment outputs [ds]
+    return (marloweData, tx)
 
 
 {-| Deposit 'amount' of money to 'accountId' to a Marlowe contract
@@ -74,7 +74,7 @@ deposit :: (
     -> MarloweData
     -> AccountId
     -> Ada
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 deposit tx marloweData accountId amount = do
     pubKey <- ownPubKey
     applyInputs tx marloweData [IDeposit accountId pubKey amount]
@@ -86,7 +86,7 @@ notify :: (
     WalletAPI m)
     => Tx
     -> MarloweData
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 notify tx marloweData = applyInputs tx marloweData [INotify]
 
 
@@ -98,7 +98,7 @@ makeChoice :: (
     -> MarloweData
     -> ChoiceId
     -> Integer
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 makeChoice tx marloweData choiceId choice = applyInputs tx marloweData [IChoice choiceId choice]
 
 
@@ -119,7 +119,7 @@ makeProgress :: (
     WalletAPI m)
     => Tx
     -> MarloweData
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 makeProgress tx marloweData = applyInputs tx marloweData []
 
 
@@ -133,7 +133,7 @@ applyInputs :: (
     => Tx
     -> MarloweData
     -> [Input]
-    -> m MarloweData
+    -> m (MarloweData, Tx)
 applyInputs tx marloweData@MarloweData{..} inputs = do
     let depositAmount = Ada.adaOf 1
         depositPayment = Payment marloweCreator depositAmount
@@ -187,13 +187,13 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
         then createPaymentWithChange (Ada.toValue totalIncome)
         else return (Set.empty, Nothing)
 
-    void $ createTxAndSubmit
+    tx <- createTxAndSubmit
         slotRange
         (Set.insert scriptIn payment)
         (deducedTxOutputs ++ maybeToList change)
         [DataScript (PlutusTx.toData marloweData)]
 
-    return marloweData
+    return (marloweData, tx)
   where
     collectDeposits (IDeposit _ _ money) = money
     collectDeposits _                    = mempty

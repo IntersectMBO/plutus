@@ -39,7 +39,7 @@ import           Playground.Types                (EndpointName (EndpointName), E
                                                   endpointName, payTo, simulatorWalletBalance, simulatorWalletWallet,
                                                   value, wallet)
 import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.NodeClient      (ChainState (..))
+import           Wallet.Emulator.Chain           (ChainState (..))
 import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates),
                                                   Wallet, WalletState, ownFunds, ownPrivateKey)
 import           Wallet.Rollup                   (doAnnotateBlockchain)

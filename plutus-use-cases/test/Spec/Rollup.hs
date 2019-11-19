@@ -21,7 +21,7 @@ import qualified Spec.Vesting
 import           Test.Tasty                                            (TestTree, testGroup)
 import           Test.Tasty.Golden                                     (goldenVsString)
 import           Test.Tasty.HUnit                                      (assertFailure)
-import qualified Wallet.Emulator.NodeClient                            as NC
+import qualified Wallet.Emulator.Chain                                 as EM
 import           Wallet.Emulator.Types
 import           Wallet.Rollup.Render                                  (showBlockchain)
 
@@ -52,6 +52,6 @@ render con trace = do
     case result of
         Left err -> assertFailure $ show err
         Right _ ->
-            case showBlockchain walletKeys (NC._chainNewestFirst cs) of
+            case showBlockchain walletKeys (EM._chainNewestFirst cs) of
                 Left err       -> assertFailure $ show err
                 Right rendered -> pure . LBS.fromStrict . encodeUtf8 $ rendered

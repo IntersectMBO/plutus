@@ -35,8 +35,10 @@ import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
 import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
-import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
-import Wallet.Emulator.NodeClient (ChainEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
+import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
+import Wallet.Emulator.Chain (ChainEvent(..))
+import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 
 evaluationPane ::
   forall m.
@@ -73,7 +75,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (ChainEvent (TxnSubmit (TxId txId))) =
+emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
@@ -93,12 +95,8 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 
-emulatorEventPane (WalletError (Wallet walletId) error) =
+emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg info)) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Error from wallet #" <> show walletId.getWallet <> ": " <> genericShow error ]
-
-emulatorEventPane (WalletInfo (Wallet walletId) info) =
-  div_
     [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> info ]
 
 ------------------------------------------------------------

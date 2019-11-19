@@ -36,7 +36,7 @@ import Prim.TypeError (class Warn, Text)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
-import Wallet.Emulator.Types (Wallet)
+import Wallet.Emulator.Wallet (Wallet)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 simulationPane ::

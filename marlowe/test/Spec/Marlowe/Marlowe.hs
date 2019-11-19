@@ -12,7 +12,10 @@ module Spec.Marlowe.Marlowe
     )
 where
 
+import           Control.Lens               (view)
 import           Control.Monad              (void)
+import qualified Control.Monad.Freer        as Eff
+import qualified Control.Monad.Freer.Error  as Eff
 import qualified Data.ByteString            as BS
 import           Data.Either                (isRight)
 import qualified Data.Map.Strict            as Map
@@ -33,10 +36,10 @@ import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Wallet                     (PubKey (..))
+import           Wallet                     (PubKey (..), WalletAPIError)
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators as Gen
-import           Wallet.Emulator.NodeClient
+import           Wallet.Emulator.Wallet
 import qualified Wallet.Generators          as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
@@ -99,8 +102,8 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
                 ))] (Slot 100) Close
 
     let performs = performNotify [alice, bob]
-    (tx, md) <- alice `performs` createContract zeroCouponBond
-    (tx, md) <- alice `performs` deposit tx md aliceAcc (Ada.adaOf 850)
+    (md, tx) <- alice `performs` createContract zeroCouponBond
+    (md, tx) <- alice `performs` deposit tx md aliceAcc (Ada.adaOf 850)
     bob `performs` deposit tx md aliceAcc (Ada.adaOf 1000)
 
     assertOwnFundsEq alice (Ada.adaValueOf 1150)
@@ -131,8 +134,8 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
             ] (Slot 100) Close
 
     let performs = performNotify [alice, bob]
-    (tx, md) <- alice `performs` createContract contract
-    (tx, md) <- alice `performs` applyInputs tx md
+    (md, tx) <- alice `performs` createContract contract
+    (md, tx) <- alice `performs` applyInputs tx md
         [ IChoice chId 256_000000
         , IDeposit aliceAcc alicePk (Ada.adaOf 256)]
     addBlocksAndNotify [alice, bob] 150
@@ -160,9 +163,9 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
             Close
 
     let performs = performNotify [alice, bob]
-    (tx, md) <- alice `performs` createContract contract
+    (md, tx) <- alice `performs` createContract contract
     addBlocksAndNotify [alice, bob] 5
-    (tx, md) <- alice `performs` makeProgress tx md
+    (md, tx) <- alice `performs` makeProgress tx md
     void $ alice `performs` deposit tx md aliceAcc (Ada.adaOf 500)
 
     assertOwnFundsEq alice (Ada.adaValueOf 500)
@@ -191,25 +194,24 @@ validatorSize = do
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkMarloweTrace :: MarloweScenario -> Trace MockWallet () -> Property
+checkMarloweTrace :: MarloweScenario -> Trace () -> Property
 checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert (null (_txPool (_chainState st)))
+    Hedgehog.assert (null (view (chainState . txPool) st))
 
 
-updateAll :: [Wallet] -> Trace MockWallet ()
+updateAll :: [Wallet] -> Trace ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 
-performNotify :: [Wallet] -> Wallet -> m MarloweData -> Trace m (Tx, MarloweData)
+performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError] (MarloweData, Tx) -> Trace (MarloweData, Tx)
 performNotify wallets actor action = do
-    (md, txs) <- walletAction actor action
-    let tx = head txs
+    (md, tx) <- walletAction actor action
     processPending >>= void . walletsNotifyBlock wallets
     assertIsValidated tx
-    return (tx, md)
+    return (md, tx)
 
 
 checkEqValue :: Property

@@ -95,6 +95,8 @@ test-suite plutus-use-cases-test
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         plutus-tx -any,
         plutus-contract -any,

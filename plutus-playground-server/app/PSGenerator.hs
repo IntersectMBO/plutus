@@ -62,8 +62,10 @@ import           Servant.PureScript                         (HasBridge, Settings
                                                              writeAPIModuleWithSettings, _generateSubscriberAPI)
 import           System.FilePath                            ((</>))
 import           Wallet.API                                 (WalletAPIError)
-import qualified Wallet.Emulator.NodeClient                 as NC
-import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
+import qualified Wallet.Emulator.Chain                      as EM
+import qualified Wallet.Emulator.MultiAgent                 as EM
+import qualified Wallet.Emulator.NodeClient                 as EM
+import qualified Wallet.Emulator.Wallet                     as EM
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
                                                              SequenceId)
 
@@ -227,7 +229,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @Warning)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointName)
     , (genericShow <*> mkSumType) (Proxy @SourceCode)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Wallet)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EM.Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DataScript)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
@@ -236,8 +238,10 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
-    , (genericShow <*> mkSumType) (Proxy @EmulatorEvent)
-    , (genericShow <*> mkSumType) (Proxy @NC.ChainEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.WalletEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
     , (genericShow <*> mkSumType) (Proxy @PlaygroundError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (genericShow <*> mkSumType) (Proxy @ScriptError)

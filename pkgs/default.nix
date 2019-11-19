@@ -44601,7 +44601,9 @@ license = "GPL";
 , bytestring
 , cborg
 , containers
+, freer-simple
 , hedgehog
+, lens
 , memory
 , mtl
 , plutus-emulator
@@ -44641,7 +44643,9 @@ base
 bytestring
 cborg
 containers
+freer-simple
 hedgehog
+lens
 memory
 plutus-emulator
 plutus-tx
@@ -54017,6 +54021,7 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , doctest
 , extensible-effects
+, freer-simple
 , hedgehog
 , iots-export
 , language-plutus-core
@@ -54053,6 +54058,7 @@ aeson
 base
 bytestring
 containers
+freer-simple
 iots-export
 lens
 mmorph
@@ -54116,6 +54122,7 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , cryptonite
 , deriving-compat
+, freer-simple
 , hashable
 , hedgehog
 , http-api-data
@@ -54162,6 +54169,7 @@ conduit
 containers
 cryptonite
 deriving-compat
+freer-simple
 hashable
 hedgehog
 http-api-data
@@ -54193,6 +54201,7 @@ aeson
 base
 bytestring
 containers
+freer-simple
 hedgehog
 lens
 plutus-tx
@@ -54314,6 +54323,7 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , cryptonite
+, freer-simple
 , hedgehog
 , hspec
 , hspec-discover
@@ -54352,6 +54362,7 @@ base
 bytestring
 containers
 cryptonite
+freer-simple
 insert-ordered-containers
 iots-export
 lens
