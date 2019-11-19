@@ -33,12 +33,6 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     import: lang
     exposed-modules:
@@ -89,9 +83,6 @@ library
         http-api-data,
         playground-common,
         cardano-crypto
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
 
 test-suite plutus-emulator-test
     type: exitcode-stdio-1.0

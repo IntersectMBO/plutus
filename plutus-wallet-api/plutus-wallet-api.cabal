@@ -35,12 +35,6 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 flag defer-plugin-errors
     description:
         Defer errors from the plugin, useful for things like Haddock that can't handle it.
@@ -99,9 +93,6 @@ library
         recursion-schemes -any,
         deriving-compat -any,
         prettyprinter >=1.1.0.1
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors

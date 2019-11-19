@@ -32,12 +32,6 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     import: lang
     exposed-modules:

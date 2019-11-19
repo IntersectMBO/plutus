@@ -76,19 +76,6 @@ extra-deps:
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
 - git: https://gitlab.com/joneshf/purty.git
   commit: 3c073e1149ecdddd01f1d371c70d5b243d743bf2
-flags:
-  language-plutus-core:
-    development: true
-  plutus-wallet-api:
-    development: true
-  plutus-exe:
-    development: true
-  plutus-core-interpreter:
-    development: true
-  plutus-playground-server:
-    development: true
-  plutus-contract:
-    development: true
 extra-package-dbs: []
 nix:
   packages: [zlib, gmp, openssl]

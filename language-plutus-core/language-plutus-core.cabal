@@ -19,18 +19,6 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-flag eventlog
-    description:
-        Pass `-eventlog` flag to GHC
-    default: False
-    manual: True
-
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 library
     exposed-modules:
         Language.PlutusCore
@@ -160,12 +148,6 @@ library
         cryptonite,
         cardano-crypto
 
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
 executable language-plutus-core-generate-evaluation-test
     main-is: Main.hs
     hs-source-dirs: generate-evaluation-test
@@ -178,12 +160,6 @@ executable language-plutus-core-generate-evaluation-test
         language-plutus-core -any,
         text -any,
         hedgehog -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
 
 test-suite language-plutus-core-test
     type: exitcode-stdio-1.0
@@ -224,15 +200,6 @@ test-suite language-plutus-core-test
         mtl -any,
         mmorph -any
 
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
 benchmark language-plutus-core-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
@@ -248,12 +215,3 @@ benchmark language-plutus-core-bench
         bytestring -any,
         serialise -any,
         containers
-
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
