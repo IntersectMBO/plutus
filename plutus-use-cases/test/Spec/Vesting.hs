@@ -1,3 +1,4 @@
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -7,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
-module Spec.Vesting(tests) where
+module Spec.Vesting(tests, retrieveFundsTrace, vesting) where
 
 import qualified Data.Text as T
 import           Test.Tasty
@@ -44,13 +45,7 @@ tests =
         (walletFundsChange wallet2 (Numeric.negate $ totalAmount vesting)
         /\ assertNoFailedTransactions
         /\ walletFundsChange wallet1 (Ada.lovelaceValueOf 10))
-        (callEndpoint @"vest funds" wallet2 ()
-        >> handleBlockchainEvents wallet2
-        >> addBlocks 10
-        >> callEndpoint @"retrieve funds" wallet1 (Ada.lovelaceValueOf 10)
-        >> notifySlot wallet1
-        >> addBlocks 1
-        >> handleBlockchainEvents wallet1)
+        retrieveFundsTrace
 
     , checkPredicate "cannot retrieve more than allowed"
         con
@@ -90,6 +85,18 @@ vesting =
         { vestingTranche1 = VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
         , vestingTranche2 = VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
         , vestingOwner    = walletPubKey wallet1 }
+
+retrieveFundsTrace 
+    :: ( MonadEmulator (TraceError e) m )
+    => ContractTrace VestingSchema e m () ()
+retrieveFundsTrace = do
+    callEndpoint @"vest funds" wallet2 ()
+    handleBlockchainEvents wallet2
+    addBlocks 10
+    callEndpoint @"retrieve funds" wallet1 (Ada.lovelaceValueOf 10)
+    notifySlot wallet1
+    addBlocks 1
+    handleBlockchainEvents wallet1
 
 expectedError :: TraceError T.Text
 expectedError = ContractError "Cannot take out Value {getValue = Map {unMap = [(,Map {unMap = [(,30)]})]}}. The maximum is Value {getValue = Map {unMap = [(,Map {unMap = [(,20)]})]}}. At least Value {getValue = Map {unMap = [(,Map {unMap = [(,40)]})]}} must remain locked by the script."
