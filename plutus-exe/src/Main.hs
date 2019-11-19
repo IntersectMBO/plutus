@@ -71,7 +71,7 @@ data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data SerialisationMode = Typed | Untyped | UntypedAnon
+data SerialisationMode = Typed | TypedAnon | Untyped | UntypedAnon | UntypedAnon2
 data SerialisationOptions = SerialisationOptions Input SerialisationMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Serialise SerialisationOptions
 
@@ -136,9 +136,11 @@ serialisationOpts = SerialisationOptions <$> input <*> serialisationMode
 
 serialisationMode :: Parser SerialisationMode
 serialisationMode = subparser (
-    command "typed"   (info (pure Typed)   (progDesc "Output CBOR for typed AST"))
- <> command "untyped" (info (pure Untyped) (progDesc "Output CBOR for type-erased AST"))
- <> command "anon"    (info (pure UntypedAnon) (progDesc "Output CBOR for type-erased AST with empty names"))
+    command "typed"         (info (pure Typed)        (progDesc "Output CBOR for typed AST"))
+ <> command "typed-anon"    (info (pure TypedAnon)    (progDesc "Output CBOR for typed AST with empty names"))
+ <> command "untyped"       (info (pure Untyped)      (progDesc "Output CBOR for type-erased AST"))
+ <> command "untyped-anon"  (info (pure UntypedAnon)  (progDesc "Output CBOR for type-erased AST with empty names"))
+ <> command "untyped-anon2" (info (pure UntypedAnon2) (progDesc "Output CBOR for type-erased AST with no names"))
  )
 
               
@@ -200,9 +202,11 @@ runSerialise (SerialisationOptions is mode) = do
     contents <- getInput is
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let serialiseFn = case mode of
-                        Typed -> serialise
-                        Untyped -> serialise . U.eraseProgram
-                        UntypedAnon -> serialise . U.eraseProgram . U.anonProgram
+                        Typed        -> serialise
+                        TypedAnon    -> serialise . U.anonProgram
+                        Untyped      -> serialise . U.eraseProgram
+                        UntypedAnon  -> serialise . U.eraseProgram . U.anonProgram
+                        UntypedAnon2 -> serialise . U.anonProgram2 . U.eraseProgram
     case serialiseFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
       Left (e :: PLC.Error PLC.AlexPosn) ->
           do

@@ -35,6 +35,12 @@ import Opt
 main :: IO ()
 main = defaultMain [ functions, validators ]
 
+-- | Ouput PLC for ASTs with various things erased
+erasure :: Benchmark
+erasure = undefined -- bgroup "erasure" [testErasure]
+
+
+
 -- | Execution of some interesting functions.
 functions :: Benchmark
 functions = bgroup "functions" [ verifySignatureB, hashB, fibB, sumB, tailB ]

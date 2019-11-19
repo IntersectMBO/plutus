@@ -89,7 +89,7 @@ test-suite plutus-use-cases-test
     default-language: Haskell2010
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities -rtsopts
+                 -Wredundant-constraints -Widentities -rtsopt
     build-depends:
         plutus-tx -any,
         plutus-contract -any,

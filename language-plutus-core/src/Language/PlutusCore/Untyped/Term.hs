@@ -27,6 +27,8 @@ module Language.PlutusCore.Untyped.Term ( Term (..)
                                 , erase
                                 , eraseProgram
                                 , anonProgram
+                                , Name2 (..)
+                                , anonProgram2
                                 ) where
 
 import           Control.Lens                   hiding (anon)
@@ -38,6 +40,8 @@ import           Language.PlutusCore.Lexer.Type
 import qualified Language.PlutusCore.Type       as T
 import qualified Language.PlutusCore.Name       as N
 import           PlutusPrelude
+import           Codec.Serialise
+import           Codec.CBOR.Decoding
 
 termLoc :: Term name a -> a
 termLoc (Var l _)        = l
@@ -160,18 +164,70 @@ eraseProgram (T.Program ann version body) = Program ann version (erase body)
 anon :: N.Name ann -> N.Name ann
 anon (N.Name ann _str uniq) = N.Name ann "" uniq
 
-anonTerm :: T.Term tyname N.Name ann -> T.Term tyname N.Name ann
+anonTn :: N.TyName ann -> N.TyName ann
+anonTn (N.TyName n) = N.TyName (anon n) 
+                              
+anonTy :: T.Type N.TyName ann -> T.Type N.TyName ann
+anonTy = \case
+      T.TyVar x tn         -> T.TyVar x (anonTn tn)
+      T.TyFun x ty ty'     -> T.TyFun x (anonTy ty) (anonTy ty')
+      T.TyIFix x ty ty'    -> T.TyIFix x (anonTy ty) (anonTy ty')
+      T.TyForall x tn k ty -> T.TyForall x (anonTn tn) k (anonTy ty)
+      T.TyBuiltin x tb     -> T.TyBuiltin x tb
+      T.TyLam x tn k ty    -> T.TyLam x (anonTn tn) k (anonTy ty)
+      T.TyApp x ty ty'     -> T.TyApp x (anonTy ty) (anonTy ty')
+
+                              
+anonTerm :: T.Term N.TyName N.Name ann -> T.Term N.TyName N.Name ann
 anonTerm = \case
            T.Var x n          -> T.Var x (anon n)
-           T.TyAbs x tn k e   -> T.TyAbs x tn k (anonTerm e)
-           T.LamAbs x n ty e  -> T.LamAbs x (anon n) ty (anonTerm e)
+           T.TyAbs x tn k e   -> T.TyAbs x (anonTn tn) k (anonTerm e)
+           T.LamAbs x n ty e  -> T.LamAbs x (anon n) (anonTy ty) (anonTerm e)
            T.Apply x e1 e2    -> T.Apply x (anonTerm e1) (anonTerm e2)
            T.Constant x c     -> T.Constant x c
            T.Builtin x b      -> T.Builtin x b
-           T.TyInst x e ty    -> T.TyInst x (anonTerm e) ty
+           T.TyInst x e ty    -> T.TyInst x (anonTerm e) (anonTy ty)
            T.Unwrap x e       -> T.Unwrap x (anonTerm e)
-           T.IWrap x ty ty' e -> T.IWrap x ty ty' (anonTerm e)
-           T.Error x ty       -> T.Error x ty
+           T.IWrap x ty ty' e -> T.IWrap x (anonTy ty) (anonTy ty') (anonTerm e)
+           T.Error x ty       -> T.Error x (anonTy ty)
 
-anonProgram :: T.Program ty N.Name a -> T.Program ty N.Name a
+anonProgram :: T.Program N.TyName N.Name a -> T.Program N.TyName N.Name a
 anonProgram (T.Program ann version body) = T.Program ann version (anonTerm body)
+
+
+-- Now get rid of names completely, and also annotations in names.
+-- It's a bit tricky to do this on the typed syntax because the TyName
+-- type there isn't parametric over the name type: it has N.Name built
+-- in.  This problem doesn't arise with the untyped AST.
+
+newtype Name2 a = Name2 Int
+instance Serialise (Name2 a) where
+    encode (Name2 n) = encode n
+    decode = Name2 <$> decodeInt
+
+anon2 :: N.Name a -> Name2 a
+anon2 (N.Name _ _ (N.Unique uniq)) = Name2 uniq
+
+
+anonTerm2 :: Term N.Name ann -> Term Name2 ann
+anonTerm2 = \case
+        Var x n        -> Var x (anon2 n)
+        LamAbs x n t   -> LamAbs x (anon2 n) (anonTerm2 t)
+        Apply x t1 t2  -> Apply x (anonTerm2 t1) (anonTerm2 t2)
+        Error x        -> Error x
+        Constant x c   -> Constant x c
+        Builtin x b    -> Builtin x b
+
+anonProgram2 :: Program N.Name a -> Program Name2 a
+anonProgram2 (Program ann version body) = Program ann version (anonTerm2 body)
+
+{- To get plc source for the use cases,  add
+
+    --ghc-options: -fplugin-opt  Language.PlutusTx.Plugin:dump-plc
+
+   to plutus-use-cases.cabal (under 'library')and then build
+   plutus-use-cases.  This will dump the source to the terminal, along
+   with all the other build output. This isn't ideal, but it's a quick
+   way to get PLC. The source probably won't compile though (clashes
+   with built in names, aldo plc can't handle extensible builtins yet. 
+-}

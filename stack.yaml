@@ -20,6 +20,7 @@ packages:
 - deployment-server
 - iots-export
 - marlowe-symbolic
+- plutus-merklisation
 
 extra-deps:
 # Agda and deps
