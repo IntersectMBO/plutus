@@ -53994,56 +53994,13 @@ license = stdenv.lib.licenses.mit;
 "plutus-book" = callPackage
 ({
   mkDerivation
-, base
-, bytestring
-, containers
-, hspec
-, language-plutus-core
-, mtl
-, plutus-emulator
-, plutus-playground-lib
-, plutus-tx
-, plutus-wallet-api
-, prettyprinter
 , stdenv
-, template-haskell
-, text
-, unlit
-, wl-pprint
 }:
 mkDerivation {
 
 pname = "plutus-book";
 version = "0.1.0.0";
 src = .././plutus-book;
-libraryHaskellDepends = [
-base
-bytestring
-containers
-language-plutus-core
-mtl
-plutus-emulator
-plutus-playground-lib
-plutus-tx
-plutus-wallet-api
-prettyprinter
-template-haskell
-text
-wl-pprint
-];
-libraryToolDepends = [
-unlit
-];
-testHaskellDepends = [
-base
-bytestring
-containers
-hspec
-plutus-emulator
-plutus-tx
-plutus-wallet-api
-text
-];
 doHaddock = false;
 description = "The Plutus Book";
 license = stdenv.lib.licenses.asl20;

@@ -15,6 +15,8 @@ import           Ledger
 import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import           Language.PlutusTx.Coordination.Contracts.Game
+import           Language.PlutusTx.Coordination.Contracts.Vesting
+import qualified Spec.Vesting
 
 import           Test.Tasty                                            (TestTree, testGroup)
 import           Test.Tasty.Golden                                     (goldenVsString)
@@ -33,6 +35,10 @@ tests = testGroup "showBlockchain"
           "renders a guess scenario sensibly"
           "test/Spec/renderGuess.txt"
           (render game guessTrace)
+     , goldenVsString
+          "renders a vesting scenario sensibly"
+          "test/Spec/renderVesting.txt"
+          (render (vestingContract Spec.Vesting.vesting) Spec.Vesting.retrieveFundsTrace)
      ]
 
 render
