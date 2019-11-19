@@ -50,6 +50,7 @@ module Wallet.Emulator.Types(
     runFailingWalletAction,
     walletRecvNotifications,
     walletNotifyBlock,
+    walletSubscribe,
     walletsNotifyBlock,
     processPending,
     addBlocks,
@@ -115,9 +116,10 @@ import           Servant.API                (FromHttpApiData (..), ToHttpApiData
 
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 
-import           Ledger                     (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                             TxIn (..), TxOut (..), TxOutRef, TxOutTx (..), Value, addSignature,
-                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId, txOutAddress)
+import           Ledger                     (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot (..),
+                                             Tx (..), TxIn (..), TxOut (..), TxOutRef, TxOutTx (..), Value,
+                                             addSignature, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId,
+                                             txOutAddress)
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Index               as Index
@@ -239,7 +241,7 @@ deleteHandlers t = modify (over triggers (set (at t) Nothing))
 
 -- | Process a list of 'Notification's in the mock wallet environment.
 handleNotifications :: [Notification] -> MockWallet ()
-handleNotifications = mapM_ (updateState >=> runTriggers)  where
+handleNotifications = mapM_ (updateState >=> runTriggers) where
     updateState = \case
             CurrentSlot h -> modify (walletSlot .~ h)
             BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletSlot %~ succ)
@@ -378,8 +380,6 @@ data Event n a where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
     WalletAction :: Wallet -> n a -> Event n (Either WalletAPIError a, [Tx])
-    -- | A wallet receiving some notifications, and reacting to them.
-    WalletRecvNotification :: Wallet -> [Notification] -> Event n [Tx]
     -- | The blockchain processing pending transactions, producing a new block
     --   from the valid ones and discarding the invalid ones.
     BlockchainProcessPending :: Event n Block
@@ -387,6 +387,8 @@ data Event n a where
     Assertion :: Assertion -> Event n ()
     -- | Failure.
     Failure :: T.Text -> Event n a
+    WalletSubscribe :: Wallet -> Slot -> Event n ()
+    WalletRecvNotification :: Wallet -> Int -> Event n [Tx]
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 -- | A series of 'Event's.
@@ -508,11 +510,19 @@ evalEmulated = \case
             Left err -> do
                 _ <- modifying emulatorLog (WalletError wallet err :)
                 pure (Left err, txns)
-    WalletRecvNotification wallet trigger -> fst <$> liftMockWallet wallet (handleNotifications trigger)
+    WalletSubscribe wallet nextSlot ->
+        liftNodeClient $ NC.subscribe (toWalletH wallet) nextSlot
+    WalletRecvNotification wallet count -> do
+        let walletH = toWalletH wallet
+        mBlocks <- liftNodeClient $ NC.takeBlocks walletH count
+        case mBlocks of
+            Left  err    -> throwing _AssertionError $ GenericAssertion err
+            Right blocks ->
+                  fst <$> liftMockWallet wallet (handleNotifications (map BlockValidated blocks))
     BlockchainProcessPending -> do
-        initialState <- get
-        validatedBlock <- liftNodeClient NC.processBlock
-        finalState <- get
+        initialState   <- get
+        validatedBlock <- liftNodeClient NC.processPending
+        finalState     <- get
         let
             (NC.ValidatedBlock block events _) = validatedBlock
             walletIndex' = foldr AM.updateAllAddresses (_walletIndex initialState) block
@@ -526,7 +536,10 @@ evalEmulated = \case
         pure block
     Assertion a -> assert a
     Failure message -> throwing _AssertionError $ GenericAssertion message
-
+    where
+        toWalletH :: Wallet -> NC.WalletH
+        toWalletH (Wallet walletId) = NC.WalletH walletId
+        
 processEmulated :: (MonadEmulator e m) => Trace MockWallet a -> m a
 processEmulated = interpretWithMonad evalEmulated
 
@@ -554,17 +567,20 @@ runFailingWalletAction w act = do
         Left _  -> pure txs
         Right _ -> failure "Wallet action succeeded unexpectedly"
 
+walletSubscribe :: Wallet -> Slot -> Trace m ()
+walletSubscribe w = Op.singleton . WalletSubscribe w
+
 -- | Notify the given 'Wallet' of some blockchain events.
-walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
+walletRecvNotifications :: Wallet -> Int -> Trace m [Tx]
 walletRecvNotifications w = Op.singleton . WalletRecvNotification w
 
 -- | Notify the given 'Wallet' that a block has been validated.
-walletNotifyBlock :: Wallet -> Block -> Trace m [Tx]
-walletNotifyBlock w = walletRecvNotifications w . pure . BlockValidated
+walletNotifyBlock :: Wallet -> Trace m [Tx]
+walletNotifyBlock w = walletRecvNotifications w 1
 
 -- | Notify a list of 'Wallet's that a block has been validated.
-walletsNotifyBlock :: [Wallet] -> Block -> Trace m [Tx]
-walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) [] wls
+walletsNotifyBlock :: [Wallet] -> Trace m [Tx]
+walletsNotifyBlock = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w) []
 
 -- | Validate all pending transactions.
 processPending :: Trace m Block
@@ -578,7 +594,7 @@ addBlocks i = traverse (const processPending) [1..i]
 -- | Add a number of blocks, notifying all the given 'Wallet's after each block.
 addBlocksAndNotify :: [Wallet] -> Integer -> Trace m ()
 addBlocksAndNotify wallets i =
-    traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
+    traverse_ (\_ -> processPending >> walletsNotifyBlock wallets) [1..i]
 
 -- | Issue an 'Assertion'.
 assertion :: Assertion -> Trace m ()
@@ -632,7 +648,7 @@ runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m a -> Trace m ([Tx], 
 runWalletActionAndProcessPending wallets wallet action = do
     (result, _) <- runWalletAction wallet action
     block <- processPending
-    _ <- walletsNotifyBlock wallets block
+    _ <- walletsNotifyBlock wallets
     pure (block, result)
 
 allWallets :: [Wallet]
@@ -658,5 +674,5 @@ runTraceChainDefaultWallet :: MockWallet a -> (Either AssertionError (Either Wal
 runTraceChainDefaultWallet a = runTraceChainDefault (processEmulated a') where
     a' = do
         r <- runWalletAction (Wallet 1) a
-        _ <- processPending >>= walletsNotifyBlock allWallets
+        _ <- processPending >> walletsNotifyBlock allWallets
         pure r

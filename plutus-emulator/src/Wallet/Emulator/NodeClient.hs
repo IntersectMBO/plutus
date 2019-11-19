@@ -16,14 +16,16 @@ import           Control.Lens        hiding (index)
 import           Control.Monad.State
 import           Data.Aeson          (FromJSON, ToJSON)
 import           Data.List           (partition)
+import qualified Data.Map            as M
 import           Data.Maybe          (isNothing)
+import           Data.String         (fromString)
+import qualified Data.Text           as T
 import           Data.Traversable    (for)
 import           GHC.Generics        (Generic)
 
-import           Ledger              (Blockchain, Slot (..), Tx (..), TxId, lastSlot, txId)
+import           Ledger              (Blockchain, Block, Slot (..), Tx (..), TxId, lastSlot, txId)
 import qualified Ledger.Index        as Index
 import qualified Ledger.Interval     as Interval
-
 
 -- | Events produced by the blockchain emulator.
 data ChainEvent =
@@ -38,6 +40,9 @@ data ChainEvent =
 
 instance FromJSON ChainEvent
 instance ToJSON ChainEvent
+
+newtype WalletH = WalletH { getHandler :: Integer }
+    deriving (Show, Eq, Ord, Generic)
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
@@ -56,11 +61,17 @@ type TxPool = [Tx]
 data ChainState = ChainState {
     _chainNewestFirst :: Blockchain, -- ^ The current chain, with the newest transactions first in the list.
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
-    _index            :: Index.UtxoIndex -- ^ The UTxO index, used for validation.
+    _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
+    _walletStreams    :: M.Map WalletH Slot -- ^ The list of block events that were not received
 } deriving (Show)
 
 emptyChainState :: ChainState
-emptyChainState = ChainState [] [] mempty
+emptyChainState = ChainState {
+    _chainNewestFirst = [],
+    _txPool           = [],
+    _index            = mempty,
+    _walletStreams    = M.empty
+}
 
 makeLenses ''ChainState
 
@@ -120,12 +131,11 @@ class Monad m => NodeClientAPI m where
 
 instance NodeClientAPI (State ChainState) where
     publishTx tx = state $ ((), ) . over txPool (tx :)
-
     currentSlot =
         gets (Slot . fromIntegral . length . _chainNewestFirst)
 
-processBlock :: MonadState ChainState m => m ValidatedBlock
-processBlock = state $ \st ->
+processPending :: MonadState ChainState m => m ValidatedBlock
+processPending = state $ \st ->
     let pool  = st ^. txPool
         chain = st ^. chainNewestFirst
         slot  = lastSlot chain
@@ -137,3 +147,23 @@ processBlock = state $ \st ->
                             & chainNewestFirst .~ newChain
                             & index .~ idx')
 
+-- Subscriptions on the mock chain
+subscribe :: MonadState ChainState m => WalletH -> Slot -> m ()
+subscribe wallet nextSlot =
+    walletStreams %= M.insert wallet nextSlot
+
+unsubscribe :: MonadState ChainState m => WalletH -> m ()
+unsubscribe wallet =
+    walletStreams %= M.delete wallet
+
+takeBlocks :: MonadState ChainState m => WalletH -> Int -> m (Either T.Text [Block])
+takeBlocks wallet count = do
+    blocks   <- reverse <$> use chainNewestFirst
+    mOldSlot <- use (walletStreams . at wallet)
+    case mOldSlot of
+        Nothing             -> pure (Left $ "Wallet " <> (fromString $ show wallet) <> " is not connected.")
+        Just (Slot oldSlot) -> do
+            let streamedBlocks = blocks & drop (fromIntegral oldSlot) & take count
+                newSlot        = Slot (oldSlot + fromIntegral (length streamedBlocks))
+            walletStreams %= M.insert wallet newSlot
+            pure $ Right streamedBlocks
