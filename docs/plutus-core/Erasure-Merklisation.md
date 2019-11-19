@@ -61,7 +61,8 @@ serialised version of the full AST.
 
 Deleting unnecessary information and compressing reduces the size of
 the CBOR to less than 10K in every case, with the size decreasing by a
-factor of 20 or more (except for the swap contract, at 5.4%).  Even
+factor of 20 or more (except for the swap contract, at 5.4%) (compare
+the top left and bottom right entries for each contract).  Even
 without compression, type erasure and name anonymisation reduces sizes
 by a factor of 6 or more.
 
