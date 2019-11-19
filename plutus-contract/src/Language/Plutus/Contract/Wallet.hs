@@ -17,6 +17,7 @@ import qualified Data.Map                    as Map
 import           Data.Maybe                  (fromMaybe)
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
+import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
 import qualified Language.PlutusTx.Prelude   as P
@@ -38,7 +39,7 @@ balanceWallet
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
-    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show utx)
+    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
     let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)

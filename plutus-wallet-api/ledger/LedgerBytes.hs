@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
 module LedgerBytes ( LedgerBytes (..)
@@ -24,6 +25,7 @@ import           Data.Bifunctor             (bimap)
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.String                (IsString (..))
 import qualified Data.Text                  as Text
+import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow(..))
 import           Data.Word                  (Word8)
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType (iotsDefinition))
@@ -66,6 +68,7 @@ newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- T
     deriving stock (Eq, Ord, Generic)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.IsData)
     deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey)
+    deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BSL.ByteString
 bytes = getLedgerBytes

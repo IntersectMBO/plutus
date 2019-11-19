@@ -232,6 +232,15 @@ data EmulatorEvent =
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
 
+instance Pretty EmulatorEvent where
+    pretty = \case
+        ChainEvent (NC.TxnSubmit t) -> "TxnSubmit" <+> pretty t
+        ChainEvent (NC.TxnValidate t) -> "TxnValidate" <+> pretty t
+        ChainEvent (NC.TxnValidationFail t e) -> "TxnValidationFail" <+> pretty t <> colon <+> pretty e
+        ChainEvent (NC.SlotAdd sl) -> "SlotAdd" <+> pretty sl
+        WalletError w e -> "WalletError" <+> pretty w <> colon <+> pretty e
+        WalletInfo w t -> "WalletInfo" <+> pretty w <> colon <+> pretty t
+
 -- | Delete all 'EventHandler' values that are registered for an
 --   'EventTrigger'.
 deleteHandlers :: MonadState WalletState m => EventTrigger -> m ()

@@ -74,18 +74,25 @@ Lens.TH.makeLenses ''UnbalancedTx
 
 instance Pretty UnbalancedTx where
     pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange} =
-        let lines' =
-                [ "inputs:" <+> prettyShowList (Set.toList _inputs)
-                , "outputs:" <+> prettyShowList _outputs
+        let renderOutput Tx.TxOut{Tx.txOutType, Tx.txOutValue} =
+                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "locked by", pretty txOutType]
+            renderInput Tx.TxIn{Tx.txInRef,Tx.txInType} =
+                let rest =
+                        case txInType of
+                            Tx.ConsumeScriptAddress _ redeemer _ ->
+                                [pretty redeemer]
+                            Tx.ConsumePublicKeyAddress pk ->
+                                [pretty pk]
+                in hang 2 $ vsep $ "-" <+> pretty txInRef : rest
+            lines' =
+                [ hang 2 (vsep ("inputs:" : fmap renderInput (Set.toList _inputs)))
+                , hang 2 (vsep ("outputs:" : fmap renderOutput _outputs))
                 , "forge:" <+> pretty _forge
-                , "required signatures:" <+> prettyShowList _requiredSignatures
-                , "data values:" <+> prettyShowList _dataValues
+                , hang 2 (vsep ("required signatures:": fmap pretty _requiredSignatures))
+                , hang 2 (vsep ("data values:" : fmap pretty _dataValues))
                 , "validity range:" <+> viaShow _validityRange
                 ]
         in braces $ nest 2 $ vsep lines'
-
-prettyShowList :: Show a => [a] -> Doc ann
-prettyShowList = hsep . punctuate comma . fmap viaShow
 
 -- TODO: this is a bit of a hack, I'm not sure quite what the best way to avoid this is
 fromLedgerTx :: L.Tx -> UnbalancedTx

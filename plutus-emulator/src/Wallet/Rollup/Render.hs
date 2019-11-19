@@ -33,8 +33,8 @@ import           Ledger                                (Address, PubKey, Signatu
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getPubKey, getTxId, txFee, txForge, txOutValue,
-                                                        txOutputs, txSignatures)
+                                                        Value, getPubKey, txFee, txForge, txOutValue, txOutputs,
+                                                        txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
@@ -188,13 +188,13 @@ instance Render BeneficialOwner where
 instance Render Ada where
     render ada@(Lovelace l)
         | Ada.isZero ada = pure "-"
-        | otherwise = pure $ "Ada" <+> pretty l
+        | otherwise = pure (pretty l)
 
 instance Render (Digest SHA256) where
     render = render . abbreviate 40 . JSON.encodeSerialise
 
 instance Render TxId where
-    render t = pure $ viaShow (getTxId t)
+    render = pure . pretty
 
 instance Render PubKey where
     render pubKey =

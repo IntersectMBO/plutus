@@ -64,6 +64,7 @@ import           Data.Functor                             (void)
 import           Data.Hashable                            (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                             (Generic)
 import           IOTS                                     (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                      as PLC
@@ -200,6 +201,7 @@ newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving Pretty via (PrettyShow ValidatorScript)
 
 instance Show ValidatorScript where
     show = const "ValidatorScript { <script> }"
@@ -215,9 +217,7 @@ newtype DataScript = DataScript { getDataScript :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
-
-instance Pretty DataScript where
-    pretty (DataScript dat) = "DataScript:" <+> pretty dat
+  deriving Pretty via Data
 
 instance BA.ByteArrayAccess DataScript where
     length =
@@ -243,7 +243,7 @@ instance BA.ByteArrayAccess RedeemerScript where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (ToSchema)
@@ -254,12 +254,9 @@ instance IotsType ValidatorHash where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DataScriptHash =
     DataScriptHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
-
-instance Pretty DataScriptHash where
-    pretty (DataScriptHash bs) = "DataScriptHash:" <+> pretty (show bs)
 
 instance IotsType DataScriptHash where
     iotsDefinition = iotsDefinition @LedgerBytes
@@ -267,7 +264,7 @@ instance IotsType DataScriptHash where
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.ByteString
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON) via LedgerBytes
+    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, FromJSON, ToJSON, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
 
