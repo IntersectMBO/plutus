@@ -18,12 +18,6 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 executable plc
     main-is: Main.hs
     hs-source-dirs: src
@@ -40,9 +34,3 @@ executable plc
         lens -any,
         prettyprinter -any,
         optparse-applicative -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists

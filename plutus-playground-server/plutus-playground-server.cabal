@@ -24,12 +24,6 @@ source-repository head
     type: git
     location: https://github.com/iohk/plutus
 
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
-
 flag defer-plugin-errors
     description:
         Defer errors from the plugin, useful for things like Haddock that can't handle it.
