@@ -19,6 +19,7 @@ import           Language.PlutusTx.Coordination.Contracts.Game
 import           Test.Tasty                                            (TestTree, testGroup)
 import           Test.Tasty.Golden                                     (goldenVsString)
 import           Test.Tasty.HUnit                                      (assertFailure)
+import qualified Wallet.Emulator.NodeClient                            as NC
 import           Wallet.Emulator.Types
 import           Wallet.Rollup.Render                                  (showBlockchain)
 
@@ -40,11 +41,11 @@ render
     -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
     -> IO ByteString
 render con trace = do
-    let (result, EmulatorState{_chainNewestFirst = resultBlockchain, _walletStates = wallets}) = runTrace con trace
+    let (result, EmulatorState{ _chainState = cs, _walletStates = wallets}) = runTrace con trace
     let walletKeys = flip fmap (Map.toList wallets) $ \(w, ws) -> (toPublicKey (_ownPrivateKey ws), w)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->
-            case showBlockchain walletKeys resultBlockchain of
+            case showBlockchain walletKeys (NC._chainNewestFirst cs) of
                 Left err       -> assertFailure $ show err
                 Right rendered -> pure . LBS.fromStrict . encodeUtf8 $ rendered

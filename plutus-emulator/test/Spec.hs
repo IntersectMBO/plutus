@@ -46,11 +46,13 @@ import           Test.Tasty.HUnit           (testCase)
 import qualified Test.Tasty.HUnit           as HUnit
 import           Wallet
 import qualified Wallet.API                 as W
+import qualified Wallet.Emulator.NodeClient as NC
 import           Wallet.Emulator.Types
 import qualified Wallet.Generators          as Gen
 import qualified Wallet.Emulator.Generators          as Gen
 import           Wallet.Generators          (Mockchain(Mockchain))
 import qualified Wallet.Graph
+
 
 main :: IO ()
 main = defaultMain tests
@@ -145,13 +147,14 @@ txnIndex :: Property
 txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
-    Hedgehog.assert (Index.initialise (_chainNewestFirst st) == _index st)
+        ncState      = _chainState st
+    Hedgehog.assert (Index.initialise (NC._chainNewestFirst ncState) == NC._index ncState)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m processPending
-        idx = _index st
+        idx = st ^. chainState . NC.index
     Hedgehog.assert (isRight (Index.runValidation (Index.validateTransaction 0 txn) idx))
 
 
@@ -171,19 +174,19 @@ txnUpdateUtxo = property $ do
 
         -- Validate a pool that contains `txn` twice. It should succeed the
         -- first and fail the second time
-        ValidatedBlock [t1] [e1, e2] [] _ = validateBlock slot idx [txn, txn]
+        (NC.ValidatedBlock [t1] [_, e1, e2] [], _) = NC.validateBlock slot idx [txn, txn]
         tid = txId txn
     Hedgehog.assert (t1 == txn)
     Hedgehog.assert $ case (e1, e2) of
-        (TxnValidate i1, TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
-        _                                                                  -> False
+        (NC.TxnValidate i1, NC.TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
+        _                                                                        -> False
 
 validTrace :: Property
 validTrace = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert ([] == st ^. chainState . txPool)
 
 invalidTrace :: Property
 invalidTrace = property $ do
@@ -191,11 +194,11 @@ invalidTrace = property $ do
     let invalidTxn = txn { txFee = 0 }
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
-    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.assert (case _emulatorLog st of
-        SlotAdd _ : TxnValidationFail _ _ : _ -> True
-        _                                     -> False)
+        ChainEvent (NC.SlotAdd _) : ChainEvent (NC.TxnValidationFail _ _) : _ -> True
+        _                                                                     -> False)
 
 invalidScript :: Property
 invalidScript = property $ do
@@ -226,11 +229,11 @@ invalidScript = property $ do
             processPending
 
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case _emulatorLog st of
-        SlotAdd{} : TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"])) : _
+        ChainEvent (NC.SlotAdd{}) : ChainEvent (NC.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
             -> True
         _
             -> False
@@ -245,7 +248,7 @@ invalidScript = property $ do
 txnFlowsTest :: Property
 txnFlowsTest = property $ do
     (_, e) <- forAll $ Gen.runTraceOn Gen.generatorModel pubKeyTransactions
-    let chain = _chainNewestFirst e
+    let chain = e ^. chainState . NC.chainNewestFirst
         numTx = length $ fold chain
         flows = Wallet.Graph.txnFlows [] chain
         -- there should be at least one link per tx

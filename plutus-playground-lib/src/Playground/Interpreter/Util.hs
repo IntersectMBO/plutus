@@ -37,7 +37,8 @@ import           Playground.Types                (EvaluationResult (EvaluationRe
                                                   SimulatorWallet (SimulatorWallet), blocks, emulatorLog,
                                                   simulatorWalletBalance, simulatorWalletWallet)
 import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainNewestFirst, _emulatorLog, _index, _txPool, _walletStates),
+import           Wallet.Emulator.NodeClient      (ChainState (..))
+import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates),
                                                   Wallet, WalletState, ownFunds, ownPrivateKey)
 import           Wallet.Rollup                   (doAnnotateBlockchain)
 
@@ -52,10 +53,12 @@ type TraceResult
      = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
 
 analyzeEmulatorState :: EmulatorState -> Either PlaygroundError EvaluationResult
-analyzeEmulatorState EmulatorState { _chainNewestFirst
-                                   , _txPool
+analyzeEmulatorState EmulatorState { _chainState = ChainState {
+                                        _chainNewestFirst,
+                                        _txPool,
+                                        _index
+                                   }
                                    , _walletStates
-                                   , _index
                                    , _emulatorLog
                                    } =
     postProcessEvaluation $

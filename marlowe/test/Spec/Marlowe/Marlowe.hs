@@ -36,6 +36,7 @@ import           Test.Tasty.HUnit
 import           Wallet                     (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators as Gen
+import           Wallet.Emulator.NodeClient
 import qualified Wallet.Generators          as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
@@ -195,7 +196,7 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert (null (_txPool st))
+    Hedgehog.assert (null (_txPool (_chainState st)))
 
 
 updateAll :: [Wallet] -> Trace MockWallet ()
