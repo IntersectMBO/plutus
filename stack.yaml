@@ -22,6 +22,10 @@ packages:
 - marlowe-symbolic
 
 extra-deps:
+# FEAT/NEAT and deps
+- lazy-search-0.1.2.0
+- size-based-0.1.2.0
+- testing-feat-1.1.0.0
 # Agda and deps
 - aws-lambda-haskell-runtime-2.0.1
 - Agda-2.6.0

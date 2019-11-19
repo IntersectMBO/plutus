@@ -4,13 +4,20 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module Language.PlutusCore.Type.Gen where
+module Language.PlutusCore.Type.Gen
+  ( KindG (..)
+  , TypeBuiltinG (..)
+  , TypeG (..)
+  , toClosedType
+  , checkClosedTypeG
+  ) where
 
 import Language.PlutusCore (Type(..), TypeBuiltin(..), Kind(..))
-
 import Control.Enumerable
 import Data.Coolean
 import Text.Printf
+
+
 
 -- * Enumerating deBruijn indices
 
@@ -36,6 +43,7 @@ fromZ :: Z -> a
 fromZ i = i `seq` error "instance of empty type Z"
 
 
+
 -- * Enumerating kinds
 
 data KindG
@@ -50,6 +58,7 @@ $(deriveEnumerable ''KindG)
 toKind :: KindG -> Kind ()
 toKind TypeG              = Type ()
 toKind (KindArrowG k1 k2) = KindArrow () (toKind k1) (toKind k2)
+
 
 
 -- * Enumerating builtin types
@@ -69,6 +78,7 @@ toTypeBuiltin TyIntegerG    = TyInteger
 toTypeBuiltin TyStringG     = TyString
 
 
+
 -- * Enumerating types
 
 data TypeG n
@@ -82,6 +92,7 @@ data TypeG n
   deriving (Typeable, Eq, Show)
 
 $(deriveEnumerable ''TypeG)
+
 
 -- |Convert well-kinded generated types to Plutus types.
 toType :: Show n
@@ -106,14 +117,23 @@ toType ns k2 (TyAppG ty1 ty2 k1) = TyApp () (toType ns k' ty1) (toType ns k1 ty2
     k' = k1 `KindArrowG` k2
 toType _ k ty = error (printf "toType: convert type %s at kind %s" (show ty) (show k))
 
+
+
+-- * Enumerating closed types
+
+type ClosedTypeG = TypeG Z
+
+
 -- |Convert generated closed types to Plutus types.
-toTypeClosed :: [tyname ()] -> KindG -> TypeG Z -> Type tyname ()
-toTypeClosed fresh = toType NS{ nameOf = fromZ, fresh = fresh }
+toClosedType :: [tyname ()] -> KindG -> ClosedTypeG -> Type tyname ()
+toClosedType fresh = toType NS{ nameOf = fromZ, fresh = fresh }
+
 
 
 -- * Namespaces
 
 data NS tyname n = NS { nameOf :: n -> tyname (), fresh :: [tyname ()] }
+
 
 -- |Extend the type name map with a fresh name.
 extendNS :: forall tyname n. NS tyname n -> NS tyname (S n)
@@ -123,89 +143,77 @@ extendNS NS{..} = NS{ nameOf = nameOf', fresh = tail fresh }
     nameOf' FZ = head fresh
     nameOf' (FS i) = nameOf i
 
--- |Restrict the type name map by removing the topmost name.
-shrinkNS :: forall tyname n. NS tyname (S n) -> NS tyname n
-shrinkNS NS{..} = NS{ nameOf = nameOf', .. }
-  where
-    nameOf' :: n -> tyname ()
-    nameOf' i = nameOf (FS i)
 
 
 -- * Kind checking
 
 -- |Kind check builtin types.
 --
--- NOTE: If we make |checkKindGBuiltinG| non-strict in its second argument,
+-- NOTE: If we make |checkTypeBuiltinG| non-strict in its second argument,
 --       lazy-search will only ever return one of the various builtin types.
 --       Perhaps this is preferable?
 --
-checkKindGBuiltinG :: KindG -> TypeBuiltinG -> Cool
-checkKindGBuiltinG TypeG TyByteStringG = true
-checkKindGBuiltinG TypeG TyIntegerG    = true
-checkKindGBuiltinG TypeG TyStringG     = true
-checkKindGBuiltinG _     _             = false
+checkTypeBuiltinG :: KindG -> TypeBuiltinG -> Cool
+checkTypeBuiltinG TypeG TyByteStringG = true
+checkTypeBuiltinG TypeG TyIntegerG    = true
+checkTypeBuiltinG TypeG TyStringG     = true
+checkTypeBuiltinG _     _             = false
 
 
 -- |Kind check types.
-checkKindG :: KCS n -> KindG -> TypeG n -> Cool
-checkKindG kcs k (TyVarG i) =
-  let
+checkTypeG :: KCS n -> KindG -> TypeG n -> Cool
+checkTypeG kcs k (TyVarG i)
+  = varKindOk
+  where
     varKindOk = toCool $ k == kindOf kcs i
 
-  in varKindOk
+checkTypeG kcs k (TyFunG ty1 ty2)
+  = ty1KindOk &&& ty2KindOk
+  where
+    ty1KindOk = checkTypeG kcs k ty1
+    ty2KindOk = checkTypeG kcs k ty2
 
-checkKindG kcs k (TyFunG ty1 ty2) =
-  let
-    ty1KindOk = checkKindG kcs k ty1
-    ty2KindOk = checkKindG kcs k ty2
-
-  in ty1KindOk &&& ty2KindOk
-
-checkKindG kcs TypeG (TyIFixG ty1 k ty2) =
-  let
+checkTypeG kcs TypeG (TyIFixG ty1 k ty2)
+  = ty1KindOk &&& ty2KindOk
+  where
     ty1Kind   = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
-    ty1KindOk = checkKindG kcs ty1Kind ty1
-    ty2KindOk = checkKindG kcs TypeG ty2
+    ty1KindOk = checkTypeG kcs ty1Kind ty1
+    ty2KindOk = checkTypeG kcs TypeG ty2
 
-  in ty1KindOk &&& ty2KindOk
+checkTypeG kcs TypeG (TyForallG k body)
+  = tyKindOk
+  where
+    tyKindOk = checkTypeG (extendKCS k kcs) TypeG body
 
-checkKindG kcs TypeG (TyForallG k body) =
-  let
-    tyKindOk = checkKindG (extendKCS k kcs) TypeG body
+checkTypeG _ k (TyBuiltinG tyBuiltin)
+  = tyBuiltinKindOk
+  where
+    tyBuiltinKindOk = checkTypeBuiltinG k tyBuiltin
 
-  in tyKindOk
+checkTypeG kcs (k1 `KindArrowG` k2) (TyLamG body)
+  = bodyKindOk
+  where
+    bodyKindOk = checkTypeG (extendKCS k1 kcs) k2 body
 
-checkKindG _ k (TyBuiltinG tyBuiltin) =
-  let
-    tyBuiltinKindOk = checkKindGBuiltinG k tyBuiltin
-
-  in tyBuiltinKindOk
-
-checkKindG kcs (k1 `KindArrowG` k2) (TyLamG body) =
-  let
-    bodyKindOk = checkKindG (extendKCS k1 kcs) k2 body
-
-  in bodyKindOk
-
-checkKindG kcs k' (TyAppG ty1 ty2 k) =
-  let
+checkTypeG kcs k' (TyAppG ty1 ty2 k)
+  = ty1KindOk &&& ty2KindOk
+  where
     ty1Kind   = k `KindArrowG` k'
-    ty1KindOk = checkKindG kcs ty1Kind ty1
-    ty2KindOk = checkKindG kcs k ty2
+    ty1KindOk = checkTypeG kcs ty1Kind ty1
+    ty2KindOk = checkTypeG kcs k ty2
 
-  in ty1KindOk &&& ty2KindOk
-
-checkKindG _ _ _ = false
+checkTypeG _ _ _ = false
 
 
 -- |Kind check closed types.
-checkKindGClosed :: KindG -> TypeG Z -> Cool
-checkKindGClosed = checkKindG emptyKCS
+checkClosedTypeG :: KindG -> ClosedTypeG -> Cool
+checkClosedTypeG = checkTypeG emptyKCS
+
 
 
 -- * Kind checking state
 
-newtype KCS n = KCS { kindOf :: n -> KindG }
+newtype KCS n = KCS{ kindOf :: n -> KindG }
 
 emptyKCS :: KCS Z
 emptyKCS = KCS{ kindOf = fromZ }
@@ -216,4 +224,3 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
     kindOf' :: S n -> KindG
     kindOf' FZ = k
     kindOf' (FS i) = kindOf i
-
