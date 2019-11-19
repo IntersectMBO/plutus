@@ -170,7 +170,7 @@ _value :: forall s a. Lens' { value :: a | s } a
 _value = prop (SProxy :: SProxy "value")
 
 data ActionInputId
-  = DepositInputId AccountId Party
+  = DepositInputId AccountId Party BigInteger
   | ChoiceInputId ChoiceId (Array Bound)
   | NotifyInputId
 
@@ -265,9 +265,11 @@ actionToActionInput state (Deposit accountId party value) =
   let
     minSlot = state ^. _minSlot
 
+    evalResult = evalValue env state value
+
     env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
   in
-    Tuple (DepositInputId accountId party) (DepositInput accountId party (evalValue env state value))
+    Tuple (DepositInputId accountId party evalResult) (DepositInput accountId party evalResult)
 
 actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 
