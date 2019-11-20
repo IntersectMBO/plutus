@@ -1,24 +1,29 @@
----
+# Stylish-haskell configuration file
+#
+# See `stylish-haskell --defaults` or
+# https://github.com/jaspervdj/stylish-haskell/blob/master/data/stylish-haskell.yaml
+# for usage.
+
 steps:
   - simple_align:
-      cases: true
-      top_level_patterns: true
-      records: true
+      cases: false
+      top_level_patterns: false
+      records: false
   - imports:
-      align: global
-      list_align: after_alias
-      pad_module_names: true
-      long_list_align: inline
+      align: none
+      list_align: with_alias
+      pad_module_names: false
+      long_list_align: new_line_multiline
       empty_list_align: inherit
       list_padding: 4
       separate_lists: true
       space_surround: false
   - language_pragmas:
       style: vertical
-      align: true
-      remove_redundant: false
-
+      align: false
+      remove_redundant: true
   - trailing_whitespace: {}
+
 columns: 120
 newline: native
 language_extensions:
