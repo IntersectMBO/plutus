@@ -40,8 +40,8 @@ important is the `Unique` identifier in the name, which is essentially
 an `Int`.  I've implemented two name-erasure functions: one which
 replaces all of the strings with the empty string, and one which
 discards annotations and identifier strings, essentially leaving just
-an integer.  Annotations are discarded in names, but not in general
-AST nodes, because they'll be useful for Merklisation.
+an integer.  Annotations are discarded in names but not in general
+AST nodes because they'll be useful for Merklisation there.
 
 ###### De Bruijn indices
 There's some existing code for converting names into de Bruijn indices
@@ -72,10 +72,12 @@ the top left and second from right on the bottom for each contract).  Even
 without compression, type erasure and name anonymisation reduces sizes
 by a factor of 6 or more.
 
-If we delete types and replacing names with de Bruijn indices then
-the size the CBOR is consistently reduced by a factor of about ten
+If we delete types and replacing names with de Bruijn indices then the
+size the CBOR is consistently reduced by a factor of about ten
 compared with the typed CBOR.  With compression, the size is reduced
-by a factor of 40 to 100.  I thinnk there are two reasons for this
+by a factor of 40 to 100, and is never more than half the size of the
+version involving name which are just integer IDs (the previous
+column).  I think there are two reasons for this
 
  1. De Bruijn indices are generally small: in the examples I looked
     at, the largest index was typically about 200, compared with
@@ -86,12 +88,22 @@ by a factor of 40 to 100.  I thinnk there are two reasons for this
  2. Using de Bruijn indices will make more terms equal to each other, and
     this will make the CBOR more amenable to compression
 
+The fact that the de Bruijn version is significantly more compressible
+than the non-de Bruijn version suggests that there will be significant
+opportunities for optimisation in the original Plutus Core code.  Some
+caution is required however: optimisations may be more effective in
+the type-erased code (probably more things are equal than in the typed
+version), but performing post-erasure optimisations would break the
+clean correspondence between typed off-chain code and untyped on-chain
+code.
+
+### Conclusion
 
 Clearly, removing types and name strings helps a lot with sizes.  The
 CBOR representation is very small (six tags for AST nodes types and
 about twenty for built-in names, plus standard CBOR encodings for
 constants and names of extensible built-ins), which probably accounts
-for its compressability.  The uncompressed CBOR is sufficiently simple
+for its compressibility.  The uncompressed CBOR is sufficiently simple
 that we might well be able to execute it directly without having to
 decode most of it back to Haskell types.  It's beginning to look a lot
 like bytecode ...
@@ -116,7 +128,7 @@ like bytecode ...
 | | | | || | | |
 | | | | || | | |
 | Game | Uncompressed | 93097 | 60178 |29973 | 16700 | 12466 (13.4%)| 9268 (10.0%) | 9268 (10.0%) |
-|              | Compressed   | 15653  | 12487 | 6156 | 4301 | 4181 (4.5%)| (1.2%) | 2118 (2.3%) |
+|              | Compressed   | 15653  | 12487 | 6156 | 4301 | 4181 (4.5%) | 2118 (2.3%) |
 | | | | || | | |
 | | | | || | | |
 | GameStateMachine | Uncompressed | 111711 | 81440 |31298 | 21477 | 16899 (15.1%) | 13538 (12.1%)|
@@ -128,7 +140,7 @@ like bytecode ...
 | | | | || | | |
 | | | | || | | |
 | MultiSigStateMachine | Uncompressed | 198807 | 145619 |59359 | 39226 | 30504 (15.3%)| 22878 (11.5%) |
-|              | Compressed   | 36372  | 30477 | 13063 | 9620 | 9413 (4.7%)| (2.0%) |
+|              | Compressed   | 36372  | 30477 | 13063 | 9620 | 9413 (4.7%)| 3924 (2.0%) |
 | | | | || | | |
 | | | | || | | |
 | PubKey | Uncompressed | 100811 | 66142 |33117 | 18960 | 14254 (14.1%)| 10693 (10.6%) |
