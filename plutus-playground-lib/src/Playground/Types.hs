@@ -80,7 +80,7 @@ type Program schema = [Expression schema]
 
 data SimulatorWallet =
     SimulatorWallet
-        { simulatorWalletWallet  :: Wallet
+        { simulatorWalletWallet :: Wallet
         , simulatorWalletBalance :: V.Value
         }
     deriving (Show, Generic, Eq)
