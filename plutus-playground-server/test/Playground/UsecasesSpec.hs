@@ -77,7 +77,6 @@ vestingTest =
                   compile vesting
               assertEqual
                   ""
-                  result
                   [ FunctionSchema
                         { functionName = EndpointName "retrieve funds"
                         , argumentSchema = [FormSchemaValue]
@@ -94,6 +93,7 @@ vestingTest =
                               ]
                         }
                   ]
+                  result
         , testCase "should run simple evaluation" $
           evaluate simpleEvaluation >>=
           hasFundsDistribution
