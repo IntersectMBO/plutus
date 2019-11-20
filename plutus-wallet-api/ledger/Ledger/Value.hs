@@ -67,10 +67,10 @@ import           IOTS                         (IotsType)
 import           Ledger.Orphans               ()
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
-    deriving (IsString, Show, ToJSONKey, FromJSONKey, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
-    deriving anyclass (Hashable, ToSchema, IotsType)
+    deriving anyclass (Hashable, ToJSONKey, FromJSONKey, ToSchema, IotsType)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =

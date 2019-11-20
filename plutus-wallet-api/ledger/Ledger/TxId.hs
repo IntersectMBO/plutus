@@ -24,9 +24,9 @@ import           Schema                    (ToSchema)
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }
     deriving (Eq, Ord, Generic, Show)
-    deriving anyclass (ToSchema, IotsType)
+    deriving anyclass (ToJSON, FromJSON, ToSchema, IotsType)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
-    deriving (ToJSON, FromJSON, Pretty) via LedgerBytes
+    deriving (Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId
 PlutusTx.makeIsData ''TxId
