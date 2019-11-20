@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -20,8 +21,8 @@
 module Language.PlutusTx.Coordination.Contracts.Future(
     -- $future
       Future(..)
-    , FutureOwners(..)
-    , mkOwners
+    , FutureAccounts(..)
+    , mkAccounts
     , FutureError(..)
     , FutureSchema
     , FutureSetup(..)
@@ -64,7 +65,7 @@ import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 import Language.PlutusTx.Coordination.Contracts.Escrow (EscrowParams(..), AsEscrowError(..), EscrowError, RefundSuccess)
 import qualified Language.PlutusTx.Coordination.Contracts.Escrow as Escrow
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
-import Language.PlutusTx.Coordination.Contracts.TokenAccount (AccountOwner(..))
+import Language.PlutusTx.Coordination.Contracts.TokenAccount (Account(..))
 
 import qualified Prelude as Haskell
 
@@ -106,7 +107,7 @@ makeClassyPrisms ''FutureError
 type FutureSchema =
     BlockchainActions
         .\/ Endpoint "initialise-future" (FutureSetup, Role)
-        .\/ Endpoint "join-future" (FutureOwners, FutureSetup, Role)
+        .\/ Endpoint "join-future" (FutureAccounts, FutureSetup, Role)
         .\/ Endpoint "increase-margin" (Value, Role)
         .\/ Endpoint "settle-early" (OracleValue Value)
         .\/ Endpoint "settle-future" (OracleValue Value)
@@ -181,46 +182,7 @@ data Future =
         --   margin payments.
         } deriving Generic
 
--- | The tokens that represent ownership of the two sides of the future
-data FutureOwners =
-    FutureOwners
-        { ftoLong  :: AccountOwner
-        -- ^ The owner of the "long" account (represented by a token)
-        , ftoLongAccount :: ValidatorHash
-        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'
-        , ftoShort :: AccountOwner
-        -- ^ The owner of the "short" account (represented by a token)
-        , ftoShortAccount :: ValidatorHash
-        -- ^ Address of the 'TokenAccount' validator script for 'ftoShort'
-        } deriving (Haskell.Show, Generic)
-
-mkOwners
-    :: AccountOwner
-    -> AccountOwner
-    -> FutureOwners
-mkOwners long short =
-    FutureOwners
-        { ftoLong = long
-        , ftoLongAccount = TokenAccount.validatorHash long
-        , ftoShort = short
-        , ftoShortAccount = TokenAccount.validatorHash short
-        }
-
-{-# INLINABLE tokenFor #-}
-tokenFor :: Role -> FutureOwners -> Value
-tokenFor = \case
-    Long -> \case FutureOwners{ftoLong=AccountOwner(sym,tn)} -> Value.singleton sym tn 1
-    Short -> \case FutureOwners{ftoShort=AccountOwner(sym,tn)} -> Value.singleton sym tn 1
-
-data MarginAccounts =
-    MarginAccounts
-        { ftsShortMargin :: Value
-        , ftsLongMargin  :: Value
-        } deriving (Haskell.Eq, Generic)
-
-instance Eq MarginAccounts where
-    l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
-
+-- | The two roles involved in the contract.
 data Role = Long | Short
     deriving (Generic, Show)
 
@@ -229,21 +191,68 @@ instance Eq Role where
     Short == Short = True
     _ == _ = False
 
+-- | The token accounts that represent ownership of the two sides of the future.
+--   When the contract is done, payments will be made to these accounts.
+data FutureAccounts =
+    FutureAccounts
+        { ftoLong  :: Account
+        -- ^ The owner of the "long" account (represented by a token)
+        , ftoLongAccount :: ValidatorHash
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'
+        , ftoShort :: Account
+        -- ^ The owner of the "short" account (represented by a token)
+        , ftoShortAccount :: ValidatorHash
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoShort'
+        } deriving (Haskell.Show, Generic)
+
+mkAccounts
+    :: Account
+    -> Account
+    -> FutureAccounts
+mkAccounts long short =
+    FutureAccounts
+        { ftoLong = long
+        , ftoLongAccount = TokenAccount.validatorHash long
+        , ftoShort = short
+        , ftoShortAccount = TokenAccount.validatorHash short
+        }
+
+{-# INLINABLE tokenFor #-}
+tokenFor :: Role -> FutureAccounts -> Value
+tokenFor = \case
+    Long -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> Value.singleton sym tn 1
+    Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> Value.singleton sym tn 1
+
+-- | The two margins.
+data Margins =
+    Margins
+        { ftsShortMargin :: Value
+        , ftsLongMargin  :: Value
+        } deriving (Haskell.Eq, Generic)
+
+instance Eq Margins where
+    l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
+
 {-# INLINABLE adjustMargin #-}
-adjustMargin :: Role -> Value -> MarginAccounts -> MarginAccounts
+-- | Change the margin account of the role by the given amount.
+adjustMargin :: Role -> Value -> Margins -> Margins
 adjustMargin role value accounts =
     case role of
         Long  -> accounts { ftsLongMargin = ftsLongMargin accounts + value }
         Short -> accounts { ftsShortMargin = ftsShortMargin accounts + value }
 
 {-# INLINABLE totalMargin #-}
-totalMargin :: MarginAccounts -> Value
-totalMargin MarginAccounts{ftsShortMargin, ftsLongMargin} =
+-- | The combined value of both margin accounts.
+totalMargin :: Margins -> Value
+totalMargin Margins{ftsShortMargin, ftsLongMargin} =
     ftsShortMargin + ftsLongMargin
 
+-- | The state of the future contract.
 data FutureState = 
-    Running MarginAccounts
+    Running Margins
+    -- ^ Ongoing contract, with the current margins.
     | Finished
+    -- ^ Contract is finished.
     deriving (Haskell.Eq)
 
 instance Eq FutureState where
@@ -251,8 +260,10 @@ instance Eq FutureState where
     Finished   == Finished    = True
     _ == _ = False
 
+-- | Actions that can be performed on the future contract.
 data FutureAction =
     AdjustMargin Role Value
+    -- ^ Change the margin of one of the roles.
     | Settle (OracleValue Value)
     -- ^ Close the contract at the delivery date by making the agreed payment
     --   and returning the margin deposits to their owners
@@ -264,7 +275,7 @@ data FutureAction =
 {-# INLINABLE futureStateMachine #-}
 futureStateMachine
     :: Future
-    -> FutureOwners
+    -> FutureAccounts
     -> StateMachine FutureState FutureAction
 futureStateMachine ft fos =
     StateMachine
@@ -274,10 +285,10 @@ futureStateMachine ft fos =
         }
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Future -> FutureOwners -> Scripts.ValidatorType (SM.StateMachine FutureState FutureAction)
+mkValidator :: Future -> FutureAccounts -> Scripts.ValidatorType (SM.StateMachine FutureState FutureAction)
 mkValidator future ftos = SM.mkValidator (futureStateMachine future ftos)
 
-scriptInstance :: Future -> FutureOwners -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
 scriptInstance future ftos = 
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
@@ -293,14 +304,14 @@ scriptInstance future ftos =
         
 machineInstance
     :: Future
-    -> FutureOwners
+    -> FutureAccounts
     -> SM.StateMachineInstance FutureState FutureAction
 machineInstance future ftos = 
     let machine = futureStateMachine future ftos
         script  = scriptInstance future ftos
     in SM.StateMachineInstance machine script
 
-validatorScript :: Future -> FutureOwners -> ValidatorScript
+validatorScript :: Future -> FutureAccounts -> ValidatorScript
 validatorScript ft fos = Ledger.mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`
@@ -310,9 +321,9 @@ validatorScript ft fos = Ledger.mkValidatorScript $
     where validatorParam f g = Scripts.wrapValidator (futureCheck f g)
     
 {-# INLINABLE verifyOracle #-}
-verifyOracle :: Future -> OracleValue a -> (Slot, a)
+verifyOracle :: Future -> OracleValue a -> Maybe (Slot, a)
 verifyOracle Future{ftPriceOracle} OracleValue{ovSignature, ovSlot, ovValue} =
-    if ovSignature == ftPriceOracle then (ovSlot, ovValue) else error ()
+    if ovSignature == ftPriceOracle then Just (ovSlot, ovValue) else Nothing
 
 {-# INLINABLE futureTransition #-}
 futureTransition :: FutureState -> FutureAction -> Maybe FutureState
@@ -343,18 +354,18 @@ data Payouts =
         , payoutsLong  :: Value
         }
 
-payoutsTx :: Payouts -> FutureOwners -> UnbalancedTx
+payoutsTx :: Payouts -> FutureAccounts -> UnbalancedTx
 payoutsTx 
     Payouts{payoutsShort, payoutsLong}
-    FutureOwners{ftoShort, ftoLong} =
+    FutureAccounts{ftoShort, ftoLong} =
         TokenAccount.payTx ftoShort payoutsShort
         Haskell.<> TokenAccount.payTx ftoLong payoutsLong
 
 {-# INLINABLE payouts #-}
 -- | Compute the payouts for each role given the future data,
 --   margin accounts, and current (spot) price
-payouts :: Future -> MarginAccounts -> Value -> Payouts
-payouts Future{ftUnits, ftUnitPrice} MarginAccounts{ftsShortMargin, ftsLongMargin} spotPrice =
+payouts :: Future -> Margins -> Value -> Payouts
+payouts Future{ftUnits, ftUnitPrice} Margins{ftsShortMargin, ftsLongMargin} spotPrice =
     let delta = scale ftUnits (spotPrice - ftUnitPrice)
     in Payouts
         { payoutsShort = ftsShortMargin - delta
@@ -362,7 +373,7 @@ payouts Future{ftUnits, ftUnitPrice} MarginAccounts{ftsShortMargin, ftsLongMargi
         }
 
 {-# INLINABLE futureCheck #-}
-futureCheck :: Future -> FutureOwners -> FutureState -> FutureAction -> PendingTx -> Bool
+futureCheck :: Future -> FutureAccounts -> FutureState -> FutureAction -> PendingTx -> Bool
 futureCheck future owners state action ptx =
     let
         (ownHash, _, _) = Validation.ownHashes ptx
@@ -374,9 +385,9 @@ futureCheck future owners state action ptx =
         (Running accounts, SettleEarly ov) ->
             let
                 Future{ftDeliveryDate} = future
-                MarginAccounts{ftsShortMargin, ftsLongMargin} = accounts
-                FutureOwners{ftoLongAccount, ftoShortAccount} = owners
-                (oracleDate, spotPrice) = verifyOracle future ov
+                Margins{ftsShortMargin, ftsLongMargin} = accounts
+                FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
+                Just (oracleDate, spotPrice) = verifyOracle future ov
                 reqMargin   = requiredMargin future spotPrice
                 violatingRole
                     | ftsShortMargin `lt` reqMargin = Short
@@ -390,8 +401,8 @@ futureCheck future owners state action ptx =
         (Running accounts, Settle ov) ->
             let
                 Future{ftDeliveryDate} = future
-                FutureOwners{ftoLongAccount, ftoShortAccount} = owners
-                (oracleDate, spotPrice) = verifyOracle future ov
+                FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
+                Just (oracleDate, spotPrice) = verifyOracle future ov
                 Payouts{payoutsShort, payoutsLong} = payouts future accounts spotPrice
                 payoutValid = 
                     Validation.valueLockedBy ptx ftoLongAccount `geq` payoutsLong
@@ -421,9 +432,9 @@ initialMargin ft@Future{ftUnitPrice, ftMarginPenalty} =
 initialState :: Future -> FutureState
 initialState ft =
     let im = initialMargin ft in
-    Running (MarginAccounts{ftsShortMargin=im, ftsLongMargin=im})
+    Running (Margins{ftsShortMargin=im, ftsLongMargin=im})
 
-futureAddress :: Future -> FutureOwners -> Address
+futureAddress :: Future -> FutureAccounts -> Address
 futureAddress ft fo = Ledger.scriptAddress (validatorScript ft fo)
 
 -- | The data needed to initialise the futures contract.
@@ -448,22 +459,55 @@ initialiseFuture
        , AsFutureError e
        )
     => Future
-    -> Contract s e FutureOwners
+    -> Contract s e FutureAccounts
 initialiseFuture future = do
     (s, ownRole) <- endpoint @"initialise-future" @(FutureSetup, Role)
+    -- Start by setting up the two tokens for the short and long positions.
     ftos <- setupTokens
-    let escr = escrowParams future ftos s
-        escrowPayment = Escrow.payRedeemRefund escr (initialMargin future <> tokenFor Long ftos <> tokenFor Short ftos)
+
+    -- Now we have a 'FutureAccountsValue' with the data of two new and unique 
+    -- tokens that we will use for the future contract. Now we use an escrow 
+    --  contract to initialise the future contract.
+
+    let
+        -- The escrow parameters 'esc' ensure that the initial margin is paid
+        -- to the future contract address, and the two tokens are transferred
+        -- to their initial owners.
+        escr = escrowParams future ftos s
+
+        -- For the escrow to go through, both tokens and 2x the initial margin
+        -- have to be deposited at the escrow address before the deadline
+        -- (start of the future contract). Since we are currently in possession 
+        -- of both tokens, we pay the two tokens and our own initial margin to
+        -- the escrow. 
+        payment =
+            initialMargin future <> tokenFor Long ftos <> tokenFor Short ftos
+
+        -- By using 'Escrow.payRedeemRefund' we make our payment and wait for 
+        -- the other party to make theirs. If they fail to do so within the
+        -- agreed timeframe, our own initial margin is refunded and the future
+        -- contract never starts.
+        escrowPayment = Escrow.payRedeemRefund escr payment
+
+    -- Run 'escrowPayment', wrapping any errors in 'EscrowFailed'. If the escrow
+    -- contract ended with a refund (ie., 'escrowPayment' returns a 'Left') we
+    -- throw an 'EscrowRefunded' error. If the escrow contract succeeded, the 
+    -- future is initialised and ready to go, so we return the 'FutureAccounts'
+    -- with the token information.
     e <- withContractError (review _EscrowFailed) escrowPayment
     either (throwing _EscrowRefunded) (\_ -> pure ftos) e
 
+-- | The @"settle-future"@ endpoint. Given an oracle value with the current spot
+--   price, this endpoint creates the final transaction that distributes the
+--   funds locked by the future to the token accounts specified in 
+--   the 'FutureAccounts' argument.
 settleFuture
     :: ( HasEndpoint "settle-future" (OracleValue Value) s
        , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
-    -> FutureOwners
+    -> FutureAccounts
     -> Contract s e ()
 settleFuture future@Future{ftDeliveryDate} ftos = do
     ov <- endpoint @"settle-future"
@@ -475,13 +519,18 @@ settleFuture future@Future{ftDeliveryDate} ftos = do
                 & validityRange .~ Interval.from (succ ftDeliveryDate)
     void $ writeTx tx
 
+-- | The @"settle-early"@ endpoint. Given an oracle value with the current spot
+--   price, this endpoint creates the final transaction that distributes the
+--   funds locked by the future to the token account of the role that did not
+--   violate its obligations. Throws a 'MarginRequirementsNotViolated' error if
+--   the spot price is within the margin range.
 settleEarly
     :: ( HasEndpoint "settle-early" (OracleValue Value) s
        , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
-    -> FutureOwners
+    -> FutureAccounts
     -> Contract s e ()
 settleEarly future@Future{ftDeliveryDate} ftos = do
     ov <- endpoint @"settle-early"
@@ -489,7 +538,7 @@ settleEarly future@Future{ftDeliveryDate} ftos = do
         spotPrice = ovValue ov
         minMargin = requiredMargin future spotPrice
     unspentOutputs <- utxoAt address
-    MarginAccounts{ftsShortMargin, ftsLongMargin} <- currentBalances future ftos
+    Margins{ftsShortMargin, ftsLongMargin} <- currentBalances future ftos
     
     violatingRole <- 
         if ftsShortMargin `lt` minMargin then pure Short
@@ -503,14 +552,14 @@ settleEarly future@Future{ftDeliveryDate} ftos = do
              Haskell.<> Typed.collectFromScript unspentOutputs (scriptInstance future ftos) (SettleEarly ov)
     void $ writeTx tx
 
--- | Determine the current 'MarginAccounts' by looking at the unspent output
+-- | Determine the current 'Margins' by looking at the unspent output
 --   of the contract.
 currentBalances
     :: ( HasUtxoAt s
        , AsFutureError e)
     => Future
-    -> FutureOwners
-    -> Contract s e MarginAccounts
+    -> FutureAccounts
+    -> Contract s e Margins
 currentBalances future ftos = do
     let address = futureAddress future ftos
     unspentOutputs <- utxoAt address
@@ -524,6 +573,8 @@ currentBalances future ftos = do
         Running accounts -> pure accounts
         Finished         -> throwing_ _FutureTerminated
 
+-- | The @"increase-margin"@ endpoint. Increses the margin of one of
+--   the roles by an amount.
 increaseMargin
     :: ( HasEndpoint "increase-margin" (Value, Role) s
        , HasUtxoAt s
@@ -531,50 +582,58 @@ increaseMargin
        , AsFutureError e
        )
     => Future
-    -> FutureOwners
+    -> FutureAccounts
     -> Contract s e ()
 increaseMargin future ftos = do
     (value, role) <- endpoint @"increase-margin"
     let address = futureAddress future ftos
     unspentOutputs <- utxoAt address
     currentState <- currentBalances future ftos
-    let newMarginAccounts = adjustMargin role value currentState
-        dataScript = Ledger.DataScript (PlutusTx.toData $ Running newMarginAccounts)
+    let newMargins = adjustMargin role value currentState
+        dataScript = Ledger.DataScript (PlutusTx.toData $ Running newMargins)
         tx =
             Tx.collectFromScript unspentOutputs (validatorScript future ftos) (Ledger.RedeemerScript $ PlutusTx.toData $ AdjustMargin role value)
-            Haskell.<> payToScript (totalMargin newMarginAccounts) address dataScript
+            Haskell.<> payToScript (totalMargin newMargins) address dataScript
     void (withContractError (review _MarginAdjustmentFailed) (writeTxSuccess tx))
 
 join
-    :: ( HasEndpoint "join-future" (FutureOwners, FutureSetup, Role) s
+    :: ( HasEndpoint "join-future" (FutureAccounts, FutureSetup, Role) s
        , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
-    -> Contract s e FutureOwners
+    -> Contract s e FutureAccounts
 join ft = do
-    (owners, stp, ownRole) <- endpoint @"join-future" @(FutureOwners, FutureSetup, Role)
+    (owners, stp, ownRole) <- endpoint @"join-future" @(FutureAccounts, FutureSetup, Role)
     let escr = escrowParams ft owners stp
         payment = Escrow.pay escr (initialMargin ft)
     void (withContractError (review _EscrowFailed) payment)
     pure owners
 
+-- | Create two unique tokens that can be used for the short and long positions
+--   and return a 'FutureAccounts' value for them.
+--
+--   Note that after 'setupTokens' is complete, both tokens will be locked by a 
+--   public key output belonging to the wallet that ran 'setupTokens'.
 setupTokens
     :: ( HasWriteTx s
        , HasWatchAddress s
        , HasOwnPubKey s
        , AsFutureError e
        )
-    => Contract s e FutureOwners
+    => Contract s e FutureAccounts
 setupTokens = do
     pk <- ownPubKey
+
+    -- Create the tokens using the currency contract, wrapping any errors in
+    -- 'TokenSetupFailed' 
     cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract pk [("long", 1), ("short", 1)])
     let tokenSym = Currency.currencySymbol cur
-    pure $ mkOwners (AccountOwner (tokenSym, "long")) (AccountOwner (tokenSym, "short"))
+    pure $ mkAccounts (Account (tokenSym, "long")) (Account (tokenSym, "short"))
 
 -- | The escrow contract that initialises the future. Both parties have to pay
 --   their initial margin to this contract in order to unlock their tokens.
-escrowParams :: Future -> FutureOwners -> FutureSetup -> EscrowParams DataScript
+escrowParams :: Future -> FutureAccounts -> FutureSetup -> EscrowParams DataScript
 escrowParams future ftos FutureSetup{longPK, shortPK, contractStart} = 
     let
         address = Ledger.validatorHash (validatorScript future ftos)
@@ -592,9 +651,9 @@ escrowParams future ftos FutureSetup{longPK, shortPK, contractStart} =
         }
 
 PlutusTx.makeLift ''Future
-PlutusTx.makeLift ''FutureOwners
-PlutusTx.makeLift ''MarginAccounts
-PlutusTx.makeIsData ''MarginAccounts
+PlutusTx.makeLift ''FutureAccounts
+PlutusTx.makeLift ''Margins
+PlutusTx.makeIsData ''Margins
 PlutusTx.makeLift ''Role
 PlutusTx.makeIsData ''Role
 PlutusTx.makeLift ''FutureState

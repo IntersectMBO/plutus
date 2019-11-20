@@ -317,8 +317,7 @@ fundsAtAddress address check = PredF $ \(_, r) -> do
     let funds = 
             Map.findWithDefault mempty address 
             $ AM.values
-            $ AM.fromChain
-            $ view EM.chainOldestFirst
+            $ view EM.walletIndex
             $ _ctrEmulatorState r
         passes = check funds
     unless passes

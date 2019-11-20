@@ -10,8 +10,7 @@ import           Language.PlutusTx
 
 import           Language.PlutusTx.Prelude (check)
 import qualified Ledger.Address            as Addr
-import           Ledger.Scripts            hiding (validatorHash)
-import qualified Ledger.Scripts
+import           Ledger.Scripts
 import qualified Ledger.Validation         as Validation
 
 import           Data.Kind
@@ -48,9 +47,6 @@ scriptAddress = Addr.scriptAddress . validatorScript
 -- | Get the validator script for a script instance.
 validatorScript :: ScriptInstance a -> ValidatorScript
 validatorScript (Validator vc wrapper) = mkValidatorScript $ wrapper `applyCode` vc
-
-validatorHash :: ScriptInstance a -> ValidatorHash
-validatorHash = Ledger.Scripts.validatorHash . validatorScript
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since

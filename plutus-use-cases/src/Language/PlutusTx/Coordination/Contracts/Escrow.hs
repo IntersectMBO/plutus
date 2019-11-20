@@ -36,7 +36,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens                   ((&), (^.), (.~), at, folded, prism', makeClassyPrisms, _Left, _Right)
+import           Control.Lens                   ((&), (^.), (.~), at, folded, prism', makeClassyPrisms)
 import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 import qualified Data.Set                       as Set
@@ -57,7 +57,6 @@ import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude      hiding (Applicative (..), check)
 
 import qualified Prelude                        as Haskell
-import           Wallet.Emulator.Types          (AssertionError, AsAssertionError(_AssertionError))
 
 type EscrowSchema =
     BlockchainActions
@@ -71,16 +70,11 @@ data RedeemFailReason = DeadlinePassed | NotEnoughFundsAtAddress
 data EscrowError =
     RedeemFailed RedeemFailReason
     | RefundFailed
-    | OtherEscrowError (Either ContractError AssertionError)
+    | OtherEscrowError ContractError
     deriving Show
 
 instance AsContractError EscrowError where
-    _ContractError = p . _Left where
-        p = prism' OtherEscrowError (\case { OtherEscrowError e -> Just e; _ -> Nothing})
-
-instance AsAssertionError EscrowError where
-    _AssertionError = p . _Right where
-        p = prism' OtherEscrowError (\case { OtherEscrowError e -> Just e; _ -> Nothing})
+    _ContractError = prism' OtherEscrowError (\case { OtherEscrowError e -> Just e; _ -> Nothing})
 
 makeClassyPrisms ''EscrowError
 -- $escrow
@@ -104,7 +98,9 @@ makeClassyPrisms ''EscrowError
 -- called from within another contract, for example during setup (collection of
 -- the initial deposits).
 
--- | Defines where the money should go.
+-- | Defines where the money should go. Usually we have `d = DataScript` (when
+--   defining `EscrowTarget` values in off-chain code). Sometimes we have
+--   `d = DataScriptHash` (when checking the hashes in on-chain code)
 data EscrowTarget d =
     PubKeyTarget PubKey Value
     | ScriptTarget ValidatorHash d Value
@@ -336,6 +332,9 @@ refund escrow = do
     then RefundSuccess <$> writeTxSuccess tx'
     else throwing _RefundFailed ()
 
+-- | Pay some money into the escrow contract. Then release all funds to their
+--   specified targets if enough funds were deposited before the deadline,
+--   or reclaim the contribution if the goal has not been met.
 payRedeemRefund
     :: ( HasUtxoAt s
        , HasWatchAddress s
@@ -349,9 +348,15 @@ payRedeemRefund
     -> Value
     -> Contract s e (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
+    -- Pay the value 'vl' into the contract and, at the same time, wait
+    -- for the 'targetTotal' of the contract to appear at the address, or
+    -- for the 'escrowDeadline' to pass, whichever happens first.
     (_, outcome) <- both 
                         (pay params vl) 
                         (awaitSlot (escrowDeadline params) `selectEither` fundsAtAddressGeq (escrowAddress params) (targetTotal params))
+    -- If 'outcome' is a 'Right' then the total amount was deposited before the
+    -- deadline, and we procedd with 'redeem'. If it's a 'Left', there are not
+    -- enough funds at the address and we refund our own contribution.
     case outcome of
         Right _ -> Right <$> redeem params
         Left _ -> Left <$> refund params

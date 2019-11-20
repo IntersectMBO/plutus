@@ -78,15 +78,15 @@ fundsAtAddressGt
     -> Value
     -> Contract s e AddressMap
 fundsAtAddressGt addr vl = 
-    fundsAtAddressComparison (\presentVal -> presentVal `V.gt` vl) addr
+    fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
 
-fundsAtAddressComparison
+fundsAtAddressCondition
     :: forall s e.
        HasWatchAddress s
     => (Value -> Bool)
     -> Address
     -> Contract s e AddressMap
-fundsAtAddressComparison condition addr = loopM go mempty where
+fundsAtAddressCondition condition addr = loopM go mempty where
     go cur = do
         delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr
         let cur' = cur <> delta
@@ -104,7 +104,7 @@ fundsAtAddressGeq
     -> Value
     -> Contract s e AddressMap
 fundsAtAddressGeq addr vl = 
-    fundsAtAddressComparison (\presentVal -> presentVal `V.geq` vl) addr
+    fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 
 -- | Watch the address until the transaction with the given 'TxId' appears
 --   on the ledger. Warning: If the transaction does not touch the address,

@@ -3497,17 +3497,14 @@
                                                                               (datatypebind
                                                                                 (datatype
                                                                                   (tyvardecl
-                                                                                    OracleValue
-                                                                                    (fun (type) (type))
-                                                                                  )
-                                                                                  (tyvardecl
-                                                                                    a
+                                                                                    FutureAccounts
                                                                                     (type)
                                                                                   )
-                                                                                  OracleValue_match
+                                                                                  
+                                                                                  FutureAccounts_match
                                                                                   (vardecl
-                                                                                    OracleValue
-                                                                                    (fun (con bytestring) (fun (con integer) (fun a [OracleValue a])))
+                                                                                    FutureAccounts
+                                                                                    (fun [[Tuple2 (con bytestring)] (con bytestring)] (fun (con bytestring) (fun [[Tuple2 (con bytestring)] (con bytestring)] (fun (con bytestring) FutureAccounts))))
                                                                                   )
                                                                                 )
                                                                               )
@@ -3517,18 +3514,17 @@
                                                                                 (datatypebind
                                                                                   (datatype
                                                                                     (tyvardecl
-                                                                                      Role
+                                                                                      OracleValue
+                                                                                      (fun (type) (type))
+                                                                                    )
+                                                                                    (tyvardecl
+                                                                                      a
                                                                                       (type)
                                                                                     )
-                                                                                    
-                                                                                    Role_match
+                                                                                    OracleValue_match
                                                                                     (vardecl
-                                                                                      Long
-                                                                                      Role
-                                                                                    )
-                                                                                    (vardecl
-                                                                                      Short
-                                                                                      Role
+                                                                                      OracleValue
+                                                                                      (fun (con bytestring) (fun (con integer) (fun a [OracleValue a])))
                                                                                     )
                                                                                   )
                                                                                 )
@@ -3538,22 +3534,18 @@
                                                                                   (datatypebind
                                                                                     (datatype
                                                                                       (tyvardecl
-                                                                                        FutureAction
+                                                                                        Role
                                                                                         (type)
                                                                                       )
                                                                                       
-                                                                                      FutureAction_match
+                                                                                      Role_match
                                                                                       (vardecl
-                                                                                        AdjustMargin
-                                                                                        (fun Role (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] FutureAction))
+                                                                                        Long
+                                                                                        Role
                                                                                       )
                                                                                       (vardecl
-                                                                                        Settle
-                                                                                        (fun [OracleValue [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] FutureAction)
-                                                                                      )
-                                                                                      (vardecl
-                                                                                        SettleEarly
-                                                                                        (fun [OracleValue [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] FutureAction)
+                                                                                        Short
+                                                                                        Role
                                                                                       )
                                                                                     )
                                                                                   )
@@ -3563,14 +3555,22 @@
                                                                                     (datatypebind
                                                                                       (datatype
                                                                                         (tyvardecl
-                                                                                          FutureOwners
+                                                                                          FutureAction
                                                                                           (type)
                                                                                         )
                                                                                         
-                                                                                        FutureOwners_match
+                                                                                        FutureAction_match
                                                                                         (vardecl
-                                                                                          FutureOwners
-                                                                                          (fun [[Tuple2 (con bytestring)] (con bytestring)] (fun (con bytestring) (fun [[Tuple2 (con bytestring)] (con bytestring)] (fun (con bytestring) FutureOwners))))
+                                                                                          AdjustMargin
+                                                                                          (fun Role (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] FutureAction))
+                                                                                        )
+                                                                                        (vardecl
+                                                                                          Settle
+                                                                                          (fun [OracleValue [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] FutureAction)
+                                                                                        )
+                                                                                        (vardecl
+                                                                                          SettleEarly
+                                                                                          (fun [OracleValue [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] FutureAction)
                                                                                         )
                                                                                       )
                                                                                     )
@@ -3580,14 +3580,14 @@
                                                                                       (datatypebind
                                                                                         (datatype
                                                                                           (tyvardecl
-                                                                                            MarginAccounts
+                                                                                            Margins
                                                                                             (type)
                                                                                           )
                                                                                           
-                                                                                          MarginAccounts_match
+                                                                                          Margins_match
                                                                                           (vardecl
-                                                                                            MarginAccounts
-                                                                                            (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] MarginAccounts))
+                                                                                            Margins
+                                                                                            (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Margins))
                                                                                           )
                                                                                         )
                                                                                       )
@@ -3608,7 +3608,7 @@
                                                                                             )
                                                                                             (vardecl
                                                                                               Running
-                                                                                              (fun MarginAccounts FutureState)
+                                                                                              (fun Margins FutureState)
                                                                                             )
                                                                                           )
                                                                                         )
@@ -3820,7 +3820,7 @@
                                                                                                                 )
                                                                                                                 (vardecl
                                                                                                                   adjustMargin
-                                                                                                                  (fun Role (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun MarginAccounts MarginAccounts)))
+                                                                                                                  (fun Role (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun Margins Margins)))
                                                                                                                 )
                                                                                                                 (lam
                                                                                                                   role
@@ -3830,7 +3830,7 @@
                                                                                                                     [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                     (lam
                                                                                                                       accounts
-                                                                                                                      MarginAccounts
+                                                                                                                      Margins
                                                                                                                       [
                                                                                                                         [
                                                                                                                           [
@@ -3839,7 +3839,7 @@
                                                                                                                                 Role_match
                                                                                                                                 role
                                                                                                                               ]
-                                                                                                                              (fun Unit MarginAccounts)
+                                                                                                                              (fun Unit Margins)
                                                                                                                             }
                                                                                                                             (lam
                                                                                                                               thunk
@@ -3847,10 +3847,10 @@
                                                                                                                               [
                                                                                                                                 {
                                                                                                                                   [
-                                                                                                                                    MarginAccounts_match
+                                                                                                                                    Margins_match
                                                                                                                                     accounts
                                                                                                                                   ]
-                                                                                                                                  MarginAccounts
+                                                                                                                                  Margins
                                                                                                                                 }
                                                                                                                                 (lam
                                                                                                                                   ds
@@ -3860,7 +3860,7 @@
                                                                                                                                     [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                     [
                                                                                                                                       [
-                                                                                                                                        MarginAccounts
+                                                                                                                                        Margins
                                                                                                                                         ds
                                                                                                                                       ]
                                                                                                                                       [
@@ -3885,10 +3885,10 @@
                                                                                                                             [
                                                                                                                               {
                                                                                                                                 [
-                                                                                                                                  MarginAccounts_match
+                                                                                                                                  Margins_match
                                                                                                                                   accounts
                                                                                                                                 ]
-                                                                                                                                MarginAccounts
+                                                                                                                                Margins
                                                                                                                               }
                                                                                                                               (lam
                                                                                                                                 ds
@@ -3898,7 +3898,7 @@
                                                                                                                                   [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                   [
                                                                                                                                     [
-                                                                                                                                      MarginAccounts
+                                                                                                                                      Margins
                                                                                                                                       [
                                                                                                                                         [
                                                                                                                                           [
@@ -5161,15 +5161,15 @@
                                                                                                                                             )
                                                                                                                                             (vardecl
                                                                                                                                               totalMargin
-                                                                                                                                              (fun MarginAccounts [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                                                                                                                              (fun Margins [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
                                                                                                                                             )
                                                                                                                                             (lam
                                                                                                                                               ds
-                                                                                                                                              MarginAccounts
+                                                                                                                                              Margins
                                                                                                                                               [
                                                                                                                                                 {
                                                                                                                                                   [
-                                                                                                                                                    MarginAccounts_match
+                                                                                                                                                    Margins_match
                                                                                                                                                     ds
                                                                                                                                                   ]
                                                                                                                                                   [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -5228,14 +5228,14 @@
                                                                                                                                                 )
                                                                                                                                                 (vardecl
                                                                                                                                                   futureCheck
-                                                                                                                                                  (fun Future (fun FutureOwners (fun FutureState (fun FutureAction (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool)))))
+                                                                                                                                                  (fun Future (fun FutureAccounts (fun FutureState (fun FutureAction (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool)))))
                                                                                                                                                 )
                                                                                                                                                 (lam
                                                                                                                                                   future
                                                                                                                                                   Future
                                                                                                                                                   (lam
                                                                                                                                                     owners
-                                                                                                                                                    FutureOwners
+                                                                                                                                                    FutureAccounts
                                                                                                                                                     (lam
                                                                                                                                                       state
                                                                                                                                                       FutureState
@@ -5263,7 +5263,7 @@
                                                                                                                                                               ]
                                                                                                                                                               (lam
                                                                                                                                                                 accounts
-                                                                                                                                                                MarginAccounts
+                                                                                                                                                                Margins
                                                                                                                                                                 (lam
                                                                                                                                                                   thunk
                                                                                                                                                                   Unit
@@ -5550,7 +5550,17 @@
                                                                                                                                                                                                         Unit
                                                                                                                                                                                                         [
                                                                                                                                                                                                           {
-                                                                                                                                                                                                            error
+                                                                                                                                                                                                            (abs
+                                                                                                                                                                                                              e
+                                                                                                                                                                                                              (type)
+                                                                                                                                                                                                              (lam
+                                                                                                                                                                                                                thunk
+                                                                                                                                                                                                                Unit
+                                                                                                                                                                                                                (error
+                                                                                                                                                                                                                  e
+                                                                                                                                                                                                                )
+                                                                                                                                                                                                              )
+                                                                                                                                                                                                            )
                                                                                                                                                                                                             [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                                                                                                                                                                                                           }
                                                                                                                                                                                                           Unit
@@ -5610,7 +5620,7 @@
                                                                                                                                                                                             [
                                                                                                                                                                                               {
                                                                                                                                                                                                 [
-                                                                                                                                                                                                  MarginAccounts_match
+                                                                                                                                                                                                  Margins_match
                                                                                                                                                                                                   accounts
                                                                                                                                                                                                 ]
                                                                                                                                                                                                 Payouts
@@ -5954,7 +5964,7 @@
                                                                                                                                                                                                                                                 [
                                                                                                                                                                                                                                                   {
                                                                                                                                                                                                                                                     [
-                                                                                                                                                                                                                                                      FutureOwners_match
+                                                                                                                                                                                                                                                      FutureAccounts_match
                                                                                                                                                                                                                                                       owners
                                                                                                                                                                                                                                                     ]
                                                                                                                                                                                                                                                     (con bytestring)
@@ -6054,7 +6064,7 @@
                                                                                                                                                                                                                                               [
                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                   [
-                                                                                                                                                                                                                                                    FutureOwners_match
+                                                                                                                                                                                                                                                    FutureAccounts_match
                                                                                                                                                                                                                                                     owners
                                                                                                                                                                                                                                                   ]
                                                                                                                                                                                                                                                   (con bytestring)
@@ -6249,7 +6259,17 @@
                                                                                                                                                                                                       Unit
                                                                                                                                                                                                       [
                                                                                                                                                                                                         {
-                                                                                                                                                                                                          error
+                                                                                                                                                                                                          (abs
+                                                                                                                                                                                                            e
+                                                                                                                                                                                                            (type)
+                                                                                                                                                                                                            (lam
+                                                                                                                                                                                                              thunk
+                                                                                                                                                                                                              Unit
+                                                                                                                                                                                                              (error
+                                                                                                                                                                                                                e
+                                                                                                                                                                                                              )
+                                                                                                                                                                                                            )
+                                                                                                                                                                                                          )
                                                                                                                                                                                                           [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                                                                                                                                                                                                         }
                                                                                                                                                                                                         Unit
@@ -6447,7 +6467,7 @@
                                                                                                                                                                                                       [
                                                                                                                                                                                                         {
                                                                                                                                                                                                           [
-                                                                                                                                                                                                            FutureOwners_match
+                                                                                                                                                                                                            FutureAccounts_match
                                                                                                                                                                                                             owners
                                                                                                                                                                                                           ]
                                                                                                                                                                                                           (con bytestring)
@@ -6561,7 +6581,7 @@
                                                                                                                                                                                                         [
                                                                                                                                                                                                           {
                                                                                                                                                                                                             [
-                                                                                                                                                                                                              FutureOwners_match
+                                                                                                                                                                                                              FutureAccounts_match
                                                                                                                                                                                                               owners
                                                                                                                                                                                                             ]
                                                                                                                                                                                                             (con bytestring)
@@ -6625,7 +6645,7 @@
                                                                                                                                                                                               [
                                                                                                                                                                                                 {
                                                                                                                                                                                                   [
-                                                                                                                                                                                                    MarginAccounts_match
+                                                                                                                                                                                                    Margins_match
                                                                                                                                                                                                     accounts
                                                                                                                                                                                                   ]
                                                                                                                                                                                                   [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -6667,7 +6687,7 @@
                                                                                                                                                                                                     [
                                                                                                                                                                                                       {
                                                                                                                                                                                                         [
-                                                                                                                                                                                                          MarginAccounts_match
+                                                                                                                                                                                                          Margins_match
                                                                                                                                                                                                           accounts
                                                                                                                                                                                                         ]
                                                                                                                                                                                                         [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -7167,7 +7187,7 @@
                                                                                                                                                           ]
                                                                                                                                                           (lam
                                                                                                                                                             accounts
-                                                                                                                                                            MarginAccounts
+                                                                                                                                                            Margins
                                                                                                                                                             (lam
                                                                                                                                                               thunk
                                                                                                                                                               Unit
@@ -7249,14 +7269,14 @@
                                                                                                                                                     )
                                                                                                                                                     (vardecl
                                                                                                                                                       futureStateMachine
-                                                                                                                                                      (fun Future (fun FutureOwners [[StateMachine FutureState] FutureAction]))
+                                                                                                                                                      (fun Future (fun FutureAccounts [[StateMachine FutureState] FutureAction]))
                                                                                                                                                     )
                                                                                                                                                     (lam
                                                                                                                                                       ft
                                                                                                                                                       Future
                                                                                                                                                       (lam
                                                                                                                                                         fos
-                                                                                                                                                        FutureOwners
+                                                                                                                                                        FutureAccounts
                                                                                                                                                         [
                                                                                                                                                           [
                                                                                                                                                             [
@@ -7298,7 +7318,7 @@
                                                                                                                                                                 ]
                                                                                                                                                                 (lam
                                                                                                                                                                   ipv
-                                                                                                                                                                  MarginAccounts
+                                                                                                                                                                  Margins
                                                                                                                                                                   (lam
                                                                                                                                                                     thunk
                                                                                                                                                                     Unit

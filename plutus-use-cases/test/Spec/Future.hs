@@ -24,9 +24,9 @@ import           Ledger.Value                                    (CurrencySymbol
 
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                               as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureSchema, FutureSetup(..), FutureOwners(..), Role(..), FutureError)
+import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureSchema, FutureSetup(..), FutureAccounts(..), Role(..), FutureError)
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (assertAccountBalance, AccountOwner(..))
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (assertAccountBalance, Account(..))
 import           Language.PlutusTx.Lattice
 
 tests :: TestTree
@@ -34,14 +34,14 @@ tests =
     testGroup "futures"
     [ checkPredicate @FutureSchema "can initialise and obtain tokens"
         (F.futureContract theFuture)
-        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short owners)
-        /\ walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long owners))
+        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short accounts)
+        /\ walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long accounts))
         ( initContract >> joinFuture )
 
     , checkPredicate @FutureSchema "can increase margin"
         (F.futureContract theFuture)
-        (assertAccountBalance (ftoShort owners) (== (Ada.lovelaceValueOf 1936))
-        /\ assertAccountBalance (ftoLong owners) (== (Ada.lovelaceValueOf 2410)))
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2410)))
         ( initContract 
         >> joinFuture
         >> addBlocks 20
@@ -51,8 +51,8 @@ tests =
 
     , checkPredicate @FutureSchema "can settle early"
         (F.futureContract theFuture)
-        (assertAccountBalance (ftoShort owners) (== (Ada.lovelaceValueOf 0))
-        /\ assertAccountBalance (ftoLong owners) (== (Ada.lovelaceValueOf 4246)))
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 0))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 4246)))
         ( initContract 
         >> joinFuture
         >> addBlocks 20
@@ -60,8 +60,8 @@ tests =
 
     , checkPredicate @FutureSchema "can pay out"
         (F.futureContract theFuture)
-        (assertAccountBalance (ftoShort owners) (== (Ada.lovelaceValueOf 1936))
-        /\ assertAccountBalance (ftoLong owners) (== (Ada.lovelaceValueOf 2310)))
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
         ( initContract 
         >> joinFuture
         >> addBlocks 93
@@ -69,7 +69,7 @@ tests =
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript theFuture owners) 50000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript theFuture accounts) 50000)
 
     ]
 
@@ -114,7 +114,7 @@ initContract = do
 --   all resulting transactions.
 joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 joinFuture = do
-    callEndpoint @"join-future" (Wallet 2) (owners, setup, Short)
+    callEndpoint @"join-future" (Wallet 2) (accounts, setup, Short)
     handleBlockchainEvents (Wallet 2)
     notifySlot w1
     handleUtxoQueries (Wallet 1)
@@ -149,10 +149,10 @@ units = 187
 oracle :: PubKey
 oracle = walletPubKey (Wallet 10)
 
-owners :: FutureOwners
-owners = F.mkOwners 
-            (AccountOwner (tokenCurrency, "long"))
-            (AccountOwner (tokenCurrency, "short"))
+accounts :: FutureAccounts
+accounts = F.mkAccounts
+            (Account (tokenCurrency, "long"))
+            (Account (tokenCurrency, "short"))
 
 increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 increaseMargin = do
