@@ -44,10 +44,10 @@ an integer.  Annotations are discarded in names, but not in general
 AST nodes, because they'll be useful for Merklisation.
 
 ###### De Bruijn indices
-There's some existing code for converting names into De Bruijn indices
+There's some existing code for converting names into de Bruijn indices
 to make comparison of terms easier (there's no evaluator for this at the moment).
 I also wrote a function which replaces names by an integer representing their
-De Bruijn indices.  This turns out to be surprisingly effective.
+de Bruijn indices.  This turns out to be surprisingly effective.
 
 ### Results
 
@@ -72,7 +72,7 @@ the top left and second from right on the bottom for each contract).  Even
 without compression, type erasure and name anonymisation reduces sizes
 by a factor of 6 or more.
 
-If we delete types and replacing names with De Bruijn indices then
+If we delete types and replacing names with de Bruijn indices then
 the size the CBOR is consistently reduced by a factor of about ten
 compared with the typed CBOR.  With compression, the size is reduced
 by a factor of 40 to 100.  I thinnk there are two reasons for this
@@ -83,7 +83,7 @@ by a factor of 40 to 100.  I thinnk there are two reasons for this
     identifiers for names.  This means that they fit into a single byte and
     CBOR can encode them more efficiently.
 
- 2. Using De Bruijn indices will make more terms equal to each other, and
+ 2. Using de Bruijn indices will make more terms equal to each other, and
     this will make the CBOR more amenable to compression
 
 
