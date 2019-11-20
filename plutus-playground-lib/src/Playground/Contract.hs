@@ -1,5 +1,8 @@
 -- | Re-export functions that are needed when creating a Contract for use in the playground
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
@@ -88,7 +91,7 @@ import           Language.Plutus.Contract.Trace                  (TraceError (..
 import           Ledger.Interval                                 (always, interval)
 import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
 import           Ledger.Tx                                       (Tx, TxOutRef (TxOutRef), txOutRefId)
-import           Ledger.Value                                    (TokenName (TokenName), Value)
+import           Ledger.Value                                    (TokenName (TokenName))
 import           Playground.Interpreter.Util
 import           Playground.Schema                               (endpointsToSchemas)
 import           Playground.TH                                   (ensureIotsDefinitions, ensureKnownCurrencies,
@@ -96,15 +99,18 @@ import           Playground.TH                                   (ensureIotsDefi
                                                                   mkKnownCurrencies, mkSchemaDefinitions,
                                                                   mkSingleFunction)
 import           Playground.Types                                (Expression, FunctionSchema,
-                                                                  KnownCurrency (KnownCurrency), adaCurrency)
+                                                                  KnownCurrency (KnownCurrency),
+                                                                  PayToWalletParams (PayToWalletParams), adaCurrency,
+                                                                  payTo, value)
 import           Schema                                          (FormSchema, ToSchema)
 import           Wallet.API                                      (WalletAPI, payToPublicKey_)
 import           Wallet.Emulator                                 (addBlocksAndNotify, walletPubKey)
 import qualified Wallet.Emulator                                 as Emulator
 import           Wallet.Emulator.Types                           (MockWallet, Trace, Wallet (..))
 
-payToWallet_ :: (Monad m, WalletAPI m) => Value -> Wallet -> m ()
-payToWallet_ v = payToPublicKey_ always v . walletPubKey
+payToWallet_ :: (Monad m, WalletAPI m) => PayToWalletParams -> m ()
+payToWallet_ PayToWalletParams {value, payTo} =
+    payToPublicKey_ always value $ walletPubKey payTo
 
 runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m a -> Trace m [Tx]
 runWalletActionAndProcessPending wllts wllt a =

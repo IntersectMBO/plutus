@@ -31,11 +31,13 @@ import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (Con
 import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), toPublicKey, txOutTxOut)
 import           Ledger.Value                    (Value)
 import qualified Ledger.Value                    as Value
-import           Playground.Types                (EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
-                                                  Expression (AddBlocks, CallEndpoint, PayToWallet, arguments, blocks, destination, endpointName, source, value, wallet),
+import           Playground.Types                (EndpointName (EndpointName), EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
+                                                  Expression (AddBlocks, CallEndpoint),
+                                                  PayToWalletParams (PayToWalletParams),
                                                   PlaygroundError (JsonDecodingError, OtherError, RollupError, decodingError, expected, input),
-                                                  SimulatorWallet (SimulatorWallet), blocks, emulatorLog,
-                                                  simulatorWalletBalance, simulatorWalletWallet)
+                                                  SimulatorWallet (SimulatorWallet), arguments, blocks, emulatorLog,
+                                                  endpointName, payTo, simulatorWalletBalance, simulatorWalletWallet,
+                                                  value, wallet)
 import           Wallet.Emulator                 (MonadEmulator)
 import           Wallet.Emulator.NodeClient      (ChainState (..))
 import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates),
@@ -155,12 +157,13 @@ toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
 toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
 
 expressionToTrace ::
-       (ContractRow s, MonadEmulator (TraceError Text) m, Forall (Input s) FromJSON)
+       ( ContractRow s
+       , MonadEmulator (TraceError Text) m
+       , Forall (Input s) FromJSON
+       )
     => Expression s
     -> ContractTrace s Text m a ()
 expressionToTrace AddBlocks {blocks} = addBlocks (fromIntegral blocks)
-expressionToTrace PayToWallet {source, destination, value} =
-    payToWallet source destination value
 expressionToTrace CallEndpoint {endpointName, wallet, arguments} =
     case arguments of
         JSON.String string ->
@@ -170,26 +173,39 @@ expressionToTrace CallEndpoint {endpointName, wallet, arguments} =
                         throwError . ContractError $
                         "Error extracting JSON from arguments. Expected a JSON string. " <>
                         Text.pack err
-                    Right [value] ->
-                        case JSON.fromJSON $
-                             JSON.object
-                                 [ ( "tag"
-                                   , JSON.String $ Newtype.unpack endpointName)
-                                 , ("value", value)
-                                 ] of
-                            JSON.Error err ->
-                                throwError .
-                                ContractError $
-                                "Error '" <> Text.pack err <>
-                                "' while decoding JSON arguments: " <>
-                                Text.pack (show value) <>
-                                "  for endpoint: " <>
-                                Text.pack (show endpointName)
-                            JSON.Success (event :: Event s) ->
+                    Right [argument] ->
+                        if endpointName == EndpointName "payToWallet_"
+                            then do
+                                PayToWalletParams {payTo, value} <-
+                                    decodePayload endpointName argument
+                                payToWallet wallet payTo value
+                            else do
+                                event :: Event s <-
+                                    decodePayload endpointName $
+                                    JSON.object
+                                        [ ( "tag"
+                                          , JSON.String $
+                                            Newtype.unpack endpointName)
+                                        , ("value", argument)
+                                        ]
                                 addEvent wallet event
-                    Right value ->
-                        throwError .
-                        ContractError $
+                    Right argument ->
+                        throwError . ContractError $
                         "Expected a singleton list, but got: " <>
-                        Text.pack (show value)
+                        Text.pack (show argument)
         _ -> fail $ "Expected a String, but got: " <> show arguments
+
+decodePayload ::
+       (MonadEmulator (TraceError Text) m, FromJSON r)
+    => EndpointName
+    -> JSON.Value
+    -> ContractTrace s Text m a r
+decodePayload endpointName value =
+    case JSON.fromJSON value of
+        JSON.Error err ->
+            throwError . ContractError $
+            "Error '" <> Text.pack err <> "' while decoding JSON arguments: " <>
+            Text.pack (show value) <>
+            "  for endpoint: " <>
+            Text.pack (show endpointName)
+        JSON.Success result -> pure result
