@@ -1,37 +1,37 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE OverloadedLabels     #-}
-{-# LANGUAGE PolyKinds            #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Language.Plutus.Contract.Request where
 
-import           Control.Applicative
-import           Control.Lens
-import           Control.Monad                      (MonadPlus)
-import           Control.Monad.Except               (MonadError)
-import qualified Data.Aeson                         as Aeson
-import           Data.Row
-import qualified Data.Text                          as T
+import Control.Applicative
+import Control.Lens
+import Control.Monad (MonadPlus)
+import Control.Monad.Except (MonadError)
+import qualified Data.Aeson as Aeson
+import Data.Row
+import qualified Data.Text as T
 
-import           Language.Plutus.Contract.Resumable
-import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
-import qualified Language.Plutus.Contract.Schema    as Events
+import Language.Plutus.Contract.Resumable
+import Language.Plutus.Contract.Schema (Event (..), Handlers (..), Input, Output)
+import qualified Language.Plutus.Contract.Schema as Events
 
-import qualified Language.PlutusTx.Applicative      as PlutusTx
-import qualified Language.PlutusTx.Functor          as PlutusTx
-import           Prelude                            as Haskell
-import           Wallet.API                         (WalletAPIError)
-import           Wallet.Emulator.Types              (AsAssertionError (..), AssertionError)
+import qualified Language.PlutusTx.Applicative as PlutusTx
+import qualified Language.PlutusTx.Functor as PlutusTx
+import Prelude as Haskell
+import Wallet.API (WalletAPIError)
+import Wallet.Emulator.Types (AsAssertionError (..), AssertionError)
 
 -- | @Contract s a@ is a contract with schema 's', producing a value of
 --  type 'a' or a 'ContractError'. See note [Contract Schema].

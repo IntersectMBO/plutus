@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 module NonFungible.NonFungible7Spec (spec) where
 
-import           Utils
+import Utils
 
-import           NonFungible.NonFungible7
+import NonFungible.NonFungible7
 
-import           Ledger
-import qualified Ledger.Ada                 as A
-import qualified Ledger.Value               as V
-import           Wallet.Emulator
+import Ledger
+import qualified Ledger.Ada as A
+import qualified Ledger.Value as V
+import Wallet.Emulator
 
-import           Control.Monad              (void)
+import Control.Monad (void)
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.Either                (isRight)
-import           Data.Text                  (Text)
-import           Test.Hspec
+import Data.Either (isRight)
+import Data.Text (Text)
+import Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec

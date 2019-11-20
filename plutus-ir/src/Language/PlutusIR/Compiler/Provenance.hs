@@ -1,15 +1,15 @@
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Module handling provenances of terms.
 module Language.PlutusIR.Compiler.Provenance where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
 import qualified Language.PlutusCore.Pretty as PLC
 
-import           Data.Text.Prettyprint.Doc  ((<+>), (<>))
-import qualified Data.Text.Prettyprint.Doc  as PP
+import Data.Text.Prettyprint.Doc ((<+>), (<>))
+import qualified Data.Text.Prettyprint.Doc as PP
 
 -- | Indicates where a value comes from.
 --

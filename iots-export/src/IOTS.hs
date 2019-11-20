@@ -1,16 +1,16 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PolyKinds            #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module IOTS
@@ -22,27 +22,43 @@ module IOTS
   , Tagged(Tagged)
   ) where
 
-import           Control.Monad.State          (State, evalState, foldM, gets, modify)
-import           Data.Foldable                (fold, toList)
-import           Data.Kind                    (Type)
-import           Data.Map                     (Map)
-import           Data.Proxy                   (Proxy (Proxy))
-import           Data.Sequence                (Seq, (|>))
-import           Data.Set                     (Set)
-import qualified Data.Set                     as Set
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import           Data.Tree                    (Forest, Tree (Node), rootLabel)
-import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Datatype, Generic, M1 (M1),
-                                               Rec0, Rep, S1, Selector, U1, conIsRecord, conName, selName)
-import qualified GHC.Generics                 as Generics
-import           GHC.TypeLits                 (KnownSymbol, symbolVal)
-import           IOTS.Leijen                  (jsArray, jsObject, jsParams, render, stringDoc, symbol, upperFirst)
-import           IOTS.Tree                    (depthfirstM)
-import           Text.PrettyPrint.Leijen.Text (Doc, angles, braces, comma, dquotes, hsep, linebreak, parens, punctuate,
-                                               semi, squotes, textStrict, vsep, (<+>))
-import           Type.Reflection              (SomeTypeRep (SomeTypeRep), Typeable, someTypeRep)
-import qualified Type.Reflection              as R
+import Control.Monad.State (State, evalState, foldM, gets, modify)
+import Data.Foldable (fold, toList)
+import Data.Kind (Type)
+import Data.Map (Map)
+import Data.Proxy (Proxy (Proxy))
+import Data.Sequence (Seq, (|>))
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Data.Tree (Forest, Tree (Node), rootLabel)
+import GHC.Generics
+    ( (:*:) ((:*:))
+    , (:+:)
+    , C1
+    , Constructor
+    , D1
+    , Datatype
+    , Generic
+    , M1 (M1)
+    , Rec0
+    , Rep
+    , S1
+    , Selector
+    , U1
+    , conIsRecord
+    , conName
+    , selName
+    )
+import qualified GHC.Generics as Generics
+import GHC.TypeLits (KnownSymbol, symbolVal)
+import IOTS.Leijen (jsArray, jsObject, jsParams, render, stringDoc, symbol, upperFirst)
+import IOTS.Tree (depthfirstM)
+import Text.PrettyPrint.Leijen.Text
+    (Doc, angles, braces, comma, dquotes, hsep, linebreak, parens, punctuate, semi, squotes, textStrict, vsep, (<+>))
+import Type.Reflection (SomeTypeRep (SomeTypeRep), Typeable, someTypeRep)
+import qualified Type.Reflection as R
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: Text)
         #-}

@@ -13,23 +13,23 @@ module Language.PlutusCore.Generators.Test
     , propEvaluate
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
-import           Language.PlutusCore.Generators.Internal.Utils
-import           Language.PlutusCore.Lexer.Type                          hiding (name)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Generators.Interesting
+import Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import Language.PlutusCore.Generators.Internal.TypeEvalCheck
+import Language.PlutusCore.Generators.Internal.Utils
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Type
 
-import           Control.Monad.Except
-import           Data.Functor                                            ((<&>))
-import qualified Data.Text.IO                                            as Text
-import           Hedgehog                                                hiding (Size, Var, eval)
-import qualified Hedgehog.Gen                                            as Gen
-import           System.FilePath                                         ((</>))
+import Control.Monad.Except
+import Data.Functor ((<&>))
+import qualified Data.Text.IO as Text
+import Hedgehog hiding (Size, Var, eval)
+import qualified Hedgehog.Gen as Gen
+import System.FilePath ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue :: KnownType a => TermGen a -> IO (TermOf EvaluationResultDef)

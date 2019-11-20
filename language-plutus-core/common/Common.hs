@@ -13,16 +13,16 @@ module Common
     , nestedGoldenVsDocM
     ) where
 
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore.Pretty
 
-import           Control.Monad.Reader       (Reader, runReader)
-import qualified Control.Monad.Reader       as Reader
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Text                  (Text)
-import           Data.Text.Encoding         (encodeUtf8)
-import           System.FilePath            ((</>))
-import           Test.Tasty
-import           Test.Tasty.Golden
+import Control.Monad.Reader (Reader, runReader)
+import qualified Control.Monad.Reader as Reader
+import qualified Data.ByteString.Lazy as BSL
+import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
+import System.FilePath ((</>))
+import Test.Tasty
+import Test.Tasty.Golden
 
 -- | A 'TestTree' of tests under some name prefix.
 type TestNested = Reader [String] TestTree

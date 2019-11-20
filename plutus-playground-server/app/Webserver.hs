@@ -1,13 +1,13 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 
 module Webserver
@@ -15,33 +15,43 @@ module Webserver
     ) where
 
 import qualified Auth
-import           Control.Concurrent                             (forkIO)
-import           Control.Monad                                  (void)
-import           Control.Monad.Except                           (ExceptT)
-import           Control.Monad.IO.Class                         (MonadIO, liftIO)
-import           Control.Monad.Logger                           (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
-import           Control.Monad.Reader                           (ReaderT, runReaderT)
-import           Data.Default.Class                             (def)
-import           Data.Proxy                                     (Proxy (Proxy))
-import           Data.Text                                      (Text)
-import           Git                                            (gitRev)
-import           Network.HTTP.Types                             (Method)
-import           Network.Wai                                    (Application)
-import           Network.Wai.Handler.Warp                       (Settings, runSettings)
-import           Network.Wai.Middleware.Cors                    (cors, corsRequestHeaders, simpleCorsResourcePolicy)
-import           Network.Wai.Middleware.Gzip                    (gzip)
-import           Network.Wai.Middleware.RequestLogger           (logStdout)
-import qualified Playground.API                                 as PA
-import qualified Playground.Server                              as PS
-import           Servant                                        ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON,
-                                                                 PlainText, Raw, ServantErr, hoistServer, serve,
-                                                                 serveDirectoryFileServer)
-import           Servant.Foreign                                (GenerateList, NoContent, Req, generateList)
-import           Servant.Prometheus                             (monitorEndpoints)
-import           Servant.Server                                 (Server)
-import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
-import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMetricsT)
-import           Types                                          (Config (Config, _authConfig))
+import Control.Concurrent (forkIO)
+import Control.Monad (void)
+import Control.Monad.Except (ExceptT)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Logger (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
+import Control.Monad.Reader (ReaderT, runReaderT)
+import Data.Default.Class (def)
+import Data.Proxy (Proxy (Proxy))
+import Data.Text (Text)
+import Git (gitRev)
+import Network.HTTP.Types (Method)
+import Network.Wai (Application)
+import Network.Wai.Handler.Warp (Settings, runSettings)
+import Network.Wai.Middleware.Cors (cors, corsRequestHeaders, simpleCorsResourcePolicy)
+import Network.Wai.Middleware.Gzip (gzip)
+import Network.Wai.Middleware.RequestLogger (logStdout)
+import qualified Playground.API as PA
+import qualified Playground.Server as PS
+import Servant
+    ( (:<|>) ((:<|>))
+    , (:>)
+    , Get
+    , Handler (Handler)
+    , JSON
+    , PlainText
+    , Raw
+    , ServantErr
+    , hoistServer
+    , serve
+    , serveDirectoryFileServer
+    )
+import Servant.Foreign (GenerateList, NoContent, Req, generateList)
+import Servant.Prometheus (monitorEndpoints)
+import Servant.Server (Server)
+import System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
+import System.Metrics.Prometheus.Http.Scrape (serveHttpTextMetricsT)
+import Types (Config (Config, _authConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
     generateList _ = []

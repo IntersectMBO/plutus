@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module OptimizerSpec where
 
-import           Common
-import           TestLib
+import Common
+import TestLib
 
-import           Language.PlutusIR.Optimizer.DeadCode
-import           Language.PlutusIR.Parser
-import           Language.PlutusIR.Transform.Rename   ()
+import Language.PlutusIR.Optimizer.DeadCode
+import Language.PlutusIR.Parser
+import Language.PlutusIR.Transform.Rename ()
 
 optimizer :: TestNested
 optimizer = testNested "optimizer" [

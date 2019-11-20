@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
 
-import           Prelude hiding (Functor (..), const, id, (<$), (<$>))
+import Prelude hiding (Functor (..), const, id, (<$), (<$>))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

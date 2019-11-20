@@ -1,6 +1,6 @@
 module Language.Plutus.Contract.Util where
 
-import           Control.Applicative (Alternative (..), liftA2)
+import Control.Applicative (Alternative (..), liftA2)
 
 -- | A monadic version of 'loop', where the predicate returns 'Left' as a seed
 --   for the next loop or 'Right' to abort the loop.

@@ -1,56 +1,56 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TupleSections              #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Expr
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
-import           Language.PlutusTx.PLCTypes
-import           Language.PlutusTx.Utils
+import Language.PlutusTx.Code
+import Language.PlutusTx.Compiler.Builtins
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Expr
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.Utils
+import Language.PlutusTx.PIRTypes
+import Language.PlutusTx.PLCTypes
+import Language.PlutusTx.Utils
 
-import qualified FamInstEnv                             as GHC
-import qualified GhcPlugins                             as GHC
-import qualified Panic                                  as GHC
+import qualified FamInstEnv as GHC
+import qualified GhcPlugins as GHC
+import qualified Panic as GHC
 
-import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant.Dynamic   as PLC
-import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+import Language.PlutusCore.Quote
 
-import qualified Language.PlutusIR                      as PIR
-import qualified Language.PlutusIR.Compiler             as PIR
+import qualified Language.PlutusIR as PIR
+import qualified Language.PlutusIR.Compiler as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
 
-import           Language.Haskell.TH.Syntax             as TH
+import Language.Haskell.TH.Syntax as TH
 
-import           Codec.Serialise                        (serialise)
-import           Control.Lens
-import           Control.Monad
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
+import Codec.Serialise (serialise)
+import Control.Lens
+import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
 
-import qualified Data.ByteString                        as BS
-import qualified Data.ByteString.Lazy                   as BSL
-import qualified Data.ByteString.Unsafe                 as BSUnsafe
-import qualified Data.Map                               as Map
-import qualified Data.Text.Prettyprint.Doc              as PP
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Unsafe as BSUnsafe
+import qualified Data.Map as Map
+import qualified Data.Text.Prettyprint.Doc as PP
 
-import           GHC.TypeLits
-import           System.IO.Unsafe                       (unsafePerformIO)
+import GHC.TypeLits
+import System.IO.Unsafe (unsafePerformIO)
 
 -- if we inline this then we won't be able to find it later!
 {-# NOINLINE plc #-}

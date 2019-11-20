@@ -1,12 +1,12 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Language.Plutus.Contract.Servant(
       contractServer
@@ -17,24 +17,24 @@ module Language.Plutus.Contract.Servant(
     , Response(..)
     ) where
 
-import           Control.Lens                       (from, view)
-import           Control.Monad.Except               (MonadError (..), runExcept)
-import           Control.Monad.Writer               (runWriterT)
-import           Data.Aeson                         (FromJSON, ToJSON)
-import           Data.Bifunctor
-import           Data.Proxy                         (Proxy (..))
-import           Data.Row
-import           Data.String                        (IsString (fromString))
-import           GHC.Generics                       (Generic)
-import           Servant                            ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
-import           Servant.Server                     (Application, ServantErr, Server, serve)
+import Control.Lens (from, view)
+import Control.Monad.Except (MonadError (..), runExcept)
+import Control.Monad.Writer (runWriterT)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Bifunctor
+import Data.Proxy (Proxy (..))
+import Data.Row
+import Data.String (IsString (fromString))
+import GHC.Generics (Generic)
+import Servant ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
+import Servant.Server (Application, ServantErr, Server, serve)
 
-import           Language.Plutus.Contract.Record    (Record)
-import qualified Language.Plutus.Contract.Record    as Rec
-import           Language.Plutus.Contract.Request   (Contract (..))
-import           Language.Plutus.Contract.Resumable (ResumableError)
+import Language.Plutus.Contract.Record (Record)
+import qualified Language.Plutus.Contract.Record as Rec
+import Language.Plutus.Contract.Request (Contract (..))
+import Language.Plutus.Contract.Resumable (ResumableError)
 import qualified Language.Plutus.Contract.Resumable as Resumable
-import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
+import Language.Plutus.Contract.Schema (Event, Handlers, Input, Output)
 
 newtype State e = State { record :: Record e }
     deriving stock (Generic, Eq)

@@ -1,28 +1,30 @@
 {-# LANGUAGE TemplateHaskell #-}
 module App where
 
-import           Aws.Lambda
-import           Control.Concurrent                    (forkOS, killThread, threadDelay)
-import           Control.Concurrent.MVar               (MVar, newEmptyMVar, putMVar, readMVar)
-import           Control.Exception                     (try)
-import           Data.Aeson                            (encode)
-import           Data.ByteString.UTF8                  as BSU
-import           Data.Proxy                            (Proxy (Proxy))
-import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
-import           Language.Marlowe.Analysis.FSSemantics (warningsTrace)
-import           Language.Marlowe.Pretty
-import           Marlowe.Symbolic.Types.API            (API)
-import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract))
-import qualified Marlowe.Symbolic.Types.Request        as Req
-import           Marlowe.Symbolic.Types.Response       (Response (Response, result), Result (CounterExample, Error, Valid, initialSlot, transactionList, transactionWarning))
-import qualified Marlowe.Symbolic.Types.Response       as Res
-import           Network.HTTP.Client                   (newManager)
-import           Network.HTTP.Client.TLS               (tlsManagerSettings)
-import           Servant.API                           (NoContent)
-import           Servant.Client                        (ClientEnv, ClientM, client, mkClientEnv, parseBaseUrl,
-                                                        runClientM)
-import           System.Process                        (system)
-import           Text.PrettyPrint.Leijen               (displayS, renderCompact)
+import Aws.Lambda
+import Control.Concurrent (forkOS, killThread, threadDelay)
+import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, readMVar)
+import Control.Exception (try)
+import Data.Aeson (encode)
+import Data.ByteString.UTF8 as BSU
+import Data.Proxy (Proxy (Proxy))
+import Language.Marlowe (Slot (Slot), TransactionInput, TransactionWarning)
+import Language.Marlowe.Analysis.FSSemantics (warningsTrace)
+import Language.Marlowe.Pretty
+import Marlowe.Symbolic.Types.API (API)
+import Marlowe.Symbolic.Types.Request (Request (Request, callbackUrl, contract))
+import qualified Marlowe.Symbolic.Types.Request as Req
+import Marlowe.Symbolic.Types.Response
+    ( Response (Response, result)
+    , Result (CounterExample, Error, Valid, initialSlot, transactionList, transactionWarning)
+    )
+import qualified Marlowe.Symbolic.Types.Response as Res
+import Network.HTTP.Client (newManager)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Servant.API (NoContent)
+import Servant.Client (ClientEnv, ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import System.Process (system)
+import Text.PrettyPrint.Leijen (displayS, renderCompact)
 
 notifyApi :: Proxy API
 notifyApi = Proxy

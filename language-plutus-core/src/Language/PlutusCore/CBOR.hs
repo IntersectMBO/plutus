@@ -1,27 +1,27 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.
 module Language.PlutusCore.CBOR () where
 
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer      (AlexPosn)
-import           Language.PlutusCore.Lexer.Type hiding (name)
-import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.DeBruijn
+import Language.PlutusCore.Error
+import Language.PlutusCore.Lexer (AlexPosn)
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.MkPlc (TyVarDecl (..), VarDecl (..))
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Codec.CBOR.Decoding
-import           Codec.CBOR.Encoding
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable          hiding (fold)
+import Codec.CBOR.Decoding
+import Codec.CBOR.Encoding
+import Codec.Serialise
+import qualified Data.ByteString.Lazy as BSL
+import Data.Functor.Foldable hiding (fold)
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

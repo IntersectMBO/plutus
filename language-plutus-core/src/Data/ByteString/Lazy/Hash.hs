@@ -5,8 +5,8 @@ module Data.ByteString.Lazy.Hash
     , sha3
     ) where
 
-import           Crypto.Hash          (SHA256, SHA3_256, hashlazy)
-import qualified Data.ByteArray       as B
+import Crypto.Hash (SHA256, SHA3_256, hashlazy)
+import qualified Data.ByteArray as B
 import qualified Data.ByteString.Lazy as BSL
 
 -- | Hash a [[BSL.ByteString]] using the SHA-256 hash function.

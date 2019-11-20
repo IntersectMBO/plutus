@@ -1,37 +1,37 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import           Common
-import           PlcTestUtils
-import           PlutusPrelude              hiding (hoist)
-import           TestLib
+import Common
+import PlcTestUtils
+import PlutusPrelude hiding (hoist)
+import TestLib
 
-import           OptimizerSpec
-import           ParserSpec
-import           TransformSpec
+import OptimizerSpec
+import ParserSpec
+import TransformSpec
 
-import           Language.PlutusCore.Quote
+import Language.PlutusCore.Quote
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler
-import           Language.PlutusIR.Parser   hiding (Error)
+import Language.PlutusIR
+import Language.PlutusIR.Compiler
+import Language.PlutusIR.Parser hiding (Error)
 
-import qualified Language.PlutusCore        as PLC
+import qualified Language.PlutusCore as PLC
 
-import           Test.Tasty
+import Test.Tasty
 
-import           Codec.Serialise
-import           Control.Exception
-import           Control.Monad
-import           Control.Monad.Except
-import           Control.Monad.Morph
-import           Control.Monad.Reader
+import Codec.Serialise
+import Control.Exception
+import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Morph
+import Control.Monad.Reader
 
-import           Data.Functor.Identity
-import           Text.Megaparsec.Pos
+import Data.Functor.Identity
+import Text.Megaparsec.Pos
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests

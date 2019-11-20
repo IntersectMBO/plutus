@@ -1,23 +1,46 @@
-{-# LANGUAGE ApplicativeDo       #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main
     ( main
     ) where
 
-import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
-import           Data.Monoid              ((<>))
-import qualified Data.Text                as Text
-import           Data.Yaml                (decodeFileThrow)
-import           Git                      (gitRev)
-import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
-import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                           disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                           option, prefs, short, showDefault, showHelpOnEmpty, str, strOption,
-                                           subparser, value)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Logger (MonadLogger, logInfoN, runStderrLoggingT)
+import Data.Monoid ((<>))
+import qualified Data.Text as Text
+import Data.Yaml (decodeFileThrow)
+import Git (gitRev)
+import Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
+import Options.Applicative
+    ( CommandFields
+    , Mod
+    , Parser
+    , argument
+    , auto
+    , command
+    , customExecParser
+    , disambiguate
+    , fullDesc
+    , help
+    , helper
+    , idm
+    , info
+    , infoOption
+    , long
+    , metavar
+    , option
+    , prefs
+    , short
+    , showDefault
+    , showHelpOnEmpty
+    , str
+    , strOption
+    , subparser
+    , value
+    )
 import qualified PSGenerator
 import qualified Webserver
 

@@ -1,9 +1,9 @@
-{-# LANGUAGE QuasiQuotes     #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Large (alfaSig,bnfcSig,javaSig) where
 
-import           AlgTypes
+import AlgTypes
 
 list = [declExp| list = all a.(1 + (a * (list a))) |]
 

@@ -1,26 +1,26 @@
-{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Language.Marlowe.Analysis.FSSemantics where
 
-import           Data.List                              (foldl')
-import           Data.Map.Strict                        (Map)
-import qualified Data.Map.Strict                        as M
-import           Data.SBV
-import qualified Data.SBV.Either                        as SE
-import           Data.SBV.Internals                     (SMTModel (..))
-import qualified Data.SBV.List                          as SL
-import qualified Data.SBV.Maybe                         as SM
-import qualified Data.SBV.Tuple                         as ST
-import           Data.Set                               (Set)
-import qualified Data.Set                               as S
-import           Language.Marlowe.Analysis.IntegerArray (IntegerArray, NIntegerArray)
+import Data.List (foldl')
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
+import Data.SBV
+import qualified Data.SBV.Either as SE
+import Data.SBV.Internals (SMTModel (..))
+import qualified Data.SBV.List as SL
+import qualified Data.SBV.Maybe as SM
+import qualified Data.SBV.Tuple as ST
+import Data.Set (Set)
+import qualified Data.Set as S
+import Language.Marlowe.Analysis.IntegerArray (IntegerArray, NIntegerArray)
 import qualified Language.Marlowe.Analysis.IntegerArray as IntegerArray
-import           Language.Marlowe.Analysis.MkSymb       (mkSymbolicDatatype)
-import           Language.Marlowe.Analysis.Numbering
-import qualified Language.Marlowe.Semantics             as MS
-import           Ledger                                 (Slot (..))
-import qualified Ledger.Ada                             as Ada
+import Language.Marlowe.Analysis.MkSymb (mkSymbolicDatatype)
+import Language.Marlowe.Analysis.Numbering
+import qualified Language.Marlowe.Semantics as MS
+import Ledger (Slot (..))
+import qualified Ledger.Ada as Ada
 
 data Bounds = Bounds { numParties  :: Integer
                      , numChoices  :: Integer

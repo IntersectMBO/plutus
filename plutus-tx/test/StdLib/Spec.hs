@@ -1,31 +1,31 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 module StdLib.Spec where
 
-import           Common
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.Ratio               ((%))
-import           GHC.Real                 (reduce)
-import           Hedgehog                 (Gen, MonadGen, Property)
+import Common
+import qualified Data.ByteString.Lazy as BSL
+import Data.Ratio ((%))
+import GHC.Real (reduce)
+import Hedgehog (Gen, MonadGen, Property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen             as Gen
-import qualified Hedgehog.Range           as Range
-import           PlcTestUtils
-import           Test.Tasty               (TestName)
-import           Test.Tasty.Hedgehog      (testProperty)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import PlcTestUtils
+import Test.Tasty (TestName)
+import Test.Tasty.Hedgehog (testProperty)
 
-import           Language.PlutusTx.Data   (Data (..))
-import qualified Language.PlutusTx.Data   as Data
-import qualified Language.PlutusTx.Eq     as PlutusTx
-import qualified Language.PlutusTx.Ord    as PlutusTx
-import qualified Language.PlutusTx.Ratio  as Ratio
+import Language.PlutusTx.Data (Data (..))
+import qualified Language.PlutusTx.Data as Data
+import qualified Language.PlutusTx.Eq as PlutusTx
+import qualified Language.PlutusTx.Ord as PlutusTx
+import qualified Language.PlutusTx.Ratio as Ratio
 
-import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift   as Lift
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Code
+import qualified Language.PlutusTx.Lift as Lift
+import Language.PlutusTx.Plugin
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

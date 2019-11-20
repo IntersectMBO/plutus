@@ -1,17 +1,17 @@
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module GistSpec
     ( tests
     ) where
 
-import           Data.Aeson                     (eitherDecode)
-import qualified Data.ByteString.Lazy           as LBS
-import           Data.Text                      ()
-import           Gist                           (Gist)
-import           Paths_plutus_playground_server (getDataFileName)
-import           Test.Tasty                     (TestTree, testGroup)
-import           Test.Tasty.HUnit               (assertEqual, testCase)
+import Data.Aeson (eitherDecode)
+import qualified Data.ByteString.Lazy as LBS
+import Data.Text ()
+import Gist (Gist)
+import Paths_plutus_playground_server (getDataFileName)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertEqual, testCase)
 
 tests :: TestTree
 tests = testGroup "Schema" [gistJsonHandlingTests]

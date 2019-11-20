@@ -8,18 +8,18 @@ module Data.Aeson.Extras(
     , tryDecode
     ) where
 
-import qualified Codec.CBOR.Write       as Write
-import           Codec.Serialise        (deserialiseOrFail)
-import           Codec.Serialise.Class  (Serialise, encode)
-import           Control.Monad          ((>=>))
-import qualified Data.Aeson             as Aeson
-import qualified Data.Aeson.Types       as Aeson
-import           Data.Bifunctor         (first)
-import qualified Data.ByteString        as BSS
+import qualified Codec.CBOR.Write as Write
+import Codec.Serialise (deserialiseOrFail)
+import Codec.Serialise.Class (Serialise, encode)
+import Control.Monad ((>=>))
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Types as Aeson
+import Data.Bifunctor (first)
+import qualified Data.ByteString as BSS
 import qualified Data.ByteString.Base16 as Base16
-import qualified Data.ByteString.Lazy   as BSL
-import qualified Data.Text              as Text
-import qualified Data.Text.Encoding     as TE
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as TE
 
 encodeByteString :: BSS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode

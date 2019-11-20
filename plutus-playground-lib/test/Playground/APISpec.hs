@@ -4,12 +4,11 @@ module Playground.APISpec
     ( spec
     ) where
 
-import           Data.Aeson                   (encode, object, toJSON)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row,
-                                               text)
-import           Playground.API               (parseErrorText)
-import           Playground.Types             (adaCurrency)
-import           Test.Hspec                   (Spec, describe, it, shouldBe)
+import Data.Aeson (encode, object, toJSON)
+import Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), column, filename, row, text)
+import Playground.API (parseErrorText)
+import Playground.Types (adaCurrency)
+import Test.Hspec (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = do

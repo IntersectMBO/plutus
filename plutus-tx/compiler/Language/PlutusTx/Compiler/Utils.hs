@@ -1,19 +1,19 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Language.PlutusTx.Compiler.Utils where
 
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Types
 
-import qualified CoreSyn                          as GHC
-import qualified GhcPlugins                       as GHC
+import qualified CoreSyn as GHC
+import qualified GhcPlugins as GHC
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Text                        as T
+import qualified Data.Text as T
 
 sdToTxt :: MonadReader CompileContext m => GHC.SDoc -> m T.Text
 sdToTxt sd = do

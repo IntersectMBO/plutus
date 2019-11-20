@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE MonoLocalBinds       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
@@ -19,21 +19,21 @@ module Ledger.Slot(
     , width
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
-import qualified Prelude                   as Haskell
-import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
+import Codec.Serialise.Class (Serialise)
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import Data.Hashable (Hashable)
+import Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import GHC.Generics (Generic)
+import IOTS (IotsType)
+import qualified Prelude as Haskell
+import Schema (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
 
 
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx as PlutusTx
+import Language.PlutusTx.Lift (makeLift)
+import Language.PlutusTx.Prelude
 
-import           Ledger.Interval
+import Ledger.Interval
 
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
 

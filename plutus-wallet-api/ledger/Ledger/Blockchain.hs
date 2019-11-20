@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Ledger.Blockchain (
     Block,
     Blockchain,
@@ -19,17 +19,17 @@ module Ledger.Blockchain (
     validValuesTx
     ) where
 
-import           Control.Monad  (join)
-import           Data.Map       (Map)
-import qualified Data.Map       as Map
-import           Data.Maybe     (listToMaybe)
+import Control.Monad (join)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (listToMaybe)
 
-import           Ledger.Crypto
-import           Ledger.Scripts
-import           Ledger.Slot    (Slot (..))
-import           Ledger.Tx
-import           Ledger.TxId
-import           Ledger.Value   (Value)
+import Ledger.Crypto
+import Ledger.Scripts
+import Ledger.Slot (Slot (..))
+import Ledger.Tx
+import Ledger.TxId
+import Ledger.Value (Value)
 
 -- | A block on the blockchain. This is just a list of transactions which
 -- successfully validate following on from the chain so far.

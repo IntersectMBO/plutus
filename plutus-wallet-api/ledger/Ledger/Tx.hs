@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
     -- * Transactions
@@ -56,33 +56,33 @@ module Ledger.Tx(
     scriptTxIn
     ) where
 
-import qualified Codec.CBOR.Write          as Write
-import           Codec.Serialise.Class     (Serialise, encode)
-import           Control.Lens
-import           Crypto.Hash               (Digest, SHA256, hash)
-import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Lazy      as BSL
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
-import           Data.Maybe                (isJust)
-import qualified Data.Set                  as Set
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
-import           Schema                    (ToSchema)
+import qualified Codec.CBOR.Write as Write
+import Codec.Serialise.Class (Serialise, encode)
+import Control.Lens
+import Crypto.Hash (Digest, SHA256, hash)
+import Data.Aeson (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import qualified Data.ByteArray as BA
+import qualified Data.ByteString.Lazy as BSL
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (isJust)
+import qualified Data.Set as Set
+import Data.Text.Prettyprint.Doc
+import GHC.Generics (Generic)
+import IOTS (IotsType)
+import Schema (ToSchema)
 
-import           Language.PlutusTx.Lattice
+import Language.PlutusTx.Lattice
 
-import           Ledger.Ada
-import           Ledger.Address
-import           Ledger.Crypto
-import           Ledger.Orphans            ()
-import           Ledger.Scripts
-import           Ledger.Slot
-import           Ledger.TxId
-import           Ledger.Value
-import qualified Ledger.Value              as V
+import Ledger.Ada
+import Ledger.Address
+import Ledger.Crypto
+import Ledger.Orphans ()
+import Ledger.Scripts
+import Ledger.Slot
+import Ledger.TxId
+import Ledger.Value
+import qualified Ledger.Value as V
 
 {- Note [Serialisation and hashing]
 

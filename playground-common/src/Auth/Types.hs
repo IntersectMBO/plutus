@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Auth.Types
   ( addUserAgent
@@ -20,15 +20,15 @@ module Auth.Types
   , OAuthClientSecret(..)
   ) where
 
-import           Control.Newtype.Generics (Newtype)
-import           Data.Aeson               (FromJSON, ToJSON, genericParseJSON, parseJSON)
-import           Data.Aeson.Casing        (aesonDrop, snakeCase)
-import           Data.Text                (Text)
-import           GHC.Generics             (Generic)
-import           Network.HTTP.Conduit     (Request)
-import           Network.HTTP.Simple      (addRequestHeader)
-import           Network.HTTP.Types       (hUserAgent)
-import           Servant                  (FromHttpApiData, ToHttpApiData, parseQueryParam, toUrlPiece)
+import Control.Newtype.Generics (Newtype)
+import Data.Aeson (FromJSON, ToJSON, genericParseJSON, parseJSON)
+import Data.Aeson.Casing (aesonDrop, snakeCase)
+import Data.Text (Text)
+import GHC.Generics (Generic)
+import Network.HTTP.Conduit (Request)
+import Network.HTTP.Simple (addRequestHeader)
+import Network.HTTP.Types (hUserAgent)
+import Servant (FromHttpApiData, ToHttpApiData, parseQueryParam, toUrlPiece)
 
 ------------------------------------------------------------
 newtype OAuthCode =

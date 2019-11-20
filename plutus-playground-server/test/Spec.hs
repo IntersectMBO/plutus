@@ -5,7 +5,7 @@ module Main
 import qualified GistSpec
 import qualified Playground.InterpreterSpec
 import qualified Playground.UsecasesSpec
-import           Test.Tasty                 (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup)
 
 main :: IO ()
 main =

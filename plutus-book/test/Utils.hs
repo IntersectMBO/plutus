@@ -16,16 +16,16 @@ module Utils
     , assertFunds3
     ) where
 
-import           Ledger
-import           Ledger.Ada
-import           Wallet.Emulator
-import           Wallet.Emulator.Generators
-import           Wallet.Generators
+import Ledger
+import Ledger.Ada
+import Wallet.Emulator
+import Wallet.Emulator.Generators
+import Wallet.Generators
 
-import           Control.Arrow              (first)
-import           Control.Monad              (forM_, void)
-import qualified Data.Map.Strict            as Map
-import           Debug.Trace                (traceM)
+import Control.Arrow (first)
+import Control.Monad (forM_, void)
+import qualified Data.Map.Strict as Map
+import Debug.Trace (traceM)
 
 w1, w2, w3, w4 :: Wallet
 w1 = Wallet 1

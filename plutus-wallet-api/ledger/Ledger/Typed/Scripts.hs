@@ -1,19 +1,19 @@
-{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts where
 
-import           Language.PlutusTx
+import Language.PlutusTx
 
-import           Language.PlutusTx.Prelude (check)
-import qualified Ledger.Address            as Addr
-import           Ledger.Scripts
-import qualified Ledger.Validation         as Validation
+import Language.PlutusTx.Prelude (check)
+import qualified Ledger.Address as Addr
+import Ledger.Scripts
+import qualified Ledger.Validation as Validation
 
-import           Data.Kind
+import Data.Kind
 
 -- | A class that associates a type standing for a connection type with two types, the type of the redeemer
 -- and the data script for that connection type.

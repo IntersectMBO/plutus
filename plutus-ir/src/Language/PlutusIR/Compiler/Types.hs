@@ -1,21 +1,21 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Language.PlutusIR.Compiler.Types where
 
-import qualified Language.PlutusIR                     as PIR
-import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Provenance
+import qualified Language.PlutusIR as PIR
+import Language.PlutusIR.Compiler.Error
+import Language.PlutusIR.Compiler.Provenance
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import           Control.Lens
+import Control.Lens
 
-import qualified Language.PlutusCore                   as PLC
-import qualified Language.PlutusCore.MkPlc             as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type       as Types
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.MkPlc as PLC
+import Language.PlutusCore.Quote
+import qualified Language.PlutusCore.StdLib.Type as Types
 
 newtype CompilationOpts = CompilationOpts {
     _coOptimize :: Bool

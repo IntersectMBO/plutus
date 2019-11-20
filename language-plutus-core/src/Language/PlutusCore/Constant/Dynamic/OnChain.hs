@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.Constant.Dynamic.OnChain
     ( OnChain (..)
@@ -19,20 +19,20 @@ module Language.PlutusCore.Constant.Dynamic.OnChain
     , evaluateHandlersBy
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Call
-import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
-import           Language.PlutusCore.Constant.Function
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Dynamic.Call
+import Language.PlutusCore.Constant.Dynamic.Emit
+import Language.PlutusCore.Constant.Dynamic.Instances ()
+import Language.PlutusCore.Constant.Function
+import Language.PlutusCore.Constant.Make
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
 
-import           Control.Exception
-import           Data.Coerce
-import           Data.Proxy
-import qualified Data.Text                                      as Text
-import           GHC.TypeLits
+import Control.Exception
+import Data.Coerce
+import Data.Proxy
+import qualified Data.Text as Text
+import GHC.TypeLits
 
 {- Note [Interpretation of names]
 The thing about dynamic built-in names is that they really can denote arbitrary effects.

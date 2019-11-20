@@ -1,48 +1,48 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module Language.PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import           PlutusPrelude                          (bsToStr)
+import PlutusPrelude (bsToStr)
 
-import           Language.PlutusTx.Compiler.Binders
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Laziness
-import           Language.PlutusTx.Compiler.Names
-import           Language.PlutusTx.Compiler.Primitives
-import           Language.PlutusTx.Compiler.Type
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
+import Language.PlutusTx.Compiler.Binders
+import Language.PlutusTx.Compiler.Builtins
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Laziness
+import Language.PlutusTx.Compiler.Names
+import Language.PlutusTx.Compiler.Primitives
+import Language.PlutusTx.Compiler.Type
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.Utils
+import Language.PlutusTx.PIRTypes
 
-import qualified Class                                  as GHC
-import qualified FV                                     as GHC
-import qualified GhcPlugins                             as GHC
-import qualified MkId                                   as GHC
-import qualified PrelNames                              as GHC
+import qualified Class as GHC
+import qualified FV as GHC
+import qualified GhcPlugins as GHC
+import qualified MkId as GHC
+import qualified PrelNames as GHC
 
-import qualified Language.PlutusIR                      as PIR
+import qualified Language.PlutusIR as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import           Language.PlutusIR.Compiler.Names
-import qualified Language.PlutusIR.MkPir                as PIR
-import qualified Language.PlutusIR.Value                as PIR
+import Language.PlutusIR.Compiler.Names
+import qualified Language.PlutusIR.MkPir as PIR
+import qualified Language.PlutusIR.Value as PIR
 
-import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Constant as PLC
 
-import           Control.Monad.Reader
+import Control.Monad.Reader
 
-import qualified Data.ByteString.Lazy                   as BSL
-import           Data.List                              (elem, elemIndex)
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Set                               as Set
-import qualified Data.Text                              as T
-import           Data.Traversable
+import qualified Data.ByteString.Lazy as BSL
+import Data.List (elem, elemIndex)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Set as Set
+import qualified Data.Text as T
+import Data.Traversable
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.

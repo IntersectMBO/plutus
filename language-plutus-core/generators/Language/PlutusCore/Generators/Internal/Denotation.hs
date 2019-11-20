@@ -2,7 +2,7 @@
 -- Haskell values.
 
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.Generators.Internal.Denotation
     ( Denotation(..)
@@ -15,18 +15,18 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , typedBuiltinNames
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
 
-import           Language.PlutusCore.Generators.Internal.Dependent
+import Language.PlutusCore.Generators.Internal.Dependent
 
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Data.ByteString.Lazy.Hash                         as Hash
-import           Data.Dependent.Map                                (DMap)
-import qualified Data.Dependent.Map                                as DMap
-import           Data.Functor.Compose
-import           Data.Proxy
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Hash as Hash
+import Data.Dependent.Map (DMap)
+import qualified Data.Dependent.Map as DMap
+import Data.Functor.Compose
+import Data.Proxy
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation object r = forall a. Denotation

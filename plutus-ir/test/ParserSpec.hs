@@ -1,23 +1,23 @@
 {-# LANGUAGE FlexibleContexts #-}
 module ParserSpec (parsing) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Common
+import Common
 
-import           Data.Char
-import qualified Data.Text                        as T
+import Data.Char
+import qualified Data.Text as T
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Generators.AST
-import           Language.PlutusIR.Parser
+import Language.PlutusIR
+import Language.PlutusIR.Generators.AST
+import Language.PlutusIR.Parser
 
-import           Hedgehog                         hiding (Var)
-import qualified Hedgehog.Gen                     as Gen
-import qualified Hedgehog.Range                   as Range
+import Hedgehog hiding (Var)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name SourcePos }
 instance Show PrettyProg where

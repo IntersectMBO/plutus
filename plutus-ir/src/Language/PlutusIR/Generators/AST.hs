@@ -13,15 +13,15 @@ module Language.PlutusIR.Generators.AST
     , genRecursivity
     ) where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
-import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genBuiltinName, genConstant, genKind,
-                                                               genVersion, runAstGen, simpleRecursive)
+import Language.PlutusCore.Generators.AST as Export
+    (AstGen, genBuiltin, genBuiltinName, genConstant, genKind, genVersion, runAstGen, simpleRecursive)
 import qualified Language.PlutusCore.Generators.AST as PLC
 
-import           Hedgehog                           hiding (Var)
-import qualified Hedgehog.Gen                       as Gen
-import qualified Hedgehog.Range                     as Range
+import Hedgehog hiding (Var)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
 genName :: PLC.AstGen (Name ())
 genName = Gen.filter (not . isPirKw . nameString) PLC.genName where

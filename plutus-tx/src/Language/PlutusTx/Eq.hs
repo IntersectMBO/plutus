@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Eq (Eq(..), (/=)) where
 
-import           Language.PlutusTx.Bool
+import Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Data
-import           Prelude                    hiding (Eq (..), not, (&&))
+import Language.PlutusTx.Data
+import Prelude hiding (Eq (..), not, (&&))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

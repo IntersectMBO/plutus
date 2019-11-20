@@ -1,36 +1,36 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
-import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
-import qualified Language.PlutusCore.Generators             as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Evaluation.CkMachine as PLC
+import qualified Language.PlutusCore.Generators as PLC
 import qualified Language.PlutusCore.Generators.Interesting as PLC
-import qualified Language.PlutusCore.Generators.Test        as PLC
+import qualified Language.PlutusCore.Generators.Test as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
-import qualified Language.PlutusCore.Interpreter.LMachine   as PLC
-import qualified Language.PlutusCore.Pretty                 as PLC
-import qualified Language.PlutusCore.StdLib.Data.Bool       as PLC
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
-import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
-import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
+import qualified Language.PlutusCore.Interpreter.LMachine as PLC
+import qualified Language.PlutusCore.Pretty as PLC
+import qualified Language.PlutusCore.StdLib.Data.Bool as PLC
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat as PLC
+import qualified Language.PlutusCore.StdLib.Data.Integer as PLC
+import qualified Language.PlutusCore.StdLib.Data.Unit as PLC
 
-import           Control.Lens
-import           Control.Monad
-import           Control.Monad.Trans.Except                 (runExceptT)
-import           Data.Bifunctor                             (second)
-import           Data.Foldable                              (traverse_)
+import Control.Lens
+import Control.Monad
+import Control.Monad.Trans.Except (runExceptT)
+import Data.Bifunctor (second)
+import Data.Foldable (traverse_)
 
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
-import           Data.Text.Encoding                         (encodeUtf8)
-import qualified Data.Text.IO                               as T
-import           Data.Text.Prettyprint.Doc
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
+import qualified Data.Text.IO as T
+import Data.Text.Prettyprint.Doc
 
-import           System.Exit
+import System.Exit
 
-import           Options.Applicative
+import Options.Applicative
 
 data Input = FileInput FilePath | StdInput
 

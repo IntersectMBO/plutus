@@ -1,20 +1,20 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name ann)@
 -- instance in scope.
 module Language.PlutusIR.Transform.Rename () where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
-import qualified Language.PlutusCore                 as PLC
-import qualified Language.PlutusCore.Name            as PLC
-import qualified Language.PlutusCore.Rename          as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Name as PLC
+import qualified Language.PlutusCore.Rename as PLC
 import qualified Language.PlutusCore.Rename.Internal as PLC
 
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Class           (lift)
-import           Control.Monad.Trans.Cont            (ContT (..))
+import Control.Monad.Reader
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Cont (ContT (..))
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring

@@ -1,29 +1,29 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Language.PlutusTx.Compiler.Types where
 
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.PLCTypes
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.PLCTypes
 
-import           Language.PlutusIR.Compiler.Definitions
+import Language.PlutusIR.Compiler.Definitions
 
-import           Language.PlutusCore.Quote
+import Language.PlutusCore.Quote
 
-import qualified FamInstEnv                             as GHC
-import qualified GhcPlugins                             as GHC
+import qualified FamInstEnv as GHC
+import qualified GhcPlugins as GHC
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
 
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Map                               as Map
-import qualified Data.Set                               as Set
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
-import qualified Language.Haskell.TH.Syntax             as TH
+import qualified Language.Haskell.TH.Syntax as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 

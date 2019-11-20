@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore
+import Language.PlutusCore.Generators
+import Language.PlutusCore.Pretty
 
-import           Data.Foldable
-import           Data.Text                      (Text)
-import qualified Data.Text                      as Text
-import qualified Data.Text.IO                   as Text
-import qualified Hedgehog.Gen                   as Gen
+import Data.Foldable
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+import qualified Hedgehog.Gen as Gen
 
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.

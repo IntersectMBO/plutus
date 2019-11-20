@@ -1,13 +1,13 @@
 module Main (main) where
 
-import qualified Lift.Spec   as Lift
+import qualified Lift.Spec as Lift
 import qualified Plugin.Spec as Plugin
 import qualified StdLib.Spec as Lib
-import qualified TH.Spec     as TH
+import qualified TH.Spec as TH
 
-import           Common
+import Common
 
-import           Test.Tasty
+import Test.Tasty
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests

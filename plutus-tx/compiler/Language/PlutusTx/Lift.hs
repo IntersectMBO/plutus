@@ -12,28 +12,28 @@ module Language.PlutusTx.Lift (
     typeCheckAgainst,
     typeCode) where
 
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Lift.Class                  (makeLift)
-import qualified Language.PlutusTx.Lift.Class                  as Lift
-import           Language.PlutusTx.Lift.Instances              ()
+import Language.PlutusTx.Code
+import Language.PlutusTx.Lift.Class (makeLift)
+import qualified Language.PlutusTx.Lift.Class as Lift
+import Language.PlutusTx.Lift.Instances ()
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler
-import           Language.PlutusIR.Compiler.Definitions
-import qualified Language.PlutusIR.MkPir                       as PIR
+import Language.PlutusIR
+import Language.PlutusIR.Compiler
+import Language.PlutusIR.Compiler.Definitions
+import qualified Language.PlutusIR.MkPir as PIR
 
-import qualified Language.PlutusCore                           as PLC
-import qualified Language.PlutusCore.Constant.Dynamic          as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Function      as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+import Language.PlutusCore.Quote
+import qualified Language.PlutusCore.StdLib.Data.Function as PLC
 import qualified Language.PlutusCore.StdLib.Meta.Data.Function as PLC
 
-import           Control.Exception
-import           Control.Monad.Except                          hiding (lift)
-import           Control.Monad.Reader                          hiding (lift)
+import Control.Exception
+import Control.Monad.Except hiding (lift)
+import Control.Monad.Reader hiding (lift)
 
-import           Data.Functor                                  (void)
-import           Data.Proxy
+import Data.Functor (void)
+import Data.Proxy
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift :: (Lift.Lift a, AsError e (Provenance ()), MonadError e m, MonadQuote m) => a -> m (PLC.Term TyName Name ())

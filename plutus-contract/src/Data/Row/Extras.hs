@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | Instances for 'Data.Row.Records.Rec' and 'Data.Row.Variants.Var' types
 module Data.Row.Extras(
@@ -9,18 +9,18 @@ module Data.Row.Extras(
     , MonoidRec(..)
     ) where
 
-import           Data.Aeson            (FromJSON, ToJSON, (.:), (.=))
-import qualified Data.Aeson            as Aeson
-import qualified Data.Aeson.Types      as Aeson
-import           Data.Functor.Identity
-import           Data.Functor.Product
-import           Data.Proxy            (Proxy (..))
-import           Data.Row
-import           Data.Row.Internal
-import qualified Data.Row.Records      as Records
-import qualified Data.Row.Variants     as Variants
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
+import Data.Aeson (FromJSON, ToJSON, (.:), (.=))
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Types as Aeson
+import Data.Functor.Identity
+import Data.Functor.Product
+import Data.Proxy (Proxy (..))
+import Data.Row
+import Data.Row.Internal
+import qualified Data.Row.Records as Records
+import qualified Data.Row.Variants as Variants
+import Data.Text (Text)
+import qualified Data.Text as Text
 
 newtype JsonVar s = JsonVar { unJsonVar :: Var s }
 

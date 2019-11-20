@@ -1,19 +1,19 @@
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Auth
     ( API
@@ -34,48 +34,80 @@ module Auth
     , githubEndpointsCallbackUri
     ) where
 
-import           Auth.Types                  (OAuthClientId, OAuthClientSecret, OAuthCode, OAuthToken, Token (Token),
-                                              TokenProvider (Github), addUserAgent, oAuthTokenAccessToken)
-import           Control.Lens                (makeLenses, view, _1, _2)
-import           Control.Monad               (guard)
-import           Control.Monad.Except        (MonadError)
-import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN)
-import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIXTime)
-import           Control.Monad.Reader        (MonadReader)
-import           Control.Monad.Trace         (attempt, runTrace, withTrace)
-import           Control.Monad.Web           (MonadWeb, doRequest, makeManager)
-import           Control.Newtype.Generics    (Newtype, O, unpack)
-import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode, parseJSON, withObject,
-                                              (.:))
-import           Data.Bifunctor              (first)
-import           Data.ByteString             (ByteString)
-import qualified Data.ByteString.Lazy        as LBS
-import qualified Data.Map                    as Map
-import           Data.Text                   (Text)
-import qualified Data.Text                   as Text
-import           Data.Text.Encoding          (decodeUtf8, encodeUtf8)
-import           Data.Time                   (NominalDiffTime, UTCTime, addUTCTime)
-import           Data.Time.Clock.POSIX       (POSIXTime, utcTimeToPOSIXSeconds)
-import           GHC.Generics                (Generic)
-import           Gist                        (Gist, GistId, NewGist)
+import Auth.Types
+    ( OAuthClientId
+    , OAuthClientSecret
+    , OAuthCode
+    , OAuthToken
+    , Token (Token)
+    , TokenProvider (Github)
+    , addUserAgent
+    , oAuthTokenAccessToken
+    )
+import Control.Lens (makeLenses, view, _1, _2)
+import Control.Monad (guard)
+import Control.Monad.Except (MonadError)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Logger (MonadLogger, logDebugN, logErrorN)
+import Control.Monad.Now (MonadNow, getCurrentTime, getPOSIXTime)
+import Control.Monad.Reader (MonadReader)
+import Control.Monad.Trace (attempt, runTrace, withTrace)
+import Control.Monad.Web (MonadWeb, doRequest, makeManager)
+import Control.Newtype.Generics (Newtype, O, unpack)
+import Data.Aeson (FromJSON, ToJSON, Value (String), eitherDecode, parseJSON, withObject, (.:))
+import Data.Bifunctor (first)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Map as Map
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Data.Time (NominalDiffTime, UTCTime, addUTCTime)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import GHC.Generics (Generic)
+import Gist (Gist, GistId, NewGist)
 import qualified Gist
-import           Network.HTTP.Client         (managerModifyRequest)
-import           Network.HTTP.Client.Conduit (getUri)
-import           Network.HTTP.Client.TLS     (tlsManagerSettings)
-import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
-                                              setQueryString)
-import           Network.HTTP.Simple         (addRequestHeader)
-import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
-import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
-                                              QueryParam, ServantErr, ServerT, StdMethod (GET), ToHttpApiData, Verb,
-                                              addHeader, err401, err500, errBody, throwError)
-import           Servant.API.BrowserHeader   (BrowserHeader)
-import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
-import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
-                                              setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
-                                              setCookieSecure, setCookieValue)
-import qualified Web.JWT                     as JWT
+import Network.HTTP.Client (managerModifyRequest)
+import Network.HTTP.Client.Conduit (getUri)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Conduit (Request, newManager, parseRequest, responseBody, responseStatus, setQueryString)
+import Network.HTTP.Simple (addRequestHeader)
+import Network.HTTP.Types (hAccept, statusIsSuccessful)
+import Servant
+    ( (:<|>) ((:<|>))
+    , (:>)
+    , Get
+    , Header
+    , Headers
+    , JSON
+    , NoContent (NoContent)
+    , QueryParam
+    , ServantErr
+    , ServerT
+    , StdMethod (GET)
+    , ToHttpApiData
+    , Verb
+    , addHeader
+    , err401
+    , err500
+    , errBody
+    , throwError
+    )
+import Servant.API.BrowserHeader (BrowserHeader)
+import Servant.Client (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
+import Web.Cookie
+    ( SetCookie
+    , defaultSetCookie
+    , parseCookies
+    , setCookieExpires
+    , setCookieHttpOnly
+    , setCookieMaxAge
+    , setCookieName
+    , setCookiePath
+    , setCookieSecure
+    , setCookieValue
+    )
+import qualified Web.JWT as JWT
 
 -- | https://gist.github.com/alpmestan/757094ecf9401f85c5ba367ca20b8900
 type GetRedirect headers = Verb 'GET 302 '[ JSON] (headers NoContent)

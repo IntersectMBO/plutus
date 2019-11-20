@@ -1,19 +1,19 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 
 module Plugin.Primitives.Spec where
 
-import           Common
-import           PlcTestUtils
-import           Plugin.Lib
+import Common
+import PlcTestUtils
+import Plugin.Lib
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Lift
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Code
+import Language.PlutusTx.Lift
+import Language.PlutusTx.Plugin
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

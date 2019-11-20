@@ -2,10 +2,10 @@ module Evaluation.Constant.All
     ( test_constant
     ) where
 
-import           Evaluation.Constant.Success
-import           Evaluation.Constant.SuccessFailure
+import Evaluation.Constant.Success
+import Evaluation.Constant.SuccessFailure
 
-import           Test.Tasty
+import Test.Tasty
 
 test_constant :: TestTree
 test_constant =

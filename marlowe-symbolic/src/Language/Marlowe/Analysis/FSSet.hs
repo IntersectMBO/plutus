@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedLists #-}
 module Language.Marlowe.Analysis.FSSet where
 
-import           Data.SBV
-import           Data.SBV.List as SL
+import Data.SBV
+import Data.SBV.List as SL
 
 type NSet a = [a]
 type FSSet a = SList a

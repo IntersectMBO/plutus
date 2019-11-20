@@ -1,21 +1,21 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Functions for compiling GHC primitives into Plutus Core primitives.
 module Language.PlutusTx.Compiler.Primitives where
 
-import qualified Language.PlutusTx.Builtins          as Builtins
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
+import qualified Language.PlutusTx.Builtins as Builtins
+import Language.PlutusTx.Compiler.Builtins
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.Utils
+import Language.PlutusTx.PIRTypes
 
-import qualified GhcPlugins                          as GHC
-import qualified PrimOp                              as GHC
+import qualified GhcPlugins as GHC
+import qualified PrimOp as GHC
 
 -- These never seem to come up, rather we get the typeclass operations. Not sure if we need them.
 compilePrimitiveOp :: Compiling m => GHC.PrimOp -> m PIRTerm

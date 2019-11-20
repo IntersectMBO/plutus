@@ -1,39 +1,47 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Playground.Interpreter where
 
-import           Control.Exception            (IOException, try)
-import           Control.Monad.Catch          (MonadMask)
-import           Control.Monad.Error.Class    (MonadError, liftEither, throwError)
-import           Control.Monad.Except.Extras  (mapError)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import qualified Control.Newtype.Generics     as Newtype
-import qualified Data.Aeson                   as JSON
-import           Data.Bifunctor               (first)
-import qualified Data.ByteString.Char8        as BS8
-import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import qualified Data.Text.IO                 as Text
-import           Data.Time.Units              (TimeUnit)
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
-                                               InterpreterError (CompilationErrors),
-                                               InterpreterResult (InterpreterResult), SourceCode (SourceCode),
-                                               Warning (Warning), avoidUnsafe, runghc)
-import           Language.Haskell.TH          (Ppr, Q, pprint, runQ)
-import           Language.Haskell.TH.Syntax   (liftString)
-import           Playground.Types             (CompilationResult (CompilationResult),
-                                               Evaluation (program, sourceCode, wallets), EvaluationResult,
-                                               PlaygroundError (InterpreterError, JsonDecodingError, OtherError, decodingError, expected, input))
-import           System.FilePath              ((</>))
-import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
-import           System.IO.Extras             (withFile)
-import           System.IO.Temp               (withSystemTempDirectory)
-import qualified Text.Regex                   as Regex
+import Control.Exception (IOException, try)
+import Control.Monad.Catch (MonadMask)
+import Control.Monad.Error.Class (MonadError, liftEither, throwError)
+import Control.Monad.Except.Extras (mapError)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Control.Newtype.Generics as Newtype
+import qualified Data.Aeson as JSON
+import Data.Bifunctor (first)
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+import Data.Time.Units (TimeUnit)
+import Language.Haskell.Interpreter
+    ( CompilationError (CompilationError, RawError)
+    , InterpreterError (CompilationErrors)
+    , InterpreterResult (InterpreterResult)
+    , SourceCode (SourceCode)
+    , Warning (Warning)
+    , avoidUnsafe
+    , runghc
+    )
+import Language.Haskell.TH (Ppr, Q, pprint, runQ)
+import Language.Haskell.TH.Syntax (liftString)
+import Playground.Types
+    ( CompilationResult (CompilationResult)
+    , Evaluation (program, sourceCode, wallets)
+    , EvaluationResult
+    , PlaygroundError (InterpreterError, JsonDecodingError, OtherError, decodingError, expected, input)
+    )
+import System.FilePath ((</>))
+import System.IO (Handle, IOMode (ReadWriteMode), hFlush)
+import System.IO.Extras (withFile)
+import System.IO.Temp (withSystemTempDirectory)
+import qualified Text.Regex as Regex
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =

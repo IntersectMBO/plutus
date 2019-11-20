@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Language.Marlowe.Util where
-import           Data.List                  (foldl')
-import           Data.Map.Strict            (Map)
-import qualified Data.Map.Strict            as Map
-import           Data.String
+import Data.List (foldl')
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Data.String
 
-import           Language.Marlowe.Pretty
-import           Language.Marlowe.Semantics
-import           Ledger                     (PubKey (..))
-import qualified Ledger.Ada                 as Ada
+import Language.Marlowe.Pretty
+import Language.Marlowe.Semantics
+import Ledger (PubKey (..))
+import qualified Ledger.Ada as Ada
 
 instance IsString PubKey where
     fromString = pubKeyFromString

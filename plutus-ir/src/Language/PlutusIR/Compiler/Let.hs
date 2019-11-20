@@ -1,23 +1,23 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Functions for compiling PIR let terms.
 module Language.PlutusIR.Compiler.Let (compileLets, LetKind(..)) where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Datatype
-import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Recursion
-import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir               as PIR
+import Language.PlutusIR
+import Language.PlutusIR.Compiler.Datatype
+import Language.PlutusIR.Compiler.Error
+import Language.PlutusIR.Compiler.Provenance
+import Language.PlutusIR.Compiler.Recursion
+import Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.MkPir as PIR
 
-import           Control.Monad
-import           Control.Monad.Error.Lens
+import Control.Monad
+import Control.Monad.Error.Lens
 
-import           Control.Lens                          hiding (Strict)
+import Control.Lens hiding (Strict)
 
-import           Data.List
+import Data.List
 
 data LetKind = RecTerms | NonRecTerms | Types
 

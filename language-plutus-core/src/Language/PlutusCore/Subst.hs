@@ -17,13 +17,13 @@ module Language.PlutusCore.Subst
     , tvTy
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Type
 
-import           Control.Lens
-import           Data.Functor.Foldable    (cata)
-import           Data.Set                 as Set
+import Control.Lens
+import Data.Functor.Foldable (cata)
+import Data.Set as Set
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce

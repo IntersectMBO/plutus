@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
@@ -29,21 +29,21 @@ module Language.PlutusIR (
     Program (..)
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type (..), typeSubtypes)
-import qualified Language.PlutusCore        as PLC
-import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
+import Language.PlutusCore (Kind, Name, TyName, Type (..), typeSubtypes)
+import qualified Language.PlutusCore as PLC
+import Language.PlutusCore.CBOR ()
+import Language.PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
-import           Control.Lens               hiding (Strict)
+import Control.Lens hiding (Strict)
 
-import           Codec.Serialise            (Serialise)
+import Codec.Serialise (Serialise)
 
-import qualified Data.Text                  as T
+import qualified Data.Text as T
 
-import           GHC.Generics               (Generic)
+import GHC.Generics (Generic)
 
 -- Datatypes
 

@@ -6,11 +6,11 @@ module Language.PlutusCore.StdLib.Data.Integer
     ( succInteger
     ) where
 
-import           Language.PlutusCore.Constant.Make (makeIntConstant)
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Make (makeIntConstant)
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --

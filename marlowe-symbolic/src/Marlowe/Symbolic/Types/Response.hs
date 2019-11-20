@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Marlowe.Symbolic.Types.Response where
 
-import           Data.Aeson   (FromJSON, ToJSON)
-import           GHC.Generics
+import Data.Aeson (FromJSON, ToJSON)
+import GHC.Generics
 
 data Result = Valid
             | CounterExample

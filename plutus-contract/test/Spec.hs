@@ -4,7 +4,7 @@ module Main(main) where
 import qualified Spec.Contract
 import qualified Spec.Rows
 import qualified Spec.State
-import           Test.Tasty
+import Test.Tasty
 
 main :: IO ()
 main = defaultMain tests

@@ -43,13 +43,13 @@ module Language.PlutusTx.Builtins (
                                 ) where
 
 import qualified Crypto
-import           Data.ByteString.Lazy      as BSL
+import Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Hash as Hash
-import           Data.Maybe                (fromMaybe)
-import           Prelude                   hiding (String, error)
+import Data.Maybe (fromMaybe)
+import Prelude hiding (String, error)
 
-import           Language.PlutusTx.Data
-import           Language.PlutusTx.Utils   (mustBeReplaced)
+import Language.PlutusTx.Data
+import Language.PlutusTx.Utils (mustBeReplaced)
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

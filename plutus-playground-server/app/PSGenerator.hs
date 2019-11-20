@@ -1,71 +1,111 @@
-{-# LANGUAGE AutoDeriveTypeable    #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE AutoDeriveTypeable #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PSGenerator
     ( generate
     ) where
 
-import           Auth                                       (AuthRole, AuthStatus)
+import Auth (AuthRole, AuthStatus)
 import qualified Auth
-import           Control.Applicative                        (empty, (<|>))
-import           Control.Lens                               (set, (&))
-import           Control.Monad.Reader                       (MonadReader)
-import qualified Data.ByteString                            as BS
-import           Data.Monoid                                ()
-import           Data.Proxy                                 (Proxy (Proxy))
-import qualified Data.Set                                   as Set ()
-import           Data.Text                                  (Text)
-import qualified Data.Text                                  as T ()
-import qualified Data.Text.Encoding                         as T (encodeUtf8)
-import qualified Data.Text.IO                               as T ()
-import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
-                                                             SourceCode, Warning)
-import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
-                                                             genericShow, haskType, isTuple, mkSumType, order,
-                                                             psTypeParameters, typeModule, typeName, writePSTypesWith,
-                                                             (^==))
-import           Language.PureScript.Bridge.Builder         (BridgeData)
-import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
-                                                             unwrapSingleConstructors)
-import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, DataScript, PubKey, RedeemerScript, Signature, Tx,
-                                                             TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutType,
-                                                             ValidatorScript)
-import           Ledger.Ada                                 (Ada)
-import           Ledger.Index                               (ValidationError)
-import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
-import           Ledger.Scripts                             (ScriptError)
-import           Ledger.Slot                                (Slot)
-import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
-import qualified Playground.API                             as API
-import           Playground.Types                           (CompilationResult, EndpointName, Evaluation,
-                                                             EvaluationResult, FunctionSchema, KnownCurrency,
-                                                             PlaygroundError, SimulatorWallet)
-import           Playground.Usecases                        (crowdfunding, errorHandling, game, starter, vesting)
-import           Schema                                     (FormSchema)
-import           Servant                                    ((:<|>))
-import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                             defaultSettings, languageBridge,
-                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
-import           System.FilePath                            ((</>))
-import           Wallet.API                                 (WalletAPIError)
-import qualified Wallet.Emulator.NodeClient                 as NC
-import           Wallet.Emulator.Types                      (EmulatorEvent, Wallet)
-import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
-                                                             SequenceId)
+import Control.Applicative (empty, (<|>))
+import Control.Lens (set, (&))
+import Control.Monad.Reader (MonadReader)
+import qualified Data.ByteString as BS
+import Data.Monoid ()
+import Data.Proxy (Proxy (Proxy))
+import qualified Data.Set as Set ()
+import Data.Text (Text)
+import qualified Data.Text as T ()
+import qualified Data.Text.Encoding as T (encodeUtf8)
+import qualified Data.Text.IO as T ()
+import Gist (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult, SourceCode, Warning)
+import Language.PureScript.Bridge
+    ( BridgePart
+    , Language (Haskell)
+    , PSType
+    , SumType
+    , TypeInfo (TypeInfo)
+    , buildBridge
+    , doCheck
+    , equal
+    , functor
+    , genericShow
+    , haskType
+    , isTuple
+    , mkSumType
+    , order
+    , psTypeParameters
+    , typeModule
+    , typeName
+    , writePSTypesWith
+    , (^==)
+    )
+import Language.PureScript.Bridge.Builder (BridgeData)
+import Language.PureScript.Bridge.CodeGenSwitches
+    (ForeignOptions (ForeignOptions), genForeign, unwrapSingleConstructors)
+import Language.PureScript.Bridge.PSTypes (psArray, psInt, psString)
+import Language.PureScript.Bridge.TypeParameters (A)
+import Ledger
+    ( Address
+    , DataScript
+    , PubKey
+    , RedeemerScript
+    , Signature
+    , Tx
+    , TxId
+    , TxIn
+    , TxInType
+    , TxOut
+    , TxOutRef
+    , TxOutType
+    , ValidatorScript
+    )
+import Ledger.Ada (Ada)
+import Ledger.Index (ValidationError)
+import Ledger.Interval (Extended, Interval, LowerBound, UpperBound)
+import Ledger.Scripts (ScriptError)
+import Ledger.Slot (Slot)
+import Ledger.Value (CurrencySymbol, TokenName, Value)
+import qualified Playground.API as API
+import Playground.Types
+    ( CompilationResult
+    , EndpointName
+    , Evaluation
+    , EvaluationResult
+    , FunctionSchema
+    , KnownCurrency
+    , PlaygroundError
+    , SimulatorWallet
+    )
+import Playground.Usecases (crowdfunding, errorHandling, game, starter, vesting)
+import Schema (FormSchema)
+import Servant ((:<|>))
+import Servant.PureScript
+    ( HasBridge
+    , Settings
+    , apiModuleName
+    , defaultBridge
+    , defaultSettings
+    , languageBridge
+    , writeAPIModuleWithSettings
+    , _generateSubscriberAPI
+    )
+import System.FilePath ((</>))
+import Wallet.API (WalletAPIError)
+import qualified Wallet.Emulator.NodeClient as NC
+import Wallet.Emulator.Types (EmulatorEvent, Wallet)
+import Wallet.Rollup.Types (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId)
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =

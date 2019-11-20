@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
@@ -11,17 +11,17 @@ module Language.PlutusCore.Constant.Dynamic.Emit
     , withEmitEvaluateBy
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Call
-import           Language.PlutusCore.Constant.Function
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Dynamic.Call
+import Language.PlutusCore.Constant.Function
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Type
 
-import           Control.Exception                         (evaluate)
-import           Data.IORef
-import           System.IO.Unsafe                          (unsafePerformIO)
+import Control.Exception (evaluate)
+import Data.IORef
+import System.IO.Unsafe (unsafePerformIO)
 
 -- This does not stream elements lazily. There is a version that allows to stream elements lazily,
 -- but we do not have it here because it's way too convoluted.

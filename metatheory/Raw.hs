@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Raw where
 
-import           GHC.Natural
+import GHC.Natural
 
-import           Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
-import           Language.PlutusCore
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parser
-import           Language.PlutusCore.Pretty
+import Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import Language.PlutusCore
+import Language.PlutusCore.Name
+import Language.PlutusCore.Parser
+import Language.PlutusCore.Pretty
 
-import           Data.Either
+import Data.Either
 
 data RKind = RKiStar
            | RKiFun RKind RKind

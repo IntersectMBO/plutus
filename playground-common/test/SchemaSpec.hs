@@ -1,20 +1,22 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 
 module SchemaSpec
     ( tests
     ) where
 
-import           Data.Text        (Text)
-import           GHC.Generics     (Generic)
-import           Schema           (FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple),
-                                   ToSchema (toSchema))
-import           Test.Tasty       (TestTree, testGroup)
-import           Test.Tasty.HUnit (assertEqual, testCase)
+import Data.Text (Text)
+import GHC.Generics (Generic)
+import Schema
+    ( FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple)
+    , ToSchema (toSchema)
+    )
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertEqual, testCase)
 
 tests :: TestTree
 tests = testGroup "Schema" [toSchemaTests]

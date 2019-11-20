@@ -3,29 +3,29 @@ module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
-import           Prelude                                    hiding (even)
+import Prelude hiding (even)
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Test
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore
+import Language.PlutusCore.Evaluation.CkMachine
+import Language.PlutusCore.Generators.Interesting
+import Language.PlutusCore.Generators.Test
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.List
-import           Language.PlutusCore.StdLib.Data.Nat
-import           Language.PlutusCore.StdLib.Meta
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Data.Bool
+import Language.PlutusCore.StdLib.Data.Function
+import Language.PlutusCore.StdLib.Data.List
+import Language.PlutusCore.StdLib.Data.Nat
+import Language.PlutusCore.StdLib.Meta
+import Language.PlutusCore.StdLib.Meta.Data.Tuple
+import Language.PlutusCore.StdLib.Type
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                       as BSL
-import           Data.Text.Encoding                         (encodeUtf8)
-import           Test.Tasty
-import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
+import Control.Monad.Except
+import qualified Data.ByteString.Lazy as BSL
+import Data.Text.Encoding (encodeUtf8)
+import Test.Tasty
+import Test.Tasty.Golden
+import Test.Tasty.Hedgehog
 
 evenAndOdd :: Tuple (Term TyName Name) ()
 evenAndOdd = runQuote $ do

@@ -1,25 +1,25 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 
 module Plugin.Errors.Spec where
 
-import           Common
-import           PlcTestUtils
-import           Plugin.Lib
+import Common
+import PlcTestUtils
+import Plugin.Lib
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Code
+import Language.PlutusTx.Plugin
 
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Plugin
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
-import           GHC.Integer.GMP.Internals
+import GHC.Integer.GMP.Internals
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

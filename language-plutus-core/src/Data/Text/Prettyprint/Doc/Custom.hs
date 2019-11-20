@@ -8,7 +8,7 @@ module Data.Text.Prettyprint.Doc.Custom ( brackets'
                                         , (<//>)
                                         ) where
 
-import           Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc
 
 infixr 5 </>
 infixr 5 <//>

@@ -23,19 +23,19 @@ module Language.PlutusCore.Interpreter.CekMachine
     , runCek
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
-import           Language.PlutusCore.Evaluation.Result           (EvaluationResult (..))
-import           Language.PlutusCore.View
-import           PlutusPrelude
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
+import Language.PlutusCore.Evaluation.Result (EvaluationResult (..))
+import Language.PlutusCore.View
+import PlutusPrelude
 
-import qualified Data.Text                                       as T
-import qualified Data.Text.IO                                    as T
-import qualified Language.PlutusCore.Pretty                      as PLC
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import qualified Language.PlutusCore.Pretty as PLC
 
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
+import Data.IntMap (IntMap)
+import qualified Data.IntMap as IntMap
 
 termStr :: Plain Term -> String
 termStr = T.unpack . PLC.prettyPlcDefText

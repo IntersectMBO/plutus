@@ -1,9 +1,9 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 -- | Run a Plutus contract as a servant application.
 module Language.Plutus.Contract.App(
       run
@@ -11,24 +11,24 @@ module Language.Plutus.Contract.App(
     , Wallet(..)
     ) where
 
-import           Control.Monad                    (foldM_)
-import           Data.Aeson                       (FromJSON, ToJSON)
-import qualified Data.Aeson                       as Aeson
-import qualified Data.ByteString.Lazy.Char8       as BSL
-import           Data.Foldable                    (traverse_)
-import qualified Data.Map                         as Map
-import           Data.Row
-import           Data.Row.Internal                (Unconstrained1)
-import qualified Data.Text.IO                     as Text
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Schema  (Input, Output)
-import           Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
-import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, TraceError, execTrace)
-import qualified Network.Wai.Handler.Warp         as Warp
-import           System.Environment               (getArgs)
-import           Wallet.Emulator                  (Wallet (..))
+import Control.Monad (foldM_)
+import Data.Aeson (FromJSON, ToJSON)
+import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Foldable (traverse_)
+import qualified Data.Map as Map
+import Data.Row
+import Data.Row.Internal (Unconstrained1)
+import qualified Data.Text.IO as Text
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Schema (Input, Output)
+import Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
+import Language.Plutus.Contract.Trace (ContractTrace, EmulatorAction, TraceError, execTrace)
+import qualified Network.Wai.Handler.Warp as Warp
+import System.Environment (getArgs)
+import Wallet.Emulator (Wallet (..))
 
-import           Language.Plutus.Contract.IOTS    (IotsRow, IotsType, rowSchema)
+import Language.Plutus.Contract.IOTS (IotsRow, IotsType, rowSchema)
 
 -- | A number of constraints to ensure that 's' is the schema
 --   of a contract whose inputs and outputs can be serialised to

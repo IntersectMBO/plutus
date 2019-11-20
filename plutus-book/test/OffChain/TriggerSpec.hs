@@ -1,18 +1,18 @@
 module OffChain.TriggerSpec (spec) where
 
-import           Utils
+import Utils
 
-import qualified OffChain.Trigger          as T1
-import qualified OffChain.TriggerSimple    as T2
+import qualified OffChain.Trigger as T1
+import qualified OffChain.TriggerSimple as T2
 
 import qualified Language.PlutusTx.Numeric as P
-import           Ledger
-import           Ledger.Ada
-import           Wallet.Emulator
+import Ledger
+import Ledger.Ada
+import Wallet.Emulator
 
-import           Control.Monad             (void)
-import           Data.Either               (isRight)
-import           Test.Hspec
+import Control.Monad (void)
+import Data.Either (isRight)
+import Test.Hspec
 
 spec :: Spec
 spec = do

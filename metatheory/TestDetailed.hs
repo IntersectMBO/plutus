@@ -1,15 +1,15 @@
 module TestDetailed where
-import           Control.Exception
-import           GHC.IO.Handle
-import           System.Directory
-import           System.Environment
-import           System.Exit
-import           System.IO
-import           System.Process
+import Control.Exception
+import GHC.IO.Handle
+import System.Directory
+import System.Environment
+import System.Exit
+import System.IO
+import System.Process
 
-import           Distribution.TestSuite
+import Distribution.TestSuite
 
-import qualified MAlonzo.Code.Main      as M
+import qualified MAlonzo.Code.Main as M
 
 -- this function is based on this stackoverflow answer:
 -- https://stackoverflow.com/a/9664017

@@ -1,16 +1,16 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Deploy.Types where
 
-import           Control.Newtype.Generics (Newtype, unpack)
-import           Data.Aeson               (FromJSON, parseJSON, withObject, (.:))
-import           Data.Text                (Text)
-import qualified Data.Text                as Text
-import           GHC.Generics             (Generic)
-import           Options.Generic          (ParseField, ParseFields, ParseRecord)
+import Control.Newtype.Generics (Newtype, unpack)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
+import Data.Text (Text)
+import qualified Data.Text as Text
+import GHC.Generics (Generic)
+import Options.Generic (ParseField, ParseFields, ParseRecord)
 
 newtype WebhookKey = WebhookKey Text
     deriving (Generic, Newtype)

@@ -1,16 +1,16 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 module Spec.Rows(tests) where
 
-import qualified Data.Aeson                                      as Aeson
-import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
-import           Test.Tasty.Providers                            (TestTree)
+import qualified Data.Aeson as Aeson
+import Test.Tasty
+import qualified Test.Tasty.HUnit as HUnit
+import Test.Tasty.Providers (TestTree)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 
 type TheSchema = Endpoint "endpoint1" Int .\/ Endpoint "endpoint2" String
 

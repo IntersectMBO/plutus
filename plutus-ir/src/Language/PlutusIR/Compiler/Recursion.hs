@@ -1,20 +1,20 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Functions for compiling PIR recursive let-bound functions into PLC.
 module Language.PlutusIR.Compiler.Recursion where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir                    as PIR
+import Language.PlutusIR
+import Language.PlutusIR.Compiler.Error
+import Language.PlutusIR.Compiler.Provenance
+import Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.MkPir as PIR
 
-import           Control.Monad
-import           Control.Monad.Error.Lens
+import Control.Monad
+import Control.Monad.Error.Lens
 
-import qualified Language.PlutusCore                        as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Function   as Function
+import qualified Language.PlutusCore as PLC
+import Language.PlutusCore.Quote
+import qualified Language.PlutusCore.StdLib.Data.Function as Function
 import qualified Language.PlutusCore.StdLib.Meta.Data.Tuple as Tuple
 
 {- Note [Recursive lets]

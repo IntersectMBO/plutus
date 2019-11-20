@@ -1,22 +1,22 @@
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds         #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Language.PlutusTx.Lift.Instances () where
 
-import qualified Language.PlutusCore          as PLC
+import qualified Language.PlutusCore as PLC
 
-import           Language.PlutusTx.Builtins
-import           Language.PlutusTx.Lift.Class
+import Language.PlutusTx.Builtins
+import Language.PlutusTx.Lift.Class
 
-import           Language.PlutusIR
-import           Language.PlutusIR.MkPir
+import Language.PlutusIR
+import Language.PlutusIR.MkPir
 
-import           Data.Proxy
+import Data.Proxy
 
 -- Derived instances
 

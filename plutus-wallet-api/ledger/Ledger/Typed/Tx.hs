@@ -1,53 +1,53 @@
-{-# LANGUAGE ConstraintKinds           #-}
-{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE NamedFieldPuns            #-}
-{-# LANGUAGE PolyKinds                 #-}
-{-# LANGUAGE Rank2Types                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE TypeOperators             #-}
-{-# LANGUAGE UndecidableInstances      #-}
-{-# LANGUAGE ViewPatterns              #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 -- | Typed transactions. This module defines typed versions of various ledger types. The ultimate
 -- goal is to make sure that the script types attached to inputs and outputs line up, to avoid
 -- type errors at validation time.
 module Ledger.Typed.Tx where
 
-import           Ledger.Address             hiding (scriptAddress)
-import           Ledger.Crypto
-import qualified Ledger.Interval            as Interval
-import           Ledger.Scripts
-import           Ledger.Slot
-import           Ledger.Tx
-import           Ledger.TxId
-import           Ledger.Typed.Scripts
-import qualified Ledger.Value               as Value
+import Ledger.Address hiding (scriptAddress)
+import Ledger.Crypto
+import qualified Ledger.Interval as Interval
+import Ledger.Scripts
+import Ledger.Slot
+import Ledger.Tx
+import Ledger.TxId
+import Ledger.Typed.Scripts
+import qualified Ledger.Value as Value
 
-import           Ledger.Typed.TypeUtils
+import Ledger.Typed.TypeUtils
 
-import qualified Language.PlutusCore        as PLC
+import qualified Language.PlutusCore as PLC
 import qualified Language.PlutusCore.Pretty as PLC
 
-import           Language.PlutusTx
-import           Language.PlutusTx.Lift     as Lift
-import           Language.PlutusTx.Numeric
+import Language.PlutusTx
+import Language.PlutusTx.Lift as Lift
+import Language.PlutusTx.Numeric
 
 import qualified Language.PlutusIR.Compiler as PIR
 
-import           Data.Coerce
-import           Data.Kind
-import           Data.List                  (foldl')
-import qualified Data.Map                   as Map
-import           Data.Proxy
-import qualified Data.Set                   as Set
+import Data.Coerce
+import Data.Kind
+import Data.List (foldl')
+import qualified Data.Map as Map
+import Data.Proxy
+import qualified Data.Set as Set
 
-import           Control.Monad.Except
+import Control.Monad.Except
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 data TypedScriptTxIn a = TypedScriptTxIn { tyTxInTxIn :: TxIn, tyTxInOutRef :: TypedScriptTxOutRef a }

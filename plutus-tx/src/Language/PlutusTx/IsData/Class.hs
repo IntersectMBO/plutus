@@ -1,21 +1,21 @@
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.IsData.Class where
 
-import           Data.ByteString.Lazy          as BSL
+import Data.ByteString.Lazy as BSL
 
-import           Prelude                       (Integer, Maybe (..))
+import Prelude (Integer, Maybe (..))
 
-import           Language.PlutusTx.Data
+import Language.PlutusTx.Data
 
-import           Language.PlutusTx.Applicative
-import           Language.PlutusTx.Functor
+import Language.PlutusTx.Applicative
+import Language.PlutusTx.Functor
 
-import           Data.Kind
+import Data.Kind
 
 {-# ANN module "HLint: ignore" #-}
 

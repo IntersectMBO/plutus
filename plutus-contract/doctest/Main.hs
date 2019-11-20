@@ -1,6 +1,6 @@
 module Main where
 
-import           ContractAPI
+import ContractAPI
 
 main :: IO ()
 main = pure ()

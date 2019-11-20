@@ -7,13 +7,13 @@ module Language.PlutusCore.Constant.Dynamic.Call
     , dynamicCall
     ) where
 
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Make
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.Type
 
-import           Data.Proxy
-import           System.IO.Unsafe
+import Data.Proxy
+import System.IO.Unsafe
 
 dynamicCallTypeScheme :: KnownType a => TypeScheme (a -> ()) ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy

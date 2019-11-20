@@ -1,6 +1,6 @@
 -- | Various views of PLC entities.
 
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Language.PlutusCore.View
@@ -14,9 +14,9 @@ module Language.PlutusCore.View
     , termAsPrimIterApp
     ) where
 
-import           Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
+import Language.PlutusCore.Type
+import PlutusPrelude
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp

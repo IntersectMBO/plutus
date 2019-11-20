@@ -25,13 +25,13 @@ module Language.PlutusCore.Constant.Name
     , typedGtByteString
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Constant.Dynamic.Instances ()
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Lexer.Type
 
-import qualified Data.ByteString.Lazy.Char8                     as BSL
-import           Data.Proxy
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Proxy
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c

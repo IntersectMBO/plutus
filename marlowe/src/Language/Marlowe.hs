@@ -7,8 +7,8 @@ module Language.Marlowe
     )
 where
 
-import           Language.Marlowe.Client
-import           Language.Marlowe.Pretty
-import           Language.Marlowe.Semantics
-import           Language.Marlowe.Util
-import           Ledger                     (Slot (..))
+import Language.Marlowe.Client
+import Language.Marlowe.Pretty
+import Language.Marlowe.Semantics
+import Language.Marlowe.Util
+import Ledger (Slot (..))

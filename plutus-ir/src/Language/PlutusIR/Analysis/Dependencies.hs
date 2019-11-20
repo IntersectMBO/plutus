@@ -1,22 +1,22 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
 module Language.PlutusIR.Analysis.Dependencies (Node (..), DepGraph, runTermDeps, runTypeDeps) where
 
-import qualified Language.PlutusCore               as PLC
-import qualified Language.PlutusCore.Name          as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Name as PLC
 
-import           Language.PlutusIR
+import Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Usages as Usages
 
-import           Control.Lens
-import           Control.Monad.Reader
+import Control.Lens
+import Control.Monad.Reader
 
-import qualified Algebra.Graph.Class               as G
-import qualified Data.Set                          as Set
+import qualified Algebra.Graph.Class as G
+import qualified Data.Set as Set
 
 -- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
 -- node indicating the root of the graph. We need the root node because when computing the

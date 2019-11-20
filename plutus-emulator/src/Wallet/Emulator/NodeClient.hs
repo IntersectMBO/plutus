@@ -1,28 +1,28 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 module Wallet.Emulator.NodeClient where
 
-import           Control.Lens        hiding (index)
-import           Control.Monad.State
-import           Data.Aeson          (FromJSON, ToJSON)
-import           Data.List           (partition)
-import           Data.Maybe          (isNothing)
-import           Data.Traversable    (for)
-import           GHC.Generics        (Generic)
+import Control.Lens hiding (index)
+import Control.Monad.State
+import Data.Aeson (FromJSON, ToJSON)
+import Data.List (partition)
+import Data.Maybe (isNothing)
+import Data.Traversable (for)
+import GHC.Generics (Generic)
 
-import           Ledger              (Blockchain, Slot (..), Tx (..), TxId, lastSlot, txId)
-import qualified Ledger.Index        as Index
-import qualified Ledger.Interval     as Interval
+import Ledger (Blockchain, Slot (..), Tx (..), TxId, lastSlot, txId)
+import qualified Ledger.Index as Index
+import qualified Ledger.Interval as Interval
 
 
 -- | Events produced by the blockchain emulator.

@@ -1,6 +1,6 @@
 -- | @list@ and related functions.
 
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Language.PlutusCore.StdLib.Data.List
@@ -15,19 +15,19 @@ module Language.PlutusCore.StdLib.Data.List
     , product
     ) where
 
-import           Prelude                                  hiding (enumFromTo, product, reverse, sum)
+import Prelude hiding (enumFromTo, product, reverse, sum)
 
-import           Language.PlutusCore.Constant.Make        (makeIntConstant)
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Make (makeIntConstant)
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Data.Bool
+import Language.PlutusCore.StdLib.Data.Function
+import Language.PlutusCore.StdLib.Data.Integer
+import Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore.StdLib.Type
 
 -- | @List@ as a PLC type.
 --

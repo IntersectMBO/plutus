@@ -2,8 +2,8 @@
 module Language.PlutusTx.Semigroup (Semigroup (..)) where
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.List
-import           Prelude                    hiding (Functor (..), Semigroup (..), (++))
+import Language.PlutusTx.List
+import Prelude hiding (Functor (..), Semigroup (..), (++))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

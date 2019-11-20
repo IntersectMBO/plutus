@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Bool ((&&), (||), not) where
 
-import           Prelude hiding (not, (&&), (||))
+import Prelude hiding (not, (&&), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

@@ -1,11 +1,11 @@
 -- | This module defines types and functions related to "type-eval checking".
 
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     ( TypeEvalCheckError (..)
@@ -15,21 +15,21 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
-import qualified Language.PlutusCore.Check.Value                         as VR
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.Utils
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeCheck
-import           PlutusPrelude
+import qualified Language.PlutusCore.Check.Value as VR
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Error
+import Language.PlutusCore.Evaluation.CkMachine
+import Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import Language.PlutusCore.Generators.Internal.Utils
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
+import Language.PlutusCore.TypeCheck
+import PlutusPrelude
 
-import           Control.Lens.TH
-import           Control.Monad.Except
+import Control.Lens.TH
+import Control.Monad.Except
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,

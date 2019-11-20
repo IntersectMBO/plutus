@@ -1,33 +1,39 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Interpreter where
 
-import           API                          (RunResult (RunResult))
-import           Control.Monad                (unless)
-import           Control.Monad.Catch          (MonadCatch, MonadMask, bracket, catch)
-import           Control.Monad.Error.Class    (MonadError, catchError, throwError)
-import           Control.Monad.Except.Extras  (mapError)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import           Control.Monad.Trans.Class    (lift)
-import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (Newtype)
-import qualified Control.Newtype.Generics     as Newtype
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Bifunctor               (second)
-import           Data.Monoid                  ((<>))
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import qualified Data.Text.Internal.Search    as Text
-import qualified Data.Text.IO                 as Text
-import           Data.Time.Units              (TimeUnit)
-import           Language.Haskell.Interpreter (CompilationError (RawError), InterpreterError (CompilationErrors),
-                                               InterpreterResult (InterpreterResult), SourceCode, avoidUnsafe, runghc)
-import           System.Directory             (removeFile)
-import           System.FilePath              ((</>))
-import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
-import           System.IO.Extras             (withFile)
-import           System.IO.Temp               (getCanonicalTemporaryDirectory, openTempFile, withSystemTempDirectory)
-import           System.Process               (cwd, proc, readProcessWithExitCode)
+import API (RunResult (RunResult))
+import Control.Monad (unless)
+import Control.Monad.Catch (MonadCatch, MonadMask, bracket, catch)
+import Control.Monad.Error.Class (MonadError, catchError, throwError)
+import Control.Monad.Except.Extras (mapError)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.State (StateT, evalStateT, get, put)
+import Control.Newtype.Generics (Newtype)
+import qualified Control.Newtype.Generics as Newtype
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Bifunctor (second)
+import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Internal.Search as Text
+import qualified Data.Text.IO as Text
+import Data.Time.Units (TimeUnit)
+import Language.Haskell.Interpreter
+    ( CompilationError (RawError)
+    , InterpreterError (CompilationErrors)
+    , InterpreterResult (InterpreterResult)
+    , SourceCode
+    , avoidUnsafe
+    , runghc
+    )
+import System.Directory (removeFile)
+import System.FilePath ((</>))
+import System.IO (Handle, IOMode (ReadWriteMode), hFlush)
+import System.IO.Extras (withFile)
+import System.IO.Temp (getCanonicalTemporaryDirectory, openTempFile, withSystemTempDirectory)
+import System.Process (cwd, proc, readProcessWithExitCode)
 
 runscript
     :: (Show t, TimeUnit t, MonadMask m, MonadIO m, MonadError InterpreterError m)

@@ -1,22 +1,22 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.Escrow where
 
-import           Control.Monad                                   (void)
+import Control.Monad (void)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
-import qualified Ledger.Ada                                      as Ada
-import qualified Spec.Lib                                        as Lib
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Test
+import qualified Ledger.Ada as Ada
+import qualified Spec.Lib as Lib
 
-import           Wallet.Emulator                                 (walletPubKey)
+import Wallet.Emulator (walletPubKey)
 
-import           Language.PlutusTx.Coordination.Contracts.Escrow
-import           Language.PlutusTx.Lattice
+import Language.PlutusTx.Coordination.Contracts.Escrow
+import Language.PlutusTx.Lattice
 
-import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
+import Test.Tasty
+import qualified Test.Tasty.HUnit as HUnit
 
 tests :: TestTree
 tests = testGroup "escrow"

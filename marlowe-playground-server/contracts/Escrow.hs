@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Escrow where
 
-import           Language.Marlowe
+import Language.Marlowe
 
 main :: IO ()
 main = print . pretty $ contract

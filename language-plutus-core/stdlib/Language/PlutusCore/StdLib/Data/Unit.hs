@@ -8,10 +8,10 @@ module Language.PlutusCore.StdLib.Data.Unit
     , sequ
     ) where
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
 --

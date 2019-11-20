@@ -1,18 +1,18 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 module Spec.TokenAccount(tests) where
 
-import           Test.Tasty
+import Test.Tasty
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
-import qualified Ledger.Ada                                            as Ada
-import           Ledger.Value                                          (TokenName, Value)
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Test
+import Language.PlutusTx.Lattice
+import qualified Ledger.Ada as Ada
+import Ledger.Value (TokenName, Value)
 
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (AccountOwner (..), TokenAccountSchema,
-                                                                        tokenAccountContract)
+import Language.PlutusTx.Coordination.Contracts.TokenAccount
+    (AccountOwner (..), TokenAccountSchema, tokenAccountContract)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
 
 tests :: TestTree

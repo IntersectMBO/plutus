@@ -1,13 +1,13 @@
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Pretty.Readable
     ( RenderContext (..)
@@ -19,12 +19,12 @@ module Language.PlutusCore.Pretty.Readable
     , botPrettyConfigReadable
     ) where
 
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Data.Text.Prettyprint.Doc.Internal (enclose)
+import Data.Text.Prettyprint.Doc.Internal (enclose)
 
 -- | Associativity of an expression.
 data Associativity

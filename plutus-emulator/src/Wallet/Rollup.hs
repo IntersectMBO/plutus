@@ -1,32 +1,55 @@
-{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NamedFieldPuns   #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Wallet.Rollup
     ( doAnnotateBlockchain
     ) where
 
-import           Control.Lens             (assign, ifoldr, makeLenses, over, use)
-import           Control.Lens.Combinators (itraverse)
-import           Control.Monad.Except     (MonadError, throwError)
-import           Control.Monad.State      (StateT, evalStateT)
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import qualified Data.Set                 as Set
-import           Data.Text                (Text)
-import qualified Data.Text                as Text
-import           GHC.Generics             (Generic)
-import           Language.PlutusTx.Monoid (inv)
-import           Ledger                   (Tx (Tx), TxId (TxId), TxIn (TxIn), TxOut (TxOut), Value, getTxId, outValue,
-                                           txInRef, txInputs, txOutRefId, txOutRefIdx, txOutValue, txOutputs)
-import qualified Ledger.Tx                as Tx
-import           Wallet.Rollup.Types      (AnnotatedTx (AnnotatedTx), BeneficialOwner,
-                                           DereferencedInput (DereferencedInput, refersTo), SequenceId (SequenceId),
-                                           balances, dereferencedInputs, sequenceId, slotIndex, toBeneficialOwner, tx,
-                                           txId, txIndex)
+import Control.Lens (assign, ifoldr, makeLenses, over, use)
+import Control.Lens.Combinators (itraverse)
+import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.State (StateT, evalStateT)
+import qualified Data.ByteString.Lazy as BSL
+import Data.Map (Map)
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as Text
+import GHC.Generics (Generic)
+import Language.PlutusTx.Monoid (inv)
+import Ledger
+    ( Tx (Tx)
+    , TxId (TxId)
+    , TxIn (TxIn)
+    , TxOut (TxOut)
+    , Value
+    , getTxId
+    , outValue
+    , txInRef
+    , txInputs
+    , txOutRefId
+    , txOutRefIdx
+    , txOutValue
+    , txOutputs
+    )
+import qualified Ledger.Tx as Tx
+import Wallet.Rollup.Types
+    ( AnnotatedTx (AnnotatedTx)
+    , BeneficialOwner
+    , DereferencedInput (DereferencedInput, refersTo)
+    , SequenceId (SequenceId)
+    , balances
+    , dereferencedInputs
+    , sequenceId
+    , slotIndex
+    , toBeneficialOwner
+    , tx
+    , txId
+    , txIndex
+    )
 
 data TxKey =
     TxKey

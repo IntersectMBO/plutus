@@ -1,10 +1,10 @@
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Scott where
 
-import           Prelude hiding (replicate, tail)
+import Prelude hiding (replicate, tail)
 
-import           IFix
+import IFix
 
 {-# ANN module "HLint: ignore" #-}
 

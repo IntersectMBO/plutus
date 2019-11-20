@@ -1,31 +1,30 @@
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Playground.Server
     ( mkHandlers
     , doAnnotateBlockchain
     ) where
 
-import           Control.Monad.Except         (runExceptT, throwError)
-import           Control.Monad.IO.Class       (liftIO)
-import           Control.Monad.Logger         (MonadLogger, logInfoN)
-import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.Time.Units              (Microsecond, fromMicroseconds)
-import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult,
-                                               SourceCode (SourceCode))
+import Control.Monad.Except (runExceptT, throwError)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Logger (MonadLogger, logInfoN)
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Time.Units (Microsecond, fromMicroseconds)
+import Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult, SourceCode (SourceCode))
 import qualified Language.Haskell.Interpreter as Interpreter
-import           Playground.API               (API)
-import qualified Playground.Interpreter       as PI
-import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
-import           Playground.Usecases          (vesting)
-import           Servant                      (err400, errBody)
-import           Servant.API                  ((:<|>) ((:<|>)))
-import           Servant.Server               (Handler, Server)
-import           Wallet.Rollup                (doAnnotateBlockchain)
+import Playground.API (API)
+import qualified Playground.Interpreter as PI
+import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
+import Playground.Usecases (vesting)
+import Servant (err400, errBody)
+import Servant.API ((:<|>) ((:<|>)))
+import Servant.Server (Handler, Server)
+import Wallet.Rollup (doAnnotateBlockchain)
 
 acceptSourceCode ::
        SourceCode

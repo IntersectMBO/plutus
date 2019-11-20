@@ -4,19 +4,19 @@ module Normalization.Type
     ( test_typeNormalization
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators.AST
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Normalize
+import Language.PlutusCore
+import Language.PlutusCore.Generators.AST
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Normalize
 
-import           Control.Monad.Morph                (hoist)
+import Control.Monad.Morph (hoist)
 
-import           Hedgehog
-import qualified Hedgehog.Gen                       as Gen
-import           Hedgehog.Internal.Property         (forAllT)
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
-import           Test.Tasty.HUnit
+import Hedgehog
+import qualified Hedgehog.Gen as Gen
+import Hedgehog.Internal.Property (forAllT)
+import Test.Tasty
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do

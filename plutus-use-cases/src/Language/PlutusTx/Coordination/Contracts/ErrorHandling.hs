@@ -1,10 +1,10 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 module Language.PlutusTx.Coordination.Contracts.ErrorHandling(
     Schema
     , MyError(..)
@@ -12,12 +12,12 @@ module Language.PlutusTx.Coordination.Contracts.ErrorHandling(
     , contract
     ) where
 
-import           Control.Lens
-import           Control.Monad            (void)
-import           Control.Monad.Error.Lens
-import           Data.Text                (Text)
+import Control.Lens
+import Control.Monad (void)
+import Control.Monad.Error.Lens
+import Data.Text (Text)
 
-import           Language.Plutus.Contract
+import Language.Plutus.Contract
 
 -- $errorHandling
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom

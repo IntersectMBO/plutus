@@ -1,18 +1,18 @@
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DeriveLift                 #-}
-{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE NamedFieldPuns             #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Wallet.Rollup.Types where
 
-import           Control.Lens (makeLenses)
-import           Data.Aeson   (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.Map     (Map)
-import           GHC.Generics
-import           Ledger
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import Data.Map (Map)
+import GHC.Generics
+import Ledger
 
 data SequenceId =
     SequenceId

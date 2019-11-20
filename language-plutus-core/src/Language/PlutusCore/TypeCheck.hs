@@ -25,16 +25,16 @@ module Language.PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeCheck.Internal
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Error
+import Language.PlutusCore.Name
+import Language.PlutusCore.Normalize
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Rename
+import Language.PlutusCore.Type
+import Language.PlutusCore.TypeCheck.Internal
 
-import           Control.Monad.Except
+import Control.Monad.Except
 
 -- | The default amount of gas to run the type checker with.
 defTypeCheckGas :: Gas

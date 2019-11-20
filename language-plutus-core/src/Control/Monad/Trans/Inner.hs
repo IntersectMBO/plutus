@@ -1,7 +1,7 @@
 -- | Getting monad transformers out of 'Traversable' 'Monad's.
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Control.Monad.Trans.Inner
@@ -11,8 +11,8 @@ module Control.Monad.Trans.Inner
     , mapInnerT
     ) where
 
-import           Control.Monad
-import           Control.Monad.Except
+import Control.Monad
+import Control.Monad.Except
 
 forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
 forBind a f = join <$> traverse f a

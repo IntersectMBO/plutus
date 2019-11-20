@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 -- | 'AddressMap's and functions for working on them.
 --
 -- 'AddressMap's are used to represent the limited knowledge about the state of the ledger that
@@ -23,24 +23,23 @@ module Ledger.AddressMap(
     fromChain
     ) where
 
-import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
-import           Control.Monad         (join)
-import           Data.Aeson            (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson            as JSON
-import qualified Data.Aeson.Extras     as JSON
-import           Data.Foldable         (fold)
-import           Data.Map              (Map)
-import qualified Data.Map              as Map
-import           Data.Maybe            (mapMaybe)
-import           Data.Monoid           (Monoid (..))
-import           Data.Semigroup        (Semigroup (..))
-import qualified Data.Set              as Set
-import           GHC.Generics          (Generic)
+import Codec.Serialise.Class (Serialise)
+import Control.Lens (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import Control.Monad (join)
+import Data.Aeson (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Extras as JSON
+import Data.Foldable (fold)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (mapMaybe)
+import Data.Monoid (Monoid (..))
+import Data.Semigroup (Semigroup (..))
+import qualified Data.Set as Set
+import GHC.Generics (Generic)
 
-import           Ledger                (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), Value,
-                                        txId)
-import           Ledger.Blockchain
+import Ledger (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), Value, txId)
+import Ledger.Blockchain
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOutTx) }

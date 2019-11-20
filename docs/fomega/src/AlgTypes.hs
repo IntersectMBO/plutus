@@ -1,11 +1,11 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE QuasiQuotes     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module AlgTypes where
 
-import qualified Data.Set      as S
-import           Language.LBNF
+import qualified Data.Set as S
+import Language.LBNF
 
 -------------------------------------
 -- Parser for Algebraic Data Types --

@@ -1,10 +1,10 @@
 module Control.Monad.Trace where
 
-import           Control.Monad.Trans               (lift)
-import           Control.Monad.Trans.Maybe         (MaybeT (MaybeT), runMaybeT)
-import           Control.Monad.Trans.Writer.Strict (Writer, runWriter)
-import           Control.Monad.Writer.Class        (tell)
-import           Data.Monoid                       (Last (Last))
+import Control.Monad.Trans (lift)
+import Control.Monad.Trans.Maybe (MaybeT (MaybeT), runMaybeT)
+import Control.Monad.Trans.Writer.Strict (Writer, runWriter)
+import Control.Monad.Writer.Class (tell)
+import Data.Monoid (Last (Last))
 
 ------------------------------------------------------------
 -- | `Trace` is a neat way to run a `Maybe` monad, but leave a trail behind

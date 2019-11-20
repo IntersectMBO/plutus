@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Language.PlutusTx.Compiler.Error (
     CompileError
     , Error (..)
@@ -13,19 +13,19 @@ module Language.PlutusTx.Compiler.Error (
     , throwPlain
     , pruneContext) where
 
-import qualified Language.PlutusIR.Compiler        as PIR
+import qualified Language.PlutusIR.Compiler as PIR
 
-import qualified Language.PlutusCore               as PLC
+import qualified Language.PlutusCore as PLC
 import qualified Language.PlutusCore.Check.Uniques as PLC
-import qualified Language.PlutusCore.Check.Value   as PLC
-import qualified Language.PlutusCore.Pretty        as PLC
+import qualified Language.PlutusCore.Check.Value as PLC
+import qualified Language.PlutusCore.Pretty as PLC
 
-import           Control.Lens
-import           Control.Monad.Except
+import Control.Lens
+import Control.Monad.Except
 
-import qualified Data.Text                         as T
-import qualified Data.Text.Prettyprint.Doc         as PP
-import           Data.Typeable
+import qualified Data.Text as T
+import qualified Data.Text.Prettyprint.Doc as PP
+import Data.Typeable
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
 -- the priority of the context when displaying it. Lower numbers are more prioritised.

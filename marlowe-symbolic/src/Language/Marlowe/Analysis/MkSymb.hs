@@ -1,12 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Language.Marlowe.Analysis.MkSymb where
 
-import           Data.Either         (Either (..))
-import           Data.List           (foldl', foldl1')
-import           Data.SBV
-import           Data.SBV.Either     as SE
-import           Data.SBV.Tuple      as ST
-import           Language.Haskell.TH as TH
+import Data.Either (Either (..))
+import Data.List (foldl', foldl1')
+import Data.SBV
+import Data.SBV.Either as SE
+import Data.SBV.Tuple as ST
+import Language.Haskell.TH as TH
 
 nestClauses :: [Con] -> TypeQ
 nestClauses [] = error "No constructors for type"

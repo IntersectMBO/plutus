@@ -2,9 +2,9 @@
 -- | Contract interface for the guessing game
 module Main where
 
-import           Language.Plutus.Contract                      (ContractError)
-import qualified Language.Plutus.Contract.App                  as App
-import           Language.PlutusTx.Coordination.Contracts.Game (game, guessTrace, lockTrace)
+import Language.Plutus.Contract (ContractError)
+import qualified Language.Plutus.Contract.App as App
+import Language.PlutusTx.Coordination.Contracts.Game (game, guessTrace, lockTrace)
 
 main :: IO ()
 main = App.runWithTraces (game @ContractError)

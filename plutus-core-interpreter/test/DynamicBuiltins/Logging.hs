@@ -1,27 +1,27 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module DynamicBuiltins.Logging
     ( test_logging
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.MkPlc
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.MkPlc
 
-import           Language.PlutusCore.StdLib.Data.List as Plc
-import           Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore.StdLib.Data.List as Plc
+import Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Common
+import DynamicBuiltins.Common
 
-import           Control.Monad.Except
-import           Data.Either                          (isRight)
-import           Data.Proxy
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Control.Monad.Except
+import Data.Either (isRight)
+import Data.Proxy
+import Test.Tasty
+import Test.Tasty.HUnit
 
 dynamicIntToStringName :: DynamicBuiltinName
 dynamicIntToStringName = DynamicBuiltinName "intToString"

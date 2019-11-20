@@ -7,14 +7,14 @@ module Language.PlutusCore.Examples.Data.InterList
     , foldrInterList
     ) where
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Data.Function
+import Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore.StdLib.Type
 
 {- Note [InterList]
 We encode the following in this module:

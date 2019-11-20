@@ -1,7 +1,7 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE NumericUnderscores  #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
@@ -12,32 +12,32 @@ module Spec.Marlowe.Marlowe
     )
 where
 
-import           Control.Monad              (void)
-import qualified Data.ByteString            as BS
-import           Data.Either                (isRight)
-import qualified Data.Map.Strict            as Map
-import           Data.String
+import Control.Monad (void)
+import qualified Data.ByteString as BS
+import Data.Either (isRight)
+import qualified Data.Map.Strict as Map
+import Data.String
 
-import qualified Codec.CBOR.Write           as Write
-import qualified Codec.Serialise            as Serialise
-import           Hedgehog                   (Gen, Property, forAll, property)
+import qualified Codec.CBOR.Write as Write
+import qualified Codec.Serialise as Serialise
+import Hedgehog (Gen, Property, forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen               (integral)
-import qualified Hedgehog.Range             as Range
-import           Language.Marlowe
+import Hedgehog.Gen (integral)
+import qualified Hedgehog.Range as Range
+import Language.Marlowe
 import qualified Language.PlutusTx.AssocMap as AssocMap
-import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     hiding (Value)
-import qualified Ledger.Ada                 as Ada
-import           Spec.Marlowe.Common
-import           Test.Tasty
-import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
-import           Test.Tasty.HUnit
-import           Wallet                     (PubKey (..))
-import           Wallet.Emulator
+import qualified Language.PlutusTx.Prelude as P
+import Ledger hiding (Value)
+import qualified Ledger.Ada as Ada
+import Spec.Marlowe.Common
+import Test.Tasty
+import Test.Tasty.Hedgehog (HedgehogTestLimit (..), testProperty)
+import Test.Tasty.HUnit
+import Wallet (PubKey (..))
+import Wallet.Emulator
 import qualified Wallet.Emulator.Generators as Gen
-import           Wallet.Emulator.NodeClient
-import qualified Wallet.Generators          as Gen
+import Wallet.Emulator.NodeClient
+import qualified Wallet.Generators as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}

@@ -15,22 +15,22 @@ module Language.PlutusIR.Compiler (
     ccEnclosing,
     defaultCompilationCtx) where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
-import           Language.PlutusIR.Compiler.Error
-import qualified Language.PlutusIR.Compiler.Let              as Let
-import           Language.PlutusIR.Compiler.Lower
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
-import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
-import           Language.PlutusIR.Transform.Rename          ()
+import Language.PlutusIR.Compiler.Error
+import qualified Language.PlutusIR.Compiler.Let as Let
+import Language.PlutusIR.Compiler.Lower
+import Language.PlutusIR.Compiler.Provenance
+import Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.Optimizer.DeadCode as DeadCode
+import qualified Language.PlutusIR.Transform.NonStrict as NonStrict
+import Language.PlutusIR.Transform.Rename ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
 
-import qualified Language.PlutusCore                         as PLC
+import qualified Language.PlutusCore as PLC
 
-import           Control.Monad
-import           Control.Monad.Reader
+import Control.Monad
+import Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name b -> m (Term TyName Name b)

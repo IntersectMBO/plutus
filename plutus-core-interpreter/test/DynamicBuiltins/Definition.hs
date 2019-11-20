@@ -1,34 +1,34 @@
 -- | A dynamic built-in name test.
 
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 
 module DynamicBuiltins.Definition
     ( test_definition
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.MkPlc
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Generators.Interesting
+import Language.PlutusCore.MkPlc
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
-import qualified Language.PlutusCore.StdLib.Data.List       as Plc
+import Language.PlutusCore.StdLib.Data.Bool
+import qualified Language.PlutusCore.StdLib.Data.Function as Plc
+import qualified Language.PlutusCore.StdLib.Data.List as Plc
 
-import           DynamicBuiltins.Common
+import DynamicBuiltins.Common
 
-import           Data.Either                                (isRight)
-import           Data.Proxy
-import           Hedgehog                                   hiding (Size, Var)
-import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
-import           Test.Tasty.HUnit
+import Data.Either (isRight)
+import Data.Proxy
+import Hedgehog hiding (Size, Var)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import Test.Tasty
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"

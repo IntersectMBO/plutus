@@ -1,18 +1,18 @@
 module Spec.PubKey(tests) where
 
-import           Control.Lens
-import           Control.Monad                                   (void)
-import qualified Data.Set                                        as Set
+import Control.Lens
+import Control.Monad (void)
+import qualified Data.Set as Set
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
-import qualified Ledger.Ada                                      as Ada
-import           Wallet.Emulator                                 (walletPubKey)
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Test
+import Language.PlutusTx.Lattice
+import qualified Ledger.Ada as Ada
+import Wallet.Emulator (walletPubKey)
 
-import           Language.PlutusTx.Coordination.Contracts.PubKey (pubKeyContract)
+import Language.PlutusTx.Coordination.Contracts.PubKey (pubKeyContract)
 
-import           Test.Tasty
+import Test.Tasty
 
 w1 :: Wallet
 w1 = Wallet 1

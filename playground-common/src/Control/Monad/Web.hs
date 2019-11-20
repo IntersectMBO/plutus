@@ -4,14 +4,14 @@ module Control.Monad.Web
   , makeManager
   ) where
 
-import           Control.Monad.Except        (ExceptT)
-import           Control.Monad.Logger        (LoggingT)
-import           Control.Monad.Reader        (ReaderT)
-import           Control.Monad.Trans.Class   (lift)
-import qualified Data.ByteString.Lazy        as LBS
-import           Data.Text                   (Text)
-import           Network.HTTP.Client.Conduit (defaultManagerSettings)
-import           Network.HTTP.Conduit        (Manager, Request, Response, httpLbs, newManager)
+import Control.Monad.Except (ExceptT)
+import Control.Monad.Logger (LoggingT)
+import Control.Monad.Reader (ReaderT)
+import Control.Monad.Trans.Class (lift)
+import qualified Data.ByteString.Lazy as LBS
+import Data.Text (Text)
+import Network.HTTP.Client.Conduit (defaultManagerSettings)
+import Network.HTTP.Conduit (Manager, Request, Response, httpLbs, newManager)
 
 class Monad m =>
       MonadWeb m

@@ -1,18 +1,18 @@
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import           Control.DeepSeq        (force)
-import           Control.Exception      (ErrorCall (..), handle)
-import           Control.Exception.Base (evaluate)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.ByteString        (ByteString)
-import qualified Data.ByteString.Char8  as B8
-import           Data.FileEmbed         (injectWith)
-import           Data.List              (isInfixOf)
-import           System.Environment     (getArgs)
-import           System.Exit            (die, exitFailure, exitSuccess)
+import Control.DeepSeq (force)
+import Control.Exception (ErrorCall (..), handle)
+import Control.Exception.Base (evaluate)
+import Control.Monad.IO.Class (liftIO)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B8
+import Data.FileEmbed (injectWith)
+import Data.List (isInfixOf)
+import System.Environment (getArgs)
+import System.Exit (die, exitFailure, exitSuccess)
 
 main :: IO ()
 main = do

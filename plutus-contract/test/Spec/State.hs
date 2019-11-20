@@ -1,21 +1,21 @@
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE TypeOperators #-}
 module Spec.State where
 
-import           Control.Applicative                             (Alternative (..))
-import           Control.Lens                                    (from, view)
-import           Control.Monad                                   (foldM)
-import           Control.Monad.Except                            (runExcept)
-import           Control.Monad.Writer                            (runWriterT)
-import           Data.Either                                     (fromRight, isRight)
-import           Language.Plutus.Contract                        as Con
-import           Language.Plutus.Contract.Record                 (Record (ClosedRec), jsonLeaf, record)
-import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
+import Control.Applicative (Alternative (..))
+import Control.Lens (from, view)
+import Control.Monad (foldM)
+import Control.Monad.Except (runExcept)
+import Control.Monad.Writer (runWriterT)
+import Data.Either (fromRight, isRight)
+import Language.Plutus.Contract as Con
+import Language.Plutus.Contract.Record (Record (ClosedRec), jsonLeaf, record)
+import Test.Tasty
+import qualified Test.Tasty.HUnit as HUnit
 
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
-import qualified Language.Plutus.Contract.Resumable              as S
+import qualified Language.Plutus.Contract.Resumable as S
 
 type Schema =
     BlockchainActions

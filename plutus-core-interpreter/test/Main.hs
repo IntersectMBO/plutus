@@ -1,10 +1,10 @@
 module Main (main) where
 
-import           CekMachine           (test_evaluateCek)
-import           DynamicBuiltins.Spec (test_dynamicBuiltins)
-import           LMachine             (test_evaluateL)
+import CekMachine (test_evaluateCek)
+import DynamicBuiltins.Spec (test_dynamicBuiltins)
+import LMachine (test_evaluateL)
 
-import           Test.Tasty
+import Test.Tasty
 
 test_machines :: TestTree
 test_machines =

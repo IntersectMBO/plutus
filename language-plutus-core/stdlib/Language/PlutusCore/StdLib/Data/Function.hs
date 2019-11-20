@@ -14,19 +14,19 @@ module Language.PlutusCore.StdLib.Data.Function
     , getMutualFixOf
     ) where
 
-import           PlutusPrelude
-import           Prelude                                    hiding (const)
+import PlutusPrelude
+import Prelude hiding (const)
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Meta.Data.Tuple
+import Language.PlutusCore.StdLib.Type
 
-import           Control.Lens.Indexed                       (ifor)
-import           Control.Monad
+import Control.Lens.Indexed (ifor)
+import Control.Monad
 
 -- | 'id' as a PLC term.
 --

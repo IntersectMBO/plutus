@@ -1,17 +1,17 @@
-{-# LANGUAGE GADTs       #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE QuasiQuotes #-}
 module Examples where
 
-import           AlgTypes
-import           Large
-import           Scott
-import           Solver
+import AlgTypes
+import Large
+import Scott
+import Solver
 
-import           Control.Applicative
-import           Control.Monad
-import           System.IO
-import           System.Random
-import           Test.QuickCheck
+import Control.Applicative
+import Control.Monad
+import System.IO
+import System.Random
+import Test.QuickCheck
 
 -- (use the runExample :: AlgSignature -> IO () from AlgTypes)
 

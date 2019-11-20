@@ -1,16 +1,16 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Wallet.Emulator.Types(
     -- * Wallets
@@ -85,46 +85,73 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
-import           Control.Lens               hiding (index)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Operational  as Op hiding (view)
-import           Control.Monad.State
-import           Control.Monad.Writer
-import           Control.Newtype.Generics   (Newtype)
-import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
-import           Data.Bifunctor             (Bifunctor (..))
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Foldable              (traverse_)
-import           Data.Hashable              (Hashable)
-import           Data.HashMap.Strict        (HashMap)
-import qualified Data.HashMap.Strict        as HashMap
-import           Data.Map                   (Map)
-import qualified Data.Map                   as Map
-import           Data.Maybe
-import qualified Data.Set                   as Set
-import           Data.String                (fromString)
-import qualified Data.Text                  as T
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
-import           GHC.Generics               (Generic)
-import           IOTS                       (IotsType (iotsDefinition))
-import qualified Ledger.Crypto              as Crypto
-import           Prelude                    as P
-import           Schema                     (ToSchema)
-import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
+import Control.Lens hiding (index)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Operational as Op hiding (view)
+import Control.Monad.State
+import Control.Monad.Writer
+import Control.Newtype.Generics (Newtype)
+import Data.Aeson (FromJSON, ToJSON, ToJSONKey)
+import Data.Bifunctor (Bifunctor (..))
+import qualified Data.ByteString.Lazy as BSL
+import Data.Foldable (traverse_)
+import Data.Hashable (Hashable)
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe
+import qualified Data.Set as Set
+import Data.String (fromString)
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc hiding (annotate)
+import GHC.Generics (Generic)
+import IOTS (IotsType (iotsDefinition))
+import qualified Ledger.Crypto as Crypto
+import Prelude as P
+import Schema (ToSchema)
+import Servant.API (FromHttpApiData (..), ToHttpApiData (..))
 
-import qualified Language.PlutusTx.Prelude  as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
 
-import           Ledger                     (Address, Block, Blockchain, PrivateKey (..), PubKey (..), Slot, Tx (..),
-                                             TxIn (..), TxOut (..), TxOutRef, TxOutTx (..), Value, addSignature,
-                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, toPublicKey, txId, txOutAddress)
-import qualified Ledger.Ada                 as Ada
-import qualified Ledger.AddressMap          as AM
-import qualified Ledger.Index               as Index
-import qualified Ledger.Value               as Value
-import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
-                                             WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
-import qualified Wallet.API                 as WAPI
+import Ledger
+    ( Address
+    , Block
+    , Blockchain
+    , PrivateKey (..)
+    , PubKey (..)
+    , Slot
+    , Tx (..)
+    , TxIn (..)
+    , TxOut (..)
+    , TxOutRef
+    , TxOutTx (..)
+    , Value
+    , addSignature
+    , pubKeyAddress
+    , pubKeyTxIn
+    , pubKeyTxOut
+    , toPublicKey
+    , txId
+    , txOutAddress
+    )
+import qualified Ledger.Ada as Ada
+import qualified Ledger.AddressMap as AM
+import qualified Ledger.Index as Index
+import qualified Ledger.Value as Value
+import Wallet.API
+    ( EventHandler (..)
+    , EventTrigger
+    , WalletAPI (..)
+    , WalletAPIError (..)
+    , WalletDiagnostics (..)
+    , WalletLog (..)
+    , addresses
+    , annTruthValue
+    , getAnnot
+    )
+import qualified Wallet.API as WAPI
 import qualified Wallet.Emulator.NodeClient as NC
 
 -- | A wallet in the emulator model.

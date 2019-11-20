@@ -1,9 +1,9 @@
 module Crypto (verifySignature) where
 
-import           Control.Applicative
-import           Crypto.ECC.Ed25519Donna
-import           Crypto.Error            (maybeCryptoError)
-import qualified Data.ByteString.Lazy    as BSL
+import Control.Applicative
+import Crypto.ECC.Ed25519Donna
+import Crypto.Error (maybeCryptoError)
+import qualified Data.ByteString.Lazy as BSL
 
 verifySignature
     :: Alternative f

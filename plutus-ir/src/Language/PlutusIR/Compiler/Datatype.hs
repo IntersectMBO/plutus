@@ -1,27 +1,27 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module Language.PlutusIR.Compiler.Datatype (compileDatatype, compileRecDatatypes) where
 
-import           PlutusPrelude                          (showText)
+import PlutusPrelude (showText)
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Names
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import qualified Language.PlutusIR.MkPir                as PIR
-import           Language.PlutusIR.Transform.Substitute
+import Language.PlutusIR
+import Language.PlutusIR.Compiler.Error
+import Language.PlutusIR.Compiler.Names
+import Language.PlutusIR.Compiler.Provenance
+import Language.PlutusIR.Compiler.Types
+import qualified Language.PlutusIR.MkPir as PIR
+import Language.PlutusIR.Transform.Substitute
 
-import qualified Language.PlutusCore.MkPlc              as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type        as Types
+import qualified Language.PlutusCore.MkPlc as PLC
+import Language.PlutusCore.Quote
+import qualified Language.PlutusCore.StdLib.Type as Types
 
-import           Control.Monad.Error.Lens
+import Control.Monad.Error.Lens
 
-import qualified Data.Text                              as T
-import           Data.Traversable
+import qualified Data.Text as T
+import Data.Traversable
 
 -- Utilities
 

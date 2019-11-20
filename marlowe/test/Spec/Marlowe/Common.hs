@@ -1,18 +1,18 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-name-shadowing -fno-warn-unused-do-bind #-}
 module Spec.Marlowe.Common where
 
-import           Data.Map.Strict            (Map)
+import Data.Map.Strict (Map)
 
-import           Hedgehog                   (Gen, Size (..))
-import           Hedgehog.Gen               (choice, element, integral, sized)
-import qualified Hedgehog.Range             as Range
+import Hedgehog (Gen, Size (..))
+import Hedgehog.Gen (choice, element, integral, sized)
+import qualified Hedgehog.Range as Range
 
-import           Language.Marlowe.Semantics
+import Language.Marlowe.Semantics
 import qualified Ledger
-import           Wallet                     (PubKey (..))
+import Wallet (PubKey (..))
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map PubKey Ledger.Value }
 

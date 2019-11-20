@@ -1,20 +1,20 @@
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Check.Spec (tests) where
 
-import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Normal   as Normal
-import qualified Language.PlutusCore.Check.Uniques  as Uniques
-import qualified Language.PlutusCore.Check.Value    as VR
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Generators.AST
+import Language.PlutusCore
+import qualified Language.PlutusCore.Check.Normal as Normal
+import qualified Language.PlutusCore.Check.Uniques as Uniques
+import qualified Language.PlutusCore.Check.Value as VR
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Generators.AST
 
-import           Control.Monad.Except
-import           Data.Either
-import           Hedgehog                           hiding (Var)
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
-import           Test.Tasty.HUnit
+import Control.Monad.Except
+import Data.Either
+import Hedgehog hiding (Var)
+import Test.Tasty
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 tests :: TestTree
 tests = testGroup "checks"

@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Maybe (isJust, isNothing, maybe, mapMaybe) where
 
-import           Language.PlutusTx.List
-import           Prelude                hiding (foldr, maybe)
+import Language.PlutusTx.List
+import Prelude hiding (foldr, maybe)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

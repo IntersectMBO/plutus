@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Language.PlutusCore.Examples.Data.TreeForest
     ( treeData
@@ -11,13 +11,13 @@ module Language.PlutusCore.Examples.Data.TreeForest
     , forestCons
     ) where
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Normalize
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Type
 
 {- Note [Tree]
 Here we encode the following:

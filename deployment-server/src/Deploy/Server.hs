@@ -1,24 +1,23 @@
-{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Deploy.Server
     ( app
     ) where
 
-import           Control.Concurrent.Chan      (Chan, writeChan)
-import           Control.Monad.IO.Class       (liftIO)
-import           Control.Newtype.Generics     (unpack)
-import           Data.Maybe                   (isJust)
-import           Data.Proxy                   (Proxy (Proxy))
-import           Deploy.Types                 (Ref)
-import           GitHub.Data.Webhooks.Events  (PullRequestEvent (evPullReqPayload))
-import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase, whPullReqMergedAt),
-                                               PullRequestTarget (whPullReqTargetRef))
-import           Network.Wai                  (Application)
-import           Servant                      (Context ((:.), EmptyContext), Handler, serveWithContext)
-import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post)
-import           Servant.GitHub.Webhook       (GitHubEvent, GitHubKey, GitHubSignedReqBody,
-                                               RepoWebhookEvent (WebhookPullRequestEvent))
+import Control.Concurrent.Chan (Chan, writeChan)
+import Control.Monad.IO.Class (liftIO)
+import Control.Newtype.Generics (unpack)
+import Data.Maybe (isJust)
+import Data.Proxy (Proxy (Proxy))
+import Deploy.Types (Ref)
+import GitHub.Data.Webhooks.Events (PullRequestEvent (evPullReqPayload))
+import GitHub.Data.Webhooks.Payload
+    (HookPullRequest (whPullReqBase, whPullReqMergedAt), PullRequestTarget (whPullReqTargetRef))
+import Network.Wai (Application)
+import Servant (Context ((:.), EmptyContext), Handler, serveWithContext)
+import Servant.API ((:<|>) ((:<|>)), (:>), Get, JSON, Post)
+import Servant.GitHub.Webhook (GitHubEvent, GitHubKey, GitHubSignedReqBody, RepoWebhookEvent (WebhookPullRequestEvent))
 
 type Api
      = "github" :> (GitHubEvent '[ 'WebhookPullRequestEvent] :> GitHubSignedReqBody '[ JSON] PullRequestEvent :> Post '[ JSON] ()

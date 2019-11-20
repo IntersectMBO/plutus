@@ -1,21 +1,21 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 -- | Convenient functions for compiling binders.
 module Language.PlutusTx.Compiler.Binders where
 
-import           Language.PlutusTx.Compiler.Names
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.ValueRestriction
-import           Language.PlutusTx.PIRTypes
+import Language.PlutusTx.Compiler.Names
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.ValueRestriction
+import Language.PlutusTx.PIRTypes
 
-import qualified GhcPlugins                                  as GHC
+import qualified GhcPlugins as GHC
 
-import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR as PIR
 
-import           Control.Monad.Reader
+import Control.Monad.Reader
 
-import           Data.Traversable
+import Data.Traversable
 
 -- Binder helpers
 

@@ -1,18 +1,18 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Language.Plutus.Contract.Record where
 
-import           Control.Lens
-import           Data.Bifunctor            (Bifunctor (..))
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics              (Generic)
+import Control.Lens
+import Data.Bifunctor (Bifunctor (..))
+import Data.Text.Prettyprint.Doc
+import GHC.Generics (Generic)
 
-import           Data.Aeson                (Value)
-import qualified Data.Aeson                as Aeson
-import qualified Data.Aeson.Text           as Aeson
+import Data.Aeson (Value)
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Text as Aeson
 
 -- | The serialisable state of a contract instance, containing a mix of raw
 --   input events and serialised checkpoints.

@@ -2,8 +2,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Applicative where
 
-import           Language.PlutusTx.Functor
-import           Prelude                   (Maybe (..))
+import Language.PlutusTx.Functor
+import Prelude (Maybe (..))
 
 {-# ANN module "HLint: ignore" #-}
 

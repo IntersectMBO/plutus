@@ -1,20 +1,20 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -- | Functions for working with the contract interface using typed transactions.
 module Language.Plutus.Contract.Typed.Tx where
 
 import qualified Language.Plutus.Contract.Tx as Contract
-import qualified Language.PlutusTx           as PlutusTx
-import           Ledger                      (TxOutRef, TxOutTx)
-import qualified Ledger                      as L
-import           Ledger.AddressMap           (AddressMap)
-import qualified Ledger.Typed.Scripts        as Scripts
-import qualified Ledger.Typed.Tx             as Typed
+import qualified Language.PlutusTx as PlutusTx
+import Ledger (TxOutRef, TxOutTx)
+import qualified Ledger as L
+import Ledger.AddressMap (AddressMap)
+import qualified Ledger.Typed.Scripts as Scripts
+import qualified Ledger.Typed.Tx as Typed
 
-import qualified Wallet.Typed.API            as Typed
+import qualified Wallet.Typed.API as Typed
 
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
 --   all the outputs that match a predicate, using the 'RedeemerScript'.

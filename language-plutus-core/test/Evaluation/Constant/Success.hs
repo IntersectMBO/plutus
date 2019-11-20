@@ -2,15 +2,15 @@ module Evaluation.Constant.Success
     ( test_constantSuccess
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Generators
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Generators
 
-import           Evaluation.Constant.Apply
+import Evaluation.Constant.Apply
 
-import qualified Data.ByteString.Lazy           as BSL
-import qualified Data.ByteString.Lazy.Hash      as Hash
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Hash as Hash
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 test_typedAddIntegerSuccess :: TestTree
 test_typedAddIntegerSuccess

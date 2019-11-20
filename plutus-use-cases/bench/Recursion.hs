@@ -1,11 +1,11 @@
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TypeOperators #-}
 module Recursion where
 
-import           Data.Functor.Identity
+import Data.Functor.Identity
 
-import           IFix
+import IFix
 
 newtype SelfF f a = SelfF (f a -> a)
 -- | Values that can be applied to themselves.

@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE MonoLocalBinds       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -29,12 +29,12 @@ module Language.PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import           GHC.Generics              (Generic)
-import           Language.PlutusTx.IsData
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup)
+import GHC.Generics (Generic)
+import Language.PlutusTx.IsData
+import Language.PlutusTx.Lift (makeLift)
+import Language.PlutusTx.Prelude hiding (all, lookup)
 import qualified Language.PlutusTx.Prelude as P
-import           Language.PlutusTx.These
+import Language.PlutusTx.These
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 

@@ -2,15 +2,15 @@
 
 module OffChain.HelloSpec (spec) where
 
-import           Utils
+import Utils
 
-import           OffChain.Hello  (hello)
+import OffChain.Hello (hello)
 
-import           Wallet.Emulator
+import Wallet.Emulator
 
-import           Control.Monad   (void)
-import           Data.Either     (isRight)
-import           Test.Hspec
+import Control.Monad (void)
+import Data.Either (isRight)
+import Test.Hspec
 
 spec :: Spec
 spec = describe "hello" $

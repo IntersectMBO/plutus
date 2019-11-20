@@ -1,6 +1,6 @@
 module Solver where
 
-import           AlgTypes
+import AlgTypes
 import qualified Data.Set as S
 
 -----------------------------------------------------

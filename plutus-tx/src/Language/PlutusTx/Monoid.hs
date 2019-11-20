@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
 
-import qualified Language.PlutusTx.Builtins  as Builtins
-import           Language.PlutusTx.Semigroup
-import           Prelude                     hiding (Monoid (..), Semigroup (..), mconcat)
+import qualified Language.PlutusTx.Builtins as Builtins
+import Language.PlutusTx.Semigroup
+import Prelude hiding (Monoid (..), Semigroup (..), mconcat)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

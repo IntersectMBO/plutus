@@ -1,15 +1,15 @@
-{-# LANGUAGE AllowAmbiguousTypes    #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE KindSignatures         #-}
-{-# LANGUAGE MonoLocalBinds         #-}
-{-# LANGUAGE NamedFieldPuns         #-}
-{-# LANGUAGE RankNTypes             #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TupleSections          #-}
-{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
@@ -52,49 +52,48 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import           Control.Lens                                    (at, from, makeClassyPrisms, makeLenses, use, view,
-                                                                  (%=))
-import           Control.Monad                                   (void, (>=>))
-import           Control.Monad.Reader                            ()
-import           Control.Monad.State                             (MonadState, StateT, gets, runStateT)
-import           Control.Monad.Trans.Class                       (lift)
-import           Data.Foldable                                   (toList, traverse_)
-import           Data.Map                                        (Map)
-import qualified Data.Map                                        as Map
-import           Data.Maybe                                      (fromMaybe)
-import           Data.Row                                        (AllUniqueLabels, Forall, HasType)
-import           Data.Sequence                                   (Seq, (|>))
-import qualified Data.Set                                        as Set
+import Control.Lens (at, from, makeClassyPrisms, makeLenses, use, view, (%=))
+import Control.Monad (void, (>=>))
+import Control.Monad.Reader ()
+import Control.Monad.State (MonadState, StateT, gets, runStateT)
+import Control.Monad.Trans.Class (lift)
+import Data.Foldable (toList, traverse_)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+import Data.Row (AllUniqueLabels, Forall, HasType)
+import Data.Sequence (Seq, (|>))
+import qualified Data.Set as Set
 
-import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx,
-                                                                  waitingForBlockchainActions, withContractError)
-import qualified Language.Plutus.Contract.Resumable              as State
-import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
-import qualified Language.Plutus.Contract.Wallet                 as Wallet
+import Language.Plutus.Contract
+    (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx, waitingForBlockchainActions, withContractError)
+import qualified Language.Plutus.Contract.Resumable as State
+import Language.Plutus.Contract.Schema (Event, Handlers, Input, Output)
+import Language.Plutus.Contract.Tx (UnbalancedTx)
+import qualified Language.Plutus.Contract.Wallet as Wallet
 
-import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
-import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint)
+import Language.Plutus.Contract.Effects.AwaitSlot (SlotSymbol)
+import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
+import Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey      (HasOwnPubKey, OwnPubKeyRequest (..))
-import qualified Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
-import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol, WriteTxResponse)
-import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
+import Language.Plutus.Contract.Effects.OwnPubKey (HasOwnPubKey, OwnPubKeyRequest (..))
+import qualified Language.Plutus.Contract.Effects.OwnPubKey as OwnPubKey
+import Language.Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (..))
+import qualified Language.Plutus.Contract.Effects.UtxoAt as UtxoAt
+import qualified Language.Plutus.Contract.Effects.WatchAddress as WatchAddress
+import Language.Plutus.Contract.Effects.WriteTx (TxSymbol, WriteTxResponse)
+import qualified Language.Plutus.Contract.Effects.WriteTx as WriteTx
 
-import qualified Ledger.Ada                                      as Ada
-import           Ledger.Address                                  (Address)
-import qualified Ledger.AddressMap                               as AM
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Tx                                       (Tx, txId)
-import           Ledger.Value                                    (Value)
+import qualified Ledger.Ada as Ada
+import Ledger.Address (Address)
+import qualified Ledger.AddressMap as AM
+import Ledger.Slot (Slot)
+import Ledger.Tx (Tx, txId)
+import Ledger.Value (Value)
 
-import           Wallet.API                                      (WalletAPIError, defaultSlotRange, payToPublicKey_)
-import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
-import qualified Wallet.Emulator                                 as EM
+import Wallet.API (WalletAPIError, defaultSlotRange, payToPublicKey_)
+import Wallet.Emulator (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
+import qualified Wallet.Emulator as EM
 
 -- | Error produced while running a trace. Either a contract-specific
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.

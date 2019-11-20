@@ -4,7 +4,7 @@ module Main
 
 import qualified Auth.TypesSpec
 import qualified SchemaSpec
-import           Test.Tasty     (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup)
 
 main :: IO ()
 main =

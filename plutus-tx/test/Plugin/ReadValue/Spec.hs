@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
 
@@ -6,16 +6,16 @@ module Plugin.ReadValue.Spec
     ( readDyns
     ) where
 
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Code
+import Language.PlutusTx.Plugin
 
-import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.Constant               as PLC
-import qualified Language.PlutusCore.Constant.Dynamic       as PLC
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusCore.Constant as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

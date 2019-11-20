@@ -1,20 +1,20 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Playground.THSpec where
 
-import           Data.Text        (Text)
-import           Ledger.Value     (Value)
-import           Playground.TH    (mkFunctions, mkSingleFunction)
-import           Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
-import           Schema           (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
-import           Test.Hspec       (Spec, describe, it, shouldBe)
-import           Wallet           (MonadWallet)
+import Data.Text (Text)
+import Ledger.Value (Value)
+import Playground.TH (mkFunctions, mkSingleFunction)
+import Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
+import Schema (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
+import Test.Hspec (Spec, describe, it, shouldBe)
+import Wallet (MonadWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.

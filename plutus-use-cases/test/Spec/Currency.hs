@@ -1,18 +1,18 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Spec.Currency(tests) where
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Test
 import qualified Ledger
 
-import           Wallet.Emulator                                   (walletPubKey)
+import Wallet.Emulator (walletPubKey)
 
-import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
+import Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
 
 
-import           Test.Tasty
+import Test.Tasty
 
 tests :: TestTree
 tests = testGroup "currency"

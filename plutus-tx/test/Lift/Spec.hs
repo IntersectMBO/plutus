@@ -1,20 +1,20 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
-import           Plugin.Data.Spec
-import           Plugin.Primitives.Spec
+import Plugin.Data.Spec
+import Plugin.Primitives.Spec
 
-import           Common
-import           PlcTestUtils
+import Common
+import PlcTestUtils
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift     as Lift
+import Language.PlutusTx.Code
+import qualified Language.PlutusTx.Lift as Lift
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

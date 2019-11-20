@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Auction.EnglishSpec (spec) where
 
-import           Utils
+import Utils
 
-import           Auction.English
+import Auction.English
 
-import           Ledger
-import qualified Ledger.Ada                 as A
-import qualified Ledger.Value               as V
-import           Wallet.Emulator
+import Ledger
+import qualified Ledger.Ada as A
+import qualified Ledger.Value as V
+import Wallet.Emulator
 
-import           Control.Monad              (replicateM_, void)
+import Control.Monad (replicateM_, void)
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.Either                (isRight)
-import           Data.Text                  (Text)
-import           Test.Hspec
+import Data.Either (isRight)
+import Data.Text (Text)
+import Test.Hspec
 
 {-# ANN spec ("HLint: ignore" :: Text) #-}
 

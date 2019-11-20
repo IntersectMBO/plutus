@@ -6,14 +6,14 @@ module Control.Monad.Now
   , getPOSIXTime
   ) where
 
-import           Control.Monad.Except      (ExceptT)
-import           Control.Monad.Logger      (LoggingT)
-import           Control.Monad.Reader      (ReaderT)
-import           Control.Monad.Trans.Class (lift)
-import           Data.Time                 (UTCTime)
-import qualified Data.Time                 as Time
-import           Data.Time.Clock.POSIX     (POSIXTime)
-import qualified Data.Time.Clock.POSIX     as Time
+import Control.Monad.Except (ExceptT)
+import Control.Monad.Logger (LoggingT)
+import Control.Monad.Reader (ReaderT)
+import Control.Monad.Trans.Class (lift)
+import Data.Time (UTCTime)
+import qualified Data.Time as Time
+import Data.Time.Clock.POSIX (POSIXTime)
+import qualified Data.Time.Clock.POSIX as Time
 
 class Monad m =>
       MonadNow m

@@ -1,8 +1,8 @@
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Support for using de Bruijn indices for term and type names.
 module Language.PlutusCore.DeBruijn
     ( Index (..)
@@ -17,23 +17,23 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     ) where
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import           Control.Exception
-import           Control.Lens               hiding (Index, Level, index, ix)
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Exception
+import Control.Lens hiding (Index, Level, index, ix)
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Bimap                 as BM
-import qualified Data.Text                  as T
-import           Data.Typeable
+import qualified Data.Bimap as BM
+import qualified Data.Text as T
+import Data.Typeable
 
-import           Numeric.Natural
+import Numeric.Natural
 
-import           GHC.Generics
+import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural

@@ -1,54 +1,70 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Wallet.Rollup.Render where
 
-import           Control.Lens                          (preview, _2, _Just)
-import           Control.Lens.Combinators              (itraverse)
-import           Control.Monad.Except                  (MonadError, throwError)
-import           Control.Monad.Reader
-import           Crypto.Hash                           (Digest, SHA256)
-import qualified Data.Aeson.Extras                     as JSON
-import qualified Data.ByteString.Lazy                  as BSL
-import           Data.Foldable                         (fold)
-import           Data.List                             (find, intersperse)
-import           Data.Map                              (Map)
-import qualified Data.Map                              as Map
-import           Data.Set                              (Set)
-import qualified Data.Set                              as Set
-import           Data.Text                             (Text)
-import qualified Data.Text                             as Text
-import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
-                                                        parens, pretty, viaShow, vsep, (<+>))
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import qualified Language.PlutusTx                     as PlutusTx
-import qualified Language.PlutusTx.AssocMap            as AssocMap
-import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId,
-                                                        TxIn (TxIn, txInRef, txInType),
-                                                        TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
-                                                        TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getPubKey, txFee, txForge, txOutValue, txOutputs,
-                                                        txSignatures)
-import           Ledger.Ada                            (Ada (Lovelace))
-import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
-                                                        unValidatorScript)
-import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
-                                                        getValue)
-import qualified Ledger.Value                          as Value
-import           Wallet.Emulator.Types                 (Wallet (Wallet))
-import           Wallet.Rollup                         (doAnnotateBlockchain)
-import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
-                                                        BeneficialOwner (OwnedByPubKey, OwnedByScript),
-                                                        DereferencedInput (DereferencedInput, originalInput, refersTo),
-                                                        SequenceId (SequenceId, slotIndex, txIndex), balances,
-                                                        dereferencedInputs, toBeneficialOwner, tx, txId)
+import Control.Lens (preview, _2, _Just)
+import Control.Lens.Combinators (itraverse)
+import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.Reader
+import Crypto.Hash (Digest, SHA256)
+import qualified Data.Aeson.Extras as JSON
+import qualified Data.ByteString.Lazy as BSL
+import Data.Foldable (fold)
+import Data.List (find, intersperse)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Data.Text.Prettyprint.Doc
+    (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line, parens, pretty, viaShow, vsep, (<+>))
+import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import qualified Language.PlutusTx as PlutusTx
+import qualified Language.PlutusTx.AssocMap as AssocMap
+import qualified Language.PlutusTx.Builtins as Builtins
+import Ledger
+    ( Address
+    , PubKey
+    , Signature
+    , Tx (Tx)
+    , TxId
+    , TxIn (TxIn, txInRef, txInType)
+    , TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress)
+    , TxOut (TxOut)
+    , TxOutRef (TxOutRef, txOutRefId, txOutRefIdx)
+    , Value
+    , getPubKey
+    , txFee
+    , txForge
+    , txOutValue
+    , txOutputs
+    , txSignatures
+    )
+import Ledger.Ada (Ada (Lovelace))
+import qualified Ledger.Ada as Ada
+import Ledger.Scripts (DataScript (getDataScript), Script, ValidatorScript, unValidatorScript)
+import Ledger.Value (CurrencySymbol (CurrencySymbol), TokenName (TokenName), getValue)
+import qualified Ledger.Value as Value
+import Wallet.Emulator.Types (Wallet (Wallet))
+import Wallet.Rollup (doAnnotateBlockchain)
+import Wallet.Rollup.Types
+    ( AnnotatedTx (AnnotatedTx)
+    , BeneficialOwner (OwnedByPubKey, OwnedByScript)
+    , DereferencedInput (DereferencedInput, originalInput, refersTo)
+    , SequenceId (SequenceId, slotIndex, txIndex)
+    , balances
+    , dereferencedInputs
+    , toBeneficialOwner
+    , tx
+    , txId
+    )
 
 
 showBlockchain :: [(PubKey, Wallet)] -> [[Tx]]  -> Either Text Text

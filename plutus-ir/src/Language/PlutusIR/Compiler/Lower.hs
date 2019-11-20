@@ -1,15 +1,15 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusIR.Compiler.Lower where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Types
+import Language.PlutusIR
+import Language.PlutusIR.Compiler.Error
+import Language.PlutusIR.Compiler.Types
 
-import qualified Language.PlutusCore              as PLC
+import qualified Language.PlutusCore as PLC
 
-import           Control.Monad.Error.Lens
+import Control.Monad.Error.Lens
 
 -- | Turns a PIR 'Term' with no remaining PIR-specific features into a PLC 'PLC.Term' by simply
 -- translating the constructors across.

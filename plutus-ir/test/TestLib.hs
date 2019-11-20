@@ -1,27 +1,27 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module TestLib where
 
-import           Common
-import           PlcTestUtils
-import           PlutusPrelude                hiding ((</>))
+import Common
+import PlcTestUtils
+import PlutusPrelude hiding ((</>))
 
-import           Control.Exception
-import           Control.Monad.Except
-import           Control.Monad.Reader         as Reader
+import Control.Exception
+import Control.Monad.Except
+import Control.Monad.Reader as Reader
 
 import qualified Language.PlutusCore.DeBruijn as PLC
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusIR
-import           Language.PlutusIR.Parser     as Parser
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Quote
+import Language.PlutusIR
+import Language.PlutusIR.Parser as Parser
 
-import           System.FilePath              (joinPath, (</>))
+import System.FilePath (joinPath, (</>))
 
-import           Text.Megaparsec.Error        as Megaparsec
+import Text.Megaparsec.Error as Megaparsec
 
-import qualified Data.Text                    as T
-import qualified Data.Text.IO                 as T
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 withGoldenFileM :: String -> (T.Text -> IO T.Text) -> TestNested
 withGoldenFileM name op = do

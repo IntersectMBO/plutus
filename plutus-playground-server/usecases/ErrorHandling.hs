@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
 module ErrorHandling where
 
@@ -16,16 +16,25 @@ module ErrorHandling where
 -- then use 'MyError' in our contracts with the combinators from
 -- 'Control.Monad.Error.Lens'. The unit tests in 'Spec.ErrorHandling' show how
 -- to write tests for error conditions.
-import           Control.Lens             (makeClassyPrisms)
-import           Control.Monad            (void)
-import           Control.Monad.Error.Lens (catching, throwing, throwing_)
-import           Data.Text                (Text)
+import Control.Lens (makeClassyPrisms)
+import Control.Monad (void)
+import Control.Monad.Error.Lens (catching, throwing, throwing_)
+import Data.Text (Text)
 
-import           Control.Applicative      ((<|>))
-import           Language.Plutus.Contract (type (.\/), AsContractError (_ContractError), BlockchainActions, Contract,
-                                           ContractError, Endpoint, HasWriteTx, endpoint, writeTxSuccess)
-import           Playground.Contract
-import           Prelude                  (Show, mempty, pure, ($), (>>))
+import Control.Applicative ((<|>))
+import Language.Plutus.Contract
+    ( type (.\/)
+    , AsContractError (_ContractError)
+    , BlockchainActions
+    , Contract
+    , ContractError
+    , Endpoint
+    , HasWriteTx
+    , endpoint
+    , writeTxSuccess
+    )
+import Playground.Contract
+import Prelude (Show, mempty, pure, ($), (>>))
 
 type Schema =
     BlockchainActions

@@ -1,21 +1,21 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Plugin.Lib where
 
-import           Common
-import           PlcTestUtils
+import Common
+import PlcTestUtils
 
-import           Language.Haskell.TH
-import           Language.PlutusTx.Prelude
+import Language.Haskell.TH
+import Language.PlutusTx.Prelude
 
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Evaluation
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.TH
+import qualified Language.PlutusTx.Builtins as Builtins
+import Language.PlutusTx.Code
+import Language.PlutusTx.Evaluation
+import Language.PlutusTx.Prelude
+import Language.PlutusTx.TH
 
-import           Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc
 
 {-# ANN module "HLint: ignore" #-}
 

@@ -1,48 +1,72 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens                    (to, view)
-import           Control.Monad.Except            (throwError)
-import qualified Control.Newtype.Generics        as Newtype
-import           Data.Aeson                      (FromJSON, eitherDecode)
-import qualified Data.Aeson                      as JSON
-import           Data.Bifunctor                  (first)
-import           Data.ByteString.Lazy            (ByteString)
-import qualified Data.ByteString.Lazy.Char8      as BSL
-import           Data.Foldable                   (traverse_)
-import           Data.Map                        (Map)
-import qualified Data.Map                        as Map
-import           Data.Row                        (Forall)
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.Text.Encoding              as Text
-import           Language.Haskell.Interpreter    (InterpreterResult (InterpreterResult), result, warnings)
-import           Language.Plutus.Contract        (Contract, ContractRow, HasBlockchainActions)
-import           Language.Plutus.Contract.Schema (Event, Input)
-import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (ContractError, TraceAssertionError),
-                                                  addBlocks, addEvent, handleBlockchainEvents,
-                                                  notifyInterestingAddresses, notifySlot, payToWallet,
-                                                  runTraceWithDistribution)
-import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), toPublicKey, txOutTxOut)
-import           Ledger.Value                    (Value)
-import qualified Ledger.Value                    as Value
-import           Playground.Types                (EndpointName (EndpointName), EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
-                                                  Expression (AddBlocks, CallEndpoint),
-                                                  PayToWalletParams (PayToWalletParams),
-                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError, decodingError, expected, input),
-                                                  SimulatorWallet (SimulatorWallet), arguments, blocks, emulatorLog,
-                                                  endpointName, payTo, simulatorWalletBalance, simulatorWalletWallet,
-                                                  value, wallet)
-import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.NodeClient      (ChainState (..))
-import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates),
-                                                  Wallet, WalletState, ownFunds, ownPrivateKey)
-import           Wallet.Rollup                   (doAnnotateBlockchain)
+import Control.Lens (to, view)
+import Control.Monad.Except (throwError)
+import qualified Control.Newtype.Generics as Newtype
+import Data.Aeson (FromJSON, eitherDecode)
+import qualified Data.Aeson as JSON
+import Data.Bifunctor (first)
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Foldable (traverse_)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Row (Forall)
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
+import Language.Haskell.Interpreter (InterpreterResult (InterpreterResult), result, warnings)
+import Language.Plutus.Contract (Contract, ContractRow, HasBlockchainActions)
+import Language.Plutus.Contract.Schema (Event, Input)
+import Language.Plutus.Contract.Trace
+    ( ContractTrace
+    , TraceError (ContractError, TraceAssertionError)
+    , addBlocks
+    , addEvent
+    , handleBlockchainEvents
+    , notifyInterestingAddresses
+    , notifySlot
+    , payToWallet
+    , runTraceWithDistribution
+    )
+import Ledger (Blockchain, PubKey, TxOut (txOutValue), toPublicKey, txOutTxOut)
+import Ledger.Value (Value)
+import qualified Ledger.Value as Value
+import Playground.Types
+    ( EndpointName (EndpointName)
+    , EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys)
+    , Expression (AddBlocks, CallEndpoint)
+    , PayToWalletParams (PayToWalletParams)
+    , PlaygroundError (JsonDecodingError, OtherError, RollupError, decodingError, expected, input)
+    , SimulatorWallet (SimulatorWallet)
+    , arguments
+    , blocks
+    , emulatorLog
+    , endpointName
+    , payTo
+    , simulatorWalletBalance
+    , simulatorWalletWallet
+    , value
+    , wallet
+    )
+import Wallet.Emulator (MonadEmulator)
+import Wallet.Emulator.NodeClient (ChainState (..))
+import Wallet.Emulator.Types
+    ( AssertionError (GenericAssertion)
+    , EmulatorEvent
+    , EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates)
+    , Wallet
+    , WalletState
+    , ownFunds
+    , ownPrivateKey
+    )
+import Wallet.Rollup (doAnnotateBlockchain)
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This

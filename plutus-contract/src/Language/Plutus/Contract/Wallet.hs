@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Balance  `UnbalancedTx` values using the
 --   wallet API.
@@ -9,28 +9,28 @@ module Language.Plutus.Contract.Wallet(
     , WAPI.startWatching
     ) where
 
-import           Control.Lens
-import           Control.Monad.Except
-import           Data.Bifunctor              (second)
-import           Data.Map                    (Map)
-import qualified Data.Map                    as Map
-import           Data.Maybe                  (fromMaybe)
-import qualified Data.Set                    as Set
-import           Data.String                 (IsString (fromString))
-import           Data.Text.Prettyprint.Doc   (Pretty (..))
-import           Language.Plutus.Contract.Tx (UnbalancedTx)
+import Control.Lens
+import Control.Monad.Except
+import Data.Bifunctor (second)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+import qualified Data.Set as Set
+import Data.String (IsString (fromString))
+import Data.Text.Prettyprint.Doc (Pretty (..))
+import Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
-import qualified Language.PlutusTx.Prelude   as P
-import qualified Ledger                      as L
-import qualified Ledger.Ada                  as Ada
-import qualified Ledger.AddressMap           as AM
-import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
-import qualified Ledger.Tx                   as Tx
-import           Ledger.Value                (Value)
-import qualified Ledger.Value                as Value
-import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError)
-import qualified Wallet.API                  as WAPI
-import qualified Wallet.Emulator             as E
+import qualified Language.PlutusTx.Prelude as P
+import qualified Ledger as L
+import qualified Ledger.Ada as Ada
+import qualified Ledger.AddressMap as AM
+import Ledger.Tx (Tx, TxOut, TxOutRef)
+import qualified Ledger.Tx as Tx
+import Ledger.Value (Value)
+import qualified Ledger.Value as Value
+import Wallet.API (MonadWallet, PubKey, WalletAPIError)
+import qualified Wallet.API as WAPI
+import qualified Wallet.Emulator as E
 
 -- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
 --   [Unbalanced transactions].

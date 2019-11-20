@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DeriveGeneric          #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE NamedFieldPuns         #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 module Language.Plutus.Contract.Tx(
       UnbalancedTx
     , inputs
@@ -32,30 +32,29 @@ module Language.Plutus.Contract.Tx(
     , Tx.scriptTxOut'
     ) where
 
-import           Control.Lens              ((&), (<>~))
-import qualified Control.Lens.TH           as Lens.TH
-import qualified Data.Aeson                as Aeson
-import           Data.Foldable             (toList)
-import qualified Data.Map                  as Map
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics              (Generic)
+import Control.Lens ((&), (<>~))
+import qualified Control.Lens.TH as Lens.TH
+import qualified Data.Aeson as Aeson
+import Data.Foldable (toList)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Text.Prettyprint.Doc
+import GHC.Generics (Generic)
 
-import           Language.PlutusTx.Lattice
+import Language.PlutusTx.Lattice
 
-import           IOTS                      (IotsType)
-import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOutRef, TxOutTx,
-                                            ValidatorScript)
-import qualified Ledger                    as L
-import           Ledger.AddressMap         (AddressMap)
-import           Ledger.Index              (minFee)
-import qualified Ledger.Interval           as I
-import           Ledger.Slot               (SlotRange)
-import qualified Ledger.Tx                 as Tx
-import           Ledger.Value              as V
+import IOTS (IotsType)
+import Ledger (Address, DataScript, PubKey, RedeemerScript, TxOutRef, TxOutTx, ValidatorScript)
+import qualified Ledger as L
+import Ledger.AddressMap (AddressMap)
+import Ledger.Index (minFee)
+import qualified Ledger.Interval as I
+import Ledger.Slot (SlotRange)
+import qualified Ledger.Tx as Tx
+import Ledger.Value as V
 
-import qualified Wallet.API                as WAPI
+import qualified Wallet.API as WAPI
 
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].

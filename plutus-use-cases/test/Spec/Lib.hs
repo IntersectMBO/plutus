@@ -6,21 +6,21 @@ module Spec.Lib
     , timesFeeAdjustV
     ) where
 
-import           Control.Monad.IO.Class    (MonadIO (liftIO))
-import           Test.Tasty
-import           Test.Tasty.Golden
-import           Test.Tasty.HUnit
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Test.Tasty
+import Test.Tasty.Golden
+import Test.Tasty.HUnit
 
-import           Data.Maybe
-import           Data.String
-import           Data.Text.Prettyprint.Doc
+import Data.Maybe
+import Data.String
+import Data.Text.Prettyprint.Doc
 
-import           Language.PlutusTx
+import Language.PlutusTx
 import qualified Language.PlutusTx.Prelude as P
-import           Ledger                    (ValidatorScript)
+import Ledger (ValidatorScript)
 import qualified Ledger
-import qualified Ledger.Ada                as Ada
-import           Ledger.Value              (Value)
+import qualified Ledger.Ada as Ada
+import Ledger.Value (Value)
 
 -- | Assert that the size of a 'ValidatorScript' is below
 --   the maximum.

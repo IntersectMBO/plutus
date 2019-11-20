@@ -2,7 +2,7 @@
 
 module Servant.Extra where
 
-import           Servant ((:<|>) ((:<|>)))
+import Servant ((:<|>) ((:<|>)))
 
 left ::
        (a

@@ -1,13 +1,13 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-unticked-promoted-constructors #-}
 
 {-| This module handles exposing a Contract API to the Plutus Playground frontend.
@@ -24,13 +24,13 @@ module Playground.Schema
     , EndpointToSchema
     ) where
 
-import           Data.Row                                        (Empty, KnownSymbol, Label (Label))
-import           Data.Row.Internal                               (LT ((:->)), Row (R))
-import qualified Data.Text                                       as Text
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoints, EndpointValue)
-import           Language.Plutus.Contract.Schema                 ()
-import           Playground.Types                                (EndpointName (EndpointName), FunctionSchema (FunctionSchema, argumentSchema, functionName))
-import           Schema                                          (FormSchema, ToSchema, toSchema)
+import Data.Row (Empty, KnownSymbol, Label (Label))
+import Data.Row.Internal (LT ((:->)), Row (R))
+import qualified Data.Text as Text
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoints, EndpointValue)
+import Language.Plutus.Contract.Schema ()
+import Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema, argumentSchema, functionName))
+import Schema (FormSchema, ToSchema, toSchema)
 
 class EndpointToSchema (s :: Row *) where
     endpointsToSchemas :: [FunctionSchema FormSchema]

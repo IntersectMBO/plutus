@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Language.PlutusCore.Normalize.Internal
     ( NormalizeTypeT
@@ -17,16 +17,16 @@ module Language.PlutusCore.Normalize.Internal
     , normalizeTypesInM
     ) where
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Rename
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Control.Lens
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
+import Control.Lens
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Maybe
 
 {- Note [Global uniqueness]
 WARNING: everything in this module works under the assumption that the global uniqueness condition

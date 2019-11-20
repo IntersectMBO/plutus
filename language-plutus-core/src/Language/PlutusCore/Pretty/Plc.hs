@@ -1,11 +1,11 @@
 -- | The global pretty-printing config used to pretty-print everything in the PLC world.
 -- This module also defines custom pretty-printing functions for PLC types as a convenience.
 
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Pretty.Plc
     (
@@ -28,12 +28,12 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
-import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.Readable
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Data.Text.Prettyprint.Doc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty.Classic
+import Language.PlutusCore.Pretty.Readable
+import Language.PlutusCore.Type
+import PlutusPrelude
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors

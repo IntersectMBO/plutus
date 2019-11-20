@@ -11,10 +11,10 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinStr
     ) where
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Type
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Type
 
-import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.ByteString.Lazy as BSL
 
 -- | Lift a 'BuiltinName' to 'Term'.
 builtinNameAsTerm :: TermLike term tyname name => BuiltinName -> term ()

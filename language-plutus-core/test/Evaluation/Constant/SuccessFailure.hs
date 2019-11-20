@@ -2,12 +2,12 @@ module Evaluation.Constant.SuccessFailure
     ( test_applyBuiltinNameSuccessFailure
     ) where
 
-import           Language.PlutusCore.Constant
+import Language.PlutusCore.Constant
 
-import           Evaluation.Constant.Apply
+import Evaluation.Constant.Apply
 
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 test_typedAddIntegerSuccessFailure :: TestTree
 test_typedAddIntegerSuccessFailure

@@ -1,16 +1,16 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLists       #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 module Gist
     ( API
     , GistAPI
@@ -26,23 +26,47 @@ module Gist
     , NewGistFile(..)
     ) where
 
-import           Auth.Types        (Token, TokenProvider (Github))
-import           Data.Aeson        (FromJSON, GFromJSON, ToJSON, Value, Zero, genericParseJSON, object, parseJSON,
-                                    toJSON, withObject, (.:), (.:?), (.=))
-import           Data.Aeson.Casing (aesonPrefix, snakeCase)
-import           Data.Aeson.Types  (Parser)
-import           Data.Bifunctor    (bimap)
-import           Data.Map          (Map)
-import qualified Data.Map          as Map
-import           Data.Proxy        (Proxy (Proxy))
-import           Data.Text         (Text)
-import qualified Data.Text         as T
-import           GHC.Generics      (Generic, Rep)
-import           Servant.API       ((:<|>), (:>), Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Patch,
-                                    Post, ReqBody, ToHttpApiData (toQueryParam))
-import           Servant.Client    (ClientM, client)
+import Auth.Types (Token, TokenProvider (Github))
+import Data.Aeson
+    ( FromJSON
+    , GFromJSON
+    , ToJSON
+    , Value
+    , Zero
+    , genericParseJSON
+    , object
+    , parseJSON
+    , toJSON
+    , withObject
+    , (.:)
+    , (.:?)
+    , (.=)
+    )
+import Data.Aeson.Casing (aesonPrefix, snakeCase)
+import Data.Aeson.Types (Parser)
+import Data.Bifunctor (bimap)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Proxy (Proxy (Proxy))
+import Data.Text (Text)
+import qualified Data.Text as T
+import GHC.Generics (Generic, Rep)
+import Servant.API
+    ( (:<|>)
+    , (:>)
+    , Capture
+    , FromHttpApiData (parseQueryParam)
+    , Get
+    , Header
+    , JSON
+    , Patch
+    , Post
+    , ReqBody
+    , ToHttpApiData (toQueryParam)
+    )
+import Servant.Client (ClientM, client)
 import qualified Servant.Extra
-import           Text.Read         (readEither)
+import Text.Read (readEither)
 
 type API = Header "Authorization" (Token 'Github) :> "gists" :> GistAPI
 

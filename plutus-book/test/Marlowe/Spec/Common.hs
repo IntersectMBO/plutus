@@ -1,31 +1,31 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
 -fno-warn-unused-do-bind #-}
 module Marlowe.Spec.Common where
 
-import           Control.Monad                   (void)
-import           Data.Either                     (isRight)
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
+import Control.Monad (void)
+import Data.Either (isRight)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 
-import           Hedgehog                        (Gen, Property, Size (..), forAll, property)
+import Hedgehog (Gen, Property, Size (..), forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen                    (choice, element, integral, sized)
-import qualified Hedgehog.Range                  as Range
+import Hedgehog.Gen (choice, element, integral, sized)
+import qualified Hedgehog.Range as Range
 
-import           Ledger                          hiding (Value)
+import Ledger hiding (Value)
 import qualified Ledger
-import           Marlowe.Language.Marlowe        hiding (discountFromPairList, insertCommit, mergeChoices)
-import           Marlowe.Language.Marlowe.Client (createContract, marloweValidator, spendDeposit)
-import           Wallet                          (PubKey (..))
-import           Wallet.Emulator
-import qualified Wallet.Emulator.Generators      as Gen
-import qualified Wallet.Generators               as Gen
+import Marlowe.Language.Marlowe hiding (discountFromPairList, insertCommit, mergeChoices)
+import Marlowe.Language.Marlowe.Client (createContract, marloweValidator, spendDeposit)
+import Wallet (PubKey (..))
+import Wallet.Emulator
+import qualified Wallet.Emulator.Generators as Gen
+import qualified Wallet.Generators as Gen
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 data Bounds = Bounds {

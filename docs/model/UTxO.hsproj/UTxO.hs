@@ -1,5 +1,5 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- This code models a UTxO-style ledger using the approach from
@@ -22,17 +22,17 @@
 module UTxO
 where
 
-import           "cryptonite" Crypto.Hash
-import           Data.List
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import           Data.Maybe
-import           Data.Set                 (Set)
-import qualified Data.Set                 as Set
+import "cryptonite" Crypto.Hash
+import Data.List
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe
+import Data.Set (Set)
+import qualified Data.Set as Set
 
-import           Ledger
-import           Types
-import           Witness
+import Ledger
+import Types
+import Witness
 
 
 -- |Determine the transaction that an input refers to.

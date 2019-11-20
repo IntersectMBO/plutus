@@ -9,19 +9,19 @@ module Language.PlutusCore.Analysis.Definitions
     , runTypeDefs
     ) where
 
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Error
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
 
-import           Data.Functor.Foldable
+import Data.Functor.Foldable
 
-import           Control.Lens              hiding (use, uses)
-import           Control.Monad.Except
-import           Control.Monad.State
-import           Control.Monad.Writer
+import Control.Lens hiding (use, uses)
+import Control.Monad.Except
+import Control.Monad.State
+import Control.Monad.Writer
 
-import           Data.Foldable
-import qualified Data.Set                  as Set
+import Data.Foldable
+import qualified Data.Set as Set
 
 {- Note [Unique usage errors]
 The definitions analysis can find a number of problems with usage of uniques, however

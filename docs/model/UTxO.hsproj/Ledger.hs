@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Ledger (
@@ -10,14 +10,14 @@ module Ledger (
   hashTx, preHashTx, validValuesTx, state
 ) where
 
-import           "cryptonite" Crypto.Hash
-import qualified Data.ByteArray           as BA
-import qualified Data.ByteString.Char8    as BS
-import           Data.Set                 (Set)
-import qualified Data.Set                 as Set
+import "cryptonite" Crypto.Hash
+import qualified Data.ByteArray as BA
+import qualified Data.ByteString.Char8 as BS
+import Data.Set (Set)
+import qualified Data.Set as Set
 
-import           Types
-import           Witness
+import Types
+import Witness
 
 
 -- Ledger and transaction types

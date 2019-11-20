@@ -1,20 +1,19 @@
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE QuasiQuotes         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
-import           API                          (RunResult (RunResult))
-import           Control.Monad.Except         (runExceptT)
-import           Data.ByteString              (ByteString)
-import qualified Data.ByteString.Char8        as BSC
-import qualified Data.Text                    as Text
-import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import API (RunResult (RunResult))
+import Control.Monad.Except (runExceptT)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Text as Text
+import Data.Time.Units (Microsecond, fromMicroseconds)
 import qualified Interpreter
-import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
-                                               SourceCode (SourceCode))
-import           Marlowe.Contracts            (escrow)
-import           Test.Hspec                   (Spec, describe, hspec, it, shouldBe)
-import           Text.RawString.QQ            (r)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult), SourceCode (SourceCode))
+import Marlowe.Contracts (escrow)
+import Test.Hspec (Spec, describe, hspec, it, shouldBe)
+import Text.RawString.QQ (r)
 
 main :: IO ()
 main = hspec runBasicSpec

@@ -4,35 +4,35 @@ module Main
     ( main
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import qualified Check.Spec                                 as Check
-import           Evaluation.CkMachine
-import           Evaluation.Constant.All
-import           Normalization.Check
-import           Normalization.Type
-import           Pretty.Readable
-import           TypeSynthesis.Spec                         (test_typecheck)
+import qualified Check.Spec as Check
+import Evaluation.CkMachine
+import Evaluation.Constant.All
+import Normalization.Check
+import Normalization.Type
+import Pretty.Readable
+import TypeSynthesis.Spec (test_typecheck)
 
-import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST         as AST
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore
+import Language.PlutusCore.DeBruijn
+import Language.PlutusCore.Evaluation.CkMachine (runCk)
+import Language.PlutusCore.Generators
+import Language.PlutusCore.Generators.AST as AST
+import Language.PlutusCore.Generators.Interesting
+import Language.PlutusCore.Pretty
 
-import           Codec.Serialise
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
-import           Data.Text.Encoding                         (encodeUtf8)
-import           Hedgehog                                   hiding (Var)
-import qualified Hedgehog.Gen                               as Gen
-import           Test.Tasty
-import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
-import           Test.Tasty.HUnit
+import Codec.Serialise
+import Control.Monad.Except
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
+import Hedgehog hiding (Var)
+import qualified Hedgehog.Gen as Gen
+import Test.Tasty
+import Test.Tasty.Golden
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 main :: IO ()
 main = do

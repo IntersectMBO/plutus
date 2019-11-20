@@ -4,38 +4,38 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
     ( PlcList (..)
     ) where
 
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type             (prettyBytes)
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.Bool
-import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
-import           Language.PlutusCore.StdLib.Data.List
-import           Language.PlutusCore.StdLib.Data.Sum        as Plc
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Meta
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Make
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Lexer.Type (prettyBytes)
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Quote
+import Language.PlutusCore.StdLib.Data.Bool
+import qualified Language.PlutusCore.StdLib.Data.Function as Plc
+import Language.PlutusCore.StdLib.Data.List
+import Language.PlutusCore.StdLib.Data.Sum as Plc
+import Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore.StdLib.Meta
+import Language.PlutusCore.StdLib.Meta.Data.Tuple
+import Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.Type
 
-import           Control.Monad.Except
-import           Data.Bifunctor
-import qualified Data.ByteString.Lazy                       as BSL
-import           Data.Char
-import           Data.Proxy
-import qualified Data.Text                                  as Text
-import qualified Data.Text.Prettyprint.Doc                  as Doc
-import           GHC.TypeLits
+import Control.Monad.Except
+import Data.Bifunctor
+import qualified Data.ByteString.Lazy as BSL
+import Data.Char
+import Data.Proxy
+import qualified Data.Text as Text
+import qualified Data.Text.Prettyprint.Doc as Doc
+import GHC.TypeLits
 
 {- Note [Sequencing]
 WARNING: it is not allowed to call 'eval' or @readKnown eval@ over a term that already

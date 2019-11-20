@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Constant.Function
@@ -10,15 +10,15 @@ module Language.PlutusCore.Constant.Function
     , typeOfTypedBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
 
-import qualified Data.Map                           as Map
-import           Data.Proxy
-import qualified Data.Text                          as Text
-import           GHC.TypeLits
+import qualified Data.Map as Map
+import Data.Proxy
+import qualified Data.Text as Text
+import GHC.TypeLits
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

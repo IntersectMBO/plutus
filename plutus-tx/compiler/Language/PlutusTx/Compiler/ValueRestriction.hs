@@ -1,19 +1,19 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- | Functions for dealing with the Plutus Core value restriction.
 module Language.PlutusTx.Compiler.ValueRestriction where
 
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Laziness
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.PIRTypes
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Laziness
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.PIRTypes
 
-import qualified Language.PlutusIR                   as PIR
-import qualified Language.PlutusIR.Value             as PIR
+import qualified Language.PlutusIR as PIR
+import qualified Language.PlutusIR.Value as PIR
 
-import           Control.Monad.Reader
+import Control.Monad.Reader
 
 -- Value restriction
 

@@ -2,8 +2,8 @@
 
 module Marlowe.Contracts where
 
-import           Data.ByteString (ByteString)
-import           Data.FileEmbed  (embedFile, makeRelativeToProject)
+import Data.ByteString (ByteString)
+import Data.FileEmbed (embedFile, makeRelativeToProject)
 
 escrow :: ByteString
 escrow = $(makeRelativeToProject "contracts/Escrow.hs" >>= embedFile)

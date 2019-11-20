@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -7,9 +7,9 @@ module Language.PlutusIR.MkPir ( module MkPlc
                                , mkLet
                                ) where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
-import           Language.PlutusCore.MkPlc as MkPlc
+import Language.PlutusCore.MkPlc as MkPlc
 
 -- | A datatype definition as a type variable.
 type DatatypeDef tyname name a = Def (TyVarDecl tyname a) (Datatype tyname name a)

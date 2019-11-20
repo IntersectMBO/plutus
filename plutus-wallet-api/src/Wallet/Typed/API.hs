@@ -1,33 +1,33 @@
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Wallet.Typed.API where
 
-import qualified Language.PlutusTx    as PlutusTx
-import           Ledger.AddressMap
-import           Ledger.Tx
+import qualified Language.PlutusTx as PlutusTx
+import Ledger.AddressMap
+import Ledger.Tx
 import qualified Ledger.Typed.Scripts as Scripts
-import qualified Ledger.Typed.Tx      as Typed
-import           Ledger.Value
-import           Wallet.API           (SlotRange, WalletAPI, WalletAPIError)
-import qualified Wallet.API           as WAPI
+import qualified Ledger.Typed.Tx as Typed
+import Ledger.Value
+import Wallet.API (SlotRange, WalletAPI, WalletAPIError)
+import qualified Wallet.API as WAPI
 
-import           Control.Lens
-import           Control.Monad.Except
+import Control.Lens
+import Control.Monad.Except
 
-import           Data.Either
-import qualified Data.Map             as Map
-import           Data.Maybe
-import qualified Data.Set             as Set
-import qualified Data.Text            as T
+import Data.Either
+import qualified Data.Map as Map
+import Data.Maybe
+import qualified Data.Set as Set
+import qualified Data.Text as T
 
 signTxAndSubmit
     :: forall ins outs m .

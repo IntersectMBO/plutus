@@ -1,10 +1,10 @@
 module Main (main) where
 
-import           Control.Monad                              (void)
-import           Criterion.Main
-import qualified Data.ByteString.Lazy                       as BSL
-import           Language.PlutusCore
-import           Language.PlutusCore.Interpreter.CekMachine (unsafeRunCek)
+import Control.Monad (void)
+import Criterion.Main
+import qualified Data.ByteString.Lazy as BSL
+import Language.PlutusCore
+import Language.PlutusCore.Interpreter.CekMachine (unsafeRunCek)
 
 main :: IO ()
 main =

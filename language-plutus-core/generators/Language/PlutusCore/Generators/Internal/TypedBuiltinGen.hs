@@ -1,12 +1,12 @@
 -- | This module defines the 'TypedBuiltinGen' type and functions of this type.
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
@@ -18,19 +18,19 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     , genTypedBuiltinDivide
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Language.PlutusCore.Generators.Internal.Dependent
+import Language.PlutusCore.Generators.Internal.Dependent
 
-import qualified Data.ByteString.Lazy                              as BSL
-import           Data.Functor.Identity
-import           Data.GADT.Compare
-import           Hedgehog                                          hiding (Size, Var)
-import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Range                                    as Range
+import qualified Data.ByteString.Lazy as BSL
+import Data.Functor.Identity
+import Data.GADT.Compare
+import Hedgehog hiding (Size, Var)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString

@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Playground.Usecases where
 
-import           Data.FileEmbed     (embedFile, makeRelativeToProject)
-import qualified Data.Text          as T
+import Data.FileEmbed (embedFile, makeRelativeToProject)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 marker :: T.Text

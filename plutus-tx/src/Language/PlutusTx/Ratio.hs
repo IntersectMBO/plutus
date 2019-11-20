@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -25,17 +25,17 @@ module Language.PlutusTx.Ratio(
     , reduce
     ) where
 
-import qualified Language.PlutusTx.Bool     as P
-import qualified Language.PlutusTx.Eq       as P
-import qualified Language.PlutusTx.IsData   as P
-import qualified Language.PlutusTx.Lift     as P
-import qualified Language.PlutusTx.Numeric  as P
-import qualified Language.PlutusTx.Ord      as P
+import qualified Language.PlutusTx.Bool as P
+import qualified Language.PlutusTx.Eq as P
+import qualified Language.PlutusTx.IsData as P
+import qualified Language.PlutusTx.Lift as P
+import qualified Language.PlutusTx.Numeric as P
+import qualified Language.PlutusTx.Ord as P
 
 import qualified Language.PlutusTx.Builtins as Builtins
 
-import qualified GHC.Real                   as Ratio
-import           Prelude                    (Bool (True), Integer)
+import qualified GHC.Real as Ratio
+import Prelude (Bool (True), Integer)
 
 data Ratio a = a :% a
 

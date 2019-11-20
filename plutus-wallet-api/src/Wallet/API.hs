@@ -1,18 +1,18 @@
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -86,35 +86,35 @@ module Wallet.API(
     WalletLog(..)
     ) where
 
-import           Control.Lens              hiding (contains)
-import           Control.Monad             (void, when)
-import           Control.Monad.Error.Class (MonadError (..))
-import           Data.Aeson                (FromJSON, FromJSON1, ToJSON, ToJSON1)
-import qualified Data.ByteString.Lazy      as BSL
-import           Data.Eq.Deriving          (deriveEq1)
-import           Data.Foldable             (fold)
-import           Data.Functor.Compose      (Compose (..))
-import           Data.Functor.Foldable     (Corecursive (..), Fix (..), Recursive (..), unfix)
-import           Data.Hashable             (Hashable, hashWithSalt)
-import           Data.Hashable.Lifted      (Hashable1, hashWithSalt1)
-import qualified Data.Map                  as Map
-import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
-import qualified Data.Set                  as Set
-import           Data.Text                 (Text)
-import           IOTS                      (IotsType)
+import Control.Lens hiding (contains)
+import Control.Monad (void, when)
+import Control.Monad.Error.Class (MonadError (..))
+import Data.Aeson (FromJSON, FromJSON1, ToJSON, ToJSON1)
+import qualified Data.ByteString.Lazy as BSL
+import Data.Eq.Deriving (deriveEq1)
+import Data.Foldable (fold)
+import Data.Functor.Compose (Compose (..))
+import Data.Functor.Foldable (Corecursive (..), Fix (..), Recursive (..), unfix)
+import Data.Hashable (Hashable, hashWithSalt)
+import Data.Hashable.Lifted (Hashable1, hashWithSalt1)
+import qualified Data.Map as Map
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
+import qualified Data.Set as Set
+import Data.Text (Text)
+import IOTS (IotsType)
 
-import qualified Data.Text                 as Text
-import           Data.Text.Prettyprint.Doc hiding (width)
-import           GHC.Generics              (Generic, Generic1)
-import           Ledger                    hiding (inputs, out, sign, to, value)
-import           Ledger.AddressMap         (AddressMap)
-import           Ledger.Index              (minFee)
-import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
-import qualified Ledger.Interval           as Interval
-import qualified Ledger.Value              as Value
-import           Text.Show.Deriving        (deriveShow1)
+import qualified Data.Text as Text
+import Data.Text.Prettyprint.Doc hiding (width)
+import GHC.Generics (Generic, Generic1)
+import Ledger hiding (inputs, out, sign, to, value)
+import Ledger.AddressMap (AddressMap)
+import Ledger.Index (minFee)
+import Ledger.Interval (Interval (..), after, always, before, contains, interval, isEmpty, member)
+import qualified Ledger.Interval as Interval
+import qualified Ledger.Value as Value
+import Text.Show.Deriving (deriveShow1)
 
-import           Prelude                   hiding (Ordering (..))
+import Prelude hiding (Ordering (..))
 
 data EventTriggerF f =
     TAnd f f

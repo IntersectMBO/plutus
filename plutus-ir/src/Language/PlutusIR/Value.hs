@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.PlutusIR.Value (isTermValue) where
 
-import           Language.PlutusIR
+import Language.PlutusIR
 
 -- | Whether the given PIR term is (will compile to) a PLC term value. Very similar to
 -- the PLC definition.

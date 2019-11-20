@@ -1,26 +1,29 @@
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Playground.InterpreterSpec
     ( tests
     ) where
 
-import           Control.Monad.Except         (runExceptT)
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Text              as JSON
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import qualified Data.Text.Lazy               as TL
-import           Language.Haskell.Interpreter (SourceCode (SourceCode))
-import qualified Ledger.Ada                   as Ada
-import           Playground.Interpreter       (mkExpr, mkRunScript)
-import           Playground.Types             (Evaluation (Evaluation, program, sourceCode, wallets),
-                                               Expression (AddBlocks), PlaygroundError,
-                                               SimulatorWallet (SimulatorWallet))
-import           Test.Tasty                   (TestTree, testGroup)
-import           Test.Tasty.HUnit             (assertEqual, testCase)
-import           Wallet.Emulator.Types        (Wallet (Wallet))
+import Control.Monad.Except (runExceptT)
+import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Text as JSON
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Lazy as TL
+import Language.Haskell.Interpreter (SourceCode (SourceCode))
+import qualified Ledger.Ada as Ada
+import Playground.Interpreter (mkExpr, mkRunScript)
+import Playground.Types
+    ( Evaluation (Evaluation, program, sourceCode, wallets)
+    , Expression (AddBlocks)
+    , PlaygroundError
+    , SimulatorWallet (SimulatorWallet)
+    )
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertEqual, testCase)
+import Wallet.Emulator.Types (Wallet (Wallet))
 
 tests :: TestTree
 tests = testGroup "Playground.Interpreter" [mkRunScriptTest]

@@ -2,7 +2,7 @@
 -- See the "Success" and "SuccessFailure" module for actual tests implemented
 -- in terms of functions defined here.
 
-{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 module Evaluation.Constant.Apply
     ( prop_applyBuiltinName
@@ -11,14 +11,14 @@ module Evaluation.Constant.Apply
     , prop_applyBuiltinNameFailure
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Generators
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Evaluation.CkMachine
+import Language.PlutusCore.Generators
 
-import           Data.Foldable
-import           Data.List
-import           Hedgehog                                 hiding (Var)
+import Data.Foldable
+import Data.List
+import Hedgehog hiding (Var)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)

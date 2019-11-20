@@ -11,12 +11,12 @@ module Language.PlutusCore.Generators.Internal.Dependent
     , proxyAsKnownType
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Pretty
 
-import           Control.Monad
-import           Data.GADT.Compare
-import           Unsafe.Coerce
+import Control.Monad
+import Data.GADT.Compare
+import Unsafe.Coerce
 
 liftOrdering :: Ordering -> GOrdering a b
 liftOrdering LT = GLT

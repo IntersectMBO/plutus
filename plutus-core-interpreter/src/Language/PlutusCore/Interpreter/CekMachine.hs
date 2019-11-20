@@ -24,17 +24,17 @@ module Language.PlutusCore.Interpreter.CekMachine
     , unsafeRunCek
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.View
-import           PlutusPrelude
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Evaluation.MachineException
+import Language.PlutusCore.Name
+import Language.PlutusCore.View
+import PlutusPrelude
 
-import           Control.Lens.TH                                 (makeLenses)
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import qualified Data.Map                                        as Map
+import Control.Lens.TH (makeLenses)
+import Control.Monad.Except
+import Control.Monad.Reader
+import qualified Data.Map as Map
 
 type Plain f = f TyName Name ()
 

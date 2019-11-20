@@ -1,14 +1,14 @@
 module Pretty.Readable (test_Pretty) where
 
-import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore.FsTree (foldPlcFolderContents)
+import Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything (examples)
-import           Language.PlutusCore.StdLib.Everything   (stdLib)
+import Language.PlutusCore.Examples.Everything (examples)
+import Language.PlutusCore.StdLib.Everything (stdLib)
 
-import           Common
+import Common
 
-import           Test.Tasty
+import Test.Tasty
 
 prettyConfigReadable :: PrettyConfigPlc
 prettyConfigReadable

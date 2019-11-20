@@ -1,12 +1,12 @@
-{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
 
-import           Language.PlutusTx.Builtins
-import           Language.PlutusTx.Monoid
-import           Language.PlutusTx.Semigroup
-import           Prelude                     hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
+import Language.PlutusTx.Builtins
+import Language.PlutusTx.Monoid
+import Language.PlutusTx.Semigroup
+import Prelude hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
 
 -- | A 'Semigroup' that it is sensible to describe using addition.
 class AdditiveSemigroup a where

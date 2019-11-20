@@ -1,13 +1,13 @@
 module Language.PlutusTx.Evaluation (evaluateCek, unsafeEvaluateCek, evaluateCekTrace, CekMachineException) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Interpreter.CekMachine hiding (evaluateCek, unsafeEvaluateCek)
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Interpreter.CekMachine hiding (evaluateCek, unsafeEvaluateCek)
 
-import           Control.Exception
+import Control.Exception
 
-import           System.IO.Unsafe
+import System.IO.Unsafe
 
 stringBuiltins :: DynamicBuiltinNameMeanings
 stringBuiltins =

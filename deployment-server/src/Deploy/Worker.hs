@@ -1,32 +1,32 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Deploy.Worker where
 
-import           Control.Concurrent.Chan      (Chan, readChan)
-import           Control.Exception            (SomeException, displayException, handle)
-import           Control.Monad                (forever, void)
-import           Control.Monad.Except         (ExceptT (ExceptT), MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import           Control.Newtype.Generics     (unpack)
-import qualified Data.ByteString.Char8        as BS
-import qualified Data.ByteString.Lazy.Char8   as LBS
-import           Data.Char                    (isSpace)
-import           Data.List                    (dropWhileEnd, isSuffixOf)
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import           Deploy.Types                 (Options (Options, configDir, deploymentName, environment, githubToken, include, stateFile))
+import Control.Concurrent.Chan (Chan, readChan)
+import Control.Exception (SomeException, displayException, handle)
+import Control.Monad (forever, void)
+import Control.Monad.Except (ExceptT (ExceptT), MonadError, runExceptT, throwError)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Newtype.Generics (unpack)
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.Char (isSpace)
+import Data.List (dropWhileEnd, isSuffixOf)
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Deploy.Types (Options (Options, configDir, deploymentName, environment, githubToken, include, stateFile))
 import qualified GitHub
-import           GitHub.Data.Webhooks.Events  (PullRequestEvent (evPullReqPayload))
-import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase), PullRequestTarget (whPullReqTargetRef))
-import           System.Directory             (listDirectory)
-import           System.Exit                  (ExitCode (ExitFailure, ExitSuccess))
-import           System.IO.Temp               (withSystemTempDirectory)
-import           System.Process.Typed         (proc, readProcess, setWorkingDir)
+import GitHub.Data.Webhooks.Events (PullRequestEvent (evPullReqPayload))
+import GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase), PullRequestTarget (whPullReqTargetRef))
+import System.Directory (listDirectory)
+import System.Exit (ExitCode (ExitFailure, ExitSuccess))
+import System.IO.Temp (withSystemTempDirectory)
+import System.Process.Typed (proc, readProcess, setWorkingDir)
 
 data DeploymentError
     = CommandError Text

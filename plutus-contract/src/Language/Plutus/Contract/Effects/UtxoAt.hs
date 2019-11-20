@@ -1,35 +1,35 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ConstraintKinds     #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 module Language.Plutus.Contract.Effects.UtxoAt where
 
-import           Data.Aeson                                    (FromJSON, ToJSON)
-import           Data.Map                                      (Map)
-import qualified Data.Map                                      as Map
-import           Data.Row
-import           Data.Set                                      (Set)
-import qualified Data.Set                                      as Set
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                                  (Generic)
-import           Ledger                                        (Address, TxOut (..), TxOutTx (..))
-import           Ledger.AddressMap                             (AddressMap)
-import qualified Ledger.AddressMap                             as AM
-import           Ledger.Tx                                     (TxOutRef)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Row
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Text.Prettyprint.Doc
+import GHC.Generics (Generic)
+import Ledger (Address, TxOut (..), TxOutTx (..))
+import Ledger.AddressMap (AddressMap)
+import qualified Ledger.AddressMap as AM
+import Ledger.Tx (TxOutRef)
 
-import           IOTS                                          (IotsType)
-import           Language.Plutus.Contract.Effects.WatchAddress (AddressSet (..))
-import           Language.Plutus.Contract.Request              (Contract, ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema               (Event (..), Handlers (..), Input, Output)
+import IOTS (IotsType)
+import Language.Plutus.Contract.Effects.WatchAddress (AddressSet (..))
+import Language.Plutus.Contract.Request (Contract, ContractRow, requestMaybe)
+import Language.Plutus.Contract.Schema (Event (..), Handlers (..), Input, Output)
 
 type UtxoAtSym = "utxo-at"
 

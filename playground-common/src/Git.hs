@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Git where
 
-import           Data.FileEmbed     (dummySpaceWith)
-import           Data.String        (fromString)
-import           Data.Text          (Text)
-import qualified Data.Text          as T
-import           Data.Text.Encoding (decodeUtf8)
-import           Git.TH             (gitRevFromGit)
+import Data.FileEmbed (dummySpaceWith)
+import Data.String (fromString)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8)
+import Git.TH (gitRevFromGit)
 
 -- | Try to get the git revision from the possibly injected gitRevEmbed
 --   If it hasn't been embeded then try to get from the current compilation

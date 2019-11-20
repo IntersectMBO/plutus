@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.Check.Value
     ( checkTerm
@@ -8,14 +8,14 @@ module Language.PlutusCore.Check.Value
     , AsValueRestrictionError (..)
     ) where
 
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Error
+import Language.PlutusCore.Type
 
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Data.Either
-import           Data.Foldable             (traverse_)
-import           Data.Functor.Foldable
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Data.Either
+import Data.Foldable (traverse_)
+import Data.Functor.Foldable
 
 -- | Check whether a term satisfies the value restriction.
 checkTerm

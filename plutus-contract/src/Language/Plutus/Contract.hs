@@ -1,7 +1,7 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MonoLocalBinds   #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE TypeOperators #-}
 module Language.Plutus.Contract(
       Contract(..)
     , ContractError(..)
@@ -59,26 +59,25 @@ module Language.Plutus.Contract(
     , waitingForBlockchainActions
     ) where
 
-import           Control.Applicative                             (Alternative (..))
-import           Data.Row
+import Control.Applicative (Alternative (..))
+import Data.Row
 
-import           Language.Plutus.Contract.Effects.AwaitSlot
-import           Language.Plutus.Contract.Effects.ExposeEndpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import           Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx
-import           Language.Plutus.Contract.Util                   (both, selectEither)
+import Language.Plutus.Contract.Effects.AwaitSlot
+import Language.Plutus.Contract.Effects.ExposeEndpoint
+import Language.Plutus.Contract.Effects.OwnPubKey as OwnPubKey
+import Language.Plutus.Contract.Effects.UtxoAt as UtxoAt
+import Language.Plutus.Contract.Effects.WatchAddress as WatchAddress
+import Language.Plutus.Contract.Effects.WriteTx
+import Language.Plutus.Contract.Util (both, selectEither)
 
-import           Language.Plutus.Contract.Request                (AsContractError (..), Contract (..),
-                                                                  ContractError (..), ContractRow, checkpoint, select,
-                                                                  withContractError)
-import           Language.Plutus.Contract.Schema                 (Handlers)
+import Language.Plutus.Contract.Request
+    (AsContractError (..), Contract (..), ContractError (..), ContractRow, checkpoint, select, withContractError)
+import Language.Plutus.Contract.Schema (Handlers)
 
-import           Language.Plutus.Contract.Tx                     as Tx
+import Language.Plutus.Contract.Tx as Tx
 
-import           Prelude                                         hiding (until)
-import           Wallet.API                                      (WalletAPIError)
+import Prelude hiding (until)
+import Wallet.API (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)

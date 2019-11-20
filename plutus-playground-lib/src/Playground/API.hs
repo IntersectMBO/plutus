@@ -1,25 +1,25 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Playground.API where
 
-import           Control.Monad.Trans.Class    (lift)
-import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Data.Bifunctor               (second)
-import           Data.Maybe                   (fromMaybe)
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError), InterpreterResult,
-                                               SourceCode, column, filename, row, text)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.State (StateT, evalStateT, get, put)
+import Data.Bifunctor (second)
+import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Language.Haskell.Interpreter
+    (CompilationError (CompilationError, RawError), InterpreterResult, SourceCode, column, filename, row, text)
 import qualified Language.Haskell.Interpreter as HI
-import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
-import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
-import           Text.Read                    (readMaybe)
+import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
+import Servant.API ((:<|>), (:>), Get, JSON, Post, ReqBody)
+import Text.Read (readMaybe)
 
 type API
      = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))

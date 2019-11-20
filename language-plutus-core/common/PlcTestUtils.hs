@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeApplications #-}
 module PlcTestUtils (
     GetProgram(..),
     catchAll,
@@ -12,17 +12,17 @@ module PlcTestUtils (
     goldenEval,
     goldenEvalCatch) where
 
-import           Common
+import Common
 
-import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Pretty
+import Language.PlutusCore
+import Language.PlutusCore.DeBruijn
+import Language.PlutusCore.Evaluation.CkMachine
+import Language.PlutusCore.Pretty
 
-import           Control.Exception
-import           Control.Monad.Except
+import Control.Exception
+import Control.Monad.Except
 
-import qualified Data.Text.Prettyprint.Doc                as PP
+import qualified Data.Text.Prettyprint.Doc as PP
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 -- from the process should be caught.

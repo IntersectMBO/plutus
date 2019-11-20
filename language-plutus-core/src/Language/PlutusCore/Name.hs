@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Name
     ( -- * Types
@@ -37,15 +37,15 @@ module Language.PlutusCore.Name
     , debugPrettyConfigName
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Control.Lens
-import           Control.Monad.State
-import qualified Data.IntMap                as IM
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
-import           Instances.TH.Lift          ()
-import           Language.Haskell.TH.Syntax (Lift)
+import Control.Lens
+import Control.Monad.State
+import qualified Data.IntMap as IM
+import qualified Data.Map as M
+import qualified Data.Text as T
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name ann = Name

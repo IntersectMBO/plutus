@@ -1,12 +1,12 @@
 -- | Computing constant application.
 
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError (..)
@@ -22,22 +22,22 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
-import           Language.PlutusCore.Constant.Name
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Constant.Dynamic.Instances ()
+import Language.PlutusCore.Constant.Name
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Lexer.Type (BuiltinName (..))
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Inner
-import           Crypto
-import qualified Data.ByteString.Lazy                           as BSL
-import qualified Data.ByteString.Lazy.Hash                      as Hash
-import           Data.Proxy
-import           Data.Text                                      (Text)
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Inner
+import Crypto
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Hash as Hash
+import Data.Proxy
+import Data.Text (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError

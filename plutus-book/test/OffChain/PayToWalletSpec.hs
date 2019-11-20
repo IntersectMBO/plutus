@@ -1,18 +1,18 @@
 module OffChain.PayToWalletSpec (spec) where
 
-import           Utils
+import Utils
 
-import qualified OffChain.PayToWallet       as P1
+import qualified OffChain.PayToWallet as P1
 import qualified OffChain.PayToWalletSimple as P2
 
-import qualified Language.PlutusTx.Numeric  as P
-import           Ledger
-import           Ledger.Ada
-import           Wallet.Emulator
+import qualified Language.PlutusTx.Numeric as P
+import Ledger
+import Ledger.Ada
+import Wallet.Emulator
 
-import           Control.Monad              (void)
-import           Data.Either                (isRight)
-import           Test.Hspec
+import Control.Monad (void)
+import Data.Either (isRight)
+import Test.Hspec
 
 spec :: Spec
 spec = do

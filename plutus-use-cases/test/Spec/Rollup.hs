@@ -2,28 +2,28 @@
 module Spec.Rollup where
 
 
-import           Data.ByteString.Lazy                                  (ByteString)
-import qualified Data.ByteString.Lazy                                  as LBS
-import qualified Data.Map                                              as Map
-import qualified Data.Text                                             as T
-import           Data.Text.Encoding                                    (encodeUtf8)
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Map as Map
+import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace
-import           Ledger
+import Language.Plutus.Contract
+import Language.Plutus.Contract.Trace
+import Ledger
 
-import           Language.Plutus.Contract.Request                      (ContractRow)
-import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
-import           Language.PlutusTx.Coordination.Contracts.Game
-import           Language.PlutusTx.Coordination.Contracts.Vesting
+import Language.Plutus.Contract.Request (ContractRow)
+import Language.PlutusTx.Coordination.Contracts.CrowdFunding
+import Language.PlutusTx.Coordination.Contracts.Game
+import Language.PlutusTx.Coordination.Contracts.Vesting
 import qualified Spec.Vesting
 
-import           Test.Tasty                                            (TestTree, testGroup)
-import           Test.Tasty.Golden                                     (goldenVsString)
-import           Test.Tasty.HUnit                                      (assertFailure)
-import qualified Wallet.Emulator.NodeClient                            as NC
-import           Wallet.Emulator.Types
-import           Wallet.Rollup.Render                                  (showBlockchain)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Golden (goldenVsString)
+import Test.Tasty.HUnit (assertFailure)
+import qualified Wallet.Emulator.NodeClient as NC
+import Wallet.Emulator.Types
+import Wallet.Rollup.Render (showBlockchain)
 
 tests :: TestTree
 tests = testGroup "showBlockchain"

@@ -1,29 +1,29 @@
 -- | Tests of dynamic strings and characters.
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc             hiding (error)
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.MkPlc hiding (error)
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Common
+import DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class                (liftIO)
-import           Hedgehog                              hiding (Size, Var)
-import qualified Hedgehog.Gen                          as Gen
-import qualified Hedgehog.Range                        as Range
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
-import           Test.Tasty.HUnit
+import Control.Monad.IO.Class (liftIO)
+import Hedgehog hiding (Size, Var)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import Test.Tasty
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.

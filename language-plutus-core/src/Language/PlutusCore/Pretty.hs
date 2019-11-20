@@ -61,14 +61,14 @@ module Language.PlutusCore.Pretty
     , botPrettyConfigReadable
     ) where
 
-import           Language.PlutusCore.Name            as Export
-import           Language.PlutusCore.Pretty.Classic  as Export
-import           Language.PlutusCore.Pretty.Plc      as Export
-import           Language.PlutusCore.Pretty.Readable as Export
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Name as Export
+import Language.PlutusCore.Pretty.Classic as Export
+import Language.PlutusCore.Pretty.Plc as Export
+import Language.PlutusCore.Pretty.Readable as Export
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Data.Text                           (Text)
+import Data.Text (Text)
 
 -- | Pretty-print a value in the default mode using the classic view.
 prettyPlcDef :: PrettyPlc a => a -> Doc ann

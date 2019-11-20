@@ -5,12 +5,12 @@ module DynamicBuiltins.Common
     , typecheckReadKnownCek
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
+import Language.PlutusCore
+import Language.PlutusCore.Constant
 
-import           Language.PlutusCore.Interpreter.CekMachine
+import Language.PlutusCore.Interpreter.CekMachine
 
-import           Control.Monad.Except
+import Control.Monad.Except
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd

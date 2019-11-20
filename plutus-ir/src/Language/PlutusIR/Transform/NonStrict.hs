@@ -1,20 +1,20 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Compile non-strict bindings into strict bindings.
 module Language.PlutusIR.Transform.NonStrict (compileNonStrictBindings) where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Transform.Rename     ()
-import           Language.PlutusIR.Transform.Substitute
+import Language.PlutusIR
+import Language.PlutusIR.Transform.Rename ()
+import Language.PlutusIR.Transform.Substitute
 
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
+import Language.PlutusCore.Quote
+import qualified Language.PlutusCore.StdLib.Data.Unit as Unit
 
-import           Control.Lens                           hiding (Strict)
-import           Control.Monad.State
+import Control.Lens hiding (Strict)
+import Control.Monad.State
 
-import qualified Data.Map                               as Map
+import qualified Data.Map as Map
 
 {- Note [Compiling non-strict bindings]
 Given `let x : ty = rhs in body`, we

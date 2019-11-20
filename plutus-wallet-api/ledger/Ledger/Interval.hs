@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE MonoLocalBinds       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -33,16 +33,16 @@ module Ledger.Interval(
     , strictUpperBound
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Hashable             (Hashable)
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
-import qualified Prelude                   as Haskell
+import Codec.Serialise.Class (Serialise)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Hashable (Hashable)
+import GHC.Generics (Generic)
+import IOTS (IotsType)
+import qualified Prelude as Haskell
 
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx as PlutusTx
+import Language.PlutusTx.Lift (makeLift)
+import Language.PlutusTx.Prelude
 
 -- | An interval of @a@s.
 --

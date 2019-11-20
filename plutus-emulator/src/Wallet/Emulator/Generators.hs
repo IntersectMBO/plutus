@@ -3,10 +3,10 @@ module Wallet.Emulator.Generators(
     , runTraceOn
     ) where
 
-import           Hedgehog
+import Hedgehog
 
-import           Wallet.Emulator   as Emulator
-import           Wallet.Generators (GeneratorModel, Mockchain (Mockchain), genMockchain')
+import Wallet.Emulator as Emulator
+import Wallet.Generators (GeneratorModel, Mockchain (Mockchain), genMockchain')
 
 
 -- | Run an emulator trace on a mockchain.

@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Game.GuessSpec (spec) where
 
-import           Utils
+import Utils
 
-import           Game.Guess
+import Game.Guess
 
-import           Ledger
-import           Ledger.Ada
-import           Wallet.Emulator
+import Ledger
+import Ledger.Ada
+import Wallet.Emulator
 
-import           Control.Monad   (void)
-import           Data.Either     (isRight)
-import           Data.Text       (Text)
-import           Test.Hspec
+import Control.Monad (void)
+import Data.Either (isRight)
+import Data.Text (Text)
+import Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec

@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
@@ -30,18 +30,18 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Control.Lens                       hiding (use)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
+import Control.Lens hiding (use)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
 
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
 throwingEither :: MonadError e m => AReview e t -> Either t a -> m a

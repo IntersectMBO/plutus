@@ -1,23 +1,23 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
 
-import           Prelude                   hiding (fail)
+import Prelude hiding (fail)
 
-import           Data.Bifunctor            (bimap)
-import           Data.Bitraversable        (bitraverse)
-import           Data.ByteString.Lazy      as BSL
+import Data.Bifunctor (bimap)
+import Data.Bitraversable (bitraverse)
+import Data.ByteString.Lazy as BSL
 
-import           Control.Monad.Fail
+import Control.Monad.Fail
 
-import qualified Codec.CBOR.Term           as CBOR
-import qualified Codec.Serialise           as Serialise
+import qualified Codec.CBOR.Term as CBOR
+import qualified Codec.Serialise as Serialise
 
-import           Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc
 
-import           GHC.Generics
+import GHC.Generics
 
 -- | A generic "data" type.
 --

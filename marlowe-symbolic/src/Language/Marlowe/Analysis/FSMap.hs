@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedLists #-}
 module Language.Marlowe.Analysis.FSMap where
 
-import           Data.SBV
-import           Data.SBV.List  as SL
-import           Data.SBV.Maybe as SM
-import           Data.SBV.Tuple as ST
-import           Prelude        hiding (all, lookup)
+import Data.SBV
+import Data.SBV.List as SL
+import Data.SBV.Maybe as SM
+import Data.SBV.Tuple as ST
+import Prelude hiding (all, lookup)
 
 type NMap a b = [(a, b)]
 type FSMap a b = SList (a, b)

@@ -4,10 +4,10 @@
 -- 'makeLenses' produces an unused lens.
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Language.PlutusCore.TypeCheck.Internal
     ( DynamicBuiltinNameTypes (..)
@@ -27,24 +27,24 @@ module Language.PlutusCore.TypeCheck.Internal
     , checkTypeM
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type         hiding (name)
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Error
+import Language.PlutusCore.Lexer.Type hiding (name)
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Normalize
 import qualified Language.PlutusCore.Normalize.Internal as Norm
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Rename
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Control.Lens.TH                        (makeLenses)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Data.Map                               (Map)
-import qualified Data.Map                               as Map
+import Control.Lens.TH (makeLenses)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition

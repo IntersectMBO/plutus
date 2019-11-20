@@ -1,10 +1,10 @@
 -- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
 
-{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Pretty.Classic
     ( PrettyConfigClassic (..)
@@ -14,12 +14,12 @@ module Language.PlutusCore.Pretty.Classic
     , prettyClassicDebug
     ) where
 
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Data.Functor.Foldable
+import Data.Functor.Foldable
 
 -- | Configuration for the classic pretty-printing.
 newtype PrettyConfigClassic configName = PrettyConfigClassic

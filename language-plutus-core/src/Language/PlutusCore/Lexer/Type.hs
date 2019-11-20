@@ -1,6 +1,6 @@
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Lexer.Type
     ( TypeBuiltin (..)
@@ -17,14 +17,14 @@ module Language.PlutusCore.Lexer.Type
     , defaultVersion
     ) where
 
-import           Language.PlutusCore.Name
-import           PlutusPrelude
+import Language.PlutusCore.Name
+import PlutusPrelude
 
-import qualified Data.ByteString.Lazy               as BSL
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-import           Language.Haskell.TH.Syntax         (Lift)
-import           Numeric                            (showHex)
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import Language.Haskell.TH.Syntax (Lift)
+import Numeric (showHex)
 
 -- | A builtin type
 data TypeBuiltin

@@ -2,12 +2,12 @@
 
 module Main where
 
-import           Control.Exception
-import           System.Environment
-import           System.Exit
-import           System.Process
+import Control.Exception
+import System.Environment
+import System.Exit
+import System.Process
 
-import qualified MAlonzo.Code.Main  as M
+import qualified MAlonzo.Code.Main as M
 
 succeedingEvalTests = ["succInteger"
         ,"unitval"

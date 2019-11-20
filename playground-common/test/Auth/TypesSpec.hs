@@ -1,18 +1,24 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Auth.TypesSpec
     ( tests
     ) where
 
-import           Auth.Types              (OAuthToken (OAuthToken), Token (Token), TokenProvider (Github),
-                                          oAuthTokenAccessToken, oAuthTokenScope, oAuthTokenTokenType)
-import           Data.Aeson              (eitherDecode)
-import qualified Data.ByteString.Lazy    as LBS
-import           Paths_playground_common (getDataFileName)
-import           Test.Tasty              (TestTree, testGroup)
-import           Test.Tasty.HUnit        (assertEqual, testCase)
+import Auth.Types
+    ( OAuthToken (OAuthToken)
+    , Token (Token)
+    , TokenProvider (Github)
+    , oAuthTokenAccessToken
+    , oAuthTokenScope
+    , oAuthTokenTokenType
+    )
+import Data.Aeson (eitherDecode)
+import qualified Data.ByteString.Lazy as LBS
+import Paths_playground_common (getDataFileName)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertEqual, testCase)
 
 tests :: TestTree
 tests = testGroup "Auth.TypesSpec" [oAuthTokenJsonHandlingSpec]

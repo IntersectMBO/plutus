@@ -1,20 +1,20 @@
 -- | The exceptions that an abstract machine can throw.
 
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Evaluation.MachineException
     ( MachineError (..)
     , MachineException (..)
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Plc
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Name
+import Language.PlutusCore.Pretty.Plc
+import Language.PlutusCore.Type
+import PlutusPrelude
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError err

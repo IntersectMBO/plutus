@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedLists #-}
 module Language.Marlowe.Analysis.IntegerArray where
 
-import           Data.SBV
-import           Data.SBV.List  as SL
-import           Data.SBV.Maybe as SM
-import           Data.SBV.Tuple as ST
-import           Prelude        hiding (all, lookup)
+import Data.SBV
+import Data.SBV.List as SL
+import Data.SBV.Maybe as SM
+import Data.SBV.Tuple as ST
+import Prelude hiding (all, lookup)
 
 type NIntegerArray = [Maybe Integer]
 type IntegerArray = SList (Maybe Integer)

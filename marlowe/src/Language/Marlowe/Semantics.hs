@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 -- Big hammer, but helps
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
@@ -35,22 +35,22 @@ and actions (i.e. /Choices/) are passed as
 
 module Language.Marlowe.Semantics where
 
-import           GHC.Generics               (Generic)
-import           Language.Marlowe.Pretty    (Pretty (..))
-import           Language.PlutusTx          (makeIsData)
-import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.AssocMap (Map)
+import GHC.Generics (Generic)
+import Language.Marlowe.Pretty (Pretty (..))
+import Language.PlutusTx (makeIsData)
+import qualified Language.PlutusTx as PlutusTx
+import Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  hiding ((<>))
-import           Ledger                     (PubKey (..), Slot (..))
-import           Ledger.Ada                 (Ada)
-import qualified Ledger.Ada                 as Ada
-import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (DataScript (..))
-import           Ledger.Validation
-import qualified Prelude                    as P
-import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
+import Language.PlutusTx.Lift (makeLift)
+import Language.PlutusTx.Prelude hiding ((<>))
+import Ledger (PubKey (..), Slot (..))
+import Ledger.Ada (Ada)
+import qualified Ledger.Ada as Ada
+import Ledger.Interval (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
+import Ledger.Scripts (DataScript (..))
+import Ledger.Validation
+import qualified Prelude as P
+import Text.PrettyPrint.Leijen (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 

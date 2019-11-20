@@ -1,13 +1,13 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.ErrorHandling(tests) where
 
-import           Language.Plutus.Contract.Test
+import Language.Plutus.Contract.Test
 
-import           Language.PlutusTx.Coordination.Contracts.ErrorHandling
+import Language.PlutusTx.Coordination.Contracts.ErrorHandling
 
-import           Test.Tasty
+import Test.Tasty
 
 tests :: TestTree
 tests = testGroup "error handling"

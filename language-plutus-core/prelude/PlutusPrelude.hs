@@ -1,8 +1,8 @@
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusPrelude
     ( -- * Reexports from base
@@ -94,38 +94,38 @@ module PlutusPrelude
     , showText
     ) where
 
-import           Control.Applicative                     (Alternative (..))
-import           Control.Arrow                           ((&&&))
-import           Control.Composition                     ((.*))
-import           Control.DeepSeq                         (NFData)
-import           Control.Exception                       (Exception, throw)
-import           Control.Lens
-import           Control.Monad                           (guard, join, (<=<), (>=>))
-import           Data.Bifunctor                          (first, second)
-import           Data.Bool                               (bool)
-import qualified Data.ByteString.Lazy                    as BSL
-import           Data.Coerce                             (Coercible, coerce)
-import           Data.Either                             (fromRight, isRight)
-import           Data.Foldable                           (fold, toList)
-import           Data.Function                           (on)
-import           Data.Functor                            (void, ($>), (<&>))
-import           Data.List                               (foldl')
-import           Data.List.NonEmpty                      (NonEmpty (..))
-import           Data.Maybe                              (fromMaybe, isJust, isNothing)
-import qualified Data.Text                               as T
-import qualified Data.Text.Encoding                      as TE
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom        as X
-import           Data.Text.Prettyprint.Doc.Render.String (renderString)
-import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
-import           Data.Traversable                        (for)
-import           Data.Typeable                           (Typeable)
-import           Data.Word                               (Word8)
-import           Debug.Trace
-import           GHC.Generics
-import           GHC.Natural                             (Natural)
+import Control.Applicative (Alternative (..))
+import Control.Arrow ((&&&))
+import Control.Composition ((.*))
+import Control.DeepSeq (NFData)
+import Control.Exception (Exception, throw)
+import Control.Lens
+import Control.Monad (guard, join, (<=<), (>=>))
+import Data.Bifunctor (first, second)
+import Data.Bool (bool)
+import qualified Data.ByteString.Lazy as BSL
+import Data.Coerce (Coercible, coerce)
+import Data.Either (fromRight, isRight)
+import Data.Foldable (fold, toList)
+import Data.Function (on)
+import Data.Functor (void, ($>), (<&>))
+import Data.List (foldl')
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.Maybe (fromMaybe, isJust, isNothing)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Custom as X
+import Data.Text.Prettyprint.Doc.Render.String (renderString)
+import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import Data.Traversable (for)
+import Data.Typeable (Typeable)
+import Data.Word (Word8)
+import Debug.Trace
+import GHC.Generics
+import GHC.Natural (Natural)
 
-import           Data.Functor.Compose
+import Data.Functor.Compose
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>

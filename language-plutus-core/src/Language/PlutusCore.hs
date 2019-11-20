@@ -97,29 +97,29 @@ module Language.PlutusCore
     , serialisedSize
     ) where
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text                                as T
-import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.CBOR                 ()
-import qualified Language.PlutusCore.Check.Normal         as Normal
-import qualified Language.PlutusCore.Check.Uniques        as Uniques
-import qualified Language.PlutusCore.Check.Value          as VR
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Lexer
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Parser
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Size
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeCheck            as TypeCheck
-import           Language.PlutusCore.View
-import           PlutusPrelude
+import Control.Monad.Except
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc
+import Language.PlutusCore.CBOR ()
+import qualified Language.PlutusCore.Check.Normal as Normal
+import qualified Language.PlutusCore.Check.Uniques as Uniques
+import qualified Language.PlutusCore.Check.Value as VR
+import Language.PlutusCore.Error
+import Language.PlutusCore.Evaluation.CkMachine
+import Language.PlutusCore.Lexer
+import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Name
+import Language.PlutusCore.Normalize
+import Language.PlutusCore.Parser
+import Language.PlutusCore.Pretty
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Rename
+import Language.PlutusCore.Size
+import Language.PlutusCore.Type
+import Language.PlutusCore.TypeCheck as TypeCheck
+import Language.PlutusCore.View
+import PlutusPrelude
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.

@@ -1,6 +1,6 @@
 -- | The user-facing API of the renamer.
 
-{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Rename
@@ -9,13 +9,13 @@ module Language.PlutusCore.Rename
     , liftDupable
     ) where
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename.Internal
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Rename.Internal
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Data.Functor.Identity
+import Data.Functor.Identity
 
 {- Note [Marking]
 We use functions from the @markNonFresh*@ family in order to ensure that bound variables never get

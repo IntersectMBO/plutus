@@ -1,19 +1,19 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE DeriveAnyClass   #-}
-{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeApplications #-}
 
 module IOTSSpec where
 
-import           Data.ByteString.Lazy (ByteString, fromStrict)
-import           Data.Map             (Map)
-import           Data.Proxy           (Proxy (Proxy))
-import           Data.Text            (Text)
-import           Data.Text.Encoding   (encodeUtf8)
-import           GHC.Generics         (Generic)
-import           IOTS                 (HList (HCons, HNil), IotsExportable, IotsType, Tagged (Tagged), export)
-import           Test.Tasty           (TestTree, testGroup)
-import           Test.Tasty.Golden    (goldenVsString)
+import Data.ByteString.Lazy (ByteString, fromStrict)
+import Data.Map (Map)
+import Data.Proxy (Proxy (Proxy))
+import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
+import GHC.Generics (Generic)
+import IOTS (HList (HCons, HNil), IotsExportable, IotsType, Tagged (Tagged), export)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Golden (goldenVsString)
 
 tests :: TestTree
 tests =

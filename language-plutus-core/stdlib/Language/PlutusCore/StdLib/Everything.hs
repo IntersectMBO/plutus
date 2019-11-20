@@ -10,18 +10,18 @@ module Language.PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
-import           Language.PlutusCore.FsTree
+import Language.PlutusCore.FsTree
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.ChurchNat
-import           Language.PlutusCore.StdLib.Data.Function   as Function
-import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.List       as List
-import           Language.PlutusCore.StdLib.Data.Nat        as Nat
-import           Language.PlutusCore.StdLib.Data.Sum        as Sum
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import Language.PlutusCore.StdLib.Data.Bool
+import Language.PlutusCore.StdLib.Data.ChurchNat
+import Language.PlutusCore.StdLib.Data.Function as Function
+import Language.PlutusCore.StdLib.Data.Integer
+import Language.PlutusCore.StdLib.Data.List as List
+import Language.PlutusCore.StdLib.Data.Nat as Nat
+import Language.PlutusCore.StdLib.Data.Sum as Sum
+import Language.PlutusCore.StdLib.Data.Unit
+import Language.PlutusCore.StdLib.Meta.Data.Tuple
+import Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
 stdLib :: PlcFolderContents

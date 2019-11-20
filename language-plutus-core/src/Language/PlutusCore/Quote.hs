@@ -1,10 +1,10 @@
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- just for the type equality constraint
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.Quote
     ( runQuoteT
@@ -26,23 +26,23 @@ module Language.PlutusCore.Quote
     , liftQuote
     ) where
 
-import           Control.Lens              (coerced)
-import           Control.Monad.Except
-import           Control.Monad.Morph       as MM
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
+import Control.Lens (coerced)
+import Control.Monad.Except
+import Control.Monad.Morph as MM
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Maybe
 
-import           Data.Functor.Foldable
-import           Data.Functor.Identity
-import           Data.Maybe                (fromMaybe)
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as Text
-import           Hedgehog                  (GenT, PropertyT)
+import Data.Functor.Foldable
+import Data.Functor.Identity
+import Data.Maybe (fromMaybe)
+import qualified Data.Set as Set
+import qualified Data.Text as Text
+import Hedgehog (GenT, PropertyT)
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
 -- | The state contains the "next" 'Unique' that should be used for a name
 type FreshState = Unique

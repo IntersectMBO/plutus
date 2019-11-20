@@ -1,10 +1,10 @@
 module Git.TH where
 
-import           Control.Exception.Safe (handleJust)
-import qualified Language.Haskell.TH    as TH
-import           System.Exit            (ExitCode (ExitSuccess))
-import           System.IO.Error        (ioeGetErrorType, isDoesNotExistErrorType)
-import           System.Process         (readProcessWithExitCode)
+import Control.Exception.Safe (handleJust)
+import qualified Language.Haskell.TH as TH
+import System.Exit (ExitCode (ExitSuccess))
+import System.IO.Error (ioeGetErrorType, isDoesNotExistErrorType)
+import System.Process (readProcessWithExitCode)
 
 -- | Git revision found by running git rev-parse. If git could not be
 -- executed, then this will be an empty string.

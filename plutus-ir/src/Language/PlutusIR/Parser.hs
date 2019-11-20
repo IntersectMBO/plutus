@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusIR.Parser
@@ -17,30 +17,30 @@ module Language.PlutusIR.Parser
     , SourcePos
     ) where
 
-import           Prelude                      hiding (fail)
+import Prelude hiding (fail)
 
-import           Control.Applicative          hiding (many, some)
-import           Control.Monad.State          hiding (fail)
+import Control.Applicative hiding (many, some)
+import Control.Monad.State hiding (fail)
 
-import qualified Language.PlutusCore          as PLC
+import qualified Language.PlutusCore as PLC
 import qualified Language.PlutusCore.Constant as PLC
-import           Language.PlutusIR            as PIR
-import qualified Language.PlutusIR.MkPir      as PIR
-import           PlutusPrelude                (prettyText)
-import           Text.Megaparsec              hiding (ParseError, State, parse)
-import qualified Text.Megaparsec              as Parsec
+import Language.PlutusIR as PIR
+import qualified Language.PlutusIR.MkPir as PIR
+import PlutusPrelude (prettyText)
+import Text.Megaparsec hiding (ParseError, State, parse)
+import qualified Text.Megaparsec as Parsec
 
-import           Data.ByteString.Internal     (c2w)
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Char
-import           Data.Foldable
-import qualified Data.Map                     as M
-import qualified Data.Text                    as T
-import           Data.Word
-import           GHC.Natural
+import Data.ByteString.Internal (c2w)
+import qualified Data.ByteString.Lazy as BSL
+import Data.Char
+import Data.Foldable
+import qualified Data.Map as M
+import qualified Data.Text as T
+import Data.Word
+import GHC.Natural
 
-import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer   as Lex
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as Lex
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)

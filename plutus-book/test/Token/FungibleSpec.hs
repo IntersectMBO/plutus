@@ -1,21 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Token.FungibleSpec (spec) where
 
-import           Utils
+import Utils
 
-import           Token.Fungible
+import Token.Fungible
 
-import qualified Language.PlutusTx.Numeric  as P
-import           Ledger
-import qualified Ledger.Ada                 as A
-import qualified Ledger.Value               as V
-import           Wallet.Emulator
+import qualified Language.PlutusTx.Numeric as P
+import Ledger
+import qualified Ledger.Ada as A
+import qualified Ledger.Value as V
+import Wallet.Emulator
 
-import           Control.Monad              (replicateM_, void)
+import Control.Monad (replicateM_, void)
 import qualified Data.ByteString.Lazy.Char8 as C
-import           Data.Either                (isRight)
-import           Data.Text                  (Text)
-import           Test.Hspec
+import Data.Either (isRight)
+import Data.Text (Text)
+import Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec

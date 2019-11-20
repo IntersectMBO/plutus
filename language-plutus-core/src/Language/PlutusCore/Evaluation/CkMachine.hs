@@ -11,15 +11,15 @@ module Language.PlutusCore.Evaluation.CkMachine
     , runCk
     ) where
 
-import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Evaluation.MachineException
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.View
-import           PlutusPrelude
+import Language.PlutusCore.Constant.Apply
+import Language.PlutusCore.Evaluation.MachineException
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import Language.PlutusCore.View
+import PlutusPrelude
 
-import           Data.Functor.Identity
+import Data.Functor.Identity
 
 infix 4 |>, <|
 

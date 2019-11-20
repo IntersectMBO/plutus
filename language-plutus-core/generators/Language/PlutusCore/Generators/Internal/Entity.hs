@@ -1,13 +1,13 @@
 -- | Generators of various PLC things: 'Builtin's, 'IterApp's, 'Term's, etc.
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
@@ -21,29 +21,29 @@ module Language.PlutusCore.Generators.Internal.Entity
     , withAnyTermLoose
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Generators.Internal.Denotation
-import           Language.PlutusCore.Generators.Internal.Dependent
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
-import           Language.PlutusCore.Generators.Internal.Utils
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.View
-import           PlutusPrelude
+import Language.PlutusCore.Constant
+import Language.PlutusCore.Evaluation.Result
+import Language.PlutusCore.Generators.Internal.Denotation
+import Language.PlutusCore.Generators.Internal.Dependent
+import Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import Language.PlutusCore.Generators.Internal.TypeEvalCheck
+import Language.PlutusCore.Generators.Internal.Utils
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
+import Language.PlutusCore.View
+import PlutusPrelude
 
-import qualified Control.Monad.Morph                                     as Morph
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Class                               (lift)
-import qualified Data.ByteString.Lazy                                    as BSL
-import qualified Data.Dependent.Map                                      as DMap
-import           Data.Functor.Compose
-import           Data.Proxy
-import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                                hiding (Size, Var)
-import qualified Hedgehog.Gen                                            as Gen
+import qualified Control.Monad.Morph as Morph
+import Control.Monad.Reader
+import Control.Monad.Trans.Class (lift)
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Dependent.Map as DMap
+import Data.Functor.Compose
+import Data.Proxy
+import Data.Text.Prettyprint.Doc
+import Hedgehog hiding (Size, Var)
+import qualified Hedgehog.Gen as Gen
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 newtype BuiltinGensT m = BuiltinGensT

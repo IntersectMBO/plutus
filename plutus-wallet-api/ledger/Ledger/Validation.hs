@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -52,21 +52,21 @@ module Ledger.Validation
     , fromSymbol
     ) where
 
-import           GHC.Generics              (Generic)
-import           Language.PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude
-import qualified Prelude                   as Haskell
+import GHC.Generics (Generic)
+import Language.PlutusTx
+import Language.PlutusTx.Lift (makeLift)
+import Language.PlutusTx.Prelude
+import qualified Prelude as Haskell
 
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import           Ledger.Crypto             (PubKey (..), Signature (..))
-import           Ledger.Scripts
-import           Ledger.Slot               (Slot, SlotRange)
-import           Ledger.TxId
-import           Ledger.Value              (CurrencySymbol (..), Value)
-import qualified Ledger.Value              as Value
-import           LedgerBytes               (LedgerBytes (..))
+import Ledger.Ada (Ada)
+import qualified Ledger.Ada as Ada
+import Ledger.Crypto (PubKey (..), Signature (..))
+import Ledger.Scripts
+import Ledger.Slot (Slot, SlotRange)
+import Ledger.TxId
+import Ledger.Value (CurrencySymbol (..), Value)
+import qualified Ledger.Value as Value
+import LedgerBytes (LedgerBytes (..))
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

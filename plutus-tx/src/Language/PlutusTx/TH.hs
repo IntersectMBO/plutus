@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 module Language.PlutusTx.TH (
     compile,
     compileUntyped) where
 
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
+import Language.PlutusTx.Code
+import Language.PlutusTx.Plugin
 
-import qualified Language.Haskell.TH        as TH
+import qualified Language.Haskell.TH as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.

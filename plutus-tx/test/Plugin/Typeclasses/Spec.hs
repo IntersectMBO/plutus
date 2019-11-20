@@ -1,24 +1,24 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 
 module Plugin.Typeclasses.Spec where
 
-import           Common
-import           PlcTestUtils
-import           Plugin.Lib
+import Common
+import PlcTestUtils
+import Plugin.Lib
 
-import           Plugin.Data.Spec
+import Plugin.Data.Spec
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
-import qualified Language.PlutusTx.Prelude  as P
+import Language.PlutusTx.Code
+import Language.PlutusTx.Plugin
+import qualified Language.PlutusTx.Prelude as P
 
-import           Plugin.Typeclasses.Lib
+import Plugin.Typeclasses.Lib
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

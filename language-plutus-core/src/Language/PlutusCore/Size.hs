@@ -6,11 +6,11 @@ module Language.PlutusCore.Size
     , serialisedSize
     ) where
 
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Type
 
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.Functor.Foldable
+import Codec.Serialise
+import qualified Data.ByteString.Lazy as BSL
+import Data.Functor.Foldable
 
 -- | Count the number of AST nodes in a kind.
 kindSize :: Kind a -> Integer

@@ -1,20 +1,20 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Wallet.Typed.StateMachine where
 
-import           Control.Monad
-import qualified Data.Text                      as T
+import Control.Monad
+import qualified Data.Text as T
 
-import qualified Language.PlutusTx              as PlutusTx
+import qualified Language.PlutusTx as PlutusTx
 import qualified Language.PlutusTx.StateMachine as SM
-import qualified Ledger.Typed.Scripts           as Scripts
-import qualified Ledger.Typed.Tx                as Typed
-import           Ledger.Value
-import qualified Wallet.API                     as WAPI
-import qualified Wallet.Typed.API               as WAPITyped
+import qualified Ledger.Typed.Scripts as Scripts
+import qualified Ledger.Typed.Tx as Typed
+import Ledger.Value
+import qualified Wallet.API as WAPI
+import qualified Wallet.Typed.API as WAPITyped
 
 mkInitialise
     :: forall s i m

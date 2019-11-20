@@ -1,27 +1,26 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module WebSocket where
 
-import           Control.Concurrent.STM          (STM)
-import           Control.Concurrent.STM.TVar     (TVar, newTVar)
-import           Control.Exception               (SomeException, handle)
-import           Control.Monad                   (forever)
-import           Control.Monad.Except            (MonadError, throwError)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Newtype.Generics        (Newtype, over, unpack)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Text                       (Text)
-import           Data.UUID                       (UUID)
-import           Data.UUID.V4                    (nextRandom)
-import           GHC.Generics                    (Generic)
+import Control.Concurrent.STM (STM)
+import Control.Concurrent.STM.TVar (TVar, newTVar)
+import Control.Exception (SomeException, handle)
+import Control.Monad (forever)
+import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Newtype.Generics (Newtype, over, unpack)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Data.Text (Text)
+import Data.UUID (UUID)
+import Data.UUID.V4 (nextRandom)
+import GHC.Generics (Generic)
 import qualified Marlowe.Symbolic.Types.Response as MSRes
-import           Network.WebSockets              (WebSocketsData)
-import           Network.WebSockets.Connection   (Connection, PendingConnection, acceptRequest, forkPingThread,
-                                                  receiveData)
+import Network.WebSockets (WebSocketsData)
+import Network.WebSockets.Connection (Connection, PendingConnection, acceptRequest, forkPingThread, receiveData)
 
 newtype WebSocketRequestMessage
     = CheckForWarnings String

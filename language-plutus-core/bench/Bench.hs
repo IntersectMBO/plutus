@@ -2,16 +2,16 @@
 
 module Main (main) where
 
-import           Codec.Serialise
-import           Control.Monad
-import           Criterion.Main
-import           Crypto
-import qualified Data.ByteString.Lazy                     as BSL
-import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Normal         as Normal
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.CkMachine (runCk)
-import           Language.PlutusCore.Pretty
+import Codec.Serialise
+import Control.Monad
+import Criterion.Main
+import Crypto
+import qualified Data.ByteString.Lazy as BSL
+import Language.PlutusCore
+import qualified Language.PlutusCore.Check.Normal as Normal
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Evaluation.CkMachine (runCk)
+import Language.PlutusCore.Pretty
 
 
 pubKey, sig, msg :: BSL.ByteString

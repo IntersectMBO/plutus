@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Constant.Dynamic.BuiltinName
     ( dynamicCharToStringName
@@ -15,14 +15,14 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicTraceDefinitionMock
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Type
+import Language.PlutusCore.Constant.Dynamic.Instances ()
+import Language.PlutusCore.Constant.Make
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Type
 
-import           Data.Proxy
-import           Debug.Trace                                    (trace)
+import Data.Proxy
+import Debug.Trace (trace)
 
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"

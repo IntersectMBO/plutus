@@ -1,15 +1,15 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DefaultSignatures   #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Schema
     ( ToSchema
@@ -17,12 +17,28 @@ module Schema
     , FormSchema(..)
     ) where
 
-import           Data.Aeson   (FromJSON, ToJSON)
-import           Data.Monoid  ((<>))
-import           Data.Proxy   (Proxy)
-import           Data.Text    (Text)
-import           GHC.Generics ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Generic, M1 (M1), Rec0, Rep, S1, Selector, U1,
-                               conIsRecord, conName, from, selName)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Monoid ((<>))
+import Data.Proxy (Proxy)
+import Data.Text (Text)
+import GHC.Generics
+    ( (:*:) ((:*:))
+    , (:+:)
+    , C1
+    , Constructor
+    , D1
+    , Generic
+    , M1 (M1)
+    , Rec0
+    , Rep
+    , S1
+    , Selector
+    , U1
+    , conIsRecord
+    , conName
+    , from
+    , selName
+    )
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: Text)
         #-}

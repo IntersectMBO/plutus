@@ -1,8 +1,8 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
 -- matchers, and pattern match alternatives.
@@ -16,32 +16,32 @@ module Language.PlutusTx.Compiler.Type (
     getMatch,
     getMatchInstantiated) where
 
-import           Language.PlutusTx.Compiler.Binders
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Kind
-import           Language.PlutusTx.Compiler.Names
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
+import Language.PlutusTx.Compiler.Binders
+import Language.PlutusTx.Compiler.Builtins
+import Language.PlutusTx.Compiler.Error
+import Language.PlutusTx.Compiler.Kind
+import Language.PlutusTx.Compiler.Names
+import Language.PlutusTx.Compiler.Types
+import Language.PlutusTx.Compiler.Utils
+import Language.PlutusTx.PIRTypes
 
-import qualified FamInstEnv                             as GHC
-import qualified GhcPlugins                             as GHC
-import qualified TysPrim                                as GHC
+import qualified FamInstEnv as GHC
+import qualified GhcPlugins as GHC
+import qualified TysPrim as GHC
 
-import qualified Language.PlutusIR                      as PIR
+import qualified Language.PlutusIR as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.MkPir                as PIR
+import qualified Language.PlutusIR.MkPir as PIR
 
-import qualified Language.PlutusCore.Name               as PLC
+import qualified Language.PlutusCore.Name as PLC
 
-import           Control.Monad.Extra
-import           Control.Monad.Reader
+import Control.Monad.Extra
+import Control.Monad.Reader
 
-import           Data.List                              (reverse, sortBy)
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Set                               as Set
-import           Data.Traversable
+import Data.List (reverse, sortBy)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Set as Set
+import Data.Traversable
 
 -- Types
 

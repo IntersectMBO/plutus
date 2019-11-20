@@ -1,6 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- | This module makes sure types are normalized inside programs.
 module Language.PlutusCore.Check.Normal
@@ -10,12 +10,12 @@ module Language.PlutusCore.Check.Normal
     , NormCheckError (..)
     ) where
 
-import           Control.Monad.Except
+import Control.Monad.Except
 
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.Error
+import Language.PlutusCore.Name
+import Language.PlutusCore.Type
+import PlutusPrelude
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram

@@ -1,10 +1,10 @@
 -- | The internal module of the renamer that defines the actual algorithms,
 -- but not the user-facing API.
 
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Language.PlutusCore.Rename.Internal
     ( RenameM (..)
@@ -26,14 +26,14 @@ module Language.PlutusCore.Rename.Internal
     , renameProgramM
     ) where
 
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import Language.PlutusCore.MkPlc
+import Language.PlutusCore.Name
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Type
+import PlutusPrelude
 
-import           Control.Lens.TH
-import           Control.Monad.Reader
+import Control.Lens.TH
+import Control.Monad.Reader
 
 -- | The monad the renamer runs in.
 newtype RenameM renaming a = RenameM

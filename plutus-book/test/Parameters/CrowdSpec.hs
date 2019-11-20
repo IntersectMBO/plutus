@@ -1,19 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Parameters.CrowdSpec (spec) where
 
-import           Utils
+import Utils
 
-import           Parameters.Crowd
+import Parameters.Crowd
 
 import qualified Language.PlutusTx.Numeric as P
-import           Ledger
-import           Ledger.Ada
-import           Wallet.Emulator
+import Ledger
+import Ledger.Ada
+import Wallet.Emulator
 
-import           Control.Monad             (replicateM_, void)
-import           Data.Either               (isRight)
-import           Data.Text                 (Text)
-import           Test.Hspec
+import Control.Monad (replicateM_, void)
+import Data.Either (isRight)
+import Data.Text (Text)
+import Test.Hspec
 
 {-# ANN spec ("HLint: ignore Reduce duplication" :: Text) #-}
 spec :: Spec
