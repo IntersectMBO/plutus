@@ -5,6 +5,7 @@ module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.CBOR                   as PLC ()
+import qualified Language.PlutusCore.DeBruijn               as D
 import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
 import qualified Language.PlutusCore.Generators             as PLC
 import qualified Language.PlutusCore.Generators.Interesting as PLC
@@ -23,7 +24,6 @@ import qualified Language.PlutusCore.Untyped.Pretty                 as U
 import qualified Language.PlutusCore.Untyped.Term                   as U
 import qualified Language.PlutusCore.Interpreter.Untyped.CekMachine as U
 
-    
 
 import           Codec.Serialise                            (serialise)
 import           Control.Lens
@@ -71,7 +71,7 @@ data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data SerialisationMode = Typed | TypedAnon | Untyped | UntypedAnon | UntypedAnon2
+data SerialisationMode = Typed | TypedAnon | Untyped | UntypedAnon | UntypedAnon2 | UntypedAnonDeBruijn
 data SerialisationOptions = SerialisationOptions Input SerialisationMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Serialise SerialisationOptions
 
@@ -141,9 +141,11 @@ serialisationMode = subparser (
  <> command "untyped"       (info (pure Untyped)      (progDesc "Output CBOR for type-erased AST"))
  <> command "untyped-anon"  (info (pure UntypedAnon)  (progDesc "Output CBOR for type-erased AST with empty names"))
  <> command "untyped-anon2" (info (pure UntypedAnon2) (progDesc "Output CBOR for type-erased AST with no names"))
- )
+ <> command "untyped-anon-debruijn" (info (pure UntypedAnonDeBruijn) (progDesc "Output CBOR for type-erased AST with anonymous deBruijn names"))
+  )
 
-              
+
+
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp mode) = do
     contents <- getInput inp
@@ -197,6 +199,14 @@ runEval (EvalOptions inp mode) = do
                 T.putStrLn $ PLC.prettyPlcDefText v
                 exitSuccess
 
+deBrProg :: PLC.Program PLC.TyName PLC.Name ann -> PLC.Program D.TyDeBruijn D.DeBruijn ann
+deBrProg p =
+   case runExceptT $ D.deBruijnProgram p of
+     Left e -> error e
+     Right y -> case y of
+                  Left freeVarError -> error ("Error: " ++ show freeVarError)
+                  Right t -> t
+
 runSerialise :: SerialisationOptions -> IO ()
 runSerialise (SerialisationOptions is mode) = do
     contents <- getInput is
@@ -206,11 +216,12 @@ runSerialise (SerialisationOptions is mode) = do
                         TypedAnon    -> serialise . U.anonProgram
                         Untyped      -> serialise . U.eraseProgram
                         UntypedAnon  -> serialise . U.eraseProgram . U.anonProgram
-                        UntypedAnon2 -> serialise . U.anonProgram2 . U.eraseProgram
+                        UntypedAnon2 -> serialise . U.nameToIntProgram . U.eraseProgram
+                        UntypedAnonDeBruijn -> serialise . U.deBruijnToIntProgram . U.eraseProgram . deBrProg
     case serialiseFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
       Left (e :: PLC.Error PLC.AlexPosn) ->
           do
-             T.putStrLn $ PLC.prettyPlcDefText e
+             putStrLn $ show e
              exitFailure
       Right y ->
           do

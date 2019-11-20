@@ -29,6 +29,7 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     -- * Functionality for campaign contributors
     , contribute
     -- * Functionality for campaign owners
+    , scriptInstance
     , scheduleCollection
     , campaignAddress
     -- * Validator script

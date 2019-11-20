@@ -27,8 +27,9 @@ module Language.PlutusCore.Untyped.Term ( Term (..)
                                 , erase
                                 , eraseProgram
                                 , anonProgram
-                                , Name2 (..)
-                                , anonProgram2
+                                , IntName (..)
+                                , nameToIntProgram
+                                , deBruijnToIntProgram
                                 ) where
 
 import           Control.Lens                   hiding (anon)
@@ -36,6 +37,7 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
 import           Instances.TH.Lift              ()
 import           Language.Haskell.TH.Syntax     (Lift)
+import qualified Language.PlutusCore.DeBruijn   as D
 import           Language.PlutusCore.Lexer.Type
 import qualified Language.PlutusCore.Type       as T
 import qualified Language.PlutusCore.Name       as N
@@ -200,26 +202,29 @@ anonProgram (T.Program ann version body) = T.Program ann version (anonTerm body)
 -- type there isn't parametric over the name type: it has N.Name built
 -- in.  This problem doesn't arise with the untyped AST.
 
-newtype Name2 a = Name2 Int
-instance Serialise (Name2 a) where
-    encode (Name2 n) = encode n
-    decode = Name2 <$> decodeInt
+newtype IntName a = IntName Int
+instance Serialise (IntName a) where
+    encode (IntName n) = encode n
+    decode = IntName <$> decodeInt
 
-anon2 :: N.Name a -> Name2 a
-anon2 (N.Name _ _ (N.Unique uniq)) = Name2 uniq
+instance Show (IntName a) where
+    show (IntName n) = show n
+             
+nameToInt :: N.Name a -> IntName a
+nameToInt (N.Name _ _ (N.Unique uniq)) = IntName uniq
 
 
-anonTerm2 :: Term N.Name ann -> Term Name2 ann
-anonTerm2 = \case
-        Var x n        -> Var x (anon2 n)
-        LamAbs x n t   -> LamAbs x (anon2 n) (anonTerm2 t)
-        Apply x t1 t2  -> Apply x (anonTerm2 t1) (anonTerm2 t2)
+nameToIntTerm :: Term N.Name ann -> Term IntName ann
+nameToIntTerm = \case
+        Var x n        -> Var x (nameToInt n)
+        LamAbs x n t   -> LamAbs x (nameToInt n) (nameToIntTerm t)
+        Apply x t1 t  -> Apply x (nameToIntTerm t1) (nameToIntTerm t)
         Error x        -> Error x
         Constant x c   -> Constant x c
         Builtin x b    -> Builtin x b
 
-anonProgram2 :: Program N.Name a -> Program Name2 a
-anonProgram2 (Program ann version body) = Program ann version (anonTerm2 body)
+nameToIntProgram :: Program N.Name a -> Program IntName a
+nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm body)
 
 {- To get plc source for the use cases,  add
 
@@ -229,5 +234,27 @@ anonProgram2 (Program ann version body) = Program ann version (anonTerm2 body)
    plutus-use-cases.  This will dump the source to the terminal, along
    with all the other build output. This isn't ideal, but it's a quick
    way to get PLC. The source probably won't compile though (clashes
-   with built in names, aldo plc can't handle extensible builtins yet. 
+   with built in names; also plc can't handle extensible builtins (yet). 
 -}
+
+
+-- A quick converter from terms using names based on deBruijn indices
+-- to ones just using Ints, to see if that makes any differenc to
+-- compressibility.
+
+deBruijnToInt :: D.DeBruijn ann -> IntName ann
+deBruijnToInt (D.DeBruijn _attr _string (D.Index n)) = IntName (fromIntegral n)
+
+
+deBruijnToIntTerm :: Term D.DeBruijn ann -> Term IntName ann
+deBruijnToIntTerm = \case
+        Var x n        -> Var x (deBruijnToInt n)
+        LamAbs x n t   -> LamAbs x (deBruijnToInt n) (deBruijnToIntTerm t)
+        Apply x t1 t   -> Apply x (deBruijnToIntTerm t1) (deBruijnToIntTerm t)
+        Error x        -> Error x
+        Constant x c   -> Constant x c
+        Builtin x b    -> Builtin x b
+
+deBruijnToIntProgram :: Program D.DeBruijn a -> Program IntName a
+deBruijnToIntProgram (Program ann version body) = Program ann version (deBruijnToIntTerm body)
+
