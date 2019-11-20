@@ -18,6 +18,9 @@ module Language.PlutusCore.Name
     , insertByUnique
     , insertByName
     , insertByNameIndex
+    , fromFoldable
+    , fromUniques
+    , fromNames
     , lookupUnique
     , lookupName
     , lookupNameIndex
@@ -127,6 +130,20 @@ insertByNameIndex
     :: (HasUnique name unique1, Coercible unique2 Unique)
     => name -> a -> UniqueMap unique2 a -> UniqueMap unique2 a
 insertByNameIndex = insertByUnique . coerce . view unique
+
+-- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.
+fromFoldable
+    :: Foldable f
+    => (i -> a -> UniqueMap unique a -> UniqueMap unique a) -> f (i, a) -> UniqueMap unique a
+fromFoldable ins = foldl' (flip $ uncurry ins) mempty
+
+-- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
+fromUniques :: Foldable f => Coercible Unique unique => f (unique, a) -> UniqueMap unique a
+fromUniques = fromFoldable insertByUnique
+
+-- | Convert a 'Foldable' with names into a 'UniqueMap'.
+fromNames :: Foldable f => HasUnique name unique => f (name, a) -> UniqueMap unique a
+fromNames = fromFoldable insertByName
 
 -- | Look up a value by a unique.
 lookupUnique :: Coercible Unique unique => unique -> UniqueMap unique a -> Maybe a

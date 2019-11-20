@@ -12,6 +12,8 @@ import           Language.PlutusCore.Normalize
 import           Control.Monad.Morph                (hoist)
 
 import           Hedgehog
+import qualified Hedgehog.Gen                       as Gen
+import           Hedgehog.Internal.Property         (forAllT)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -29,13 +31,9 @@ test_appAppLamLam = do
 
 test_normalizeTypesInIdempotent :: Property
 test_normalizeTypesInIdempotent = property . hoist (pure . runQuote) $ do
-    term <- forAll genTerm
-    mayTermNormTypes <- normalizeTypesGasIn (Gas 100) term
-    case mayTermNormTypes of
-        Nothing            -> return ()
-        Just termNormTypes -> do
-            termNormTypes' <- normalizeTypesFullIn termNormTypes
-            termNormTypes === termNormTypes'
+    termNormTypes <- forAllT . Gen.just $ runAstGen genTerm >>= normalizeTypesGasIn (Gas 1000)
+    termNormTypes' <- normalizeTypesFullIn termNormTypes
+    termNormTypes === termNormTypes'
 
 test_typeNormalization :: TestTree
 test_typeNormalization =
