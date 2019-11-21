@@ -131,11 +131,11 @@ forgeContract pk amounts = do
     let theCurrency = mkCurrency (txInRef refTxIn) amounts
         curAddr     = Ledger.scriptAddress curVali
         forgedVal   = forgedValue theCurrency
-        curRedeemer = RedeemerScript $ PlutusTx.toData ()
+        curRedeemer = unitRedeemer
         curVali     = curValidator theCurrency
 
         -- the transaction that creates the script output
-        scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr (DataScript $ PlutusTx.toData ())
+        scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr unitData
     scriptTxOuts <- AM.fromTxOutputs <$> (writeTxSuccess scriptTx >>= awaitTransactionConfirmed curAddr)
     let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
                     & inputs %~ Set.insert refTxIn
