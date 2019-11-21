@@ -8,13 +8,12 @@ import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
-import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Foldable (fold, foldMap)
+import Data.Functor.Fix (Fix)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonEither (JsonEither)
-import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (Lens, Lens', Prism', _Right, prism', to, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -27,7 +26,7 @@ import Data.RawJson (RawJson(..))
 import Data.String.Extra (toHex) as String
 import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Editor (EditorAction)
 import Foreign (Foreign)
@@ -45,14 +44,14 @@ import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(.
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
 import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
-import Matryoshka (class Corecursive, class Recursive, Algebra, ana, cata)
+import Matryoshka (Algebra, ana, cata)
 import Network.RemoteData (RemoteData, _Success)
-import Playground.Types (CompilationResult, EndpointName, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
+import Playground.Types (CompilationResult, EndpointName, Evaluation(..), EvaluationResult, FormArgumentF(..), FunctionSchema, KnownCurrency(..), PlaygroundError, SimulatorWallet, _FunctionSchema, _SimulatorWallet)
 import Schema (FormSchema(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
-import Validation (class Validation, ValidationError(..), WithPath, addPath, noPath, validate)
+import Validation (class Validation, addPath, validate)
 import Wallet.Emulator.Wallet (Wallet, _Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -80,6 +79,9 @@ _currencySymbol = _CurrencySymbol <<< prop (SProxy :: SProxy "unCurrencySymbol")
 
 _tokenName :: Lens' TokenName String
 _tokenName = _TokenName <<< prop (SProxy :: SProxy "unTokenName")
+
+type FormArgument
+  = Fix FormArgumentF
 
 data Action
   = Action
@@ -387,34 +389,6 @@ instance showView :: Show View where
   show Transactions = "Transactions"
 
 ------------------------------------------------------------
-data FormArgument
-  = FormUnit
-  | FormBool Boolean
-  | FormInt (Maybe Int)
-  | FormString (Maybe String)
-  | FormHex (Maybe String)
-  | FormRadio (Array String) (Maybe String)
-  | FormArray FormSchema (Array FormArgument)
-  | FormMaybe FormSchema (Maybe FormArgument)
-  | FormTuple (JsonTuple FormArgument FormArgument)
-  | FormObject (Array (JsonTuple String FormArgument))
-  | FormValue Value
-  | FormSlotRange (Interval Slot)
-  | FormUnsupported { description :: String }
-
-derive instance genericFormArgument :: Generic FormArgument _
-
-derive instance eqFormArgument :: Eq FormArgument
-
-instance showFormArgument :: Show FormArgument where
-  show x = genericShow x
-
-instance encodeFormArgument :: Encode FormArgument where
-  encode value = genericEncode defaultJsonOptions value
-
-instance decodeFormArgument :: Decode FormArgument where
-  decode value = genericDecode defaultJsonOptions value
-
 toArgument :: Value -> FormSchema -> FormArgument
 toArgument initialValue = ana algebra
   where
@@ -439,7 +413,7 @@ toArgument initialValue = ana algebra
 
   algebra FormSchemaSlotRange = FormSlotRangeF defaultSlotRange
 
-  algebra (FormSchemaTuple a b) = FormTupleF (JsonTuple (Tuple a b))
+  algebra (FormSchemaTuple a b) = FormTupleF a b
 
   algebra (FormSchemaObject xs) = FormObjectF xs
 
@@ -453,122 +427,8 @@ defaultSlotRange =
     }
 
 ------------------------------------------------------------
--- | This type serves as a functorised version of `FormArgument` so
--- we can do some recursive processing of the data without cluttering
--- the transformation with the iteration.
-data FormArgumentF a
-  = FormUnitF
-  | FormBoolF Boolean
-  | FormIntF (Maybe Int)
-  | FormStringF (Maybe String)
-  | FormHexF (Maybe String)
-  | FormRadioF (Array String) (Maybe String)
-  | FormTupleF (JsonTuple a a)
-  | FormArrayF FormSchema (Array a)
-  | FormMaybeF FormSchema (Maybe a)
-  | FormObjectF (Array (JsonTuple String a))
-  | FormValueF Value
-  | FormSlotRangeF (Interval Slot)
-  | FormUnsupportedF { description :: String }
-
-instance functorFormArgumentF :: Functor FormArgumentF where
-  map f FormUnitF = FormUnitF
-  map f (FormBoolF x) = FormBoolF x
-  map f (FormIntF x) = FormIntF x
-  map f (FormStringF x) = FormStringF x
-  map f (FormHexF x) = FormHexF x
-  map f (FormRadioF options x) = FormRadioF options x
-  map f (FormTupleF (JsonTuple (Tuple x y))) = FormTupleF (JsonTuple (Tuple (f x) (f y)))
-  map f (FormArrayF schema xs) = FormArrayF schema (map f xs)
-  map f (FormMaybeF schema x) = FormMaybeF schema (map f x)
-  map f (FormObjectF xs) = FormObjectF (map (map f) xs)
-  map f (FormSlotRangeF x) = FormSlotRangeF x
-  map f (FormValueF x) = FormValueF x
-  map f (FormUnsupportedF x) = FormUnsupportedF x
-
-derive instance eqFormArgumentF :: Eq a => Eq (FormArgumentF a)
-
-instance recursiveFormArgument :: Recursive FormArgument FormArgumentF where
-  project FormUnit = FormUnitF
-  project (FormBool x) = FormBoolF x
-  project (FormInt x) = FormIntF x
-  project (FormString x) = FormStringF x
-  project (FormHex x) = FormHexF x
-  project (FormRadio options x) = FormRadioF options x
-  project (FormTuple x) = FormTupleF x
-  project (FormArray schema xs) = FormArrayF schema xs
-  project (FormMaybe schema x) = FormMaybeF schema x
-  project (FormObject xs) = FormObjectF xs
-  project (FormValue x) = FormValueF x
-  project (FormSlotRange x) = FormSlotRangeF x
-  project (FormUnsupported x) = FormUnsupportedF x
-
-instance corecursiveFormArgument :: Corecursive FormArgument FormArgumentF where
-  embed FormUnitF = FormUnit
-  embed (FormBoolF x) = FormBool x
-  embed (FormIntF x) = FormInt x
-  embed (FormStringF x) = FormString x
-  embed (FormHexF x) = FormHex x
-  embed (FormRadioF options x) = FormRadio options x
-  embed (FormTupleF xs) = FormTuple xs
-  embed (FormArrayF schema xs) = FormArray schema xs
-  embed (FormMaybeF schema x) = FormMaybe schema x
-  embed (FormObjectF xs) = FormObject xs
-  embed (FormValueF x) = FormValue x
-  embed (FormSlotRangeF x) = FormSlotRange x
-  embed (FormUnsupportedF x) = FormUnsupported x
-
-------------------------------------------------------------
-instance validationFormArgument :: Validation FormArgument where
-  validate = cata algebra
-    where
-    algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
-    algebra (FormUnitF) = []
-
-    algebra (FormBoolF _) = []
-
-    algebra (FormIntF (Just _)) = []
-
-    algebra (FormIntF Nothing) = [ noPath Required ]
-
-    algebra (FormStringF (Just _)) = []
-
-    algebra (FormStringF Nothing) = [ noPath Required ]
-
-    algebra (FormHexF (Just _)) = []
-
-    algebra (FormHexF Nothing) = [ noPath Required ]
-
-    algebra (FormRadioF options (Just x)) =
-      if x `elem` options then
-        []
-      else
-        [ noPath Invalid ]
-
-    algebra (FormRadioF _ Nothing) = [ noPath Required ]
-
-    algebra (FormTupleF (JsonTuple (Tuple xs ys))) =
-      Array.concat
-        [ addPath "_1" <$> xs
-        , addPath "_2" <$> ys
-        ]
-
-    algebra (FormMaybeF _ Nothing) = [ noPath Required ]
-
-    algebra (FormMaybeF _ (Just x)) = addPath "_Just" <$> x
-
-    algebra (FormArrayF _ xs) = Array.concat $ mapWithIndex (\i values -> addPath (show i) <$> values) xs
-
-    algebra (FormObjectF xs) = Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
-
-    algebra (FormValueF x) = []
-
-    algebra (FormSlotRangeF _) = []
-
-    algebra (FormUnsupportedF _) = [ noPath Unsupported ]
-
-formArgumentToJson :: FormArgument -> Maybe Foreign
-formArgumentToJson arg = cata algebra arg
+formArgumentToJson :: Fix FormArgumentF -> Maybe Foreign
+formArgumentToJson = cata algebra
   where
   algebra :: Algebra FormArgumentF (Maybe Foreign)
   algebra FormUnitF = Just $ encode (mempty :: Array Unit)
@@ -591,9 +451,9 @@ formArgumentToJson arg = cata algebra arg
 
   algebra (FormHexF Nothing) = Nothing
 
-  algebra (FormTupleF (JsonTuple (Just fieldA /\ Just fieldB))) = Just $ encode [ fieldA, fieldB ]
+  algebra (FormTupleF (Just fieldA) (Just fieldB)) = Just $ encode [ fieldA, fieldB ]
 
-  algebra (FormTupleF _) = Nothing
+  algebra (FormTupleF _ _) = Nothing
 
   algebra (FormMaybeF _ field) = encode <$> field
 

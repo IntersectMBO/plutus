@@ -39,6 +39,7 @@ library
     , containers
     , cryptonite
     , freer-simple
+    , deriving-compat
     , insert-ordered-containers
     , iots-export
     , playground-common

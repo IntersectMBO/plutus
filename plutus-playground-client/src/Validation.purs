@@ -1,9 +1,16 @@
 module Validation where
 
 import Prelude
+import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Foldable (class Foldable)
+import Data.Functor.Fix (Fix)
 import Data.Generic.Rep (class Generic)
+import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
+import Matryoshka (Algebra, cata)
+import Playground.Types (FormArgumentF(..))
 
 class Validation a where
   validate :: a -> Array (WithPath ValidationError)
@@ -47,3 +54,52 @@ addPath parent (WithPath { path, value }) = WithPath { path: Array.cons parent p
 
 joinPath :: forall a. Array String -> WithPath a -> WithPath a
 joinPath ancestors (WithPath { path, value }) = WithPath { path: ancestors <> path, value }
+
+------------------------------------------------------------
+instance validationFormArgument :: Validation (Fix FormArgumentF) where
+  validate = cata algebra
+    where
+    algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))
+    algebra (FormUnitF) = []
+
+    algebra (FormBoolF _) = []
+
+    algebra (FormIntF (Just _)) = []
+
+    algebra (FormIntF Nothing) = [ noPath Required ]
+
+    algebra (FormStringF (Just _)) = []
+
+    algebra (FormStringF Nothing) = [ noPath Required ]
+
+    algebra (FormHexF (Just _)) = []
+
+    algebra (FormHexF Nothing) = [ noPath Required ]
+
+    algebra (FormRadioF options (Just x)) =
+      if x `elem` options then
+        []
+      else
+        [ noPath Invalid ]
+
+    algebra (FormRadioF _ Nothing) = [ noPath Required ]
+
+    algebra (FormTupleF xs ys) =
+      Array.concat
+        [ addPath "_1" <$> xs
+        , addPath "_2" <$> ys
+        ]
+
+    algebra (FormMaybeF _ Nothing) = [ noPath Required ]
+
+    algebra (FormMaybeF _ (Just x)) = addPath "_Just" <$> x
+
+    algebra (FormArrayF _ xs) = Array.concat $ mapWithIndex (\i values -> addPath (show i) <$> values) xs
+
+    algebra (FormObjectF xs) = Array.concat $ map (\(JsonTuple (Tuple name values)) -> addPath name <$> values) xs
+
+    algebra (FormValueF x) = []
+
+    algebra (FormSlotRangeF _) = []
+
+    algebra (FormUnsupportedF _) = [ noPath Unsupported ]

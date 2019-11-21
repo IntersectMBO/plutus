@@ -32,8 +32,8 @@ import           Gist                                       (Gist, GistFile, Gis
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, functor,
-                                                             genericShow, haskType, isTuple, mkSumType, order,
+                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, equal1,
+                                                             functor, genericShow, haskType, isTuple, mkSumType, order,
                                                              psTypeParameters, typeModule, typeName, writePSTypesWith,
                                                              (^==))
 import           Language.PureScript.Bridge.Builder         (BridgeData)
@@ -52,8 +52,8 @@ import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
 import           Playground.Types                           (CompilationResult, EndpointName, Evaluation,
-                                                             EvaluationResult, FunctionSchema, KnownCurrency,
-                                                             PlaygroundError, SimulatorWallet)
+                                                             EvaluationResult, FormArgumentF, FunctionSchema,
+                                                             KnownCurrency, PlaygroundError, SimulatorWallet)
 import           Playground.Usecases                        (crowdfunding, errorHandling, game, starter, vesting)
 import           Schema                                     (FormSchema)
 import           Servant                                    ((:<|>))
@@ -236,6 +236,8 @@ myTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
+    , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
+          (Proxy @(FormArgumentF A))
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)

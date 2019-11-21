@@ -1,3 +1,4 @@
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE ExplicitNamespaces         #-}
@@ -17,6 +18,7 @@ import           Control.Lens                 (makeLenses)
 import           Control.Newtype.Generics     (Newtype)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.Aeson                   as JSON
+import           Data.Eq.Deriving             (deriveEq1)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import           Data.Row (type Row)
 import           Data.Text                    (Text)
@@ -24,7 +26,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (PubKey, Tx, fromSymbol)
+import           Ledger                       (PubKey, Tx, fromSymbol, Interval, Slot)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
@@ -85,6 +87,27 @@ data SimulatorWallet =
         }
     deriving (Show, Generic, Eq)
     deriving anyclass (ToJSON, FromJSON)
+
+data FormArgumentF a
+    = FormUnitF
+    | FormBoolF Bool
+    | FormIntF (Maybe Int)
+    | FormStringF (Maybe String)
+    | FormHexF (Maybe String)
+    | FormRadioF [String] (Maybe String)
+    | FormArrayF FormSchema [a]
+    | FormMaybeF FormSchema (Maybe a)
+    | FormTupleF a a
+    | FormObjectF [(String, a)]
+    | FormValueF V.Value
+    | FormSlotRangeF (Interval Slot)
+    | FormUnsupportedF
+          { description :: String
+          }
+    deriving (Show, Generic, Eq, Functor)
+    deriving anyclass (ToJSON, FromJSON)
+
+deriveEq1 ''FormArgumentF
 
 data Evaluation =
     Evaluation

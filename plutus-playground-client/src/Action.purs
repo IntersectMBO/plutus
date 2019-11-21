@@ -11,6 +11,7 @@ import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Functor.Fix (Fix(..))
 import Data.Int as Int
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Json.JsonTuple (JsonTuple(..))
@@ -30,7 +31,7 @@ import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.Types (EvaluationResult, PlaygroundError(..), _EndpointName, _FunctionSchema)
+import Playground.Types (EvaluationResult, FormArgumentF(..), PlaygroundError(..), _EndpointName, _FunctionSchema)
 import Prelude (const, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
 import Prim.TypeError (class Warn, Text)
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
@@ -248,9 +249,9 @@ actionArgumentField ::
   Boolean ->
   FormArgument ->
   HTML p FormEvent
-actionArgumentField ancestors _ arg@FormUnit = Bootstrap.empty
+actionArgumentField ancestors _ arg@(Fix FormUnitF) = Bootstrap.empty
 
-actionArgumentField ancestors _ arg@(FormBool b) =
+actionArgumentField ancestors _ arg@(Fix (FormBoolF b)) =
   formCheck_
     [ input
         [ type_ InputCheckbox
@@ -269,7 +270,7 @@ actionArgumentField ancestors _ arg@(FormBool b) =
   where
   elementId = String.joinWith "-" ancestors
 
-actionArgumentField ancestors _ arg@(FormInt n) =
+actionArgumentField ancestors _ arg@(Fix (FormIntF n)) =
   div_
     [ input
         [ type_ InputNumber
@@ -282,7 +283,7 @@ actionArgumentField ancestors _ arg@(FormInt n) =
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
 
-actionArgumentField ancestors _ arg@(FormString s) =
+actionArgumentField ancestors _ arg@(Fix (FormStringF s)) =
   div_
     [ input
         [ type_ InputText
@@ -295,7 +296,7 @@ actionArgumentField ancestors _ arg@(FormString s) =
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
 
-actionArgumentField ancestors _ arg@(FormRadio options s) =
+actionArgumentField ancestors _ arg@(Fix (FormRadioF options s)) =
   formGroup_
     [ div_ (radioItem <$> options)
     , validationFeedback (joinPath ancestors <$> validate arg)
@@ -324,7 +325,7 @@ actionArgumentField ancestors _ arg@(FormRadio options s) =
             [ text option ]
         ]
 
-actionArgumentField ancestors _ arg@(FormHex s) =
+actionArgumentField ancestors _ arg@(Fix (FormHexF s)) =
   div_
     [ input
         [ type_ InputText
@@ -337,13 +338,13 @@ actionArgumentField ancestors _ arg@(FormHex s) =
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
 
-actionArgumentField ancestors isNested (FormTuple (JsonTuple (Tuple subFieldA subFieldB))) =
+actionArgumentField ancestors isNested (Fix (FormTupleF subFieldA subFieldB)) =
   row_
     [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
     , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
 
-actionArgumentField ancestors isNested (FormArray schema subFields) =
+actionArgumentField ancestors isNested (Fix (FormArrayF schema subFields)) =
   div_
     [ Keyed.div [ nesting isNested ]
         (mapWithIndex subFormContainer subFields)
@@ -370,7 +371,7 @@ actionArgumentField ancestors isNested (FormArray schema subFields) =
               ]
           ]
 
-actionArgumentField ancestors isNested (FormObject subFields) =
+actionArgumentField ancestors isNested (Fix (FormObjectF subFields)) =
   div [ nesting isNested ]
     (mapWithIndex (\i (JsonTuple field) -> map (SetSubField i) (subForm field)) subFields)
   where
@@ -381,7 +382,7 @@ actionArgumentField ancestors isNested (FormObject subFields) =
         ]
     )
 
-actionArgumentField ancestors isNested (FormSlotRange interval) =
+actionArgumentField ancestors isNested (Fix (FormSlotRangeF interval)) =
   div [ class_ formGroup, nesting isNested ]
     [ label [ for "interval" ] [ text "Interval" ]
     , formRow_
@@ -471,20 +472,20 @@ actionArgumentField ancestors isNested (FormSlotRange interval) =
       , onValueInput $ map (\n -> SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval))) <<< Int.fromString
       ]
 
-actionArgumentField ancestors isNested (FormValue value) =
+actionArgumentField ancestors isNested (Fix (FormValueF value)) =
   div [ nesting isNested ]
     [ label [ for "value" ] [ text "Value" ]
     , valueForm (SetField <<< SetValueField) value
     ]
 
-actionArgumentField _ _ (FormMaybe dataType child) =
+actionArgumentField _ _ (Fix (FormMaybeF dataType child)) =
   div_
     [ text "Unsupported Maybe"
     , code_ [ text $ show dataType ]
     , code_ [ text $ show child ]
     ]
 
-actionArgumentField _ _ (FormUnsupported { description }) =
+actionArgumentField _ _ (Fix (FormUnsupportedF { description })) =
   div_
     [ text "Unsupported"
     , code_ [ text description ]
