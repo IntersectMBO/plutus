@@ -26,9 +26,10 @@ import Data.Array (deleteAt, snoc) as Array
 import Data.Array.Extra (move, lookup) as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
+import Data.Functor.Fix (Fix(..))
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
-import Data.Lens (_1, _2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
+import Data.Lens (_2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -52,11 +53,12 @@ import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
 import Ledger.Value (Value)
+import Matryoshka (cata)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
-import Playground.Types (KnownCurrency, SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
+import Playground.Types (FormArgumentF(..), KnownCurrency, SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
 import Prelude (Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -440,48 +442,44 @@ handleActionForm ::
   FormEvent ->
   FormArgument ->
   FormArgument
-handleActionForm initialValue = rec
+handleActionForm initialValue event = cata (Fix <<< algebra event)
   where
-  evalField (SetIntField n) (FormInt _) = FormInt n
+  algebra (SetField (SetIntField n)) (FormIntF _) = FormIntF n
 
-  evalField (SetBoolField n) (FormBool _) = FormBool n
+  algebra (SetField (SetBoolField n)) (FormBoolF _) = FormBoolF n
 
-  evalField (SetStringField s) (FormString _) = FormString (Just s)
+  algebra (SetField (SetStringField s)) (FormStringF _) = FormStringF (Just s)
 
-  evalField (SetHexField s) (FormHex _) = FormHex (Just s)
+  algebra (SetField (SetHexField s)) (FormHexF _) = FormHexF (Just s)
 
-  evalField (SetRadioField s) (FormRadio options _) = FormRadio options (Just s)
+  algebra (SetField (SetRadioField s)) (FormRadioF options _) = FormRadioF options (Just s)
 
-  evalField (SetValueField valueEvent) (FormValue value) = FormValue $ handleActionValueEvent valueEvent value
+  algebra (SetField (SetValueField valueEvent)) (FormValueF value) = FormValueF $ handleActionValueEvent valueEvent value
 
-  evalField (SetSlotRangeField newInterval) arg@(FormSlotRange _) = FormSlotRange newInterval
+  algebra (SetField (SetSlotRangeField newInterval)) arg@(FormSlotRangeF _) = FormSlotRangeF newInterval
 
-  evalField _ arg = arg
+  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF (handleActionForm initialValue subEvent field1) field2
 
-  rec (SetField field) arg = evalField field arg
+  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleActionForm initialValue subEvent field2)
 
-  rec (SetSubField 1 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _1) (rec subEvent) fields
+  algebra (SetSubField 0 subEvent) (FormMaybeF schema field) = FormMaybeF schema $ over _Just (handleActionForm initialValue subEvent) field
 
-  rec (SetSubField 2 subEvent) (FormTuple fields) = FormTuple $ over (_Newtype <<< _2) (rec subEvent) fields
+  algebra (SetSubField n subEvent) (FormArrayF schema fields) = FormArrayF schema $ over (ix n) (handleActionForm initialValue subEvent) fields
 
-  rec (SetSubField 0 subEvent) (FormMaybe schema field) = FormMaybe schema $ over _Just (rec subEvent) field
-
-  rec (SetSubField n subEvent) (FormArray schema fields) = FormArray schema $ over (ix n) (rec subEvent) fields
-
-  rec (SetSubField n subEvent) s@(FormObject fields) = FormObject $ over (ix n <<< _Newtype <<< _2) (rec subEvent) fields
+  algebra (SetSubField n subEvent) s@(FormObjectF fields) = FormObjectF $ over (ix n <<< _Newtype <<< _2) (handleActionForm initialValue subEvent) fields
 
   -- As the code stands, this is the only guarantee we get that every
   -- value in the array will conform to the schema: the fact that we
   -- create the 'empty' version from the same schema template.
   -- Is more type safety than that possible? Probably.
   -- Is it worth the research effort? Perhaps. :thinking_face:
-  rec AddSubField (FormArray schema fields) = FormArray schema $ Array.snoc fields (toArgument initialValue schema)
+  algebra AddSubField (FormArrayF schema fields) = FormArrayF schema $ Array.snoc fields (toArgument initialValue schema)
 
-  rec AddSubField arg = arg
+  algebra AddSubField arg = arg
 
-  rec (RemoveSubField n) arg@(FormArray schema fields) = (FormArray schema (fromMaybe fields (Array.deleteAt n fields)))
+  algebra (RemoveSubField n) arg@(FormArrayF schema fields) = (FormArrayF schema (fromMaybe fields (Array.deleteAt n fields)))
 
-  rec _ arg = arg
+  algebra _ arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do

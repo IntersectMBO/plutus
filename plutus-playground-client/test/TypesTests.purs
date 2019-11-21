@@ -3,6 +3,7 @@ module TypesTests
   ) where
 
 import Prelude
+import Data.Functor.Fix (Fix(..))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.List (List(..))
@@ -18,12 +19,12 @@ import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (EndpointName(EndpointName), FunctionSchema(FunctionSchema), KnownCurrency(..), SimulatorWallet(SimulatorWallet))
+import Playground.Types (EndpointName(EndpointName), FormArgumentF(..), FunctionSchema(FunctionSchema), KnownCurrency(..), SimulatorWallet(SimulatorWallet))
 import Schema (FormSchema(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
-import Types (Action(Action, Wait), FormArgument(..), formArgumentToJson, mkInitialValue, toArgument)
+import Types (Action(Action, Wait), FormArgument, formArgumentToJson, mkInitialValue, toArgument)
 import Validation (class Validation, ValidationError(..), validate, withPath)
 import Wallet.Emulator.Wallet (Wallet(..))
 
@@ -39,32 +40,33 @@ validateTests :: TestSuite
 validateTests = do
   test "No validation errors" do
     isValid $ Wait { blocks: 1 }
-    isValid $ makeTestAction [ FormInt (Just 5) ]
-    isValid $ makeTestAction [ FormString (Just "TEST") ]
-    isValid $ makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt (Just 5)) (FormInt (Just 6)))) ]
-    isValid $ makeTestAction [ FormArray FormSchemaInt [] ]
-    isValid $ makeTestAction [ FormObject [] ]
+    isValid $ makeTestAction [ Fix $ FormIntF (Just 5) ]
+    isValid $ makeTestAction [ Fix $ FormStringF (Just "TEST") ]
+    isValid $ makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF (Just 6)) ]
+    isValid $ makeTestAction [ Fix $ FormArrayF FormSchemaInt [] ]
+    isValid $ makeTestAction [ Fix $ FormObjectF [] ]
   --
   test "Validation errors" do
-    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ FormUnsupported { description: "Test case." } ])
-    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ FormInt Nothing ])
-    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ FormString Nothing ])
+    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ Fix $ FormUnsupportedF { description: "Test case." } ])
+    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormIntF Nothing ])
+    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormStringF Nothing ])
     equal
       [ withPath [ "0", "_1" ] Required
       , withPath [ "0", "_2" ] Unsupported
       ]
-      (validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt Nothing) (FormUnsupported { description: "Test." }))) ]))
-    equal [ withPath [ "0", "_1" ] Required ] $ validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt Nothing) (FormInt (Just 5)))) ])
-    equal [ withPath [ "0", "_2" ] Required ] $ validate (makeTestAction [ FormTuple (JsonTuple (Tuple (FormInt (Just 5)) (FormInt Nothing))) ])
+      (validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormUnsupportedF { description: "Test." }) ]))
+    equal [ withPath [ "0", "_1" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormIntF (Just 5)) ])
+    equal [ withPath [ "0", "_2" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF Nothing) ])
     equal [ withPath [ "0", "2" ] Required ]
       $ validate
           ( makeTestAction
-              [ FormArray FormSchemaInt
-                  [ FormInt (Just 5)
-                  , FormInt (Just 6)
-                  , FormInt Nothing
-                  , FormInt (Just 7)
-                  ]
+              [ Fix
+                  $ FormArrayF FormSchemaInt
+                      [ Fix $ FormIntF (Just 5)
+                      , Fix $ FormIntF (Just 6)
+                      , Fix $ FormIntF Nothing
+                      , Fix $ FormIntF (Just 7)
+                      ]
               ]
           )
     equal
@@ -73,14 +75,16 @@ validateTests = do
       ]
       ( validate
           ( makeTestAction
-              [ FormObject
-                  [ JsonTuple $ Tuple "name" (FormString Nothing)
-                  , JsonTuple $ Tuple "test" (FormInt (Just 5))
-                  ]
-              , FormObject
-                  [ JsonTuple $ Tuple "name" (FormString (Just "burt"))
-                  , JsonTuple $ Tuple "test" (FormInt Nothing)
-                  ]
+              [ Fix
+                  $ FormObjectF
+                      [ JsonTuple $ Tuple "name" (Fix $ FormStringF Nothing)
+                      , JsonTuple $ Tuple "test" (Fix $ FormIntF (Just 5))
+                      ]
+              , Fix
+                  $ FormObjectF
+                      [ JsonTuple $ Tuple "name" (Fix $ FormStringF (Just "burt"))
+                      , JsonTuple $ Tuple "test" (Fix $ FormIntF Nothing)
+                      ]
               ]
           )
       )
@@ -99,14 +103,14 @@ toArgumentTests = do
                 )
               ]
           }
-    test "FormInt" do
+    test "FormIntF" do
       equal
         (toArgument initialValue FormSchemaInt)
-        (FormInt Nothing)
+        (Fix (FormIntF Nothing))
     test "Value" do
       equal
         (toArgument initialValue FormSchemaValue)
-        (FormValue initialValue)
+        (Fix (FormValueF initialValue))
 
 makeTestAction :: Array FormArgument -> Action
 makeTestAction arguments =
@@ -140,39 +144,40 @@ formArgumentToJsonTests = do
     test "Ints" do
       equalJson
         Nothing
-        (formArgumentToJson (FormInt Nothing))
+        (formArgumentToJson (Fix $ FormIntF Nothing))
       equalJson
         (Just (encodeJSON 5))
-        (formArgumentToJson (FormInt (Just 5)))
+        (formArgumentToJson (Fix $ FormIntF (Just 5)))
     test "Strings" do
       equalJson
         Nothing
-        (formArgumentToJson (FormString Nothing))
+        (formArgumentToJson (Fix $ FormStringF Nothing))
       equalJson
         (Just (encodeJSON "Test"))
-        (formArgumentToJson (FormString (Just "Test")))
+        (formArgumentToJson (Fix $ FormStringF (Just "Test")))
     test "Tuples" do
       equalJson
         Nothing
-        (formArgumentToJson (FormTuple (JsonTuple (FormInt Nothing /\ FormString Nothing))))
+        (formArgumentToJson (Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormStringF Nothing)))
       equalJson
         Nothing
-        (formArgumentToJson (FormTuple (JsonTuple (FormInt Nothing /\ FormString (Just "Test")))))
+        (formArgumentToJson (Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormStringF (Just "Test"))))
       equalJson
         Nothing
-        (formArgumentToJson (FormTuple (JsonTuple (FormInt (Just 5) /\ FormString Nothing))))
+        (formArgumentToJson (Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormStringF Nothing)))
       equalJson
         (Just (encodeJSON [ encode 5.0, encode "Test" ]))
-        (formArgumentToJson (FormTuple (JsonTuple (FormInt (Just 5) /\ FormString (Just "Test")))))
+        (formArgumentToJson (Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormStringF (Just "Test"))))
     test "Arrays" do
       equalJson
         (Just (encodeJSON [ 1.0, 2.0, 3.0 ]))
         ( formArgumentToJson
-            ( FormArray FormSchemaInt
-                [ FormInt (Just 1)
-                , FormInt (Just 2)
-                , FormInt (Just 3)
-                ]
+            ( Fix
+                $ FormArrayF FormSchemaInt
+                    [ Fix $ FormIntF (Just 1)
+                    , Fix $ FormIntF (Just 2)
+                    , Fix $ FormIntF (Just 3)
+                    ]
             )
         )
     test "Values" do
@@ -192,8 +197,9 @@ formArgumentToJsonTests = do
             )
         )
         ( formArgumentToJson
-            ( FormValue
-                (Value { getValue: AssocMap.fromTuples [ CurrencySymbol { unCurrencySymbol: "" } /\ AssocMap.fromTuples [ TokenName { unTokenName: "" } /\ 4 ] ] })
+            ( Fix
+                $ FormValueF
+                    (Value { getValue: AssocMap.fromTuples [ CurrencySymbol { unCurrencySymbol: "" } /\ AssocMap.fromTuples [ TokenName { unTokenName: "" } /\ 4 ] ] })
             )
         )
     test "Objects" do
@@ -208,10 +214,11 @@ formArgumentToJsonTests = do
             )
         )
         ( formArgumentToJson
-            ( FormObject
-                [ JsonTuple $ "name" /\ FormString (Just "Tester")
-                , JsonTuple $ "arg" /\ FormInt (Just 20)
-                ]
+            ( Fix
+                $ FormObjectF
+                    [ JsonTuple $ "name" /\ (Fix $ FormStringF (Just "Tester"))
+                    , JsonTuple $ "arg" /\ (Fix $ FormIntF (Just 20))
+                    ]
             )
         )
 
