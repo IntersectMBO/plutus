@@ -76,6 +76,7 @@ library
         Ledger.Index,
         Ledger.Interval,
         Ledger.Value,
+        Ledger.Tokens,
         Ledger.Typed.Scripts,
         Ledger.Typed.Tx,
         LedgerBytes
@@ -130,6 +131,7 @@ library plutus-ledger
         Ledger.Value
         LedgerBytes
         Ledger.Typed.Scripts
+        Ledger.Tokens
         Ledger.Typed.Tx
         Ledger.Typed.TypeUtils
     build-depends:

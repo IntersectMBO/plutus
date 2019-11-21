@@ -32,8 +32,7 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   ) where
 
 import           Control.Lens
-import           Control.Monad                                     (unless, void)
-import           Control.Monad.Writer                              (tell)
+import           Control.Monad                                     (void)
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (fromMaybe)
 import           Data.Text.Prettyprint.Doc
@@ -42,10 +41,8 @@ import           Language.Plutus.Contract
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Language.Plutus.Contract.Test                     (TracePredicate, PredF(..))
-import           Language.Plutus.Contract.Trace                    as Trace
+import           Language.Plutus.Contract.Test                     (TracePredicate, fundsAtAddress)
 import           Ledger                                            (Address, PubKey, TxOutTx (..), ValidatorHash)
-import qualified Ledger.AddressMap                                 as AM
 import qualified Ledger                                            as Ledger
 import qualified Ledger.Scripts
 import           Ledger.TxId                                       (TxId)
@@ -54,7 +51,6 @@ import qualified Ledger.Typed.Scripts                              as Scripts
 import qualified Ledger.Validation                                 as V
 import           Ledger.Value                                      (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value                                      as Value
-import qualified Wallet.Emulator                                   as EM
 
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 
@@ -200,18 +196,7 @@ assertAccountBalance
        Account
     -> (Value -> Bool)
     -> TracePredicate s e a
-assertAccountBalance account check = PredF $ \(_, r) -> do
-    let funds =
-            foldMap (view Ledger.outValue . Ledger.txOutTxOut)
-            $ fromMaybe Map.empty
-            $ view (at (address account))
-            $ AM.fromChain
-            $ view EM.chainOldestFirst 
-            $ Trace._ctrEmulatorState r
-        passes = check funds
-    unless passes
-        $ tell ("Funds in " <+> pretty account <+> "were" <> pretty funds)
-    pure passes
+assertAccountBalance account check = fundsAtAddress (address account) check
 
 PlutusTx.makeLift ''Account
 PlutusTx.makeIsData ''Account

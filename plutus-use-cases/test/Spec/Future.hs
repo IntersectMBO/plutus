@@ -114,7 +114,7 @@ initContract = do
 --   all resulting transactions.
 joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 joinFuture = do
-    callEndpoint @"join-future" (Wallet 2) (accounts, setup, Short)
+    callEndpoint @"join-future" (Wallet 2) (accounts, setup)
     handleBlockchainEvents (Wallet 2)
     notifySlot w1
     handleUtxoQueries (Wallet 1)

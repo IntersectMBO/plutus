@@ -6297,7 +6297,7 @@
                                                                                                                                                                             (nonstrict
                                                                                                                                                                             )
                                                                                                                                                                             (vardecl
-                                                                                                                                                                              reqMargin
+                                                                                                                                                                              minMargin
                                                                                                                                                                               [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                                                                                                                             )
                                                                                                                                                                             [
@@ -6661,7 +6661,7 @@
                                                                                                                                                                                                 )
                                                                                                                                                                                               ]
                                                                                                                                                                                             ]
-                                                                                                                                                                                            reqMargin
+                                                                                                                                                                                            minMargin
                                                                                                                                                                                           ]
                                                                                                                                                                                         ]
                                                                                                                                                                                         (fun Unit Bool)
@@ -6703,7 +6703,7 @@
                                                                                                                                                                                                       )
                                                                                                                                                                                                     ]
                                                                                                                                                                                                   ]
-                                                                                                                                                                                                  reqMargin
+                                                                                                                                                                                                  minMargin
                                                                                                                                                                                                 ]
                                                                                                                                                                                               ]
                                                                                                                                                                                               (fun Unit Bool)
