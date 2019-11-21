@@ -36,7 +36,7 @@ import           Language.Plutus.Contract     hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.PlutusTx.Prelude    hiding (fold)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Address, DataScript (..), Slot(..), PubKey (..), ValidatorScript)
+import           Ledger                       (Address, Slot(..), PubKey (..), ValidatorScript, unitData)
 import qualified Ledger.AddressMap            as AM
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
@@ -165,7 +165,7 @@ vestingContract vesting = vest <|> retrieve
             Dead  -> pure ()
 
 payIntoContract :: VestingParams -> Value -> UnbalancedTx
-payIntoContract vp value = payToScript value (contractAddress vp) (DataScript (PlutusTx.toData ()))
+payIntoContract vp value = payToScript value (contractAddress vp) unitData
 
 vestFundsC
     :: ( HasWriteTx s

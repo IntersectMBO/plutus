@@ -12,8 +12,6 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)
     , msValidator
     , validate
-    , msDataScript
-    , msRedeemer
     , msAddress
     , lock
     , initialise
@@ -51,21 +49,13 @@ msValidator sig = mkValidatorScript $
             PlutusTx.liftCode sig
     where validatorParam s = Scripts.wrapValidator (validate s)
 
--- | Multisig data script (unit value).
-msDataScript :: DataScript
-msDataScript = DataScript $ PlutusTx.toData ()
-
--- | Multisig redeemer (unit value).
-msRedeemer :: RedeemerScript
-msRedeemer = RedeemerScript $ PlutusTx.toData ()
-
 -- | The address of a 'MultiSig' contract.
 msAddress :: MultiSig -> Address
 msAddress = Ledger.scriptAddress . msValidator
 
 -- | Lock some funds in a 'MultiSig' contract.
 lock :: (WalletAPI m, WalletDiagnostics m) => MultiSig -> Value -> m ()
-lock ms vl = payToScript_ defaultSlotRange (msAddress ms) vl msDataScript
+lock ms vl = payToScript_ defaultSlotRange (msAddress ms) vl unitData
 
 -- | Instruct the wallet to start watching the contract address
 initialise :: (WalletAPI m) => MultiSig -> m ()
@@ -84,7 +74,7 @@ unlockTx ms = do
     let
 
         mkIn :: TxOutRef -> TxIn
-        mkIn r = Ledger.scriptTxIn r validator msRedeemer msDataScript
+        mkIn r = Ledger.scriptTxIn r validator unitRedeemer unitData
 
         ins = Set.map mkIn (Map.keysSet utxos)
         val = foldMap (Ledger.txOutValue . Ledger.txOutTxOut) utxos

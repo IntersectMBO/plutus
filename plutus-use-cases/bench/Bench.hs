@@ -207,23 +207,23 @@ multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
             , MS.msValidator msScen1of1
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , unitData
+            , unitRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
             , MS.msValidator msScen1of2
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , unitData
+            , unitRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
             , MS.msValidator msScen2of2
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , unitData
+            , unitRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
             , MS.msValidator msScen1of1
-            , MS.msDataScript
-            , MS.msRedeemer)
+            , unitData
+            , unitRedeemer)
     ]
     where
         msScen1of1 = MS.MultiSig { MS.signatories = [pk1], MS.requiredSignatures = 1 }
