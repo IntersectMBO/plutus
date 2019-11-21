@@ -206,29 +206,29 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen1of1
+            , MS.validator msScen1of1
             , unitData
             , unitRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen1of2
+            , MS.validator msScen1of2
             , unitData
             , unitRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen2of2
+            , MS.validator msScen2of2
             , unitData
             , unitRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
-            , MS.msValidator msScen1of1
+            , MS.validator msScen1of1
             , unitData
             , unitRedeemer)
     ]
     where
-        msScen1of1 = MS.MultiSig { MS.signatories = [pk1], MS.requiredSignatures = 1 }
-        msScen1of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.requiredSignatures = 1 }
-        msScen2of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.requiredSignatures = 2 }
+        msScen1of1 = MS.MultiSig { MS.signatories = [pk1], MS.minNumSignatures = 1 }
+        msScen1of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.minNumSignatures = 1 }
+        msScen2of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.minNumSignatures = 2 }
 
 -- Test functions and data
 

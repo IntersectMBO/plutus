@@ -19,6 +19,7 @@ module Language.Plutus.Contract.Test(
     , assertContractError
     , assertOutcome
     , assertNoFailedTransactions
+    , assertFailedTransaction
     , Outcome(..)
     , assertHooks
     , assertRecord
@@ -73,7 +74,9 @@ import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
 
 import           Ledger.Address                                  (Address)
 import qualified Ledger.AddressMap                               as AM
+import           Ledger.Index                                    (ValidationError)
 import           Ledger.Slot                                     (Slot)
+import           Ledger.TxId                                     (TxId)
 import           Ledger.Value                                    (Value)
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                                 as EM
@@ -536,13 +539,32 @@ walletFundsChange w dlt = PredF $ \(initialDist, ContractTraceResult{_ctrEmulato
                 , "but they changed by", viaShow (finalValue P.- initialValue)]
             pure False
 
+-- | Assert that at least one transaction failed to validated, and that all
+--   transactions that failed meet the predicate.
+assertFailedTransaction
+    :: forall s e a
+    .  (TxId -> ValidationError -> Bool)
+    -> TracePredicate s e a
+assertFailedTransaction predicate = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) ->
+    case failedTransactions (EM.emLog st) of
+        [] -> do
+            tell $ "No transactions failed to validate."
+            pure False
+        xs -> pure (all (uncurry predicate) xs)
+
+-- | Assert that no transaction failed to validate.
 assertNoFailedTransactions
     :: forall s e a.
     TracePredicate s e a
 assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState = st}) ->
-    let failedTransactions = mapMaybe (\case { EM.ChainEvent (NC.TxnValidationFail txid err) -> Just (txid, err); _ -> Nothing}) (EM.emLog st)
-    in case failedTransactions of
+    case failedTransactions (EM.emLog st) of
         [] -> pure True
         xs -> do
             tell $ vsep ("Transactions failed to validate:" : fmap pretty xs)
             pure False
+
+failedTransactions :: [EM.EmulatorEvent] -> [(TxId, ValidationError)]
+failedTransactions = mapMaybe $ 
+    \case
+        EM.ChainEvent (NC.TxnValidationFail txid err) -> Just (txid, err)
+        _ -> Nothing

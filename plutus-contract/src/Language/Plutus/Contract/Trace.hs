@@ -29,6 +29,7 @@ module Language.Plutus.Contract.Trace
     , runTrace
     , runTraceWithDistribution
     , execTrace
+    , setSigningProcess
     -- * Constructing 'MonadEmulator' actions
     , runWallet
     , getHooks
@@ -71,6 +72,7 @@ import           Language.Plutus.Contract                        (Contract (..),
 import qualified Language.Plutus.Contract.Resumable              as State
 import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
 import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
+import           Language.Plutus.Contract.Wallet                 (SigningProcess)
 import qualified Language.Plutus.Contract.Wallet                 as Wallet
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
@@ -109,8 +111,9 @@ type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
 data WalletState s =
     WalletState
-        { walletEvents   :: Seq (Event s)
-        , walletHandlers :: Handlers s
+        { walletEvents         :: Seq (Event s)
+        , walletHandlers       :: Handlers s
+        , walletSigningProcess :: SigningProcess
         }
 
 emptyWalletState
@@ -124,6 +127,7 @@ emptyWalletState (Contract c) =
     WalletState
         { walletEvents = mempty
         , walletHandlers = either mempty id $ State.execResumable [] c
+        , walletSigningProcess = Wallet.defaultSigningProcess
         }
 
 addEventWalletState
@@ -135,12 +139,12 @@ addEventWalletState
     -> Event s
     -> WalletState s
     -> WalletState s
-addEventWalletState contract event WalletState{walletEvents} =
+addEventWalletState contract event s@WalletState{walletEvents} =
     let events'  = walletEvents |> event
         handlers =
             either mempty id
             $ State.execResumable (toList events') (unContract contract)
-    in WalletState{walletEvents = events', walletHandlers = handlers}
+    in s { walletEvents = events', walletHandlers = handlers }
 
 data ContractTraceState s e a =
     ContractTraceState
@@ -185,6 +189,24 @@ addEvent w e = do
             let theState = fromMaybe (emptyWalletState con) st
              in Just (addEventWalletState con e theState)
     ctsWalletStates %= Map.alter go w
+
+-- | Set the wallet's 'SigningProcess' to a new value.
+setSigningProcess
+    :: forall s e m a.
+       ( MonadState (ContractTraceState s e a) m
+       , AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       )
+    => Wallet
+    -> SigningProcess
+    -> m ()
+setSigningProcess wallet signingProcess = do
+    con <- use ctsContract
+    let go st =
+            let theState = fromMaybe (emptyWalletState con) st
+            in Just (theState { walletSigningProcess = signingProcess })
+    ctsWalletStates %= Map.alter go wallet
 
 -- | Get the hooks that a contract is currently waiting for
 getHooks
@@ -314,9 +336,13 @@ submitUnbalancedTx
     => Wallet
     -> UnbalancedTx
     -> ContractTrace s e m a [Tx]
-submitUnbalancedTx wllt tx = do
-    (txns, res) <- lift (runWallet wllt (Wallet.handleTx tx))
-    addEvent wllt (WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res)
+submitUnbalancedTx wallet tx = do
+    signingProcess <- fmap
+                        (maybe Wallet.defaultSigningProcess walletSigningProcess . Map.lookup wallet)
+                        (use ctsWalletStates)
+    (txns, res) <- lift (runWallet wallet (Wallet.handleTx signingProcess tx))
+    let event = WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res
+    addEvent wallet event
     pure txns
 
 addInterestingTxEvents
