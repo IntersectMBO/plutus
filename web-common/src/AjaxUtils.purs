@@ -1,9 +1,14 @@
-module AjaxUtils (ajaxErrorPane, renderForeignErrors) where
+module AjaxUtils
+  ( ajaxErrorPane
+  , renderForeignErrors
+  , defaultJsonOptions
+  ) where
 
 import Prelude hiding (div)
 import Bootstrap (alertDanger_)
 import Data.Foldable (intercalate)
 import Foreign (MultipleErrors, renderForeignError)
+import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
 import Halogen.HTML (ClassName(..), HTML, br_, div, text)
 import Halogen.HTML.Properties (class_)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
@@ -31,3 +36,10 @@ showErrorDescription (ConnectionError err) = text $ "ConnectionError: " <> err
 
 renderForeignErrors :: MultipleErrors -> String
 renderForeignErrors = intercalate "\n" <<< map renderForeignError
+
+defaultJsonOptions :: Options
+defaultJsonOptions =
+  defaultOptions
+    { unwrapSingleConstructors = true
+    , sumEncoding = aesonSumEncoding
+    }

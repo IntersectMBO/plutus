@@ -2,6 +2,7 @@ module Types where
 
 import Prelude
 import Ace.Halogen.Component (AceMessage, AceQuery)
+import AjaxUtils (defaultJsonOptions)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
@@ -31,8 +32,7 @@ import Data.Tuple.Nested ((/\))
 import Editor (EditorAction)
 import Foreign (Foreign)
 import Foreign.Class (class Decode, class Encode, encode)
-import Foreign.Generic (defaultOptions, encodeJSON, genericDecode, genericEncode)
-import Foreign.Generic.Class (Options, aesonSumEncoding)
+import Foreign.Generic (encodeJSON, genericDecode, genericEncode)
 import Foreign.Object as FO
 import Gist (Gist)
 import Gists (GistAction)
@@ -80,13 +80,6 @@ _currencySymbol = _CurrencySymbol <<< prop (SProxy :: SProxy "unCurrencySymbol")
 
 _tokenName :: Lens' TokenName String
 _tokenName = _TokenName <<< prop (SProxy :: SProxy "unTokenName")
-
-defaultJsonOptions :: Options
-defaultJsonOptions =
-  defaultOptions
-    { unwrapSingleConstructors = true
-    , sumEncoding = aesonSumEncoding
-    }
 
 data Action
   = Action
@@ -160,14 +153,7 @@ data Expression
 derive instance genericExpression :: Generic Expression _
 
 instance encodeExpression :: Encode Expression where
-  encode value =
-    genericEncode
-      ( defaultOptions
-          { unwrapSingleConstructors = true
-          , sumEncoding = aesonSumEncoding
-          }
-      )
-      value
+  encode value = genericEncode defaultJsonOptions value
 
 -- | TODO: It should always be true that either toExpression returns a
 -- `Just value` OR validate returns a non-empty array.

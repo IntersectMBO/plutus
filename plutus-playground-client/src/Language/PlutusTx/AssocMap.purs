@@ -1,6 +1,7 @@
 module Language.PlutusTx.AssocMap where
 
 import Prelude
+import AjaxUtils (defaultJsonOptions)
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex)
@@ -21,8 +22,7 @@ import Data.Set as Set
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Foreign.Class (class Decode, class Encode)
-import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Foreign.Generic.Class (aesonSumEncoding)
+import Foreign.Generic (genericDecode, genericEncode)
 
 newtype Map a b
   = Map (Array (JsonTuple a b))
@@ -33,24 +33,10 @@ keys (Map entries) = Set.fromFoldable $ map (fst <<< unwrap) entries
 derive instance functorMap :: Functor (Map a)
 
 instance encodeMap :: (Encode a, Encode b) => Encode (Map a b) where
-  encode value =
-    genericEncode
-      ( defaultOptions
-          { unwrapSingleConstructors = true
-          , sumEncoding = aesonSumEncoding
-          }
-      )
-      value
+  encode value = genericEncode defaultJsonOptions value
 
 instance decodeMap :: (Decode a, Decode b) => Decode (Map a b) where
-  decode value =
-    genericDecode
-      ( defaultOptions
-          { unwrapSingleConstructors = true
-          , sumEncoding = aesonSumEncoding
-          }
-      )
-      value
+  decode value = genericDecode defaultJsonOptions value
 
 derive instance genericMap :: Generic (Map a b) _
 
