@@ -3,14 +3,9 @@
 # A record, from name to path, of the third-party packages
 with rec
 {
-  pkgs =
-    if hasNixpkgsPath
-    then
-        if hasThisAsNixpkgsPath
-        then import (builtins_fetchTarball { inherit (sources_nixpkgs) url sha256; }) {}
-        else import <nixpkgs> {}
-    else
-        import (builtins_fetchTarball { inherit (sources_nixpkgs) url sha256; }) {};
+  # XXX: modified from the generated version to avoid https://github.com/nmattia/niv/issues/143
+  # Revert when fixed
+  pkgs = import (builtins_fetchTarball { inherit (sources_nixpkgs) url sha256; }) {};
 
   sources_nixpkgs =
     if builtins.hasAttr "nixpkgs" sources
