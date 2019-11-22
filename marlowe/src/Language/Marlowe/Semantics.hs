@@ -90,6 +90,7 @@ type Token = (CurrencySymbol, TokenName)
 type ChoiceName = ByteString
 type ChosenNum = Integer
 type SlotInterval = (Slot, Slot)
+type Accounts = Map (AccountId, Token) Integer
 type TransactionSignatures = Map Party Bool
 
 -- * Data Types
@@ -220,7 +221,7 @@ data Contract = Close
 
 {-| Marlowe contract internal state. Stored in a /Data Script/ of a transaction output.
 -}
-data State = State { accounts    :: Map AccountId Money
+data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
@@ -418,10 +419,7 @@ evalValue :: Environment -> State -> Value -> Integer
 evalValue env state value = let
     eval = evalValue env state
     in case value of
-        AvailableMoney accId (currency, token) ->
-            case Map.lookup accId (accounts state) of
-                Just x  -> Val.valueOf x currency token
-                Nothing -> 0
+        AvailableMoney accId token -> moneyInAccount accId token (accounts state)
         Constant integer     -> integer
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
@@ -458,46 +456,46 @@ evalObservation env state obs = let
 
 
 -- | Pick the first account with money in it
-refundOne :: Map AccountId Money -> Maybe ((Party, Money), Map AccountId Money)
+refundOne :: Accounts -> Maybe ((Party, Money), Accounts)
 refundOne accounts = case Map.toList accounts of
     [] -> Nothing
-    (accId, balance) : rest ->
-        if balance `Val.gt` zero
-        then Just ((accountOwner accId, balance), Map.fromList rest)
+    ((accId, (cur, tok)), balance) : rest ->
+        if balance > 0
+        then Just ((accountOwner accId, Val.singleton cur tok balance), Map.fromList rest)
         else refundOne (Map.fromList rest)
 
 
 -- | Obtains the amount of money available an account
-moneyInAccount :: AccountId -> Map AccountId Money -> Money
-moneyInAccount accId accounts = case Map.lookup accId accounts of
+moneyInAccount :: AccountId -> Token -> Accounts -> Integer
+moneyInAccount accId token accounts = case Map.lookup (accId, token) accounts of
     Just x  -> x
-    Nothing -> zero
+    Nothing -> 0
 
 
 -- | Sets the amount of money available in an account
-updateMoneyInAccount :: AccountId -> Money -> Map AccountId Money -> Map AccountId Money
-updateMoneyInAccount accId money =
-    if money `Val.leq` zero then Map.delete accId else Map.insert accId money
+updateMoneyInAccount :: AccountId -> Token -> Integer -> Accounts -> Accounts
+updateMoneyInAccount accId token amount =
+    if amount <= 0 then Map.delete (accId, token) else Map.insert (accId, token) amount
 
 
 -- Add the given amount of money to an accoun (only if it is positive)
 -- Return the updated Map
-addMoneyToAccount :: AccountId -> Money -> Map AccountId Money -> Map AccountId Money
-addMoneyToAccount accId money accounts = let
-    balance = moneyInAccount accId accounts
-    newBalance = balance + money
-    in if money `Val.leq` zero then accounts
-    else updateMoneyInAccount accId newBalance accounts
+addMoneyToAccount :: AccountId -> Token -> Integer -> Accounts -> Accounts
+addMoneyToAccount accId token amount accounts = let
+    balance = moneyInAccount accId token accounts
+    newBalance = balance + amount
+    in if amount <= 0 then accounts
+    else updateMoneyInAccount accId token newBalance accounts
 
 
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: Payee -> Money -> Map AccountId Money -> (ReduceEffect, Map AccountId Money)
-giveMoney payee money accounts = case payee of
-    Party party   -> (ReduceWithPayment (Payment party money), accounts)
+giveMoney :: Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
+giveMoney payee (cur, tok) amount accounts = case payee of
+    Party party   -> (ReduceWithPayment (Payment party (Val.singleton cur tok amount)), accounts)
     Account accId -> let
-        newAccs = addMoneyToAccount accId money accounts
+        newAccs = addMoneyToAccount accId (cur, tok) amount accounts
         in (ReduceNoPayment, newAccs)
 
 
@@ -511,23 +509,21 @@ reduceContractStep env state contract = case contract of
             in Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
         Nothing -> NotReduced
 
-    Pay accId payee (cur, tok) val cont -> let
+    Pay accId payee tok val cont -> let
         amountToPay = evalValue env state val
         in  if amountToPay <= 0
             then let
-                warning = ReduceNonPositivePay accId payee (cur, tok) amountToPay
+                warning = ReduceNonPositivePay accId payee tok amountToPay
                 in Reduced warning ReduceNoPayment state cont
             else let
-                balance    = moneyInAccount accId (accounts state)
-                balanceOfToken = Val.valueOf balance cur tok
-                paidAmount = min balanceOfToken amountToPay
-                paidMoney  = Val.singleton cur tok paidAmount
-                newBalance = balance - paidMoney
-                newAccs = updateMoneyInAccount accId newBalance (accounts state)
+                balance    = moneyInAccount accId tok (accounts state)
+                paidAmount = min balance amountToPay
+                newBalance = balance - paidAmount
+                newAccs = updateMoneyInAccount accId tok newBalance (accounts state)
                 warning = if paidAmount < amountToPay
-                          then ReducePartialPay accId payee (cur, tok) paidAmount amountToPay
+                          then ReducePartialPay accId payee tok paidAmount amountToPay
                           else ReduceNoWarning
-                (payment, finalAccs) = giveMoney payee paidMoney newAccs
+                (payment, finalAccs) = giveMoney payee tok paidAmount newAccs
                 in Reduced warning payment (state { accounts = finalAccs }) cont
 
     If obs cont1 cont2 -> let
@@ -578,15 +574,14 @@ reduceContractUntilQuiescent env state contract = let
 -- | Apply a single Input to the contract (assumes the contract is reduced)
 applyCases :: Environment -> State -> Input -> [Case Contract] -> ApplyResult
 applyCases env state input cases = case (input, cases) of
-    (IDeposit accId1 party1 (cur1, tok1) amount,
-        Case (Deposit accId2 party2 (cur2, tok2) val) cont : rest) ->
-        if accId1 == accId2 && party1 == party2 && cur1 == cur2 && tok1 == tok2
+    (IDeposit accId1 party1 tok1 amount,
+        Case (Deposit accId2 party2 tok2 val) cont : rest) ->
+        if accId1 == accId2 && party1 == party2 && tok1 == tok2
                 && amount == evalValue env state val
         then let
             warning = if amount > 0 then ApplyNoWarning
-                      else ApplyNonPositiveDeposit party2 accId2 (cur2, tok2) amount
-            money = Val.singleton cur1 tok1 amount
-            newState = state { accounts = addMoneyToAccount accId1 money (accounts state) }
+                      else ApplyNonPositiveDeposit party2 accId2 tok2 amount
+            newState = state { accounts = addMoneyToAccount accId1 tok1 amount (accounts state) }
             in Applied warning newState cont
         else applyCases env state input rest
     (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) ->
@@ -708,8 +703,10 @@ contractLifespanUpperBound contract = case contract of
     Let _ _ cont -> contractLifespanUpperBound cont
 
 
-totalBalance :: Map AccountId Money -> Money
-totalBalance accounts = foldMap snd (Map.toList accounts)
+totalBalance :: Accounts -> Money
+totalBalance accounts = foldMap
+    (\((_, (cur, tok)), balance) -> Val.singleton cur tok balance)
+    (Map.toList accounts)
 
 
 validatePayments :: PendingTx -> [Payment] -> Bool
@@ -748,7 +745,7 @@ validatePayments pendingTx txOutPayments = let
     Check that all accounts have positive balance.
  -}
 validateBalances :: State -> Bool
-validateBalances State{..} = all (\(_, balance) -> balance `Val.gt` zero) (Map.toList accounts)
+validateBalances State{..} = all (\(_, balance) -> balance > 0) (Map.toList accounts)
 
 
 {-| Ensure that 'pendingTx' contains expected payments.   -}
