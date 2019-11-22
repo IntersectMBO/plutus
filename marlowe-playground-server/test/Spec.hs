@@ -26,7 +26,8 @@ runBasicSpec = describe "Basic Contract" $
         escrowResult = Right . InterpreterResult [] . RunResult $ [r|When [
   (Case
      (Deposit
-        (AccountId 0 "alice") "alice" adaSymbol adaToken
+        (AccountId 0 "alice") "alice" (""
+                                      , "")
         (Constant 450))
      (When [
            (Case
@@ -54,7 +55,7 @@ runBasicSpec = describe "Basic Contract" $
                              (Constant 0))
                           (Pay
                              (AccountId 0 "alice")
-                             (Party "bob") adaSymbol adaToken
+                             (Party "bob") ("", "")
                              (Constant 450) Close) Close)
                        (When [
                              (Case
@@ -68,7 +69,7 @@ runBasicSpec = describe "Basic Contract" $
                                    (Bound 0 0)])
                                 (Pay
                                    (AccountId 0 "alice")
-                                   (Party "bob") adaSymbol adaToken
+                                   (Party "bob") ("", "")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
@@ -82,7 +83,7 @@ runBasicSpec = describe "Basic Contract" $
                              (Bound 0 0)])
                           (Pay
                              (AccountId 0 "alice")
-                             (Party "bob") adaSymbol adaToken
+                             (Party "bob") ("", "")
                              (Constant 450) Close))] 100 Close)))
            ,
            (Case
@@ -110,7 +111,7 @@ runBasicSpec = describe "Basic Contract" $
                              (Constant 0))
                           (Pay
                              (AccountId 0 "alice")
-                             (Party "bob") adaSymbol adaToken
+                             (Party "bob") ("", "")
                              (Constant 450) Close) Close)
                        (When [
                              (Case
@@ -124,7 +125,7 @@ runBasicSpec = describe "Basic Contract" $
                                    (Bound 0 0)])
                                 (Pay
                                    (AccountId 0 "alice")
-                                   (Party "bob") adaSymbol adaToken
+                                   (Party "bob") ("", "")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
@@ -138,7 +139,7 @@ runBasicSpec = describe "Basic Contract" $
                              (Bound 0 0)])
                           (Pay
                              (AccountId 0 "alice")
-                             (Party "bob") adaSymbol adaToken
+                             (Party "bob") ("", "")
                              (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close
 |]
 
