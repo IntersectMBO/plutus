@@ -288,11 +288,8 @@ validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype ValidationData = ValidationData Data
-    deriving stock (Generic)
+    deriving stock (Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
-
-instance Show ValidationData where
-    show = const "ValidationData { <script> }"
 
 -- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
 runScript

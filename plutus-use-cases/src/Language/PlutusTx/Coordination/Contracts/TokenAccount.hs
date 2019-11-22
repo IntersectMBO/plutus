@@ -13,7 +13,7 @@
 --   (A suitable token can be created with the 'Language.PlutusTx.Coordination.Contracts.Currency'
 --   contract, or with 'newAccount' in this module)
 module Language.PlutusTx.Coordination.Contracts.TokenAccount(
-  AccountOwner(..)
+  Account(..)
   -- * Contract functionality
   , pay
   , redeem
@@ -21,23 +21,30 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , balance
   , address
   , accountToken
+  , payTx
   -- * Endpoints
   , TokenAccountSchema
   , HasTokenAccountSchema
   , tokenAccountContract
+  -- * Etc.
+  , assertAccountBalance
+  , validatorHash
   ) where
 
 import           Control.Lens
 import           Control.Monad                                     (void)
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (fromMaybe)
+import           Data.Text.Prettyprint.Doc
 
 import           Language.Plutus.Contract
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Ledger                                            (Address, PubKey, TxOutTx (..))
+import           Language.Plutus.Contract.Test                     (TracePredicate, fundsAtAddress)
+import           Ledger                                            (Address, PubKey, TxOutTx (..), ValidatorHash)
 import qualified Ledger                                            as Ledger
+import qualified Ledger.Scripts
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Typed.Scripts                              (ScriptType (..))
 import qualified Ledger.Typed.Scripts                              as Scripts
@@ -47,25 +54,28 @@ import qualified Ledger.Value                                      as Value
 
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 
-newtype AccountOwner = AccountOwner { unAccountOwner :: (CurrencySymbol, TokenName) }
+newtype Account = Account { accountOwner :: (CurrencySymbol, TokenName) }
     deriving newtype (Eq, Show)
+
+instance Pretty Account where
+    pretty (Account (s, t)) = pretty s <+> pretty t
 
 data TokenAccount
 
 instance ScriptType TokenAccount where
     type RedeemerType TokenAccount = ()
-    type DataType TokenAccount = AccountOwner
+    type DataType TokenAccount = ()
 
 type TokenAccountSchema =
     BlockchainActions
-        .\/ Endpoint "redeem" (AccountOwner, PubKey)
-        .\/ Endpoint "pay" (AccountOwner, Value)
+        .\/ Endpoint "redeem" (Account, PubKey)
+        .\/ Endpoint "pay" (Account, Value)
         .\/ Endpoint "new-account" (TokenName, PubKey)
 
 type HasTokenAccountSchema s =
     ( HasBlockchainActions s
-    , HasEndpoint "redeem" (AccountOwner, PubKey) s
-    , HasEndpoint "pay" (AccountOwner, Value) s
+    , HasEndpoint "redeem" (Account, PubKey) s
+    , HasEndpoint "pay" (Account, Value) s
     , HasEndpoint "new-account" (TokenName, PubKey) s
     )
 
@@ -78,7 +88,7 @@ tokenAccountContract
     => Contract s e ()
 tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
     redeem_ = do
-        (accountOwner, destination) <- endpoint @"redeem" @(AccountOwner, PubKey) @s
+        (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKey) @s
         void $ redeem destination accountOwner
         tokenAccountContract
     pay_ = do
@@ -91,49 +101,53 @@ tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
         tokenAccountContract
 
 {-# INLINEABLE accountToken #-}
-accountToken :: AccountOwner -> Value
-accountToken (AccountOwner (symbol, name)) = Value.singleton symbol name 1
+accountToken :: Account -> Value
+accountToken (Account (symbol, name)) = Value.singleton symbol name 1
 
 {-# INLINEABLE validate #-}
-validate :: AccountOwner -> () -> V.PendingTx -> Bool
-validate owner _ ptx = V.valueSpent ptx `Value.geq` accountToken owner
+validate :: Account -> () -> () -> V.PendingTx -> Bool
+validate account _ _ ptx = V.valueSpent ptx `Value.geq` accountToken account
 
-scriptInstance :: Scripts.ScriptInstance TokenAccount
-scriptInstance =
-    Scripts.Validator @TokenAccount $$(PlutusTx.compile [|| validate ||]) $$(PlutusTx.compile [|| wrap ||])
-    where
-    wrap = Scripts.wrapValidator @AccountOwner @()
+scriptInstance :: Account -> Scripts.ScriptInstance TokenAccount
+scriptInstance account =
+    let wrap = Scripts.wrapValidator @() @()
+        val = $$(PlutusTx.compile [|| validate ||])
+                `PlutusTx.applyCode`
+                    PlutusTx.liftCode account
 
-address :: Address
-address = Scripts.scriptAddress scriptInstance
+    in Scripts.Validator @TokenAccount 
+        val
+        $$(PlutusTx.compile [|| wrap ||])    
+
+address :: Account -> Address
+address = Scripts.scriptAddress . scriptInstance
+
+validatorHash :: Account -> ValidatorHash
+validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance
+
+-- | A transaction that pays the given value to the account
+payTx :: Account -> Value -> UnbalancedTx
+payTx account vl = payToScript vl (address account) Ledger.Scripts.unitData
 
 -- | Pay some money to the given token account
-pay :: (AsContractError e, HasWriteTx s) => AccountOwner -> Value -> Contract s e TxId
-pay owner vl =
-    let ds = Ledger.DataScript (PlutusTx.toData owner)
-    in writeTxSuccess (payToScript vl address ds)
+pay :: (AsContractError e, HasWriteTx s) => Account -> Value -> Contract s e TxId
+pay account = writeTxSuccess . payTx account
 
-ownsTxOut :: AccountOwner -> TxOutTx -> Bool
-ownsTxOut owner (TxOutTx tx txout) =
-    let fromDataScript = PlutusTx.fromData @AccountOwner . Ledger.getDataScript in
-    Just owner == (Ledger.txOutData txout >>= Ledger.lookupData tx >>= fromDataScript)
-
--- | Create a transaction that spends all outputs belonging to the 'AccountOwner'.
+-- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
     :: ( HasUtxoAt s )
-    => AccountOwner
+    => Account
     -> PubKey
     -> Contract s e UnbalancedTx
-redeemTx owner pk = do
-    utxos <- utxoAt (Scripts.scriptAddress scriptInstance)
-    let filterByOwner _ = ownsTxOut owner
-        tx = TypedTx.collectFromScriptFilter filterByOwner utxos scriptInstance ()
+redeemTx account pk = do
+    utxos <- utxoAt (address account)
+    let tx = TypedTx.collectFromScript utxos (scriptInstance account) ()
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'UnbalancedTx' and let the
     --       balancing mechanism take care of providing the token.
-    pure $ tx & outputs .~ [pubKeyTxOut (accountToken owner) pk]
+    pure $ tx & outputs .~ [pubKeyTxOut (accountToken account) pk]
 
--- | Empty the account by spending all outputs belonging to the 'AccountOwner'.
+-- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
   :: ( AsContractError e
      , HasWriteTx s
@@ -141,27 +155,26 @@ redeem
      )
   => PubKey
   -- ^ Where the token should go after the transaction
-  -> AccountOwner
-  -- ^ Account owner token
+  -> Account
+  -- ^ The token account
   -> Contract s e TxId
-redeem pk owner = redeemTx owner pk >>= writeTxSuccess
+redeem pk account = redeemTx account pk >>= writeTxSuccess
 
--- | @balance owners@ returns the value of all unspent outputs that can be unlocked
---   with @accountToken owners@
+-- | @balance account@ returns the value of all unspent outputs that can be
+--   unlocked with @accountToken account@
 balance
     :: ( HasUtxoAt s )
-    => AccountOwner
+    => Account
     -> Contract s e Value
-balance owner = do
-    utxos <- utxoAt (Scripts.scriptAddress scriptInstance)
+balance account = do
+    utxos <- utxoAt (address account)
     let inner =
             foldMap (view Ledger.outValue . Ledger.txOutTxOut)
-            $ Map.filter (ownsTxOut owner)
             $ fromMaybe Map.empty
-            $ utxos ^. at (Scripts.scriptAddress scriptInstance)
+            $ utxos ^. at (address account)
     pure inner
 
--- | Create a new token and return its 'AccountOwner' information.
+-- | Create a new token and return its 'Account' information.
 newAccount
     :: ( HasWatchAddress s
        , HasWriteTx s
@@ -171,11 +184,19 @@ newAccount
     -- ^ Name of the token
     -> PubKey
     -- ^ Public key of the token's initial owner
-    -> Contract s e AccountOwner
+    -> Contract s e Account
 newAccount tokenName pk = do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Ledger.scriptCurrencySymbol (Currency.curValidator cur)
-    pure $ AccountOwner (sym, tokenName)
+    pure $ Account (sym, tokenName)
 
-PlutusTx.makeLift ''AccountOwner
-PlutusTx.makeIsData ''AccountOwner
+-- | Check that the balance of the given account satisfies a predicate.
+assertAccountBalance
+    :: forall s e a.
+       Account
+    -> (Value -> Bool)
+    -> TracePredicate s e a
+assertAccountBalance account check = fundsAtAddress (address account) check
+
+PlutusTx.makeLift ''Account
+PlutusTx.makeIsData ''Account

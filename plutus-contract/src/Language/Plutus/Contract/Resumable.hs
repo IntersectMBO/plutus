@@ -17,8 +17,8 @@ module Language.Plutus.Contract.Resumable(
     , pretty
     , lowerM
     , mapStep
-    , checkpoint
     , withResumableError
+    , checkpoint
     -- * Records
     , initialise
     , insertAndUpdate
@@ -112,7 +112,7 @@ instance MFunctor (Resumable e) where
 -- | An error that can occur when updating a 'Record' using a
 --   'Resumable e (Step i o)'.
 data ResumableError e =
-    RecordMismatch String
+    RecordMismatch [String]
     -- ^ The structure of the record does not match the structure of the
     --   'Resumable'.
     | AesonError String
@@ -123,7 +123,12 @@ data ResumableError e =
     deriving (Eq, Ord, Show)
 
 throwRecordmismatchError :: MonadError (ResumableError e) m => String -> m a
-throwRecordmismatchError = throwError . RecordMismatch
+throwRecordmismatchError = throwError . RecordMismatch . pure
+
+addRecordMismatchInfo :: (MonadError (ResumableError e) m) => String -> m a -> m a
+addRecordMismatchInfo s m = catchError m $ \case
+    RecordMismatch es -> throwError $ RecordMismatch (s:es)
+    e                 -> throwError e
 
 throwAesonError :: MonadError (ResumableError e) m => String -> m a
 throwAesonError = throwError . AesonError
@@ -162,8 +167,8 @@ initialise
     , MonadWriter o m )
     => Resumable e (Step (Maybe i) o) a
     -> m (Either (OpenRecord i) (ClosedRecord i, a))
-initialise = \case
-    CMap f con -> fmap (fmap f) <$> initialise con
+initialise con = addRecordMismatchInfo ("initialise on: " <> pretty con) $ case con of
+    CMap f con' -> fmap (fmap f) <$> initialise con'
     CAp conL conR -> do
         l' <- initialise conL
         r' <- initialise conR
@@ -189,13 +194,13 @@ initialise = \case
                     Left r'       -> pure $ Left $ OpenRight l' r'
                     Right (r', b) -> pure $ Right (ClosedBin l' r', b)
     CEmpty -> pure (Left $ OpenLeaf Nothing)
-    CStep con -> do
-        con' <- runStepWriter con Nothing
-        case con' of
+    CStep con' -> do
+        con'' <- runStepWriter con' Nothing
+        case con'' of
             Nothing -> pure $ Left $ OpenLeaf Nothing
             Just a  -> pure $ Right (ClosedLeaf (FinalEvents Nothing), a)
-    CJSONCheckpoint con -> do
-        r <- initialise con
+    CJSONCheckpoint con' -> do
+        r <- initialise con'
         case r of
             Left _       -> pure r
             Right (_, a) -> pure $ Right (jsonLeaf a, a)
@@ -270,7 +275,7 @@ runClosed
     => Resumable e (Step (Maybe i) o) a
     -> ClosedRecord i
     -> m a
-runClosed con rc =
+runClosed con rc = addRecordMismatchInfo ("runClosed on: " <> pretty con) $
     case con of
         CMap f c' -> fmap f (runClosed c' rc)
         _ -> case rc of

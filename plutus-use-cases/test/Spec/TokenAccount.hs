@@ -11,7 +11,7 @@ import           Language.PlutusTx.Lattice
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Value                                          (TokenName, Value)
 
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (AccountOwner (..), TokenAccountSchema,
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..), TokenAccountSchema,
                                                                         tokenAccountContract)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
 
@@ -33,7 +33,7 @@ tests = testGroup "token account"
         ( callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
         >> handleBlockchainEvents w1
         >> addBlocks 1
-        >> callEndpoint @"pay" w1 (accountOwner, Ada.lovelaceValueOf 10)
+        >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
         >> addBlocks 1)
 
@@ -45,11 +45,11 @@ tests = testGroup "token account"
         /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
         (  callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
         >> handleBlockchainEvents w1
-        >> callEndpoint @"pay" w1 (accountOwner, Ada.lovelaceValueOf 10)
+        >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
         >> payToWallet w1 w2 theToken
         >> handleBlockchainEvents w1
-        >> callEndpoint @"redeem" w2 (accountOwner, walletPubKey w2)
+        >> callEndpoint @"redeem" w2 (account, walletPubKey w2)
         >> handleBlockchainEvents w2)
 
     ]
@@ -61,10 +61,10 @@ w2 = Wallet 2
 tokenName :: TokenName
 tokenName = "test token"
 
-accountOwner :: AccountOwner
-accountOwner =
-    let currencySymbol = "b99cd0fa9da904c6a957122ed1191e066f07220d496d15d4ffb974bddefdc19f"
-    in AccountOwner (currencySymbol, tokenName)
+account :: Account
+account =
+    let currencySymbol = "92cd57816f7a6d6276da36af36deaa3813ea7f0f964714aea087609a47951533"
+    in Account (currencySymbol, tokenName)
 
 theToken :: Value
-theToken = Accounts.accountToken accountOwner
+theToken = Accounts.accountToken account

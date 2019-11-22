@@ -40,6 +40,7 @@ module Language.Plutus.Contract(
     , nextTransactionAt
     , watchAddressUntil
     , fundsAtAddressGt
+    , fundsAtAddressGeq
     , awaitTransactionConfirmed
     -- * UTXO set
     , HasUtxoAt

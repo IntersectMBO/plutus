@@ -184,7 +184,7 @@ data OracleValue a = OracleValue {
         ovSlot      :: Slot,
         ovValue     :: a
     }
-    deriving (Generic)
+    deriving (Generic, Show)
 
 {- Note [Hashes in validator scripts]
 
