@@ -40,7 +40,8 @@ executable plc
         lens -any,
         prettyprinter -any,
         optparse-applicative -any,
-        serialise -any
+        serialise -any,
+        filepath -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
