@@ -86,6 +86,7 @@ type Party = PubKey
 type NumAccount = Integer
 type Timeout = Slot
 type Money = Val.Value
+type Token = (CurrencySymbol, TokenName)
 type ChoiceName = ByteString
 type ChosenNum = Integer
 type SlotInterval = (Slot, Slot)
@@ -128,7 +129,7 @@ newtype ValueId = ValueId ByteString
 
     Values can also be combined using addition, subtraction and negation.
 -}
-data Value = AvailableMoney AccountId CurrencySymbol TokenName
+data Value = AvailableMoney AccountId Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
@@ -177,7 +178,7 @@ data Bound = Bound Integer Integer
       Typically this would be done by one of the parties,
       or one of their wallets acting automatically.
 -}
-data Action = Deposit AccountId Party CurrencySymbol TokenName Value
+data Action = Deposit AccountId Party Token Value
             | Choice ChoiceId [Bound]
             | Notify Observation
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
@@ -209,7 +210,7 @@ data Case a = Case Action a
     it is possible that effects – payments – and warnings can be generated too.
 -}
 data Contract = Close
-              | Pay AccountId Payee CurrencySymbol TokenName Value Contract
+              | Pay AccountId Payee Token Value Contract
               | If Observation Contract Contract
               | When [Case Contract] Timeout Contract
               | Let ValueId Value Contract
@@ -234,7 +235,7 @@ newtype Environment = Environment { slotInterval :: SlotInterval }
 
 {-| Input for a Marlowe contract. Correspond to expected 'Action's.
 -}
-data Input = IDeposit AccountId Party CurrencySymbol TokenName Integer
+data Input = IDeposit AccountId Party Token Integer
            | IChoice ChoiceId ChosenNum
            | INotify
   deriving stock (Show,P.Eq,Generic)
@@ -273,9 +274,8 @@ data ReduceEffect = ReduceWithPayment Payment
 
 -- | Warning during 'reduceContractStep'
 data ReduceWarning = ReduceNoWarning
-                   | ReduceNonPositivePay AccountId Payee CurrencySymbol TokenName Integer
-                   | ReducePartialPay AccountId Payee CurrencySymbol TokenName Integer Integer
-
+                   | ReduceNonPositivePay AccountId Payee Token Integer
+                   | ReducePartialPay AccountId Payee Token Integer Integer
                                      -- ^ src    ^ dest                           ^ paid ^ expected
                    | ReduceShadowing ValueId Integer Integer
                                     -- oldVal ^  newVal ^
@@ -297,7 +297,7 @@ data ReduceResult = ContractQuiescent [ReduceWarning] [Payment] State Contract
 
 -- | Warning of 'applyCases'
 data ApplyWarning = ApplyNoWarning
-                  | ApplyNonPositiveDeposit Party AccountId CurrencySymbol TokenName Integer
+                  | ApplyNonPositiveDeposit Party AccountId Token Integer
   deriving stock (Show)
 
 
@@ -315,10 +315,10 @@ data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contr
 
 
 -- | Warnings during transaction computation
-data TransactionWarning = TransactionNonPositiveDeposit Party AccountId CurrencySymbol TokenName Integer
-                        | TransactionNonPositivePay AccountId Payee CurrencySymbol TokenName Integer
-                        | TransactionPartialPay AccountId Payee CurrencySymbol TokenName Integer Integer
-                                                -- ^ src    ^ dest                            ^ paid ^ expected
+data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token Integer
+                        | TransactionNonPositivePay AccountId Payee Token Integer
+                        | TransactionPartialPay AccountId Payee Token Integer Integer
+                                                -- ^ src    ^ dest    ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
   deriving stock (Show, Generic)
@@ -418,7 +418,7 @@ evalValue :: Environment -> State -> Value -> Integer
 evalValue env state value = let
     eval = evalValue env state
     in case value of
-        AvailableMoney accId currency token ->
+        AvailableMoney accId (currency, token) ->
             case Map.lookup accId (accounts state) of
                 Just x  -> Val.valueOf x currency token
                 Nothing -> 0
@@ -511,10 +511,12 @@ reduceContractStep env state contract = case contract of
             in Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
         Nothing -> NotReduced
 
-    Pay accId payee cur tok val cont -> let
+    Pay accId payee (cur, tok) val cont -> let
         amountToPay = evalValue env state val
         in  if amountToPay <= 0
-            then Reduced (ReduceNonPositivePay accId payee cur tok amountToPay) ReduceNoPayment state cont
+            then let
+                warning = ReduceNonPositivePay accId payee (cur, tok) amountToPay
+                in Reduced warning ReduceNoPayment state cont
             else let
                 balance    = moneyInAccount accId (accounts state)
                 balanceOfToken = Val.valueOf balance cur tok
@@ -523,7 +525,7 @@ reduceContractStep env state contract = case contract of
                 newBalance = balance - paidMoney
                 newAccs = updateMoneyInAccount accId newBalance (accounts state)
                 warning = if paidAmount < amountToPay
-                          then ReducePartialPay accId payee cur tok paidAmount amountToPay
+                          then ReducePartialPay accId payee (cur, tok) paidAmount amountToPay
                           else ReduceNoWarning
                 (payment, finalAccs) = giveMoney payee paidMoney newAccs
                 in Reduced warning payment (state { accounts = finalAccs }) cont
@@ -576,12 +578,13 @@ reduceContractUntilQuiescent env state contract = let
 -- | Apply a single Input to the contract (assumes the contract is reduced)
 applyCases :: Environment -> State -> Input -> [Case Contract] -> ApplyResult
 applyCases env state input cases = case (input, cases) of
-    (IDeposit accId1 party1 cur1 tok1 amount, Case (Deposit accId2 party2 cur2 tok2 val) cont : rest) ->
+    (IDeposit accId1 party1 (cur1, tok1) amount,
+        Case (Deposit accId2 party2 (cur2, tok2) val) cont : rest) ->
         if accId1 == accId2 && party1 == party2 && cur1 == cur2 && tok1 == tok2
                 && amount == evalValue env state val
         then let
             warning = if amount > 0 then ApplyNoWarning
-                      else ApplyNonPositiveDeposit party2 accId2 cur2 tok2 amount
+                      else ApplyNonPositiveDeposit party2 accId2 (cur2, tok2) amount
             money = Val.singleton cur1 tok1 amount
             newState = state { accounts = addMoneyToAccount accId1 money (accounts state) }
             in Applied warning newState cont
@@ -608,10 +611,10 @@ applyInput _ _ _ _                          = ApplyNoMatchError
 convertReduceWarnings :: [ReduceWarning] -> [TransactionWarning]
 convertReduceWarnings = foldr (\warn acc -> case warn of
     ReduceNoWarning -> acc
-    ReduceNonPositivePay accId payee curr tok amount ->
-        TransactionNonPositivePay accId payee curr tok amount : acc
-    ReducePartialPay accId payee curr tok paid expected ->
-        TransactionPartialPay accId payee curr tok paid expected : acc
+    ReduceNonPositivePay accId payee tok amount ->
+        TransactionNonPositivePay accId payee tok amount : acc
+    ReducePartialPay accId payee tok paid expected ->
+        TransactionPartialPay accId payee tok paid expected : acc
     ReduceShadowing valId oldVal newVal ->
         TransactionShadowing valId oldVal newVal : acc
     ) []
@@ -655,15 +658,15 @@ applyAllInputs env state contract inputs = let
     convertApplyWarning warn =
         case warn of
             ApplyNoWarning -> []
-            ApplyNonPositiveDeposit party accId curr tok amount ->
-                [TransactionNonPositiveDeposit party accId curr tok amount]
+            ApplyNonPositiveDeposit party accId tok amount ->
+                [TransactionNonPositiveDeposit party accId tok amount]
 
 
 -- | Extract necessary signatures from transaction inputs
 getSignatures :: [Input] -> TransactionSignatures
 getSignatures = foldl addSig (Map.empty())
   where
-    addSig acc (IDeposit _ p _ _ _)       = Map.insert p True acc
+    addSig acc (IDeposit _ p _ _)         = Map.insert p True acc
     addSig acc (IChoice (ChoiceId _ p) _) = Map.insert p True acc
     addSig acc INotify                    = acc
 
@@ -696,7 +699,7 @@ computeTransaction tx state contract = let
 contractLifespanUpperBound :: Contract -> Integer
 contractLifespanUpperBound contract = case contract of
     Close -> 0
-    Pay _ _ _ _ _ cont -> contractLifespanUpperBound cont
+    Pay _ _ _ _ cont -> contractLifespanUpperBound cont
     If _ contract1 contract2 ->
         max (contractLifespanUpperBound contract1) (contractLifespanUpperBound contract2)
     When cases timeout subContract -> let
@@ -877,10 +880,10 @@ instance Eq Payment where
 instance Eq ReduceWarning where
     {-# INLINABLE (==) #-}
     ReduceNoWarning == ReduceNoWarning = True
-    (ReduceNonPositivePay acc1 p1 cs1 tn1 a1) == (ReduceNonPositivePay acc2 p2 cs2 tn2 a2) =
-        acc1 == acc2 && p1 == p2 && cs1 == cs2 && tn1 == tn2 && a1 == a2
-    (ReducePartialPay acc1 p1 cs1 tn1 a1 e1) == (ReducePartialPay acc2 p2 cs2 tn2 a2 e2) =
-        acc1 == acc2 && p1 == p2 && cs1 == cs2 && tn1 == tn2 && a1 == a2 && e1 == e2
+    (ReduceNonPositivePay acc1 p1 tn1 a1) == (ReduceNonPositivePay acc2 p2 tn2 a2) =
+        acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2
+    (ReducePartialPay acc1 p1 tn1 a1 e1) == (ReducePartialPay acc2 p2 tn2 a2 e2) =
+        acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2 && e1 == e2
     (ReduceShadowing v1 old1 new1) == (ReduceShadowing v2 old2 new2) =
         v1 == v2 && old1 == old2 && new1 == new2
     _ == _ = False
@@ -895,8 +898,8 @@ instance Eq ReduceEffect where
 
 instance Eq Value where
     {-# INLINABLE (==) #-}
-    AvailableMoney acc1 curr1 tok1 == AvailableMoney acc2 curr2 tok2 =
-        acc1 == acc2 && curr1 == curr2 && tok1 == tok2
+    AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
+        acc1 == acc2 && tok1 == tok2
     Constant i1 == Constant i2 = i1 == i2
     NegValue val1 == NegValue val2 = val1 == val2
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
@@ -926,8 +929,8 @@ instance Eq Observation where
 
 instance Eq Action where
     {-# INLINABLE (==) #-}
-    Deposit acc1 party1 cur1 tok1 val1 == Deposit acc2 party2 cur2 tok2 val2 =
-        acc1 == acc2 && party1 == party2 && cur1 == cur2 && tok1 == tok2 && val1 == val2
+    Deposit acc1 party1 tok1 val1 == Deposit acc2 party2 tok2 val2 =
+        acc1 == acc2 && party1 == party2 && tok1 == tok2 && val1 == val2
     Choice cid1 bounds1 == Choice cid2 bounds2 =
         cid1 == cid2 && let
             bounds = zip bounds1 bounds2
@@ -940,8 +943,8 @@ instance Eq Action where
 instance Eq Contract where
     {-# INLINABLE (==) #-}
     Close == Close = True
-    Pay acc1 payee1 cur1 tok1 value1 cont1 == Pay acc2 payee2 cur2 tok2 value2 cont2 =
-        acc1 == acc2 && payee1 == payee2 && cur1 == cur2 && tok1 == tok2 && value1 == value2 && cont1 == cont2
+    Pay acc1 payee1 tok1 value1 cont1 == Pay acc2 payee2 tok2 value2 cont2 =
+        acc1 == acc2 && payee1 == payee2 && tok1 == tok2 && value1 == value2 && cont1 == cont2
     If obs1 cont1 cont2 == If obs2 cont3 cont4 =
         obs1 == obs2 && cont1 == cont3 && cont2 == cont4
     When cases1 timeout1 cont1 == When cases2 timeout2 cont2 =

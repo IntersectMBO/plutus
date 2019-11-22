@@ -36,12 +36,12 @@ boundedValueAux parties choices (Size s) = do
     let anyChoice = ChoiceId "choice" <$> element parties
     let choiceId  = if null choices then anyChoice else choice [element choices, anyChoice]
     case compare s 0 of
-        GT -> choice [ AvailableMoney <$> element accounts <*> pure Ada.adaSymbol <*> pure Ada.adaToken
+        GT -> choice [ AvailableMoney <$> element accounts <*> pure (Ada.adaSymbol, Ada.adaToken)
                     , NegValue <$> go (s `div` 2)
                     , (AddValue <$> go (s `div` 2)) <*> go (s `div` 2)
                     , (SubValue <$> go (s `div` 2)) <*> go (s `div` 2)
                     , Constant <$> amount
                     , ChoiceValue <$> choiceId <*> go (s - 1) ]
-        EQ -> choice [ AvailableMoney <$> element accounts <*> pure Ada.adaSymbol <*> pure Ada.adaToken
+        EQ -> choice [ AvailableMoney <$> element accounts <*> pure (Ada.adaSymbol, Ada.adaToken)
                     , Constant <$> amount ]
         LT -> error "Negative size in boundedValue"

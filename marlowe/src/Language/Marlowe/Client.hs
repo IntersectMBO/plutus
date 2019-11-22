@@ -23,13 +23,14 @@ import           Data.Maybe                 (maybeToList)
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
+import           Language.Marlowe.Util
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (DataValue (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
 
                                              mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
-import           Ledger.Ada                 (Ada, adaValueOf, adaSymbol, adaToken, getLovelace)
+import           Ledger.Ada                 (Ada, adaValueOf, getLovelace)
 import           Ledger.Scripts             (RedeemerValue (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
@@ -79,7 +80,7 @@ deposit :: (
     -> m (MarloweData, Tx)
 deposit tx marloweData accountId amount = do
     pubKey <- ownPubKey
-    applyInputs tx marloweData [IDeposit accountId pubKey adaSymbol adaToken (getLovelace amount)]
+    applyInputs tx marloweData [IDeposit accountId pubKey ada (getLovelace amount)]
 
 
 {-| Notify a contract -}
@@ -196,7 +197,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
 
     return (marloweData, tx)
   where
-    collectDeposits (IDeposit _ _ cur tok amount) = Val.singleton cur tok amount
+    collectDeposits (IDeposit _ _ (cur, tok) amount) = Val.singleton cur tok amount
     collectDeposits _                    = P.zero
 
     totalIncome = foldMap collectDeposits inputs
