@@ -53858,6 +53858,7 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , cookie
 , cryptonite
+, deriving-compat
 , directory
 , exceptions
 , file-embed
@@ -53909,6 +53910,7 @@ bytestring
 containers
 cookie
 cryptonite
+deriving-compat
 directory
 exceptions
 file-embed
@@ -54323,6 +54325,7 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , containers
 , cryptonite
+, deriving-compat
 , freer-simple
 , hedgehog
 , hspec
@@ -54340,6 +54343,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-wallet-api
 , prettyprinter
 , QuickCheck
+, recursion-schemes
 , row-types
 , serialise
 , servant
@@ -54349,6 +54353,7 @@ license = stdenv.lib.licenses.asl20;
 , template-haskell
 , text
 , transformers
+, unordered-containers
 , wl-pprint-text
 }:
 mkDerivation {
@@ -54362,6 +54367,7 @@ base
 bytestring
 containers
 cryptonite
+deriving-compat
 freer-simple
 insert-ordered-containers
 iots-export
@@ -54375,12 +54381,14 @@ plutus-emulator
 plutus-tx
 plutus-wallet-api
 prettyprinter
+recursion-schemes
 row-types
 serialise
 servant
 template-haskell
 text
 transformers
+unordered-containers
 wl-pprint-text
 ];
 testHaskellDepends = [
@@ -54392,8 +54400,10 @@ hspec
 iots-export
 playground-common
 plutus-emulator
+plutus-tx
 plutus-wallet-api
 QuickCheck
+recursion-schemes
 tasty
 tasty-hunit
 template-haskell
@@ -54412,6 +54422,7 @@ license = stdenv.lib.licenses.asl20;
   mkDerivation
 , adjunctions
 , aeson
+, aeson-pretty
 , base
 , bytestring
 , containers
@@ -54443,7 +54454,9 @@ license = stdenv.lib.licenses.asl20;
 , process
 , prometheus
 , purescript-bridge
+, recursion-schemes
 , regex-compat
+, row-types
 , serialise
 , servant
 , servant-client
@@ -54504,7 +54517,9 @@ plutus-playground-lib
 plutus-tx
 plutus-wallet-api
 process
+recursion-schemes
 regex-compat
+row-types
 serialise
 servant
 servant-client
@@ -54521,28 +54536,35 @@ transformers
 executableHaskellDepends = [
 adjunctions
 aeson
+aeson-pretty
 base
 bytestring
 containers
 data-default-class
+exceptions
 filepath
 http-types
+iots-export
 lens
 monad-logger
 mtl
 optparse-applicative
 playground-common
+plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
 plutus-wallet-api
 prometheus
 purescript-bridge
+recursion-schemes
+row-types
 servant
 servant-foreign
 servant-purescript
 servant-server
 text
+time-units
 transformers
 wai
 wai-cors
@@ -54560,6 +54582,7 @@ mtl
 playground-common
 plutus-emulator
 plutus-playground-lib
+plutus-tx
 plutus-wallet-api
 tasty
 tasty-golden
@@ -54706,6 +54729,7 @@ license = stdenv.lib.licenses.asl20;
 , playground-common
 , plutus-contract
 , plutus-emulator
+, plutus-playground-lib
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
@@ -54735,6 +54759,7 @@ mtl
 playground-common
 plutus-contract
 plutus-emulator
+plutus-playground-lib
 plutus-tx
 plutus-wallet-api
 prettyprinter
@@ -54804,7 +54829,6 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
-, playground-common
 , plutus-ir
 , plutus-tx
 , prettyprinter
@@ -54846,7 +54870,6 @@ mtl
 natural-transformation
 newtype-generics
 operational
-playground-common
 plutus-ir
 plutus-tx
 prettyprinter
@@ -57437,8 +57460,8 @@ version = "0.13.1.0";
 src = fetchgit {
 
 url = "https://github.com/shmish111/purescript-bridge.git";
-sha256 = "0kqskcssx1r9lybyqnykk4y7ymzf95khgkjnzgd6m050gq30xxi1";
-rev = "fb8a038e4c9a97377834779ec6b2e0e7faf5b2a1";
+sha256 = "0n6q7g2w1xafngd3dwbbmfxfn018fmq61db7mymplbrww8ld1cp3";
+rev = "28c37771ef30b0d751960c061ef95627f05d290e";
 fetchSubmodules = true;
 
 };

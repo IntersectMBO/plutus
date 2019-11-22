@@ -11,6 +11,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module CrowdFunding where
 -- TRIM TO HERE
 -- Crowdfunding contract implemented using the [[Plutus]] interface.
@@ -67,7 +68,7 @@ data CampaignAction = Collect | Refund
 PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
-type CrowdfundingSchema =
+type Schema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
         .\/ Endpoint "contribute" Contribution
@@ -76,7 +77,7 @@ newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
         } deriving stock (Haskell.Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema)
+          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -152,15 +153,15 @@ campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Scripts.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+crowdfunding :: AsContractError e => Campaign -> Contract Schema e ()
 crowdfunding c = contribute c <|> scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
 theCampaign :: Campaign
 theCampaign = Campaign
-    { campaignDeadline = 20
-    , campaignTarget   = Ada.lovelaceValueOf 20
-    , campaignCollectionDeadline = 30
+    { campaignDeadline = 40
+    , campaignTarget   = Ada.lovelaceValueOf 30
+    , campaignCollectionDeadline = 60
     , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
@@ -168,7 +169,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+contribute :: AsContractError e => Campaign -> Contract Schema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
@@ -193,7 +194,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+scheduleCollection :: AsContractError e => Campaign -> Contract Schema e ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
@@ -246,7 +247,9 @@ to change.
 
 -}
 
-endpoints :: AsContractError e => Contract CrowdfundingSchema e ()
+endpoints :: AsContractError e => Contract Schema e ()
 endpoints = crowdfunding theCampaign
 
-mkSchemaDefinitions ''CrowdfundingSchema
+mkSchemaDefinitions ''Schema
+
+$(mkKnownCurrencies [])

@@ -2,8 +2,7 @@ module TypesTests
   ( all
   ) where
 
-import Prelude
-import Data.Functor.Fix (Fix(..))
+import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.List (List(..))
@@ -19,13 +18,14 @@ import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (EndpointName(EndpointName), FormArgumentF(..), FunctionSchema(FunctionSchema), KnownCurrency(..), SimulatorWallet(SimulatorWallet))
-import Schema (FormSchema(..))
+import Playground.Types (ContractCall(..), EndpointName(..), FunctionSchema(..), KnownCurrency(..))
+import Prelude
+import Schema (FormSchema(..), FormArgumentF(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
-import Types (Action(Action, Wait), FormArgument, formArgumentToJson, mkInitialValue, toArgument)
-import Validation (class Validation, ValidationError(..), validate, withPath)
+import Types (FormArgument, SimulatorAction, formArgumentToJson, mkInitialValue, toArgument)
+import Validation (ValidationError(..), validate, withPath)
 import Wallet.Emulator.Wallet (Wallet(..))
 
 all :: TestSuite
@@ -39,7 +39,7 @@ all =
 validateTests :: TestSuite
 validateTests = do
   test "No validation errors" do
-    isValid $ Wait { blocks: 1 }
+    isValid $ AddBlocks { blocks: 1 }
     isValid $ makeTestAction [ Fix $ FormIntF (Just 5) ]
     isValid $ makeTestAction [ Fix $ FormStringF (Just "TEST") ]
     isValid $ makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF (Just 6)) ]
@@ -47,14 +47,14 @@ validateTests = do
     isValid $ makeTestAction [ Fix $ FormObjectF [] ]
   --
   test "Validation errors" do
-    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ Fix $ FormUnsupportedF { description: "Test case." } ])
+    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ Fix $ FormUnsupportedF "Test case." ])
     equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormIntF Nothing ])
     equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormStringF Nothing ])
     equal
       [ withPath [ "0", "_1" ] Required
       , withPath [ "0", "_2" ] Unsupported
       ]
-      (validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormUnsupportedF { description: "Test." }) ]))
+      (validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormUnsupportedF "Test.") ]))
     equal [ withPath [ "0", "_1" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormIntF (Just 5)) ])
     equal [ withPath [ "0", "_2" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF Nothing) ])
     equal [ withPath [ "0", "2" ] Required ]
@@ -112,30 +112,19 @@ toArgumentTests = do
         (toArgument initialValue FormSchemaValue)
         (Fix (FormValueF initialValue))
 
-makeTestAction :: Array FormArgument -> Action
+makeTestAction :: Array FormArgument -> SimulatorAction
 makeTestAction arguments =
-  Action
-    { simulatorWallet:
-      SimulatorWallet
-        { simulatorWalletWallet: Wallet { getWallet: 1 }
-        , simulatorWalletBalance:
-          Value
-            { getValue:
-              AssocMap.fromTuples
-                [ ( Tuple (CurrencySymbol { unCurrencySymbol: "12345" })
-                      (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
-                  )
-                ]
-            }
-        }
-    , functionSchema:
+  CallEndpoint
+    { caller:
+      Wallet { getWallet: 1 }
+    , argumentValues:
       FunctionSchema
-        { functionName: EndpointName "test"
-        , argumentSchema: arguments
+        { endpointName: EndpointName "test"
+        , arguments
         }
     }
 
-isValid :: forall a. Validation a => a -> Aff Unit
+isValid :: SimulatorAction -> Aff Unit
 isValid = validate >>> equal []
 
 formArgumentToJsonTests :: TestSuite

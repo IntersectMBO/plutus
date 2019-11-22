@@ -25,6 +25,7 @@ library
       Playground.Types
       Playground.TH
       Playground.Interpreter.Util
+      Schema
   other-modules:
       Playground.Schema
   hs-source-dirs:
@@ -40,9 +41,11 @@ library
     , cryptonite
     , freer-simple
     , deriving-compat
+    , unordered-containers
     , insert-ordered-containers
     , iots-export
     , playground-common
+    , recursion-schemes
     , lens
     , memory
     , mtl
@@ -71,6 +74,7 @@ test-suite plutus-playground-lib-test
     other-modules:
         Playground.THSpec
         Playground.APISpec
+        SchemaSpec
     build-depends:
         base >=4.9 && <5,
         containers -any,
@@ -78,12 +82,15 @@ test-suite plutus-playground-lib-test
         iots-export -any,
         playground-common -any,
         tasty -any,
+        hspec -any,
         tasty-hunit -any,
         text -any,
         template-haskell -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
         plutus-emulator -any,
+        plutus-tx -any,
+        recursion-schemes -any,
         hspec -any,
         QuickCheck -any,
         aeson -any

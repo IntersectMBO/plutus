@@ -14,7 +14,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
-import Playground.Types (FunctionSchema, SimulatorWallet(..), _EndpointName, _FunctionSchema)
+import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _EndpointName, _FunctionSchema)
 import Prelude (const, show, ($), (<$>), (<<<), (<>))
 import Schema (FormSchema)
 import ValueEditor (valueForm)
@@ -64,6 +64,9 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
                     , h4_ [ text "Available functions" ]
                     , div_
                         (actionButton initialValue simulatorWallet <$> signatures)
+                    , div_
+                        [ addPayToWalletButton initialValue simulatorWallet
+                        ]
                     ]
                 ]
             ]
@@ -95,14 +98,35 @@ actionButton ::
   HTML p HAction
 actionButton initialValue simulatorWallet functionSchema =
   button
-    [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
+    [ classes [ btn, btnSecondary, btnSmall, actionButtonClass ]
     , onClick $ const $ Just $ ModifyActions $ AddAction
-        $ Action
-            { functionSchema: toArgument initialValue <$> functionSchema
-            , simulatorWallet
+        $ CallEndpoint
+            { argumentValues: toArgument initialValue <$> functionSchema
+            , caller: view _simulatorWalletWallet simulatorWallet
             }
     ]
-    [ text $ view (_FunctionSchema <<< _functionName <<< _EndpointName) functionSchema
+    [ text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) functionSchema
+    , span
+        [ class_ pullRight ]
+        [ icon Plus ]
+    ]
+
+addPayToWalletButton ::
+  forall p.
+  Value ->
+  SimulatorWallet ->
+  HTML p HAction
+addPayToWalletButton initialValue simulatorWallet =
+  button
+    [ classes [ btn, btnSecondary, btnSmall, actionButtonClass, ClassName "add-pay-to-wallet-button" ]
+    , onClick $ const $ Just $ ModifyActions $ AddAction
+        $ PayToWallet
+            { sender: view _simulatorWalletWallet simulatorWallet
+            , recipient: view _simulatorWalletWallet simulatorWallet
+            , amount: initialValue
+            }
+    ]
+    [ text "Pay to Wallet"
     , span
         [ class_ pullRight ]
         [ icon Plus ]
@@ -114,3 +138,6 @@ walletIdPane wallet =
     [ text "Wallet #"
     , text $ show $ _.getWallet $ unwrap wallet
     ]
+
+actionButtonClass :: ClassName
+actionButtonClass = ClassName "action-button"

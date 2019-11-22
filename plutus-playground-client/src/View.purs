@@ -1,20 +1,21 @@
 module View (render) where
 
 import Types
+import StaticData (_contractDemoEditorContents)
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Array (cons) as Array
-import Data.Array.Extra (lookup) as Array
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (view)
+import Data.Json.JsonEither (JsonEither(..), _JsonEither)
+import Data.Lens (_Right, view)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple), fst)
+import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import Editor (EditorAction(..), editorPane)
 import Effect.Aff.Class (class MonadAff)
@@ -24,7 +25,9 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_)
 import Icons (Icon(..), icon)
-import Network.RemoteData (RemoteData(..))
+import Language.Haskell.Interpreter (_SourceCode)
+import Network.RemoteData (RemoteData(..), _Success)
+import Playground.Types (ContractDemo(..))
 import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 
@@ -32,7 +35,7 @@ render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { currentView, blockchainVisualisationState }) =
+render state@(State { currentView, blockchainVisualisationState, contractDemos }) =
   div_
     [ bannerMessage
     , div
@@ -47,7 +50,7 @@ render state@(State { currentView, blockchainVisualisationState }) =
                 ]
             ]
         , viewContainer currentView Editor
-            [ EditorAction <$> demoScriptsPane
+            [ EditorAction <$> contractDemosPane contractDemos
             , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey (unwrap <$> view _compilationResult state)
             , case view _compilationResult state of
                 Failure error -> ajaxErrorPane error
@@ -62,6 +65,17 @@ render state@(State { currentView, blockchainVisualisationState }) =
                 [ simulationPane
                     initialValue
                     (view _actionDrag state)
+                    ( view
+                        ( _compilationResult
+                            <<< _Success
+                            <<< _JsonEither
+                            <<< _Right
+                            <<< _Newtype
+                            <<< _result
+                            <<< _functionSchema
+                        )
+                        state
+                    )
                     (view _simulations state)
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
@@ -91,21 +105,22 @@ render state@(State { currentView, blockchainVisualisationState }) =
         ]
     ]
   where
-  defaultContents = Array.lookup "Vesting" StaticData.demoFiles
+  defaultContents :: Maybe String
+  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-demoScriptsPane :: forall p. HTML p EditorAction
-demoScriptsPane =
+contractDemosPane :: forall p. Array ContractDemo -> HTML p EditorAction
+contractDemosPane contractDemos =
   div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <<< fst <$> StaticData.demoFiles)
+    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> contractDemos)
     )
 
-demoScriptButton :: forall p. String -> HTML p EditorAction
-demoScriptButton key =
+demoScriptButton :: forall p. ContractDemo -> HTML p EditorAction
+demoScriptButton (ContractDemo { contractDemoName }) =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript key
+    , onClick $ const $ Just $ LoadScript contractDemoName
     ]
-    [ text key ]
+    [ text contractDemoName ]
 
 bannerMessage :: forall p i. HTML p i
 bannerMessage =

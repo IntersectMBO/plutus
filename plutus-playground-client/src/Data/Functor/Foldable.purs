@@ -1,4 +1,4 @@
-module Data.Functor.Fix where
+module Data.Functor.Foldable where
 
 import AjaxUtils (defaultJsonOptions)
 import Data.Eq (class Eq, class Eq1)
@@ -10,7 +10,7 @@ import Data.Show (class Show)
 import Foreign.Generic (genericDecode, genericEncode)
 import Foreign.Generic.Class (class Decode, class Encode)
 import Matryoshka (class Corecursive, class Recursive)
-import Playground.Types (FormArgumentF)
+import Schema (FormArgumentF)
 
 -- | This recursive type is isomorphic to `Data.Functor.Mu.Mu`, and
 -- only exists because we want `Encode`/`Decode` instances.
@@ -36,5 +36,6 @@ instance encodeFix :: Encode (Fix FormArgumentF) where
 instance decodeFix :: Decode (Fix FormArgumentF) where
   decode value = genericDecode defaultJsonOptions value
 
+--
 instance showFix :: Show (Fix FormArgumentF) where
   show value = genericShow value

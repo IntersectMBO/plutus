@@ -4,7 +4,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Playground.Interpreter.Util where
+module Playground.Interpreter.Util
+    ( stage
+    ) where
 
 import           Control.Lens                    (view)
 import           Control.Monad.Except            (throwError)
@@ -24,25 +26,26 @@ import qualified Data.Text.Encoding              as Text
 import           Language.Haskell.Interpreter    (InterpreterResult (InterpreterResult), result, warnings)
 import           Language.Plutus.Contract        (Contract, ContractRow, HasBlockchainActions)
 import           Language.Plutus.Contract.Schema (Event, Input)
-import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (ContractError, TraceAssertionError),
-                                                  addBlocks, addEvent, handleBlockchainEvents,
-                                                  notifyInterestingAddresses, notifySlot, payToWallet,
-                                                  runTraceWithDistribution)
+import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (ContractError), addBlocks, addBlocksUntil,
+                                                  addEvent, handleBlockchainEvents, notifyInterestingAddresses,
+                                                  notifySlot, payToWallet, runTraceWithDistribution)
 import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), txOutTxOut)
 import           Ledger.AddressMap               (fundsAt)
 import           Ledger.Value                    (Value)
 import qualified Ledger.Value                    as Value
-import           Playground.Types                (EndpointName (EndpointName), EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
-                                                  Expression (AddBlocks, CallEndpoint),
-                                                  PayToWalletParams (PayToWalletParams),
-                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError, decodingError, expected, input),
-                                                  SimulatorWallet (SimulatorWallet), arguments, blocks, emulatorLog,
-                                                  endpointName, payTo, simulatorWalletBalance, simulatorWalletWallet,
-                                                  value, wallet)
+import           Playground.Types                (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
+                                                  EndpointName, EvaluationResult (EvaluationResult), Expression,
+                                                  FunctionSchema (FunctionSchema),
+                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError),
+                                                  SimulatorWallet (SimulatorWallet), amount, argumentValues, arguments,
+                                                  blocks, caller, decodingError, emulatorLog, endpointName, expected,
+                                                  fundsDistribution, input, recipient, resultBlockchain, resultRollup,
+                                                  sender, simulatorWalletBalance, simulatorWalletWallet, slot,
+                                                  walletKeys)
 import           Wallet.Emulator                 (MonadEmulator)
 import           Wallet.Emulator.Chain           (ChainState (..))
 import           Wallet.Emulator.NodeClient      (NodeClientState (..), clientIndex)
-import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
+import           Wallet.Emulator.Types           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
                                                   Wallet)
 import           Wallet.Emulator.Wallet          (walletAddress, walletPubKey)
 import           Wallet.Rollup                   (doAnnotateBlockchain)
@@ -58,11 +61,10 @@ type TraceResult
      = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
 
 analyzeEmulatorState :: EmulatorState -> Either PlaygroundError EvaluationResult
-analyzeEmulatorState EmulatorState { _chainState = ChainState {
-                                        _chainNewestFirst,
-                                        _txPool,
-                                        _index
-                                   }
+analyzeEmulatorState EmulatorState { _chainState = ChainState { _chainNewestFirst
+                                                              , _txPool
+                                                              , _index
+                                                              }
                                    , _walletClientStates
                                    , _emulatorLog
                                    } =
@@ -84,10 +86,13 @@ analyzeEmulatorState EmulatorState { _chainState = ChainState {
     toSimulatorWallet simulatorWalletWallet walletState =
         SimulatorWallet
             { simulatorWalletWallet
-            , simulatorWalletBalance = walletStateBalance simulatorWalletWallet walletState
+            , simulatorWalletBalance =
+                  walletStateBalance simulatorWalletWallet walletState
             }
     walletStateBalance :: Wallet -> NodeClientState -> Value
-    walletStateBalance w = foldMap (txOutValue . txOutTxOut) . view (clientIndex . fundsAt (walletAddress w))
+    walletStateBalance w =
+        foldMap (txOutValue . txOutTxOut) .
+        view (clientIndex . fundsAt (walletAddress w))
     toKeyWalletPair :: Wallet -> NodeClientState -> [(PubKey, Wallet)]
     toKeyWalletPair k _ = [(walletPubKey k, k)]
 
@@ -122,8 +127,8 @@ stage ::
     -> Either PlaygroundError EvaluationResult
 stage endpoints programJson simulatorWalletsJson = do
     simulationJson :: String <- playgroundDecode "String" programJson
-    simulation :: [Expression s] <-
-        playgroundDecode "[Expression schema]" $ BSL.pack simulationJson
+    simulation :: [Expression] <-
+        playgroundDecode "[Expression schema]" . BSL.pack $ simulationJson
     simulatorWallets :: [SimulatorWallet] <-
         playgroundDecode "[SimulatorWallet]" simulatorWalletsJson
     let allWallets = simulatorWalletWallet <$> simulatorWallets
@@ -133,10 +138,8 @@ stage endpoints programJson simulatorWalletsJson = do
                 endpoints
                 (buildSimulation allWallets (expressionToTrace <$> simulation))
     case final of
-        Left (ContractError err)                          -> throwError . OtherError . Text.unpack $ err
-        Left (TraceAssertionError (GenericAssertion err)) -> throwError . OtherError . Text.unpack $ err
-        Left err                                          -> throwError . OtherError . show $ err
-        Right _                                           -> analyzeEmulatorState emulatorState
+        Left err -> throwError . OtherError . show $ err
+        Right _  -> analyzeEmulatorState emulatorState
 
 buildSimulation ::
        (MonadEmulator (TraceError e) m, HasBlockchainActions s)
@@ -165,39 +168,41 @@ expressionToTrace ::
        , MonadEmulator (TraceError Text) m
        , Forall (Input s) FromJSON
        )
-    => Expression s
+    => Expression
     -> ContractTrace s Text m a ()
 expressionToTrace AddBlocks {blocks} = addBlocks (fromIntegral blocks)
-expressionToTrace CallEndpoint {endpointName, wallet, arguments} =
-    case arguments of
-        JSON.String string ->
-            let bytestring = BSL.fromStrict $ Text.encodeUtf8 string
-             in case JSON.eitherDecode bytestring of
-                    Left err ->
+expressionToTrace AddBlocksUntil {slot} = addBlocksUntil slot
+expressionToTrace PayToWallet {sender, recipient, amount} =
+    payToWallet sender recipient amount
+expressionToTrace CallEndpoint { caller
+                               , argumentValues = FunctionSchema { endpointName
+                                                                 , arguments
+                                                                 }
+                               } =
+    let fromString (JSON.String string) =
+            Just $ BSL.fromStrict $ Text.encodeUtf8 string
+        fromString _ = Nothing
+     in case traverse fromString arguments of
+            Just strings ->
+                case traverse JSON.eitherDecode strings of
+                    Left errs ->
                         throwError . ContractError $
-                        "Error extracting JSON from arguments. Expected a JSON string. " <>
-                        Text.pack err
-                    Right [argument] ->
-                        if endpointName == EndpointName "payToWallet_"
-                            then do
-                                PayToWalletParams {payTo, value} <-
-                                    decodePayload endpointName argument
-                                payToWallet wallet payTo value
-                            else do
-                                event :: Event s <-
-                                    decodePayload endpointName $
-                                    JSON.object
-                                        [ ( "tag"
-                                          , JSON.String $
-                                            Newtype.unpack endpointName)
-                                        , ("value", argument)
-                                        ]
-                                addEvent wallet event
-                    Right argument ->
+                        "Error extracting JSON from arguments. Expected an array of JSON strings. " <>
+                        Text.pack (show errs)
+                    Right [argument] -> do
+                        event :: Event s <-
+                            decodePayload endpointName $
+                            JSON.object
+                                [ ( "tag"
+                                  , JSON.String $ Newtype.unpack endpointName)
+                                , ("value", argument)
+                                ]
+                        addEvent caller event
+                    Right _ ->
                         throwError . ContractError $
-                        "Expected a singleton list, but got: " <>
-                        Text.pack (show argument)
-        _ -> fail $ "Expected a String, but got: " <> show arguments
+                        "All contract endpoints take a single input argument. If you need more, use a tuple or record.\nExpected a singleton list, but got: " <>
+                        Text.pack (show arguments)
+            Nothing -> fail $ "Expected a [String], but got: " <> show arguments
 
 decodePayload ::
        (MonadEmulator (TraceError Text) m, FromJSON r)

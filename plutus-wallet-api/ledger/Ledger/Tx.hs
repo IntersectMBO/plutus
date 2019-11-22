@@ -72,7 +72,6 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
-import           Schema                    (ToSchema)
 
 import           Language.PlutusTx.Lattice
 
@@ -242,7 +241,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToSchema, ToJSONKey, FromJSONKey)
+    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx

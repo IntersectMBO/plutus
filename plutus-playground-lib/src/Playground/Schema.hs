@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -29,7 +29,9 @@ import           Data.Row.Internal                               (LT ((:->)), Ro
 import qualified Data.Text                                       as Text
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoints, EndpointValue)
 import           Language.Plutus.Contract.Schema                 ()
-import           Playground.Types                                (EndpointName (EndpointName), FunctionSchema (FunctionSchema, argumentSchema, functionName))
+import           Playground.Types                                (EndpointName (EndpointName),
+                                                                  FunctionSchema (FunctionSchema), arguments,
+                                                                  endpointName)
 import           Schema                                          (FormSchema, ToSchema, toSchema)
 
 class EndpointToSchema (s :: Row *) where
@@ -40,7 +42,8 @@ instance EndpointToSchema Empty where
 
 instance (ToSchema params, KnownSymbol label, EndpointToSchema (R bs)) =>
          EndpointToSchema (R (label :-> (EndpointValue params, ActiveEndpoints) : bs)) where
-    endpointsToSchemas = FunctionSchema {..} : endpointsToSchemas @(R bs)
+    endpointsToSchemas =
+        FunctionSchema {endpointName, arguments} : endpointsToSchemas @(R bs)
       where
-        functionName = EndpointName . Text.pack . show $ Label @label
-        argumentSchema = [toSchema @params]
+        endpointName = EndpointName . Text.pack . show $ Label @label
+        arguments = [toSchema @params]

@@ -140,7 +140,7 @@ compile timeout source
                     pure . InterpreterResult warnings $
                     CompilationResult schemas currencies iots
 
-runFunction ::
+evaluateSimulation ::
        ( Show t
        , TimeUnit t
        , MonadMask m
@@ -150,7 +150,7 @@ runFunction ::
     => t
     -> Evaluation
     -> m (InterpreterResult EvaluationResult)
-runFunction timeout evaluation = do
+evaluateSimulation timeout evaluation = do
     let source = sourceCode evaluation
     mapError InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation

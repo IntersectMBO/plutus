@@ -8,6 +8,7 @@ import Data.Array.ExtraTests as Data.Array.ExtraTests
 import Data.String.ExtraTests as Data.String.ExtraTests
 import Effect (Effect)
 import GistsTests as GistsTests
+import StaticDataTests as StaticDataTests
 import Language.PlutusTx.AssocMapTests as Language.PlutusTx.AssocMapTests
 import MainFrameTests as MainFrameTests
 import Test.Unit.Main (runTest)
@@ -24,6 +25,7 @@ main =
     Data.Array.ExtraTests.all
     Data.String.ExtraTests.all
     GistsTests.all
+    StaticDataTests.all
     Language.PlutusTx.AssocMapTests.all
     MainFrameTests.all
     TypesTests.all

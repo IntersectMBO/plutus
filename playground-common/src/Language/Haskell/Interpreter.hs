@@ -49,7 +49,7 @@ data InterpreterError
     deriving anyclass (ToJSON, FromJSON)
 
 newtype SourceCode = SourceCode Text
-   deriving stock (Generic)
+   deriving stock (Show, Eq, Generic)
    deriving newtype (ToJSON, FromJSON)
    deriving anyclass (Newtype)
 

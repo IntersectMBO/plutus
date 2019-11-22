@@ -4,17 +4,16 @@ module MainFrameTests
 
 import Prelude
 import Auth (AuthRole(..), AuthStatus(..))
+import Control.Monad.Error.Extra (mapError, mapErrorT)
 import Control.Monad.Except (runExcept)
+import Control.Monad.Except.Trans (class MonadThrow)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Array (head) as Array
-import Data.Array.Extra (lookup) as Array
-import Data.Either (Either(Right, Left))
-import Data.Identity (Identity)
-import Data.Json.JsonEither (JsonEither)
+import Data.Either (Either(..))
+import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -28,25 +27,27 @@ import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
 import Editor (EditorAction(..))
 import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
-import Gist (Gist, GistId, gistId)
+import Gist (Gist, GistId, gistFileContent, gistFiles, gistId)
 import Gists (GistAction(..))
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(SourceCode))
-import MainFrame (handleAction, initialState)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(..))
+import MainFrame (handleAction, mkInitialState)
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
 import Playground.Server (SPParams_(..))
-import Playground.Types (CompilationResult, EvaluationResult)
+import Playground.Types (CompilationResult, ContractDemo, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import StaticData (bufferLocalStorageKey)
+import StaticData (_contractDemoEditorContents, bufferLocalStorageKey, mkContractDemos)
 import StaticData as StaticData
+import Test.QuickCheck ((<?>))
 import Test.Unit (TestSuite, failure, suite, test)
-import Test.Unit.Assert (assert, equal')
+import Test.Unit.Assert (assert, equal, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (HAction(..), State, View(Editor, Simulations), WebData, _authStatus, _compilationResult, _createGistResult, _currentView, _evaluationResult, _simulations)
+import Types (HAction(..), State, View(Editor, Simulations), WebData, _authStatus, _createGistResult, _currentView, _simulations)
 
 all :: TestSuite
 all =
@@ -56,7 +57,7 @@ all =
 ------------------------------------------------------------
 type World
   = { gists :: Map GistId Gist
-    , editorContents :: Maybe String
+    , editorContents :: Maybe SourceCode
     , localStorage :: Map String String
     , evaluationResult :: WebData EvaluationResult
     , compilationResult :: (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
@@ -99,7 +100,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorGetContents =
     MockApp do
       editorContents <- use (_1 <<< _editorContents)
-      pure $ SourceCode <$> editorContents
+      pure editorContents
   editorSetContents contents cursor =
     MockApp
       $ assign (_1 <<< _editorContents) (Just contents)
@@ -135,8 +136,9 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
       Loop cont -> tailRecM step cont
       Done result -> pure result
 
-execMockApp :: forall m. Monad m => World -> Array HAction -> m (Tuple World State)
+execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
 execMockApp world queries = do
+  initialState <- mapErrorT error mkInitialState
   RWSResult state result writer <-
     runRWST
       (unwrap (traverse_ handleAction queries :: MockApp m Unit))
@@ -163,8 +165,10 @@ evalTests =
     test "ChangeView" do
       quickCheck \aView -> do
         let
-          Tuple _ finalState = unwrap (execMockApp mockWorld [ ChangeView aView ] :: Identity (Tuple World State))
-        aView == view _currentView finalState
+          result = execMockApp mockWorld [ ChangeView aView ]
+        case result of
+          Right (Tuple _ finalState) -> (aView == view _currentView finalState) <?> "Unexpected final view."
+          Left err -> false <?> show err
     suite "LoadGist" do
       test "Bad URL" do
         Tuple _ finalState <-
@@ -180,7 +184,7 @@ evalTests =
             , GistAction LoadGist
             ]
         assert "Gist not loaded." $ isNotAsked (view _createGistResult finalState)
-      test "Successfully" do
+      test "Gist loaded successfully" do
         contents <- liftEffect $ FS.readTextFile UTF8 "test/gist1.json"
         case runExcept $ decodeJSON contents of
           Left err -> failure $ show err
@@ -192,47 +196,27 @@ evalTests =
                 , GistAction LoadGist
                 ]
             assert "Gist gets loaded." $ isSuccess (view _createGistResult finalState)
-            equal'
-              "Simulation gets loaded."
-              1
+            equal
+              2
               (Cursor.length (view _simulations finalState))
-            case Array.head (unwrap gist)._gistFiles >>= (unwrap >>> _._gistFileContent) of
+            case view (gistFiles <<< ix 0 <<< gistFileContent) gist of
               Nothing -> failure "Could not read gist content. Sample test data may be incorrect."
               Just sourceFile -> do
-                equal' "Editor gets update."
-                  (Just sourceFile)
+                equal' "Editor gets updated."
+                  (Just (SourceCode sourceFile))
                   (view _editorContents finalWorld)
                 equal' "Source gets stored."
                   (Just sourceFile)
                   (preview (_localStorage <<< ix (unwrap bufferLocalStorageKey)) finalWorld)
     test "Loading a script works." do
       Tuple finalWorld finalState <-
-        execMockApp (set _editorContents Nothing mockWorld)
-          [ EditorAction $ LoadScript "Game" ]
+        ( execMockApp (set _editorContents Nothing mockWorld)
+            [ EditorAction $ LoadScript "Game" ]
+        )
+      contractDemos :: Array ContractDemo <- mapError (error <<< show) mkContractDemos
       equal' "Script gets loaded."
-        (Array.lookup "Game" StaticData.demoFiles)
+        (view _contractDemoEditorContents <$> StaticData.lookup "Game" contractDemos)
         finalWorld.editorContents
-    test "Loading a script clears out some state." do
-      loadCompilationResponse1
-        >>= case _ of
-            Left err -> failure err
-            Right compilationResult -> do
-              Tuple _ intermediateState <-
-                execMockApp (mockWorld { compilationResult = compilationResult })
-                  [ ChangeView Simulations
-                  , EditorAction $ LoadScript "Game"
-                  , EditorAction CompileProgram
-                  ]
-              assert "Simulations are non-empty." $ not $ Cursor.null $ view _simulations intermediateState
-              Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult })
-                  [ EditorAction $ LoadScript "Game"
-                  , EditorAction CompileProgram
-                  , EditorAction $ LoadScript "Game"
-                  ]
-              assert "Simulations are empty." $ Cursor.null $ view _simulations finalState
-              assert "Evaluation is cleared." $ isNotAsked $ view _evaluationResult finalState
-              assert "Compilation is cleared." $ isNotAsked $ view _compilationResult finalState
     test "Loading a script switches back to the editor." do
       loadCompilationResponse1
         >>= case _ of
@@ -250,7 +234,7 @@ loadCompilationResponse1 ::
   MonadEffect m =>
   m (Either String (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))))
 loadCompilationResponse1 = do
-  contents <- liftEffect $ FS.readTextFile UTF8 "test/compilation_response1.json"
+  contents <- liftEffect $ FS.readTextFile UTF8 "generated/compilation_response.json"
   case runExcept $ decodeJSON contents of
     Left err -> pure $ Left $ show err
-    Right value -> pure $ Right $ Success value
+    Right value -> pure $ Right $ Success $ JsonEither $ Right value

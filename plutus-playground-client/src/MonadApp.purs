@@ -41,7 +41,7 @@ import Web.HTML.Event.DragEvent (DragEvent, dataTransfer)
 class
   Monad m <= MonadApp m where
   editorGetContents :: m (Maybe SourceCode)
-  editorSetContents :: String -> Maybe Int -> m Unit
+  editorSetContents :: SourceCode -> Maybe Int -> m Unit
   editorSetAnnotations :: Array Annotation -> m Unit
   editorGotoLine :: Int -> Maybe Int -> m Unit
   --
@@ -95,7 +95,7 @@ instance monadAppHalogenApp ::
   ) =>
   MonadApp (HalogenApp m) where
   editorGetContents = map SourceCode <$> withEditor AceEditor.getValue
-  editorSetContents contents cursor = void $ withEditor $ AceEditor.setValue contents cursor
+  editorSetContents (SourceCode contents) cursor = void $ withEditor $ AceEditor.setValue contents cursor
   editorSetAnnotations annotations =
     void
       $ withEditor \editor -> do

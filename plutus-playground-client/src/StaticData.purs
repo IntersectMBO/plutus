@@ -1,28 +1,38 @@
 module StaticData
-  ( demoFiles
+  ( mkContractDemos
+  , lookup
+  , _contractDemoName
+  , _contractDemoEditorContents
   , bufferLocalStorageKey
   ) where
 
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Array as Array
+import Data.Lens (Lens', view)
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
+import Data.Symbol (SProxy(..))
+import Data.Traversable (class Foldable, traverse)
+import Foreign (F)
+import Foreign.Generic (decodeJSON)
+import Language.Haskell.Interpreter (SourceCode(..))
 import LocalStorage as LocalStorage
-import Playground.Usecases (vesting, game, crowdfunding, errorHandling, starter)
+import Playground.Types (ContractDemo)
+import Playground.Usecases as Usecases
+import Prelude ((<<<), (==))
 
-type Label
-  = String
+mkContractDemos :: F (Array ContractDemo)
+mkContractDemos = do
+  decodeJSON Usecases.contractDemos
 
-type Contents
-  = String
+_contractDemoName :: Lens' ContractDemo String
+_contractDemoName = _Newtype <<< prop (SProxy :: SProxy "contractDemoName")
 
--- | This would be a `Map`, were it not for the fact that we want a
--- certain key ordering. (Simpler examples first.)
-demoFiles :: Array (Label /\ Contents)
-demoFiles =
-  [ "Starter" /\ starter
-  , "Game" /\ game
-  , "Vesting" /\ vesting
-  , "Crowdfunding" /\ crowdfunding
-  , "Error Handling" /\ errorHandling
-  ]
+_contractDemoEditorContents :: Lens' ContractDemo SourceCode
+_contractDemoEditorContents = _Newtype <<< prop (SProxy :: SProxy "contractDemoEditorContents")
+
+lookup :: forall f. Foldable f => String -> f ContractDemo -> Maybe ContractDemo
+lookup key = Array.find (\demo -> view _contractDemoName demo == key)
 
 bufferLocalStorageKey :: LocalStorage.Key
 bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
