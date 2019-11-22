@@ -209,7 +209,7 @@ let
       client = let
         generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
           mkdir $out
-          ${playground-exe}/bin/plutus-playground-server psgenerator $out
+          ${server-invoker}/bin/plutus-playground psgenerator $out
         '';
 
         in

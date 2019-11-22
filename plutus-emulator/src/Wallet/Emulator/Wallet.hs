@@ -41,7 +41,6 @@ import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Crypto              as Crypto
 import qualified Ledger.Value               as Value
 import           Prelude                    as P
-import           Schema                     (ToSchema)
 import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                 as WAPI
 import qualified Wallet.Emulator.NodeClient as NC
@@ -50,7 +49,7 @@ import qualified Wallet.Emulator.NodeClient as NC
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, ToSchema, IotsType)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, IotsType)
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i

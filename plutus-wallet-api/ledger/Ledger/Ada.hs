@@ -40,8 +40,6 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (divide)
 import qualified Language.PlutusTx.Prelude as P
-import           Schema                    (ToSchema)
-
 import           Ledger.Value              (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value              as TH
 
@@ -61,7 +59,7 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Lovelace { getLovelace :: Integer }
     deriving (Enum)
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
     deriving Pretty via (Tagged "Lovelace:" Integer)
 

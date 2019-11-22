@@ -48,13 +48,12 @@ import           Ledger.Orphans             ()
 import           Ledger.TxId
 import           LedgerBytes                (LedgerBytes)
 import qualified LedgerBytes                as KB
-import           Schema                     (ToSchema)
 import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving Pretty via LedgerBytes
 makeLift ''PubKey
@@ -62,7 +61,7 @@ makeLift ''PubKey
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving Pretty via LedgerBytes
 
@@ -77,7 +76,7 @@ instance FromHttpApiData PrivateKey where
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (ToSchema, IotsType)
+    deriving anyclass (IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving Pretty via LedgerBytes
 

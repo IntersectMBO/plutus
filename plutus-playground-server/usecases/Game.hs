@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 module Game where
 
@@ -47,7 +48,7 @@ newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
 
-type GameSchema =
+type Schema =
     BlockchainActions
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
@@ -83,17 +84,17 @@ data LockParams = LockParams
     , amount     :: Ada
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: AsContractError e => Contract GameSchema e ()
+guess :: AsContractError e => Contract Schema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     mp <- utxoAt gameAddress
@@ -102,7 +103,7 @@ guess = do
     void (submitTx tx)
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: AsContractError e => Contract GameSchema e ()
+lock :: AsContractError e => Contract Schema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
@@ -111,7 +112,7 @@ lock = do
         tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
     void (submitTx tx)
 
-game :: AsContractError e => Contract GameSchema e ()
+game :: AsContractError e => Contract Schema e ()
 game = guess <|> lock
 
 {- Note [Contract endpoints]
@@ -140,10 +141,10 @@ parameters can be entered.
 
 -}
 
-endpoints :: AsContractError e => Contract GameSchema e ()
+endpoints :: AsContractError e => Contract Schema e ()
 endpoints = game
 
-mkSchemaDefinitions ''GameSchema
+mkSchemaDefinitions ''Schema
 
 myCurrency :: KnownCurrency
 myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])

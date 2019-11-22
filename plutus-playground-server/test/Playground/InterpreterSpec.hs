@@ -15,9 +15,9 @@ import qualified Data.Text.Lazy               as TL
 import           Language.Haskell.Interpreter (SourceCode (SourceCode))
 import qualified Ledger.Ada                   as Ada
 import           Playground.Interpreter       (mkExpr, mkRunScript)
-import           Playground.Types             (Evaluation (Evaluation, program, sourceCode, wallets),
-                                               Expression (AddBlocks), PlaygroundError,
-                                               SimulatorWallet (SimulatorWallet))
+import           Playground.Types             (ContractCall (AddBlocks), Evaluation (Evaluation), PlaygroundError,
+                                               SimulatorAction, SimulatorWallet (SimulatorWallet), program, sourceCode,
+                                               wallets)
 import           Test.Tasty                   (TestTree, testGroup)
 import           Test.Tasty.HUnit             (assertEqual, testCase)
 import           Wallet.Emulator.Types        (Wallet (Wallet))
@@ -30,7 +30,9 @@ mkRunScriptTest =
     testGroup
         "mkRunScript"
         [ testCase "Should match a simple template" $ do
-              let program = JSON.toJSON [AddBlocks 2, AddBlocks 4]
+              let program =
+                      JSON.toJSON
+                          ([AddBlocks 2, AddBlocks 4] :: [SimulatorAction])
                   wallets =
                       [ SimulatorWallet (Wallet 1) (Ada.toValue 5)
                       , SimulatorWallet (Wallet 2) (Ada.toValue 10)

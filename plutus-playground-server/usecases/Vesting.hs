@@ -216,14 +216,16 @@ retrieveFundsC vesting payment = do
 endpoints :: Contract VestingSchema T.Text ()
 endpoints = vestingContract vestingParams
   where
+    vestingOwner = walletPubKey $ Wallet 1
     vestingParams =
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =
         VestingTranche
-            {vestingTrancheDate = Slot 10, vestingTrancheAmount = Ada.adaValueOf 5}
+            {vestingTrancheDate = Slot 20, vestingTrancheAmount = Ada.lovelaceValueOf 5}
     vestingTranche2 =
         VestingTranche
-            {vestingTrancheDate = Slot 20, vestingTrancheAmount = Ada.adaValueOf 3}
-    vestingOwner = walletPubKey $ Wallet 1
+            {vestingTrancheDate = Slot 40, vestingTrancheAmount = Ada.lovelaceValueOf 3}
 
 mkSchemaDefinitions ''VestingSchema
+
+$(mkKnownCurrencies [])

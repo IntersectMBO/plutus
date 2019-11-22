@@ -1,6 +1,7 @@
 module Ledger (
     module Export,
     CurrencySymbol,
+    TokenName,
     Value,
     Ada
     ) where
@@ -16,4 +17,4 @@ import           Ledger.Slot       as Export
 import           Ledger.Tx         as Export
 import           Ledger.TxId       as Export
 import           Ledger.Validation as Export
-import           Ledger.Value      (CurrencySymbol, Value)
+import           Ledger.Value      (CurrencySymbol, TokenName, Value)

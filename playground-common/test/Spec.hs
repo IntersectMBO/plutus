@@ -3,9 +3,8 @@ module Main
     ) where
 
 import qualified Auth.TypesSpec
-import qualified SchemaSpec
 import           Test.Tasty     (defaultMain, testGroup)
 
 main :: IO ()
 main =
-    defaultMain $ testGroup "all tests" [Auth.TypesSpec.tests, SchemaSpec.tests]
+    defaultMain $ testGroup "all tests" [Auth.TypesSpec.tests]

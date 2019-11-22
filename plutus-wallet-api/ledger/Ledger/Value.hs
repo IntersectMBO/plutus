@@ -1,14 +1,14 @@
-{-# LANGUAGE OverloadedLists    #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLists       #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -40,36 +40,35 @@ module Ledger.Value(
     , split
     ) where
 
-import qualified Prelude                      as Haskell
+import qualified Prelude                          as Haskell
 
-import           Codec.Serialise.Class        (Serialise)
-import           Data.Aeson                   (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Extras            as JSON
-import qualified Data.ByteString.Lazy         as BSL
-import qualified Data.ByteString.Lazy.Char8   as C8
-import           Data.Hashable                (Hashable)
-import           Data.String                  (IsString(fromString))
-import qualified Data.Text                    as Text
+import           Codec.Serialise.Class            (Serialise)
+import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
+import qualified Data.Aeson                       as JSON
+import qualified Data.Aeson.Extras                as JSON
+import qualified Data.ByteString.Lazy             as BSL
+import qualified Data.ByteString.Lazy.Char8       as C8
+import           Data.Hashable                    (Hashable)
+import           Data.String                      (IsString (fromString))
+import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                 (Generic)
-import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Lift       (makeLift)
+import           GHC.Generics                     (Generic)
+import           IOTS                             (IotsType)
+import qualified Language.PlutusTx                as PlutusTx
+import qualified Language.PlutusTx.AssocMap       as Map
+import qualified Language.PlutusTx.Builtins       as Builtins
+import           Language.PlutusTx.Lift           (makeLift)
 import           Language.PlutusTx.Prelude
-import qualified Language.PlutusTx.AssocMap   as Map
 import           Language.PlutusTx.These
-import           LedgerBytes                  (LedgerBytes(LedgerBytes))
-import           Schema                       (ToSchema(toSchema), FormSchema(FormSchemaValue))
-import           IOTS                         (IotsType)
-import           Ledger.Orphans               ()
+import           Ledger.Orphans                   ()
+import           LedgerBytes                      (LedgerBytes (LedgerBytes))
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
-    deriving anyclass (Hashable, ToJSONKey, FromJSONKey, ToSchema, IotsType)
+    deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  IotsType)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -98,7 +97,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
-    deriving anyclass (Hashable, ToSchema, IotsType)
+    deriving anyclass (Hashable,  IotsType)
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
@@ -147,9 +146,6 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
     deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
     deriving newtype (Serialise, PlutusTx.IsData)
     deriving Pretty via (PrettyShow Value)
-
-instance ToSchema Value where
-    toSchema = FormSchemaValue
 
 -- Orphan instances for 'Map' to make this work
 instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where

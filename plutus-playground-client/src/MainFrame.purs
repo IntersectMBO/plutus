@@ -1,16 +1,18 @@
 module MainFrame
-  ( mainFrame
+  ( mkMainFrame
   , handleAction
-  , initialState
+  , mkInitialState
   ) where
 
-import Types
+import Prelude
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Annotation)
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Chain.Eval as Chain
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..))
+import Control.Monad.Error.Class (class MonadThrow)
+import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
@@ -23,13 +25,12 @@ import Cursor (_current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
 import Data.Array (deleteAt, snoc) as Array
-import Data.Array.Extra (move, lookup) as Array
+import Data.Array.Extra (move) as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Functor.Fix (Fix(..))
-import Data.Generic.Rep.Eq (genericEq)
+import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
-import Data.Lens (_2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
+import Data.Lens (Traversal', _2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -37,7 +38,6 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
-import Data.Ord (Ordering(..))
 import Data.String as String
 import Editor (EditorAction(..))
 import Effect (Effect)
@@ -51,18 +51,20 @@ import Halogen (Component)
 import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
 import Ledger.Value (Value)
 import Matryoshka (cata)
 import MonadApp (class MonadApp, editorGetContents, editorGotoLine, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, readFileFromDragEvent, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_)
-import Playground.Types (FormArgumentF(..), KnownCurrency, SimulatorWallet(SimulatorWallet), _CompilationResult, _FunctionSchema)
-import Prelude (Unit, Void, bind, const, discard, flip, join, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
+import Playground.Types (ContractCall(..), ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(SimulatorWallet), _CallEndpoint, _FunctionSchema, _PayToWallet)
+import Schema (FormArgumentF(..))
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
+import StaticData (mkContractDemos)
 import StaticData as StaticData
+import Types (ActionEvent(..), ChildSlots, DragAndDropEventType(..), FieldEvent(..), FormArgument, FormEvent(..), HAction(..), Query, SimulatorAction, State(..), ValueEvent(..), View(..), WalletEvent(..), WebData, _actionDrag, _amount, _argumentValues, _arguments, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _recipient, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _value, _walletId, getKnownCurrencies, mkInitialValue, toArgument, toEvaluation)
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
@@ -74,52 +76,57 @@ mkSimulatorWallet currencies walletId =
     , simulatorWalletBalance: mkInitialValue currencies 10
     }
 
-mkSimulation :: Array KnownCurrency -> Signatures -> Simulation
-mkSimulation currencies signatures =
+mkSimulation :: Array KnownCurrency -> String -> Simulation
+mkSimulation simulationCurrencies simulationName =
   Simulation
-    { signatures
-    , actions: []
-    , wallets: mkSimulatorWallet currencies <$> 1 .. 2
-    , currencies
+    { simulationName
+    , simulationActions: []
+    , simulationWallets: mkSimulatorWallet simulationCurrencies <$> 1 .. 2
     }
 
-initialState :: State
-initialState =
-  State
-    { currentView: Editor
-    , compilationResult: NotAsked
-    , simulations: Cursor.empty
-    , actionDrag: Nothing
-    , evaluationResult: NotAsked
-    , authStatus: NotAsked
-    , createGistResult: NotAsked
-    , gistUrl: Nothing
-    , blockchainVisualisationState:
-      { chainFocus: Nothing
-      , chainFocusAppearing: false
-      , chainFocusAge: EQ
-      }
-    }
+mkInitialState :: forall m. MonadThrow String m => m State
+mkInitialState = do
+  contractDemos <- mapError (\e -> "Could not load demo scripts. Parsing errors: " <> show e) mkContractDemos
+  pure
+    $ State
+        { currentView: Editor
+        , contractDemos
+        , compilationResult: NotAsked
+        , simulations: Cursor.empty
+        , actionDrag: Nothing
+        , evaluationResult: NotAsked
+        , authStatus: NotAsked
+        , createGistResult: NotAsked
+        , gistUrl: Nothing
+        , blockchainVisualisationState:
+          { chainFocus: Nothing
+          , chainFocusAppearing: false
+          , chainFocusAge: EQ
+          }
+        }
 
 ------------------------------------------------------------
-mainFrame ::
-  forall m.
+mkMainFrame ::
+  forall m n.
+  MonadThrow String n =>
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  Component HTML Query HAction Void m
-mainFrame =
-  H.mkComponent
-    { initialState: const initialState
-    , render: View.render
-    , eval:
-      H.mkEval
-        { handleAction: handleActionWithAnalyticsTracking
-        , handleQuery: const $ pure Nothing
-        , initialize: Just CheckAuthStatus
-        , receive: const Nothing
-        , finalize: Nothing
+  n (Component HTML Query HAction Void m)
+mkMainFrame = do
+  initialState <- mkInitialState
+  pure
+    $ H.mkComponent
+        { initialState: const initialState
+        , render: View.render
+        , eval:
+          H.mkEval
+            { handleAction: handleActionWithAnalyticsTracking
+            , handleQuery: const $ pure Nothing
+            , initialize: Just CheckAuthStatus
+            , receive: const Nothing
+            , finalize: Nothing
+            }
         }
-    }
 
 handleActionWithAnalyticsTracking ::
   forall m.
@@ -186,7 +193,13 @@ toEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction"
 
 toEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
 
+toEvent (ModifyActions (SetPayToWalletValue _ _)) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
+
+toEvent (ModifyActions (SetPayToWalletRecipient _ _)) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
+
 toEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
+
+toEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
 
 toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 
@@ -225,7 +238,7 @@ handleAction (ActionDragAndDrop _ DragLeave event) = pure unit
 handleAction (ActionDragAndDrop destination Drop event) = do
   use _actionDrag
     >>= case _ of
-        Just source -> modifying (_simulations <<< _current <<< _actions) (Array.move source destination)
+        Just source -> modifying (_simulations <<< _current <<< _simulationActions) (Array.move source destination)
         _ -> pure unit
   preventDefault event
   assign _actionDrag Nothing
@@ -242,7 +255,7 @@ handleAction (GistAction subEvent) = handleGistAction subEvent
 
 handleAction (ChangeView view) = assign _currentView view
 
-handleAction (ModifyActions actionEvent) = modifying (_simulations <<< _current <<< _actions) (handleActionActionEvent actionEvent)
+handleAction (ModifyActions actionEvent) = modifying (_simulations <<< _current <<< _simulationActions) (handleActionActionEvent actionEvent)
 
 handleAction EvaluateActions =
   void
@@ -264,9 +277,19 @@ handleAction EvaluateActions =
 
 handleAction AddSimulationSlot = do
   knownCurrencies <- getKnownCurrencies
-  mSignatures <- peruse (_compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult <<< _functionSchema)
+  mSignatures <- peruse (_successfulCompilationResult <<< _functionSchema)
   case mSignatures of
-    Just signatures -> modifying _simulations (flip Cursor.snoc (mkSimulation knownCurrencies signatures))
+    Just signatures ->
+      modifying _simulations
+        ( \simulations ->
+            let
+              count = Cursor.length simulations
+
+              simulationName = "Simulation #" <> show (count + 1)
+            in
+              Cursor.snoc simulations
+                (mkSimulation knownCurrencies simulationName)
+        )
     Nothing -> pure unit
 
 handleAction (SetSimulationSlot index) = modifying _simulations (Cursor.setIndex index)
@@ -275,7 +298,7 @@ handleAction (RemoveSimulationSlot index) = modifying _simulations (Cursor.delet
 
 handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
-  modifying (_simulations <<< _current <<< _wallets) (handleActionWalletEvent (mkSimulatorWallet knownCurrencies) action)
+  modifying (_simulations <<< _current <<< _simulationWallets) (handleActionWalletEvent (mkSimulatorWallet knownCurrencies) action)
 
 handleAction (PopulateAction n l event) = do
   knownCurrencies <- getKnownCurrencies
@@ -284,12 +307,12 @@ handleAction (PopulateAction n l event) = do
   modifying
     ( _simulations
         <<< _current
-        <<< _actions
+        <<< _simulationActions
         <<< ix n
-        <<< _Action
-        <<< _functionSchema
+        <<< _CallEndpoint
+        <<< _argumentValues
         <<< _FunctionSchema
-        <<< _argumentSchema
+        <<< _arguments
         <<< ix l
     )
     (handleActionForm initialValue event)
@@ -307,35 +330,37 @@ handleEditorAction (HandleDragEvent event) = preventDefault event
 handleEditorAction (HandleDropEvent event) = do
   preventDefault event
   contents <- readFileFromDragEvent event
-  editorSetContents contents (Just 1)
+  editorSetContents (SourceCode contents) (Just 1)
   saveBuffer contents
 
 handleEditorAction (LoadScript key) = do
-  case Array.lookup key StaticData.demoFiles of
+  contractDemos <- use _contractDemos
+  case StaticData.lookup key contractDemos of
     Nothing -> pure unit
-    Just contents -> do
-      editorSetContents contents (Just 1)
-      saveBuffer contents
+    Just (ContractDemo { contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
+      editorSetContents contractDemoEditorContents (Just 1)
+      saveBuffer (unwrap contractDemoEditorContents)
       assign _currentView Editor
-      assign _compilationResult NotAsked
+      assign _simulations $ Cursor.fromArray contractDemoSimulations
+      assign _compilationResult (Success <<< JsonEither <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
-      assign _simulations Cursor.empty
 
 handleEditorAction CompileProgram = do
   mContents <- editorGetContents
   case mContents of
     Nothing -> pure unit
     Just contents -> do
+      oldCompilationResult <- use _compilationResult
       assign _compilationResult Loading
-      result <- postContract contents
-      assign _compilationResult result
+      newCompilationResult <- postContract contents
+      assign _compilationResult newCompilationResult
       -- If we got a successful result, switch tab.
-      case result of
+      case newCompilationResult of
         Success (JsonEither (Left _)) -> pure unit
-        _ -> replaceViewOnSuccess result Editor Simulations
+        _ -> replaceViewOnSuccess newCompilationResult Editor Simulations
       -- Update the error display.
       editorSetAnnotations
-        $ case result of
+        $ case newCompilationResult of
             Success (JsonEither (Left errors)) -> toAnnotations errors
             _ -> []
       -- If we have a result with new signatures, we can only hold
@@ -344,17 +369,30 @@ handleEditorAction CompileProgram = do
       -- Same thing for currencies.
       -- Potentially we could be smarter about this. But for now,
       -- let's at least be correct.
-      case preview (_Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result <<< _CompilationResult) result of
-        Just { functionSchema: newSignatures, knownCurrencies: newCurrencies } -> do
-          oldSimulation <- peruse (_simulations <<< _current <<< _Newtype)
-          unless
-            ( ((_.signatures <$> oldSimulation) `genericEq` Just newSignatures)
-                && ((_.currencies <$> oldSimulation) `genericEq` Just newCurrencies)
-            )
-            (assign _simulations $ Cursor.singleton $ mkSimulation newCurrencies newSignatures)
-        _ -> pure unit
+      let
+        oldSignatures = preview (_details <<< _functionSchema) oldCompilationResult
+
+        newSignatures = preview (_details <<< _functionSchema) newCompilationResult
+
+        oldCurrencies = preview (_details <<< _knownCurrencies) oldCompilationResult
+
+        newCurrencies = preview (_details <<< _knownCurrencies) newCompilationResult
+      unless
+        ( oldSignatures == newSignatures
+            && oldCurrencies
+            == newCurrencies
+        )
+        ( assign _simulations
+            $ case newCurrencies of
+                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation 1"
+                Nothing -> Cursor.empty
+        )
+      pure unit
 
 handleEditorAction (ScrollTo { row, column }) = editorGotoLine row (Just column)
+
+_details :: forall a. Traversal' (WebData (JsonEither InterpreterError (InterpreterResult a))) a
+_details = _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
 handleGistAction PublishGist = do
@@ -389,7 +427,7 @@ handleGistAction LoadGist =
         --
         -- Load the source, if available.
         content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
-        lift $ editorSetContents content (Just 1)
+        lift $ editorSetContents (SourceCode content) (Just 1)
         lift $ saveBuffer content
         assign _simulations Cursor.empty
         assign _evaluationResult NotAsked
@@ -428,14 +466,20 @@ handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
 handleActionValueEvent :: ValueEvent -> Value -> Value
 handleActionValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
 
-handleActionActionEvent :: ActionEvent -> Array Action -> Array Action
+handleActionActionEvent :: ActionEvent -> Array SimulatorAction -> Array SimulatorAction
 handleActionActionEvent (AddAction action) = flip Array.snoc action
 
-handleActionActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
+handleActionActionEvent (AddWaitAction blocks) = flip Array.snoc (AddBlocks { blocks })
 
 handleActionActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
 
-handleActionActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
+handleActionActionEvent (SetWaitTime index blocks) = set (ix index) (AddBlocks { blocks })
+
+handleActionActionEvent (SetPayToWalletValue index valueEvent) = over (ix index <<< _PayToWallet <<< _amount) (handleActionValueEvent valueEvent)
+
+handleActionActionEvent (SetPayToWalletRecipient index recipient) = set (ix index <<< _PayToWallet <<< _recipient) recipient
+
+handleActionActionEvent (SetWaitUntilTime index slot) = set (ix index) (AddBlocksUntil { slot })
 
 handleActionForm ::
   Value ->

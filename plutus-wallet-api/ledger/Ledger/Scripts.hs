@@ -78,7 +78,6 @@ import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Orphans                           ()
-import           Schema                                   (ToSchema)
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
@@ -246,7 +245,7 @@ newtype ValidatorHash =
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 instance IotsType ValidatorHash where
     iotsDefinition = iotsDefinition @LedgerBytes
@@ -257,7 +256,7 @@ newtype DataScriptHash =
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 instance IotsType DataScriptHash where
     iotsDefinition = iotsDefinition @LedgerBytes
@@ -268,7 +267,7 @@ newtype RedeemerHash =
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 instance IotsType RedeemerHash where
     iotsDefinition = iotsDefinition @LedgerBytes

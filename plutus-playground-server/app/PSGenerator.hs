@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -18,19 +19,32 @@ module PSGenerator
 import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
 import           Control.Applicative                        (empty, (<|>))
-import           Control.Lens                               (set, (&))
+import           Control.Lens                               (itraverse, set, (&))
+import           Control.Monad                              (void)
+import           Control.Monad.Catch                        (MonadMask)
+import           Control.Monad.Except                       (MonadError, runExceptT)
+import           Control.Monad.IO.Class                     (MonadIO)
 import           Control.Monad.Reader                       (MonadReader)
+import qualified CrowdFunding
+import qualified CrowdFundingSimulations
+import           Data.Aeson                                 (ToJSON, toJSON)
+import qualified Data.Aeson                                 as JSON
+import qualified Data.Aeson.Encode.Pretty                   as JSON
 import qualified Data.ByteString                            as BS
+import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Monoid                                ()
 import           Data.Proxy                                 (Proxy (Proxy))
-import qualified Data.Set                                   as Set ()
 import           Data.Text                                  (Text)
-import qualified Data.Text                                  as T ()
-import qualified Data.Text.Encoding                         as T (encodeUtf8)
-import qualified Data.Text.IO                               as T ()
+import qualified Data.Text.Encoding                         as T (decodeUtf8, encodeUtf8)
+import           Data.Time.Units                            (Microsecond, fromMicroseconds)
+import qualified ErrorHandling
+import qualified ErrorHandlingSimulations
+import qualified Game
+import qualified GameSimulations
 import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
-                                                             SourceCode, Warning)
+import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
+                                                             InterpreterResult (InterpreterResult),
+                                                             SourceCode (SourceCode), Warning, result, warnings)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
                                                              TypeInfo (TypeInfo), buildBridge, doCheck, equal, equal1,
                                                              functor, genericShow, haskType, isTuple, mkSumType, order,
@@ -51,16 +65,28 @@ import           Ledger.Scripts                             (ScriptError)
 import           Ledger.Slot                                (Slot)
 import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
-import           Playground.Types                           (CompilationResult, EndpointName, Evaluation,
-                                                             EvaluationResult, FormArgumentF, FunctionSchema,
-                                                             KnownCurrency, PlaygroundError, SimulatorWallet)
-import           Playground.Usecases                        (crowdfunding, errorHandling, game, starter, vesting)
-import           Schema                                     (FormSchema)
+import qualified Playground.Interpreter                     as PI
+import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
+                                                             ContractDemo (ContractDemo), EndpointName,
+                                                             Evaluation (Evaluation), EvaluationResult, FunctionSchema,
+                                                             KnownCurrency, PlaygroundError, Simulation (Simulation),
+                                                             SimulatorAction, SimulatorWallet, contractDemoContext,
+                                                             contractDemoEditorContents, contractDemoName,
+                                                             contractDemoSimulations, functionSchema, iotsSpec,
+                                                             knownCurrencies, program, simulationActions,
+                                                             simulationWallets, sourceCode, wallets)
+import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
+import qualified Playground.Usecases                        as Usecases
+import           Schema                                     (FormArgumentF, FormSchema, formArgumentToJson)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings, _generateSubscriberAPI)
+import qualified Starter
+import qualified StarterSimulations
 import           System.FilePath                            ((</>))
+import qualified Vesting
+import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
 import qualified Wallet.Emulator.Chain                      as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
@@ -225,11 +251,14 @@ myTypes =
     [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
     , (functor <*> (genericShow <*> (equal <*> mkSumType)))
           (Proxy @(FunctionSchema A))
-    , (genericShow <*> mkSumType) (Proxy @CompilationResult)
-    , (genericShow <*> mkSumType) (Proxy @Warning)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @CompilationResult)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Warning)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointName)
-    , (genericShow <*> mkSumType) (Proxy @SourceCode)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @SourceCode)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EM.Wallet)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Simulation)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DataScript)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
@@ -282,7 +311,7 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Value)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
-    , (genericShow <*> mkSumType) (Proxy @(InterpreterResult A))
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
     , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
@@ -296,22 +325,81 @@ multilineString :: Text -> Text -> Text
 multilineString name value =
     "\n\n" <> name <> " :: String\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
 
+jsonExport :: ToJSON a => Text -> a -> Text
+jsonExport name value =
+    multilineString name (T.decodeUtf8 . BSL.toStrict $ JSON.encode value)
+
+sourceCodeExport :: Text -> SourceCode -> Text
+sourceCodeExport name (SourceCode value) = multilineString name value
+
 psModule :: Text -> Text -> Text
 psModule name body = "module " <> name <> " where" <> body
 
+------------------------------------------------------------
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "vesting" vesting <> multilineString "game" game <>
-            multilineString "crowdfunding" crowdfunding <>
-            multilineString "errorHandling" errorHandling <>
-            multilineString "starter" starter
+            sourceCodeExport "vesting" vesting <> sourceCodeExport "game" game <>
+            sourceCodeExport "crowdFunding" crowdFunding <>
+            sourceCodeExport "errorHandling" errorHandling <>
+            sourceCodeExport "starter" starter <>
+            jsonExport "contractDemos" contractDemos
         usecasesModule = psModule "Playground.Usecases" usecases
     BS.writeFile
         (outputDir </> "Playground" </> "Usecases.purs")
         (T.encodeUtf8 usecasesModule)
-    putStrLn outputDir
 
+------------------------------------------------------------
+writeTestData :: FilePath -> IO ()
+writeTestData outputDir = do
+    let ContractDemo { contractDemoContext
+                     , contractDemoSimulations
+                     , contractDemoEditorContents
+                     } = head contractDemos
+    BSL.writeFile
+        (outputDir </> "compilation_response.json")
+        (JSON.encodePretty contractDemoContext)
+    void $
+        itraverse
+            (\index ->
+                 writeSimulation
+                     (outputDir </> "evaluation_response" <> show index <>
+                      ".json")
+                     contractDemoEditorContents)
+            contractDemoSimulations
+
+writeSimulation :: FilePath -> SourceCode -> Simulation -> IO ()
+writeSimulation filename sourceCode simulation = do
+    result <- runExceptT $ runSimulation sourceCode simulation
+    case result of
+        Left err   -> fail $ "Error evaluating simulation: " <> show err
+        Right json -> BSL.writeFile filename json
+
+runSimulation ::
+       (MonadMask m, MonadError PlaygroundError m, MonadIO m)
+    => SourceCode
+    -> Simulation
+    -> m BSL.ByteString
+runSimulation sourceCode Simulation {simulationActions, simulationWallets} = do
+    let maxInterpretationTime :: Microsecond
+        maxInterpretationTime = fromMicroseconds (80 * 1000 * 1000)
+        evaluation =
+            Evaluation
+                { sourceCode
+                , wallets = simulationWallets
+                , program =
+                      toJSON . encodeToText $ toExpression <$> simulationActions
+                }
+    interpreterResult <- PI.evaluateSimulation maxInterpretationTime evaluation
+    pure $ JSON.encodePretty interpreterResult
+
+encodeToText :: ToJSON a => a -> Text
+encodeToText = T.decodeUtf8 . BSL.toStrict . JSON.encode
+
+toExpression :: SimulatorAction -> Maybe (ContractCall Text)
+toExpression = traverse (fmap encodeToText . formArgumentToJson)
+
+------------------------------------------------------------
 generate :: FilePath -> IO ()
 generate outputDir = do
     writeAPIModuleWithSettings
@@ -327,3 +415,61 @@ generate outputDir = do
         (buildBridge myBridge)
         myTypes
     writeUsecases outputDir
+    writeTestData outputDir
+    putStrLn $ "Done: " <> outputDir
+
+------------------------------------------------------------
+contractDemos :: [ContractDemo]
+contractDemos =
+    [ mkContractDemo
+          "Starter"
+          Usecases.starter
+          StarterSimulations.simulations
+          Starter.schemas
+          Starter.registeredKnownCurrencies
+    , mkContractDemo
+          "Game"
+          Usecases.game
+          GameSimulations.simulations
+          Game.schemas
+          Game.registeredKnownCurrencies
+    , mkContractDemo
+          "Vesting"
+          Usecases.vesting
+          VestingSimulations.simulations
+          Vesting.schemas
+          Vesting.registeredKnownCurrencies
+    , mkContractDemo
+          "Crowd Funding"
+          Usecases.crowdFunding
+          CrowdFundingSimulations.simulations
+          CrowdFunding.schemas
+          CrowdFunding.registeredKnownCurrencies
+    , mkContractDemo
+          "Error Handling"
+          Usecases.errorHandling
+          ErrorHandlingSimulations.simulations
+          ErrorHandling.schemas
+          ErrorHandling.registeredKnownCurrencies
+    ]
+
+mkContractDemo ::
+       Text
+    -> SourceCode
+    -> [Simulation]
+    -> [FunctionSchema FormSchema]
+    -> [KnownCurrency]
+    -> ContractDemo
+mkContractDemo contractDemoName contractDemoEditorContents contractDemoSimulations functionSchema knownCurrencies =
+    ContractDemo
+        { contractDemoName
+        , contractDemoEditorContents
+        , contractDemoSimulations
+        , contractDemoContext =
+              InterpreterResult
+                  { warnings = []
+                  , result =
+                        CompilationResult
+                            {functionSchema, knownCurrencies, iotsSpec = ""}
+                  }
+        }

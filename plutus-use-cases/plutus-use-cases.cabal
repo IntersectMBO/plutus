@@ -62,6 +62,7 @@ library
         mtl -any,
         playground-common -any,
         plutus-tx -any,
+        plutus-playground-lib -any,
         plutus-wallet-api -any,
         plutus-emulator -any,
         template-haskell -any,

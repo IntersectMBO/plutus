@@ -33,7 +33,6 @@ import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import qualified Language.PlutusTx.Prelude  as P
-import           Schema                     (ToSchema (toSchema))
 import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
@@ -81,9 +80,6 @@ instance IsString LedgerBytes where
 
 instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . BSL.toStrict . bytes
-
-instance ToSchema LedgerBytes where
-  toSchema = toSchema @String
 
 instance IotsType LedgerBytes where
   iotsDefinition = iotsDefinition @String

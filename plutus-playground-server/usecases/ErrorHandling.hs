@@ -84,3 +84,5 @@ endpoints :: (AsMyError e, AsContractError e) => Contract Schema e ()
 endpoints = contract
 
 mkSchemaDefinitions ''Schema
+
+$(mkKnownCurrencies [])

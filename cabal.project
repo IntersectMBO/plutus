@@ -41,7 +41,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/shmish111/purescript-bridge.git
-  tag: 0042602f8a195b1fe185138f9ccca02020b8dd62
+  tag: 28c37771ef30b0d751960c061ef95627f05d290e
 
 source-repository-package
   type: git

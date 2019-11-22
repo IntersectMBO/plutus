@@ -4,18 +4,18 @@ module Action
   ) where
 
 import Types
-import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col10_, col2_, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
+import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Functor.Fix (Fix(..))
+import Data.Functor.Foldable (Fix(..))
 import Data.Int as Int
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (Lens', over, preview, set, view)
+import Data.Lens (Lens', over, preview, review, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.String as String
 import Data.Tuple (Tuple(..))
@@ -31,24 +31,27 @@ import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.Types (EvaluationResult, FormArgumentF(..), PlaygroundError(..), _EndpointName, _FunctionSchema)
-import Prelude (const, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==))
+import Playground.Types (ContractCall(..), EvaluationResult, FunctionSchema, PlaygroundError(..), Simulation(..), _CallEndpoint, _EndpointName, _FunctionSchema)
+import Prelude (const, map, mempty, not, pure, show, zero, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
 import Prim.TypeError (class Warn, Text)
+import Schema (FormSchema, FormArgumentF(..))
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
+import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 simulationPane ::
   forall m.
   Value ->
   Maybe Int ->
+  Array (FunctionSchema FormSchema) ->
   Cursor Simulation ->
   WebData (JsonEither PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m
-simulationPane initialValue actionDrag simulations evaluationResult = case current simulations of
-  Just (Simulation simulation) ->
+simulationPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
+  Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
     let
       isValidWallet :: Wallet -> Boolean
       isValidWallet target =
@@ -58,13 +61,13 @@ simulationPane initialValue actionDrag simulations evaluationResult = case curre
                   view _walletId target
                     == view (_simulatorWalletWallet <<< _walletId) wallet
               )
-              simulation.wallets
+              simulationWallets
     in
       div_
         [ simulationsNav simulations
-        , walletsPane simulation.signatures initialValue simulation.wallets
+        , walletsPane endpointSignatures initialValue simulationWallets
         , br_
-        , actionsPane isValidWallet actionDrag simulation.actions evaluationResult
+        , actionsPane isValidWallet actionDrag simulationActions evaluationResult
         ]
   Nothing ->
     div_
@@ -80,27 +83,30 @@ simulationsNav simulations =
     , classes [ btnGroup, btnGroupSmall ]
     ]
     ( ( simulations
-          # Cursor.mapWithIndex (simulationNavItem (Cursor.getIndex simulations))
+          # Cursor.mapWithIndex (simulationNavItem (Cursor.length simulations > 1) (Cursor.getIndex simulations))
           # Cursor.toArray
           # Array.concat
       )
         <> [ addSimulationControl ]
     )
 
-simulationNavItem :: forall p. Int -> Int -> Simulation -> Array (HTML p HAction)
-simulationNavItem activeIndex index simulation =
+simulationNavItem :: forall p. Boolean -> Int -> Int -> Simulation -> Array (HTML p HAction)
+simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   [ button
       [ id_ $ "simulation-nav-item-" <> show index
       , classes $ buttonClasses <> [ simulationNavItemNameClass ]
       , onClick $ const $ Just $ SetSimulationSlot index
       ]
-      [ text $ "Simulation #" <> show (index + 1) ]
-  , button
-      [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
-      , classes $ buttonClasses <> [ simulationNavItemCloseClass ]
-      , onClick $ const $ Just $ RemoveSimulationSlot index
-      ]
-      [ icon Close ]
+      [ text simulationName ]
+  , if canClose then
+      button
+        [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
+        , classes $ buttonClasses <> [ simulationNavItemCloseClass ]
+        , onClick $ const $ Just $ RemoveSimulationSlot index
+        ]
+        [ icon Close ]
+    else
+      Bootstrap.empty
   ]
   where
   buttonClasses =
@@ -125,7 +131,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array Action -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array SimulatorAction -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -147,7 +153,7 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> Action -> Tuple String (HTML p HAction)
+actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> SimulatorAction -> Tuple String (HTML p HAction)
 actionPane isValidWallet actionDrag index action =
   Tuple (show index)
     $ responsiveThird
@@ -157,7 +163,7 @@ actionPane isValidWallet actionDrag index action =
                     , ClassName ("action-" <> show index)
                     , ClassName
                         ( "action-"
-                            <> ( case isValidWallet <$> (preview (_Action <<< _simulatorWallet <<< _simulatorWalletWallet) action) of
+                            <> ( case isValidWallet <$> (preview (_CallEndpoint <<< _caller) action) of
                                   Nothing -> "valid-wallet"
                                   Just true -> "valid-wallet"
                                   Just false -> "invalid-wallet"
@@ -183,36 +189,105 @@ actionPane isValidWallet actionDrag index action =
                         , onClick $ const $ Just $ ModifyActions $ RemoveAction index
                         ]
                         [ icon Close ]
-                    , case action of
-                        Action { simulatorWallet, functionSchema } ->
-                          div_
-                            [ h3_
-                                [ walletIdPane (view _simulatorWalletWallet simulatorWallet)
-                                , text ": "
-                                , text $ view (_FunctionSchema <<< _functionName <<< _EndpointName) functionSchema
-                                ]
-                            , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
-                            ]
-                        Wait { blocks } ->
-                          div_
-                            [ h3_ [ text "Wait" ]
-                            , row_
-                                [ col_ [ text "Time" ]
-                                , col_
-                                    [ input
-                                        [ type_ InputNumber
-                                        , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
-                                        , value $ show blocks
-                                        , placeholder "Int"
-                                        , onValueInput $ map (ModifyActions <<< SetWaitTime index) <<< Int.fromString
-                                        ]
-                                    ]
-                                ]
-                            ]
+                    , actionPaneBody index action
                     ]
                 ]
             ]
         ]
+
+actionPaneBody :: forall p. Int -> ContractCall (Fix FormArgumentF) -> HTML p HAction
+actionPaneBody index (CallEndpoint { caller, argumentValues }) =
+  div_
+    [ h3_
+        [ walletIdPane caller
+        , text ": "
+        , text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) argumentValues
+        ]
+    , actionArgumentForm index $ view (_FunctionSchema <<< _arguments) argumentValues
+    ]
+
+actionPaneBody index (PayToWallet { sender, recipient, amount }) =
+  div_
+    [ h3_ [ walletIdPane sender, text ": Pay To Wallet" ]
+    , formGroup_
+        [ label [ for "recipient" ] [ text "Recipient" ]
+        , input
+            [ type_ InputNumber
+            , classes [ formControl ]
+            , value $ show $ view _walletId recipient
+            , required true
+            , placeholder "Wallet ID"
+            , onIntInput (ModifyActions <<< SetPayToWalletRecipient index <<< review _walletId)
+            ]
+        ]
+    , formGroup_
+        [ label [ for "amount" ] [ text "Amount" ]
+        , valueForm (ModifyActions <<< SetPayToWalletValue index) amount
+        ]
+    ]
+
+actionPaneBody index (AddBlocks { blocks }) =
+  div_
+    [ h3_ [ text "Wait" ]
+    , waitTypeButtons index (Right blocks)
+    , formGroup_
+        [ formRow_
+            [ label [ classes [ col, colFormLabel ] ]
+                [ text "Block" ]
+            , col_
+                [ input
+                    [ type_ InputNumber
+                    , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
+                    , value $ show blocks
+                    , placeholder "Block Number"
+                    , onIntInput $ ModifyActions <<< SetWaitTime index
+                    ]
+                ]
+            ]
+        ]
+    ]
+
+actionPaneBody index (AddBlocksUntil { slot }) =
+  div_
+    [ h3_ [ text "Wait" ]
+    , waitTypeButtons index (Left slot)
+    , formGroup_
+        [ formRow_
+            [ label [ classes [ col, colFormLabel ] ]
+                [ text "Slot" ]
+            , col_
+                [ input
+                    [ type_ InputNumber
+                    , classes [ formControl, ClassName $ "action-argument-0-until-slot" ]
+                    , value $ show $ view _InSlot slot
+                    , placeholder "Slot Number"
+                    , onIntInput $ ModifyActions <<< SetWaitUntilTime index <<< review _InSlot
+                    ]
+                ]
+            ]
+        ]
+    ]
+
+waitTypeButtons :: forall p. Int -> Either Slot Int -> HTML p HAction
+waitTypeButtons index wait =
+  btnGroup_
+    [ button
+        ( case wait of
+            Left slot -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitTime index $ view _InSlot slot ]
+            Right _ -> [ classes activeClasses ]
+        )
+        [ text "Wait For..." ]
+    , button
+        ( case wait of
+            Right blocks -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitUntilTime index $ review _InSlot blocks ]
+            Left _ -> [ classes activeClasses ]
+        )
+        [ text "Wait Until..." ]
+    ]
+  where
+  activeClasses = [ btn, btnSmall, btnPrimary ]
+
+  inactiveClasses = [ btn, btnSmall, btnInfo ]
 
 validationClasses ::
   forall a.
@@ -485,7 +560,7 @@ actionArgumentField _ _ (Fix (FormMaybeF dataType child)) =
     , code_ [ text $ show child ]
     ]
 
-actionArgumentField _ _ (Fix (FormUnsupportedF { description })) =
+actionArgumentField _ _ (Fix (FormUnsupportedF description)) =
   div_
     [ text "Unsupported"
     , code_ [ text description ]
@@ -521,7 +596,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array Action -> HTML p HAction
+evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array SimulatorAction -> HTML p HAction
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
@@ -615,3 +690,6 @@ showPlaygroundError PlaygroundTimeout = "Evaluation timed out"
 showPlaygroundError (OtherError error) = error
 
 showPlaygroundError _ = "Unexpected interpreter error"
+
+onIntInput :: forall i r. (Int -> i) -> IProp ( onInput :: Event, value :: String | r ) i
+onIntInput f = onValueInput $ map f <<< Int.fromString

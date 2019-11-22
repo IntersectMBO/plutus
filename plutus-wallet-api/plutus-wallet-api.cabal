@@ -155,7 +155,6 @@ library plutus-ledger
         newtype-generics -any,
         http-api-data -any,
         cardano-crypto -any,
-        playground-common -any,
         deepseq -any
 
     ghc-options: -fprint-potential-instances

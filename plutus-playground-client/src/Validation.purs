@@ -4,13 +4,16 @@ import Prelude
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Foldable (class Foldable)
-import Data.Functor.Fix (Fix)
+import Data.Functor.Foldable (Fix)
 import Data.Generic.Rep (class Generic)
 import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Lens (view)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Matryoshka (Algebra, cata)
-import Playground.Types (FormArgumentF(..))
+import Schema (FormArgumentF(..))
+import Playground.Types (ContractCall(..), _FunctionSchema)
+import Types (_argumentValues, _arguments)
 
 class Validation a where
   validate :: a -> Array (WithPath ValidationError)
@@ -103,3 +106,13 @@ instance validationFormArgument :: Validation (Fix FormArgumentF) where
     algebra (FormSlotRangeF _) = []
 
     algebra (FormUnsupportedF _) = [ noPath Unsupported ]
+
+------------------------------------------------------------
+instance simulatorActionValidation :: Validation (ContractCall (Fix FormArgumentF)) where
+  validate (AddBlocks _) = []
+  validate (AddBlocksUntil _) = []
+  validate (PayToWallet _) = []
+  validate (CallEndpoint call) = Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
+    where
+    args :: Array (Fix FormArgumentF)
+    args = view (_argumentValues <<< _FunctionSchema <<< _arguments) call

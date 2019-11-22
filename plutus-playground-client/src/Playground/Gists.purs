@@ -15,8 +15,8 @@ import Foreign.Generic (encodeJSON)
 import Gist (Gist, GistFile, NewGist(NewGist), NewGistFile(NewGistFile))
 import Gists (firstMatch)
 import Language.Haskell.Interpreter (SourceCode)
+import Playground.Types (Simulation)
 import Prelude (($), (<$>), (<<<))
-import Types (Simulation)
 
 mkNewGist ::
   { source :: Maybe SourceCode

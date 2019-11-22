@@ -11,13 +11,14 @@ import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(JsonEither))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
+import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(..))
 import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
-import Language.Haskell.Interpreter (CompilationError, InterpreterError, InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError, InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..), PlaygroundError)
+import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
 import Test.QuickCheck.Gen (Gen, chooseInt, vectorOf)
 import Test.Unit (TestSuite, failure, success, suite, test)
@@ -52,8 +53,11 @@ jsonHandlingTests = do
         "test/known_currency.json"
     test "Decode a compilation response." do
       assertDecodesTo
-        (Proxy :: Proxy (JsonEither InterpreterError (InterpreterResult CompilationResult)))
-        "test/compilation_response1.json"
+        (Proxy :: Proxy (InterpreterResult CompilationResult))
+        "generated/compilation_response.json"
+    test "Decode an EvaluationResult." do
+      assertDecodesTo (Proxy :: Proxy (InterpreterResult EvaluationResult))
+        "generated/evaluation_response0.json"
     test "Decode an AuthStatus." do
       assertDecodesTo
         (Proxy :: Proxy AuthStatus)

@@ -26,7 +26,6 @@ import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Prelude                   as Haskell
-import           Schema                    (FormSchema (FormSchemaSlotRange), ToSchema (toSchema))
 
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -41,7 +40,7 @@ import           Ledger.Interval
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToSchema, FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
+    deriving anyclass ( FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
     deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''Slot
@@ -51,9 +50,6 @@ instance Pretty Slot where
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
-
-instance ToSchema SlotRange where
-  toSchema = FormSchemaSlotRange
 
 {-# INLINABLE width #-}
 -- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.
