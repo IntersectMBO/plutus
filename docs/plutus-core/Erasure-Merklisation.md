@@ -11,6 +11,9 @@ so we may not need to keep them around.  This is related to issues
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
 GitHub.  The next step will be to look at Merklisation.
 
+See also [ast-analysis.md] for some basic statistics about the number
+and types of nodes in Plutus Core ASTs.
+
 I've implemented two basic transformations:
 
 #### Type erasure
@@ -51,7 +54,7 @@ to make comparison of terms easier (there's no evaluator for this at the moment)
 I also wrote a function which replaces names by an integer representing their
 de Bruijn indices.  This turns out to be surprisingly effective.
 
-### Results T
+### Results
 
 The experiments here were all carried out on validator scripts from
 the the Plutus [use cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
