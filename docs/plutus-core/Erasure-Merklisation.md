@@ -11,7 +11,7 @@ so we may not need to keep them around.  This is related to issues
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
 GitHub.  The next step will be to look at Merklisation.
 
-See also [ast-analysis.md] for some basic statistics about the number
+See also [ast-analysis.md](./ast-analysis.md) for some basic statistics about the number
 and types of nodes in Plutus Core ASTs.
 
 I've implemented two basic transformations:
