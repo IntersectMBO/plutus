@@ -23,8 +23,16 @@ untyped version discards the constructors for type abstraction,
 type-level application, and the `iwrap` and `unwrap` operations,
 leaving only six kinds of AST node: variables, lambda abstraction,
 application, the `error` term, built-in constants, and names of
-built-in functions.  There are versions of the CK and CEK machines
-which interpret this, giving identical results to the typed versions.
+built-in functions.  (Note that the implementation diverges from the
+specification here. The specification says that we have a special term
+for application of built-in functions, and that these must always be
+fully applied; however the implementation just has a term for names of
+built-in functions, and these and lambda terms are applied using the
+same constructor, `Apply`.)
+
+There are versions of the CK and CEK machines which interpret untyped
+ASTs, and they give identical results to the machines for the typed
+version (modulo erasure of types).
 
 #### Removing names
 The names of variables and types in the AST are represented by the type
