@@ -1,4 +1,4 @@
-## Some basic statistics for Plutus Core asbtract syntax trees
+## Some basic statistics for Plutus Core abstract syntax trees
 
 [kwxm, November 2019]
 
@@ -9,7 +9,7 @@ basic AST nodes for each contract.  The PLC AST also contains large
 amounts of type information, but this is not considered here.  The
 final column shows the total number of names occurring in variables
 and lambda abstractions; types also contain names, but these are
-ommitted.
+omitted.
 
 Variables, lambda abstractions and applications account for about 80%
 of the nodes in the ASTs, with type-level abstraction and application

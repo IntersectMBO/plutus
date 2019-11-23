@@ -45,8 +45,10 @@ important is the `Unique` identifier in the name, which is essentially
 an `Int`.  I've implemented two name-erasure functions: one which
 replaces all of the strings with the empty string, and one which
 discards annotations and identifier strings, essentially leaving just
-an integer.  Annotations are discarded in names but not in general
-AST nodes because they'll be useful for Merklisation there.
+an integer.  Annotations are discarded in names but not in general AST
+nodes because they'll be useful for Merklisation there (but if we
+decide not to go for Merklisation we should probably get rid of annotations
+altogether in on-chain code since this will reduce sizes even further).
 
 ###### De Bruijn indices
 There's some existing code for converting names into de Bruijn indices
