@@ -1,5 +1,7 @@
 ## Type erasure and CBOR sizes for Plutus Core
 
+[kwxm, November 2019]
+
 This document describes some experiments looking at how erasing
 various things from the Plutus Core AST affects the size of serialised
 programs.  The full Plutus Core AST contains type information and
@@ -8,6 +10,9 @@ so we may not need to keep them around.  This is related to issues
 [#1592](https://github.com/input-output-hk/plutus/issues/1592) and
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
 GitHub.  The next step will be to look at Merklisation.
+
+See also [ast-analysis.md] for some basic statistics about the number
+and types of nodes in Plutus Core ASTs.
 
 I've implemented two basic transformations:
 
@@ -40,10 +45,12 @@ important is the `Unique` identifier in the name, which is essentially
 an `Int`.  I've implemented two name-erasure functions: one which
 replaces all of the strings with the empty string, and one which
 discards annotations and identifier strings, essentially leaving just
-an integer.  Annotations are discarded in names but not in general
-AST nodes because they'll be useful for Merklisation there.
+an integer.  Annotations are discarded in names but not in general AST
+nodes because they'll be useful for Merklisation there (but if we
+decide not to go for Merklisation we should probably get rid of annotations
+altogether in on-chain code since this will reduce sizes even further).
 
-###### De Bruijn indices
+##### De Bruijn indices
 There's some existing code for converting names into de Bruijn indices
 to make comparison of terms easier (there's no evaluator for this at the moment).
 I also wrote a function which replaces names by an integer representing their
@@ -51,19 +58,18 @@ de Bruijn indices.  This turns out to be surprisingly effective.
 
 ### Results
 
-Plutus Core ASTs are serialised into bytestrings using the
+The experiments here were all carried out on validator scripts from
+the the Plutus [use cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
+in the Plutus repository.  Plutus Core ASTs were obtained from Haskell
+source using the PlutusTx compiler infrastructure and then serialised
+into bytestrings using the
 [CBOR](http://hackage.haskell.org/package/serialise) format.  I
-applied various transformations to the ASTs for the validator code for
-the Plutus [use
-cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
-in the Plutus repository, serialised to CBOR, and measured the number
-of bytes in the output (I had to cheat slightly to replace some dynamic
-builtin names with standard ones, but I don't think that'll affect the
-results; I'm in the process of fixing that at the moment).  I also
-compressed the results using `gzip -9` and measured the size again.
-The results are shown in the table below.  The figures in brackets
-after some entries show their size as a percentage of the size of the
-serialised version of the full AST.
+applied various transformations to the ASTs before serialising and
+then measured the number of bytes in the output.  I also compressed the
+results (using `gzip` with maximum compression) and measured the size
+again.  The results are shown in the table below.  The figures in
+brackets after some entries show their size as a percentage of the
+size of the serialised version of the full AST.
 
 Deleting unnecessary information and compressing reduces the size of
 the CBOR to less than 10K in every case, with the size decreasing by a
@@ -72,9 +78,9 @@ the top left and second from right on the bottom for each contract).  Even
 without compression, type erasure and name anonymisation reduces sizes
 by a factor of 6 or more.
 
-If we delete types and replacing names with de Bruijn indices then the
-size the CBOR is consistently reduced by a factor of about ten
-compared with the typed CBOR.  With compression, the size is reduced
+If we delete types and replace names with de Bruijn indices then the
+size the CBOR is consistently reduced by a factor of about 10
+compared to the typed CBOR.  With compression, the size is reduced
 by a factor of 40 to 100, and is never more than half the size of the
 version involving name which are just integer IDs (the previous
 column).  I think there are two reasons for this
@@ -82,8 +88,8 @@ column).  I think there are two reasons for this
  1. De Bruijn indices are generally small: in the examples I looked
     at, the largest index was typically about 200, compared with
     several thousand for the version involving unique integer
-    identifiers for names.  This means that they fit into a single byte and
-    CBOR can encode them more efficiently.
+    identifiers for names.  This means that they fit into a single
+    byte and CBOR can encode them more efficiently.
 
  2. Using de Bruijn indices will make more terms equal to each other, and
     this will make the CBOR more amenable to compression
@@ -109,51 +115,51 @@ decode most of it back to Haskell types.  It's beginning to look a lot
 like bytecode ...
 
 
-| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, deBruijn |
-| --- | --- | ---: | ---: |---: | ---: | ---: | ---: |
-| CrowdFunding | Uncompressed | 111142 | 80159 | 29056 | 18990 | 14356 (12.9%)| 10295 (9.3%)| 
-|              | Compressed   | 20953  | 17376 | 7283  | 5208  | 5079 (4.6%) | 1637 (1.5%)|
-| | | | || | | |
-| | | | || | | |
-| Currency | Uncompressed | 154418 | 108541 |45217 | 27716 | 21020 (13.6%) | 15536 (10.1%) |
-|              | Compressed   | 27549  | 22871 | 10028 | 7391 | 7210 (4.7%)| 2994 (1.9%) |
-| | | | || | | |
-| | | | || | | |
-| Escrow | Uncompressed | 126659 | 91052 |34880 | 22653 | 17181 (13.6%) | 12788 (10.1%)
-|              | Compressed   | 23292  | 19506 | 8196 | 5973 | 5820 (4.6%)| 2098 (1.7%)
-| | | | || | | |
-| | | | || | | |
-| Future | Uncompressed | 174512 | 120857 |53726 | 32461 | 24483 (14.0%) | 17418 (10.0%) |
-|              | Compressed   | 31083  | 25593 | 11945 | 8772 | 8551 (4.9%)| 3565 (2.0%) |
-| | | | || | | |
-| | | | || | | |
-| Game | Uncompressed | 93097 | 60178 |29973 | 16700 | 12466 (13.4%)| 9268 (10.0%) | 9268 (10.0%) |
-|              | Compressed   | 15653  | 12487 | 6156 | 4301 | 4181 (4.5%) | 2118 (2.3%) |
-| | | | || | | |
-| | | | || | | |
-| GameStateMachine | Uncompressed | 111711 | 81440 |31298 | 21477 | 16899 (15.1%) | 13538 (12.1%)|
-|              | Compressed   | 20658  | 17042 | 6979 | 4938 | 4827 (4.3%) | 2058 (1.8%) |
-| | | | || | | |
-| | | | || | | |
-| MultiSig | Uncompressed | 105672 | 69951 |34650 | 20058 | 15110 (14.3%)| 11228 (10.6%) |
-|              | Compressed   | 18388  | 14775 | 7416 | 5220 | 5083 (4.8%)| 2446 (2.3%) |
-| | | | || | | |
-| | | | || | | |
-| MultiSigStateMachine | Uncompressed | 198807 | 145619 |59359 | 39226 | 30504 (15.3%)| 22878 (11.5%) |
-|              | Compressed   | 36372  | 30477 | 13063 | 9620 | 9413 (4.7%)| 3924 (2.0%) |
-| | | | || | | |
-| | | | || | | |
-| PubKey | Uncompressed | 100811 | 66142 |33117 | 18960 | 14254 (14.1%)| 10693 (10.6%) |
-|              | Compressed   | 17193  | 13775 | 6913 | 4887 | 4758 (4.7%)| 2356 (2.3%) |
-| | | | || | | |
-| | | | || | | |
-| Swap | Uncompressed | 152252 | 101923 |54848 | 32442 | 24604 (16.2%)| 17739 (11.7%) |
-|              | Compressed   | 26725  | 21548 | 11782 | 8495 | 8268 (5.4%) | 3770 (2.5%) |
-| | | | || | | |
-| | | | || | | |
-| TokenAccount | Uncompressed | 78001 | 57508 |14164 | 9603 | 7189 (9.2%)| 4994 (6.4%) |
-|              | Compressed   | 15469  | 13026 | 4324 | 2905 | 2833 (3.6%) | 747 (1.0%) |
-| | | | || | | |
-| | | | || | | |
-| Vesting      | Uncompressed | 192764 | 135261 |57402 | 35105 | 26489 (13.7%) | 18878 (9.8%) |
-|              | Compressed   | 33517  | 27937 | 12413 | 9335 |  9100 (4.7%) | 3598 (1.9%) |
+| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |
+| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Crowdfunding |  Uncompressed| 108939 | 77981 | 28568 | 18527 | 13893 (12.8%) | 10317 (9.5%) | 
+|     | Compressed | 21203 | 17701 | 7397 | 5348 | 5211 (4.8%) | 1697 (1.6%) | 
+| |
+| |
+| Currrency |  Uncompressed| 150733 | 104849 | 44331 | 26877 | 20173 (13.4%) | 15583 (10.3%) | 
+|     | Compressed | 27746 | 23044 | 10195 | 7531 | 7322 (4.9%) | 3042 (2.0%) | 
+| |
+| |
+| Escrow |  Uncompressed| 123775 | 88197 | 34168 | 21970 | 16498 (13.3%) | 12813 (10.4%) | 
+|     | Compressed | 23490 | 19696 | 8294 | 6110 | 5929 (4.8%) | 2144 (1.7%) | 
+| |
+| |
+| Future |  Uncompressed| 167320 | 113732 | 52203 | 31005 | 23027 (13.8%) | 17438 (10.4%) | 
+|     | Compressed | 31178 | 25735 | 12201 | 8966 | 8699 (5.2%) | 3591 (2.1%) | 
+| |
+| |
+| Game |  Uncompressed| 90960 | 58067 | 29252 | 16005 | 11771 (12.9%) | 9275 (10.2%) | 
+|     | Compressed | 15743 | 12649 | 6216 | 4399 | 4264 (4.7%) | 2130 (2.3%) | 
+| |
+| |
+| GameStateMachine |  Uncompressed| 109276 | 79022 | 30444 | 20640 | 16062 (14.7%) | 13561 (12.4%) | 
+|     | Compressed | 20773 | 17241 | 7015 | 5065 | 4937 (4.5%) | 2100 (1.9%) | 
+| |
+| |
+| MultiSig |  Uncompressed| 103038 | 67350 | 33776 | 19217 | 14269 (13.8%) | 11257 (10.9%) | 
+|     | Compressed | 18502 | 14957 | 7455 | 5361 | 5204 (5.1%) | 2486 (2.4%) | 
+| |
+| |
+| MultiSigStateMachine |  Uncompressed| 190516 | 137385 | 57364 | 37288 | 28566 (15.0%) | 22904 (12.0%) | 
+|     | Compressed | 36465 | 30686 | 13151 | 9738 | 9505 (5.0%) | 3979 (2.1%) | 
+| |
+| |
+| PubKey |  Uncompressed| 98492 | 63788 | 32408 | 18254 | 13540 (13.7%) | 10740 (10.9%) | 
+|     | Compressed | 17331 | 13987 | 6979 | 5014 | 4866 (4.9%) | 2401 (2.4%) | 
+| |
+| |
+| Swap |  Uncompressed| 146143 | 95861 | 53271 | 30976 | 23130 (15.8%) | 17787 (12.2%) | 
+|     | Compressed | 27001 | 21852 | 11984 | 8726 | 8471 (5.8%) | 3869 (2.6%) | 
+| |
+| |
+| TokenAccount |  Uncompressed| 76763 | 56277 | 13958 | 9404 | 6990 (9.1%) | 4993 (6.5%) | 
+|     | Compressed | 15454 | 13107 | 4343 | 2946 | 2869 (3.7%) | 746 (1.0%) | 
+| |
+| |
+| Vesting |  Uncompressed| 186134 | 128686 | 55738 | 33496 | 24880 (13.4%) | 18887 (10.1%) | 
+|     | Compressed | 33804 | 28236 | 12716 | 9536 | 9270 (5.0%) | 3660 (2.0%) | 
