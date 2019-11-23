@@ -30,6 +30,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , RedeemResult(..)
     , RefundResult(..)
     , EscrowSchema
+    , exportedValidator
     ) where
 
 import           Control.Applicative            (Applicative (..))
@@ -177,6 +178,9 @@ scriptInstance escrow = Scripts.Validator @Escrow
     where
         wrap = Scripts.wrapValidator @PubKey @Action
 
+exportedValidator :: PlutusTx.CompiledCode (EscrowParams -> PubKey -> Action -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validate ||])
+               
 -- | The address of an escrow contract
 escrowAddress :: EscrowParams -> Ledger.Address
 escrowAddress = Scripts.scriptAddress . scriptInstance

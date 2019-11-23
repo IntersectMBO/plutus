@@ -24,6 +24,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , cancelPayment
     , addSignature
     , makePayment
+    , exportedValidator
     ) where
 
 import           Data.Functor                 (void)
@@ -220,6 +221,9 @@ mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
 validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
+
+exportedValidator :: PlutusTx.CompiledCode (Params -> State -> Input -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
 
 type MultiSigSym = StateMachine State Input
 scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym

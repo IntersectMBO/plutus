@@ -10,7 +10,8 @@
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
     -- * Script
-    swapValidator
+    swapValidator,
+    exportedValidator
     ) where
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -162,8 +163,12 @@ swapValidator swp = Ledger.mkValidatorScript $
             PlutusTx.liftCode swp
     where validatorParam s = Scripts.wrapValidator (mkValidator s)
 
-{- Note [Swap Transactions]
+exportedValidator :: PlutusTx.CompiledCode (Swap -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where validatorParam s = Scripts.wrapValidator (mkValidator s)
 
+
+{- Note [Swap Transactions]
 The swap involves three transactions at two different times.
 
 1. At t=0. Each participant deposits the margin. The outputs are locked with

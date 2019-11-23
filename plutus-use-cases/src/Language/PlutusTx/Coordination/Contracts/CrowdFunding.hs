@@ -43,6 +43,7 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , startCampaign
     , makeContribution
     , successfulCampaign
+    , exportedValidator
     ) where
 
 import           Data.Aeson                     (ToJSON, FromJSON)
@@ -139,6 +140,9 @@ scriptInstance cmp = Scripts.Validator @CrowdFunding
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @PubKey @CampaignAction
+
+exportedValidator :: PlutusTx.CompiledCode (Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool

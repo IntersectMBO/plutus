@@ -25,7 +25,8 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     adjustMargin,
     -- * Script
     validatorScript,
-    mkValidator
+    mkValidator,
+    exportedValidator
     ) where
 
 import           Control.Monad                (void)
@@ -294,6 +295,12 @@ validatorScript ft = Ledger.mkValidatorScript $
             PlutusTx.liftCode ft
     where validatorParam f = Scripts.wrapValidator (mkValidator f)
 
+-- Export this for experiments
+exportedValidator :: PlutusTx.CompiledCode (Future -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where validatorParam f = Scripts.wrapValidator (mkValidator f)
+
+                             
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureData
 PlutusTx.makeLift ''FutureRedeemer

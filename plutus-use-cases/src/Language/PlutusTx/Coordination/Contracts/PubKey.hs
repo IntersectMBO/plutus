@@ -11,7 +11,7 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract) where
+module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, exportedValidator) where
 
 import           Control.Monad.Error.Lens (throwing)
 
@@ -36,6 +36,11 @@ pkValidator pk = mkValidatorScript $
             PlutusTx.liftCode pk
     where validatorParam k = Scripts.wrapValidator (mkValidator k)
 
+exportedValidator :: PlutusTx.CompiledCode (PubKey -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where validatorParam k = Scripts.wrapValidator (mkValidator k)
+
+                             
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract

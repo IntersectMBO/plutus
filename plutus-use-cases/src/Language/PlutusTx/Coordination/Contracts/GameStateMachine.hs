@@ -22,6 +22,7 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , scriptInstance
     , gameTokenVal
     , mkValidator
+    , exportedValidator
     ) where
 
 import           Control.Applicative          (Applicative (..))
@@ -131,6 +132,10 @@ scriptInstance = Scripts.Validator @(SM.StateMachine GameState GameInput)
     where
         wrap = Scripts.wrapValidator @GameState @GameInput
 
+exportedValidator :: PlutusTx.CompiledCode (GameState -> GameInput -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
+
+    
 machineInstance :: SM.StateMachineInstance GameState GameInput
 machineInstance = SM.StateMachineInstance machine scriptInstance
 

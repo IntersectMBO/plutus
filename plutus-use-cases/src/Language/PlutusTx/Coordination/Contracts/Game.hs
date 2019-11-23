@@ -29,7 +29,8 @@ module Language.PlutusTx.Coordination.Contracts.Game(
     -- * Traces
     guessTrace,
     guessWrongTrace,
-    lockTrace
+    lockTrace,
+    exportedValidator
     ) where
 
 import           Control.Lens                   (at, (^.))
@@ -45,7 +46,7 @@ import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                         (Ada, Address, DataScript, PendingTx, RedeemerScript, ValidatorScript)
-import           Ledger.Typed.Scripts           (wrapValidator)
+import           Ledger.Typed.Scripts           (wrapValidator, WrappedValidatorType)
 import qualified Ledger                         as Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.AddressMap              as AM
@@ -75,6 +76,11 @@ gameValidator :: ValidatorScript
 gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
     where validator = wrapValidator validateGuess
 
+exportedValidator :: PlutusTx.CompiledCode Ledger.Typed.Scripts.WrappedValidatorType
+exportedValidator = $$(PlutusTx.compile [|| validator ||])
+    where validator = wrapValidator validateGuess
+
+                      
 gameDataScript :: String -> DataScript
 gameDataScript =
     Ledger.DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack

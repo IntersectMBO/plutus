@@ -18,7 +18,8 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     totalAmount,
     -- * Script
     validatorScript,
-    mkValidator
+    mkValidator,
+    exportedValidator
     ) where
 
 import           Control.Applicative          (Applicative (..))
@@ -176,3 +177,8 @@ validatorScript v = Ledger.mkValidatorScript $
         `PlutusTx.applyCode`
             PlutusTx.liftCode v
     where validatorParam vd = Scripts.wrapValidator (mkValidator vd)
+
+exportedValidator :: PlutusTx.CompiledCode (Vesting -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where validatorParam vd = Scripts.wrapValidator (mkValidator vd)
+

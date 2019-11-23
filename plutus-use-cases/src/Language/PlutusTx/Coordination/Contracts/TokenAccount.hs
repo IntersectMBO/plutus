@@ -25,7 +25,8 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , TokenAccountSchema
   , HasTokenAccountSchema
   , tokenAccountContract
-  ) where
+  , exportedValidator
+ ) where
 
 import           Control.Lens
 import           Control.Monad                                     (void)
@@ -103,6 +104,9 @@ scriptInstance =
     Scripts.Validator @TokenAccount $$(PlutusTx.compile [|| validate ||]) $$(PlutusTx.compile [|| wrap ||])
     where
     wrap = Scripts.wrapValidator @AccountOwner @()
+
+exportedValidator :: PlutusTx.CompiledCode (AccountOwner -> () -> V.PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validate ||])
 
 address :: Address
 address = Scripts.scriptAddress scriptInstance

@@ -18,6 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     , lock
     , initialise
     , unlockTx
+    , exportedValidator
     ) where
 
 import qualified Data.Map                     as Map
@@ -49,6 +50,11 @@ msValidator sig = mkValidatorScript $
         `PlutusTx.applyCode`
             PlutusTx.liftCode sig
     where validatorParam s = Scripts.wrapValidator (validate s)
+
+exportedValidator :: PlutusTx.CompiledCode (MultiSig -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where validatorParam s = Scripts.wrapValidator (validate s)
+
 
 -- | Multisig data script (unit value).
 msDataScript :: DataScript
