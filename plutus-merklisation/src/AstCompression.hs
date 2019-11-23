@@ -1,3 +1,7 @@
+{- Perform various transformations on the ASTs for the validators of 
+   the sample contracts and print out a markdown table showing how 
+   these effect the size of the CBOR. -}
+
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -43,13 +47,13 @@ import           GHC.Int                       (Int64)
 
 printHeader :: IO ()
 printHeader = do
-  putStrLn "| File | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |"
+  putStrLn "| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |"
   putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
 
 printSeparator :: IO ()
 printSeparator = do
-  putStrLn "|"  -- This is to separate entries in a table.
-  putStrLn "|"  -- A thicker line or something would be better, but I don't think you can do that.
+  putStrLn "| |"  -- This is to separate entries in a table.  Two bars seems to be enough (but not one on GitHub).
+  putStrLn "| |"  -- A thicker line or something would be better, but I don't think you can do that.
          
 deBrProg :: PLC.Program PLC.TyName PLC.Name ann -> PLC.Program D.TyDeBruijn D.DeBruijn ann
 deBrProg p =
@@ -85,7 +89,7 @@ printInfo1 fullSize (i : rest) cmode = do
              
 printInfo :: Int64 -> [(B.ByteString, PrintFormat)] -> IO ()
 printInfo fullSize entries = do
-  putStr " Uncompressed| "
+  putStr " Uncompressed | "
   printInfo1 fullSize entries Uncompressed
   putStr "|     | Compressed | "
   printInfo1 fullSize entries Compressed

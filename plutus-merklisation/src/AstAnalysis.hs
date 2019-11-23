@@ -1,3 +1,8 @@
+{- Load the ASTs for the validators of the sample contracts and print
+   out a markdown table showing how many of each type of node there
+   are, and what percentage of the total number of nodes these make
+   up. -}
+
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -55,7 +60,7 @@ totalNodes c = _varcount c + _abscount c + _lamcount c + _appcount c + _concount
               
 printHeader :: IO ()
 printHeader = do
-  putStrLn "| File | Total Nodes | Var | Lam | App | Constant | Builtin | Error | TyAbs | TyInst | Wrap | Unwrap | (Names) |"
+  putStrLn "| Contract | Total Nodes | Var | Lam | App | Constant | Builtin | Error | TyAbs | TyInst | Wrap | Unwrap | (Names) |"
   putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |"
 
 printCounts :: String -> TermCounts -> IO ()
@@ -90,7 +95,7 @@ printCounts filename c = do
   pr $ _unwcount c
   putStr  " | ("
   pr $ _namcount c
-  putStr  " )| "
+  putStr  ")| "
   putStrLn ""
   putStr "|       |       |"
   prp $ _varcount c
@@ -117,8 +122,8 @@ printCounts filename c = do
 
 printSeparator :: IO ()
 printSeparator = do
-  putStrLn "| | | | | | | | | | | | | |"  -- This is to separate entries in a table.
-  putStrLn "| | | | | | | | | | | | | |"  -- A thicker line or something would be better, but I don't think you can do that.
+  putStrLn "| |"  -- This is to separate entries in a table.  Two bars (but on GitHub, not one) seem to be enough.
+  putStrLn "| |"  -- A thicker line or something would be better, but I don't think you can do that.
          
 freqTerm :: PLC.Term PLC.TyName PLC.Name ann -> TermCounts -> TermCounts
 freqTerm t counts =
