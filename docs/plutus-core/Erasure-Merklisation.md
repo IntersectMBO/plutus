@@ -11,8 +11,8 @@ so we may not need to keep them around.  This is related to issues
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
 GitHub.  The next step will be to look at Merklisation.
 
-See also [ast-analysis.md](./ast-analysis.md) for some basic statistics about the number
-and types of nodes in Plutus Core ASTs.
+See also [ast-analysis.md](./ast-analysis.md) for some basic
+statistics about the number and types of nodes in Plutus Core ASTs.
 
 I've implemented two basic transformations:
 
@@ -22,9 +22,9 @@ This converts the Plutus Core AST into an untyped version.  The
 untyped version discards the constructors for type abstraction,
 type-level application, and the `iwrap` and `unwrap` operations,
 leaving only six kinds of AST node: variables, lambda abstraction,
-application, the `error` term, constants, and application of built-in
-functions.  There are versions of the CK and CEK machines which
-interpret this, giving identical results to the typed versions.
+application, the `error` term, built-in constants, and names of
+built-in functions.  There are versions of the CK and CEK machines
+which interpret this, giving identical results to the typed versions.
 
 #### Removing names
 The names of variables and types in the AST are represented by the type
