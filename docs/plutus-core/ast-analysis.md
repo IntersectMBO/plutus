@@ -13,16 +13,17 @@ omitted.
 
 Variables, lambda abstractions and applications account for about 80%
 of the nodes in the ASTs, with type-level abstraction and application
-forming 17-22%.  The remaining types of terms (constants, application
-of built-in functions, the `error` term, and the type-level `iwrap`
-and `unwrap` operations) are quite negligible in comparison,
-accounting for only 2-3% of nodes between them.  The figure for
-built-in functions is misleading however: it appears that the PlutusTx
-compiler wraps each built-in function in a lambda expression and then
-uses that to apply the function indirectly whenever it is required.
-Thus potentially expensive built-in functions may be applied much
-more often than the bare figures suggest.  No attempt was made here to
-track how many indirect calls to built-in functions were made.
+forming 17-22%.  The remaining types of terms (built-in constants,
+built-in function names, the `error` term, and the
+type-level `iwrap` and `unwrap` operations) are quite negligible in
+comparison, accounting for only 2-3% of nodes between them.  The
+figure for built-in functions is misleading however: it appears that
+the PlutusTx compiler wraps each built-in function in a lambda
+expression and then uses that to apply the function indirectly
+whenever it is required.  Thus potentially expensive built-in
+functions may be applied much more often than the bare figures
+suggest.  No attempt was made here to track how many indirect calls to
+built-in functions were made.
 
 There are significant numbers of names in the AST, which currently
 contain quite a lot of information including human-readable names.  As
