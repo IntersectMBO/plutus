@@ -1,4 +1,4 @@
-## Some basic statistics for Plutus Core asbtract syntwax trees
+## Some basic statistics for Plutus Core asbtract syntax trees
 
 [kwxm, November 2019]
 
