@@ -56,7 +56,7 @@ emptyCounts = TermCounts 0 0 0 0 0 0 0 0 0 0 0
 
 totalNodes :: TermCounts -> Int
 totalNodes c = _varcount c + _abscount c + _lamcount c + _appcount c + _concount c
-               + _bincount c + _tyicount c + _unwcount c + _wrpcount c
+               + _bincount c + _tyicount c + _unwcount c + _wrpcount c + _errcount c
               
 printHeader :: IO ()
 printHeader = do
