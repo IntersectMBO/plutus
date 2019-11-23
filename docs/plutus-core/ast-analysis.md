@@ -32,8 +32,8 @@ the amount of information in names is quite helpful for reducing the
 size of serialised code.
 
 
-| File | Total Nodes | Var | Lam | App | Constant | Builtin | Error | TyAbs | TyInst | Wrap | Unwrap | (Names) |
-| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Contract | Total Nodes | Var | Lam | App | Constant | Builtin | Error | TyAbs | TyInst | Wrap | Unwrap | (Names) |
+| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
 | Crowdfunding | 4606 | 1236 | 1081 | 1314 | 44 | 11 | 24 | 301 | 568 | 21 | 30 | (2317)| 
 |       |       |26.8% | 23.5% | 28.5% | 1.0% | 0.2% | 0.5% | 6.5% | 12.3% | 0.5% | 0.7% | - | 
 | | | | | | | | | | | | | |

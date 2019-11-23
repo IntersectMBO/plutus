@@ -113,7 +113,7 @@ decode most of it back to Haskell types.  It's beginning to look a lot
 like bytecode ...
 
 
-| File | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |
+| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |
 | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Crowdfunding |  Uncompressed| 108939 | 77981 | 28568 | 18527 | 13893 (12.8%) | 10317 (9.5%) | 
 |     | Compressed | 21203 | 17701 | 7397 | 5348 | 5211 (4.8%) | 1697 (1.6%) | 
