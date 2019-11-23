@@ -50,7 +50,7 @@ nodes because they'll be useful for Merklisation there (but if we
 decide not to go for Merklisation we should probably get rid of annotations
 altogether in on-chain code since this will reduce sizes even further).
 
-###### De Bruijn indices
+##### De Bruijn indices
 There's some existing code for converting names into de Bruijn indices
 to make comparison of terms easier (there's no evaluator for this at the moment).
 I also wrote a function which replaces names by an integer representing their
