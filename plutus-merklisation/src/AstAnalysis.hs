@@ -1,19 +1,13 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+--{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+--{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+--{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-module Main (main) where
+module AstAnalysis (main) where
 
 import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.CBOR                   as PLC ()
-import qualified Language.PlutusCore.Pretty                 as PLC
-
-import qualified Language.PlutusCore.Untyped.CBOR                   as U ()
-import qualified Language.PlutusCore.Untyped.Pretty                 as U
-import qualified Language.PlutusCore.Untyped.Term                   as U
 
 import Language.PlutusTx.Coordination.Contracts.CrowdFunding         as Crowdfunding
 import Language.PlutusTx.Coordination.Contracts.Currency             as Currrency
@@ -28,14 +22,9 @@ import Language.PlutusTx.Coordination.Contracts.Swap                 as Swap
 import Language.PlutusTx.Coordination.Contracts.TokenAccount         as TokenAccount
 import Language.PlutusTx.Coordination.Contracts.Vesting              as Vesting
 
-import qualified Language.PlutusTx.Prelude                           as P
 import Language.PlutusTx                                             as PlutusTx
 
-import Ledger.Ada
-import Ledger.Slot
-import qualified Ledger.Typed.Scripts           as Scripts
-
-import           Control.Lens
+import Control.Lens
 import Numeric
 
 data TermCounts =  
@@ -134,16 +123,16 @@ printSeparator = do
 freqTerm :: PLC.Term PLC.TyName PLC.Name ann -> TermCounts -> TermCounts
 freqTerm t counts =
     case t of
-      PLC.Var ann name             -> counts & varcount +~ 1 & namcount +~ 1
-      PLC.TyAbs ann ty kind body   -> freqTerm body (counts & abscount +~ 1)
-      PLC.LamAbs ann ty name body  -> freqTerm body (counts & lamcount +~ 1 & namcount +~ 1) 
-      PLC.Apply ann term1 term2    -> freqTerm term2 (freqTerm term1 (counts & appcount +~ 1))
-      PLC.Constant ann _cn         -> counts & concount +~ 1
-      PLC.Builtin ann _bn          -> counts & bincount +~ 1
-      PLC.TyInst ann term ty       -> freqTerm term (counts & tyicount +~ 1)
-      PLC.Unwrap ann term          -> freqTerm term (counts & unwcount +~ 1)
-      PLC.IWrap ann ty1 ty2 term   -> freqTerm term (counts & wrpcount +~ 1)
-      PLC.Error ann ty             -> counts & errcount +~ 1
+      PLC.Var      _ann _name          -> counts & varcount +~ 1 & namcount +~ 1
+      PLC.TyAbs    _ann _ty _kind body -> freqTerm body (counts & abscount +~ 1)
+      PLC.LamAbs   _ann _ty _name body -> freqTerm body (counts & lamcount +~ 1 & namcount +~ 1) 
+      PLC.Apply    _ann term1 term2    -> freqTerm term2 (freqTerm term1 (counts & appcount +~ 1))
+      PLC.Constant _ann _cn            -> counts & concount +~ 1
+      PLC.Builtin  _ann _bn            -> counts & bincount +~ 1
+      PLC.TyInst   _ann term _ty       -> freqTerm term (counts & tyicount +~ 1)
+      PLC.Unwrap   _ann term           -> freqTerm term (counts & unwcount +~ 1)
+      PLC.IWrap    _ann _ty1 _ty2 term -> freqTerm term (counts & wrpcount +~ 1)
+      PLC.Error    _ann _ty            -> counts & errcount +~ 1
 
 freqProg :: PLC.Program PLC.TyName PLC.Name ann -> TermCounts 
 freqProg (PLC.Program _ver _ty body) = freqTerm body emptyCounts

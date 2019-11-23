@@ -1,18 +1,18 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+--{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+--{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+--{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-module Main (main) where
+module AstCompression (main) where
 
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.CBOR                   as PLC ()
-import qualified Language.PlutusCore.Pretty                 as PLC
+--import qualified Language.PlutusCore.Pretty                 as PLC
 
 import qualified Language.PlutusCore.Untyped.CBOR           as U ()
-import qualified Language.PlutusCore.Untyped.Pretty         as U
+-- import qualified Language.PlutusCore.Untyped.Pretty         as U
 import qualified Language.PlutusCore.Untyped.Term           as U
 
 import qualified Language.PlutusCore.DeBruijn               as D
@@ -30,13 +30,7 @@ import Language.PlutusTx.Coordination.Contracts.Swap                 as Swap
 import Language.PlutusTx.Coordination.Contracts.TokenAccount         as TokenAccount
 import Language.PlutusTx.Coordination.Contracts.Vesting              as Vesting
 
-import qualified Language.PlutusTx.Prelude                           as P
 import Language.PlutusTx                                             as PlutusTx
-
-
-import Ledger.Ada
-import Ledger.Slot
-import qualified Ledger.Typed.Scripts          as Scripts
 
 import           Codec.Serialise               (serialise)
 import qualified Codec.Compression.GZip        as G
@@ -83,7 +77,7 @@ printEntry fullSize (s, mode) cmode = do
         where percentage n = 100.0 * (fromIntegral n) / (fromIntegral fullSize) :: Float
 
 printInfo1 :: Int64 -> [(B.ByteString, PrintFormat)] -> CompressionMode -> IO ()
-printInfo1 fullSize [] _ = putStrLn ""
+printInfo1 _fullSize [] _ = putStrLn ""
 printInfo1 fullSize (i : rest) cmode = do
   printEntry fullSize i cmode
   putStr " | "
