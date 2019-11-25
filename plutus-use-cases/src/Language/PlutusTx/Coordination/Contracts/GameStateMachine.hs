@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,33 +18,33 @@
 --
 
 module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
-      startGame
-    , guess
-    , lock
+    contract
     , scriptInstance
     , gameTokenVal
     , mkValidator
+    , LockArgs(..)
+    , GuessArgs(..)
+    , GameStateMachineSchema
     ) where
 
-import           Control.Applicative          (Applicative (..))
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (maybeToList)
-import qualified Data.Set                     as Set
-import qualified Data.Text                    as Text
+import           Control.Monad                (void)
+import           Data.Text                    (Text)
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude    hiding (check, Applicative (..))
+import           Language.PlutusTx.Prelude    hiding (check, Applicative (..), (<>))
 import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Typed.Scripts         as Scripts
-import           Wallet
-import qualified Wallet                       as WAPI
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
 import qualified Language.PlutusTx.StateMachine as SM
 import           Language.PlutusTx.StateMachine ()
+
+import           Language.Plutus.Contract
+import qualified Language.Plutus.Contract.Tx as Tx
+import           Prelude ((<>))
 
 newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
 
@@ -51,6 +53,38 @@ PlutusTx.makeLift ''HashedString
 newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
 
 PlutusTx.makeLift ''ClearString
+
+-- | Arguments for the @"lock"@ endpoint
+data LockArgs = 
+    LockArgs
+        { lockArgsSecret :: String
+        -- ^ The secret
+        , lockArgsValue  :: Value
+        -- ^ Value that is locked by the contract initially
+        } deriving Show
+
+-- | Arguments for the @"guess"@ endpoint
+data GuessArgs =
+    GuessArgs
+        { guessArgsOldSecret :: String
+        -- ^ The guess
+        , guessArgsNewSecret :: String
+        -- ^ The new secret
+        , guessArgsValueLocked :: Value
+        -- ^ How much to put back into the contract
+        } deriving Show
+
+-- | The schema of the contract. It consists of the usual
+--   'BlockchainActions' plus the two endpoints @"lock"@
+--   and @"guess"@ with their respective argument types.
+type GameStateMachineSchema =
+    BlockchainActions
+        .\/ Endpoint "lock" LockArgs
+        .\/ Endpoint "guess" GuessArgs
+
+-- | Top-level contract, exposing both endpoints.
+contract :: Contract GameStateMachineSchema Text ()
+contract = (lock <|> guess) >> contract
 
 -- | State of the guessing game
 data GameState =
@@ -66,9 +100,6 @@ instance Eq GameState where
     (Locked (V.TokenName n) (HashedString s)) == (Locked (V.TokenName n') (HashedString s')) = s == s' && n == n'
     _ == _ = traceIfFalseH "states not equal" False
 
-PlutusTx.makeIsData ''GameState
-PlutusTx.makeLift ''GameState
-
 -- | Check whether a 'ClearString' is the preimage of a
 --   'HashedString'
 checkGuess :: HashedString -> ClearString -> Bool
@@ -80,9 +111,6 @@ data GameInput =
     -- ^ Forge the "guess" token
     | Guess ClearString HashedString
     -- ^ Make a guess and lock the remaining funds using a new secret word.
-
-PlutusTx.makeIsData ''GameInput
-PlutusTx.makeLift ''GameInput
 
 {-# INLINABLE step #-}
 step :: GameState -> GameInput -> Maybe GameState
@@ -131,13 +159,17 @@ scriptInstance = Scripts.Validator @(SM.StateMachine GameState GameInput)
     where
         wrap = Scripts.wrapValidator @GameState @GameInput
 
+-- | The 'SM.StateMachineInstance' of the game state machine contract. It uses
+--   the functions in 'Language.PlutusTx.StateMachine' to generate a validator
+--   script based on the functions 'step' and 'check' we defined above.
 machineInstance :: SM.StateMachineInstance GameState GameInput
 machineInstance = SM.StateMachineInstance machine scriptInstance
 
+-- | Name of the token that needs to be present when making a guess.
 gameToken :: TokenName
 gameToken = "guess"
 
--- | The 'Value' forged by the 'curValidator' contract
+-- | The 'Value' forged by the 'curValidator' contract.
 gameTokenVal :: Value
 gameTokenVal =
     let
@@ -146,92 +178,82 @@ gameTokenVal =
     in
         V.singleton cur gameToken 1
 
--- | Make a guess, take out some funds, and lock the remaining 'Value' with a new
---   secret
-guess ::
-    (WalletAPI m, WalletDiagnostics m)
-    => String
-    -- ^ The guess
-    -> String
-    -- ^ A new secret
-    -> Value
-    -- ^ How much ada to take out
-    -> Value
-    -- ^ How much to put back into the contract
-    -> m ()
-guess gss new keepVal restVal = do
+-- | The @"guess"@ endpoint.
+guess :: AsContractError e => Contract GameStateMachineSchema e ()
+guess = do
+    GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueLocked} <- endpoint @"guess"
 
-    let guessedSecret = ClearString (C.pack gss)
-        newSecret = HashedString (sha2_256 (C.pack new))
-        input = Guess guessedSecret newSecret
-        newState = Locked gameToken newSecret
-        ds = DataScript $ PlutusTx.toData newState
-        redeemer = RedeemerScript $ PlutusTx.toData input
-    ins <- WAPI.spendScriptOutputs (Scripts.validatorScript scriptInstance) redeemer
-    ownOutput <- WAPI.ownPubKeyTxOut (keepVal <> gameTokenVal)
+    let guessedSecret = ClearString (C.pack guessArgsOldSecret)
+        newSecret     = HashedString (sha2_256 (C.pack guessArgsNewSecret))
+        input         = Guess guessedSecret newSecret
+        newState      = Locked gameToken newSecret
+        ds            = DataScript $ PlutusTx.toData newState
+        redeemer      = RedeemerScript $ PlutusTx.toData input
+        addr          = Scripts.scriptAddress scriptInstance
 
-    let
-        scriptOut = scriptTxOut restVal (Scripts.validatorScript scriptInstance) ds
+    -- We need to know the unspent outputs at the contract address, and a public
+    -- key that we can send the token to. 
+    utxo <- utxoAt addr
+    pubKey <- ownPubKey
 
-    (i, own) <- createPaymentWithChange gameTokenVal
+    -- The transaction has three parts which are joined together using the 
+    -- '<>' semigroup operator.
+    let tx = 
+             -- part 1: Spend the outputs that are currently at the address
+            Tx.collectFromScript
+                utxo 
+                (Scripts.validatorScript scriptInstance)
+                redeemer
 
-    let tx = Ledger.Tx
-                { txInputs = Set.union i (Set.fromList $ fmap fst ins)
-                , txOutputs = [ownOutput, scriptOut] ++ maybeToList own
-                , txForge = zero
-                , txFee   = zero
-                , txValidRange = defaultSlotRange
-                , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds) ds
-                }
+             -- part 2: Lock the remaining funds in the contract with the new 
+             -- state 'ds'
+             <> Tx.payToScript guessArgsValueLocked addr ds 
 
-    WAPI.signTxAndSubmit_ tx
+             -- part 3: Pay the token to our own public key (this is a no-op on 
+             -- the wallet's balance but it ensures that the token is present 
+             -- in the transaction)
+             <> Tx.payToPubKey gameTokenVal pubKey 
+    void $ writeTxSuccess tx
 
--- | Lock some funds in the guessing game. Produces the token that is required
---   when submitting a guess.
-lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
-lock initialWord vl = do
-    let secret = HashedString (sha2_256 (C.pack initialWord))
-        addr = Scripts.scriptAddress scriptInstance
-        state = Initialised secret
-        ds   = DataScript $ PlutusTx.toData state
+lock :: AsContractError e => Contract GameStateMachineSchema e ()
+lock = do
+    LockArgs{lockArgsSecret, lockArgsValue} <- endpoint @"lock"
+    let secret            = HashedString (sha2_256 (C.pack lockArgsSecret))
+        addr              = Scripts.scriptAddress scriptInstance
+        initialDataScript = DataScript $ PlutusTx.toData (Initialised secret)
+    
+    -- 1. Create a transaction output with the value and the secret and
+    --    wait until it is confirmed.
+    _ <- both (writeTxSuccess $ Tx.payToScript lockArgsValue addr initialDataScript) (fundsAtAddressGt addr zero)
 
-    -- 1. Create a transaction output with the value and the secret
-    payToScript_ defaultSlotRange addr vl ds
+    -- Get the current utxo set at the contract address. This consists of
+    -- exactly the one output that we added earlier (unless someone else
+    -- is playing the game at the same time, in which case it would be ruined
+    -- for everybody.)
+    utxo <- utxoAt addr
+    let input         = ForgeToken gameToken
+        newState      = Locked gameToken secret
+        redeemer      = RedeemerScript $ PlutusTx.toData input
+        newDataScript = DataScript $ PlutusTx.toData newState
+    
+    -- 2. The state of the contract is now 'Initialised'. To transition to
+    --    the 'Locked' state we need to run the 'Forge' action. The transaction
+    --    has three parts:
+    let tx = 
+             -- 1. Spend the outputs at the contract address
+             Tx.collectFromScript 
+                    utxo 
+                    (Scripts.validatorScript scriptInstance)
+                    redeemer
+             -- 2. Lock the funds at the contract address with the new state
+             <> Tx.payToScript lockArgsValue addr newDataScript
 
-    -- 2. Define a trigger that fires when the first transaction (1.) is
-    --    placed on the chain.
-    let trg1        = fundsAtAddressGtT addr zero
+             -- 3. Forge the token.
+             <> Tx.forgeValue gameTokenVal
 
-    -- 3. Define a forge_ action that creates the token by and puts the contract
-    --    into its new state.
-    let forge :: (WalletAPI m, WalletDiagnostics m) => m ()
-        forge = do
-            ownOutput <- WAPI.ownPubKeyTxOut gameTokenVal
-            let input = ForgeToken gameToken
-                newState = Locked gameToken secret
-                redeemer = RedeemerScript $ PlutusTx.toData input
-                newDs = DataScript $ PlutusTx.toData newState
-                scriptOut = scriptTxOut vl (Scripts.validatorScript scriptInstance) newDs
-            ins <- WAPI.spendScriptOutputs (Scripts.validatorScript scriptInstance) redeemer
+    void $ writeTxSuccess tx
 
-            let tx = Ledger.Tx
-                        { txInputs = Set.fromList (fmap fst ins)
-                        , txOutputs = [ownOutput, scriptOut]
-                        , txForge = gameTokenVal
-                        , txFee   = zero
-                        , txValidRange = defaultSlotRange
-                        , txSignatures = Map.empty
-                        , txData = Map.singleton (dataScriptHash newDs) newDs
-                        }
-
-            WAPI.logMsg $ Text.pack $ "The forging transaction is: " <> show (Ledger.txId tx)
-            WAPI.signTxAndSubmit_ tx
-
-
-    registerOnce trg1 (EventHandler $ const forge)
-    pure ()
-
--- | Tell the wallet to start watching the address of the game script
-startGame :: WalletAPI m => m ()
-startGame = startWatching (Scripts.scriptAddress scriptInstance)
+PlutusTx.makeIsData ''GameState
+PlutusTx.makeLift ''GameState
+PlutusTx.makeIsData ''GameInput
+PlutusTx.makeLift ''GameInput
