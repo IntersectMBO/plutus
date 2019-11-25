@@ -29,7 +29,7 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
-import           Schema                       (FormSchema)
+import           Schema                       (FormSchema,ToSchema)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
 import           Wallet.Rollup.Types          (AnnotatedTx)
 
@@ -61,17 +61,20 @@ data Expression (schema :: Row *)
     = AddBlocks
           { blocks :: Int
           }
-    | PayToWallet
-          { source :: Wallet
-          , destination :: Wallet
-          , value :: V.Value
-          }
     | CallEndpoint
           { endpointName :: EndpointName
           , wallet :: Wallet
           , arguments :: JSON.Value
           }
     deriving (Show, Generic, ToJSON, FromJSON)
+
+data PayToWalletParams =
+    PayToWalletParams
+        { payTo :: Wallet
+        , value :: V.Value
+        }
+    deriving (Eq, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 type Program schema = [Expression schema]
 

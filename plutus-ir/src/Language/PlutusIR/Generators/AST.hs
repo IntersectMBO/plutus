@@ -15,28 +15,25 @@ module Language.PlutusIR.Generators.AST
 
 import           Language.PlutusIR
 
-import           Language.PlutusCore.Generators.AST as Export (genBuiltin, genBuiltinName, genConstant, genKind,
-                                                               genVersion, simpleRecursive)
+import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genBuiltinName, genConstant, genKind,
+                                                               genVersion, runAstGen, simpleRecursive)
 import qualified Language.PlutusCore.Generators.AST as PLC
 
 import           Hedgehog                           hiding (Var)
 import qualified Hedgehog.Gen                       as Gen
 import qualified Hedgehog.Range                     as Range
 
-genName :: MonadGen m => m (Name ())
-genName = Gen.filter (not . isPirKw . nameString) PLC.genName
-    where isPirKw "vardecl"      = True
-          isPirKw "typedecl"     = True
-          isPirKw "let"          = True
-          isPirKw "nonrec"       = True
-          isPirKw "rec"          = True
-          isPirKw "termbind"     = True
-          isPirKw "typebind"     = True
-          isPirKw "datatypebind" = True
-          isPirKw "datatype"     = True
-          isPirKw _              = False
+genName :: PLC.AstGen (Name ())
+genName = Gen.filter (not . isPirKw . nameString) PLC.genName where
+    isPirKw name = name `elem`
+        [ "vardecl", "typedecl"
+        , "let"
+        , "nonrec", "rec"
+        , "termbind", "typebind", "datatypebind"
+        , "datatype"
+        ]
 
-genTyName :: MonadGen m => m (TyName ())
+genTyName :: PLC.AstGen (TyName ())
 genTyName = TyName <$> genName
 
 genRecursivity :: MonadGen m => m Recursivity
@@ -45,45 +42,45 @@ genRecursivity = Gen.element [Rec, NonRec]
 genStrictness :: MonadGen m => m Strictness
 genStrictness = Gen.element [Strict, NonStrict]
 
-genVarDecl :: MonadGen m => m (VarDecl TyName Name ())
+genVarDecl :: PLC.AstGen (VarDecl TyName Name ())
 genVarDecl = VarDecl () <$> genName <*> genType
 
-genTyVarDecl :: MonadGen m => m (TyVarDecl TyName ())
+genTyVarDecl :: PLC.AstGen (TyVarDecl TyName ())
 genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
-genDatatype :: MonadGen m => m (Datatype TyName Name ())
+genDatatype :: PLC.AstGen (Datatype TyName Name ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
     where listOf = Gen.list (Range.linear 0 10)
 
-genBinding :: MonadGen m => m (Binding TyName Name ())
-genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind]
-    where genTermBind = TermBind () <$> genStrictness <*> genVarDecl <*> genTerm
-          genTypeBind = TypeBind () <$> genTyVarDecl <*> genType
-          genDatatypeBind = DatatypeBind () <$> genDatatype
+genBinding :: PLC.AstGen (Binding TyName Name ())
+genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind] where
+    genTermBind = TermBind () <$> genStrictness <*> genVarDecl <*> genTerm
+    genTypeBind = TypeBind () <$> genTyVarDecl <*> genType
+    genDatatypeBind = DatatypeBind () <$> genDatatype
 
-genType :: MonadGen m => m (Type TyName ())
-genType = simpleRecursive nonRecursive recursive
-    where varGen = TyVar () <$> genTyName
-          funGen = TyFun () <$> genType <*> genType
-          lamGen = TyLam () <$> genTyName <*> genKind <*> genType
-          forallGen = TyForall () <$> genTyName <*> genKind <*> genType
-          applyGen = TyApp () <$> genType <*> genType
-          recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen]
+genType :: PLC.AstGen (Type TyName ())
+genType = simpleRecursive nonRecursive recursive where
+    varGen = TyVar () <$> genTyName
+    funGen = TyFun () <$> genType <*> genType
+    lamGen = TyLam () <$> genTyName <*> genKind <*> genType
+    forallGen = TyForall () <$> genTyName <*> genKind <*> genType
+    applyGen = TyApp () <$> genType <*> genType
+    recursive = [funGen, applyGen]
+    nonRecursive = [varGen, lamGen, forallGen]
 
-genTerm :: MonadGen m => m (Term TyName Name ())
-genTerm = simpleRecursive nonRecursive recursive
-    where varGen = Var () <$> genName
-          absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
-          instGen = TyInst () <$> genTerm <*> genType
-          lamGen = LamAbs () <$> genName <*> genType <*> genTerm
-          applyGen = Apply () <$> genTerm <*> genTerm
-          unwrapGen = Unwrap () <$> genTerm
-          wrapGen = IWrap () <$> genType <*> genType <*> genTerm
-          errorGen = Error () <$> genType
-          letGen = Let () <$> genRecursivity <*> Gen.list (Range.linear 1 10) genBinding <*> genTerm
-          recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
-          nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+genTerm :: PLC.AstGen (Term TyName Name ())
+genTerm = simpleRecursive nonRecursive recursive where
+    varGen = Var () <$> genName
+    absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
+    instGen = TyInst () <$> genTerm <*> genType
+    lamGen = LamAbs () <$> genName <*> genType <*> genTerm
+    applyGen = Apply () <$> genTerm <*> genTerm
+    unwrapGen = Unwrap () <$> genTerm
+    wrapGen = IWrap () <$> genType <*> genType <*> genTerm
+    errorGen = Error () <$> genType
+    letGen = Let () <$> genRecursivity <*> Gen.list (Range.linear 1 10) genBinding <*> genTerm
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
-genProgram :: MonadGen m => m (Program TyName Name ())
+genProgram :: PLC.AstGen (Program TyName Name ())
 genProgram = Program () <$> genTerm

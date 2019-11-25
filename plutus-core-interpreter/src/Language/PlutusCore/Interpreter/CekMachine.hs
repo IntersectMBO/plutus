@@ -29,7 +29,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
-import           PlutusPrelude                                   hiding (hoist)
+import           PlutusPrelude
 
 import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except

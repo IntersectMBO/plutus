@@ -473,15 +473,19 @@ let
         '';
       };
 
-      withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ 
-                                                                        [ packages.cabal-install 
-                                                                          pkgs.git 
-                                                                          pkgs.cacert 
-                                                                          pkgs.yarn
-                                                                          easyPS.purs
-                                                                          easyPS.spago
-                                                                          easyPS.purty
-                                                                          ]; });
+      withDevTools = env: env.overrideAttrs (attrs:
+        { nativeBuildInputs = attrs.nativeBuildInputs ++
+                              [ packages.cabal-install
+                                pkgs.git
+                                pkgs.cacert
+                                pkgs.haskellPackages.hlint
+                                pkgs.haskellPackages.stylish-haskell
+                                pkgs.yarn
+                                easyPS.purs
+                                easyPS.spago
+                                easyPS.purty
+                              ];
+        });
     };
   });
 

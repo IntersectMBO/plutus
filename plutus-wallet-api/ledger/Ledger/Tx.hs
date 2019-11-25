@@ -53,7 +53,9 @@ module Ledger.Tx(
     inPubKey,
     validRange,
     pubKeyTxIn,
-    scriptTxIn
+    scriptTxIn,
+    -- * Addresses
+    Address
     ) where
 
 import qualified Codec.CBOR.Write          as Write

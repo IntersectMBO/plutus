@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Maybe (isJust, isNothing, maybe, mapMaybe) where
+module Language.PlutusTx.Maybe (isJust, isNothing, maybe, fromMaybe, mapMaybe) where
 
 import           Language.PlutusTx.List
 import           Prelude                hiding (foldr, maybe)
@@ -40,6 +40,11 @@ maybe :: b -> (a -> b) -> Maybe a -> b
 maybe b f m = case m of
     Nothing -> b
     Just a  -> f a
+
+{-# INLINABLE fromMaybe #-}
+-- | PlutusTx version of 'Data.Maybe.fromMaybe'
+fromMaybe :: a -> Maybe a -> a
+fromMaybe a = maybe a id
 
 {-# INLINABLE mapMaybe #-}
 -- | PlutusTx version of 'Data.Maybe.mapMaybe'.

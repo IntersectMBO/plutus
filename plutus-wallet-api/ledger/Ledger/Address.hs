@@ -31,9 +31,9 @@ import           Ledger.Scripts
 -- | A payment address using a hash as the id.
 newtype Address = Address { getAddress :: BSL.ByteString }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (IotsType)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (Serialise)
-    deriving (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IsString) via LedgerBytes
+    deriving (IsString) via LedgerBytes
     deriving Pretty via LedgerBytes
 
 instance Hashable Address where

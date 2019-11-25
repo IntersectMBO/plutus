@@ -26,11 +26,12 @@ import qualified Playground.Interpreter       as PI
 import           Playground.Types             (CompilationResult (CompilationResult), EndpointName (EndpointName),
                                                Evaluation (Evaluation, program, sourceCode, wallets),
                                                EvaluationResult (EvaluationResult, emulatorLog, fundsDistribution, resultBlockchain, walletKeys),
-                                               Expression (AddBlocks, CallEndpoint, PayToWallet, arguments, destination, endpointName, source, value, wallet),
-                                               FunctionSchema (FunctionSchema), KnownCurrency (KnownCurrency),
-                                               PlaygroundError, SimulatorWallet (SimulatorWallet), adaCurrency,
-                                               argumentSchema, functionName, simulatorWalletBalance,
-                                               simulatorWalletWallet)
+                                               Expression (AddBlocks, CallEndpoint), FunctionSchema (FunctionSchema),
+                                               KnownCurrency (KnownCurrency),
+                                               PayToWalletParams (PayToWalletParams, payTo, value), PlaygroundError,
+                                               SimulatorWallet (SimulatorWallet), adaCurrency, argumentSchema,
+                                               arguments, endpointName, functionName, simulatorWalletBalance,
+                                               simulatorWalletWallet, wallet)
 import           Playground.Usecases          (crowdfunding, errorHandling, game, vesting)
 import           Schema                       (FormSchema (FormSchemaInt, FormSchemaObject, FormSchemaUnit, FormSchemaValue))
 import           Test.Tasty                   (TestTree, testGroup)
@@ -77,7 +78,6 @@ vestingTest =
                   compile vesting
               assertEqual
                   ""
-                  result
                   [ FunctionSchema
                         { functionName = EndpointName "retrieve funds"
                         , argumentSchema = [FormSchemaValue]
@@ -89,11 +89,16 @@ vestingTest =
                   , FunctionSchema
                         { functionName = EndpointName "payToWallet_"
                         , argumentSchema =
-                              [ FormSchemaValue
-                              , FormSchemaObject [("getWallet", FormSchemaInt)]
+                              [ FormSchemaObject
+                                    [ ( "payTo"
+                                      , FormSchemaObject
+                                            [("getWallet", FormSchemaInt)])
+                                    , ("value", FormSchemaValue)
+                                    ]
                               ]
                         }
                   ]
+                  result
         , testCase "should run simple evaluation" $
           evaluate simpleEvaluation >>=
           hasFundsDistribution
@@ -281,16 +286,20 @@ gameTest =
                   ]
             , program =
                   toJSONString
-                      [ PayToWallet
-                            {source = a, destination = b, value = nineAda}
-                      , PayToWallet
-                            {source = b, destination = c, value = nineAda}
-                      , PayToWallet
-                            {source = c, destination = a, value = nineAda}
+                      [ transfer a b nineAda
+                      , transfer b c nineAda
+                      , transfer c a nineAda
                       ]
             }
     nineAda = Ada.adaValueOf 9
     twoAda = Ada.adaOf 2
+    transfer wallet payTo value =
+        CallEndpoint
+            { endpointName = EndpointName "payToWallet_"
+            , wallet
+            , arguments =
+                  toEndpointParam $ JSON.toJSON $ PayToWalletParams {payTo, value}
+            }
 
 hasFundsDistribution ::
        [SimulatorWallet]

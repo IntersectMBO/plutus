@@ -54160,6 +54160,7 @@ license = stdenv.lib.licenses.asl20;
 , bytestring
 , cardano-crypto
 , cborg
+, conduit
 , containers
 , cryptonite
 , deriving-compat
@@ -54205,6 +54206,7 @@ base16-bytestring
 bytestring
 cardano-crypto
 cborg
+conduit
 containers
 cryptonite
 deriving-compat
@@ -54777,6 +54779,7 @@ plutus-contract
 plutus-emulator
 plutus-tx
 plutus-wallet-api
+prettyprinter
 template-haskell
 text
 ];

@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 -- | Balance  `UnbalancedTx` values using the
 --   wallet API.
 module Language.Plutus.Contract.Wallet(
@@ -7,6 +8,10 @@ module Language.Plutus.Contract.Wallet(
     , balanceTx
     , handleTx
     , WAPI.startWatching
+    , SigningProcess(..)
+    , defaultSigningProcess
+    , signWallet
+    , signWallets
     ) where
 
 import           Control.Lens
@@ -30,6 +35,7 @@ import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
 import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError)
 import qualified Wallet.API                  as WAPI
+import           Wallet.Emulator             (Wallet)
 import qualified Wallet.Emulator             as E
 
 -- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
@@ -124,12 +130,28 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: MonadWallet m => UnbalancedTx -> m Tx
-handleTx utx =
-    balanceWallet utx >>= addSignatures (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
+handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
+handleTx p utx =
+    balanceWallet utx >>= addSignatures p (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
 
--- | Add signatures of the private keys belonging to the given
---   public keys to the transaction, provided that they are
---   known to the wallet.
-addSignatures :: MonadWallet m => [PubKey] -> Tx -> m Tx
-addSignatures pks tx = foldM WAPI.signTxnWithKey tx pks
+-- | The signing process gets a finished transaction and a list of public keys,
+--   and signs the transaction with the corresponding private keys.
+newtype SigningProcess = SigningProcess { addSignatures :: forall m. MonadWallet m => [PubKey] -> Tx -> m Tx }
+
+-- | The default signing process is 'signWallet'
+defaultSigningProcess :: SigningProcess
+defaultSigningProcess = signWallet
+
+-- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
+--   'PrivateKeyNotFound' error if called with a key other than the
+--   wallet's private key)
+signWallet :: SigningProcess
+signWallet = SigningProcess $
+    \pks tx -> foldM WAPI.signTxnWithKey tx pks
+
+-- | Sign the transaction with the private keys of the given wallets,
+--   ignoring the list of public keys that the 'SigningProcess' is passed.
+signWallets :: [Wallet] -> SigningProcess
+signWallets wallets = SigningProcess $ \_ tx ->
+    let signingKeys = E.walletPrivKey <$> wallets in
+    pure (foldr Tx.addSignature tx signingKeys)

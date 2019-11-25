@@ -47,7 +47,7 @@ pubKeyContract
     -> Contract s e TxIn
 pubKeyContract pk vl = do
     let address = Ledger.scriptAddress (pkValidator pk)
-        tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
+        tx = Contract.payToScript vl address unitData
     tid <- writeTxSuccess tx
 
     ledgerTx <- awaitTransactionConfirmed address tid
@@ -60,7 +60,7 @@ pubKeyContract pk vl = do
             <> "for public key '"
             <> T.pack (show pk)
             <> "'"
-        [o] -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ()) (DataScript $ PlutusTx.toData ())
+        [o] -> pure $ scriptTxIn o (pkValidator pk) unitRedeemer unitData
         _ -> throwing _OtherError $
             "Transaction contained multiple script outputs"
             <> "for public key '"

@@ -1,58 +1,110 @@
-{-# LANGUAGE ViewPatterns #-}
 module Language.PlutusCore.Subst
-    ( termSubstNames
-    , termSubstTyNames
-    , typeSubstTyNames
+    ( substTyVarA
+    , substVarA
     , substTyVar
     , substVar
+    , termSubstNamesM
+    , termSubstTyNamesM
+    , typeSubstTyNamesM
+    , termSubstNames
+    , termSubstTyNames
+    , typeSubstTyNames
     , fvTerm
     , ftvTerm
     , ftvTy
+    , vTerm
+    , tvTerm
+    , tvTy
     ) where
 
-import           Control.Lens
+import           PlutusPrelude
+
 import           Language.PlutusCore.Type
 
+import           Control.Lens
 import           Data.Functor.Foldable    (cata)
-import           Data.Set
+import           Data.Set                 as Set
+
+purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
+purely = coerce
+
+-- | Applicatively replace a type variable using the given function.
+substTyVarA
+    :: Applicative f
+    => (tyname ann -> f (Maybe (Type tyname ann)))
+    -> Type tyname ann
+    -> f (Type tyname ann)
+substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
+substTyVarA _       ty                  = pure ty
+
+-- | Applicatively replace a variable using the given function.
+substVarA
+    :: Applicative f
+    => (name ann -> f (Maybe (Term tyname name ann)))
+    -> Term tyname name ann
+    -> f (Term tyname name ann)
+substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
+substVarA _     t              = pure t
 
 -- | Replace a type variable using the given function.
 substTyVar
     :: (tyname ann -> Maybe (Type tyname ann))
     -> Type tyname ann
     -> Type tyname ann
-substTyVar tynameF (TyVar _ (tynameF -> Just t)) = t
-substTyVar _       t                             = t
+substTyVar = purely substTyVarA
 
 -- | Replace a variable using the given function.
 substVar
     :: (name ann -> Maybe (Term tyname name ann))
     -> Term tyname name ann
     -> Term tyname name ann
-substVar nameF (Var _ (nameF -> Just t)) = t
-substVar _     t                         = t
+substVar = purely substVarA
+
+-- | Naively monadically substitute type names (i.e. do not substitute binders).
+typeSubstTyNamesM
+    :: Monad m
+    => (tyname ann -> m (Maybe (Type tyname ann)))
+    -> Type tyname ann
+    -> m (Type tyname ann)
+typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
+
+-- | Naively monadically substitute names using the given functions (i.e. do not substitute binders).
+termSubstNamesM
+    :: Monad m
+    => (name ann -> m (Maybe (Term tyname name ann)))
+    -> Term tyname name ann
+    -> m (Term tyname name ann)
+termSubstNamesM = transformMOf termSubterms . substVarA
+
+-- | Naively monadically substitute type names using the given functions (i.e. do not substitute binders).
+termSubstTyNamesM
+    :: Monad m
+    => (tyname ann -> m (Maybe (Type tyname ann)))
+    -> Term tyname name ann
+    -> m (Term tyname name ann)
+termSubstTyNamesM =
+    transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA
 
 -- | Naively substitute type names (i.e. do not substitute binders).
 typeSubstTyNames
     :: (tyname ann -> Maybe (Type tyname ann))
     -> Type tyname ann
     -> Type tyname ann
-typeSubstTyNames tynameF = transformOf typeSubtypes (substTyVar tynameF)
+typeSubstTyNames = purely typeSubstTyNamesM
 
 -- | Naively substitute names using the given functions (i.e. do not substitute binders).
 termSubstNames
     :: (name ann -> Maybe (Term tyname name ann))
     -> Term tyname name ann
     -> Term tyname name ann
-termSubstNames nameF = transformOf termSubterms (substVar nameF)
+termSubstNames = purely termSubstNamesM
 
 -- | Naively substitute type names using the given functions (i.e. do not substitute binders).
 termSubstTyNames
     :: (tyname ann -> Maybe (Type tyname ann))
     -> Term tyname name ann
     -> Term tyname name ann
-termSubstTyNames tynameF =
-    over termSubterms (termSubstTyNames tynameF) . over termSubtypes (typeSubstTyNames tynameF)
+termSubstTyNames = purely termSubstTyNamesM
 
 -- Free variables
 
@@ -67,7 +119,7 @@ fvTerm = cata f
     f (TyInstF _ t _)   = t
     f (UnwrapF _ t)     = t
     f (IWrapF _ _ _ t)  = t
-    f _                 = empty
+    f _                 = Set.empty
 
 -- | Get all the free type variables in a term.
 ftvTerm :: Ord (tyname ann) => Term tyname name ann -> Set (tyname ann)
@@ -79,7 +131,7 @@ ftvTerm = cata f
     f (TyInstF _ t ty)     = t `union` ftvTy ty
     f (UnwrapF _ t)        = t
     f (IWrapF _ pat arg t) = ftvTy pat `union` ftvTy arg `union` t
-    f _                    = empty
+    f _                    = Set.empty
 
 -- | Get all the free type variables in a type.
 ftvTy :: Ord (tyname ann) => Type tyname ann -> Set (tyname ann)
@@ -91,4 +143,18 @@ ftvTy = cata f
     f (TyForallF _ bnd _ ty) = delete bnd ty
     f (TyLamF _ bnd _ ty)    = delete bnd ty
     f (TyAppF _ ty1 ty2)     = ty1 `union` ty2
-    f _                      = empty
+    f _                      = Set.empty
+
+-- All variables
+
+-- | Get all the term variables in a term.
+vTerm :: Ord (name ann) => Term tyname name ann -> Set (name ann)
+vTerm = foldMapOf (termSubtermsDeep . termVars) singleton
+
+-- | Get all the type variables in a term.
+tvTerm :: Ord (tyname ann) => Term tyname name ann -> Set (tyname ann)
+tvTerm = foldMapOf (termSubtypesDeep . typeTyVars) singleton
+
+-- | Get all the type variables in a type.
+tvTy :: Ord (tyname ann) => Type tyname ann -> Set (tyname ann)
+tvTy = foldMapOf (typeSubtypesDeep . typeTyVars) singleton

@@ -77,13 +77,34 @@ fundsAtAddressGt
     => Address
     -> Value
     -> Contract s e AddressMap
-fundsAtAddressGt addr' vl = loopM go mempty where
+fundsAtAddressGt addr vl = 
+    fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
+
+fundsAtAddressCondition
+    :: forall s e.
+       HasWatchAddress s
+    => (Value -> Bool)
+    -> Address
+    -> Contract s e AddressMap
+fundsAtAddressCondition condition addr = loopM go mempty where
     go cur = do
-        delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr'
+        delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr
         let cur' = cur <> delta
-            presentVal = fromMaybe mempty (AM.values cur' ^. at addr')
-        if presentVal `V.gt` vl
+            presentVal = fromMaybe mempty (AM.values cur' ^. at addr)
+        if condition presentVal
         then pure (Right cur') else pure (Left cur')
+
+-- | Watch an address for changes, and return the outputs
+--   at that address when the total value at the address
+--   has reached or surpassed the given value.
+fundsAtAddressGeq
+    :: forall s e.
+       HasWatchAddress s
+    => Address
+    -> Value
+    -> Contract s e AddressMap
+fundsAtAddressGeq addr vl = 
+    fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 
 -- | Watch the address until the transaction with the given 'TxId' appears
 --   on the ledger. Warning: If the transaction does not touch the address,

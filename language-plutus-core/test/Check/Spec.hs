@@ -79,7 +79,7 @@ incoherentUse =
 
 propRenameCheck :: Property
 propRenameCheck = property $ do
-    prog <- forAll genProgram
+    prog <- forAll $ runAstGen genProgram
     renamed <- runQuoteT $ rename prog
     annotateShow renamed
     Hedgehog.evalExceptT $ checkUniques renamed

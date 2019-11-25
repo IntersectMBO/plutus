@@ -20,13 +20,13 @@ import qualified Test.Tasty.HUnit                                as HUnit
 
 tests :: TestTree
 tests = testGroup "escrow"
-    [ checkPredicate @EscrowSchema "can pay"
+    [ checkPredicate @EscrowSchema @EscrowError "can pay"
         (void $ payEp escrowParams)
         (assertDone w1 (const True) "escrow pay not done" /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         (callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1)
 
-    , checkPredicate @EscrowSchema "can redeem"
+    , checkPredicate @EscrowSchema @EscrowError "can redeem"
         (void $ selectEither (payEp escrowParams) (redeemEp escrowParams))
         ( assertDone w3 (const True) "escrow redeem not done"
           /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
@@ -43,7 +43,7 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents w1
         >> handleBlockchainEvents w2)
 
-    , checkPredicate @EscrowSchema "can redeem even if more money than required has been paid in"
+    , checkPredicate @EscrowSchema @EscrowError "can redeem even if more money than required has been paid in"
           (both (payEp escrowParams) (redeemEp escrowParams))
 
           -- in this test case we pay in a total of 40 lovelace (10 more than required), for
@@ -80,10 +80,10 @@ tests = testGroup "escrow"
           >> handleBlockchainEvents w3
           >> handleBlockchainEvents w2)
 
-    , checkPredicate @EscrowSchema "can refund"
+    , checkPredicate @EscrowSchema @EscrowError "can refund"
         (payEp escrowParams >> refundEp escrowParams)
         ( walletFundsChange w1 mempty
-          /\ assertDone w1 (\case { RefundOK _ -> True; _ -> False}) "refund should succeed")
+          /\ assertDone w1 (const True) "refund should succeed")
         ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
         >> handleBlockchainEvents w1
         >> addBlocks 200
@@ -98,7 +98,7 @@ w1 = Wallet 1
 w2 = Wallet 2
 w3 = Wallet 3
 
-escrowParams :: EscrowParams
+escrowParams :: EscrowParams d
 escrowParams =
   EscrowParams
     { escrowDeadline = 200
