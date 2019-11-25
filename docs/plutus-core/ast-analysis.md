@@ -83,6 +83,8 @@ size of serialised code.
 |       |       |27.3% | 24.3% | 28.0% | 0.4% | 0.1% | 0.3% | 5.0% | 14.0% | 0.3% | 0.4% | - | 
 
 
+### Depths of ASTs
+
 The table below shows the depth of the AST for each validator,
 together with the "&lambda;-depth": the depth of nesting of Lam nodes
 (relevant to de Bruijn indices)
