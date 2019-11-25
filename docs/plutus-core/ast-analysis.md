@@ -81,3 +81,25 @@ size of serialised code.
 | |
 | Vesting | 8359 | 2279 | 2029 | 2344 | 33 | 8 | 25 | 420 | 1167 | 22 | 32 | (4308)| 
 |       |       |27.3% | 24.3% | 28.0% | 0.4% | 0.1% | 0.3% | 5.0% | 14.0% | 0.3% | 0.4% | - | 
+
+
+### Depths of ASTs
+
+The table below shows the depth of the AST for each validator,
+together with the "&lambda;-depth": the depth of nesting of Lam nodes
+(relevant to de Bruijn indices)
+
+| Contract | Total Nodes | Depth | &lambda;-depth |
+| :---: | ---: | ---: | ---: |
+| Crowdfunding | 4630 | 318 | 119 |
+| Currrency | 6865 | 407 | 161 |
+| Escrow | 5582 | 322 | 120 |
+| Future | 7695 | 445 | 202 |
+| Game | 4048 | 356 | 150 |
+| GameStateMachine | 5692 | 346 | 109 |
+| MultiSig | 4876 | 354 | 149 |
+| MultiSigStateMachine | 9731 | 468 | 186 |
+| PubKey | 4637 | 354 | 149 |
+| Swap | 7620 | 472 | 211 |
+| TokenAccount | 2433 | 192 | 77 |
+| Vesting | 8359 | 413 | 189 |
