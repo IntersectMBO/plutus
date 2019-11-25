@@ -23,6 +23,7 @@ module Language.Plutus.Contract.Tx(
     , payToPubKey
     , collectFromScript
     , collectFromScriptFilter
+    , forgeValue
     -- * Constructing inputs
     , Tx.pubKeyTxIn
     , Tx.scriptTxIn
@@ -171,6 +172,12 @@ collectFromScriptFilter
 collectFromScriptFilter flt am vls red =
     let inp = WAPI.getScriptInputsFilter flt am vls red
     in unbalancedTx (fmap fst inp) mempty
+
+-- This just sets the '_forge' field, but it's exported for convenient
+-- use with '<>'.
+-- | An 'UnbalancedTx' that forges the specified value.
+forgeValue :: Value -> UnbalancedTx
+forgeValue vl = mempty { _forge = vl }
 
 {- Note [Unbalanced transactions]
 
