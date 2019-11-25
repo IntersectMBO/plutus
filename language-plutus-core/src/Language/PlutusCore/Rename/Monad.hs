@@ -1,3 +1,5 @@
+-- | The monad that the renamer runs in and related infrastructure.
+
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -37,6 +39,7 @@ newtype RenameT ren m a = RenameT
         , MonadQuote
         )
 
+-- | A renaming is a mapping from old uniques to new ones.
 newtype Renaming unique = Renaming
     { unRenaming :: UniqueMap unique unique
     } deriving (Semigroup, Monoid)
@@ -86,6 +89,7 @@ mrunRenameT = runRenameT mempty
 runDirectRenameT :: RenameT (Renaming unique) m a -> m a
 runDirectRenameT = mrunRenameT
 
+-- | Map the underlying representation of 'Renaming'.
 mapRenaming
     :: (UniqueMap unique unique -> UniqueMap unique unique)
     -> Renaming unique

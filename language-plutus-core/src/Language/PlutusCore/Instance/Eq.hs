@@ -1,3 +1,5 @@
+-- | 'Eq' instances for core data types.
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE TypeFamilies         #-}
@@ -10,10 +12,11 @@ module Language.PlutusCore.Instance.Eq
 import           PlutusPrelude
 
 import           Language.PlutusCore.Instance.Eq.Internal
-import           Language.PlutusCore.Instance.Eq.Monad
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 
+-- | A wrapper around any @name@ needed for the sake of its 'Eq' instance, which requires the @name@
+-- to have a 'Unique' and the 'Unique's of two names are used for performing the equality check.
 newtype Global name = Global
     { unGlobal :: name
     }

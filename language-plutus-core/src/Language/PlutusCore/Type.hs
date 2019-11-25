@@ -1,11 +1,10 @@
-{-# LANGUAGE DeriveAnyClass          #-}
-{-# LANGUAGE DerivingVia             #-}
-{-# LANGUAGE FlexibleInstances       #-}
-{-# LANGUAGE LambdaCase              #-}
-{-# LANGUAGE MultiParamTypeClasses   #-}
-{-# LANGUAGE TypeFamilies            #-}
-{-# LANGUAGE UndecidableInstances    #-}
-{-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Type
     ( Term (..)
@@ -53,6 +52,11 @@ import           Language.Haskell.TH.Syntax     (Lift)
 newtype Gas = Gas
     { unGas :: Natural
     }
+
+{- Note [Annotations and equality]
+Equality of two things does not depend on their annotations.
+So don't use @deriving Eq@ for things with annotations.
+-}
 
 -- | ann 'Type' assigned to expressions.
 data Type tyname ann
@@ -284,6 +288,7 @@ newtype Normalized a = Normalized
 
 deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 
+-- | All kinds of uniques an entity contains.
 type family HasUniques a :: Constraint
 type instance HasUniques (Type tyname ann) = HasUnique (tyname ann) TypeUnique
 type instance HasUniques (Term tyname name ann) =
