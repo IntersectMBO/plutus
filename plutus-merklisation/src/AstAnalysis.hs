@@ -1,7 +1,8 @@
 {- Load the ASTs for the validators of the sample contracts and print
    out a markdown table showing how many of each type of node there
    are, and what percentage of the total number of nodes these make
-   up. -}
+   up. Also print out a second table showing depths of entire AST and
+   depth of nesting of Lams. -}
 
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -146,9 +147,9 @@ analyseProg :: String -> CompiledCode a -> IO ()
 analyseProg name prg = do
   let counts = freqProg $ PlutusTx.getPlc prg
   printCounts name counts
-
-main :: IO ()
-main = do
+         
+printTermCounts :: IO ()
+printTermCounts = do
   printHeader
   analyseProg    "Crowdfunding"         Crowdfunding.exportedValidator
   printSeparator
@@ -173,7 +174,104 @@ main = do
   analyseProg    "TokenAccount"         TokenAccount.exportedValidator
   printSeparator
   analyseProg    "Vesting"              Vesting.exportedValidator
+
+
+---------------- Depth of ASTs ----------------
+
+termDepth :: PLC.Term PLC.TyName PLC.Name ann -> Integer
+termDepth t =
+    case t of
+      PLC.Var      _ann _name          -> 1
+      PLC.TyAbs    _ann _ty _kind body -> 1 + termDepth body
+      PLC.LamAbs   _ann _ty _name body -> 1 + termDepth body
+      PLC.Apply    _ann term1 term2    -> 1 + max (termDepth term1) (termDepth term2)
+      PLC.Constant _ann _cn            -> 1
+      PLC.Builtin  _ann _bn            -> 1
+      PLC.TyInst   _ann term _ty       -> 1 + termDepth term
+      PLC.Unwrap   _ann term           -> 1 + termDepth term
+      PLC.IWrap    _ann _ty1 _ty2 term -> 1 + termDepth term
+      PLC.Error    _ann _ty            -> 1
+                                          
+
+-- Total number of nodes in AST.  We've already got this in the first table anyway.
+
+numNodes :: PLC.Term PLC.TyName PLC.Name ann -> Int 
+numNodes t =
+    case t of
+      PLC.Var      _ann _name          -> 1
+      PLC.TyAbs    _ann _ty _kind body -> 1 + numNodes body
+      PLC.LamAbs   _ann _ty _name body -> 1 + numNodes body
+      PLC.Apply    _ann term1 term2    -> 1 + numNodes term1 + numNodes term2
+      PLC.Constant _ann _cn            -> 1
+      PLC.Builtin  _ann _bn            -> 1
+      PLC.TyInst   _ann term _ty       -> 1 + numNodes term
+      PLC.Unwrap   _ann term           -> 1 + numNodes term
+      PLC.IWrap    _ann _ty1 _ty2 term -> 1 + numNodes term
+      PLC.Error    _ann _ty            -> 1
+
+
+
+
+-- "Lambda depth" of AST's: depth of Lam nesting
+                                        
+termLDepth :: PLC.Term PLC.TyName PLC.Name ann -> Integer
+termLDepth t =
+    case t of
+      PLC.Var      _ann _name           -> 0
+      PLC.TyAbs    _ann _ty _kind body  -> termLDepth body
+      PLC.LamAbs   _ann _ty _name body  -> 1 + termLDepth body
+      PLC.Apply    _ann term1 term2     -> max (termLDepth term1) (termLDepth term2)
+      PLC.Constant _ann _cn             -> 0
+      PLC.Builtin  _ann _bn             -> 0
+      PLC.TyInst   _ann term _ty        -> termLDepth term
+      PLC.Unwrap   _ann term            -> termLDepth term
+      PLC.IWrap    _ann _ty1 _ty2 term  -> termLDepth term
+      PLC.Error    _ann _ty             -> 0
+                                          
+printDepthHeader :: IO()
+printDepthHeader = do
+  putStrLn "| Contract | Total Nodes | Depth | &lambda;-depth |"
+  putStrLn "| :---: | ---: | ---: | ---: |"
+
+printDepths :: String -> CompiledCode ann -> IO ()
+printDepths name validator = do
+  let PLC.Program _ver _ty body = PlutusTx.getPlc validator
+  putStr "| "
+  putStr name
+  putStr " | "
+  putStr $ show (numNodes body)
+  putStr " | "
+  putStr $ show (termDepth body)
+  putStr " | "
+  putStr $ show (termLDepth body)
+  putStrLn " |"
   
+printValidatorDepths :: IO ()
+printValidatorDepths = do
+  printDepthHeader
+  printDepths    "Crowdfunding"         Crowdfunding.exportedValidator
+  printDepths    "Currrency"            Currrency.exportedValidator
+  printDepths    "Escrow"               Escrow.exportedValidator
+  printDepths    "Future"               Future.exportedValidator
+  printDepths    "Game"                 Game.exportedValidator
+  printDepths    "GameStateMachine"     GameStateMachine.exportedValidator
+  printDepths    "MultiSig"             MultiSig.exportedValidator
+  printDepths    "MultiSigStateMachine" MultiSigStateMachine.exportedValidator
+  printDepths    "PubKey"               PubKey.exportedValidator
+  printDepths    "Swap"                 Swap.exportedValidator
+  printDepths    "TokenAccount"         TokenAccount.exportedValidator
+  printDepths    "Vesting"              Vesting.exportedValidator
+                 
+
+---------------- Main ----------------
+
+main :: IO ()
+main = do
+  printTermCounts
+  putStrLn ""
+  putStrLn ""
+  printValidatorDepths
+
 -- Current validator is a little different for Future and PubKey
 
 -- See plutus-use-cases/bench/Bench.hs for examples of manipulating PLC code
