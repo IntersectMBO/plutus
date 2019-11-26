@@ -21,6 +21,8 @@ import qualified Language.PlutusCore.Untyped.Term           as U
 
 import qualified Language.PlutusCore.DeBruijn               as D
 
+import qualified Merkle as M
+    
 import Language.PlutusTx.Coordination.Contracts.CrowdFunding         as Crowdfunding
 import Language.PlutusTx.Coordination.Contracts.Currency             as Currrency
 import Language.PlutusTx.Coordination.Contracts.Escrow               as Escrow
@@ -36,6 +38,8 @@ import Language.PlutusTx.Coordination.Contracts.Vesting              as Vesting
 
 import Language.PlutusTx                                             as PlutusTx
 
+import qualified Hashes as H
+    
 import           Codec.Serialise               (serialise)
 import qualified Codec.Compression.GZip        as G
 import           Control.Monad.Trans.Except    (runExceptT)
@@ -47,8 +51,8 @@ import           GHC.Int                       (Int64)
 
 printHeader :: IO ()
 printHeader = do
-  putStrLn "| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |"
-  putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
+  putStrLn "| Contract | Compression | Full Merkle | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |"
+  putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
 
 printSeparator :: IO ()
 printSeparator = do
@@ -96,14 +100,15 @@ printInfo fullSize entries = do
 
 analyseCompression :: String -> PLC.Program PLC.TyName PLC.Name () -> IO ()
 analyseCompression name prog = do
-    let s1 = serialise prog
-        s2 = serialise $ U.anonProgram prog
-        s3 = serialise $ U.eraseProgram prog
-        s4 = serialise $ U.eraseProgram $ U.anonProgram prog
-        s5 = serialise $ U.nameToIntProgram $ U.eraseProgram prog
-        s6 = serialise $ U.deBruijnToIntProgram $ U.eraseProgram $ deBrProg prog
-    putStr $ "| " ++ name ++ " | "
-    printInfo (B.length s1) [(s1, Alone), (s2, Alone), (s3, Alone), (s4, Alone), (s5, WithPercentage), (s6, WithPercentage)]
+  let s1 = serialise prog
+      smerk = serialise $ M.merkliseProg prog
+      s2 = serialise $ U.anonProgram prog           
+      s3 = serialise $ U.eraseProgram prog
+      s4 = serialise $ U.eraseProgram $ U.anonProgram prog
+      s5 = serialise $ U.nameToIntProgram $ U.eraseProgram prog
+      s6 = serialise $ U.deBruijnToIntProgram $ U.eraseProgram $ deBrProg prog
+  putStr $ "| " ++ name ++ " | "
+  printInfo (B.length s1) [(s1, Alone), (smerk, WithPercentage), (s2, Alone), (s3, Alone), (s4, Alone), (s5, WithPercentage), (s6, WithPercentage)]
 
                                        
 analyseProg :: String -> CompiledCode a -> IO ()
