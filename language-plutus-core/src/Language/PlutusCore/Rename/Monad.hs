@@ -9,13 +9,12 @@ module Language.PlutusCore.Rename.Monad
     ( RenameT (..)
     , ScopedRenameT
     , Renaming (..)
+    , TypeRenaming
     , ScopedRenaming (..)
     , HasRenaming (..)
     , scopedRenamingTypes
     , scopedRenamingTerms
     , runRenameT
-    , mrunRenameT
-    , runDirectRenameT
     , lookupNameM
     , renameNameM
     , withFreshenedName
@@ -43,6 +42,11 @@ newtype RenameT ren m a = RenameT
 newtype Renaming unique = Renaming
     { unRenaming :: UniqueMap unique unique
     } deriving (Semigroup, Monoid)
+
+-- | A type-level renaming.
+-- Needed for instantiating functions running over types in generic @RenameT ren m@ to
+-- a particular type of renaming.
+type TypeRenaming = Renaming TypeUnique
 
 -- | A class that specifies which 'Renaming' a @ren@ has inside.
 -- A @ren@ can contain several 'Renaming's (like 'Scoped', for example).
@@ -76,18 +80,9 @@ instance HasRenaming ScopedRenaming TypeUnique where
 instance HasRenaming ScopedRenaming TermUnique where
     renaming = scopedRenamingTerms . renaming
 
--- | Run a 'RenameT' computation with a supplied @ren@.
-runRenameT :: ren -> RenameT ren m a -> m a
-runRenameT ren (RenameT a) = runReaderT a ren
-
--- | Run a 'RenameT' computation with a 'mempty' renaming.
-mrunRenameT :: Monoid ren => RenameT ren m a -> m a
-mrunRenameT = runRenameT mempty
-
--- | Run a 'RenameT' computation with an empty 'Renaming'.
--- A specialized version of 'mrunRenameT' needed for the sake of type inference.
-runDirectRenameT :: RenameT (Renaming unique) m a -> m a
-runDirectRenameT = mrunRenameT
+-- | Run a 'RenameT' computation with an empty renaming.
+runRenameT :: Monoid ren => RenameT ren m a -> m a
+runRenameT (RenameT a) = runReaderT a mempty
 
 -- | Map the underlying representation of 'Renaming'.
 mapRenaming

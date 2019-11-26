@@ -123,6 +123,7 @@ data Token ann
     | EOF { loc :: ann }
     deriving (Show, Eq, Generic, NFData)
 
+-- See Note [Annotations and equality].
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]
 
@@ -150,7 +151,7 @@ instance Pretty Keyword where
     pretty KwLam        = "lam"
     pretty KwIFix       = "ifix"
     pretty KwFun        = "fun"
-    pretty KwAll        = "forall"
+    pretty KwAll        = "all"
     pretty KwByteString = "bytestring"
     pretty KwInteger    = "integer"
     pretty KwType       = "type"

@@ -163,10 +163,12 @@ data Builtin ann
     | DynBuiltinName ann DynamicBuiltinName
     deriving (Functor, Show, Generic, NFData, Lift)
 
+-- See Note [Annotations and equality].
 instance Eq (Builtin ann) where
     BuiltinName    _ name1 == BuiltinName    _ name2 = name1 == name2
     DynBuiltinName _ name1 == DynBuiltinName _ name2 = name1 == name2
-    _                      == _                      = False
+    BuiltinName    {} == _ = False
+    DynBuiltinName {} == _ = False
 
 -- | A constant value.
 data Constant ann
@@ -175,11 +177,14 @@ data Constant ann
     | BuiltinStr ann String
     deriving (Functor, Show, Generic, NFData, Lift)
 
+-- See Note [Annotations and equality].
 instance Eq (Constant ann) where
     BuiltinInt _ int1 == BuiltinInt _ int2 = int1 == int2
     BuiltinBS _  bs1  == BuiltinBS  _ bs2  = bs1 == bs2
     BuiltinStr _ str1 == BuiltinStr _ str2 = str1 == str2
-    _                 == _                 = False
+    BuiltinInt {} == _ = False
+    BuiltinBS  {} == _ = False
+    BuiltinStr {} == _ = False
 
 -- | A 'Term' is a value.
 data Term tyname name ann
@@ -307,6 +312,7 @@ data KindF ann x
     | KindArrowF ann x x
     deriving (Functor)
 
+-- See Note [Annotations and equality].
 instance Eq (Kind ann) where
     Type _                == Type   _              = True
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
@@ -333,6 +339,7 @@ deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 
 -- | All kinds of uniques an entity contains.
 type family HasUniques a :: Constraint
+type instance HasUniques (Kind ann) = ()
 type instance HasUniques (Type tyname ann) = HasUnique (tyname ann) TypeUnique
 type instance HasUniques (Term tyname name ann) =
     (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)

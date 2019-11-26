@@ -61,7 +61,7 @@ type instance PLC.HasUniques (Term tyname name ann) = PLC.HasUniques (PLC.Term t
 instance PLC.HasUniques (Term tyname name ann) => PLC.Rename (Term tyname name ann) where
     -- TODO: the Plutus Core codebase uses marking in order to prevent clashing with existing
     -- free variables. Should we do the same here?
-    rename = PLC.mrunRenameT . renameTermM
+    rename = PLC.runRenameT . renameTermM
 
 -- See Note [Renaming of mutually recursive bindings].
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.

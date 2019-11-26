@@ -2,6 +2,7 @@
 
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Rename
@@ -37,15 +38,15 @@ class Rename a where
 
 instance HasUniques (Type tyname ann) => Rename (Type tyname ann) where
     -- See Note [Marking].
-    rename = through markNonFreshType >=> runDirectRenameT . renameTypeM
+    rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
 
 instance HasUniques (Term tyname name ann) => Rename (Term tyname name ann) where
     -- See Note [Marking].
-    rename = through markNonFreshTerm >=> mrunRenameT . renameTermM
+    rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
 instance HasUniques (Program tyname name ann) => Rename (Program tyname name ann) where
     -- See Note [Marking].
-    rename = through markNonFreshProgram >=> mrunRenameT . renameProgramM
+    rename = through markNonFreshProgram >=> runRenameT . renameProgramM
 
 instance Rename a => Rename (Normalized a) where
     rename = traverse rename

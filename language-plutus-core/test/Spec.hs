@@ -92,7 +92,7 @@ propCBOR = property $ do
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
-    prog <- TextualProgram . void <$> forAllPretty (runAstGen genProgram)
+    prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
     Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
