@@ -12,7 +12,6 @@ module Language.PlutusCore.Evaluation.MachineException
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 

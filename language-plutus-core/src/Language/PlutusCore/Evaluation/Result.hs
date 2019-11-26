@@ -14,7 +14,6 @@ module Language.PlutusCore.Evaluation.Result
     ) where
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Applicative

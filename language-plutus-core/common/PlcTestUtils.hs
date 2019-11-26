@@ -14,10 +14,10 @@ module PlcTestUtils (
 
 import           Common
 
-import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
 
 import           Control.Exception
 import           Control.Monad.Except

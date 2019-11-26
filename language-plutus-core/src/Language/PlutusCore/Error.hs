@@ -30,9 +30,8 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
-import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -134,7 +133,7 @@ asInternalError doc =
 
 instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
+    pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
     pretty (Overflow ann _ _) = "Integer overflow at" <+> pretty ann <> "."
 
 instance (Pretty ann, PrettyBy config (tyname ann)) =>

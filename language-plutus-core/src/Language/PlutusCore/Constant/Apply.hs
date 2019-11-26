@@ -22,14 +22,14 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Inner

@@ -15,18 +15,19 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
+import           PlutusPrelude
+
+import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import           Language.PlutusCore.Generators.Internal.Utils
+
 import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck
-import           PlutusPrelude
 
 import           Control.Lens.TH
 import           Control.Monad.Except

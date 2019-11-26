@@ -19,9 +19,7 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
-import           Language.PlutusCore.Lexer.Type                          hiding (name)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Monad.Except

@@ -28,7 +28,7 @@ module Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Type
 
 import qualified Data.ByteString.Lazy.Char8                     as BSL
 import           Data.Proxy

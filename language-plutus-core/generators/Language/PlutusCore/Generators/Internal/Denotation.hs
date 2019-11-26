@@ -15,11 +15,11 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , typedBuiltinNames
     ) where
 
+import           Language.PlutusCore.Generators.Internal.Dependent
+
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-
-import           Language.PlutusCore.Generators.Internal.Dependent
 
 import qualified Data.ByteString.Lazy                              as BSL
 import qualified Data.ByteString.Lazy.Hash                         as Hash

@@ -13,10 +13,8 @@ module Language.PlutusCore.Constant.Dynamic.Instances
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type             (prettyBytes)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import qualified Language.PlutusCore.StdLib.Data.Function   as Plc

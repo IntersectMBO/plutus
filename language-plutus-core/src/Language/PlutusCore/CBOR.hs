@@ -11,7 +11,7 @@ module Language.PlutusCore.CBOR () where
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer      (AlexPosn)
-import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type

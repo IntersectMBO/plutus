@@ -29,7 +29,6 @@ module Language.PlutusCore.TypeCheck.Internal
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type         hiding (name)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize

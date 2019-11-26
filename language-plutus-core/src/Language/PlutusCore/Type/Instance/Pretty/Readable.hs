@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Pretty.Readable
+module Language.PlutusCore.Type.Instance.Pretty.Readable
     ( RenderContext (..)
     , ShowKinds (..)
     , PrettyConfigReadable (..)
@@ -19,12 +19,13 @@ module Language.PlutusCore.Pretty.Readable
     , botPrettyConfigReadable
     ) where
 
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Text.Prettyprint.Doc.Internal (enclose)
+import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Type.Core
+import           Language.PlutusCore.Type.Instance.Pretty.Common
+
+import           Data.Text.Prettyprint.Doc.Internal              (enclose)
 
 -- | Associativity of an expression.
 data Associativity
@@ -220,7 +221,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Constant a) where
     prettyBy config = unitaryDoc config . \case
         BuiltinInt _ int -> pretty int
         BuiltinBS _ bs   -> prettyBytes bs
-        BuiltinStr _ str      -> pretty str
+        BuiltinStr _ str -> pretty str
 
 instance PrettyBy (PrettyConfigReadable configName) (Builtin a) where
     prettyBy config = unitaryDoc config . \case

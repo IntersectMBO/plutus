@@ -1,10 +1,8 @@
--- There is really no way to avoid these being orphans without a cycle
--- between the pretty printing and AST modules.
 {-# OPTIONS_GHC -Wno-orphans -Wno-simplifiable-class-constraints #-}
 
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Pretty
+module Language.PlutusCore.Type.Instance.Pretty
     (
     -- * Basic types and functions
       Doc
@@ -18,6 +16,7 @@ module Language.PlutusCore.Pretty
     , prettyText
     , prettyStringBy
     , prettyTextBy
+    , prettyBytes
     -- * Defaults
     , prettyPlcDef
     , prettyPlcDefString
@@ -61,14 +60,16 @@ module Language.PlutusCore.Pretty
     , botPrettyConfigReadable
     ) where
 
-import           Language.PlutusCore.Name            as Export
-import           Language.PlutusCore.Pretty.Classic  as Export
-import           Language.PlutusCore.Pretty.Plc      as Export
-import           Language.PlutusCore.Pretty.Readable as Export
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Text                           (Text)
+import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Type.Core
+import           Language.PlutusCore.Type.Instance.Pretty.Classic
+import           Language.PlutusCore.Type.Instance.Pretty.Common
+import           Language.PlutusCore.Type.Instance.Pretty.Plc
+import           Language.PlutusCore.Type.Instance.Pretty.Readable
+
+import           Data.Text                                         (Text)
 
 -- | Pretty-print a value in the default mode using the classic view.
 prettyPlcDef :: PrettyPlc a => a -> Doc ann

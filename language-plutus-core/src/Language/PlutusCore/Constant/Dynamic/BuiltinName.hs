@@ -18,7 +18,6 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
 import           Data.Proxy

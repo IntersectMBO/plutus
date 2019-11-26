@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Pretty.Classic
+module Language.PlutusCore.Type.Instance.Pretty.Classic
     ( PrettyConfigClassic (..)
     , PrettyClassicBy
     , PrettyClassic
@@ -14,10 +14,12 @@ module Language.PlutusCore.Pretty.Classic
     , prettyClassicDebug
     ) where
 
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Type.Core
+import           Language.PlutusCore.Type.Instance.Pretty.Common
+import           Language.PlutusCore.Type.Instance.Recursive
 
 import           Data.Functor.Foldable
 
