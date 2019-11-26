@@ -5,6 +5,7 @@ import Data.BigInt (BigInt, toString)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.List (List)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Data.Tuple (Tuple)
 import Text.PrettyPrint.Leijen (Doc, hang, line, list, parens, space, text)
 import Type.Data.Boolean (kind Boolean)
 
@@ -22,6 +23,10 @@ instance prettyList :: Pretty a => Pretty (List a) where
 
 instance prettyArray :: Pretty a => Pretty (Array a) where
   prettyFragment xs = list (map prettyFragment xs)
+
+instance prettyToken :: Pretty (Tuple String String) where
+  prettyFragment a = text "Ada"
+
 
 genericPretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
 genericPretty x = pretty1 false (from x)

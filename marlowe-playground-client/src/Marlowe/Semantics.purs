@@ -4,10 +4,11 @@ import Prelude
 import Data.Array (foldl)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (class Foldable, any)
+import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Integral (class Integral)
-import Data.Lens (Lens', over, set, to, view)
+import Data.Lens (Lens', over, to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.List (List(..), fromFoldable, null, reverse, (:))
@@ -22,6 +23,7 @@ import Data.Tuple (Tuple(..))
 import Marlowe.Pretty (class Pretty, genericPretty, prettyFragment)
 import Text.PrettyPrint.Leijen (appendWithSoftbreak, text)
 
+
 type PubKey
   = String
 
@@ -32,13 +34,41 @@ type Timeout
   = Slot
 
 type Money
-  = Ada
+  = Assets
+
+type CurrencySymbol = String
+
+type TokenName = String
+
+type Token = Tuple CurrencySymbol TokenName
 
 type ChosenNum
   = BigInteger
 
+type Accounts = Map (Tuple AccountId Token) BigInteger
+
 type ChoiceName
   = String
+
+
+newtype Assets
+  = Assets (Map CurrencySymbol (Map TokenName BigInteger))
+
+derive instance genericAssets :: Generic Assets _
+
+derive instance newtypeAssets :: Newtype Assets _
+
+derive instance eqAssets :: Eq Assets
+
+derive newtype instance showAssets :: Show Assets
+
+instance semigroupAssets :: Semigroup Assets where
+  append (Assets a) (Assets b) = Assets (Map.unionWith f a b)
+    where f = Map.unionWith (+)
+
+instance monoidAssets :: Monoid Assets where
+  mempty = Assets mempty
+
 
 newtype Slot
   = Slot BigInteger
@@ -69,6 +99,7 @@ derive newtype instance realRingSlot :: Real Slot
 
 derive newtype instance integralSlot :: Integral Slot
 
+
 newtype Ada
   = Lovelace BigInteger
 
@@ -96,6 +127,7 @@ derive newtype instance realRingAda :: Real Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
+
 data AccountId
   = AccountId BigInteger PubKey
 
@@ -111,8 +143,6 @@ instance showAccountId :: Show AccountId where
 instance prettyAccountId :: Pretty AccountId where
   prettyFragment a = text (show a)
 
-accountOwner :: AccountId -> PubKey
-accountOwner (AccountId _ owner) = owner
 
 data ChoiceId
   = ChoiceId String PubKey
@@ -132,6 +162,7 @@ instance prettyChoiceId :: Pretty ChoiceId where
 choiceOwner :: ChoiceId -> PubKey
 choiceOwner (ChoiceId _ owner) = owner
 
+
 newtype ValueId
   = ValueId String
 
@@ -149,8 +180,9 @@ instance showValueId :: Show ValueId where
 instance prettyValueId :: Pretty ValueId where
   prettyFragment a = text (show a)
 
+
 data Value
-  = AvailableMoney AccountId
+  = AvailableMoney AccountId Token
   | Constant BigInteger
   | NegValue Value
   | AddValue Value Value
@@ -171,6 +203,7 @@ instance showValue :: Show Value where
 
 instance prettyValue :: Pretty Value where
   prettyFragment a = genericPretty a
+
 
 data Observation
   = AndObs Observation Observation
@@ -206,6 +239,7 @@ above v (SlotInterval _ to) = v >= to
 anyWithin :: forall f. Foldable f => Slot -> f SlotInterval -> Boolean
 anyWithin v = any (\(SlotInterval from to) -> v >= from && v <= to)
 
+
 data SlotInterval
   = SlotInterval Slot Slot
 
@@ -222,6 +256,7 @@ ivFrom (SlotInterval from _) = from
 ivTo :: SlotInterval -> Slot
 ivTo (SlotInterval _ to) = to
 
+
 data Bound
   = Bound BigInteger BigInteger
 
@@ -237,17 +272,9 @@ instance showBound :: Show Bound where
 instance prettyBound :: Pretty Bound where
   prettyFragment a = text $ show a
 
-inBounds :: ChosenNum -> Array Bound -> Boolean
-inBounds num = any (\(Bound l u) -> num >= l && num <= u)
-
-boundFrom :: Bound -> BigInteger
-boundFrom (Bound from _) = from
-
-boundTo :: Bound -> BigInteger
-boundTo (Bound _ to) = to
 
 data Action
-  = Deposit AccountId Party Value
+  = Deposit AccountId Party Token Value
   | Choice ChoiceId (Array Bound)
   | Notify Observation
 
@@ -263,6 +290,7 @@ instance showAction :: Show Action where
 
 instance prettyAction :: Pretty Action where
   prettyFragment a = text (show a)
+
 
 data Payee
   = Account AccountId
@@ -280,6 +308,7 @@ instance showPayee :: Show Payee where
 instance prettyPayee :: Pretty Payee where
   prettyFragment a = genericPretty a
 
+
 data Case
   = Case Action Contract
 
@@ -296,9 +325,10 @@ instance showCase :: Show Case where
 instance prettyCase :: Pretty Case where
   prettyFragment (Case action contract) = appendWithSoftbreak (text "Case " <> prettyFragment action <> text " ") (prettyFragment contract)
 
+
 data Contract
   = Close
-  | Pay AccountId Payee Value Contract
+  | Pay AccountId Payee Token Value Contract
   | If Observation Contract Contract
   | When (Array Case) Timeout Contract
   | Let ValueId Value Contract
@@ -315,9 +345,10 @@ instance showContract :: Show Contract where
 instance prettyContract :: Pretty Contract where
   prettyFragment a = genericPretty a
 
+
 newtype State
   = State
-  { accounts :: Map AccountId Money
+  { accounts :: Accounts
   , choices :: Map ChoiceId ChosenNum
   , boundValues :: Map ValueId BigInteger
   , minSlot :: Slot
@@ -334,7 +365,7 @@ derive instance ordState :: Ord State
 instance showState :: Show State where
   show v = genericShow v
 
-_accounts :: Lens' State (Map AccountId Money)
+_accounts :: Lens' State (Accounts)
 _accounts = _Newtype <<< prop (SProxy :: SProxy "accounts")
 
 _choices :: Lens' State (Map ChoiceId ChosenNum)
@@ -346,14 +377,6 @@ _boundValues = _Newtype <<< prop (SProxy :: SProxy "boundValues")
 _minSlot :: Lens' State Slot
 _minSlot = _Newtype <<< prop (SProxy :: SProxy "minSlot")
 
-emptyState :: Slot -> State
-emptyState sn =
-  State
-    { accounts: mempty
-    , choices: mempty
-    , boundValues: mempty
-    , minSlot: sn
-    }
 
 newtype Environment
   = Environment { slotInterval :: SlotInterval }
@@ -372,8 +395,9 @@ instance showEnvironment :: Show Environment where
 _slotInterval :: Lens' Environment SlotInterval
 _slotInterval = _Newtype <<< prop (SProxy :: SProxy "slotInterval")
 
+
 data Input
-  = IDeposit AccountId Party Money
+  = IDeposit AccountId Party Token BigInteger
   | IChoice ChoiceId ChosenNum
   | INotify
 
@@ -385,6 +409,7 @@ derive instance ordInput :: Ord Input
 
 instance showInput :: Show Input where
   show v = genericShow v
+
 
 -- Processing of slot interval
 data IntervalError
@@ -401,6 +426,7 @@ instance showIntervalError :: Show IntervalError where
   show (InvalidInterval interval) = "Invalid interval: " <> show interval
   show (IntervalInPastError slot interval) = "Interval is in the past, the current slot is " <> show slot <> " but the interval is " <> show interval
 
+
 data IntervalResult
   = IntervalTrimmed Environment State
   | IntervalError IntervalError
@@ -413,6 +439,213 @@ derive instance ordIntervalResult :: Ord IntervalResult
 
 instance showIntervalResult :: Show IntervalResult where
   show v = genericShow v
+
+
+data Payment
+  = Payment Party Money
+
+derive instance genericPayment :: Generic Payment _
+
+derive instance eqPayment :: Eq Payment
+
+instance showPayment :: Show Payment where
+  show = genericShow
+
+
+data ReduceEffect
+  = ReduceWithPayment Payment
+  | ReduceNoPayment
+
+derive instance genericReduceEffect :: Generic ReduceEffect _
+
+derive instance eqReduceEffect :: Eq ReduceEffect
+
+instance showReduceEffect :: Show ReduceEffect where
+  show = genericShow
+
+
+data ReduceWarning
+  = ReduceNoWarning
+  | ReduceNonPositivePay AccountId Payee Token BigInteger
+  ---------------------- v src v dest v paid v expected
+  | ReducePartialPay AccountId Payee Token BigInteger BigInteger
+  -------------------------- v oldVal  v newVal
+  | ReduceShadowing ValueId BigInteger BigInteger
+
+derive instance genericReduceWarning :: Generic ReduceWarning _
+
+derive instance eqReduceWarning :: Eq ReduceWarning
+
+derive instance ordReduceWarning :: Ord ReduceWarning
+
+instance showReduceWarning :: Show ReduceWarning where
+  show = genericShow
+
+
+data ReduceStepResult
+  = Reduced ReduceWarning ReduceEffect State Contract
+  | NotReduced
+  | AmbiguousSlotIntervalReductionError
+
+derive instance genericReduceStepResult :: Generic ReduceStepResult _
+
+derive instance eqReduceStepResult :: Eq ReduceStepResult
+
+instance showReduceStepResult :: Show ReduceStepResult where
+  show = genericShow
+
+
+data ReduceResult
+  = ContractQuiescent (List ReduceWarning) (List Payment) State Contract
+  | RRAmbiguousSlotIntervalError
+
+derive instance genericReduceResult :: Generic ReduceResult _
+
+derive instance eqReduceResult :: Eq ReduceResult
+
+instance showReduceResult :: Show ReduceResult where
+  show = genericShow
+
+
+data ApplyWarning
+  = ApplyNoWarning
+  | ApplyNonPositiveDeposit Party AccountId Token BigInteger
+
+derive instance genericApplyWarning :: Generic ApplyWarning _
+
+derive instance eqApplyWarning :: Eq ApplyWarning
+
+derive instance ordApplyWarning :: Ord ApplyWarning
+
+instance showApplyWarning :: Show ApplyWarning where
+  show = genericShow
+
+
+data ApplyResult
+  = Applied ApplyWarning State Contract
+  | ApplyNoMatchError
+
+derive instance genericApplyResult :: Generic ApplyResult _
+
+derive instance eqApplyResult :: Eq ApplyResult
+
+derive instance ordApplyResult :: Ord ApplyResult
+
+instance showApplyResult :: Show ApplyResult where
+  show = genericShow
+
+
+data ApplyAllResult
+  = ApplyAllSuccess (List TransactionWarning) (List Payment) State Contract
+  | ApplyAllNoMatchError
+  | ApplyAllAmbiguousSlotIntervalError
+
+derive instance genericApplyAllResult :: Generic ApplyAllResult _
+
+derive instance eqApplyAllResult :: Eq ApplyAllResult
+
+instance showApplyAllResult :: Show ApplyAllResult where
+  show = genericShow
+
+
+data TransactionWarning
+  = TransactionNonPositiveDeposit Party AccountId Token BigInteger
+  | TransactionNonPositivePay AccountId Payee Token BigInteger
+  | TransactionPartialPay AccountId Payee Token BigInteger BigInteger
+  -- ^ src    ^ dest ^ paid ^ expected
+  | TransactionShadowing ValueId BigInteger BigInteger
+
+-- oldVal ^  newVal ^
+derive instance genericTransactionWarning :: Generic TransactionWarning _
+
+derive instance eqTransactionWarning :: Eq TransactionWarning
+
+derive instance ordTransactionWarning :: Ord TransactionWarning
+
+instance showTransactionWarning :: Show TransactionWarning where
+  show = genericShow
+
+
+-- | Transaction error
+data TransactionError
+  = TEAmbiguousSlotIntervalError
+  | TEApplyNoMatchError
+  | TEIntervalError IntervalError
+  | TEUselessTransaction
+
+derive instance genericTransactionError :: Generic TransactionError _
+
+derive instance eqTransactionError :: Eq TransactionError
+
+derive instance ordTransactionError :: Ord TransactionError
+
+instance showTransactionError :: Show TransactionError where
+  show TEAmbiguousSlotIntervalError = "Abiguous slot interval"
+  show TEApplyNoMatchError = "At least one of the inputs in the transaction is not allowed by the contract"
+  show (TEIntervalError err) = show err
+  show TEUselessTransaction = "Useless Transaction"
+
+
+newtype TransactionInput
+  = TransactionInput
+  { interval :: SlotInterval
+  , inputs :: (List Input)
+  }
+
+derive instance genericTransactionInput :: Generic TransactionInput _
+
+derive instance newtypeTransactionInput :: Newtype TransactionInput _
+
+derive instance eqTransactionInput :: Eq TransactionInput
+
+derive instance ordTransactionInput :: Ord TransactionInput
+
+instance showTransactionInput :: Show TransactionInput where
+  show = genericShow
+
+
+data TransactionOutput
+  = TransactionOutput
+    { txOutWarnings :: List TransactionWarning
+    , txOutPayments :: List Payment
+    , txOutState :: State
+    , txOutContract :: Contract
+    }
+  | Error TransactionError
+
+derive instance genericTransactionOutput :: Generic TransactionOutput _
+
+derive instance eqTransactionOutput :: Eq TransactionOutput
+
+instance showTransactionOutput :: Show TransactionOutput where
+  show = genericShow
+
+
+emptyState :: Slot -> State
+emptyState sn =
+  State
+    { accounts: mempty
+    , choices: mempty
+    , boundValues: mempty
+    , minSlot: sn
+    }
+
+
+accountOwner :: AccountId -> PubKey
+accountOwner (AccountId _ owner) = owner
+
+
+inBounds :: ChosenNum -> Array Bound -> Boolean
+inBounds num = any (\(Bound l u) -> num >= l && num <= u)
+
+
+boundFrom :: Bound -> BigInteger
+boundFrom (Bound from _) = from
+
+
+boundTo :: Bound -> BigInteger
+boundTo (Bound _ to) = to
+
 
 -- Note: We use guards here because currently nested ifs break purty formatting
 --       We need to upgrade purty and purescript to fix
@@ -434,6 +667,7 @@ fixInterval interval@(SlotInterval from to) (State state)
     in
       IntervalTrimmed env newState
 
+
 -- EVALUATION
 -- | Evaluate a @Value@ to Integer
 evalValue :: Environment -> State -> Value -> BigInteger
@@ -442,11 +676,7 @@ evalValue env state value =
     eval = evalValue env state
   in
     case value of
-      AvailableMoney accId ->
-        let
-          balance = fromMaybe zero $ Map.lookup accId (unwrap state).accounts
-        in
-          unwrap balance
+      AvailableMoney accId token -> moneyInAccount accId token (unwrap state).accounts
       Constant integer -> integer
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
@@ -456,12 +686,12 @@ evalValue env state value =
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env
       UseValue valId -> fromMaybe zero $ Map.lookup valId (unwrap state).boundValues
 
+
 -- | Evaluate an @Observation@ to Bool
 evalObservation :: Environment -> State -> Observation -> Boolean
 evalObservation env state obs =
   let
     evalObs = evalObservation env state
-
     evalVal = evalValue env state
   in
     case obs of
@@ -477,104 +707,61 @@ evalObservation env state obs =
       TrueObs -> true
       FalseObs -> false
 
+
+asset :: CurrencySymbol -> TokenName -> BigInteger -> Assets
+asset cur tok balance = Assets (Map.singleton cur (Map.singleton tok balance))
+
+
 -- | Pick the first account with money in it
-refundOne :: Map AccountId Money -> Maybe (Tuple (Tuple Party Money) (Map AccountId Money))
-refundOne accounts = do
-  { key, value } <- Map.findMin accounts
-  let
-    rest = Map.delete key accounts
-  if value > zero then pure (Tuple (Tuple (accountOwner key) value) rest) else refundOne rest
+refundOne :: Accounts -> Maybe (Tuple (Tuple Party Money) Accounts)
+refundOne accounts = case Map.toUnfoldable accounts of
+  Nil -> Nothing
+  Tuple (Tuple accId (Tuple cur tok)) balance : rest ->
+      if balance > zero
+      then Just (Tuple (Tuple (accountOwner accId) (asset cur tok balance)) (Map.fromFoldable rest))
+      else refundOne (Map.fromFoldable rest)
 
-data Payment
-  = Payment Party Money
-
-derive instance genericPayment :: Generic Payment _
-
-derive instance eqPayment :: Eq Payment
-
-derive instance ordPayment :: Ord Payment
-
-instance showPayment :: Show Payment where
-  show = genericShow
-
-data ReduceEffect
-  = ReduceWithPayment Payment
-  | ReduceNoPayment
-
-derive instance genericReduceEffect :: Generic ReduceEffect _
-
-derive instance eqReduceEffect :: Eq ReduceEffect
-
-derive instance ordReduceEffect :: Ord ReduceEffect
-
-instance showReduceEffect :: Show ReduceEffect where
-  show = genericShow
 
 -- | Obtains the amount of money available an account
-moneyInAccount :: AccountId -> Map AccountId Money -> Money
-moneyInAccount accId accounts = fromMaybe zero (Map.lookup accId accounts)
+moneyInAccount :: AccountId -> Token -> Accounts -> BigInteger
+moneyInAccount accId token accounts = fromMaybe zero (Map.lookup (Tuple accId token) accounts)
+
+
+-- | Sets the amount of money available in an account
+updateMoneyInAccount :: AccountId -> Token -> BigInteger -> Accounts -> Accounts
+updateMoneyInAccount accId token amount =
+    if amount <= zero then Map.delete (Tuple accId token) else Map.insert (Tuple accId token) amount
+
 
 {-| Add the given amount of money to an account (only if it is positive).
     Return the updated Map
 -}
-addMoneyToAccount :: AccountId -> Money -> Map AccountId Money -> Map AccountId Money
-addMoneyToAccount accId money accounts =
+addMoneyToAccount :: AccountId -> Token -> BigInteger -> Accounts -> Accounts
+addMoneyToAccount accId token amount accounts =
   let
-    balance = moneyInAccount accId accounts
+    balance = moneyInAccount accId token accounts
+    newBalance = balance + amount
+  in if amount <= zero then accounts
+  else updateMoneyInAccount accId token newBalance accounts
 
-    newBalance = balance + money
-  in
-    if money <= zero then
-      accounts
-    else
-      Map.insert accId newBalance accounts
 
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: Payee -> Money -> Map AccountId Money -> Tuple ReduceEffect (Map AccountId Money)
-giveMoney payee money accounts = case payee of
-  Party party -> Tuple (ReduceWithPayment (Payment party money)) accounts
+giveMoney :: Payee -> Token -> BigInteger -> Accounts -> Tuple ReduceEffect Accounts
+giveMoney payee token@(Tuple cur tok) amount accounts = case payee of
+  Party party -> Tuple (ReduceWithPayment (Payment party (asset cur tok amount))) accounts
   Account accId ->
     let
-      newAccs = addMoneyToAccount accId money accounts
+      newAccs = addMoneyToAccount accId token amount accounts
     in
       Tuple ReduceNoPayment newAccs
 
-data ReduceWarning
-  = ReduceNoWarning
-  | ReduceNonPositivePay AccountId Payee Money
-  ---------------------- v src v dest v paid v expected
-  | ReducePartialPay AccountId Payee Money Money
-  -------------------------- v oldVal  v newVal
-  | ReduceShadowing ValueId BigInteger BigInteger
-
-derive instance genericReduceWarning :: Generic ReduceWarning _
-
-derive instance eqReduceWarning :: Eq ReduceWarning
-
-derive instance ordReduceWarning :: Ord ReduceWarning
-
-instance showReduceWarning :: Show ReduceWarning where
-  show = genericShow
-
-data ReduceStepResult
-  = Reduced ReduceWarning ReduceEffect State Contract
-  | NotReduced
-  | AmbiguousSlotIntervalReductionError
-
-derive instance genericReduceStepResult :: Generic ReduceStepResult _
-
-derive instance eqReduceStepResult :: Eq ReduceStepResult
-
-derive instance ordReduceStepResult :: Ord ReduceStepResult
-
-instance showReduceStepResult :: Show ReduceStepResult where
-  show = genericShow
 
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
 reduceContractStep env state contract = case contract of
+
   Close -> case refundOne (unwrap state).accounts of
     Just (Tuple (Tuple party money) newAccounts) ->
       let
@@ -584,34 +771,28 @@ reduceContractStep env state contract = case contract of
       in
         Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
     Nothing -> NotReduced
-  Pay accId payee val nextContract ->
-    let
-      moneyToPay = Lovelace (evalValue env state val)
-    in
-      if moneyToPay <= zero then
-        Reduced (ReduceNonPositivePay accId payee moneyToPay) ReduceNoPayment state nextContract
-      else
-        let
-          balance = moneyInAccount accId (unwrap state).accounts -- always positive
 
-          paidMoney = min balance moneyToPay -- always positive
+  Pay accId payee tok val cont -> let
+      amountToPay = evalValue env state val
+      in if amountToPay <= zero then let
+        warning = ReduceNonPositivePay accId payee tok amountToPay
+        in Reduced warning ReduceNoPayment state cont
+      else let
+          balance = moneyInAccount accId tok (unwrap state).accounts
+          paidAmount = min balance amountToPay
+          newBalance = balance - paidAmount
+          newAccs = updateMoneyInAccount accId tok newBalance (unwrap state).accounts
+          warning = if paidAmount < amountToPay
+                    then ReducePartialPay accId payee tok paidAmount amountToPay
+                    else ReduceNoWarning
+          (Tuple payment finalAccs) = giveMoney payee tok paidAmount newAccs
+          newState = wrap ((unwrap state) { accounts = finalAccs })
+          in Reduced warning payment newState cont
 
-          newBalance = balance - paidMoney -- always positive
+  If obs cont1 cont2 -> let
+      cont = if evalObservation env state obs then cont1 else cont2
+      in Reduced ReduceNoWarning ReduceNoPayment state cont
 
-          newAccounts = Map.insert accId newBalance (unwrap state).accounts
-
-          warning = if paidMoney < moneyToPay then ReducePartialPay accId payee paidMoney moneyToPay else ReduceNoWarning
-
-          (Tuple payment finalAccounts) = giveMoney payee paidMoney newAccounts
-
-          newState = set _accounts finalAccounts state
-        in
-          Reduced warning payment newState nextContract
-  If observation contract1 contract2 ->
-    let
-      nextContract = if evalObservation env state observation then contract1 else contract2
-    in
-      Reduced ReduceNoWarning ReduceNoPayment state nextContract
   When _ timeout nextContract ->
     let
       startSlot = view (_slotInterval <<< to ivFrom) env
@@ -637,18 +818,6 @@ reduceContractStep env state contract = case contract of
     in
       Reduced warn ReduceNoPayment newState nextContract
 
-data ReduceResult
-  = ContractQuiescent (List ReduceWarning) (List Payment) State Contract
-  | RRAmbiguousSlotIntervalError
-
-derive instance genericReduceResult :: Generic ReduceResult _
-
-derive instance eqReduceResult :: Eq ReduceResult
-
-derive instance ordReduceResult :: Ord ReduceResult
-
-instance showReduceResult :: Show ReduceResult where
-  show = genericShow
 
 -- | Reduce a contract until it cannot be reduced more
 reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
@@ -672,51 +841,20 @@ reduceContractUntilQuiescent startEnv startState startContract =
   in
     reductionLoop startEnv startState startContract mempty mempty
 
-data ApplyWarning
-  = ApplyNoWarning
-  | ApplyNonPositiveDeposit Party AccountId Money
-
-derive instance genericApplyWarning :: Generic ApplyWarning _
-
-derive instance eqApplyWarning :: Eq ApplyWarning
-
-derive instance ordApplyWarning :: Ord ApplyWarning
-
-instance showApplyWarning :: Show ApplyWarning where
-  show = genericShow
-
-data ApplyResult
-  = Applied ApplyWarning State Contract
-  | ApplyNoMatchError
-
-derive instance genericApplyResult :: Generic ApplyResult _
-
-derive instance eqApplyResult :: Eq ApplyResult
-
-derive instance ordApplyResult :: Ord ApplyResult
-
-instance showApplyResult :: Show ApplyResult where
-  show = genericShow
 
 applyCases :: Environment -> State -> Input -> List Case -> ApplyResult
 applyCases env state input cases = case input, cases of
-  IDeposit accId1 party1 money, ((Case (Deposit accId2 party2 val) cont) : rest) ->
-    let
-      amount = evalValue env state val
-
-      warning =
-        if amount > zero then
-          ApplyNoWarning
-        else
-          ApplyNonPositiveDeposit party1 accId2 (Lovelace amount)
-
-      newState = over _accounts (addMoneyToAccount accId1 money) state
-    in
-      if accId1 == accId2 && party1 == party2 && unwrap money == amount then
-        Applied warning newState cont
-      else
-        applyCases env state input rest
-  IChoice choId1 choice, ((Case (Choice choId2 bounds) cont) : rest) ->
+  IDeposit accId1 party1 tok1 amount, (Case (Deposit accId2 party2 tok2 val) cont) : rest ->
+      if accId1 == accId2 && party1 == party2 && tok1 == tok2
+                && amount == evalValue env state val
+      then let
+          warning = if amount > zero then ApplyNoWarning
+                    else ApplyNonPositiveDeposit party2 accId2 tok2 amount
+          newAccounts = addMoneyToAccount accId1 tok1 amount (unwrap state).accounts
+          newState = wrap ((unwrap state) { accounts = newAccounts })
+          in Applied warning newState cont
+      else applyCases env state input rest
+  IChoice choId1 choice, (Case (Choice choId2 bounds) cont) : rest ->
     let
       newState = over _choices (Map.insert choId1 choice) state
     in
@@ -724,63 +862,34 @@ applyCases env state input cases = case input, cases of
         Applied ApplyNoWarning newState cont
       else
         applyCases env state input rest
-  INotify, ((Case (Notify obs) cont) : _)
+  INotify, (Case (Notify obs) cont) : _
     | evalObservation env state obs -> Applied ApplyNoWarning state cont
-  _, (_ : rest) -> applyCases env state input rest
+  _, _ : rest -> applyCases env state input rest
   _, Nil -> ApplyNoMatchError
+
 
 applyInput :: Environment -> State -> Input -> Contract -> ApplyResult
 applyInput env state input (When cases _ _) = applyCases env state input (fromFoldable cases)
-
 applyInput _ _ _ _ = ApplyNoMatchError
 
-data TransactionWarning
-  = TransactionNonPositiveDeposit Party AccountId Money
-  | TransactionNonPositivePay AccountId Payee Money
-  | TransactionPartialPay AccountId Payee Money Money
-  -- ^ src    ^ dest ^ paid ^ expected
-  | TransactionShadowing ValueId BigInteger BigInteger
-
--- oldVal ^  newVal ^
-derive instance genericTransactionWarning :: Generic TransactionWarning _
-
-derive instance eqTransactionWarning :: Eq TransactionWarning
-
-derive instance ordTransactionWarning :: Ord TransactionWarning
-
-instance showTransactionWarning :: Show TransactionWarning where
-  show = genericShow
 
 convertReduceWarnings :: List ReduceWarning -> List TransactionWarning
 convertReduceWarnings Nil = Nil
-
 convertReduceWarnings (first : rest) =
   ( case first of
       ReduceNoWarning -> Nil
-      ReduceNonPositivePay accId payee amount -> (TransactionNonPositivePay accId payee amount) : Nil
-      ReducePartialPay accId payee paid expected -> (TransactionPartialPay accId payee paid expected) : Nil
+      ReduceNonPositivePay accId payee tok amount -> (TransactionNonPositivePay accId payee tok amount) : Nil
+      ReducePartialPay accId payee tok paid expected -> (TransactionPartialPay accId payee tok paid expected) : Nil
       ReduceShadowing valId oldVal newVal -> (TransactionShadowing valId oldVal newVal) : Nil
   )
     <> convertReduceWarnings rest
 
+
 convertApplyWarning :: ApplyWarning -> List TransactionWarning
 convertApplyWarning warn = case warn of
   ApplyNoWarning -> Nil
-  ApplyNonPositiveDeposit party accId amount -> (TransactionNonPositiveDeposit party accId amount) : Nil
+  ApplyNonPositiveDeposit party accId tok amount -> (TransactionNonPositiveDeposit party accId tok amount) : Nil
 
-data ApplyAllResult
-  = ApplyAllSuccess (List TransactionWarning) (List Payment) State Contract
-  | ApplyAllNoMatchError
-  | ApplyAllAmbiguousSlotIntervalError
-
-derive instance genericApplyAllResult :: Generic ApplyAllResult _
-
-derive instance eqApplyAllResult :: Eq ApplyAllResult
-
-derive instance ordApplyAllResult :: Ord ApplyAllResult
-
-instance showApplyAllResult :: Show ApplyAllResult where
-  show = genericShow
 
 -- | Apply a list of Inputs to the contract
 applyAllInputs :: Environment -> State -> Contract -> (List Input) -> ApplyAllResult
@@ -813,59 +922,6 @@ applyAllInputs startEnv startState startContract startInputs =
   in
     applyAllLoop startEnv startState startContract startInputs mempty mempty
 
--- Transactions
-data TransactionError
-  = TEAmbiguousSlotIntervalError
-  | TEApplyNoMatchError
-  | TEIntervalError IntervalError
-  | TEUselessTransaction
-
-derive instance genericTransactionError :: Generic TransactionError _
-
-derive instance eqTransactionError :: Eq TransactionError
-
-derive instance ordTransactionError :: Ord TransactionError
-
-instance showTransactionError :: Show TransactionError where
-  show TEAmbiguousSlotIntervalError = "Abiguous slot interval"
-  show TEApplyNoMatchError = "At least one of the inputs in the transaction is not allowed by the contract"
-  show (TEIntervalError err) = show err
-  show TEUselessTransaction = "Useless Transaction"
-
-data TransactionOutput
-  = TransactionOutput
-    { txOutWarnings :: List TransactionWarning
-    , txOutPayments :: List Payment
-    , txOutState :: State
-    , txOutContract :: Contract
-    }
-  | Error TransactionError
-
-derive instance genericTransactionOutput :: Generic TransactionOutput _
-
-derive instance eqTransactionOutput :: Eq TransactionOutput
-
-derive instance ordTransactionOutput :: Ord TransactionOutput
-
-instance showTransactionOutput :: Show TransactionOutput where
-  show = genericShow
-
-newtype TransactionInput
-  = TransactionInput
-  { interval :: SlotInterval
-  , inputs :: (List Input)
-  }
-
-derive instance genericTransactionInput :: Generic TransactionInput _
-
-derive instance newtypeTransactionInput :: Newtype TransactionInput _
-
-derive instance eqTransactionInput :: Eq TransactionInput
-
-derive instance ordTransactionInput :: Ord TransactionInput
-
-instance showTransactionInput :: Show TransactionInput where
-  show = genericShow
 
 -- | Try to compute outputs of a transaction give its input
 computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
@@ -889,6 +945,7 @@ computeTransaction tx state contract =
         ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
       IntervalError error -> Error (TEIntervalError error)
 
+
 extractRequiredActionsWithTxs :: TransactionInput -> State -> Contract -> Tuple State (Array Action)
 extractRequiredActionsWithTxs txInput state contract = case computeTransaction txInput state contract of
   TransactionOutput { txOutContract, txOutState } -> Tuple txOutState (extractRequiredActions txOutContract)
@@ -903,20 +960,24 @@ extractRequiredActionsWithTxs txInput state contract = case computeTransaction t
   where
   emptyInput (TransactionInput { inputs }) = null inputs
 
+
 extractRequiredActions :: Contract -> Array Action
 extractRequiredActions contract = case contract of
   (When cases _ _) -> map (\(Case action _) -> action) cases
   _ -> mempty
 
+
 moneyInContract :: State -> Money
-moneyInContract state = foldl (+) zero $ Map.values (unwrap state).accounts
+moneyInContract state = foldMapWithIndex
+  (\(Tuple _ (Tuple cur tok)) balance -> asset cur tok balance)
+  (unwrap state).accounts
 
 class HasMaxTime a where
   maxTime :: a -> Timeout
 
 instance hasMaxTimeContract :: HasMaxTime Contract where
   maxTime Close = zero
-  maxTime (Pay _ _ _ contract) = maxTime contract
+  maxTime (Pay _ _ _ _ contract) = maxTime contract
   maxTime (If _ contractTrue contractFalse) = maxOf [ maxTime contractTrue, maxTime contractFalse ]
   maxTime (When cases timeout contract) = maxOf [ maxTime cases, timeout, maxTime contract ]
   maxTime (Let _ _ contract) = maxTime contract
@@ -929,3 +990,4 @@ instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
 
 maxOf :: Array Timeout -> Timeout
 maxOf = foldl max zero
+

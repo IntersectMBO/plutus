@@ -348,8 +348,6 @@ instance Pretty TransactionInput where
             txInpLine = hang 2 $ text "txInputs = " <> prettyFragment (txInputs tInp) <> rbrace
 
 
-
-
 {-| Marlowe transaction output.
 -}
 data TransactionOutput =
@@ -524,7 +522,8 @@ reduceContractStep env state contract = case contract of
                           then ReducePartialPay accId payee tok paidAmount amountToPay
                           else ReduceNoWarning
                 (payment, finalAccs) = giveMoney payee tok paidAmount newAccs
-                in Reduced warning payment (state { accounts = finalAccs }) cont
+                newState = state { accounts = finalAccs }
+                in Reduced warning payment newState cont
 
     If obs cont1 cont2 -> let
         cont = if evalObservation env state obs then cont1 else cont2
@@ -581,7 +580,8 @@ applyCases env state input cases = case (input, cases) of
         then let
             warning = if amount > 0 then ApplyNoWarning
                       else ApplyNonPositiveDeposit party2 accId2 tok2 amount
-            newState = state { accounts = addMoneyToAccount accId1 tok1 amount (accounts state) }
+            newAccounts = addMoneyToAccount accId1 tok1 amount (accounts state)
+            newState = state { accounts = newAccounts }
             in Applied warning newState cont
         else applyCases env state input rest
     (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) ->
