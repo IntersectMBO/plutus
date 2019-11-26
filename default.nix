@@ -464,7 +464,7 @@ let
         '';
       };
 
-      all-hies = pkgs.callPackage sources.all-hies { inherit pkgs; lib = pkgs.lib; };
+      all-hies = pkgs.callPackage sources.all-hies {};
       hie-bios = all-hies.bios.selection { selector = p: { inherit (p) ghc864; }; };
 
       withDevTools = env: env.overrideAttrs (attrs:

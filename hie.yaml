@@ -19,7 +19,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:language-plutus-core"
+          component: "language-plutus-core:language-plutus-core-test"
   - path: ./plutus-core-interpreter/src
     config:
       cradle:
@@ -29,7 +29,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-core-interpreter"
+          component: "plutus-core-interpreter:plutus-core-interpreter-test"
   - path: ./plutus-emulator/src
     config:
       cradle:
@@ -39,7 +39,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-emulator"
+          component: "plutus-emulator:plutus-emulator-test"
   - path: ./plutus-exe/src
     config:
       cradle:
@@ -49,7 +49,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-exe"
+          component: "plutus-exe:plutus-exe-test"
   - path: ./plutus-tx/src
     config:
       cradle:
@@ -64,7 +64,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-tx"
+          component: "plutus-tx:plutus-tx-test"
   - path: ./plutus-ir/src
     config:
       cradle:
@@ -74,7 +74,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-ir"
+          component: "plutus-ir:plutus-ir-test"
   - path: ./plutus-playground-lib/src
     config:
       cradle:
@@ -84,7 +84,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-playground-lib"
+          component: "plutus-playground-lib:plutus-playground-lib-test"
   - path: ./playground-common/src
     config:
       cradle:
@@ -94,7 +94,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:playground-common"
+          component: "playground-common:playground-common-test"
   - path: ./marlowe-playground-server/src
     config:
       cradle:
@@ -104,7 +104,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:marlowe-playground-server"
+          component: "marlowe-playground-server:marlowe-playground-server-test"
   - path: ./marlowe-symbolic/src
     config:
       cradle:
@@ -114,7 +114,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:marlowe-symbolic"
+          component: "marlowe-symbolic:marlowe-symbolic-test"
   - path: ./plutus-contract/src
     config:
       cradle:
@@ -124,7 +124,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:plutus-contract"
+          component: "plutus-contract:plutus-contract-test"
   - path: ./deployment-server/src
     config:
       cradle:
@@ -134,7 +134,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:deployment-server"
+          component: "deployment-server:deployment-server-test"
   - path: ./iots-export/src
     config:
       cradle:
@@ -144,7 +144,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:iots-export"
+          component: "iots-export:iots-export-test"
   - path: ./metatheory/src
     config:
       cradle:
@@ -154,7 +154,7 @@ cradle:
     config:
       cradle:
         cabal:
-          component: "test:metatheory"
+          component: "metatheory:metatheory-test"
 
   # These use the plutus plugin - HIE doesn't support plugins yet
 
@@ -167,7 +167,7 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:marlowe"
+  #         component: "marlowe:marlowe-test"
   # - path: ./plutus-book/src
   #   config:
   #     cradle:
@@ -177,7 +177,7 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:plutus-book"
+  #         component: "plutus-book:plutus-book-test"
   # - path: ./plutus-playground-server/src
   #   config:
   #     cradle:
@@ -187,7 +187,7 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:plutus-playground-server"
+  #         component: "plutus-playground-server:plutus-playground-server-test"
   # - path: ./plutus-tutorial/src
   #   config:
   #     cradle:
@@ -197,7 +197,7 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:plutus-tutorial"
+  #         component: "plutus-tutorial:plutus-tutorial-test"
   # - path: ./plutus-use-cases/src
   #   config:
   #     cradle:
@@ -207,7 +207,7 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:plutus-use-cases"
+  #         component: "plutus-use-cases:plutus-use-cases-test"
   # - path: ./plutus-wallet-api/src
   #   config:
   #     cradle:
@@ -222,4 +222,4 @@ cradle:
   #   config:
   #     cradle:
   #       cabal:
-  #         component: "test:plutus-wallet-api"
+  #         component: "plutus-wallet-api:plutus-wallet-api-test"
