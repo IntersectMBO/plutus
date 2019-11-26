@@ -3388,7 +3388,7 @@ data _—→_ {Φ}{Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢Nf A) → (Γ ⊢Nf A) �
     → Value M → ƛ L · M —→ L [ M ]Nf
   β-Λ       : ∀{K B}{L : Γ ,⋆ K ⊢Nf B}{A : Φ ⊢Nf⋆ K}
     → Λ L ·⋆ A —→ L ⋆[ A ]Nf
-  β-wrap    : ∀{A}{L : Γ ⊢Nf A [ μ A ]Nf⋆}
+  β-wrap    : ∀{A}{L : Γ ⊢Nf A [ μ A ]Nf⋆} → Value L
     → unwrap (wrap A L) —→ L
 \end{code}
 
@@ -3526,7 +3526,7 @@ completes the proof.
 
 \begin{code}
 progress p (unwrap L)           with progress p L
-progress p (unwrap (wrap A L))  | inl (V-wrap V)  = inr (L ,, β-wrap)
+progress p (unwrap (wrap A L))  | inl (V-wrap V)  = inr (L ,, β-wrap V)
 progress p (unwrap L)           | inr (L' ,, q)   = inr (unwrap L' ,, ξ-unwrap q)
 \end{code}
 
@@ -3964,7 +3964,7 @@ removed, e.g., \AgdaInductiveConstructor{unwrap}
 
 \begin{code}
 erase—→ (β-Λ  {L = L}{A = A})       = inr (eraseNf-⋆[]Nf L A)
-erase—→ β-wrap                      = inr refl
+erase—→ (β-wrap _)                  = inr refl
 \end{code}
 
 \noindent That concludes the proof: either a typed reduction step
