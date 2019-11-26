@@ -20,16 +20,6 @@ cradle:
       cradle:
         cabal:
           component: "test:language-plutus-core"
-  - path: ./marlowe/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:marlowe"
-  - path: ./marlowe/test
-    config:
-      cradle:
-        cabal:
-          component: "test:marlowe"
   - path: ./plutus-core-interpreter/src
     config:
       cradle:
@@ -60,16 +50,6 @@ cradle:
       cradle:
         cabal:
           component: "test:plutus-exe"
-  - path: ./plutus-wallet-api/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-wallet-api"
-  - path: ./plutus-wallet-api/test
-    config:
-      cradle:
-        cabal:
-          component: "test:plutus-wallet-api"
   - path: ./plutus-tx/src
     config:
       cradle:
@@ -85,16 +65,6 @@ cradle:
       cradle:
         cabal:
           component: "test:plutus-tx"
-  - path: ./plutus-use-cases/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-use-cases"
-  - path: ./plutus-use-cases/test
-    config:
-      cradle:
-        cabal:
-          component: "test:plutus-use-cases"
   - path: ./plutus-ir/src
     config:
       cradle:
@@ -105,16 +75,6 @@ cradle:
       cradle:
         cabal:
           component: "test:plutus-ir"
-  - path: ./plutus-playground-server/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-playground-server"
-  - path: ./plutus-playground-server/test
-    config:
-      cradle:
-        cabal:
-          component: "test:plutus-playground-server"
   - path: ./plutus-playground-lib/src
     config:
       cradle:
@@ -125,26 +85,6 @@ cradle:
       cradle:
         cabal:
           component: "test:plutus-playground-lib"
-  - path: ./plutus-tutorial/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-tutorial"
-  - path: ./plutus-tutorial/test
-    config:
-      cradle:
-        cabal:
-          component: "test:plutus-tutorial"
-  - path: ./plutus-book/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-book"
-  - path: ./plutus-book/test
-    config:
-      cradle:
-        cabal:
-          component: "test:plutus-book"
   - path: ./playground-common/src
     config:
       cradle:
@@ -215,3 +155,71 @@ cradle:
       cradle:
         cabal:
           component: "test:metatheory"
+
+  # These use the plutus plugin - HIE doesn't support plugins yet
+
+  # - path: ./marlowe/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:marlowe"
+  # - path: ./marlowe/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:marlowe"
+  # - path: ./plutus-book/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-book"
+  # - path: ./plutus-book/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:plutus-book"
+  # - path: ./plutus-playground-server/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-playground-server"
+  # - path: ./plutus-playground-server/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:plutus-playground-server"
+  # - path: ./plutus-tutorial/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-tutorial"
+  # - path: ./plutus-tutorial/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:plutus-tutorial"
+  # - path: ./plutus-use-cases/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-use-cases"
+  # - path: ./plutus-use-cases/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:plutus-use-cases"
+  # - path: ./plutus-wallet-api/src
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-wallet-api"
+  # - path: ./plutus-wallet-api/ledger
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "lib:plutus-ledger"
+  # - path: ./plutus-wallet-api/test
+  #   config:
+  #     cradle:
+  #       cabal:
+  #         component: "test:plutus-wallet-api"
