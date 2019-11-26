@@ -12,8 +12,8 @@ import Data.Either (Either)
 import Data.List (List, some)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Value(..), ValueId(..), fromTerm)
-import Marlowe.Semantics (Ada(..), Party, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm)
+import Marlowe.Semantics (CurrencySymbol, Party, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (bind, const, discard, flip, pure, show, void, ($), (*>), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.Parser (ParseState(..), Parser, fail, runParser)
@@ -140,7 +140,7 @@ atomValue =
 
 recValue :: Parser String Value
 recValue =
-  (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId))
+  (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId) <**> parseTerm token)
     <|> (Constant <$> (string "Constant" **> bigIntegerTerm))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
@@ -188,6 +188,28 @@ pubkey = text
 party :: Parser String Party
 party = pubkey
 
+currencySymbol :: Parser String CurrencySymbol
+currencySymbol = text
+
+tokenName :: Parser String TokenName
+tokenName = text
+
+token :: Parser String Token
+token = do
+  void maybeSpaces
+  ct <-
+    parens do
+      void maybeSpaces
+      curr <- parseTerm currencySymbol
+      void maybeSpaces
+      void $ string ","
+      void maybeSpaces
+      tok <- parseTerm tokenName
+      void maybeSpaces
+      pure $ Token curr tok
+  void maybeSpaces
+  pure ct
+
 bound :: Parser String Bound
 bound = do
   void maybeSpaces
@@ -201,7 +223,7 @@ bound = do
 
 action :: Parser String Action
 action =
-  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm party <**> value')
+  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm party <**> parseTerm token <**> value')
     <|> (Choice <$> (string "Choice" **> parseTerm choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
@@ -232,6 +254,7 @@ recContract :: Parser String Contract
 recContract =
   ( Pay <$> (string "Pay" **> parseTerm accountId)
       <**> parseTerm (parens payee)
+      <**> parseTerm token
       <**> value'
       <**> contract'
   )
@@ -381,7 +404,7 @@ testString =
 input :: Parser String S.Input
 input =
   maybeParens
-    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> (Lovelace <$> (maybeParens bigInteger)))
+    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> parseToValue token <**> (maybeParens bigInteger))
         <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
         <|> ((const S.INotify) <$> (string "INotify"))
     )
@@ -450,9 +473,9 @@ transactionWarning = do
       ( do
           void maybeSpaces
           tWaS <-
-            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> (Lovelace <$> (maybeParens bigInteger)))
-              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)))
-              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> (Lovelace <$> (maybeParens bigInteger)) <**> (Lovelace <$> (maybeParens bigInteger)))
+            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> parseToValue token <**> maybeParens bigInteger)
+              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue token <**> maybeParens bigInteger)
+              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue token <**> maybeParens bigInteger <**> maybeParens bigInteger)
               <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
           void maybeSpaces
           pure tWaS

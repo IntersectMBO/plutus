@@ -27,7 +27,6 @@ instance prettyArray :: Pretty a => Pretty (Array a) where
 instance prettyToken :: Pretty (Tuple String String) where
   prettyFragment a = text "Ada"
 
-
 genericPretty :: forall a rep. Generic a rep => Pretty1 rep => a -> Doc
 genericPretty x = pretty1 false (from x)
 

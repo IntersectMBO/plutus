@@ -40,6 +40,7 @@ data MarloweType
   | ObservationType
   | ContractType
   | BoundType
+  | TokenType
 
 derive instance eqMarloweType :: Eq MarloweType
 
@@ -121,6 +122,8 @@ getMarloweConstructors ContractType =
     ]
 
 getMarloweConstructors BoundType = Map.singleton "Bound" [ DataArg "from", DataArg "to" ]
+
+getMarloweConstructors TokenType = Map.singleton "TokenType" [ DataArg "currency", DataArg "token" ]
 
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
 constructMarloweType constructorName (MarloweHole { name, marloweType, start }) m = case Map.lookup constructorName m of
@@ -266,6 +269,27 @@ instance accountIdIsMarloweType :: IsMarloweType AccountId where
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
   getHoles m (AccountId a b) = insertHole m a <> insertHole m b
 
+data Token
+  = Token (Term String) (Term String)
+
+derive instance genericToken :: Generic Token _
+
+instance showToken :: Show Token where
+  show (Token a b) = "(" <> show a <> ", " <> show b <> ")"
+
+instance prettyToken :: Pretty Token where
+  prettyFragment a = Leijen.text (show a)
+
+instance tokenFromTerm :: FromTerm Token S.Token where
+  fromTerm (Token (Term b) (Term c)) = pure $ S.Token b c
+  fromTerm _ = Nothing
+
+instance tokenIsMarloweType :: IsMarloweType Token where
+  marloweType _ = TokenType
+
+instance tokenHasMarloweHoles :: HasMarloweHoles Token where
+  getHoles m (Token a b) = insertHole m a <> insertHole m b
+
 data ChoiceId
   = ChoiceId (Term String) (Term PubKey)
 
@@ -288,7 +312,7 @@ instance choiceIdHasMarloweHoles :: HasMarloweHoles ChoiceId where
   getHoles m (ChoiceId a b) = insertHole m a <> insertHole m b
 
 data Action
-  = Deposit (Term AccountId) (Term Party) (Term Value)
+  = Deposit (Term AccountId) (Term Party) (Term Token) (Term Value)
   | Choice (Term ChoiceId) (Array (Term Bound))
   | Notify (Term Observation)
 
@@ -301,7 +325,7 @@ instance prettyAction :: Pretty Action where
   prettyFragment a = Leijen.text (show a)
 
 instance actionFromTerm :: FromTerm Action S.Action where
-  fromTerm (Deposit a b c) = S.Deposit <$> fromTerm a <*> termToValue b <*> fromTerm c
+  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> termToValue b <*> fromTerm c <*> fromTerm d
   fromTerm (Choice a b) = S.Choice <$> fromTerm a <*> (traverse fromTerm b)
   fromTerm (Notify a) = S.Notify <$> fromTerm a
 
@@ -309,7 +333,7 @@ instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
 
 instance actionHasMarloweHoles :: HasMarloweHoles Action where
-  getHoles m (Deposit a b c) = getHoles m a <> insertHole m b <> getHoles m c
+  getHoles m (Deposit a b c d) = getHoles m a <> insertHole m b <> getHoles m c <> getHoles m d
   getHoles m (Choice a bs) = getHoles m a <> getHoles m bs
   getHoles m (Notify a) = getHoles m a
 
@@ -359,7 +383,7 @@ instance caseHasMarloweHoles :: HasMarloweHoles Case where
   getHoles m (Case a b) = getHoles m a <> getHoles m b
 
 data Value
-  = AvailableMoney (Term AccountId)
+  = AvailableMoney (Term AccountId) (Term Token)
   | Constant (Term BigInteger)
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
@@ -378,7 +402,7 @@ instance prettyValue :: Pretty Value where
   prettyFragment a = genericPretty a
 
 instance valueFromTerm :: FromTerm Value S.Value where
-  fromTerm (AvailableMoney a) = S.AvailableMoney <$> fromTerm a
+  fromTerm (AvailableMoney a b) = S.AvailableMoney <$> fromTerm a <*> fromTerm b
   fromTerm (Constant a) = S.Constant <$> termToValue a
   fromTerm (NegValue a) = S.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
@@ -392,7 +416,7 @@ instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
 
 instance valueHasMarloweHoles :: HasMarloweHoles Value where
-  getHoles m (AvailableMoney a) = getHoles m a
+  getHoles m (AvailableMoney a b) = getHoles m a <> getHoles m b
   getHoles m (Constant a) = insertHole m a
   getHoles m (NegValue a) = getHoles m a
   getHoles m (AddValue a b) = getHoles m a <> getHoles m b
@@ -463,7 +487,7 @@ instance observationHasMarloweHoles :: HasMarloweHoles Observation where
 
 data Contract
   = Close
-  | Pay (Term AccountId) (Term Payee) (Term Value) (Term Contract)
+  | Pay (Term AccountId) (Term Payee) (Term Token) (Term Value) (Term Contract)
   | If (Term Observation) (Term Contract) (Term Contract)
   | When (Array (Term Case)) (Term Timeout) (Term Contract)
   | Let (Term ValueId) (Term Value) (Term Contract)
@@ -478,7 +502,7 @@ instance prettyContract :: Pretty Contract where
 
 instance contractFromTerm :: FromTerm Contract S.Contract where
   fromTerm Close = pure S.Close
-  fromTerm (Pay a b c d) = S.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
+  fromTerm (Pay a b c d e) = S.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
   fromTerm (If a b c) = S.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
   fromTerm (When as b c) = S.When <$> (traverse fromTerm as) <*> termToValue b <*> fromTerm c
   fromTerm (Let a b c) = S.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
@@ -488,7 +512,7 @@ instance contractIsMarloweType :: IsMarloweType Contract where
 
 instance contractHasMarloweHoles :: HasMarloweHoles Contract where
   getHoles m Close = mempty
-  getHoles m (Pay a b c d) = getHoles m a <> getHoles m b <> getHoles m c <> getHoles m d
+  getHoles m (Pay a b c d e) = getHoles m a <> getHoles m b <> getHoles m c <> getHoles m d <> getHoles m e
   getHoles m (If a b c) = getHoles m a <> getHoles m b <> getHoles m c
   getHoles m (When as b c) = getHoles m as <> insertHole m b <> getHoles m c
   getHoles m (Let a b c) = getHoles m a <> getHoles m b <> getHoles m c
