@@ -20,6 +20,7 @@ cradle:
       cradle:
         cabal:
           component: "language-plutus-core:language-plutus-core-test"
+
   - path: ./plutus-core-interpreter/src
     config:
       cradle:
@@ -30,6 +31,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-core-interpreter:plutus-core-interpreter-test"
+
   - path: ./plutus-emulator/src
     config:
       cradle:
@@ -40,6 +42,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-emulator:plutus-emulator-test"
+
   - path: ./plutus-exe/src
     config:
       cradle:
@@ -50,6 +53,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-exe:plutus-exe-test"
+
   - path: ./plutus-tx/src
     config:
       cradle:
@@ -65,6 +69,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-tx:plutus-tx-test"
+
   - path: ./plutus-ir/src
     config:
       cradle:
@@ -75,6 +80,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-ir:plutus-ir-test"
+
   - path: ./plutus-playground-lib/src
     config:
       cradle:
@@ -85,6 +91,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-playground-lib:plutus-playground-lib-test"
+
   - path: ./playground-common/src
     config:
       cradle:
@@ -95,6 +102,7 @@ cradle:
       cradle:
         cabal:
           component: "playground-common:playground-common-test"
+
   - path: ./marlowe-playground-server/src
     config:
       cradle:
@@ -105,6 +113,7 @@ cradle:
       cradle:
         cabal:
           component: "marlowe-playground-server:marlowe-playground-server-test"
+
   - path: ./marlowe-symbolic/src
     config:
       cradle:
@@ -115,6 +124,7 @@ cradle:
       cradle:
         cabal:
           component: "marlowe-symbolic:marlowe-symbolic-test"
+
   - path: ./plutus-contract/src
     config:
       cradle:
@@ -125,6 +135,7 @@ cradle:
       cradle:
         cabal:
           component: "plutus-contract:plutus-contract-test"
+
   - path: ./deployment-server/src
     config:
       cradle:
@@ -135,6 +146,7 @@ cradle:
       cradle:
         cabal:
           component: "deployment-server:deployment-server-test"
+
   - path: ./iots-export/src
     config:
       cradle:
@@ -145,6 +157,7 @@ cradle:
       cradle:
         cabal:
           component: "iots-export:iots-export-test"
+
   - path: ./metatheory/src
     config:
       cradle:
