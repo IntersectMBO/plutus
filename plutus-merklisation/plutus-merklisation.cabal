@@ -49,6 +49,7 @@ executable compression-analysis
     , cryptonite -any
     , language-plutus-core -any
     , lens -any
+    , memory -any
     , plutus-tx -any
     , plutus-use-cases -any
     , plutus-wallet-api -any

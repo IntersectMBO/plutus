@@ -101,14 +101,13 @@ printInfo fullSize entries = do
 analyseCompression :: String -> PLC.Program PLC.TyName PLC.Name () -> IO ()
 analyseCompression name prog = do
   let s1 = serialise prog
-      smerk = serialise $ M.merkliseProg prog
       s2 = serialise $ U.anonProgram prog           
       s3 = serialise $ U.eraseProgram prog
       s4 = serialise $ U.eraseProgram $ U.anonProgram prog
       s5 = serialise $ U.nameToIntProgram $ U.eraseProgram prog
       s6 = serialise $ U.deBruijnToIntProgram $ U.eraseProgram $ deBrProg prog
   putStr $ "| " ++ name ++ " | "
-  printInfo (B.length s1) [(s1, Alone), (smerk, WithPercentage), (s2, Alone), (s3, Alone), (s4, Alone), (s5, WithPercentage), (s6, WithPercentage)]
+  printInfo (B.length s1) [(s1, Alone), (s2, Alone), (s3, Alone), (s4, Alone), (s5, WithPercentage), (s6, WithPercentage)]
 
                                        
 analyseProg :: String -> CompiledCode a -> IO ()
