@@ -1,6 +1,8 @@
 -- | The user-facing API of the renamer.
 
+{-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Rename
@@ -34,19 +36,17 @@ class Rename a where
     -- so that @rename@ can be used for alpha-renaming as well.
     rename :: MonadQuote m => a -> m a
 
-instance HasUnique (tyname ann) TypeUnique => Rename (Type tyname ann) where
+instance HasUniques (Type tyname ann) => Rename (Type tyname ann) where
     -- See Note [Marking].
-    rename = through markNonFreshType >=> runDirectRenameM . renameTypeM
+    rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
 
-instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
-        Rename (Term tyname name ann) where
+instance HasUniques (Term tyname name ann) => Rename (Term tyname name ann) where
     -- See Note [Marking].
-    rename = through markNonFreshTerm >=> runScopedRenameM . renameTermM
+    rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
-instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
-        Rename (Program tyname name ann) where
+instance HasUniques (Program tyname name ann) => Rename (Program tyname name ann) where
     -- See Note [Marking].
-    rename = through markNonFreshProgram >=> runScopedRenameM . renameProgramM
+    rename = through markNonFreshProgram >=> runRenameT . renameProgramM
 
 instance Rename a => Rename (Normalized a) where
     rename = traverse rename
@@ -60,9 +60,10 @@ instance Rename a => Rename (Normalized a) where
 -- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
 -- global conditions is preserved.
 newtype Dupable a = Dupable
-    { unDupable :: Identity a  -- 'Identity' is for deriving 'Applicative' and 'Monad'.
-    } deriving (Show, Eq, Functor, Foldable, Traversable, Applicative, Monad)
+    { unDupable :: a
+    } deriving (Show, Eq, Functor, Foldable, Traversable)
+      deriving (Applicative, Monad) via Identity
 
 -- | Extract the value stored in a @Dupable a@ and rename it.
 liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a
-liftDupable = liftQuote . rename . runIdentity . unDupable
+liftDupable = liftQuote . rename . unDupable

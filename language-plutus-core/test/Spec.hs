@@ -85,20 +85,20 @@ instance Eq a => Eq (TextualProgram a) where
 
 propCBOR :: Property
 propCBOR = property $ do
-    prog <- forAll $ runAstGen genProgram
+    prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
-    prog <- TextualProgram <$> forAll (runAstGen genProgram)
+    prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
     Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
 propRename :: Property
 propRename = property $ do
-    prog <- forAll $ runAstGen genProgram
+    prog <- forAllPretty $ runAstGen genProgram
     let progRen = runQuote $ rename prog
     Hedgehog.assert $ progRen == prog && prog == progRen
 
@@ -205,9 +205,11 @@ testRebindShadowedVariable =
     let
         xName = TyName (Name () "x" (Unique 0))
         yName = TyName (Name () "y" (Unique 1))
+        zName = TyName (Name () "z" (Unique 2))
 
         varX = TyVar () xName
         varY = TyVar () yName
+        varZ = TyVar () zName
 
         typeKind = Type ()
 
@@ -216,8 +218,13 @@ testRebindShadowedVariable =
         -- (all x (type) (fun (all x (type) x) x))
         r1 = TyForall () xName typeKind (TyFun () (TyForall () xName typeKind varX) varX)
 
+        -- (all x (type) (all x (type) (fun x x)))
+        l2 = TyForall () xName typeKind (TyForall () xName typeKind (TyFun () varX varX))
+        -- (all y (type) (all z (type) (fun y z)))
+        r2 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
+
     in
-        l1 == r1
+        l1 == r1 && l2 /= r2
 
 testRebindCapturedVariable :: Bool
 testRebindCapturedVariable =
@@ -251,19 +258,18 @@ testRebindCapturedVariable =
             $ TyFun ()
                 (TyForall () xName typeKind $ TyForall () yName typeKind (TyFun () varX varY))
                 varX
-    in
-        [typeL1, typeL2] == [typeR1, typeR2]
+    in [typeL1, typeL2] == [typeR1, typeR2]
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
+    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
     where
-        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

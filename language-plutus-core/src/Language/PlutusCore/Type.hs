@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Type
     ( Term (..)
@@ -38,20 +39,30 @@ module Language.PlutusCore.Type
     , termLoc
     -- * Normalized
     , Normalized (..)
+    -- * HasUniques
+    , type HasUniques
     ) where
+
+import           PlutusPrelude
+
+import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Name
 
 import           Control.Lens
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
-import qualified Data.Map                       as M
 import           Instances.TH.Lift              ()
+import           GHC.Exts (Constraint)
 import           Language.Haskell.TH.Syntax     (Lift)
-import           Language.PlutusCore.Lexer.Type
-import           PlutusPrelude
 
 newtype Gas = Gas
     { unGas :: Natural
     }
+
+{- Note [Annotations and equality]
+Equality of two things does not depend on their annotations.
+So don't use @deriving Eq@ for things with annotations.
+-}
 
 -- | ann 'Type' assigned to expressions.
 data Type tyname ann
@@ -126,128 +137,6 @@ typeTyBinds f = \case
     TyLam ann tn k ty -> f tn <&> \tn' -> TyLam ann tn' k ty
     x -> pure x
 
--- this type is used for replacing type names in
--- the Eq instance
-type EqTyState tyname a = M.Map (tyname a) (tyname a)
-
-rebindAndEqTy
-    :: (Eq ann, Ord (tyname ann))
-    => EqTyState tyname ann
-    -> Type tyname ann
-    -> Type tyname ann
-    -> tyname ann
-    -> tyname ann
-    -> Bool
-rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight =
-    let intermediateSt = M.insert tnRight tnLeft eqSt
-        in eqTypeSt intermediateSt tyLeft tyRight
-
--- This tests for equality of names inside a monad that allows substitution.
-eqTypeSt
-    :: (Ord (tyname ann), Eq ann)
-    => EqTyState tyname ann
-    -> Type tyname ann
-    -> Type tyname ann
-    -> Bool
-
-eqTypeSt eqSt (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeSt eqSt domLeft domRight && eqTypeSt eqSt codLeft codRight
-eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLeft fRight && eqTypeSt eqSt aLeft aRight
-
-eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
-
-eqTypeSt eqSt (TyIFix _ patLeft argLeft) (TyIFix _ patRight argRight) =
-    eqTypeSt eqSt patLeft patRight && eqTypeSt eqSt argLeft argRight
-eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
-        in (kLeft == kRight && tyEq)
-eqTypeSt eqSt (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
-        in (kLeft == kRight && tyEq)
-
-eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
-    case M.lookup tnLeft eqSt of
-        Just tn -> tnRight == tn
-        Nothing -> tnRight == tnLeft
-
-eqTypeSt _ _ _ = False
-
-instance (Ord (tyname ann), Eq ann) => Eq (Type tyname ann) where
-    (==) = eqTypeSt mempty
-
-data EqState tyname name ann = EqState
-    { _tyMap   :: M.Map (tyname ann) (tyname ann)
-    , _termMap :: M.Map (name ann) (name ann)
-    }
-
-emptyEqState :: (Ord (tyname ann), Ord (name ann)) => EqState tyname name ann
-emptyEqState = EqState mempty mempty
-
-termMap :: Lens' (EqState tyname name ann) (M.Map (name ann) (name ann))
-termMap f s = fmap (\x -> s { _termMap = x }) (f (_termMap s))
-
-tyMap :: Lens' (EqState tyname name ann) (M.Map (tyname ann) (tyname ann))
-tyMap f s = fmap (\x -> s { _tyMap = x }) (f (_tyMap s))
-
-rebindAndEq
-    :: (Eq ann, Ord (name ann), Ord (tyname ann))
-    => EqState tyname name ann
-    -> Term tyname name ann
-    -> Term tyname name ann
-    -> name ann
-    -> name ann
-    -> Bool
-rebindAndEq eqSt tLeft tRight nLeft nRight =
-    let intermediateSt = over termMap (M.insert nRight nLeft) eqSt
-        in eqTermSt intermediateSt tLeft tRight
-
-eqTermSt
-    :: (Ord (name ann), Ord (tyname ann), Eq ann)
-    => EqState tyname name ann
-    -> Term tyname name ann
-    -> Term tyname name ann
-    -> Bool
-
-eqTermSt eqSt (TyAbs _ tnLeft kLeft tLeft) (TyAbs _ tnRight kRight tRight) =
-    let intermediateSt = over tyMap (M.insert tnRight tnLeft) eqSt
-        in kLeft == kRight && eqTermSt intermediateSt tLeft tRight
-
-eqTermSt eqSt (IWrap _ patLeft argLeft termLeft) (IWrap _ patRight argRight termRight) =
-    eqTypeSt (_tyMap eqSt) patLeft patRight &&
-    eqTypeSt (_tyMap eqSt) argLeft argRight &&
-    eqTermSt eqSt termLeft termRight
-
-eqTermSt eqSt (LamAbs _ nLeft tyLeft tLeft) (LamAbs _ nRight tyRight tRight) =
-    let tEq = rebindAndEq eqSt tLeft tRight nLeft nRight
-        in eqTypeSt (_tyMap eqSt) tyLeft tyRight && tEq
-
-eqTermSt eqSt (Apply _ fLeft aLeft) (Apply _ fRight aRight) =
-    eqTermSt eqSt fLeft fRight && eqTermSt eqSt aLeft aRight
-
-eqTermSt _ (Constant _ cLeft) (Constant _ cRight) =
-    cLeft == cRight
-
-eqTermSt _ (Builtin _ biLeft) (Builtin _ biRight) =
-    biLeft == biRight
-
-eqTermSt eqSt (Unwrap _ tLeft) (Unwrap _ tRight) =
-    eqTermSt eqSt tLeft tRight
-
-eqTermSt eqSt (TyInst _ tLeft tyLeft) (TyInst _ tRight tyRight) =
-    eqTermSt eqSt tLeft tRight && eqTypeSt (_tyMap eqSt) tyLeft tyRight
-
-eqTermSt eqSt (Error _ tyLeft) (Error _ tyRight) =
-    eqTypeSt (_tyMap eqSt) tyLeft tyRight
-
-eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
-    case M.lookup nLeft (_termMap eqSt) of
-        Just n  -> nRight == n
-        Nothing -> nRight == nLeft
-
-eqTermSt _ _ _ = False
-
-instance (Ord (tyname ann), Ord (name ann), Eq ann) => Eq (Term tyname name ann) where
-    (==) = eqTermSt emptyEqState
-
 tyLoc :: Type tyname ann -> ann
 tyLoc (TyVar ann _)        = ann
 tyLoc (TyFun ann _ _)      = ann
@@ -272,14 +161,30 @@ termLoc (LamAbs ann _ _ _) = ann
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Eq, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift)
+
+-- See Note [Annotations and equality].
+instance Eq (Builtin ann) where
+    BuiltinName    _ name1 == BuiltinName    _ name2 = name1 == name2
+    DynBuiltinName _ name1 == DynBuiltinName _ name2 = name1 == name2
+    BuiltinName    {} == _ = False
+    DynBuiltinName {} == _ = False
 
 -- | A constant value.
 data Constant ann
     = BuiltinInt ann Integer
     | BuiltinBS ann BSL.ByteString
     | BuiltinStr ann String
-    deriving (Functor, Show, Eq, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift)
+
+-- See Note [Annotations and equality].
+instance Eq (Constant ann) where
+    BuiltinInt _ int1 == BuiltinInt _ int2 = int1 == int2
+    BuiltinBS _  bs1  == BuiltinBS  _ bs2  = bs1 == bs2
+    BuiltinStr _ str1 == BuiltinStr _ str2 = str1 == str2
+    BuiltinInt {} == _ = False
+    BuiltinBS  {} == _ = False
+    BuiltinStr {} == _ = False
 
 -- | A 'Term' is a value.
 data Term tyname name ann
@@ -407,6 +312,7 @@ data KindF ann x
     | KindArrowF ann x x
     deriving (Functor)
 
+-- See Note [Annotations and equality].
 instance Eq (Kind ann) where
     Type _                == Type   _              = True
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
@@ -421,7 +327,7 @@ instance Recursive (Kind ann) where
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name ann = Program ann (Version ann) (Term tyname name ann)
-    deriving (Show, Eq, Functor, Generic, NFData, Lift)
+    deriving (Show, Functor, Generic, NFData, Lift)
 
 newtype Normalized a = Normalized
     { unNormalized :: a
@@ -430,3 +336,11 @@ newtype Normalized a = Normalized
       deriving Applicative via Identity
 
 deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
+
+-- | All kinds of uniques an entity contains.
+type family HasUniques a :: Constraint
+type instance HasUniques (Kind ann) = ()
+type instance HasUniques (Type tyname ann) = HasUnique (tyname ann) TypeUnique
+type instance HasUniques (Term tyname name ann) =
+    (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
+type instance HasUniques (Program tyname name ann) = HasUniques (Term tyname name ann)

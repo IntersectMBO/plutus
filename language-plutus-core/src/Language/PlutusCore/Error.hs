@@ -30,6 +30,7 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
+import           Language.PlutusCore.Instance.Eq    ()
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -42,6 +43,14 @@ import           Control.Monad.Except
 
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+
+{- Note [Annotations and equality]
+Equality of two errors DOES DEPEND on their annotations.
+So feel free to use @deriving Eq@ for errors.
+This is because even though we do care about errors having an 'Eq' instance (which is required for
+example by tests that do checks like @resOrErr == Right res@), we don't care much about actually
+checking errors for equality and @deriving Eq@ saves us a lot of boilerplate.
+-}
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
 throwingEither :: MonadError e m => AReview e t -> Either t a -> m a
@@ -72,7 +81,8 @@ makeClassyPrisms ''UniqueError
 data NormCheckError tyname name ann
     = BadType ann (Type tyname ann) T.Text
     | BadTerm ann (Term tyname name ann) T.Text
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Generic, NFData)
+deriving instance (Eq ann, HasUniques (Term tyname name ann)) => Eq (NormCheckError tyname name ann)
 makeClassyPrisms ''NormCheckError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.

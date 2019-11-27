@@ -1,9 +1,11 @@
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE DefaultSignatures       #-}
+{-# LANGUAGE DeriveAnyClass          #-}
+{-# LANGUAGE DerivingStrategies      #-}
+{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE FunctionalDependencies  #-}
+{-# LANGUAGE GADTs                   #-}
+{-# LANGUAGE OverloadedStrings       #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Language.PlutusCore.Name
     ( -- * Types
@@ -30,7 +32,6 @@ module Language.PlutusCore.Name
     , identifierStateFrom
     , mapNameString
     , mapTyNameString
-    , newtypeUnique
     , PrettyConfigName (..)
     , HasPrettyConfigName (..)
     , defPrettyConfigName
@@ -75,8 +76,6 @@ instance Eq (Name ann) where
 instance Ord (Name ann) where
     (<=) = (<=) `on` nameUnique
 
--- N.B. the constructors for 'Unique' are exported for the sake of the test
--- suite; I don't know if there is an easier/better way to do this
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Lift)
@@ -85,30 +84,31 @@ newtype Unique = Unique { unUnique :: Int }
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique
     { unTypeUnique :: Unique
-    }
+    } deriving (Eq)
 
 -- | The unique of a term-level name.
 newtype TermUnique = TermUnique
     { unTermUnique :: Unique
-    }
-
--- | The default implementation of 'HasUnique' for newtypes.
-newtypeUnique
-    :: (Wrapped new, HasUnique (Unwrapped new) unique', Coercible unique' unique)
-    => Lens' new unique
-newtypeUnique = _Wrapped' . unique . coerced
+    } deriving (Eq)
 
 -- | Types which have a 'Unique' attached to them, mostly names.
-class Coercible Unique unique => HasUnique a unique | a -> unique where
+class Coercible unique Unique => HasUnique a unique | a -> unique where
     unique :: Lens' a unique
+    -- | The default implementation of 'HasUnique' for newtypes.
+    default unique
+        :: (Wrapped a, HasUnique (Unwrapped a) unique', Coercible unique' unique)
+        => Lens' a unique
+    unique = _Wrapped' . unique . coerced
+
+instance HasUnique Unique Unique where
+    unique = id
 
 instance HasUnique (Name ann) TermUnique where
     unique = lens g s where
         g = TermUnique . nameUnique
         s n (TermUnique u) = n{nameUnique=u}
 
-instance HasUnique (TyName ann) TypeUnique where
-    unique = newtypeUnique
+instance HasUnique (TyName ann) TypeUnique
 
 -- | A mapping from uniques to values of type @a@.
 newtype UniqueMap unique a = UniqueMap
@@ -116,8 +116,8 @@ newtype UniqueMap unique a = UniqueMap
     } deriving newtype (Show, Semigroup, Monoid, Functor)
 
 -- | Insert a value by a unique.
-insertByUnique :: Coercible Unique unique => unique -> a -> UniqueMap unique a -> UniqueMap unique a
-insertByUnique uniq x = UniqueMap . IM.insert (coerce uniq) x . unUniqueMap
+insertByUnique :: Coercible unique Unique => unique -> a -> UniqueMap unique a -> UniqueMap unique a
+insertByUnique uniq = coerce . IM.insert (coerce uniq)
 
 -- | Insert a value by the unique of a name.
 insertByName :: HasUnique name unique => name -> a -> UniqueMap unique a -> UniqueMap unique a
@@ -146,7 +146,7 @@ fromNames :: Foldable f => HasUnique name unique => f (name, a) -> UniqueMap uni
 fromNames = fromFoldable insertByName
 
 -- | Look up a value by a unique.
-lookupUnique :: Coercible Unique unique => unique -> UniqueMap unique a -> Maybe a
+lookupUnique :: Coercible unique Unique => unique -> UniqueMap unique a -> Maybe a
 lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap
 
 -- | Look up a value by the unique of a name.

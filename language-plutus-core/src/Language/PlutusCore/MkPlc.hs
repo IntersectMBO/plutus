@@ -1,8 +1,8 @@
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
@@ -85,23 +85,23 @@ embed = \case
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
--- | A "variable declaration", i.e. a name annnd a type for a variable.
+-- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name ann = VarDecl
     { varDeclAnn  :: ann
     , varDeclName :: name ann
     , varDeclType :: Type tyname ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name => ann -> VarDecl tyname name ann -> term ann
 mkVar ann = var ann . varDeclName
 
--- | A "type variable declaration", i.e. a name annnd a kind for a type variable.
+-- | A "type variable declaration", i.e. a name and a kind for a type variable.
 data TyVarDecl tyname ann = TyVarDecl
     { tyVarDeclAnn  :: ann
     , tyVarDeclName :: tyname ann
     , tyVarDeclKind :: Kind ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname ann
@@ -112,7 +112,7 @@ data TyDecl tyname ann = TyDecl
     { tyDeclAnn  :: ann
     , tyDeclType :: Type tyname ann
     , tyDeclKind :: Kind ann
-    } deriving (Functor, Show, Eq, Generic)
+    } deriving (Functor, Show, Generic)
 
 tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname ann
 tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind

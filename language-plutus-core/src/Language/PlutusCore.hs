@@ -48,7 +48,8 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , Gas (..)
-    , rename
+    , HasUniques
+    , Rename (..)
     -- * Type checking
     , module TypeCheck
     , fileType
@@ -97,16 +98,15 @@ module Language.PlutusCore
     , serialisedSize
     ) where
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text                                as T
-import           Data.Text.Prettyprint.Doc
+import           PlutusPrelude
+
 import           Language.PlutusCore.CBOR                 ()
 import qualified Language.PlutusCore.Check.Normal         as Normal
 import qualified Language.PlutusCore.Check.Uniques        as Uniques
 import qualified Language.PlutusCore.Check.Value          as VR
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
+import           Language.PlutusCore.Instance.Eq          ()
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -119,7 +119,10 @@ import           Language.PlutusCore.Size
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck            as TypeCheck
 import           Language.PlutusCore.View
-import           PlutusPrelude
+
+import           Control.Monad.Except
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.Text                                as T
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
