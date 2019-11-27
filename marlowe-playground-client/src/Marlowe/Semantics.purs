@@ -977,4 +977,3 @@ instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
 
 maxOf :: Array Timeout -> Timeout
 maxOf = foldl max zero
-

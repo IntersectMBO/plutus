@@ -10,9 +10,9 @@ import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (PubKey (..))
+import           Ledger.Ada                 (adaSymbol, adaToken)
 import           Ledger.Value               (CurrencySymbol, TokenName)
 import qualified Ledger.Value               as Val
-import           Ledger.Ada                 (adaSymbol, adaToken)
 
 instance IsString PubKey where
     fromString = pubKeyFromString
