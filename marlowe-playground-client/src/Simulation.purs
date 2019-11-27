@@ -21,7 +21,6 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
-import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
 import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -31,7 +30,7 @@ import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, 
 import Halogen.HTML.Properties.ARIA (role)
 import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
+import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), Token(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
@@ -296,7 +295,7 @@ inputComposerPerson isEnabled maybePerson actionInputs isLast =
       ]
   where
   inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
-  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled maybePerson index accountId party value
+  inputForAction index (DepositInput accountId party token value) = Just $ inputDeposit isEnabled maybePerson index accountId party token value
 
   inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled maybePerson index choiceId chosenNum bounds
 
@@ -309,29 +308,31 @@ inputDeposit ::
   Int ->
   AccountId ->
   Party ->
+  Token ->
   BigInteger ->
   HTML p HAction
-inputDeposit isEnabled person index accountId party value =
-  let
-    money = wrap value
-  in
-    flexRow_
-      $ [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ const $ Just
-                $ AddInput person (IDeposit accountId party money) []
-            ]
-            [ text "+"
-            ]
-        ]
-      <> (renderDeposit accountId party value)
+inputDeposit isEnabled person index accountId party token value =
+  flexRow_
+    $ [ button
+          [ class_ $ ClassName "composer-add-button"
+          , enabled isEnabled
+          , onClick $ const $ Just
+              $ AddInput person (IDeposit accountId party token value) []
+          ]
+          [ text "+"
+          ]
+      ]
+    <> (renderDeposit accountId party token value)
 
-renderDeposit :: forall p. AccountId -> Party -> BigInteger -> Array (HTML p HAction)
-renderDeposit (AccountId accountNumber accountOwner) party money =
+renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p HAction)
+renderDeposit (AccountId accountNumber accountOwner) party (Token currSym tokName) money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
-  , spanText " ADA into Account "
+  , spanText " units of currency \""
+  , b_ [ spanText (show currSym) ]
+  , spanText "\" token name \""
+  , b_ [ spanText (show tokName) ]
+  , spanText "\" into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
   , b_ [ spanText party ]
@@ -551,7 +552,7 @@ inputRow isEnabled idx (Tuple INotify person) =
         ]
     ]
 
-inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
+inputRow isEnabled idx (Tuple input@(IDeposit accountId party token money) person) =
   row_
     [ col_
         $ [ button
@@ -562,7 +563,7 @@ inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
               [ text $ "- " <> show idx <> ":"
               ]
           ]
-        <> (renderDeposit accountId party (unwrap money))
+        <> (renderDeposit accountId party token money)
     ]
 
 inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
@@ -712,7 +713,7 @@ stateTable state =
 
   bindings = state ^. _marloweState <<< _Head <<< _state <<< _boundValues
 
-renderAccounts :: forall p. Map AccountId Ada -> HTML p HAction
+renderAccounts :: forall p. Map (Tuple AccountId Token) BigInteger -> HTML p HAction
 renderAccounts accounts =
   table_
     [ colgroup []
@@ -730,6 +731,16 @@ renderAccounts accounts =
                 ]
                 [ text "Participant"
                 ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Currency symbol"
+                ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Token name"
+                ]
             , th_
                 [ text "Money"
                 ]
@@ -738,10 +749,10 @@ renderAccounts accounts =
     , tbody_ (map renderAccount accountList)
     ]
   where
-  accountList = Map.toUnfoldable accounts :: Array (Tuple AccountId Ada)
+  accountList = Map.toUnfoldable accounts :: Array (Tuple (Tuple AccountId Token) BigInteger)
 
-renderAccount :: forall p. Tuple AccountId Ada -> HTML p HAction
-renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
+renderAccount :: forall p. Tuple (Tuple AccountId Token) BigInteger -> HTML p HAction
+renderAccount (Tuple (Tuple (AccountId accountNumber accountOwner) (Token currSym tokName)) value) =
   tr []
     [ td_
         [ text (show accountNumber)
@@ -750,6 +761,16 @@ renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
         [ class_ $ ClassName "middle-column"
         ]
         [ text (show accountOwner)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show currSym)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show tokName)
         ]
     , td_
         [ text (show value)
@@ -1009,13 +1030,15 @@ displayInputList inputList =
     )
 
 displayInput :: forall p. Input -> Array (HTML p HAction)
-displayInput (IDeposit (AccountId accNum owner) party (Lovelace money)) =
+displayInput (IDeposit (AccountId accNum owner) party (Token curSym tokName) money) =
   [ b_ [ text "IDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " deposits "
-  , b_ [ text ((show money) <> " Lovelace") ]
-  , text " into account "
+  , b_ [ text ((show money) <> " units of currency \"") ]
+  , b_ [ text ((show curSym) <> "\" token name \"") ]
+  , b_ [ text $ show tokName ]
+  , text "\" into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
   ]
@@ -1064,22 +1087,26 @@ displayWarnings warnings =
     ]
 
 displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
-displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Lovelace amount)) =
+displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Token curSym tokName) amount) =
   [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " is asked to deposit "
-  , b_ [ text ((show amount) <> " Lovelace") ]
-  , text " into account "
+  , b_ [ text ((show amount) <> " units of currency \"") ]
+  , b_ [ text ((show curSym) <> "\" token name \"") ]
+  , b_ [ text $ show tokName ]
+  , text "\" into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
   ]
 
-displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovelace amount)) =
+displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Token curSym tokName) amount) =
   [ b_ [ text "TransactionNonPositivePay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show amount) <> " Lovelace") ]
-  , text " from account "
+  , b_ [ text ((show amount) <> " units of currency \"") ]
+  , b_ [ text ((show curSym) <> "\" token name \"") ]
+  , b_ [ text $ show tokName ]
+  , text "\" from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
   , b_
@@ -1090,11 +1117,13 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovela
   , text "."
   ]
 
-displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace amount) (Lovelace expected)) =
+displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Token curSym tokName) amount expected) =
   [ b_ [ text "TransactionPartialPay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show expected) <> " Lovelace") ]
-  , text " from account "
+  , b_ [ text ((show expected) <> " units of currency \"") ]
+  , b_ [ text ((show curSym) <> "\" token name \"") ]
+  , b_ [ text $ show tokName ]
+  , text "\" from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
   , b_
@@ -1103,7 +1132,7 @@ displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace a
           (Party dest) -> ("party " <> (show dest))
       ]
   , text " but there is only "
-  , b_ [ text ((show amount) <> " Lovelace") ]
+  , b_ [ text $ show amount ]
   , text "."
   ]
 

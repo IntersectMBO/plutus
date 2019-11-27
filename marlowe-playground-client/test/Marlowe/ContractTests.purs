@@ -13,7 +13,7 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
 import Editor as Editor
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), Ada(..), ChoiceId(..), Contract(..), Input(..))
+import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
@@ -100,11 +100,13 @@ all =
     test "Escrow" do
       -- A simple test that runs the Escrow contract to completion
       let
+        ada = Token "" ""
+
         alice = "alice"
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice (Lovelace (fromIntegral 450))
+        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice ada (fromIntegral 450)
 
         choice = ChoiceId "choice"
 

@@ -195,20 +195,16 @@ tokenName :: Parser String TokenName
 tokenName = text
 
 token :: Parser String Token
-token = do
-  void maybeSpaces
-  ct <-
-    parens do
-      void maybeSpaces
-      curr <- parseTerm currencySymbol
-      void maybeSpaces
-      void $ string ","
-      void maybeSpaces
-      tok <- parseTerm tokenName
-      void maybeSpaces
-      pure $ Token curr tok
-  void maybeSpaces
-  pure ct
+token =
+  parens do
+    void maybeSpaces
+    curr <- parseTerm currencySymbol
+    void maybeSpaces
+    void $ string ","
+    void maybeSpaces
+    tok <- parseTerm tokenName
+    void maybeSpaces
+    pure $ Token curr tok
 
 bound :: Parser String Bound
 bound = do
