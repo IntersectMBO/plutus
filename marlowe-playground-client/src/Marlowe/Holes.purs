@@ -64,7 +64,7 @@ getMarloweConstructors ValueIdType = Map.singleton "ValueId" [ NewtypeArg ]
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ DataArg "accountId", DataArg "party", DataArg "value" ])
+    [ (Tuple "Deposit" [ DataArg "accountId", DataArg "party", DataArg "token", DataArg "value" ])
     , (Tuple "Choice" [ DataArg "choiceId", ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg "observation" ])
     ]
@@ -79,7 +79,7 @@ getMarloweConstructors CaseType = Map.singleton "Case" [ DataArg "action", DataA
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" [ DataArg "accountId" ])
+    [ (Tuple "AvailableMoney" [ DataArg "accountId", DataArg "token" ])
     , (Tuple "Constant" [ DataArg "amount" ])
     , (Tuple "NegValue" [ DataArg "value" ])
     , (Tuple "AddValue" [ DataArg "value", DataArg "value" ])
@@ -92,7 +92,7 @@ getMarloweConstructors ValueType =
 
 getMarloweConstructors InputType =
   Map.fromFoldable
-    [ (Tuple "IDeposit" [ DataArg "accountId", DataArg "party", DataArg "money" ])
+    [ (Tuple "IDeposit" [ DataArg "accountId", DataArg "party", DataArg "token", DataArg "money" ])
     , (Tuple "IChoice" [ DataArg "choiceId", DataArg "choiceNum" ])
     , (Tuple "INotify" [])
     ]
@@ -115,7 +115,7 @@ getMarloweConstructors ObservationType =
 getMarloweConstructors ContractType =
   Map.fromFoldable
     [ (Tuple "Close" [])
-    , (Tuple "Pay" [ DataArg "accountId", DataArg "payee", DataArg "value", DataArg "contract" ])
+    , (Tuple "Pay" [ DataArg "accountId", DataArg "payee", DataArg "token", DataArg "value", DataArg "contract" ])
     , (Tuple "If" [ DataArg "observation", DataArg "contract", DataArg "contract" ])
     , (Tuple "When" [ ArrayArg "case", DataArg "timeout", DataArg "contract" ])
     , (Tuple "Let" [ DataArg "valueId", DataArg "value", DataArg "contract" ])
@@ -123,7 +123,7 @@ getMarloweConstructors ContractType =
 
 getMarloweConstructors BoundType = Map.singleton "Bound" [ DataArg "from", DataArg "to" ]
 
-getMarloweConstructors TokenType = Map.singleton "TokenType" [ DataArg "currency", DataArg "token" ]
+getMarloweConstructors TokenType = Map.singleton "Token" [ DataArg "currency", DataArg "token" ]
 
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
 constructMarloweType constructorName (MarloweHole { name, marloweType, start }) m = case Map.lookup constructorName m of
