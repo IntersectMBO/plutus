@@ -224,7 +224,8 @@ lock = do
     
     -- 1. Create a transaction output with the value and the secret and
     --    wait until it is confirmed.
-    _ <- both (writeTxSuccess $ Tx.payToScript lockArgsValue addr initialDataScript) (fundsAtAddressGt addr zero)
+    let tx1 = Tx.payToScript lockArgsValue addr initialDataScript
+    _ <- writeTxConfirmed tx1
 
     -- Get the current utxo set at the contract address. This consists of
     -- exactly the one output that we added earlier (unless someone else
@@ -239,7 +240,7 @@ lock = do
     -- 2. The state of the contract is now 'Initialised'. To transition to
     --    the 'Locked' state we need to run the 'Forge' action. The transaction
     --    has three parts:
-    let tx = 
+    let tx2 = 
              -- 1. Spend the outputs at the contract address
              Tx.collectFromScript 
                     utxo 
@@ -251,7 +252,7 @@ lock = do
              -- 3. Forge the token.
              <> Tx.forgeValue gameTokenVal
 
-    void $ writeTxSuccess tx
+    void $ writeTxConfirmed tx2
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState

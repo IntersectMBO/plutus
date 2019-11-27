@@ -149,6 +149,13 @@ tests =
             (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
             (handleBlockchainEvents w2)
 
+        , cp "await tx confirmed"
+            (let t = payToPubKey (Ada.lovelaceValueOf 10) (walletPubKey w2) 
+             in writeTxSuccess t >>= awaitTxConfirmed)
+            (assertDone w1 (const True) "should be done"
+            /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
+            (handleBlockchainEvents w1)
+
         ]
 
 w1 :: EM.Wallet

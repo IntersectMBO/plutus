@@ -140,6 +140,7 @@ Contract result by wallet:
          schedule collection: [ExposeEndpoint: schedule collection]
          slot: WaitingForSlot: Slot: 30
          tx: []
+         tx-confirmation: []
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
@@ -149,6 +150,7 @@ Contract result by wallet:
          schedule collection: [ExposeEndpoint: schedule collection]
          slot: WaitingForSlot: Slot: 30
          tx: []
+         tx-confirmation: []
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
@@ -158,4 +160,5 @@ Contract result by wallet:
          schedule collection: [ExposeEndpoint: schedule collection]
          slot: WaitingForSlot: Slot: 30
          tx: []
+         tx-confirmation: []
          utxo-at: []}

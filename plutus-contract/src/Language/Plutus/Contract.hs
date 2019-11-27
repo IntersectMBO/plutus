@@ -34,6 +34,7 @@ module Language.Plutus.Contract(
     , WalletAPIError
     , writeTx
     , writeTxSuccess
+    , writeTxConfirmed
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
@@ -46,12 +47,15 @@ module Language.Plutus.Contract(
     , HasUtxoAt
     , UtxoAt
     , utxoAt
-    -- * Wallet'S own public key
+    -- * Wallet's own public key
     , HasOwnPubKey
     , OwnPubKey
     , ownPubKey
     -- * Transactions
     , module Tx
+    , HasTxConfirmation
+    , TxConfirmation
+    , awaitTxConfirmed
     -- * Row-related things
     , HasType
     , ContractRow
@@ -60,26 +64,27 @@ module Language.Plutus.Contract(
     , waitingForBlockchainActions
     ) where
 
-import           Control.Applicative                             (Alternative (..))
+import           Control.Applicative                               (Alternative (..))
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import           Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
+import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
-import           Language.Plutus.Contract.Util                   (both, selectEither)
+import           Language.Plutus.Contract.Util                     (both, selectEither)
 
-import           Language.Plutus.Contract.Request                (AsContractError (..), Contract (..),
-                                                                  ContractError (..), ContractRow, checkpoint, select,
-                                                                  withContractError)
-import           Language.Plutus.Contract.Schema                 (Handlers)
+import           Language.Plutus.Contract.Request                  (AsContractError (..), Contract (..),
+                                                                    ContractError (..), ContractRow, checkpoint, select,
+                                                                    withContractError)
+import           Language.Plutus.Contract.Schema                   (Handlers)
 
-import           Language.Plutus.Contract.Tx                     as Tx
+import           Language.Plutus.Contract.Tx                       as Tx
 
-import           Prelude                                         hiding (until)
-import           Wallet.API                                      (WalletAPIError)
+import           Prelude                                           hiding (until)
+import           Wallet.API                                        (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)
@@ -89,6 +94,7 @@ type BlockchainActions =
   .\/ WriteTx
   .\/ UtxoAt
   .\/ OwnPubKey
+  .\/ TxConfirmation
 
 type HasBlockchainActions s =
   ( HasAwaitSlot s
@@ -96,6 +102,7 @@ type HasBlockchainActions s =
   , HasWriteTx s
   , HasUtxoAt s
   , HasOwnPubKey s
+  , HasTxConfirmation s
   )
 
 -- | Check if there are handlers for any of the four blockchain
