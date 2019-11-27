@@ -1,3 +1,5 @@
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -18,32 +20,34 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , State
     , mkValidator
     , scriptInstance
-    , initialise
-    , lock
-    , proposePayment
-    , cancelPayment
-    , addSignature
-    , makePayment
+    , MultiSigError(..)
+    , MultiSigSchema
+    , contract
     ) where
 
 import           Data.Functor                 (void)
+import qualified Data.Map                     as Map
 import           Control.Applicative          (Applicative (..))
+import           Control.Lens                 ((^.), at, makeClassyPrisms, review)
+import           Control.Monad.Error.Class    (MonadError)
+import           Control.Monad.Error.Lens
 import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation            as Validation
 import qualified Ledger.Typed.Tx              as Typed
 import qualified Ledger.Typed.Scripts         as Scripts
+import qualified Ledger.Tx                    as Tx
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
-import           Wallet
-import qualified Wallet                       as WAPI
-import qualified Wallet.Typed.API             as WAPITyped
+import           Ledger                       (PubKey, Slot)
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude     hiding (check, Applicative (..))
-import           Language.PlutusTx.StateMachine (StateMachine(..))
-import qualified Language.PlutusTx.StateMachine as SM
-import qualified Wallet.Typed.StateMachine as SM
+import           Language.Plutus.Contract
+import qualified Language.Plutus.Contract.Typed.Tx as Typed
+import           Language.PlutusTx.Prelude         hiding (check, Applicative (..), (<>))
+import           Language.PlutusTx.StateMachine    (StateMachine(..))
+import qualified Language.PlutusTx.StateMachine    as SM
+import           Prelude                           ((<>))
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -74,8 +78,6 @@ instance Eq Payment where
     {-# INLINABLE (==) #-}
     (Payment vl pk sl) == (Payment vl' pk' sl') = vl == vl' && pk == pk' && sl == sl'
 
-PlutusTx.makeIsData ''Payment
-PlutusTx.makeLift ''Payment
 
 data Params = Params
     { mspSignatories  :: [PubKey]
@@ -83,8 +85,6 @@ data Params = Params
     , mspRequiredSigs :: Integer
     -- ^ How many signatures are required for a payment
     }
-
-PlutusTx.makeLift ''Params
 
 -- | State of the multisig contract.
 data State =
@@ -103,9 +103,6 @@ instance Eq State where
         vl == vl' && pmt == pmt' && pks == pks'
     _ == _ = False
 
-PlutusTx.makeIsData ''State
-PlutusTx.makeLift ''State
-
 data Input =
     ProposePayment Payment
     -- ^ Propose a payment. The payment can be made as soon as enough
@@ -120,9 +117,29 @@ data Input =
 
     | Pay
     -- ^ Make the payment.
+    deriving Show
 
-PlutusTx.makeIsData ''Input
-PlutusTx.makeLift ''Input
+data MultiSigError =
+    MSContractError ContractError
+    | MSContractStateNotFound
+    -- ^ No unspent output with the contact state was found at the contract
+    --   address
+    | MSInvalidTransition State Input
+    -- ^ An invalid transition was attempted
+    | MSTypedAPIError Typed.ConnectionError
+    deriving Show
+makeClassyPrisms ''MultiSigError
+
+instance AsContractError MultiSigError where
+    _ContractError = _MSContractError
+
+type MultiSigSchema =
+    BlockchainActions
+        .\/ Endpoint "propose-payment" Payment
+        .\/ Endpoint "add-signature" ()
+        .\/ Endpoint "cancel-payment" ()
+        .\/ Endpoint "pay" ()
+        .\/ Endpoint "lock" Value
 
 {-# INLINABLE isSignatory #-}
 -- | Check if a public key is one of the signatories of the multisig contract.
@@ -235,112 +252,85 @@ machineInstance params =
     (StateMachine step (check params) final)
     (scriptInstance params)
 
--- | Start watching the contract address
-initialise :: WalletAPI m => Params -> m ()
-initialise = WAPI.startWatching . Scripts.scriptAddress . scriptInstance
+contract :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
+contract params = (lock params <|> propose <|> cancel <|> addSignature <|> makePaymentC params) >> contract params where
+    propose = endpoint @"propose-payment" >>= runStepC params . ProposePayment
+    cancel  = endpoint @"cancel-payment" >> runStepC params Cancel
+    addSignature = endpoint @"add-signature" >> ownPubKey >>= runStepC params . AddSignature
 
--- | Lock some funds in a multisig contract.
-lock
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -- ^ Signatories and required signatures
-    -> Value
-    -- ^ The funds we want to lock
-    -> m State
-    -- ^ The initial state of the contract
-lock prms vl = do
-    (tx, state) <- SM.mkInitialise (machineInstance prms) (Holding vl) vl
+currentState :: (AsMultiSigError e, HasUtxoAt s) => Params -> Contract s e (State, Value)
+currentState params = do
+    let addr = Scripts.scriptAddress $ scriptInstance params
+    utxos <- utxoAt addr
+    txouttx <-
+        case (utxos ^. at addr) >>= listToMaybe . Map.toList of
+            Nothing      -> throwing_ _MSContractStateNotFound
+            Just (_, o)  -> pure o
+    Typed.TypedScriptTxOut{Typed.tyTxOutData=state,Typed.tyTxOutTxOut} <- 
+            withContractError (review _MSTypedAPIError)
+            $ Typed.typeScriptTxOut (scriptInstance params) txouttx
+    pure (state, Tx.txOutValue tyTxOutTxOut)
 
-    void $ WAPITyped.signTxAndSubmit tx
-
-    pure state
-
--- | Propose a payment from funds that are locked up in a state-machine based
---   multisig contract.
-proposePayment
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -> State
-    -> Payment
-    -> m State
-proposePayment prms st = runStep prms st . ProposePayment
-
--- | Cancel a proposed payment
-cancelPayment
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -> State
-    -> m State
-cancelPayment prms st = runStep prms st Cancel
-
--- | Add a signature to a proposed payment
-addSignature
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -> State
-    -> m State
-addSignature prms st = WAPI.ownPubKey >>= runStep prms st . AddSignature
-
--- | Make a payment after enough signatures have been collected.
-makePayment
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -> State
-    -> m State
-makePayment prms currentState = do
-    -- we can't use 'runStep' because the outputs of the transaction are
-    -- different from the other transitions: We need two outputs, a public
-    -- key output with the payment, and the script output with the remaining
-    -- funds.
-    (currentValue, valuePaid', recipient) <- case currentState of
-        CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
-        _ -> WAPI.throwOtherError "Cannot make payment because no payment has been proposed. Run the 'proposePayment' action first."
-    let valueLeft = currentValue - valuePaid'
-        -- Need to match to get the existential type out
-        addOutAndPay (Typed.TypedTxSomeIns tx) = do
-            let pkOut = Typed.makePubKeyTxOut valuePaid' recipient
-                withPubKeyOut = tx { Typed.tyTxPubKeyTxOuts = [pkOut] }
-            void $ WAPITyped.signTxAndSubmit withPubKeyOut
-
-    if Value.isZero valueLeft
-    then do
-        (scriptTx, newState) <- SM.mkHalt (machineInstance prms) currentState Pay
-        addOutAndPay scriptTx
-        pure newState
-    else do
-        (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState Pay (const valueLeft)
-        addOutAndPay scriptTx
-        pure newState
+nextState :: (MonadError e m, AsMultiSigError e) => State -> Input -> m State
+nextState oldState input = maybe (throwing _MSInvalidTransition (oldState, input)) pure (step oldState input)
 
 -- | Advance a running multisig contract. This applies the transition function
 --   'SM.transition' to the current contract state and uses the result to unlock
 --   the funds currently in the contract, and lock them again with a data script
 --   containing the new state.
 --
-runStep
-    :: (WalletAPI m, WalletDiagnostics m)
-    => Params
-    -- ^ The parameters of the contract instance
-    -> State
-    -- ^ Current state of the instance
-    -> Input
-    -- ^ Input to be applied to the contract
-    -> m State
-    -- ^ New state after applying the input
-runStep prms currentState input = do
-    (scriptTx, newState) <- SM.mkStep (machineInstance prms) currentState input id
+runStepC :: AsMultiSigError e => Params -> Input -> Contract MultiSigSchema e ()
+runStepC params input = do
+    (oldState, value) <- currentState params
+    let addr = Scripts.scriptAddress $ scriptInstance params
+    utxos <- utxoAt addr
+    newState <- nextState oldState input
+    let ins = Typed.collectFromScript utxos (scriptInstance params) input
+        outs = Typed.makeScriptPayment (scriptInstance params) value newState
+    void 
+        $ withContractError (review _MSContractError)
+        $ writeTxSuccess 
+        $ ins <> outs
 
-    -- Need to match to get the existential type out
-    case scriptTx of
-        (Typed.TypedTxSomeIns tx) -> void $ WAPITyped.signTxAndSubmit tx
+-- | Lock some funds in a multisig contract.
+lock :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
+lock params = do
+    value <- endpoint @"lock"
+    let tx = Typed.makeScriptPayment (scriptInstance params) value (Holding value)
+    void
+        $ withContractError (review _MSContractError)
+        $ writeTxSuccess tx
 
-    pure newState
+-- | Make a payment after enough signatures have been collected.
+makePaymentC :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
+makePaymentC params = do
+    () <- endpoint @"pay"
+    (state, _) <- currentState params
+    -- we can't use 'runStep' because the outputs of the transaction are
+    -- different from the other transitions: We need two outputs, a public
+    -- key output with the payment, and the script output with the remaining
+    -- funds.
+    (currentValue, valuePaid', recipient) <- case state of
+        CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
+        _ -> throwing _MSInvalidTransition (state, Pay)
+    let addr = Scripts.scriptAddress $ scriptInstance params
+    utxos <- utxoAt addr
+    newState <- nextState state Pay
+    let valueLeft = currentValue - valuePaid'
+        ins       = Typed.collectFromScript utxos (scriptInstance params) Pay
+        outs = if Value.isZero valueLeft
+               then payToPubKey valuePaid' recipient
+               else Typed.makeScriptPayment (scriptInstance params) valueLeft newState
+                    <> payToPubKey valuePaid' recipient
+    void
+        $ withContractError (review _MSContractError)
+        $ writeTxSuccess
+        $ ins <> outs
 
-{- Note [Current state of the contract]
-
-The 'mkStep' function takes the current state of the contract and returns the
-new state. Both values are placed on the chain, so technically we don't have to
-pass them around like this, but we currently can't decode 'State' values from
-PLC back to Haskell.
-
--}
+PlutusTx.makeIsData ''Payment
+PlutusTx.makeLift ''Payment
+PlutusTx.makeIsData ''State
+PlutusTx.makeLift ''State
+PlutusTx.makeLift ''Params
+PlutusTx.makeIsData ''Input
+PlutusTx.makeLift ''Input
