@@ -55,7 +55,7 @@ module Language.Plutus.Contract.Trace
 
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
-import           Control.Monad                                     (void, (>=>))
+import           Control.Monad                                     (void, when, (>=>))
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
 import           Control.Monad.Trans.Class                         (lift)
@@ -377,9 +377,8 @@ addTxConfirmedEvent
 addTxConfirmedEvent txid wallet = do
     hks <- getHooks wallet
     let relevantTxIds = AwaitTxConfirmed.txIds hks
-    if txid `Set.member` relevantTxIds
-    then addEvent wallet (AwaitTxConfirmed.event txid)
-    else pure ()
+    when (txid `Set.member` relevantTxIds)
+        (addEvent wallet (AwaitTxConfirmed.event txid))
 
 -- | Respond to all 'WatchAddress' requests from contracts that are waiting
 --   for a change to an address touched by this transaction

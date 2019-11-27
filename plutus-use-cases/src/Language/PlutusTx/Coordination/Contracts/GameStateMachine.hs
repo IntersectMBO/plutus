@@ -252,7 +252,7 @@ lock = do
              -- 3. Forge the token.
              <> Tx.forgeValue gameTokenVal
 
-    void $ writeTxConfirmed tx2
+    writeTxConfirmed tx2
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState

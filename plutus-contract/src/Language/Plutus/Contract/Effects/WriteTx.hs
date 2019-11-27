@@ -83,7 +83,7 @@ writeTxConfirmed
   , Req.AsContractError e
   )
   => UnbalancedTx
-  -> Contract s e TxId
+  -> Contract s e ()
 writeTxConfirmed t = writeTxSuccess t >>= awaitTxConfirmed
 
 event

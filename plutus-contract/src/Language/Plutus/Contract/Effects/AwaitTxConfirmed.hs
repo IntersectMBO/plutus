@@ -53,11 +53,11 @@ type TxConfirmation = TxConfirmationSym .== (TxConfirmed, TxIdSet)
 -- TODO: Configurable level of confirmation (for example, as soon as the tx is
 --       included in a block, or only when it can't be rolled back anymore)
 -- | Wait until a transaction is confirmed (added to the ledger).
-awaitTxConfirmed :: forall s e. HasTxConfirmation s => TxId -> Contract s e TxId
+awaitTxConfirmed :: forall s e. HasTxConfirmation s => TxId -> Contract s e ()
 awaitTxConfirmed txId = 
-    let check :: TxConfirmed -> Maybe TxId
+    let check :: TxConfirmed -> Maybe ()
         check (TxConfirmed txId') =
-            if txId' == txId then Just txId else Nothing
+            if txId' == txId then Just () else Nothing
     in
     requestMaybe @TxConfirmationSym @_ @_ @s (TxIdSet $ Set.singleton txId) check
 
