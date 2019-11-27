@@ -1,0 +1,7 @@
+This file documents bugs/fixes made after publication:
+
+26 November 2019:
+
+The rule β-wrap should insist that the body is a value. Otherwise
+it is possible to apply either the ξ-wrap or the β-wrap rule to the
+same term. 
