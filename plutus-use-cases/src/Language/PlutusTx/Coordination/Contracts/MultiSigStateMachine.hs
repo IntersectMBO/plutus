@@ -318,6 +318,10 @@ makePaymentC params = do
     newState <- nextState state Pay
     let valueLeft = currentValue - valuePaid'
         ins       = Typed.collectFromScript utxos (scriptInstance params) Pay
+
+        -- If there is no money left, we make the final payment and don't pay
+        -- anything into the contract. Otherwise we make the payment and lock
+        -- the remaining money in the contract.
         outs = if Value.isZero valueLeft
                then payToPubKey valuePaid' recipient
                else Typed.makeScriptPayment (scriptInstance params) valueLeft newState

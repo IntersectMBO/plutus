@@ -15,7 +15,6 @@ import           Ledger.AddressMap           (AddressMap)
 import qualified Ledger.Typed.Scripts        as Scripts
 import qualified Ledger.Typed.Tx             as Typed
 import           Ledger.Value                (Value)
-import           Wallet.API                  (defaultSlotRange)
 
 import qualified Wallet.Typed.API            as Typed
 
@@ -58,6 +57,5 @@ makeScriptPayment ::
     -> Contract.UnbalancedTx
 makeScriptPayment si vl ds =
     let out    = Typed.makeTypedScriptTxOut @a si ds vl
-        baseTx = (Typed.baseTx { Typed.tyTxValidRange = defaultSlotRange, Typed.tyTxPubKeyTxIns = [], Typed.tyTxPubKeyTxOuts = [] })
-        tyTx   = Typed.addTypedTxOut @'[] @'[] @a out baseTx
+        tyTx   = Typed.addTypedTxOut @'[] @'[] @a out Typed.baseTx
     in Contract.fromLedgerTx (Typed.toUntypedTx tyTx)
