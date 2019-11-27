@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "reactormonk",
         "repo": "all-hies",
-        "rev": "29fe2e9014289deebf661ae460aeb8b31362b9de",
-        "sha256": "0nvl9g97wv2j5pixvfmxqv5r3nsdc0ar0b0pdg108pb8ws2kv261",
+        "rev": "ad895cc4132799ab77e8f0b1c8fc4091ee77240e",
+        "sha256": "0pvmn5mnylzgxh56ph6km15p7sblhp660k2q2bsf3jrzc8h7zcgp",
         "type": "tarball",
-        "url": "https://github.com/reactormonk/all-hies/archive/29fe2e9014289deebf661ae460aeb8b31362b9de.tar.gz",
+        "url": "https://github.com/reactormonk/all-hies/archive/ad895cc4132799ab77e8f0b1c8fc4091ee77240e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "deployment-nixpkgs": {

@@ -79,6 +79,7 @@ in lib.fix (jobsets: testJobsets // {
       ++ (allJobs jobsets.plutus-playground)
       ++ (allJobs jobsets.marlowe-playground)
       ++ (allJobs jobsets.marlowe-symbolic-lambda)
-      ++ (allJobs jobsets.dev.scripts);
+      ++ (allJobs jobsets.dev.scripts)
+      ++ (allJobs jobsets.dev.packages);
   });
 })
