@@ -11,7 +11,6 @@ import           Language.Marlowe.Semantics
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (PubKey (..))
 import           Ledger.Ada                 (adaSymbol, adaToken)
-import           Ledger.Value               (CurrencySymbol, TokenName)
 import qualified Ledger.Value               as Val
 
 instance IsString PubKey where
@@ -23,8 +22,8 @@ instance IsString AccountId where
 instance IsString ValueId where
     fromString = ValueId . fromString
 
-ada :: (CurrencySymbol, TokenName)
-ada = (adaSymbol, adaToken)
+ada :: Token
+ada = Token adaSymbol adaToken
 
 alicePubKey :: PubKey
 alicePubKey = PubKey "Alice"
@@ -82,6 +81,6 @@ getAccountsDiff :: [Payment] -> [Input] -> AccountsDiff
 getAccountsDiff payments inputs =
     foldl' (\acc (p, m) -> addAccountsDiff p m acc) emptyAccountsDiff (incomes ++ outcomes)
   where
-    incomes  = [ (p,  Val.singleton cur tok m) | IDeposit _ p (cur, tok) m <- inputs ]
+    incomes  = [ (p,  Val.singleton cur tok m) | IDeposit _ p (Token cur tok) m <- inputs ]
     outcomes = [ (p, P.negate m) | Payment p m  <- payments ]
 

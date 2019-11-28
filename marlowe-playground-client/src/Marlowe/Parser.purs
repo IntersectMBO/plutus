@@ -198,13 +198,13 @@ token :: Parser String Token
 token =
   parens do
     void maybeSpaces
-    curr <- parseTerm currencySymbol
+    void $ string "Token"
+    void spaces
+    first <- parseTerm text
+    void spaces
+    second <- parseTerm text
     void maybeSpaces
-    void $ string ","
-    void maybeSpaces
-    tok <- parseTerm tokenName
-    void maybeSpaces
-    pure $ Token curr tok
+    pure $ Token first second
 
 bound :: Parser String Bound
 bound = do

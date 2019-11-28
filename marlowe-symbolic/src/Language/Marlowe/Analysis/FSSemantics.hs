@@ -898,7 +898,7 @@ convertBound :: MS.Bound -> Bound
 convertBound (MS.Bound from to) = (from, to)
 
 convertValue :: MS.Value -> Mappings -> (Value, Mappings)
-convertValue (MS.AvailableMoney accId (csym, tok)) maps =
+convertValue (MS.AvailableMoney accId (MS.Token csym tok)) maps =
     (AvailableMoney newAccId, mapsWithAccId)
   where (newAccId, mapsWithAccId) = convertAccId accId csym tok maps
 convertValue (MS.Constant inte) maps =
@@ -965,7 +965,7 @@ convertObservation MS.TrueObs maps = (TrueObs, maps)
 convertObservation MS.FalseObs maps = (FalseObs, maps)
 
 convertAction :: MS.Action -> Mappings -> (Action, Mappings)
-convertAction (MS.Deposit accId party (cs, tok) value) maps =
+convertAction (MS.Deposit accId party (MS.Token cs tok) value) maps =
     (Deposit newAccId newParty newValue, mapsWithValue)
   where (newAccId, mapsWithAccId) = convertAccId accId cs tok maps
         (newParty, mapsWithParty) = convertParty party mapsWithAccId
@@ -990,7 +990,7 @@ convertCaseList (MS.Case action cont : rest) maps =
 
 convertContract :: MS.Contract -> Mappings -> (Contract, MaxActions, Mappings)
 convertContract MS.Close maps = (Close, 0, maps)
-convertContract (MS.Pay accId payee (cs, tok) value cont) maps =
+convertContract (MS.Pay accId payee (MS.Token cs tok) value cont) maps =
     (Pay newAccId newPayee newValue newCont, actionsWithCont, mapsWithContract)
   where (newAccId, mapsWithAccId) = convertAccId accId cs tok maps
         (newPayee, mapsWithPayee) = convertPayee payee cs tok mapsWithAccId
@@ -1038,7 +1038,7 @@ revertValId :: ValueId -> Mappings -> MS.ValueId
 revertValId (ValueId valId) maps = getLabel valId (valueM maps)
 
 revertInput :: Input -> Mappings -> MS.Input
-revertInput (IDeposit accId party mon) maps = MS.IDeposit newAccId newParty (cs, tok) mon
+revertInput (IDeposit accId party mon) maps = MS.IDeposit newAccId newParty (MS.Token cs tok) mon
   where (newAccId, cs, tok) = revertAccId (unNestAccountId accId) maps
         newParty = revertParty party maps
 revertInput (IChoice choId chosenNum) maps = MS.IChoice newChoId chosenNum
@@ -1061,11 +1061,11 @@ revertPayee (Party party) maps   = MS.Party (revertParty party maps)
 revertReduceWarningList :: ReduceWarning -> Mappings -> MS.ReduceWarning
 revertReduceWarningList ReduceNoWarning _ = MS.ReduceNoWarning
 revertReduceWarningList (ReduceNonPositivePay accId payee inte) maps =
-     MS.ReduceNonPositivePay newAccId newPayee (cs, tok) inte
+     MS.ReduceNonPositivePay newAccId newPayee (MS.Token cs tok) inte
   where (newAccId, cs, tok) = revertAccId (unNestAccountId accId) maps
         newPayee = revertPayee (unNestPayee payee) maps
 revertReduceWarningList (ReducePartialPay accId payee mon1 mon2) maps =
-     MS.ReducePartialPay newAccId newPayee (cs, tok) mon1 mon2
+     MS.ReducePartialPay newAccId newPayee (MS.Token cs tok) mon1 mon2
   where (newAccId, cs, tok) = revertAccId (unNestAccountId accId) maps
         newPayee = revertPayee (unNestPayee payee) maps
 revertReduceWarningList (ReduceShadowing valId int1 int2) maps =
@@ -1080,7 +1080,7 @@ revertTransactionWarningList (TransactionApplyWarning applyWarning) maps =
     (ApplyNonPositiveDeposit party accId amount) ->
        let (cAccId, cs, tok) = revertAccId (unNestAccountId accId) maps in
        [MS.TransactionNonPositiveDeposit (revertParty party maps)
-                                         cAccId (cs, tok) amount]
+                                         cAccId (MS.Token cs tok) amount]
     ApplyNoWarning -> error "ApplyNoWarning in result"
 
 snLabel, transListLabel :: String

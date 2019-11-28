@@ -86,7 +86,6 @@ type Party = PubKey
 type NumAccount = Integer
 type Timeout = Slot
 type Money = Val.Value
-type Token = (CurrencySymbol, TokenName)
 type ChoiceName = ByteString
 type ChosenNum = Integer
 type SlotInterval = (Slot, Slot)
@@ -117,6 +116,12 @@ data ChoiceId = ChoiceId ByteString Party
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
+{-| Token - represents a currency or token, it groups
+    a pair of a currency symbol and token name.
+-}
+data Token = Token CurrencySymbol TokenName
+  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving anyclass (Pretty)
 
 {-| Values, as defined using Let are identified by name,
     and can be used by 'UseValue' construct.
@@ -457,7 +462,7 @@ evalObservation env state obs = let
 refundOne :: Accounts -> Maybe ((Party, Money), Accounts)
 refundOne accounts = case Map.toList accounts of
     [] -> Nothing
-    ((accId, (cur, tok)), balance) : rest ->
+    ((accId, Token cur tok), balance) : rest ->
         if balance > 0
         then Just ((accountOwner accId, Val.singleton cur tok balance), Map.fromList rest)
         else refundOne (Map.fromList rest)
@@ -490,10 +495,10 @@ addMoneyToAccount accId token amount accounts = let
     Returns the appropriate effect and updated accounts
 -}
 giveMoney :: Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
-giveMoney payee (cur, tok) amount accounts = case payee of
+giveMoney payee (Token cur tok) amount accounts = case payee of
     Party party   -> (ReduceWithPayment (Payment party (Val.singleton cur tok amount)), accounts)
     Account accId -> let
-        newAccs = addMoneyToAccount accId (cur, tok) amount accounts
+        newAccs = addMoneyToAccount accId (Token cur tok) amount accounts
         in (ReduceNoPayment, newAccs)
 
 
@@ -705,7 +710,7 @@ contractLifespanUpperBound contract = case contract of
 
 totalBalance :: Accounts -> Money
 totalBalance accounts = foldMap
-    (\((_, (cur, tok)), balance) -> Val.singleton cur tok balance)
+    (\((_, Token cur tok), balance) -> Val.singleton cur tok balance)
     (Map.toList accounts)
 
 
@@ -849,6 +854,9 @@ instance Eq ChoiceId where
     {-# INLINABLE (==) #-}
     (ChoiceId n1 p1) == (ChoiceId n2 p2) = n1 == n2 && p1 == p2
 
+instance Eq Token where
+    {-# INLINABLE (==) #-}
+    (Token n1 p1) == (Token n2 p2) = n1 == n2 && p1 == p2
 
 instance Eq ValueId where
     {-# INLINABLE (==) #-}
@@ -968,6 +976,8 @@ makeLift ''AccountId
 makeIsData ''AccountId
 makeLift ''ChoiceId
 makeIsData ''ChoiceId
+makeLift ''Token
+makeIsData ''Token
 makeLift ''ValueId
 makeIsData ''ValueId
 makeLift ''Value

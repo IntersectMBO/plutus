@@ -197,7 +197,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
 
     return (marloweData, tx)
   where
-    collectDeposits (IDeposit _ _ (cur, tok) amount) = Val.singleton cur tok amount
+    collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
     collectDeposits _                    = P.zero
 
     totalIncome = foldMap collectDeposits inputs

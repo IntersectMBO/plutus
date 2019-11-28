@@ -275,7 +275,7 @@ data Token
 derive instance genericToken :: Generic Token _
 
 instance showToken :: Show Token where
-  show (Token a b) = "(" <> show a <> ", " <> show b <> ")"
+  show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
   prettyFragment a = Leijen.text (show a)
