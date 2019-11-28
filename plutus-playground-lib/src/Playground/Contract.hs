@@ -63,8 +63,7 @@ module Playground.Contract
     , utxoAt
     , validityRange
     , watchAddressUntil
-    , writeTx
-    , writeTxSuccess
+    , submitTx
     , Tx
     , TxOutRef(TxOutRef, txOutRefId)
     , Expression
@@ -83,8 +82,8 @@ import           GHC.Generics                                    (Generic)
 import           IOTS                                            (IotsType (iotsDefinition))
 import           Language.Plutus.Contract                        (type (.\/), AsContractError, BlockchainActions,
                                                                   Contract, Endpoint, awaitSlot, inputs,
-                                                                  nextTransactionAt, utxoAt, validityRange,
-                                                                  watchAddressUntil, writeTx, writeTxSuccess)
+                                                                  nextTransactionAt, submitTx, utxoAt, validityRange,
+                                                                  watchAddressUntil)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (endpoint)
 import           Language.Plutus.Contract.Effects.OwnPubKey      (ownPubKey)
 import           Language.Plutus.Contract.Trace                  (TraceError (..), runTraceWithDistribution)

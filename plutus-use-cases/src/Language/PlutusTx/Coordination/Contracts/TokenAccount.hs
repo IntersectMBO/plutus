@@ -131,7 +131,7 @@ payTx account vl = payToScript vl (address account) Ledger.Scripts.unitData
 
 -- | Pay some money to the given token account
 pay :: (AsContractError e, HasWriteTx s) => Account -> Value -> Contract s e TxId
-pay account = writeTxSuccess . payTx account
+pay account = submitTx . payTx account
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
@@ -158,7 +158,7 @@ redeem
   -> Account
   -- ^ The token account
   -> Contract s e TxId
-redeem pk account = redeemTx account pk >>= writeTxSuccess
+redeem pk account = redeemTx account pk >>= submitTx
 
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@

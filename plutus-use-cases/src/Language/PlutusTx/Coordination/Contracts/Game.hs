@@ -117,24 +117,24 @@ newtype GuessParams = GuessParams
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
     deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType, ToSchema)
 
-guess :: Contract GameSchema e ()
+guess :: AsContractError e => Contract GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     mp <- utxoAt gameAddress
     let redeemer = gameRedeemerScript theGuess
         tx       = collectFromScript mp gameValidator redeemer
-    void (writeTx tx)
+    void (submitTx tx)
 
-lock :: Contract GameSchema e ()
+lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
         tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
-    void (writeTx tx)
+    void (submitTx tx)
 
-game :: Contract GameSchema e ()
+game :: AsContractError e => Contract GameSchema e ()
 game = guess <|> lock
 
 lockTrace

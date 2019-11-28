@@ -32,9 +32,8 @@ module Language.Plutus.Contract(
     , HasWriteTx
     , WriteTx
     , WalletAPIError
-    , writeTx
-    , writeTxSuccess
-    , writeTxConfirmed
+    , submitTx
+    , submitTxConfirmed
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress

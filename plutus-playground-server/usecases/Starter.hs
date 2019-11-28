@@ -76,26 +76,26 @@ type Schema =
         .\/ Endpoint "publish" (Integer, Value)
         .\/ Endpoint "redeem" Integer
 
-contract :: Contract Schema e ()
+contract :: AsContractError e => Contract Schema e ()
 contract = publish <|> redeem
 
 -- | The "publish" contract endpoint.
-publish :: Contract Schema e ()
+publish :: AsContractError e => Contract Schema e ()
 publish = do
     (dataValue, lockedFunds) <- endpoint @"publish"
     let tx = payToScript lockedFunds contractAddress (mkDataScript dataValue)
-    void $ writeTx tx
+    void $ submitTx tx
 
 -- | The "redeem" contract endpoint.
-redeem :: Contract Schema e ()
+redeem :: AsContractError e => Contract Schema e ()
 redeem = do
     redeemerValue <- endpoint @"redeem"
     unspentOutputs <- utxoAt contractAddress
     let redeemer = mkRedeemerScript redeemerValue
         tx = collectFromScript unspentOutputs contractValidator redeemer
-    void $ writeTx tx
+    void $ submitTx tx
 
-endpoints :: Contract Schema e ()
+endpoints :: AsContractError e => Contract Schema e ()
 endpoints = contract
 
 mkSchemaDefinitions ''Schema

@@ -213,7 +213,7 @@ guess = do
              -- the wallet's balance but it ensures that the token is present 
              -- in the transaction)
              <> Tx.payToPubKey gameTokenVal pubKey 
-    void $ writeTxSuccess tx
+    void $ submitTx tx
 
 lock :: AsContractError e => Contract GameStateMachineSchema e ()
 lock = do
@@ -225,7 +225,7 @@ lock = do
     -- 1. Create a transaction output with the value and the secret and
     --    wait until it is confirmed.
     let tx1 = Tx.payToScript lockArgsValue addr initialDataScript
-    _ <- writeTxConfirmed tx1
+    _ <- submitTxConfirmed tx1
 
     -- Get the current utxo set at the contract address. This consists of
     -- exactly the one output that we added earlier (unless someone else
@@ -252,7 +252,7 @@ lock = do
              -- 3. Forge the token.
              <> Tx.forgeValue gameTokenVal
 
-    writeTxConfirmed tx2
+    submitTxConfirmed tx2
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState

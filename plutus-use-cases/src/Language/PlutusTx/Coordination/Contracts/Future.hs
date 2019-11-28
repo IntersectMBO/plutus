@@ -81,6 +81,8 @@ data FutureError =
     -- ^ Something went wrong during the setup of the two tokens
     | MarginAdjustmentFailed ContractError
     -- ^ Something went wrong during a margin payment
+    | SettleEarlyFailed ContractError
+    -- ^ Something went wrong when trying to settle the contract early
     | EscrowFailed EscrowError
     -- ^ The escrow that initialises the future contract failed
     | EscrowRefunded RefundSuccess
@@ -489,7 +491,7 @@ settleFuture future@Future{ftDeliveryDate} ftos = do
     let tx = payoutsTx (payouts future accounts (ovValue ov)) ftos
              Haskell.<> Tx.collectFromScript unspentOutputs (validatorScript future ftos) (Ledger.RedeemerScript $ PlutusTx.toData $ Settle ov)
                 & validityRange .~ Interval.from (succ ftDeliveryDate)
-    void $ writeTx tx
+    void $ withContractError (review _SettleEarlyFailed) (submitTxConfirmed tx)
 
 {-# INLINABLE violatingRole #-}
 -- | The role that violated its margin requirements
@@ -530,7 +532,7 @@ settleEarly future@Future{ftDeliveryDate} ftos = do
                     Short -> Payouts{payoutsLong=ftsShortMargin+ftsLongMargin, payoutsShort = mempty }
         tx = payoutsTx payment ftos
              Haskell.<> Typed.collectFromScript unspentOutputs (scriptInstance future ftos) (SettleEarly ov)
-    void $ writeTx tx
+    void (withContractError (review _SettleEarlyFailed) (submitTx tx))
 
 -- | Determine the current 'Margins' by looking at the unspent output
 --   of the contract.
@@ -577,7 +579,7 @@ increaseMargin future ftos = do
         tx =
             Tx.collectFromScript unspentOutputs (validatorScript future ftos) (Ledger.RedeemerScript $ PlutusTx.toData $ AdjustMargin role value)
             Haskell.<> payToScript (totalMargin newMargins) address dataScript
-    void (withContractError (review _MarginAdjustmentFailed) (writeTxSuccess tx))
+    void (withContractError (review _MarginAdjustmentFailed) (submitTx tx))
 
 -- | The @"join-future"@ endpoint. Join a future contract by paying the initial 
 --   margin to the escrow that initialises the contract.

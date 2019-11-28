@@ -93,25 +93,25 @@ newtype GuessParams = GuessParams
     deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: Contract GameSchema e ()
+guess :: AsContractError e => Contract GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     mp <- utxoAt gameAddress
     let redeemer = gameRedeemerScript theGuess
         tx       = collectFromScript mp gameValidator redeemer
-    void (writeTx tx)
+    void (submitTx tx)
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: Contract GameSchema e ()
+lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
         vl         = Ada.toValue amt
         dataScript = gameDataScript secret
         tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
-    void (writeTx tx)
+    void (submitTx tx)
 
-game :: Contract GameSchema e ()
+game :: AsContractError e => Contract GameSchema e ()
 game = guess <|> lock
 
 {- Note [Contract endpoints]
@@ -140,7 +140,7 @@ parameters can be entered.
 
 -}
 
-endpoints :: Contract GameSchema e ()
+endpoints :: AsContractError e => Contract GameSchema e ()
 endpoints = game
 
 mkSchemaDefinitions ''GameSchema

@@ -175,7 +175,7 @@ contribute cmp = do
     let ds = Ledger.DataScript (PlutusTx.toData contributor)
         tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
-    txId <- writeTxSuccess tx
+    txId <- submitTx tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
     -- 'utxo' is the set of unspent outputs at the campaign address at the
@@ -187,13 +187,13 @@ contribute cmp = do
                 & validityRange .~ refundRange cmp
                 & requiredSignatures .~ [contributor]
     if not . Set.null $ tx' ^. inputs
-    then void (writeTx tx')
+    then void (submitTx tx')
     else pure ()
 
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: Campaign -> Contract CrowdfundingSchema e ()
+scheduleCollection :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
@@ -209,7 +209,7 @@ scheduleCollection cmp = do
 
     let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) Collect
             & validityRange .~ collectionRange cmp
-    void $ writeTx tx
+    void $ submitTx tx
 
 {- note [Transactions in the crowdfunding campaign]
 

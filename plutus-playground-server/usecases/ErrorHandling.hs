@@ -23,7 +23,7 @@ import           Data.Text                (Text)
 
 import           Control.Applicative      ((<|>))
 import           Language.Plutus.Contract (type (.\/), AsContractError (_ContractError), BlockchainActions, Contract,
-                                           ContractError, Endpoint, HasWriteTx, endpoint, writeTxSuccess)
+                                           ContractError, Endpoint, HasWriteTx, endpoint, submitTx)
 import           Playground.Contract
 import           Prelude                  (Show, mempty, pure, ($), (>>))
 
@@ -67,7 +67,7 @@ throwAndCatch =
 catchContractError :: (AsMyError e, AsContractError e, HasWriteTx s) => Contract s e ()
 catchContractError =
     catching _MyContractError
-        (void $ writeTxSuccess mempty)
+        (void $ submitTx mempty)
         (\_ -> throwing_ _Error2)
 
 contract
