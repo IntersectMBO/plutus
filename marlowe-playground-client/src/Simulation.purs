@@ -6,7 +6,7 @@ import Ace.Types as Ace
 import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
 import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
 import Control.Alternative (map)
-import Data.Array (catMaybes, fromFoldable, head, sortBy)
+import Data.Array (catMaybes, concatMap, fromFoldable, head, sortBy)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
@@ -30,7 +30,7 @@ import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, 
 import Halogen.HTML.Properties.ARIA (role)
 import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), Token(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
+import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, CurrencySymbol, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), Token(..), TokenName, TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
@@ -325,14 +325,12 @@ inputDeposit isEnabled person index accountId party token value =
     <> (renderDeposit accountId party token value)
 
 renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p HAction)
-renderDeposit (AccountId accountNumber accountOwner) party (Token currSym tokName) money =
+renderDeposit (AccountId accountNumber accountOwner) party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
-  , spanText " units of currency \""
-  , b_ [ spanText (show currSym) ]
-  , spanText "\" token name \""
-  , b_ [ spanText (show tokName) ]
-  , spanText "\" into Account "
+  , spanText " units of "
+  , b_ [ spanText (show tok) ]
+  , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
   , b_ [ spanText party ]
@@ -630,15 +628,6 @@ stateTitle state =
             ]
             [ view (_marloweState <<< _Head <<< _slot <<< to show <<< to text) state
             ]
-        , strong_
-            [ text "Money in contract:"
-            ]
-        , span
-            [ class_ $ ClassName "money-in-contract"
-            ]
-            [ view (_marloweState <<< _Head <<< _moneyInContract <<< to show <<< to text) state
-            ]
-        , strong_ [ text "ADA" ]
         ]
     ]
   where
@@ -656,16 +645,14 @@ statePane state =
 
 stateTable :: forall p. FrontendState -> HTML p HAction
 stateTable state =
-  div
-    [ class_ $ ClassName "full-width-card"
-    ]
+  div_
     [ card_
         [ cardBody_
             [ h3_
                 [ text "Accounts"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card-5" ] ]
                 [ if (Map.size accounts == 0) then
                     text "There are no accounts in the state"
                   else
@@ -675,7 +662,7 @@ stateTable state =
                 [ text "Choices"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card" ] ]
                 [ if (Map.size choices == 0) then
                     text "No choices have been recorded"
                   else
@@ -685,7 +672,7 @@ stateTable state =
                 [ text "Payments"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card-4" ] ]
                 [ if (Array.length payments == 0) then
                     text "No payments have been recorded"
                   else
@@ -695,7 +682,7 @@ stateTable state =
                 [ text "Let bindings"
                 ]
             , div
-                [ class_ $ ClassName "state-last-row" ]
+                [ classes [ ClassName "state-last-row", ClassName "full-width-card" ] ]
                 [ if (Map.size bindings == 0) then
                     text "No values have been bound"
                   else
@@ -835,20 +822,56 @@ renderPayments payments =
                 [ text "Party"
                 ]
             , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Currency symbol"
+                ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Token name"
+                ]
+            , th
                 [ class_ $ ClassName "left-border-column"
                 ]
                 [ text "Money"
                 ]
             ]
         ]
-    , tbody_ (map renderPayment payments)
+    , tbody_ (flattenPayments payments)
     ]
 
-renderPayment :: forall p. Payment -> HTML p HAction
-renderPayment (Payment party money) =
+flattenPayments :: forall p. Array Payment -> Array (HTML p HAction)
+flattenPayments payments =
+  concatMap
+    ( \(Payment party (Assets mon)) ->
+        concatMap
+          ( \(Tuple curr toks) ->
+              map
+                ( \(Tuple tok val) ->
+                    renderPayment party curr tok val
+                )
+                $ Map.toUnfoldable toks
+          )
+          $ Map.toUnfoldable mon
+    )
+    payments
+
+renderPayment :: forall p. Party -> CurrencySymbol -> TokenName -> BigInteger -> HTML p HAction
+renderPayment party currSym tokName money =
   tr []
     [ td_
         [ text party
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show currSym)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show tokName)
         ]
     , td
         [ class_ $ ClassName "left-border-column"
@@ -1030,15 +1053,15 @@ displayInputList inputList =
     )
 
 displayInput :: forall p. Input -> Array (HTML p HAction)
-displayInput (IDeposit (AccountId accNum owner) party (Token curSym tokName) money) =
+displayInput (IDeposit (AccountId accNum owner) party tok money) =
   [ b_ [ text "IDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " deposits "
-  , b_ [ text ((show money) <> " units of currency \"") ]
-  , b_ [ text ((show curSym) <> "\" token name \"") ]
-  , b_ [ text $ show tokName ]
-  , text "\" into account "
+  , b_ [ text $ show money ]
+  , text " units of "
+  , b_ [ text $ show tok ]
+  , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
   ]
@@ -1087,26 +1110,26 @@ displayWarnings warnings =
     ]
 
 displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
-displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Token curSym tokName) amount) =
+displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
   [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " is asked to deposit "
-  , b_ [ text ((show amount) <> " units of currency \"") ]
-  , b_ [ text ((show curSym) <> "\" token name \"") ]
-  , b_ [ text $ show tokName ]
-  , text "\" into account "
+  , b_ [ text $ show amount ]
+  , text " units of "
+  , b_ [ text $ show tok ]
+  , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
   ]
 
-displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Token curSym tokName) amount) =
+displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
   [ b_ [ text "TransactionNonPositivePay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show amount) <> " units of currency \"") ]
-  , b_ [ text ((show curSym) <> "\" token name \"") ]
-  , b_ [ text $ show tokName ]
-  , text "\" from account "
+  , b_ [ text $ show amount ]
+  , text " units of "
+  , b_ [ text $ show tok ]
+  , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
   , b_
@@ -1117,13 +1140,13 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Token 
   , text "."
   ]
 
-displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Token curSym tokName) amount expected) =
+displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
   [ b_ [ text "TransactionPartialPay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show expected) <> " units of currency \"") ]
-  , b_ [ text ((show curSym) <> "\" token name \"") ]
-  , b_ [ text $ show tokName ]
-  , text "\" from account "
+  , b_ [ text $ show expected ]
+  , text " units of "
+  , b_ [ text $ show tok ]
+  , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
   , b_
