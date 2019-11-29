@@ -252,7 +252,7 @@ pay escrow vl = do
     let ds = DataScript (PlutusTx.toData pk)
         tx = payToScript vl (escrowAddress escrow) ds
                 & validityRange .~ Ledger.interval 1 (escrowDeadline escrow)
-    writeTxSuccess tx
+    submitTx tx
 
 newtype RedeemSuccess = RedeemSuccess TxId
     deriving (Haskell.Eq, Show)
@@ -294,7 +294,7 @@ redeem escrow = do
     then throwing _RedeemFailed DeadlinePassed
     else if (values unspentOutputs ^. at addr . folded) `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress
-         else RedeemSuccess <$> writeTxSuccess tx
+         else RedeemSuccess <$> submitTx tx
 
 newtype RefundSuccess = RefundSuccess TxId
     deriving (Haskell.Eq, Show)
@@ -329,7 +329,7 @@ refund escrow = do
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 & validityRange .~ from (succ $ escrowDeadline escrow)
     if not . Set.null $ tx' ^. inputs
-    then RefundSuccess <$> writeTxSuccess tx'
+    then RefundSuccess <$> submitTx tx'
     else throwing _RefundFailed ()
 
 -- | Pay some money into the escrow contract. Then release all funds to their

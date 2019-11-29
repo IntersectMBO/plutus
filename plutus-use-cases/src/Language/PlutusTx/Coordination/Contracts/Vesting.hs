@@ -174,7 +174,7 @@ vestFundsC
     -> Contract s T.Text ()
 vestFundsC vesting = do
     let tx = payIntoContract vesting (totalAmount vesting)
-    void $ writeTxSuccess tx
+    void $ submitTx tx
 
 data Liveness = Alive | Dead
 
@@ -218,5 +218,5 @@ retrieveFundsC vesting payment = do
                 -- we don't need to add a pubkey output for 'vestingOwner' here
                 -- because this will be done by the wallet when it balances the
                 -- transaction.
-    void $ writeTx tx
+    void $ submitTx tx
     return liveness

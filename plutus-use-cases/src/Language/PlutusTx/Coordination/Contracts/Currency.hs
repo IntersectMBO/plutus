@@ -135,9 +135,9 @@ forgeContract pk amounts = do
 
         -- the transaction that creates the script output
         scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr unitData
-    scriptTxOuts <- AM.fromTxOutputs <$> (writeTxSuccess scriptTx >>= awaitTransactionConfirmed curAddr)
+    scriptTxOuts <- AM.fromTxOutputs <$> (submitTx scriptTx >>= awaitTransactionConfirmed curAddr)
     let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
                     & inputs %~ Set.insert refTxIn
                     & forge .~ forgedVal
-    _ <- writeTxSuccess forgeTx
+    _ <- submitTx forgeTx
     pure theCurrency

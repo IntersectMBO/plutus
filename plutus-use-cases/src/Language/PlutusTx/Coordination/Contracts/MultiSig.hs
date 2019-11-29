@@ -66,7 +66,7 @@ lock :: AsContractError e => Contract MultiSigSchema e ()
 lock = do
     (ms, vl) <- endpoint @"lock"
     let tx = payToScript vl (Ledger.scriptAddress (validator ms)) unitData
-    void  $ writeTxSuccess tx
+    void  $ submitTx tx
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
 --   of signatures.
@@ -77,4 +77,4 @@ unlock = do
     utx <- utxoAt (Ledger.scriptAddress val)
     let tx = collectFromScript utx val unitRedeemer
                 & Tx.requiredSignatures .~ pks
-    void $ writeTxSuccess tx
+    void $ submitTx tx

@@ -48,7 +48,7 @@ pubKeyContract
 pubKeyContract pk vl = do
     let address = Ledger.scriptAddress (pkValidator pk)
         tx = Contract.payToScript vl address unitData
-    tid <- writeTxSuccess tx
+    tid <- submitTx tx
 
     ledgerTx <- awaitTransactionConfirmed address tid
     let output = Map.keys
