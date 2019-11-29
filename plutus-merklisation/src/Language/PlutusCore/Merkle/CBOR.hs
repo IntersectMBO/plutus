@@ -45,6 +45,15 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
+
+{- Serialising Digests.  This is more complicated than you might expect.
+   If you say `encode = encode . BA.unpack` then the contents of the digest
+   are unpacked into a `Word8` list with 32 entries.  However, when cborg
+   serialises a list, every element in the output is preceded by a type 
+   tag (in this case, 24), and this means that the serialised version
+   is about 64 bytes long, twice the length of the original data.  Packing
+   the `Word8` list into a `ByteString` fixes this because cborg just serialises
+   this as a sequence of bytes. -}
 instance Serialise (Digest SHA256) where
     encode = encode . BSS.pack . BA.unpack
     decode = do
