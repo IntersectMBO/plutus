@@ -1,8 +1,5 @@
-{-# OPTIONS_GHC -Wno-orphans -Wno-simplifiable-class-constraints #-}
 
-{-# LANGUAGE UndecidableInstances #-}
-
-module Language.PlutusCore.Type.Instance.Pretty
+module Language.PlutusCore.Pretty
     (
     -- * Basic types and functions
       Doc
@@ -16,7 +13,6 @@ module Language.PlutusCore.Type.Instance.Pretty
     , prettyText
     , prettyStringBy
     , prettyTextBy
-    , prettyBytes
     -- * Defaults
     , prettyPlcDef
     , prettyPlcDefString
@@ -58,50 +54,15 @@ module Language.PlutusCore.Type.Instance.Pretty
     , PrettyReadable
     , topPrettyConfigReadable
     , botPrettyConfigReadable
+    -- * Utils
+    , prettyBytes
     ) where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Classic
-import           Language.PlutusCore.Type.Instance.Pretty.Common
-import           Language.PlutusCore.Type.Instance.Pretty.Plc
-import           Language.PlutusCore.Type.Instance.Pretty.Readable
-
-import           Data.Text                                         (Text)
-
--- | Pretty-print a value in the default mode using the classic view.
-prettyPlcDef :: PrettyPlc a => a -> Doc ann
-prettyPlcDef = prettyPlcClassicDef
-
--- | Render a value to 'String' in the default mode using the classic view.
-prettyPlcDefString :: PrettyPlc a => a -> String
-prettyPlcDefString = docString . prettyPlcClassicDef
-
--- | Render a value to 'Text' in the default mode using the classic view.
-prettyPlcDefText :: PrettyPlc a => a -> Text
-prettyPlcDefText = docText . prettyPlcClassicDef
-
--- | Render an error to 'String' in the condensed manner using the classic view.
-prettyPlcCondensedErrorClassicString :: PrettyPlc a => a -> String
-prettyPlcCondensedErrorClassicString =
-    docString . prettyPlcCondensedErrorBy defPrettyConfigPlcClassic
-
-{- Note [Default pretty instances for PLC]
-While the flexible pretty-printing infrastructure is useful when you want it,
-it's helpful to have an implementation of the default Pretty typeclass that
-does the default thing.
--}
-instance Pretty (Kind ann) where
-    pretty = prettyClassicDef
-instance Pretty (Constant ann) where
-    pretty = prettyClassicDef
-instance Pretty (Builtin ann) where
-    pretty = prettyClassicDef
-instance PrettyClassic (Type tyname ann) => Pretty (Type tyname ann) where
-    pretty = prettyClassicDef
-instance PrettyClassic (Term tyname name ann) => Pretty (Term tyname name ann) where
-    pretty = prettyClassicDef
-instance PrettyClassic (Program tyname name ann) => Pretty (Program tyname name ann) where
-    pretty = prettyClassicDef
+import           Language.PlutusCore.Pretty.Default
+import           Language.PlutusCore.Pretty.Plc
+import           Language.PlutusCore.Pretty.Readable
+import           Language.PlutusCore.Pretty.Utils

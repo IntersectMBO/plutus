@@ -1,6 +1,10 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name ann)@
 -- instance in scope.
 module Language.PlutusIR.Transform.Rename () where
@@ -9,7 +13,6 @@ import           Language.PlutusIR
 
 import qualified Language.PlutusCore                 as PLC
 import qualified Language.PlutusCore.Name            as PLC
-import qualified Language.PlutusCore.Rename          as PLC
 import qualified Language.PlutusCore.Rename.Internal as PLC
 
 import           Control.Monad.Reader
@@ -53,16 +56,19 @@ Two problems arise:
    'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
-instance (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique) =>
-        PLC.Rename (Term tyname name ann) where
-    rename = PLC.runScopedRenameM . renameTermM
+type instance PLC.HasUniques (Term tyname name ann) = PLC.HasUniques (PLC.Term tyname name ann)
+
+instance PLC.HasUniques (Term tyname name ann) => PLC.Rename (Term tyname name ann) where
+    -- TODO: the Plutus Core codebase uses marking in order to prevent clashing with existing
+    -- free variables. Should we do the same here?
+    rename = PLC.runRenameT . renameTermM
 
 -- See Note [Renaming of mutually recursive bindings].
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
-    :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
+    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
     => Datatype tyname name ann
-    -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Datatype tyname name ann))
+    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Datatype tyname name ann))
 renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
     -- The first stage (the data type itself, its constructors and its matcher get renamed).
     dataDeclFr  <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
@@ -75,9 +81,9 @@ renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
 
 -- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingCM
-    :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
+    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
     => Binding tyname name ann
-    -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Binding tyname name ann))
+    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Binding tyname name ann))
 renameBindingCM = \case
     TermBind x s var term -> do
         -- The first stage (the variable gets renamed).
@@ -97,11 +103,11 @@ renameBindingCM = \case
 -- save the mapping from the old uniques to the new ones, rename the RHSs and
 -- supply the updated bindings to a continuation.
 withFreshenedBindings
-    :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
+    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
     => Recursivity
     -> [Binding tyname name ann]
-    -> ([Binding tyname name ann] -> PLC.ScopedRenameM c)
-    -> PLC.ScopedRenameM c
+    -> ([Binding tyname name ann] -> PLC.ScopedRenameT m c)
+    -> PLC.ScopedRenameT m c
 withFreshenedBindings recy binds cont = case recy of
     -- Bring each binding in scope, rename its RHS straight away, collect all the results and
     -- supply them to the continuation.
@@ -112,8 +118,8 @@ withFreshenedBindings recy binds cont = case recy of
 
 -- | Rename a 'Term' in the 'ScopedRenameM' monad.
 renameTermM
-    :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
-    => Term tyname name ann -> PLC.ScopedRenameM (Term tyname name ann)
+    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
+    => Term tyname name ann -> PLC.ScopedRenameT m (Term tyname name ann)
 renameTermM = \case
     Let x r binds term ->
         withFreshenedBindings r binds $ \bindsFr ->

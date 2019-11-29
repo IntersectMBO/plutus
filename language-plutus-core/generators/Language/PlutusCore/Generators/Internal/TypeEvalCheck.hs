@@ -25,6 +25,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck

@@ -16,6 +16,7 @@ import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Exception                         (evaluate)

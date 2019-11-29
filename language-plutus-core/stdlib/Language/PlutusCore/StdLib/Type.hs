@@ -12,6 +12,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 

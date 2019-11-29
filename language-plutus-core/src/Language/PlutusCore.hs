@@ -47,7 +47,8 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , Gas (..)
-    , rename
+    , HasUniques
+    , Rename (..)
     -- * Type checking
     , module TypeCheck
     , fileType
@@ -109,6 +110,7 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
@@ -202,16 +204,15 @@ typecheckPipeline cfg =
     <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
     <=< through VR.checkProgram
 
-formatDoc
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
-        MonadError e m)
-    => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
-formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . parseScoped
+formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
+-- don't use parseScoped since we don't bother running sanity checks when we format
+formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgram)
 
-format
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
-        MonadError e m)
-    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
-format cfg = runQuoteT . fmap (prettyTextBy cfg) . parseScoped
+format :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+-- don't use parseScoped since we don't bother running sanity checks when we format
+format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgram)
+
+-- | Take one PLC program and apply it to another.
+applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
+-- TODO: some kind of version checking
+applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)

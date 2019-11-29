@@ -17,7 +17,7 @@ module Language.PlutusCore.Generators.Internal.Utils
     , prettyPlcErrorString
     ) where
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader

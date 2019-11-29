@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications      #-}
 -- | Functions for working with the contract interface using typed transactions.
 module Language.Plutus.Contract.Typed.Tx where
 
@@ -13,6 +14,7 @@ import qualified Ledger                      as L
 import           Ledger.AddressMap           (AddressMap)
 import qualified Ledger.Typed.Scripts        as Scripts
 import qualified Ledger.Typed.Tx             as Typed
+import           Ledger.Value                (Value)
 
 import qualified Wallet.Typed.API            as Typed
 
@@ -44,3 +46,16 @@ collectFromScript ::
     -> Scripts.RedeemerType a
     -> Contract.UnbalancedTx
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
+
+-- | Given a 'ScriptInstance', lock a value with it using the 'DataScript'.
+makeScriptPayment ::
+    forall a
+    . (PlutusTx.IsData (Scripts.DataType a))
+    => Scripts.ScriptInstance a
+    -> Value
+    -> Scripts.DataType a
+    -> Contract.UnbalancedTx
+makeScriptPayment si vl ds =
+    let out    = Typed.makeTypedScriptTxOut @a si ds vl
+        tyTx   = Typed.addTypedTxOut @'[] @'[] @a out Typed.baseTx
+    in Contract.fromLedgerTx (Typed.toUntypedTx tyTx)

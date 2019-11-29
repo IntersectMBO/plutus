@@ -10,10 +10,12 @@ module Language.PlutusCore.Evaluation.MachineException
     , MachineException (..)
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError err

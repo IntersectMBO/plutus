@@ -15,12 +15,13 @@ module Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy     as BSL
-import qualified Data.Map                 as M
-import qualified Data.Text                as T
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.Map                   as M
+import qualified Data.Text                  as T
 
 -- | A keyword in Plutus Core.
 data Keyword
@@ -83,7 +84,7 @@ instance Pretty Keyword where
     pretty KwLam        = "lam"
     pretty KwIFix       = "ifix"
     pretty KwFun        = "fun"
-    pretty KwAll        = "forall"
+    pretty KwAll        = "all"
     pretty KwByteString = "bytestring"
     pretty KwInteger    = "integer"
     pretty KwType       = "type"

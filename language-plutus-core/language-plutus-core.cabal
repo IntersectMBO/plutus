@@ -33,9 +33,11 @@ library
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Rename.Internal
+        Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
         Language.PlutusCore.Normalize
         Language.PlutusCore.Normalize.Internal
+        Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
@@ -75,8 +77,10 @@ library
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Type.Core
         Language.PlutusCore.Type.Plated
-        Language.PlutusCore.Type.Instance.Pretty.Common
+        Language.PlutusCore.Type.Instance.Eq
         Language.PlutusCore.Type.Instance.Pretty.Classic
+        Language.PlutusCore.Type.Instance.Pretty.Common
+        Language.PlutusCore.Type.Instance.Pretty.Default
         Language.PlutusCore.Type.Instance.Pretty.Plc
         Language.PlutusCore.Type.Instance.Pretty.Readable
         Language.PlutusCore.Type.Instance.Pretty
@@ -94,6 +98,14 @@ library
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Lexer.Type
+        Language.PlutusCore.Eq
+        Language.PlutusCore.Mark
+        Language.PlutusCore.Pretty.Classic
+        Language.PlutusCore.Pretty.ConfigName
+        Language.PlutusCore.Pretty.Default
+        Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.Readable
+        Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal

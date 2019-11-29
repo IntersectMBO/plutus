@@ -2,28 +2,11 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Common
-    ( prettyBytes
-    ) where
+module Language.PlutusCore.Type.Instance.Pretty.Common () where
 
 import           PlutusPrelude
 
 import           Language.PlutusCore.Type.Core
-
-import qualified Data.ByteString.Lazy               as BSL
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-import           Numeric                            (showHex)
-
-asBytes :: Word8 -> Doc ann
-asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
-    where addLeadingZero :: String -> String
-          addLeadingZero
-              | x < 16    = ('0' :)
-              | otherwise = id
-
-prettyBytes :: BSL.ByteString -> Doc ann
-prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
 
 instance Pretty BuiltinName where
     pretty AddInteger           = "addInteger"

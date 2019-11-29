@@ -18,16 +18,17 @@ module Language.PlutusCore.DeBruijn
     ) where
 
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 import           Control.Exception
-import           Control.Lens              hiding (Index, Level, index, ix)
+import           Control.Lens               hiding (Index, Level, index, ix)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Bimap                as BM
-import qualified Data.Text                 as T
+import qualified Data.Bimap                 as BM
+import qualified Data.Text                  as T
 import           Data.Typeable
 
 import           Numeric.Natural
@@ -52,7 +53,7 @@ instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
     prettyBy config (DeBruijn _ txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
-        where PrettyConfigName showsUnique _ = toPrettyConfigName config
+        where PrettyConfigName showsUnique = toPrettyConfigName config
 
 deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
 

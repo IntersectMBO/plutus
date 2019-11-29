@@ -54,12 +54,12 @@ let
     # The lambda is specifically built for linux only using musl
     marlowe-symbolic-lambda = linux;
     # texlive is broken on darwin at our nixpkgs pin
-    docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
-    papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
-    tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
-    dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
+    docs = lib.mapAttrs (_: _: linux) packageSet.docs;
+    papers = lib.mapAttrs (_: _: linux) packageSet.papers;
+    tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;
+    dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;
     # See note on 'easyPS' in 'default.nix'
-    dev.scripts = lib.mapAttrs (n: _: if n == "updateClientDeps" then linux else supportedSystems) packageSet.dev.scripts; 
+    dev.scripts = lib.mapAttrs (n: _: if n == "updateClientDeps" then linux else supportedSystems) packageSet.dev.scripts;
   };
   
   testJobsets = mapTestOn systemMapping;

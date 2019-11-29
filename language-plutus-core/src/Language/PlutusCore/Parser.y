@@ -18,6 +18,7 @@ import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Type
 import Language.PlutusCore.Name
+import Language.PlutusCore.Mark
 import Language.PlutusCore.Constant.Make
 
 import qualified Data.ByteString.Lazy as BSL

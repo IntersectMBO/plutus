@@ -20,6 +20,7 @@ import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Monad.Except

@@ -1,40 +1,22 @@
 -- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
 
-{-# LANGUAGE ConstraintKinds       #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Classic
-    ( PrettyConfigClassic (..)
-    , PrettyClassicBy
-    , PrettyClassic
-    , prettyClassicDef
-    , prettyClassicDebug
-    ) where
+module Language.PlutusCore.Type.Instance.Pretty.Classic () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.Utils
 import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Common
+import           Language.PlutusCore.Type.Instance.Pretty.Common ()
 import           Language.PlutusCore.Type.Instance.Recursive
 
 import           Data.Functor.Foldable
-
--- | Configuration for the classic pretty-printing.
-newtype PrettyConfigClassic configName = PrettyConfigClassic
-    { _pccConfigName :: configName
-    }
-
--- | The "classically pretty-printable" constraint.
-type PrettyClassicBy configName = PrettyBy (PrettyConfigClassic configName)
-
-type PrettyClassic = PrettyClassicBy PrettyConfigName
-
-instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigClassic configName) where
-    toPrettyConfigName = _pccConfigName
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
@@ -85,11 +67,3 @@ instance PrettyClassicBy configName (Term tyname name a) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name a) where
     prettyBy config (Program _ version term) =
         parens' $ "program" <+> pretty version <//> prettyBy config term
-
--- | Pretty-print a value in the default mode using the classic view.
-prettyClassicDef :: PrettyClassic a => a -> Doc ann
-prettyClassicDef = prettyBy $ PrettyConfigClassic defPrettyConfigName
-
--- | Pretty-print a value in the debug mode using the classic view.
-prettyClassicDebug :: PrettyClassic a => a -> Doc ann
-prettyClassicDebug = prettyBy $ PrettyConfigClassic debugPrettyConfigName
