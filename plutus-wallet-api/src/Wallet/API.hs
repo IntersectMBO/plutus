@@ -21,7 +21,6 @@ module Wallet.API(
     WalletAPI(..),
     WalletDiagnostics(..),
     MonadWallet,
-    EventHandler(..),
     PubKey(..),
     createPaymentWithChange,
     signTxn,
@@ -42,7 +41,6 @@ module Wallet.API(
     spendScriptOutputs,
     ownPubKeyTxOut,
     outputsAt,
-    register,
     -- * Slot ranges
     Interval(..),
     Slot,
@@ -59,24 +57,6 @@ module Wallet.API(
     before,
     after,
     contains,
-    -- * Triggers
-    EventTrigger,
-    AnnotatedEventTrigger,
-    EventTriggerF(..),
-    andT,
-    orT,
-    notT,
-    alwaysT,
-    neverT,
-    slotRangeT,
-    fundsAtAddressGeqT,
-    fundsAtAddressGtT,
-    checkTrigger,
-    addresses,
-    -- AnnTriggerF,
-    getAnnot,
-    unAnnot,
-    annTruthValue,
     -- * Error handling
     WalletAPIError(..),
     throwPrivateKeyNotFoundError,
@@ -89,14 +69,9 @@ module Wallet.API(
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
 import           Control.Monad.Error.Class (MonadError (..))
-import           Data.Aeson                (FromJSON, FromJSON1, ToJSON, ToJSON1)
+import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy      as BSL
-import           Data.Eq.Deriving          (deriveEq1)
 import           Data.Foldable             (fold)
-import           Data.Functor.Compose      (Compose (..))
-import           Data.Functor.Foldable     (Corecursive (..), Fix (..), Recursive (..), unfix)
-import           Data.Hashable             (Hashable, hashWithSalt)
-import           Data.Hashable.Lifted      (Hashable1, hashWithSalt1)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
@@ -105,143 +80,15 @@ import           IOTS                      (IotsType)
 
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
-import           GHC.Generics              (Generic, Generic1)
+import           GHC.Generics              (Generic)
 import           Ledger                    hiding (inputs, out, sign, to, value)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
-import           Text.Show.Deriving        (deriveShow1)
 
 import           Prelude                   hiding (Ordering (..))
-
-data EventTriggerF f =
-    TAnd f f
-    | TOr f f
-    | TNot f
-    | TAlways
-    | TNever
-    | TSlotRange !SlotRange
-    | TFundsAtAddressGeq !Address !Value
-    | TFundsAtAddressGt !Address !Value
-    deriving stock (Eq, Show, Functor, Foldable, Traversable, Generic1)
-    deriving anyclass (FromJSON1, ToJSON1, Hashable1)
-
-$(deriveEq1 ''EventTriggerF)
-$(deriveShow1 ''EventTriggerF)
-
--- | An 'EventTrigger' where each level is annotated with a value of @a@.
-type AnnotatedEventTrigger a = Fix (Compose ((,) a) EventTriggerF)
-
--- | A trigger for an action based on an event. This is a logical proposition
--- over some basic assertions about the slot range and the funds at a watched
--- address. For example, a trigger could be "the slot is between 0 and 5 and the funds
--- at my address are between 100 and 200".
--- @
---   andT
---     (fundsAtAddressT addr (W.interval (Ada.toValue 100) (Ada.toValue 200))
---     (slotRangeT (W.interval 0 5))
--- @
-type EventTrigger = Fix EventTriggerF
-
-instance Hashable1 f => Hashable (Fix f) where
-    hashWithSalt s (Fix x) = hashWithSalt1 s x
-
--- | Get the annotation on an 'AnnotatedEventTrigger'.
-getAnnot :: AnnotatedEventTrigger a -> a
-getAnnot = fst . getCompose . unfix
-
--- | Remove annotations from an 'AnnotatedEventTrigger'
-unAnnot :: AnnotatedEventTrigger a -> EventTrigger
-unAnnot = cata (embed . snd . getCompose)
-
--- | @andT l r@ is true when @l@ and @r@ are true.
-andT :: EventTrigger -> EventTrigger -> EventTrigger
-andT l = embed . TAnd l
-
--- | @orT l r@ is true when @l@ or @r@ are true.
-orT :: EventTrigger -> EventTrigger -> EventTrigger
-orT l = embed . TOr l
-
--- | @alwaysT@ is always true.
-alwaysT :: EventTrigger
-alwaysT = embed TAlways
-
--- | @neverT@ is never true.
-neverT :: EventTrigger
-neverT = embed TNever
-
--- | @slotRangeT r@ is true when the slot number is in the range @r@.
-slotRangeT :: SlotRange -> EventTrigger
-slotRangeT = embed . TSlotRange
-
--- | @fundsAtAddressGeqT a t@ is true when the funds at @a@ are greater than or equal to the threshold @t@.
-fundsAtAddressGeqT :: Address -> Value -> EventTrigger
-fundsAtAddressGeqT a = embed . TFundsAtAddressGeq a
-
--- | @fundsAtAddressGtT a t@ is true when the funds at @a@ are strictly greater than the threshold @t@.
-fundsAtAddressGtT :: Address -> Value -> EventTrigger
-fundsAtAddressGtT a = embed . TFundsAtAddressGt a
-
--- | @notT t@ is true when @t@ is false.
-notT :: EventTrigger -> EventTrigger
-notT = embed . TNot
-
--- | Check if the given slot number and watched addresses match the
---   conditions of an 'EventTrigger'.
-checkTrigger :: Slot -> Map.Map Address Value -> EventTrigger -> Bool
-checkTrigger h mp = getAnnot . annTruthValue h mp
-
--- | Annotate each node in an 'EventTriggerF' with its truth value given a slot
---   and a set of watched addresses.
-annTruthValue :: Slot -> Map.Map Address Value -> EventTrigger -> AnnotatedEventTrigger Bool
-annTruthValue h mp = cata f where
-    embedC = embed . Compose
-    f = \case
-        TAnd l r -> embedC (getAnnot l && getAnnot r, TAnd l r)
-        TOr  l r -> embedC (getAnnot l || getAnnot r, TOr l r)
-        TNot r   -> embedC (not $ getAnnot r, TNot r)
-        TAlways -> embedC (True, TAlways)
-        TNever -> embedC (False, TNever)
-        TSlotRange r -> embedC (h `member` r, TSlotRange r)
-        TFundsAtAddressGeq a r ->
-            let funds = Map.findWithDefault mempty a mp in
-            embedC (funds `Value.geq` r, TFundsAtAddressGeq a r)
-        TFundsAtAddressGt a r ->
-            let funds = Map.findWithDefault mempty a mp in
-            embedC (funds `Value.gt` r, TFundsAtAddressGt a r)
-
--- | The addresses that an 'EventTrigger' refers to.
-addresses :: EventTrigger -> [Address]
-addresses = cata adr where
-    adr = \case
-        TAnd l r -> l ++ r
-        TOr l r  -> l ++ r
-        TNot t   -> t
-        TAlways -> []
-        TNever -> []
-        TSlotRange _ -> []
-        TFundsAtAddressGeq a _ -> [a]
-        TFundsAtAddressGt a _ -> [a]
-
--- | An action that can be run in response to a blockchain event.
---
--- An action receives
--- the 'EventTrigger' which triggered it, annotated with truth values. This
--- allows it to discern /how/ exactly the condition was made true, which is
--- important in case it is a disjunction. For example, if the trigger is "the funds
--- at my address are between 0 and 10 or between 50 and 100" it may be very important
--- to know /which/ of these is the case.
-newtype EventHandler m = EventHandler { runEventHandler :: AnnotatedEventTrigger Bool -> m () }
-
-instance Monad m => Semigroup (EventHandler m) where
-    l <> r = EventHandler $ \a ->
-        runEventHandler l a >> runEventHandler r a
-
-instance Monad m => Monoid (EventHandler m) where
-    mappend = (<>)
-    mempty = EventHandler $ \_ -> pure ()
 
 -- | An error thrown by wallet interactions.
 data WalletAPIError =
@@ -304,30 +151,6 @@ class WalletAPI m where
     updatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
-    Register a 'EventHandler' in @m ()@ to be run a single time when the
-    condition is true.
-
-    * The action will be run when the condition holds for the first time.
-      For example, @registerOnce (slotRangeT (Interval 3 6)) a@ causes @a@ to
-      be run at block 3. See 'register' for a variant that runs the action
-      multiple times.
-
-    * Each time the wallet is notified of a new block, all triggers are checked
-      and the matching ones are run in an unspecified order and then deleted.
-
-    * The wallet will only watch "known" addresses. There are two ways an
-      address can become a known address.
-      1. When a trigger is registered for it
-      2. When a transaction submitted by this wallet produces an output for it
-      When an address is added to the set of known addresses, it starts out with
-      an initial value of 0. If there already exist unspent transaction outputs
-      at that address on the chain, then those will be ignored.
-
-    * Triggers are run in order, so: @register c a >> register c b = register c (a >> b)@
-    -}
-    registerOnce :: EventTrigger -> EventHandler m -> m ()
-
-    {- |
     The 'AddressMap' of all addresses currently watched by the wallet.
     -}
     watchedAddresses :: m AddressMap
@@ -353,13 +176,6 @@ throwOtherError = throwError . OtherError
 
 throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKey -> m a
 throwPrivateKeyNotFoundError = throwError . PrivateKeyNotFound
-
--- | A variant of 'register' that registers the trigger again immediately after
---   running the action. This is useful if you want to run the same action every
---   time the condition holds, instead of only the first time.
-register :: (WalletAPI m, Monad m) => EventTrigger -> EventHandler m -> m ()
-register t h = registerOnce t h' where
-    h' = h <> (EventHandler $ \_ -> register t h)
 
 -- | Sign the transaction with the private key of the given public
 --   key. Fails if the wallet doesn't have the private key.

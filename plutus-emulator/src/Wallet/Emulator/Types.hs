@@ -97,8 +97,6 @@ import           Data.Bifunctor             (Bifunctor (..))
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable              (traverse_)
 import           Data.Hashable              (Hashable)
-import           Data.HashMap.Strict        (HashMap)
-import qualified Data.HashMap.Strict        as HashMap
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Maybe
@@ -122,8 +120,8 @@ import qualified Ledger.Ada                 as Ada
 import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Index               as Index
 import qualified Ledger.Value               as Value
-import           Wallet.API                 (EventHandler (..), EventTrigger, WalletAPI (..), WalletAPIError (..),
-                                             WalletDiagnostics (..), WalletLog (..), addresses, annTruthValue, getAnnot)
+import           Wallet.API                 (WalletAPI (..), WalletAPIError (..), WalletDiagnostics (..),
+                                             WalletLog (..))
 import qualified Wallet.API                 as WAPI
 import qualified Wallet.Emulator.NodeClient as NC
 
@@ -184,19 +182,16 @@ data WalletState = WalletState {
     -- ^ User's 'PrivateKey'.
     _walletSlot    :: Slot,
     -- ^ Current slot as far as the wallet is concerned.
-    _addressMap    :: AM.AddressMap,
+    _addressMap    :: AM.AddressMap
     -- ^ Addresses that we watch.
-    _triggers      :: HashMap EventTrigger (EventHandler MockWallet)
-    -- ^ Triggers registered by the user.
     }
 
 instance Show WalletState where
-    showsPrec p (WalletState kp bh wa tr) = showParen (p > 10)
+    showsPrec p (WalletState kp bh wa) = showParen (p > 10)
         (showString "WalletState"
             . showChar ' ' . showsPrec 10 kp
             . showChar ' ' . showsPrec 10 bh
-            . showChar ' ' . showsPrec 10 wa
-            . showChar ' ' . showsPrec 10 (HashMap.map (const ("<..>" :: String)) tr))
+            . showChar ' ' . showsPrec 10 wa)
 
 makeLenses ''WalletState
 
@@ -214,7 +209,7 @@ ownFunds = lens g s where
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState w = WalletState pk 0 oa mempty where
+emptyWalletState w = WalletState pk 0 oa where
     oa = AM.addAddress ownAddr mempty
     pk = walletPrivKey w
     ownAddr = pubKeyAddress (toPublicKey pk)
@@ -241,36 +236,12 @@ instance Pretty EmulatorEvent where
         WalletError w e -> "WalletError" <+> pretty w <> colon <+> pretty e
         WalletInfo w t -> "WalletInfo" <+> pretty w <> colon <+> pretty t
 
--- | Delete all 'EventHandler' values that are registered for an
---   'EventTrigger'.
-deleteHandlers :: MonadState WalletState m => EventTrigger -> m ()
-deleteHandlers t = modify (over triggers (set (at t) Nothing))
-
 -- | Process a list of 'Notification's in the mock wallet environment.
 handleNotifications :: [Notification] -> MockWallet ()
-handleNotifications = mapM_ (updateState >=> runTriggers)  where
+handleNotifications = mapM_ updateState where
     updateState = \case
             CurrentSlot h -> modify (walletSlot .~ h)
             BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletSlot %~ succ)
-
-    runTriggers _ = do
-        h <- gets (view walletSlot)
-        adrs <- gets (view addressMap)
-        trg <- gets (view triggers)
-
-        let values = AM.values adrs
-            annotate = annTruthValue h values
-            trueConditions = filter (getAnnot . fst) $ first annotate <$> HashMap.toList trg
-
-        -- We need to do 2 passes over the list of triggers that fired.
-        --
-        -- First pass to delete the old triggers
-        -- Second pass to run the actions
-        --
-        -- Deletion must happen first so that we don't accidentally delete
-        -- triggers that are registered by event handlers.
-        traverse_ (deleteHandlers . WAPI.unAnnot . fst) trueConditions
-        traverse_ (uncurry (flip runEventHandler)) trueConditions
 
     -- Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (\am -> AM.fromTxOutputs t <> AM.updateAddresses t am )
@@ -315,10 +286,6 @@ instance WalletAPI MockWallet where
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
-
-    registerOnce tr action =
-        modify (over triggers (HashMap.insertWith (<>) tr action))
-        >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
     watchedAddresses = use addressMap
 
