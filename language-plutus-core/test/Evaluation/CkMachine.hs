@@ -1,9 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+
 module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
 import           Prelude                                    hiding (even)
+
+import           PlcTestUtils
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.CkMachine
@@ -98,7 +102,8 @@ goldenVsPretty name value = goldenVsString name ("test/Evaluation/Golden/" ++ na
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"
-    [ testGroup "props" $ fromInterestingTermGens (\name -> testProperty name . propEvaluate evaluateCk)
+    [ testGroup "props" $ fromInterestingTermGens $ \name ->
+        testProperty name . propEvaluate (pureTry @CkMachineException . evaluateCk)
     , goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
     , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
     , goldenVsPretty "evenList" . pure . evaluateCk $

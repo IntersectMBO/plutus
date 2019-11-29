@@ -4,6 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
@@ -15,10 +16,13 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
+import           PlcTestUtils
+
 import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
+import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
@@ -30,6 +34,7 @@ import           PlutusPrelude
 
 import           Control.Lens.TH
 import           Control.Monad.Except
+import           Data.String
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,
@@ -40,6 +45,7 @@ the actual one. Thus "type-eval checking".
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError
     = TypeEvalCheckErrorIllFormed (Error ())
+    | TypeEvalCheckErrorException String
     | TypeEvalCheckErrorIllEvaled EvaluationResultDef EvaluationResultDef
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
@@ -65,6 +71,8 @@ instance (PrettyBy config (Error ()), PrettyBy config (Value TyName Name ())) =>
         PrettyBy config TypeEvalCheckError where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err
+    prettyBy _      (TypeEvalCheckErrorException err)             =
+        "An exception occurred:" <+> fromString err
     prettyBy config (TypeEvalCheckErrorIllEvaled expected actual) =
         "The expected value:" <+> prettyBy config expected <> hardline <>
         "doesn't match with the actual value:" <+> prettyBy config actual
@@ -75,8 +83,9 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: KnownType a
-    => (Term TyName Name () -> EvaluationResultDef)  -- ^ An evaluator.
+    :: (Pretty err, KnownType a)
+    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+       -- ^ An evaluator.
     -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
@@ -85,18 +94,19 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure
             t         -> EvaluationSuccess t
-    fmap (TypeEvalCheckResult termTy) $ do
-        let valActual = eval term
-        if valExpected == valActual
-            then return valActual
-            else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+    fmap (TypeEvalCheckResult termTy) $ case eval term of
+        Right valActual
+            | valExpected == valActual -> return valActual
+            | otherwise                ->
+                throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+        Left exc -> throwError $ TypeEvalCheckErrorException $ show exc
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
     :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
+    let errOrRes = typeEvalCheckBy (pureTry @CkMachineException . evaluateCk) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err
