@@ -51,11 +51,11 @@ for testing.
 -- encodeTag/decodeTag here, but that was wrong: there's a fixed set
 -- of CBOR tags with predefined meanings.
 
-encodeConstructorTag :: Word8 -> Encoding
-encodeConstructorTag = encodeWord8
+encodeConstructorTag :: Word -> Encoding
+encodeConstructorTag = encodeWord
 
-decodeConstructorTag :: Decoder s Word8
-decodeConstructorTag = decodeWord8
+decodeConstructorTag :: Decoder s Word
+decodeConstructorTag = decodeWord
 
 
 {- Serialising Digests from Crypto.Hash.  This is more complicated than

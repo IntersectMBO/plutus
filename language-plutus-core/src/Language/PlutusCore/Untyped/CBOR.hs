@@ -41,16 +41,18 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
--- Encode/decode constructor tags.  This restricts us to less than 256
--- constructors per type, but that should be OK.  We previously used
--- encodeTag/decodeTag here, but that was wrong: there's a fixed set
--- of CBOR tags with predefined meanings.
 
-encodeConstructorTag :: Word8 -> Encoding
-encodeConstructorTag = encodeWord8
+{- Encode/decode constructor tags using encodeWord and decodeWord;
+   encodeWord will only use one byte for the tags we have here, so the
+   size of the CBOR output doesn't change.  We previously used
+   encodeTag/decodeTag here, but that was wrong: those are for use
+   with a fixed set of CBOR tags with predefined meanings which we
+   shouldn't interfere with. -}
+encodeConstructorTag :: Word -> Encoding
+encodeConstructorTag = encodeWord
 
-decodeConstructorTag :: Decoder s Word8
-decodeConstructorTag = decodeWord8
+decodeConstructorTag :: Decoder s Word
+decodeConstructorTag = decodeWord
 
 instance Serialise TypeBuiltin where
     encode bi = case bi of

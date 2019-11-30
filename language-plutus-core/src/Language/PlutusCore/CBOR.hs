@@ -49,11 +49,11 @@ for testing.
 -- encodeTag/decodeTag here, but that was wrong: there's a fixed set
 -- of CBOR tags with predefined meanings.
 
-encodeConstructorTag :: Word8 -> Encoding
-encodeConstructorTag = encodeWord8
+encodeConstructorTag :: Word -> Encoding
+encodeConstructorTag = encodeWord
 
-decodeConstructorTag :: Decoder s Word8
-decodeConstructorTag = decodeWord8
+decodeConstructorTag :: Decoder s Word
+decodeConstructorTag = decodeWord
 
 instance Serialise TypeBuiltin where
     encode bi = case bi of
