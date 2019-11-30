@@ -35,7 +35,7 @@ instance Serialise (Digest SHA256) where
       d :: BSS.ByteString <- decode
       let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
       case digestFromByteString bs of
-        Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
+        Nothing -> fail $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
 
 instance ToJSON (Digest SHA256) where
