@@ -46,45 +46,59 @@ for testing.
 -}
 
 
-{- Serialising Digests.  This is more complicated than you might expect.
-   If you say `encode = encode . BA.unpack` then the contents of the digest
-   are unpacked into a `Word8` list with 32 entries.  However, when cborg
-   serialises a list, every element in the output is preceded by a type 
-   tag (in this case, 24), and this means that the serialised version
-   is about 64 bytes long, twice the length of the original data.  Packing
-   the `Word8` list into a `ByteString` fixes this because cborg just serialises
-   this as a sequence of bytes. -}
+-- Encode/decode constructor tags.  This restricts us to less than 256
+-- constructors per type, but that should be OK.  We previously used
+-- encodeTag/decodeTag here, but that was wrong: there's a fixed set
+-- of CBOR tags with predefined meanings.
+
+encodeConstructorTag :: Word8 -> Encoding
+encodeConstructorTag = encodeWord8
+
+decodeConstructorTag :: Decoder s Word8
+decodeConstructorTag = decodeWord8
+
+
+{- Serialising Digests from Crypto.Hash.  This is more complicated than
+   you might expect.  If you say `encode = encode . BA.unpack` then
+   the contents of the digest are unpacked into a `Word8` list with 32
+   entries.  However, when cborg serialises a list, every element in
+   the output is preceded by a type tag (in this case, 24), and this
+   means that the serialised version is about 64 bytes long, twice the
+   length of the original data.  Packing the `Word8` list into a
+   `ByteString` fixes this because cborg just serialises this as a
+   sequence of bytes. -}
+
 instance Serialise (Digest SHA256) where
     encode = encode . BSS.pack . BA.unpack
     decode = do
-      d :: [Word8] <- decode 
-      let md = digestFromByteString . BSS.pack $ d
-      case md of
+      d :: BSS.ByteString <- decode
+      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
+      case digestFromByteString bs of
         Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
 
 instance Serialise ann => Serialise (Kind ann) where
     encode = cata a where
-        a (TypeF ann)           = encodeTag 0 <> encode ann
-        a (KindArrowF ann k k') = fold [ encodeTag 1, encode ann, k , k' ]
+        a (TypeF ann)           = encodeConstructorTag 0 <> encode ann
+        a (KindArrowF ann k k') = fold [ encodeConstructorTag 1, encode ann, k , k' ]
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = Type <$> decode
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
 instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) where
     encode = cata a where
-        a (TyVarF ann tn)        = encodeTag 0 <> encode ann <> encode tn
-        a (TyFunF ann t t')      = encodeTag 1 <> encode ann <> t <> t'
-        a (TyIFixF ann pat arg)  = encodeTag 2 <> encode ann <> pat <> arg
-        a (TyForallF ann tn k t) = encodeTag 3 <> encode ann <> encode tn <> encode k <> t
-        a (TyBuiltinF ann con)   = encodeTag 4 <> encode ann <> encode con
-        a (TyLamF ann n k t)     = encodeTag 5 <> encode ann <> encode n <> encode k <> t
-        a (TyAppF ann t t')      = encodeTag 6 <> encode ann <> t <> t'
-        a (TyPrunedF ann h)      = encodeTag 7 <> encode ann <> encode h
+        a (TyVarF ann tn)        = encodeConstructorTag 0 <> encode ann <> encode tn
+        a (TyFunF ann t t')      = encodeConstructorTag 1 <> encode ann <> t <> t'
+        a (TyIFixF ann pat arg)  = encodeConstructorTag 2 <> encode ann <> pat <> arg
+        a (TyForallF ann tn k t) = encodeConstructorTag 3 <> encode ann <> encode tn <> encode k <> t
+        a (TyBuiltinF ann con)   = encodeConstructorTag 4 <> encode ann <> encode con
+        a (TyLamF ann n k t)     = encodeConstructorTag 5 <> encode ann <> encode n <> encode k <> t
+        a (TyAppF ann t t')      = encodeConstructorTag 6 <> encode ann <> t <> t'
+        a (TyPrunedF ann h)      = encodeConstructorTag 7 <> encode ann <> encode h
                                    
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = TyVar <$> decode <*> decode
               go 1 = TyFun <$> decode <*> decode <*> decode
               go 2 = TyIFix <$> decode <*> decode <*> decode
@@ -96,20 +110,20 @@ instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) 
               go _ = fail "Failed to decode Type TyName ()"
 
 instance Serialise ann => Serialise (Builtin ann) where
-    encode (BuiltinName ann bn)     = encodeTag 0 <> encode ann <> encode bn
-    encode (DynBuiltinName ann dbn) = encodeTag 1 <> encode ann <> encode dbn
+    encode (BuiltinName ann bn)     = encodeConstructorTag 0 <> encode ann <> encode bn
+    encode (DynBuiltinName ann dbn) = encodeConstructorTag 1 <> encode ann <> encode dbn
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = BuiltinName <$> decode <*> decode
               go 1 = DynBuiltinName <$> decode <*> decode
               go _ = fail "Failed to decode Builtin ()"
 
 
 instance Serialise ann => Serialise (Constant ann) where
-    encode (BuiltinInt ann i) = fold [ encodeTag 0, encode ann, encodeInteger i ]
-    encode (BuiltinBS ann bs) = fold [ encodeTag 1, encode ann, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinStr ann s) = encodeTag 2 <> encode ann <> encode s
-    decode = go =<< decodeTag
+    encode (BuiltinInt ann i) = fold [ encodeConstructorTag 0, encode ann, encodeInteger i ]
+    encode (BuiltinBS ann bs) = fold [ encodeConstructorTag 1, encode ann, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinStr ann s) = encodeConstructorTag 2 <> encode ann <> encode s
+    decode = go =<< decodeConstructorTag
         where go 0 = BuiltinInt <$> decode <*> decodeInteger
               go 1 = BuiltinBS <$> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinStr <$> decode <*> decode
@@ -120,19 +134,19 @@ instance ( Serialise ann
          , Serialise (name ann)
          ) => Serialise (Term tyname name ann) where
     encode = cata a where
-        a (VarF ann n)           = encodeTag 0 <> encode ann <> encode n
-        a (TyAbsF ann tn k t)    = encodeTag 1 <> encode ann <> encode tn <> encode k <> t
-        a (LamAbsF ann n ty t)   = encodeTag 2 <> encode ann <> encode n <> encode ty <> t
-        a (ApplyF ann t t')      = encodeTag 3 <> encode ann <> t <> t'
-        a (ConstantF ann c)      = encodeTag 4 <> encode ann <> encode c
-        a (TyInstF ann t ty)     = encodeTag 5 <> encode ann <> t <> encode ty
-        a (UnwrapF ann t)        = encodeTag 6 <> encode ann <> t
-        a (IWrapF ann pat arg t) = encodeTag 7 <> encode ann <> encode pat <> encode arg <> t
-        a (ErrorF ann ty)        = encodeTag 8 <> encode ann <> encode ty
-        a (BuiltinF ann bi)      = encodeTag 9 <> encode ann <> encode bi
-        a (PruneF ann h)         = encodeTag 10 <> encode ann <> encode h
+        a (VarF ann n)           = encodeConstructorTag 0 <> encode ann <> encode n
+        a (TyAbsF ann tn k t)    = encodeConstructorTag 1 <> encode ann <> encode tn <> encode k <> t
+        a (LamAbsF ann n ty t)   = encodeConstructorTag 2 <> encode ann <> encode n <> encode ty <> t
+        a (ApplyF ann t t')      = encodeConstructorTag 3 <> encode ann <> t <> t'
+        a (ConstantF ann c)      = encodeConstructorTag 4 <> encode ann <> encode c
+        a (TyInstF ann t ty)     = encodeConstructorTag 5 <> encode ann <> t <> encode ty
+        a (UnwrapF ann t)        = encodeConstructorTag 6 <> encode ann <> t
+        a (IWrapF ann pat arg t) = encodeConstructorTag 7 <> encode ann <> encode pat <> encode arg <> t
+        a (ErrorF ann ty)        = encodeConstructorTag 8 <> encode ann <> encode ty
+        a (BuiltinF ann bi)      = encodeConstructorTag 9 <> encode ann <> encode bi
+        a (PruneF ann h)         = encodeConstructorTag 10 <> encode ann <> encode h
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = Var <$> decode <*> decode
               go 1 = TyAbs <$> decode <*> decode <*> decode <*> decode
               go 2 = LamAbs <$> decode <*> decode <*> decode <*> decode
