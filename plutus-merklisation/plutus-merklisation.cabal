@@ -21,6 +21,18 @@ source-repository head
 
 executable ast-analysis
   main-is: AstAnalysis.hs
+  other-modules: Hashes
+                 Merkle
+                 Language.PlutusCore.Merkle.Type
+                 Language.PlutusCore.Merkle.CBOR
+                 Language.PlutusCore.Merkle.Error
+                 Language.PlutusCore.Merkle.MkPlc
+                 Language.PlutusCore.Merkle.Pretty,
+                 Language.PlutusCore.Merkle.Pretty.Classic
+                 Language.PlutusCore.Merkle.Pretty.Plc
+                 Language.PlutusCore.Merkle.Pretty.Readable
+                 Language.PlutusCore.Merkle.Untyped.Term
+
   hs-source-dirs:
       src
   ghc-options: -Wall -Wincomplete-uni-patterns
@@ -28,16 +40,52 @@ executable ast-analysis
                -main-is AstAnalysis
   build-depends:
       base <5
+    , bytestring
+    , cborg -any
+    , containers -any
+    , cryptonite -any
     , language-plutus-core -any
+    , lens -any
+    , memory -any
+    , mtl -any
     , plutus-tx -any
     , plutus-use-cases -any
     , plutus-wallet-api -any
-    , lens -any
+    , prettyprinter -any
+    , recursion-schemes -any
+    , serialise -any
+    , template-haskell -any
+    , text -any
+    , th-lift-instances
+    , transformers -any
+    , zlib -any
+    
   default-language: Haskell2010
+
+  default-extensions: ScopedTypeVariables FlexibleContexts
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  other-extensions: DeriveAnyClass FlexibleInstances
+                    MultiParamTypeClasses TypeFamilies OverloadedStrings
+                    MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                    RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                    ExistentialQuantification
 
 executable compression-analysis
   main-is: AstCompression.hs
-  other-modules: Hashes, Merkle
+  other-modules: Hashes
+                 Merkle
+                 Language.PlutusCore.Merkle.Type
+                 Language.PlutusCore.Merkle.CBOR
+                 Language.PlutusCore.Merkle.Error
+                 Language.PlutusCore.Merkle.MkPlc
+                 Language.PlutusCore.Merkle.Pretty,
+                 Language.PlutusCore.Merkle.Pretty.Classic
+                 Language.PlutusCore.Merkle.Pretty.Plc
+                 Language.PlutusCore.Merkle.Pretty.Readable
+                 Language.PlutusCore.Merkle.Untyped.Term
+
   hs-source-dirs:
       src
   ghc-options: -Wall -Wincomplete-uni-patterns
@@ -46,16 +94,86 @@ executable compression-analysis
   build-depends:
       base <5
     , bytestring
+    , cborg >= 0.2.2
+    , containers -any
     , cryptonite -any
     , language-plutus-core -any
     , lens -any
     , memory -any
+    , mtl -any
     , plutus-tx -any
     , plutus-use-cases -any
     , plutus-wallet-api -any
+    , prettyprinter -any
+    , recursion-schemes -any
     , serialise -any
+    , template-haskell -any
     , text -any
+    , th-lift-instances
     , transformers -any
     , zlib -any
   default-language: Haskell2010
 
+  default-extensions: ScopedTypeVariables FlexibleContexts
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  other-extensions: DeriveAnyClass FlexibleInstances
+                    MultiParamTypeClasses TypeFamilies OverloadedStrings
+                    MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                    RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                    ExistentialQuantification
+
+
+executable type-sizes
+  main-is: TypeSizes.hs
+  other-modules: Hashes
+                 Merkle
+                 Language.PlutusCore.Merkle.Type
+                 Language.PlutusCore.Merkle.CBOR
+                 Language.PlutusCore.Merkle.Error
+                 Language.PlutusCore.Merkle.MkPlc
+                 Language.PlutusCore.Merkle.Pretty,
+                 Language.PlutusCore.Merkle.Pretty.Classic
+                 Language.PlutusCore.Merkle.Pretty.Plc
+                 Language.PlutusCore.Merkle.Pretty.Readable
+                 Language.PlutusCore.Merkle.Untyped.Term
+
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wincomplete-uni-patterns
+               -Wincomplete-record-updates -Wredundant-constraints -Widentities
+               -main-is TypeSizes
+  build-depends:
+      base <5
+    , bytestring
+    , cborg -any
+    , containers -any
+    , cryptonite -any
+    , language-plutus-core -any
+    , lens -any
+    , memory -any
+    , mtl -any
+    , plutus-tx -any
+    , plutus-use-cases -any
+    , plutus-wallet-api -any
+    , prettyprinter -any
+    , recursion-schemes -any
+    , serialise -any
+    , template-haskell -any
+    , text -any
+    , th-lift-instances
+    , transformers -any
+    , zlib -any
+  default-language: Haskell2010
+
+  default-extensions: ScopedTypeVariables FlexibleContexts
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  other-extensions: DeriveAnyClass FlexibleInstances
+                    MultiParamTypeClasses TypeFamilies OverloadedStrings
+                    MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                    RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                    ExistentialQuantification
+                    
