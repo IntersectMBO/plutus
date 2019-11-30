@@ -41,13 +41,24 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
+-- Encode/decode constructor tags.  This restricts us to less than 256
+-- constructors per type, but that should be OK.  We previously used
+-- encodeTag/decodeTag here, but that was wrong: there's a fixed set
+-- of CBOR tags with predefined meanings.
+
+encodeConstructorTag :: Word8 -> Encoding
+encodeConstructorTag = encodeWord8
+
+decodeConstructorTag :: Decoder s Word8
+decodeConstructorTag = decodeWord8
+
 instance Serialise TypeBuiltin where
     encode bi = case bi of
-        TyByteString -> encodeTag 0
-        TyInteger    -> encodeTag 1
-        TyString     -> encodeTag 2
+        TyByteString -> encodeConstructorTag 0
+        TyInteger    -> encodeConstructorTag 1
+        TyString     -> encodeConstructorTag 2
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TyString
@@ -77,9 +88,9 @@ instance Serialise BuiltinName where
                 ModInteger           -> 18
                 LtByteString         -> 19
                 GtByteString         -> 20
-        in encodeTag i
+        in encodeConstructorTag i
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
               go 2  = pure MultiplyInteger
@@ -116,20 +127,20 @@ instance Serialise DynamicBuiltinName where
     decode = DynamicBuiltinName <$> decode
 
 instance Serialise a => Serialise (Builtin a) where
-    encode (BuiltinName x bn)     = encodeTag 0 <> encode x <> encode bn
-    encode (DynBuiltinName x dbn) = encodeTag 1 <> encode x <> encode dbn
+    encode (BuiltinName x bn)     = encodeConstructorTag 0 <> encode x <> encode bn
+    encode (DynBuiltinName x dbn) = encodeConstructorTag 1 <> encode x <> encode dbn
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = BuiltinName <$> decode <*> decode
               go 1 = DynBuiltinName <$> decode <*> decode
               go _ = fail "Failed to decode Builtin ()"
 
 
 instance Serialise a => Serialise (Constant a) where
-    encode (BuiltinInt x i) = fold [ encodeTag 0, encode x, encodeInteger i ]
-    encode (BuiltinBS x bs) = fold [ encodeTag 1, encode x, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinStr x s) = encodeTag 2 <> encode x <> encode s
-    decode = go =<< decodeTag
+    encode (BuiltinInt x i) = fold [ encodeConstructorTag 0, encode x, encodeInteger i ]
+    encode (BuiltinBS x bs) = fold [ encodeConstructorTag 1, encode x, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinStr x s) = encodeConstructorTag 2 <> encode x <> encode s
+    decode = go =<< decodeConstructorTag
         where go 0 = BuiltinInt <$> decode <*> decodeInteger
               go 1 = BuiltinBS <$> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinStr <$> decode <*> decode
@@ -137,14 +148,14 @@ instance Serialise a => Serialise (Constant a) where
 
 instance (Serialise a, Serialise (name a)) => Serialise (Term name a) where
     encode = cata a where
-        a (VarF x n)           = encodeTag 0 <> encode x <> encode n
-        a (LamAbsF x n t)      = encodeTag 1 <> encode x <> encode n <> t
-        a (ApplyF x t t')      = encodeTag 2 <> encode x <> t <> t'
-        a (ConstantF x c)      = encodeTag 3 <> encode x <> encode c
-        a (ErrorF x)           = encodeTag 4 <> encode x
-        a (BuiltinF x bi)      = encodeTag 5 <> encode x <> encode bi
+        a (VarF x n)           = encodeConstructorTag 0 <> encode x <> encode n
+        a (LamAbsF x n t)      = encodeConstructorTag 1 <> encode x <> encode n <> t
+        a (ApplyF x t t')      = encodeConstructorTag 2 <> encode x <> t <> t'
+        a (ConstantF x c)      = encodeConstructorTag 3 <> encode x <> encode c
+        a (ErrorF x)           = encodeConstructorTag 4 <> encode x
+        a (BuiltinF x bi)      = encodeConstructorTag 5 <> encode x <> encode bi
 
-    decode = go =<< decodeTag
+    decode = go =<< decodeConstructorTag
         where go 0 = Var <$> decode <*> decode
               go 1 = LamAbs <$> decode <*> decode <*> decode
               go 2 = Apply <$> decode <*> decode <*> decode

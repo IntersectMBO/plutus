@@ -33,8 +33,9 @@ extra-deps:
 - STMonadTrans-0.4.3
 - geniplate-mirror-0.7.6
 # Other missing packages
+- cborg-0.2.2.0@sha256:eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c
 - composition-prelude-2.0.2.1
-- resolv-0.1.1.2
+- hex-text-0.1.0.0@sha256:52dc2cf5ce45f7d86ea5e56e2ac57820f788c10bbb3fe83f6d57e678a426305b
 - monad-stm-0.1.0.2
 - purescript-0.13.2
 - servant-options-0.1.0.0

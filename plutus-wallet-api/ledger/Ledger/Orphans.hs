@@ -19,12 +19,12 @@ import           Schema                     (FormSchema (FormSchemaHex), ToSchem
 import           Type.Reflection            (Typeable)
 
 instance Serialise (Digest SHA256) where
-    encode = encode . BA.unpack
+    encode = encode . BSS.pack . BA.unpack
     decode = do
-      d <- decode
-      let md = digestFromByteString . BSS.pack $ d
-      case md of
-        Nothing -> fail "couldn't decode to Digest SHA256"
+      d :: BSS.ByteString <- decode
+      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
+      case digestFromByteString bs of
+        Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
 
 instance ToJSON (Digest SHA256) where
