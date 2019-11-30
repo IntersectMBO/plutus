@@ -27,7 +27,8 @@ We need the encoding of PLC on the blockchain to be *extremely* stable. It *must
 arbitrarily, otherwise we'll be unable to read back old transactions and validate them.
 
 Consequently we don't use the derivable instances of `Serialise` for the PLC types that go
-on the chain.
+on the chain. (Also, the CBOR produced by those instances is more than 60% larger than that
+produced by the instances below.)
 
 However, the instances in this file *are* constrained by instances for names, type names,
 and annotations. What's to stop the instances for *those* changing, thus changing
@@ -42,12 +43,13 @@ for testing.
 -}
 
 
-{- Encode/decode constructor tags using encodeWord and decodeWord;
-   encodeWord will only use one byte for the tags we have here, so the
-   size of the CBOR output doesn't change.  We previously used
-   encodeTag/decodeTag here, but that was wrong: those are for use
-   with a fixed set of CBOR tags with predefined meanings which we
-   shouldn't interfere with. -}
+{- Encode/decode constructor tags using encodeWord and decodeWord.  We
+   previously used encodeTag/decodeTag here, but that was wrong: those
+   are for use with a fixed set of CBOR tags with predefined meanings
+   which we shouldn't interfere with.  Note that encodeWord will only
+   use one byte for the tags we have here, so the size of the CBOR
+   output doesn't change.
+-}
 encodeConstructorTag :: Word -> Encoding
 encodeConstructorTag = encodeWord
 
