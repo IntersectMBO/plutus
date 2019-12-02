@@ -28,7 +28,8 @@ import qualified Language.PlutusCore.Untyped.Term                   as U
 import qualified Language.PlutusCore.Interpreter.Untyped.CekMachine as U
 
 
-import           Codec.Serialise                            (serialise)
+import           Codec.Serialise                            (encode, serialise)
+import           Codec.CBOR.FlatTerm                        (toFlatTerm)
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
@@ -78,7 +79,13 @@ newtype ExampleOptions = ExampleOptions ExampleMode
 data SerialisationMode = Typed | TypedAnon | Untyped | UntypedAnon | UntypedAnon2 | UntypedAnonDeBruijn
 data SerialisationOptions = SerialisationOptions Input SerialisationMode
 data AnalysisOptions = AnalysisOptions Input
-data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Serialise SerialisationOptions | Analyse AnalysisOptions | AnalysisHeader
+data Command = Typecheck TypecheckOptions
+             | Eval EvalOptions
+             | Example ExampleOptions
+             | Serialise SerialisationOptions
+             | SerialiseFlat SerialisationOptions
+             | Analyse AnalysisOptions
+             | AnalysisHeader
 
 -- For collecting statistics on terms.  If we put it further down, TH errors oocur.
 data TermCounts =  
@@ -121,6 +128,11 @@ plutusOpts = hsubparser (
            (info
             (Serialise <$> serialisationOpts)
             (progDesc "Parse a Plutus Core program and output CBOR to standard output. ")
+           )
+    <> command "cbor-flat"
+           (info
+            (SerialiseFlat <$> serialisationOpts)
+            (progDesc "Parse a Plutus Core program and output flattened CBOR represenataion to standard output. ")
            )
     <> command "analyse"
            (info
@@ -281,6 +293,27 @@ runSerialise (SerialisationOptions is mode) = do
       Right y ->
           do
              BSC.putStrLn y
+             exitSuccess
+       
+runSerialiseFlat :: SerialisationOptions -> IO ()
+runSerialiseFlat (SerialisationOptions is mode) = do
+    contents <- getInput is
+    let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
+    let encodeFn = case mode of
+                        Typed        -> encode
+                        TypedAnon    -> encode . U.anonProgram
+                        Untyped      -> encode . U.eraseProgram
+                        UntypedAnon  -> encode . U.eraseProgram . U.anonProgram
+                        UntypedAnon2 -> encode . U.nameToIntProgram . U.eraseProgram
+                        UntypedAnonDeBruijn -> encode . U.deBruijnToIntProgram . U.eraseProgram . deBrProg
+    case encodeFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+      Left (e :: PLC.Error PLC.AlexPosn) ->
+          do
+             putStrLn $ show e
+             exitFailure
+      Right y ->
+          do
+             mapM_ (putStrLn . show) (toFlatTerm y)
              exitSuccess
        
 {----------------- Analysis -----------------}
@@ -484,9 +517,10 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plutus
     case options of
-        Typecheck tos  -> runTypecheck tos
-        Eval eos       -> runEval eos
-        Example eos    -> runExample eos
-        Serialise sos  -> runSerialise sos
-        Analyse opts   -> runAnalyse opts
-        AnalysisHeader -> printHeader
+        Typecheck tos     -> runTypecheck tos
+        Eval eos          -> runEval eos
+        Example eos       -> runExample eos
+        Serialise sos     -> runSerialise sos
+        SerialiseFlat sos -> runSerialiseFlat sos
+        Analyse opts      -> runAnalyse opts
+        AnalysisHeader    -> printHeader

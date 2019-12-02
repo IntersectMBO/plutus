@@ -32,16 +32,17 @@ executable plc
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base <5,
-        language-plutus-core -any,
-        plutus-core-interpreter -any,
-        transformers -any,
         bytestring -any,
-        text -any,
+        cborg -any,
+        filepath -any,
+        language-plutus-core -any,
         lens -any,
-        prettyprinter -any,
         optparse-applicative -any,
+        plutus-core-interpreter -any,
+        prettyprinter -any,
         serialise -any,
-        filepath -any
+        text -any,
+        transformers -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
