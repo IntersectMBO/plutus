@@ -25,6 +25,7 @@ import           Data.String                 (IsString (fromString))
 import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import           Language.Plutus.Contract.Tx (UnbalancedTx)
 import qualified Language.Plutus.Contract.Tx as T
+import qualified Language.PlutusTx.Numeric   as N
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
 import qualified Ledger.Ada                  as Ada
@@ -85,7 +86,8 @@ balanceTx
     -- ^ The unbalanced transaction
     -> m Tx
 balanceTx utxo pk utx = do
-    let tx = T.toLedgerTx utx
+    let tx0 = T.toLedgerTx utx
+        tx = addMissingValueMoved pk (view T.valueMoved utx) tx0
     (neg, pos) <- Value.split <$> computeBalance tx
 
     tx' <- if Value.isZero pos
@@ -127,6 +129,16 @@ addInputs mp pk vl tx = do
 addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
+
+addMissingValueMoved :: PubKey -> Value -> Tx -> Tx
+addMissingValueMoved pk vl tx =
+    let total = foldMap (view Tx.outValue) (view Tx.outputs tx)
+        -- 'missing' is everything that's in
+        -- 'vl' but not in 'total'
+        (_, missing) = Value.split (vl N.- total)
+    in if Value.isZero missing
+       then tx
+       else addOutputs pk missing tx
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.

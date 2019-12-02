@@ -38,7 +38,7 @@ tests =
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> G.gameTokenVal))
         ( successTrace
         >> payToWallet w2 w1 G.gameTokenVal 
-        >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueLocked=Ada.lovelaceValueOf 1}
+        >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
         >> handleBlockchainEvents w1
         )
 
@@ -50,7 +50,7 @@ tests =
         ( callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
         >> handleBlockchainEvents w1
         >> payToWallet w1 w2 G.gameTokenVal
-        >> callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueLocked=Ada.lovelaceValueOf 5}
+        >> callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
         >> handleBlockchainEvents w2)
 
 
@@ -78,5 +78,5 @@ successTrace = do
     callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
     handleBlockchainEvents w1
     payToWallet w1 w2 G.gameTokenVal
-    callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueLocked=Ada.lovelaceValueOf 5}
+    callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     handleBlockchainEvents w2
