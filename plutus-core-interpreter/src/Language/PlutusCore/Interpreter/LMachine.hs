@@ -35,6 +35,7 @@
 module Language.PlutusCore.Interpreter.LMachine
     ( EvaluationResult (..)
     , EvaluationResultDef
+    , LMachineError
     , evaluateL
     , runL
     ) where
@@ -76,8 +77,7 @@ instance Pretty LMachineError where
 -- to be parametrized by an LMachineError which is required in order to disambiguate
 -- @throw .* MachineException@.  If you just use @throw@ you get compilation errors
 -- because the type is too general to be Typeable (I think).
-throwLMachineException
-    :: MachineError LMachineError -> Term TyName Name () -> a
+throwLMachineException :: MachineError LMachineError -> Term TyName Name () -> a
 throwLMachineException = throw .* MachineException
 
 -- | A term together with an enviroment mapping free variables to heap locations

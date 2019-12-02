@@ -14,6 +14,7 @@ module Language.PlutusCore.Generators.Test
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
@@ -71,14 +72,16 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: KnownType a
-    => (Term TyName Name () -> EvaluationResultDef)  -- ^ An evaluator.
-    -> TermGen a                                     -- ^ A term/value generator.
+    :: (Pretty err, KnownType a)
+    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+       -- ^ An evaluator.
+    -> TermGen a  -- ^ A term/value generator.
     -> Property
 propEvaluate eval genTermOfTbv = withTests 200 . property $ do
     termOfTbv <- forAllNoShow genTermOfTbv
     case typeEvalCheckBy eval termOfTbv of
-        Left (TypeEvalCheckErrorIllFormed err)             -> error $ prettyPlcErrorString err
+        Left (TypeEvalCheckErrorIllFormed err)             -> fail $ prettyPlcErrorString err
+        Left (TypeEvalCheckErrorException err)             -> fail err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             expected === actual  -- We know that these two are distinct, but there is no nice way we
                                  -- can report this via 'hedgehog' except by comparing them here again.
