@@ -1,6 +1,6 @@
 -- | The CEK machine.
--- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
--- except we do not use substitution and use environments instead.
+-- Rules are the same as for the CK machine from except we do not use substitution and use
+-- environments instead.
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
 -- The type checker pass is a prerequisite.
@@ -13,7 +13,7 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Language.PlutusCore.Interpreter.CekMachine
+module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekMachineException
     , EvaluationResult (..)
     , EvaluationResultDef
@@ -26,15 +26,15 @@ module Language.PlutusCore.Interpreter.CekMachine
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Control.Lens.TH                                 (makeLenses)
+import           Control.Lens.TH                                  (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Data.Map                                        as Map
+import qualified Data.Map                                         as Map
 
 type Plain f = f TyName Name ()
 

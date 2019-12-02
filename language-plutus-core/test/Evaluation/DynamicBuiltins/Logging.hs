@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module DynamicBuiltins.Logging
+module Evaluation.DynamicBuiltins.Logging
     ( test_logging
     ) where
 
@@ -15,7 +15,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.List as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Common
+import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.Except
 import           Data.Either                          (isRight)

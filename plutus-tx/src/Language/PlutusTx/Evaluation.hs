@@ -3,7 +3,7 @@ module Language.PlutusTx.Evaluation (evaluateCek, unsafeEvaluateCek, evaluateCek
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Interpreter.CekMachine hiding (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
 
 import           Control.Exception
 

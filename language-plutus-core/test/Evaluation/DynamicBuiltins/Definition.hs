@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module DynamicBuiltins.Definition
+module Evaluation.DynamicBuiltins.Definition
     ( test_definition
     ) where
 
@@ -19,7 +19,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
 import qualified Language.PlutusCore.StdLib.Data.List       as Plc
 
-import           DynamicBuiltins.Common
+import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Either                                (isRight)
 import           Data.Proxy

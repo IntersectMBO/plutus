@@ -21,8 +21,8 @@ import           PlcTestUtils
 import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name

@@ -14,7 +14,7 @@ module Language.PlutusCore.Generators.Test
     ) where
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
