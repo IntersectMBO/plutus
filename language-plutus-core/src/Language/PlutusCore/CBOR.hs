@@ -46,12 +46,14 @@ for testing.
 -}
 
 
-{- Encode/decode constructor tags using encodeWord and decodeWord.  We
-   previously used encodeTag/decodeTag here, but that was wrong: those
-   are for use with a fixed set of CBOR tags with predefined meanings
-   which we shouldn't interfere with.  Note that encodeWord will only
-   use one byte for the tags we have here, so the size of the CBOR
-   output doesn't change.
+{- [Note: Encoding/decoding constructor tags]
+   Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
+   tags representing constructors.  These are just aliases for
+   `encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
+   sizes and will only use one byte for the tags we have here.  NB: Don't
+   use encodeTag or decodeTag; those are for use with a fixed set of CBOR
+   tags with predefined meanings which we shouldn't interfere with.  
+   See http://hackage.haskell.org/package/serialise.
 -}
 encodeConstructorTag :: Word -> Encoding
 encodeConstructorTag = encodeWord
