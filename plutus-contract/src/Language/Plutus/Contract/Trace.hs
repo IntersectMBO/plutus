@@ -34,7 +34,6 @@ module Language.Plutus.Contract.Trace
     , runWallet
     , getHooks
     , callEndpoint
-    , handleBlockchainEvents
     , handleUtxoQueries
     , addBlocks
     , addEvent
@@ -42,6 +41,10 @@ module Language.Plutus.Contract.Trace
     , notifyInterestingAddresses
     , notifySlot
     , payToWallet
+    -- * Handle blockchain events repeatedly
+    , MaxIterations(..)
+    , handleBlockchainEvents
+    , handleBlockchainEventsTimeout
     -- * Running 'MonadEmulator' actions
     , MonadEmulator
     , InitialDistribution
@@ -56,6 +59,7 @@ module Language.Plutus.Contract.Trace
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
 import           Control.Monad                                     (void, when, (>=>))
+import           Control.Monad.Except
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
 import           Control.Monad.Trans.Class                         (lift)
@@ -66,6 +70,7 @@ import           Data.Maybe                                        (fromMaybe)
 import           Data.Row                                          (AllUniqueLabels, Forall, HasType)
 import           Data.Sequence                                     (Seq, (|>))
 import qualified Data.Set                                          as Set
+import           Numeric.Natural                                   (Natural)
 
 import           Language.Plutus.Contract                          (Contract (..), HasTxConfirmation, HasUtxoAt,
                                                                     HasWatchAddress, HasWriteTx,
@@ -102,11 +107,20 @@ import           Wallet.Emulator                                   (EmulatorActi
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
 
+-- | Maximum number of iterations of `handleBlockchainEvents`.
+newtype MaxIterations = MaxIterations Natural
+    deriving (Eq, Ord, Show)
+
+-- | The default for 'MaxIterations' is twenty.
+defaultMaxIterations :: MaxIterations
+defaultMaxIterations = MaxIterations 20
+
 -- | Error produced while running a trace. Either a contract-specific
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.
 data TraceError e =
     TraceAssertionError EM.AssertionError
     | ContractError e
+    | HandleBlockchainEventsMaxIterationsExceeded MaxIterations
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
@@ -458,6 +472,8 @@ addBlocks
 addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
+-- | Handle all blockchain events for the wallet, throwing an error
+--   if there are unhandled events after 'defaultMaxIterations'.
 handleBlockchainEvents
     :: ( MonadEmulator (TraceError e) m
        , HasUtxoAt s
@@ -468,15 +484,32 @@ handleBlockchainEvents
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleBlockchainEvents wallet = do
-    hks <- getHooks wallet
-    if waitingForBlockchainActions hks
-        then do
-            submitUnbalancedTxns wallet
-            handleUtxoQueries wallet
-            handleOwnPubKeyQueries wallet
-            handleBlockchainEvents wallet
-        else pure ()
+handleBlockchainEvents = handleBlockchainEventsTimeout defaultMaxIterations
+
+-- | Handle all blockchain events for the wallet, throwing an error
+--   if the given number of iterations is exceeded
+handleBlockchainEventsTimeout
+    :: ( MonadEmulator (TraceError e) m
+    , HasUtxoAt s
+    , HasWatchAddress s
+    , HasWriteTx s
+    , HasOwnPubKey s
+    , HasTxConfirmation s
+    )
+    => MaxIterations
+    -> Wallet
+    -> ContractTrace s e m a ()
+handleBlockchainEventsTimeout (MaxIterations i) wallet = go 0 where
+    go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded (MaxIterations i)))
+         | otherwise = do
+            hks <- getHooks wallet
+            if waitingForBlockchainActions hks
+                then do
+                    submitUnbalancedTxns wallet
+                    handleUtxoQueries wallet
+                    handleOwnPubKeyQueries wallet
+                    go (j + 1)
+                else pure ()
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to
