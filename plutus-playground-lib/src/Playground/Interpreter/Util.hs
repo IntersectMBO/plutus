@@ -132,6 +132,7 @@ stage endpoints programJson simulatorWalletsJson = do
     case final of
         Left (ContractError err)                          -> throwError . OtherError . Text.unpack $ err
         Left (TraceAssertionError (GenericAssertion err)) -> throwError . OtherError . Text.unpack $ err
+        Left err                                          -> throwError . OtherError . show $ err
         Right _                                           -> analyzeEmulatorState emulatorState
 
 buildSimulation ::
