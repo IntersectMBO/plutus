@@ -875,9 +875,10 @@ computeTransaction tx state contract =
   in
     case fixInterval (unwrap tx).interval state of
       IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-        ApplyAllSuccess warnings payments newState cont -> case contract == cont of -- purty breaks with `if` until we upgrade to PS 0.13
-          true -> Error TEUselessTransaction
-          false ->
+        ApplyAllSuccess warnings payments newState cont ->
+          if contract == cont then
+            Error TEUselessTransaction
+          else
             TransactionOutput
               { txOutWarnings: warnings
               , txOutPayments: payments

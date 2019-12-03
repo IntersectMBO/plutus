@@ -101,13 +101,13 @@ tests =
             (callEndpoint @"1" @Int w1 1 >> callEndpoint @"2" @Int w1 1)
 
         , cp "submit tx"
-            (void $ writeTx mempty >> watchAddressUntil someAddress 20)
+            (void $ submitTx mempty >> watchAddressUntil someAddress 20)
             (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
             (handleBlockchainEvents w1 >> addBlocks 1)
 
         , let smallTx = mempty & Tx.outputs .~ [Tx.pubKeyTxOut (Ada.lovelaceValueOf 10) (walletPubKey (Wallet 2))]
           in cp "handle several blockchain events"
-                (writeTx smallTx >> writeTx smallTx)
+                (submitTx smallTx >> submitTx smallTx)
                 (assertDone w1 (const True) "all blockchain events should be processed"
                 /\ assertNoFailedTransactions
                 /\ walletFundsChange w1 (Ada.lovelaceValueOf (-20)))
@@ -148,6 +148,13 @@ tests =
             (ownPubKey)
             (assertDone w2 (== (walletPubKey w2)) "should return the wallet's public key")
             (handleBlockchainEvents w2)
+
+        , cp "await tx confirmed"
+            (let t = payToPubKey (Ada.lovelaceValueOf 10) (walletPubKey w2) 
+             in submitTx t >>= awaitTxConfirmed)
+            (assertDone w1 (const True) "should be done"
+            /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
+            (handleBlockchainEvents w1)
 
         ]
 

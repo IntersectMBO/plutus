@@ -289,7 +289,7 @@ runStepC params input = do
         outs = Typed.makeScriptPayment (scriptInstance params) value newState
     void 
         $ withContractError (review _MSContractError)
-        $ writeTxSuccess 
+        $ submitTx 
         $ ins <> outs
 
 -- | Lock some funds in a multisig contract.
@@ -299,7 +299,7 @@ lock params = do
     let tx = Typed.makeScriptPayment (scriptInstance params) value (Holding value)
     void
         $ withContractError (review _MSContractError)
-        $ writeTxSuccess tx
+        $ submitTx tx
 
 -- | Make a payment after enough signatures have been collected.
 makePaymentC :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
@@ -328,7 +328,7 @@ makePaymentC params = do
                     <> payToPubKey valuePaid' recipient
     void
         $ withContractError (review _MSContractError)
-        $ writeTxSuccess
+        $ submitTx
         $ ins <> outs
 
 PlutusTx.makeIsData ''Payment

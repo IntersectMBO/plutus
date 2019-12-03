@@ -20,7 +20,7 @@ w1 = Wallet 1
 theContract :: Contract BlockchainActions ContractError ()
 theContract = do
   txin <- pubKeyContract (walletPubKey w1) (Ada.lovelaceValueOf 10)
-  void $ writeTx $ mempty & inputs .~ Set.singleton txin
+  void $ submitTx $ mempty & inputs .~ Set.singleton txin
 
 tests :: TestTree
 tests = testGroup "pubkey"

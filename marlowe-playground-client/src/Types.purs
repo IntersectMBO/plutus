@@ -30,7 +30,7 @@ import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Holes (Holes, MarloweHole)
-import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Semantics (AccountId, Action(..), Ada, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, TransactionError, TransactionWarning, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
@@ -182,6 +182,7 @@ type MarloweState
   = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
     , pendingInputs :: Array (Tuple Input (Maybe PubKey))
     , transactionError :: Maybe TransactionError
+    , transactionWarnings :: Array TransactionWarning
     , state :: State
     , slot :: Slot
     , moneyInContract :: Ada
@@ -202,6 +203,9 @@ _state = prop (SProxy :: SProxy "state")
 
 _transactionError :: forall s a. Lens' { transactionError :: a | s } a
 _transactionError = prop (SProxy :: SProxy "transactionError")
+
+_transactionWarnings :: forall s a. Lens' { transactionWarnings :: a | s } a
+_transactionWarnings = prop (SProxy :: SProxy "transactionWarnings")
 
 _slot :: forall s a. Lens' { slot :: a | s } a
 _slot = prop (SProxy :: SProxy "slot")
@@ -236,6 +240,7 @@ emptyMarloweState sn =
   { possibleActions: mempty
   , pendingInputs: mempty
   , transactionError: Nothing
+  , transactionWarnings: []
   , state: emptyState sn
   , slot: zero
   , moneyInContract: zero

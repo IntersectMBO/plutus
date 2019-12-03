@@ -13,7 +13,6 @@
 module Language.Plutus.Contract.Effects.WriteTx where
 
 import           Control.Lens
-import           Control.Monad                    ((>=>))
 import           Control.Monad.Error.Lens         (throwing)
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
@@ -21,6 +20,7 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Tx      (UnbalancedTx)
@@ -62,15 +62,25 @@ newtype PendingTransactions =
     deriving anyclass (IotsType)
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
---    of the final transaction, or an error.
-writeTx :: forall s e. HasWriteTx s => UnbalancedTx -> Contract s e WriteTxResponse
-writeTx t = request @TxSymbol @_ @_ @s (PendingTransactions [t])
-
--- | Send an unbalanced transaction to be balanced and signed. Returns the ID
---    of the final transaction, throws an error on failure.
-writeTxSuccess :: forall s e. (HasWriteTx s, Req.AsContractError e) => UnbalancedTx -> Contract s e TxId
+--    of the final transaction when the transaction was submitted. Throws an 
+--    error if balancing or signing failed.
+submitTx :: forall s e. (HasWriteTx s, Req.AsContractError e) => UnbalancedTx -> Contract s e TxId
 -- See Note [Injecting errors into the user's error type]
-writeTxSuccess = writeTx >=> either (throwing Req._WalletError) pure . view writeTxResponse
+submitTx t = 
+  let req = request @TxSymbol @_ @_ @s (PendingTransactions [t]) in
+  req >>= either (throwing Req._WalletError) pure . view writeTxResponse
+
+-- | A version of 'submitTx' that waits until the transaction has been 
+--   confirmed on the ledger before returning.
+submitTxConfirmed 
+  :: forall s e. 
+  ( HasWriteTx s
+  , HasTxConfirmation s
+  , Req.AsContractError e
+  )
+  => UnbalancedTx
+  -> Contract s e ()
+submitTxConfirmed t = submitTx t >>= awaitTxConfirmed
 
 event
   :: forall s. (HasType TxSymbol WriteTxResponse (Input s), AllUniqueLabels (Input s))

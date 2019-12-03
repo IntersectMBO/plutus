@@ -34,7 +34,6 @@ module Language.Plutus.Contract.Trace
     , runWallet
     , getHooks
     , callEndpoint
-    , handleBlockchainEvents
     , handleUtxoQueries
     , addBlocks
     , addEvent
@@ -42,6 +41,10 @@ module Language.Plutus.Contract.Trace
     , notifyInterestingAddresses
     , notifySlot
     , payToWallet
+    -- * Handle blockchain events repeatedly
+    , MaxIterations(..)
+    , handleBlockchainEvents
+    , handleBlockchainEventsTimeout
     -- * Running 'MonadEmulator' actions
     , MonadEmulator
     , InitialDistribution
@@ -53,56 +56,71 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import           Control.Lens                                    (at, from, makeClassyPrisms, makeLenses, use, view,
-                                                                  (%=))
-import           Control.Monad                                   (void, (>=>))
-import           Control.Monad.Reader                            ()
-import           Control.Monad.State                             (MonadState, StateT, gets, runStateT)
-import           Control.Monad.Trans.Class                       (lift)
-import           Data.Foldable                                   (toList, traverse_)
-import           Data.Map                                        (Map)
-import qualified Data.Map                                        as Map
-import           Data.Maybe                                      (fromMaybe)
-import           Data.Row                                        (AllUniqueLabels, Forall, HasType)
-import           Data.Sequence                                   (Seq, (|>))
-import qualified Data.Set                                        as Set
+import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
+                                                                    (%=))
+import           Control.Monad                                     (void, when, (>=>))
+import           Control.Monad.Except
+import           Control.Monad.Reader                              ()
+import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
+import           Control.Monad.Trans.Class                         (lift)
+import           Data.Foldable                                     (toList, traverse_)
+import           Data.Map                                          (Map)
+import qualified Data.Map                                          as Map
+import           Data.Maybe                                        (fromMaybe)
+import           Data.Row                                          (AllUniqueLabels, Forall, HasType)
+import           Data.Sequence                                     (Seq, (|>))
+import qualified Data.Set                                          as Set
+import           Numeric.Natural                                   (Natural)
 
-import           Language.Plutus.Contract                        (Contract (..), HasUtxoAt, HasWatchAddress, HasWriteTx,
-                                                                  waitingForBlockchainActions, withContractError)
-import qualified Language.Plutus.Contract.Resumable              as State
-import           Language.Plutus.Contract.Schema                 (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.Tx                     (UnbalancedTx)
-import           Language.Plutus.Contract.Wallet                 (SigningProcess)
-import qualified Language.Plutus.Contract.Wallet                 as Wallet
+import           Language.Plutus.Contract                          (Contract (..), HasTxConfirmation, HasUtxoAt,
+                                                                    HasWatchAddress, HasWriteTx,
+                                                                    waitingForBlockchainActions, withContractError)
+import qualified Language.Plutus.Contract.Resumable                as State
+import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
+import           Language.Plutus.Contract.Tx                       (UnbalancedTx)
+import           Language.Plutus.Contract.Wallet                   (SigningProcess)
+import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
-import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
-import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint)
-import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey      (HasOwnPubKey, OwnPubKeyRequest (..))
-import qualified Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt         (UtxoAtAddress (..))
-import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol, WriteTxResponse)
-import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
+import           Language.Plutus.Contract.Effects.AwaitSlot        (SlotSymbol)
+import qualified Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
+import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (HasEndpoint)
+import qualified Language.Plutus.Contract.Effects.ExposeEndpoint   as Endpoint
+import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey, OwnPubKeyRequest (..))
+import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
+import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
+import           Language.Plutus.Contract.Effects.WriteTx          (TxSymbol, WriteTxResponse)
+import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 
-import qualified Ledger.Ada                                      as Ada
-import           Ledger.Address                                  (Address)
-import qualified Ledger.AddressMap                               as AM
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Tx                                       (Tx, txId)
-import           Ledger.Value                                    (Value)
+import qualified Ledger.Ada                                        as Ada
+import           Ledger.Address                                    (Address)
+import qualified Ledger.AddressMap                                 as AM
+import           Ledger.Slot                                       (Slot)
+import           Ledger.Tx                                         (Tx, txId)
+import           Ledger.TxId                                       (TxId)
+import           Ledger.Value                                      (Value)
 
-import           Wallet.API                                      (WalletAPIError, defaultSlotRange, payToPublicKey_)
-import           Wallet.Emulator                                 (EmulatorAction, EmulatorState, MonadEmulator, Wallet)
-import qualified Wallet.Emulator                                 as EM
+import           Wallet.API                                        (WalletAPIError, defaultSlotRange, payToPublicKey_)
+import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
+                                                                    Wallet)
+import qualified Wallet.Emulator                                   as EM
+
+-- | Maximum number of iterations of `handleBlockchainEvents`.
+newtype MaxIterations = MaxIterations Natural
+    deriving (Eq, Ord, Show)
+
+-- | The default for 'MaxIterations' is twenty.
+defaultMaxIterations :: MaxIterations
+defaultMaxIterations = MaxIterations 20
 
 -- | Error produced while running a trace. Either a contract-specific
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.
 data TraceError e =
     TraceAssertionError EM.AssertionError
     | ContractError e
+    | HandleBlockchainEventsMaxIterationsExceeded MaxIterations
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
@@ -362,18 +380,36 @@ addInterestingTxEvents mp wallet = do
             $ Map.filterWithKey (\addr _ -> addr `Set.member` relevantAddresses) mp
     traverse_ (addEvent wallet) relevantTransactions
 
+addTxConfirmedEvent
+    :: forall s e m a.
+        ( HasTxConfirmation s
+        , MonadEmulator (TraceError e) m
+        )
+    => TxId
+    -> Wallet
+    -> ContractTrace s e m a ()
+addTxConfirmedEvent txid wallet = do
+    hks <- getHooks wallet
+    let relevantTxIds = AwaitTxConfirmed.txIds hks
+    when (txid `Set.member` relevantTxIds)
+        (addEvent wallet (AwaitTxConfirmed.event txid))
+
 -- | Respond to all 'WatchAddress' requests from contracts that are waiting
 --   for a change to an address touched by this transaction
 addTxEvents
     :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
+       , HasTxConfirmation s
        )
     => Tx
     -> ContractTrace s e m a ()
 addTxEvents tx = do
     idx <- lift (gets (view EM.walletIndex))
-    let events = WatchAddress.events idx tx
-    traverse_ (addInterestingTxEvents events) allWallets
+    let watchAddressEvents = WatchAddress.events idx tx
+    let addTxEventsWallet wllt = do
+            addInterestingTxEvents watchAddressEvents wllt
+            addTxConfirmedEvent (txId tx) wllt
+    traverse_ addTxEventsWallet allWallets
 
 -- | Get the unbalanced transactions that the wallet's contract instance
 --   would like to submit to the blockchain.
@@ -436,24 +472,44 @@ addBlocks
 addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
 
+-- | Handle all blockchain events for the wallet, throwing an error
+--   if there are unhandled events after 'defaultMaxIterations'.
 handleBlockchainEvents
     :: ( MonadEmulator (TraceError e) m
        , HasUtxoAt s
        , HasWatchAddress s
        , HasWriteTx s
        , HasOwnPubKey s
+       , HasTxConfirmation s
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleBlockchainEvents wallet = do
-    hks <- getHooks wallet
-    if waitingForBlockchainActions hks
-        then do
-            submitUnbalancedTxns wallet
-            handleUtxoQueries wallet
-            handleOwnPubKeyQueries wallet
-            handleBlockchainEvents wallet
-        else pure ()
+handleBlockchainEvents = handleBlockchainEventsTimeout defaultMaxIterations
+
+-- | Handle all blockchain events for the wallet, throwing an error
+--   if the given number of iterations is exceeded
+handleBlockchainEventsTimeout
+    :: ( MonadEmulator (TraceError e) m
+    , HasUtxoAt s
+    , HasWatchAddress s
+    , HasWriteTx s
+    , HasOwnPubKey s
+    , HasTxConfirmation s
+    )
+    => MaxIterations
+    -> Wallet
+    -> ContractTrace s e m a ()
+handleBlockchainEventsTimeout (MaxIterations i) wallet = go 0 where
+    go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded (MaxIterations i)))
+         | otherwise = do
+            hks <- getHooks wallet
+            if waitingForBlockchainActions hks
+                then do
+                    submitUnbalancedTxns wallet
+                    handleUtxoQueries wallet
+                    handleOwnPubKeyQueries wallet
+                    go (j + 1)
+                else pure ()
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to
@@ -462,6 +518,7 @@ submitUnbalancedTxns
     :: ( MonadEmulator (TraceError e) m
        , HasWatchAddress s
        , HasWriteTx s
+       , HasTxConfirmation s
        )
     => Wallet
     -> ContractTrace s e m a ()

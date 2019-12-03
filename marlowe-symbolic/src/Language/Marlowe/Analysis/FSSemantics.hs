@@ -1104,7 +1104,7 @@ transSlotsPositive trans = slotMin .>= 0 .&& slotMax .>= 0
 
 transListSlotsPositive :: MaxActions -> SList NTransaction -> SBool
 transListSlotsPositive b slist
-  | b <= 0 = sFalse
+  | b < 0 = sTrue
   | otherwise = ite (SL.null slist)
                     sTrue
                     (transSlotsPositive (SL.head slist) .&&

@@ -67,7 +67,7 @@ throwAndCatch =
 catchContractError :: (AsMyError e, AsContractError e, HasWriteTx s) => Contract s e ()
 catchContractError =
     catching _MyContractError
-        (void $ writeTxSuccess mempty)
+        (void $ submitTx mempty)
         (\_ -> throwing_ _Error2)
 
 contract

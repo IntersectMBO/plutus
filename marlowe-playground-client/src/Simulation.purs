@@ -29,7 +29,7 @@ import Data.Tuple (Tuple(..), snd)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), a, b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), a, b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, classes, enabled, id_, placeholder, prop, type_, value)
 import Halogen.HTML.Properties.ARIA (role)
@@ -43,7 +43,7 @@ import Prelude (class Show, Unit, bind, compare, const, discard, flip, identity,
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -66,10 +66,11 @@ simulationPane state =
               [ inputComposerPane state
               , transactionComposerPane state
               ]
+          , row_ [ displayWarnings warnings ]
+          , row_ [ col_ (state ^. (_marloweState <<< _Head <<< _transactionError <<< to transactionErrors)) ]
           , stateTitle state
           , row_ [ statePane state ]
           ]
-        , state ^. (_marloweState <<< _Head <<< _transactionError <<< to transactionErrors)
         , [ div
               [ classes
                   [ ClassName "demos"
@@ -101,6 +102,8 @@ simulationPane state =
   errorList = case view _marloweCompileResult state of
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
+
+  warnings = view (_marloweState <<< _Head <<< _transactionWarnings) state
 
 loadBuffer :: Effect (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
@@ -1052,6 +1055,22 @@ displayWarningList transactionWarnings = case runParser transactionWarnings tran
           pure (li_ (displayWarning warning))
       )
   Left _ -> code_ [ text transactionWarnings ]
+
+displayWarnings :: forall p. Array TransactionWarning -> HTML p HAction
+displayWarnings [] = text mempty
+
+displayWarnings warnings =
+  div
+    [ classes
+        [ ClassName "invalid-transaction"
+        , ClassName "input-composer"
+        ]
+    ]
+    [ h2 [] [ text "Warnings" ]
+    , ol
+        []
+        $ foldMap (\warning -> [ li_ (displayWarning warning) ]) warnings
+    ]
 
 displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
 displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Lovelace amount)) =

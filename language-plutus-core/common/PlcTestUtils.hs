@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeApplications      #-}
 module PlcTestUtils (
     GetProgram(..),
+    pureTry,
     catchAll,
     rethrow,
     trivialProgram,
@@ -21,8 +22,8 @@ import           Language.PlutusCore.Pretty
 
 import           Control.Exception
 import           Control.Monad.Except
-
 import qualified Data.Text.Prettyprint.Doc                as PP
+import           System.IO.Unsafe
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 -- from the process should be caught.
@@ -34,6 +35,9 @@ instance GetProgram a => GetProgram (ExceptT SomeException IO  a) where
 
 instance GetProgram (Program TyName Name ()) where
     getProgram = pure
+
+pureTry :: Exception e => a -> Either e a
+pureTry = unsafePerformIO . try . evaluate
 
 catchAll :: a -> ExceptT SomeException IO a
 catchAll value = ExceptT $ try @SomeException (evaluate value)
