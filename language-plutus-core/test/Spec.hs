@@ -264,12 +264,12 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , format cfg "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
+    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
     where
-        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
