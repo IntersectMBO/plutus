@@ -21,17 +21,6 @@ cradle:
         cabal:
           component: "language-plutus-core:language-plutus-core-test"
 
-  - path: ./plutus-core-interpreter/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-core-interpreter"
-  - path: ./plutus-core-interpreter/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-core-interpreter:plutus-core-interpreter-test"
-
   - path: ./plutus-emulator/src
     config:
       cradle:
