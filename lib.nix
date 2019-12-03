@@ -17,7 +17,6 @@ let
   plutusPublicPkgList = [
     "language-plutus-core"
     "plutus-contract"
-    "plutus-core-interpreter"
     "plutus-playground-lib"
     "plutus-exe"
     "plutus-ir"
