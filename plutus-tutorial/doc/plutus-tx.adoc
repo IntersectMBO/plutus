@@ -89,7 +89,7 @@ import Language.PlutusTx.Prelude -- <.>
 -- >>> import Tutorial.PlutusTx
 -- >>> import Language.PlutusTx
 -- >>> import Language.PlutusCore
--- >>> import Language.PlutusCore.Evaluation.CkMachine
+-- >>> import Language.PlutusCore.Evaluation.Machine.Ck
 -- >>> import Data.Text.Prettyprint.Doc
 
 ----
