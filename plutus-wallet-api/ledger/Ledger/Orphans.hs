@@ -21,8 +21,8 @@ import           Type.Reflection            (Typeable)
 
 
 {- [Note [Serialising Digests from Crypto.Hash]
-This is more complicated than you might expect.  If you say 
-`encode = encode . BA.unpack` then the contents of the digest are 
+This is more complicated than you might expect.  If you say
+`encode = encode . BA.unpack` then the contents of the digest are
 unpacked into a `Word8` list with 32 entries.  However, when cborg
 serialises a list, every element in the output is preceded by a type
 tag (in this case, 24), and this means that the serialised version is

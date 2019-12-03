@@ -52,7 +52,7 @@ for testing.
    `encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
    sizes and will only use one byte for the tags we have here.  NB: Don't
    use encodeTag or decodeTag; those are for use with a fixed set of CBOR
-   tags with predefined meanings which we shouldn't interfere with.  
+   tags with predefined meanings which we shouldn't interfere with.
    See http://hackage.haskell.org/package/serialise.
 -}
 encodeConstructorTag :: Word -> Encoding
