@@ -910,3 +910,22 @@ extractRequiredActions contract = case contract of
 
 moneyInContract :: State -> Money
 moneyInContract state = foldl (+) zero $ Map.values (unwrap state).accounts
+
+class HasMaxTime a where
+  maxTime :: a -> Timeout
+
+instance hasMaxTimeContract :: HasMaxTime Contract where
+  maxTime Close = zero
+  maxTime (Pay _ _ _ contract) = maxTime contract
+  maxTime (If _ contractTrue contractFalse) = maxOf [ maxTime contractTrue, maxTime contractFalse ]
+  maxTime (When cases timeout contract) = maxOf [ maxTime cases, timeout, maxTime contract ]
+  maxTime (Let _ _ contract) = maxTime contract
+
+instance hasMaxTimeCase :: HasMaxTime Case where
+  maxTime (Case _ contract) = maxTime contract
+
+instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
+  maxTime = maxOf <<< map maxTime
+
+maxOf :: Array Timeout -> Timeout
+maxOf = foldl max zero
