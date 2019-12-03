@@ -41833,6 +41833,7 @@ license = stdenv.lib.licenses.bsd3;
 , text
 , th-lift-instances
 , transformers
+, weigh
 }:
 mkDerivation {
 
@@ -41903,6 +41904,7 @@ bytestring
 containers
 criterion
 serialise
+weigh
 ];
 doHaddock = false;
 description = "Language library for Plutus Core";
@@ -54101,56 +54103,6 @@ homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
-"plutus-core-interpreter" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, containers
-, criterion
-, hedgehog
-, language-plutus-core
-, lens
-, mtl
-, stdenv
-, tasty
-, tasty-hedgehog
-, tasty-hunit
-, weigh
-}:
-mkDerivation {
-
-pname = "plutus-core-interpreter";
-version = "0.1.0.0";
-src = .././plutus-core-interpreter;
-libraryHaskellDepends = [
-base
-containers
-language-plutus-core
-lens
-mtl
-];
-testHaskellDepends = [
-base
-hedgehog
-language-plutus-core
-mtl
-tasty
-tasty-hedgehog
-tasty-hunit
-];
-benchmarkHaskellDepends = [
-base
-bytestring
-criterion
-language-plutus-core
-weigh
-];
-doHaddock = false;
-description = "Virtual machine for Plutus Core";
-license = stdenv.lib.licenses.asl20;
-
-}) {};
 "plutus-emulator" = callPackage
 ({
   mkDerivation
@@ -54263,7 +54215,6 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , lens
 , optparse-applicative
-, plutus-core-interpreter
 , prettyprinter
 , stdenv
 , text
@@ -54282,7 +54233,6 @@ bytestring
 language-plutus-core
 lens
 optparse-applicative
-plutus-core-interpreter
 prettyprinter
 text
 transformers
@@ -54670,7 +54620,6 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , lens
 , mtl
-, plutus-core-interpreter
 , plutus-ir
 , prettyprinter
 , serialise
@@ -54698,7 +54647,6 @@ ghc
 language-plutus-core
 lens
 mtl
-plutus-core-interpreter
 plutus-ir
 prettyprinter
 serialise
@@ -54717,7 +54665,6 @@ hedgehog
 integer-gmp
 language-plutus-core
 mtl
-plutus-core-interpreter
 plutus-ir
 prettyprinter
 tasty

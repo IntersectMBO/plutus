@@ -37,8 +37,8 @@ test_typedDivideIntegerSuccess
     $ genTypedBuiltinDivide
 
 test_typedQuotientIntegerSuccess :: TestTree
-test_typedQuotientIntegerSuccess =
-    testProperty "typedQuotientInteger"
+test_typedQuotientIntegerSuccess
+    = testProperty "typedQuotientInteger"
     $ prop_applyBuiltinNameSuccess typedQuotientInteger (nonZeroArg quot)
     $ genTypedBuiltinDivide
 

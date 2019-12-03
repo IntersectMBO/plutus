@@ -301,7 +301,6 @@ let
           let runtimeGhc =
                 haskellPackages.ghcWithPackages (ps: [
                   haskellPackages.language-plutus-core
-                  haskellPackages.plutus-core-interpreter
                   haskellPackages.plutus-emulator
                   haskellPackages.plutus-wallet-api
                   haskellPackages.plutus-tx

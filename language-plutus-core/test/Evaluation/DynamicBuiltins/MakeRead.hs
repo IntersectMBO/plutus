@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module DynamicBuiltins.MakeRead
+module Evaluation.DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
     ) where
 
@@ -15,7 +15,7 @@ import           Language.PlutusCore.MkPlc             hiding (error)
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Common
+import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.IO.Class                (liftIO)
 import           Hedgehog                              hiding (Size, Var)

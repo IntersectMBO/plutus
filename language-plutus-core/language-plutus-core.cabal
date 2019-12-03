@@ -24,8 +24,10 @@ library
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
-        Language.PlutusCore.Evaluation.CkMachine
-        Language.PlutusCore.Evaluation.MachineException
+        Language.PlutusCore.Evaluation.Machine.Ck
+        Language.PlutusCore.Evaluation.Machine.Cek
+        Language.PlutusCore.Evaluation.Machine.L
+        Language.PlutusCore.Evaluation.Machine.Exception
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
@@ -169,11 +171,17 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Evaluation.CkMachine
-        Evaluation.Constant.All
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
-        Evaluation.Constant.SuccessFailure
+        Evaluation.Constant
+        Evaluation.DynamicBuiltins.Common
+        Evaluation.DynamicBuiltins.Definition
+        Evaluation.DynamicBuiltins.Logging
+        Evaluation.DynamicBuiltins.MakeRead
+        Evaluation.DynamicBuiltins
+        Evaluation.Golden
+        Evaluation.Machines
+        Evaluation.Spec
         Normalization.Check
         Normalization.Type
         Pretty.Readable
@@ -215,6 +223,22 @@ benchmark language-plutus-core-bench
         base -any,
         language-plutus-core -any,
         criterion -any,
+        bytestring -any,
+        serialise -any,
+        containers
+
+benchmark language-plutus-core-weigh
+    type: exitcode-stdio-1.0
+    main-is: Bench.hs
+    hs-source-dirs: weigh
+    default-language: Haskell2010
+    ghc-options: -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+                 -rtsopts
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        weigh -any,
         bytestring -any,
         serialise -any,
         containers

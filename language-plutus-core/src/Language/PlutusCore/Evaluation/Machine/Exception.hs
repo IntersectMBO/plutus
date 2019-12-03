@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Evaluation.MachineException
+module Language.PlutusCore.Evaluation.Machine.Exception
     ( MachineError (..)
     , MachineException (..)
     ) where

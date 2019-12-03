@@ -22,12 +22,6 @@ source-repository-package
 source-repository-package
     type: git 
     location: https://github.com/input-output-hk/plutus 
-    subdir: plutus-core-interpreter
-    tag: dbc2646112a87c710a8dd6f80b63458ca37a06c4
-
-source-repository-package
-    type: git 
-    location: https://github.com/input-output-hk/plutus 
     subdir: plutus-ir
     tag: dbc2646112a87c710a8dd6f80b63458ca37a06c4
 

@@ -100,13 +100,13 @@ module Language.PlutusCore
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.CBOR                 ()
-import qualified Language.PlutusCore.Check.Normal         as Normal
-import qualified Language.PlutusCore.Check.Uniques        as Uniques
-import qualified Language.PlutusCore.Check.Value          as VR
+import           Language.PlutusCore.CBOR                  ()
+import qualified Language.PlutusCore.Check.Normal          as Normal
+import qualified Language.PlutusCore.Check.Uniques         as Uniques
+import qualified Language.PlutusCore.Check.Value           as VR
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Instance.Eq          ()
+import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Instance.Eq           ()
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -117,12 +117,12 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeCheck            as TypeCheck
+import           Language.PlutusCore.TypeCheck             as TypeCheck
 import           Language.PlutusCore.View
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text                                as T
+import qualified Data.ByteString.Lazy                      as BSL
+import qualified Data.Text                                 as T
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
