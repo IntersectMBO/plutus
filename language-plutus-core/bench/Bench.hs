@@ -2,17 +2,18 @@
 
 module Main (main) where
 
+import           Language.PlutusCore
+import qualified Language.PlutusCore.Check.Normal           as Normal
+import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeRunCek)
+import           Language.PlutusCore.Evaluation.Machine.Ck  (runCk)
+import           Language.PlutusCore.Pretty
+
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
 import           Crypto
-import qualified Data.ByteString.Lazy                     as BSL
-import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Normal         as Normal
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.CkMachine (runCk)
-import           Language.PlutusCore.Pretty
-
+import qualified Data.ByteString.Lazy                       as BSL
 
 pubKey, sig, msg :: BSL.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
@@ -111,7 +112,17 @@ main =
                       [ bench "valid" $ nf (fmap runCk) f'
                       , bench "invalid" $ nf (fmap runCk) g'
                       ]
+                , env evalFiles $ \ ~(f, g) ->
+                   let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
+                       processor contents = void <$> (runQuoteT $ parseScoped contents)
+                       f' = processor f
+                       g' = processor g
+                   in
 
+                   bgroup "runCek"
+                     [ bench "valid" $ nf (fmap (unsafeRunCek mempty)) f'
+                     , bench "invalid" $ nf (fmap (unsafeRunCek mempty)) g'
+                     ]
                 ,   bgroup "verifySignature" $
                       let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool
                           verify = verifySignature

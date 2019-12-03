@@ -1,20 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
-module Evaluation.CkMachine
-    ( test_evaluateCk
+module Evaluation.Golden
+    ( test_golden
     ) where
 
 import           Prelude                                    hiding (even)
-
-import           PlcTestUtils
-
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.CkMachine
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Test
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
@@ -24,12 +14,17 @@ import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
+import           Language.PlutusCore
+import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Pretty
+
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
 
 evenAndOdd :: Tuple (Term TyName Name) ()
 evenAndOdd = runQuote $ do
@@ -98,13 +93,14 @@ smallNatList = metaListToList nat nats where
     nat = _recursiveType natData
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
+goldenVsPretty name value =
+    goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
+        either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
-test_evaluateCk :: TestTree
-test_evaluateCk = testGroup "evaluateCk"
-    [ testGroup "props" $ fromInterestingTermGens $ \name ->
-        testProperty name . propEvaluate (pureTry @CkMachineException . evaluateCk)
-    , goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
+-- TODO: ideally, we want to test this for all the machines.
+test_golden :: TestTree
+test_golden = testGroup "golden"
+    [ goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
     , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
     , goldenVsPretty "evenList" . pure . evaluateCk $
           Apply () natSum $ Apply () evenList smallNatList

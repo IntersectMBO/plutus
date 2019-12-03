@@ -27,7 +27,6 @@ executable plc
     build-depends:
         base <5,
         language-plutus-core -any,
-        plutus-core-interpreter -any,
         transformers -any,
         bytestring -any,
         text -any,

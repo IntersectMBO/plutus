@@ -19,13 +19,24 @@ import qualified Language.PlutusTx.Prelude  as P
 import           Schema                     (FormSchema (FormSchemaHex), ToSchema (toSchema))
 import           Type.Reflection            (Typeable)
 
+
+{- [Note [Serialising Digests from Crypto.Hash]
+This is more complicated than you might expect.  If you say
+`encode = encode . BA.unpack` then the contents of the digest are
+unpacked into a `Word8` list with 32 entries.  However, when cborg
+serialises a list, every element in the output is preceded by a type
+tag (in this case, 24), and this means that the serialised version is
+about 64 bytes long, twice the length of the original data.  Packing
+the `Word8` list into a `ByteString` first fixes this because cborg
+just serialises it as a sequence of contiguous bytes. -}
+
 instance Serialise (Digest SHA256) where
-    encode = encode . BA.unpack
+    encode = encode . BSS.pack . BA.unpack
     decode = do
-      d <- decode
-      let md = digestFromByteString . BSS.pack $ d
-      case md of
-        Nothing -> fail "couldn't decode to Digest SHA256"
+      d :: BSS.ByteString <- decode
+      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
+      case digestFromByteString bs of
+        Nothing -> fail $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
 
 instance ToJSON (Digest SHA256) where

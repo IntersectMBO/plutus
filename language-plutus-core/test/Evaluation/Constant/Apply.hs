@@ -7,18 +7,16 @@
 module Evaluation.Constant.Apply
     ( prop_applyBuiltinName
     , prop_applyBuiltinNameSuccess
-    , prop_applyBuiltinNameSuccessFailure
-    , prop_applyBuiltinNameFailure
     ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.CkMachine
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators
 
 import           Data.Foldable
 import           Data.List
-import           Hedgehog                                 hiding (Var)
+import           Hedgehog                                  hiding (Var)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -53,19 +51,4 @@ prop_applyBuiltinName toFinal tbn op allTbs = property $ do
 prop_applyBuiltinNameSuccess
     :: KnownType r => TypedBuiltinName a r -> a -> TypedBuiltinGenT IO -> Property
 prop_applyBuiltinNameSuccess =
-    prop_applyBuiltinName $ ConstAppSuccess . makeKnown
-
--- | A specialized version of 'prop_applyBuiltinName'. The result of an 'applyBuiltinName'
--- computation must be either a 'ConstAppSuccess' or 'ConstAppFailure'.
--- See the "SuccessFailure" module for tests defined in terms of this function.
-prop_applyBuiltinNameSuccessFailure
-    :: KnownType r => TypedBuiltinName a r -> a -> Property
-prop_applyBuiltinNameSuccessFailure tbn x =
-    prop_applyBuiltinName makeConstAppResult tbn x genTypedBuiltinDef
-
--- | A specialized version of 'prop_applyBuiltinName'. The result of an 'applyBuiltinName'
--- computation must be either a 'ConstAppFailure'.
-prop_applyBuiltinNameFailure
-    :: KnownType r => TypedBuiltinName a r -> a -> TypedBuiltinGenT IO -> Property
-prop_applyBuiltinNameFailure =
     prop_applyBuiltinName makeConstAppResult

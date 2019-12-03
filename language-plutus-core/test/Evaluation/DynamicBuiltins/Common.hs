@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module DynamicBuiltins.Common
+module Evaluation.DynamicBuiltins.Common
     ( typecheckEvaluateCek
     , typecheckReadKnownCek
     ) where
@@ -8,7 +8,7 @@ module DynamicBuiltins.Common
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
-import           Language.PlutusCore.Interpreter.CekMachine
+import           Language.PlutusCore.Evaluation.Machine.Cek
 
 import           Control.Monad.Except
 

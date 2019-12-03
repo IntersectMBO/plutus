@@ -32,24 +32,25 @@
 -- evaluating e.
 
 
-module Language.PlutusCore.Interpreter.LMachine
+module Language.PlutusCore.Evaluation.Machine.L
     ( EvaluationResult (..)
     , EvaluationResultDef
-    , LMachineError
+    , LMachineError (..)
+    , LMachineException
     , evaluateL
     , runL
     ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Control.Monad.Identity
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
+import           Data.IntMap                                      (IntMap)
+import qualified Data.IntMap                                      as IntMap
 
 type Plain f = f TyName Name ()
 
@@ -66,6 +67,8 @@ data LMachineError
     = LocationNotInHeap HeapLoc
     | VariableNotInHeap
     | NoDynamicBuiltinsYet  -- Temporary
+
+type LMachineException = MachineException LMachineError
 
 instance Pretty LMachineError where
     pretty (LocationNotInHeap l) = "Location" <+> pretty l <+> "does not exist in the heap"

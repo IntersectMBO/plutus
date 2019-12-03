@@ -75,7 +75,6 @@ library
         template-haskell >=2.13.0.0,
         th-abstraction -any,
         language-plutus-core -any,
-        plutus-core-interpreter -any,
         plutus-tx-compiler -any
 
 library plutus-tx-compiler
@@ -148,7 +147,6 @@ test-suite plutus-tx-tests
         base >=4.9 && <5,
         integer-gmp -any,
         language-plutus-core -any,
-        plutus-core-interpreter -any,
         plutus-tx -any,
         plutus-tx-compiler -any,
         plutus-ir -any,

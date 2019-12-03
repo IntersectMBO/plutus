@@ -12,7 +12,7 @@ import           Language.PlutusTx.Plugin
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Constant               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic       as PLC
-import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

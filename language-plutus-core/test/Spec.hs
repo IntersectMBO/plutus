@@ -7,8 +7,7 @@ module Main
 import           PlutusPrelude
 
 import qualified Check.Spec                                 as Check
-import           Evaluation.CkMachine
-import           Evaluation.Constant.All
+import           Evaluation.Spec                            (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
@@ -16,7 +15,7 @@ import           TypeSynthesis.Spec                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
+import           Language.PlutusCore.Evaluation.Machine.Ck  (runCk)
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
@@ -139,8 +138,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , test_Pretty
     , test_typeNormalization
     , test_typecheck
-    , test_constant
-    , test_evaluateCk
+    , test_evaluation
     , test_normalizationCheck
     , Check.tests
     ]
@@ -155,6 +153,9 @@ errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+
+-- TODO: evaluation tests should go under the 'Evaluation' module,
+-- normalization tests -- under 'Normalization', etc.
 
 evalFile :: BSL.ByteString -> Either (Error AlexPosn) T.Text
 evalFile contents = second prettyPlcDefText (runCk . void <$> (runQuoteT $ parseScoped contents))

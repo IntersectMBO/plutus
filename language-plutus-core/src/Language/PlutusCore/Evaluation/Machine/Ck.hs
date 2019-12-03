@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Evaluation.CkMachine
+module Language.PlutusCore.Evaluation.Machine.Ck
     ( CkMachineException
     , EvaluationResult (..)
     , EvaluationResultDef
@@ -12,7 +12,7 @@ module Language.PlutusCore.Evaluation.CkMachine
     ) where
 
 import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type

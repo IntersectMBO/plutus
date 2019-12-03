@@ -36,10 +36,10 @@ import Halogen.HTML.Properties.ARIA (role)
 import LocalStorage as LocalStorage
 import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
+import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (class Show, Unit, bind, compare, const, discard, flip, identity, mempty, not, pure, show, unit, void, ($), (+), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, Unit, bind, compare, const, discard, flip, identity, mempty, not, pure, show, unit, void, zero, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Pos (Position(..))
@@ -635,6 +635,14 @@ stateTitle state =
             ]
         ]
         [ strong_
+            [ text "Contract expiration (slot):"
+            ]
+        , span
+            [ class_ $ ClassName "max-contract-length"
+            ]
+            [ view (_marloweState <<< _Head <<< _contract <<< to contractMaxTime <<< to text) state
+            ]
+        , strong_
             [ text "Current Block:"
             ]
         , span
@@ -653,6 +661,10 @@ stateTitle state =
         , strong_ [ text "ADA" ]
         ]
     ]
+  where
+  contractMaxTime Nothing = "Closed"
+
+  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
 
 statePane :: forall p. FrontendState -> HTML p HAction
 statePane state =

@@ -101,7 +101,7 @@ theFuture = Future {
 
 -- | This is the address of contract 'theFuture', initialised by wallet 1
 tokenCurrency :: CurrencySymbol
-tokenCurrency = "ca207c5d10ff395c6d3f983d38d31313dd4d1ec3560e631bcf386389c588f0cd"
+tokenCurrency = "e1c5fdd12f4263887e7712b59e02825a2b098337cc31d998efe98c285af2f093"
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
