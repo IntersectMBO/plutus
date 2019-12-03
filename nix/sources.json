@@ -11,18 +11,6 @@
         "url": "https://github.com/agda/agda-stdlib/archive/v1.0.1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "all-hies": {
-        "branch": "master",
-        "description": "Cached Haskell IDE Engine Nix builds for all GHC versions",
-        "homepage": "",
-        "owner": "reactormonk",
-        "repo": "all-hies",
-        "rev": "ad895cc4132799ab77e8f0b1c8fc4091ee77240e",
-        "sha256": "0pvmn5mnylzgxh56ph6km15p7sblhp660k2q2bsf3jrzc8h7zcgp",
-        "type": "tarball",
-        "url": "https://github.com/reactormonk/all-hies/archive/ad895cc4132799ab77e8f0b1c8fc4091ee77240e.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "deployment-nixpkgs": {
         "branch": "nixos-19.09",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",

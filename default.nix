@@ -381,7 +381,7 @@ let
     dev = rec {
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
-      } // { hie-bios = hie-bios; };
+      };
 
       scripts = {
         inherit (localLib) regeneratePackages;
@@ -472,9 +472,6 @@ let
         '';
       };
 
-      all-hies = pkgs.callPackage sources.all-hies {};
-      hie-bios = all-hies.bios.selection { selector = p: { inherit (p) ghc864; }; };
-
       withDevTools = env: env.overrideAttrs (attrs:
         { nativeBuildInputs = attrs.nativeBuildInputs ++
                               [ packages.cabal-install
@@ -486,7 +483,6 @@ let
                                 easyPS.purs
                                 easyPS.spago
                                 easyPS.purty
-                                hie-bios
                               ];
         });
     };
