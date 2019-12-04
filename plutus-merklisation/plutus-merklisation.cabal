@@ -6,7 +6,7 @@ homepage:       https://github.com/githubuser/plutus-merklisation#readme
 bug-reports:    https://github.com/githubuser/plutus-merklisation/issues
 author:         Author name here
 maintainer:     example@example.com
-copyright:      2019 Author name here
+copyright:      2019 IOHK
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -24,6 +24,7 @@ executable ast-analysis
   other-modules: Hashes
                  Merkle
                  Language.PlutusCore.Merkle.Type
+                 Language.PlutusCore.Merkle.Merklisable
                  Language.PlutusCore.Merkle.CBOR
                  Language.PlutusCore.Merkle.Error
                  Language.PlutusCore.Merkle.MkPlc
@@ -75,6 +76,7 @@ executable ast-analysis
 executable compression-analysis
   main-is: AstCompression.hs
   other-modules: Hashes
+                 Language.PlutusCore.Merkle.Merklisable
                  Merkle
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.CBOR
@@ -85,6 +87,9 @@ executable compression-analysis
                  Language.PlutusCore.Merkle.Pretty.Plc
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
+                 Language.PlutusCore.Merkle.Merklise
+                 Language.PlutusCore.Merkle.CekMarker
+                 
 
   hs-source-dirs:
       src
@@ -129,6 +134,7 @@ executable type-sizes
   main-is: TypeSizes.hs
   other-modules: Hashes
                  Merkle
+                 Language.PlutusCore.Merkle.Merklisable
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.CBOR
                  Language.PlutusCore.Merkle.Error
