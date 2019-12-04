@@ -90,7 +90,7 @@ instance Monoid ValueAllocation where
 data StateMachineClient s i = StateMachineClient
     { scInstance :: SM.StateMachineInstance s i
     -- ^ The instance of the state machine, defining the machine's transitions,
-    --   its final state and its check function.
+    --   its final states and its check function.
     , scPayments :: s -> i -> Value -> ValueAllocation
     -- ^ A function that determines the 'ValueAllocation' of each transition,
     --   given the value currently locked by the contract.
