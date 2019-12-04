@@ -59,7 +59,7 @@ import qualified Wallet.Typed.StateMachine         as SM
 
 data SMContractError s i =
     SMError (SM.SMError s i)
-    | InvalidTransition
+    | InvalidTransition s i
     | NonZeroValueAllocatedInFinalState
     | ChooserError Text
     deriving (Show)
@@ -146,6 +146,9 @@ runStep ::
     -- ^ The input to apply to the state machine
     -> Contract schema e state
 runStep smc input = do
+    -- the transaction returned by 'mkStep' includes an output with the payments
+    -- to the script address, so we only need to deal with the 'vaOtherPayments'
+    -- field of the value allocation here.
     (typedTx, newState, ValueAllocation{vaOtherPayments}) <- mkStep smc input
     let tx = case typedTx of
             (Typed.TypedTxSomeOuts tx') -> Tx.fromLedgerTx (Typed.toUntypedTx tx')
@@ -188,7 +191,7 @@ mkStep client@StateMachineClient{scInstance, scPayments} input = do
     (TypedScriptTxOut{tyTxOutData=currentState}, txOutRef) <- getOnChainState client
     newState <- case smTransition currentState input of
         Just s  -> pure s
-        Nothing -> throwing_ _InvalidTransition
+        Nothing -> throwing _InvalidTransition (currentState, input)
 
     let typedTxIn = Typed.makeTypedScriptTxIn @(SM.StateMachine state input) validatorInstance input txOutRef
         valueAllocation = scPayments currentState input (Typed.txInValue typedTxIn)

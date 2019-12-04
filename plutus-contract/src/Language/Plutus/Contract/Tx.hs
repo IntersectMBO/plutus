@@ -71,6 +71,12 @@ data UnbalancedTx = UnbalancedTx
         , _dataValues         :: [DataScript]
         , _validityRange      :: SlotRange
         , _valueMoved         :: Value
+        -- ^ The minimum size of the transaction's left and right side. The
+        --   purpose of this field is to enable proof of ownership for tokens
+        --   (a transaction proves ownership of a token if the value consumed
+        --   and spent by it includes the token. The value in the '_valueMoved'
+        --   field will be paid from the wallet's own funds back to an address
+        --   owned by the wallet)
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)

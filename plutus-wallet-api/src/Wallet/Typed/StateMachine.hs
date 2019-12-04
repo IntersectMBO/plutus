@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -14,8 +15,9 @@ module Wallet.Typed.StateMachine where
 
 import           Control.Lens
 import           Control.Monad
+import           Data.Either                    (rights)
 import qualified Data.Map                       as Map
-import           Data.Maybe                     (fromMaybe, mapMaybe)
+import           Data.Maybe                     (fromMaybe)
 import qualified Data.Text                      as T
 
 import qualified Language.PlutusTx              as PlutusTx
@@ -43,10 +45,11 @@ getStates
     -> [OnChainState s i]
 getStates (SM.StateMachineInstance _ si) am =
     let refMap = fromMaybe Map.empty $ am ^. at (Scripts.scriptAddress si)
-    in flip mapMaybe (Map.toList refMap) $ \(ref, out) -> do
-        tref <- either (const Nothing) pure $ Typed.typeScriptTxOutRef (\r -> Map.lookup r refMap) si ref
-        tout <- either (const Nothing) pure $ Typed.typeScriptTxOut si out
-        pure (tout, tref)
+        lkp (ref, out) = do
+            tref <- Typed.typeScriptTxOutRef (\r -> Map.lookup r refMap) si ref
+            tout <- Typed.typeScriptTxOut si out
+            pure (tout, tref)
+    in rights $ fmap lkp $ Map.toList refMap
 
 mkInitialise
     :: forall s i m
