@@ -32,48 +32,49 @@ module Language.PlutusCore.Merkle.Untyped.Term ( Term (..)
                                 , deBruijnToIntProgram
                                 ) where
 
-import           Control.Lens                   hiding (anon)
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable
-import           Instances.TH.Lift              ()
-import           Language.Haskell.TH.Syntax     (Lift)
-import qualified Language.PlutusCore.DeBruijn   as D
-import           Language.PlutusCore.Lexer.Type
-import qualified Language.PlutusCore.Merkle.Type       as T
-import qualified Language.PlutusCore.Name       as N
-import           PlutusPrelude
-import           Codec.Serialise
 import           Codec.CBOR.Decoding
+import           Codec.Serialise
+import           Control.Lens                    hiding (anon)
+import           Crypto.Hash                     (Digest, SHA256)
+import qualified Data.ByteString.Lazy            as BSL
+import           Data.Functor.Foldable
+import           Instances.TH.Lift               ()
+import qualified Language.PlutusCore.DeBruijn    as D
+import           Language.PlutusCore.Lexer.Type
+import qualified Language.PlutusCore.Merkle.Type as T
+import qualified Language.PlutusCore.Name        as N
+import           PlutusPrelude
 
 termLoc :: Term name a -> a
-termLoc (Var l _)        = l
-termLoc (Apply l _ _)    = l
-termLoc (Constant l _)   = l
-termLoc (Builtin l _)    = l
-termLoc (Error l)        = l
-termLoc (LamAbs l _ _)   = l
+termLoc (Var l _)      = l
+termLoc (Apply l _ _)  = l
+termLoc (Constant l _) = l
+termLoc (Builtin l _)  = l
+termLoc (Error l)      = l
+termLoc (LamAbs l _ _) = l
+termLoc (Prune l _)    = l
 
 data Builtin a = BuiltinName a BuiltinName  -- Just copy Builtin and Constant to simplify things
                | DynBuiltinName a DynamicBuiltinName
-               deriving (Functor, Show, Eq, Generic, NFData, Lift)
+               deriving (Functor, Show, Eq, Generic, NFData)
 
 translateBuiltin :: T.Builtin a -> Builtin a
 translateBuiltin = \case
   T.BuiltinName x n    -> BuiltinName x n
   T.DynBuiltinName x n -> DynBuiltinName x n
-                        
+
 -- | A constant value.
 data Constant a = BuiltinInt a Integer
                 | BuiltinBS a BSL.ByteString
                 | BuiltinStr a String
-                deriving (Functor, Show, Eq, Generic, NFData, Lift)
+                deriving (Functor, Show, Eq, Generic, NFData)
 
 translateConstant :: T.Constant a -> Constant a
 translateConstant = \case
      T.BuiltinInt x n -> BuiltinInt x n
      T.BuiltinBS x s  -> BuiltinBS x s
      T.BuiltinStr x s -> BuiltinStr x s
-                         
+
 -- | A 'Term' is a value.
 data Term name a = Var a (name a) -- ^ A named variable
                  | LamAbs a (name a) (Term name a)
@@ -81,14 +82,16 @@ data Term name a = Var a (name a) -- ^ A named variable
                  | Constant a (Constant a) -- ^ A constant term
                  | Builtin a (Builtin a)
                  | Error a
-                   deriving (Functor, Show, Eq, Generic, NFData, Lift)
+                 | Prune a (Digest SHA256)
+                   deriving (Functor, Show, Eq, Generic, NFData)
 
 data TermF name a x = VarF a (name a)
                     | LamAbsF a (name a) x
                     | ApplyF a x x
                     | ConstantF a (Constant a)
                     | BuiltinF a (Builtin a)
-                    | ErrorF a 
+                    | ErrorF a
+                    | PruneF a (Digest SHA256)
                       deriving (Functor, Traversable, Foldable)
 
 type instance Base (Term name a) = TermF name a
@@ -96,23 +99,25 @@ type instance Base (Term name a) = TermF name a
 type Value = Term
 
 data Program name ann = Program ann (Version ann) (Term name ann)
-    deriving (Show, Eq, Functor, Generic, NFData, Lift)
+    deriving (Show, Eq, Functor, Generic, NFData)
 
 instance Recursive (Term name a) where
-    project (Var x n)           = VarF x n
-    project (LamAbs x n t)      = LamAbsF x n t
-    project (Apply x t t')      = ApplyF x t t'
-    project (Constant x c)      = ConstantF x c
-    project (Builtin x bi)      = BuiltinF x bi
-    project (Error x)           = ErrorF x
+    project (Var x n)      = VarF x n
+    project (LamAbs x n t) = LamAbsF x n t
+    project (Apply x t t') = ApplyF x t t'
+    project (Constant x c) = ConstantF x c
+    project (Builtin x bi) = BuiltinF x bi
+    project (Error x)      = ErrorF x
+    project (Prune x a)    = PruneF x a
 
 instance Corecursive (Term name a) where
-    embed (VarF x n)           = Var x n
-    embed (LamAbsF x n t)      = LamAbs x n t
-    embed (ApplyF x t t')      = Apply x t t'
-    embed (ConstantF x c)      = Constant x c
-    embed (BuiltinF x bi)      = Builtin x bi
-    embed (ErrorF x)           = Error x
+    embed (VarF x n)      = Var x n
+    embed (LamAbsF x n t) = LamAbs x n t
+    embed (ApplyF x t t') = Apply x t t'
+    embed (ConstantF x c) = Constant x c
+    embed (BuiltinF x bi) = Builtin x bi
+    embed (ErrorF x)      = Error x
+    embed (PruneF x a)    = Prune x a
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
@@ -120,10 +125,11 @@ termSubterms :: Traversal' (Term name a) (Term name a)
 termSubterms f = \case
     LamAbs x n t -> LamAbs x n <$> f t
     Apply x t1 t2 -> Apply x <$> f t1 <*> f t2
-    e@Error {} -> pure e
-    v@Var {} -> pure v
+    e@Error    {} -> pure e
+    v@Var      {} -> pure v
     c@Constant {} -> pure c
-    b@Builtin {} -> pure b
+    b@Builtin  {} -> pure b
+    p@Prune    {} -> pure p
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
 termVars :: Traversal' (Term name a) (name a)
@@ -155,7 +161,7 @@ erase = \case
         T.Unwrap _ t     -> erase t
         T.IWrap _ _ _ t  -> erase t
         T.Error x _      -> Error x
-
+        T.Prune x h      -> Prune x h
 
 eraseProgram :: T.Program _ty name a -> Program name a
 eraseProgram (T.Program ann version body) = Program ann version (erase body)
@@ -167,8 +173,8 @@ anon :: N.Name ann -> N.Name ann
 anon (N.Name ann _str uniq) = N.Name ann "" uniq
 
 anonTn :: N.TyName ann -> N.TyName ann
-anonTn (N.TyName n) = N.TyName (anon n) 
-                              
+anonTn (N.TyName n) = N.TyName (anon n)
+
 anonTy :: T.Type N.TyName ann -> T.Type N.TyName ann
 anonTy = \case
       T.TyVar x tn         -> T.TyVar x (anonTn tn)
@@ -178,8 +184,8 @@ anonTy = \case
       T.TyBuiltin x tb     -> T.TyBuiltin x tb
       T.TyLam x tn k ty    -> T.TyLam x (anonTn tn) k (anonTy ty)
       T.TyApp x ty ty'     -> T.TyApp x (anonTy ty) (anonTy ty')
+      T.TyPruned x h       -> T.TyPruned x h
 
-                              
 anonTerm :: T.Term N.TyName N.Name ann -> T.Term N.TyName N.Name ann
 anonTerm = \case
            T.Var x n          -> T.Var x (anon n)
@@ -192,6 +198,7 @@ anonTerm = \case
            T.Unwrap x e       -> T.Unwrap x (anonTerm e)
            T.IWrap x ty ty' e -> T.IWrap x (anonTy ty) (anonTy ty') (anonTerm e)
            T.Error x ty       -> T.Error x (anonTy ty)
+           T.Prune x h        -> T.Prune x h
 
 anonProgram :: T.Program N.TyName N.Name a -> T.Program N.TyName N.Name a
 anonProgram (T.Program ann version body) = T.Program ann version (anonTerm body)
@@ -209,19 +216,20 @@ instance Serialise (IntName a) where
 
 instance Show (IntName a) where
     show (IntName n) = show n
-             
+
 nameToInt :: N.Name a -> IntName a
 nameToInt (N.Name _ _ (N.Unique uniq)) = IntName uniq
 
 
 nameToIntTerm :: Term N.Name ann -> Term IntName ann
 nameToIntTerm = \case
-        Var x n        -> Var x (nameToInt n)
-        LamAbs x n t   -> LamAbs x (nameToInt n) (nameToIntTerm t)
+        Var x n       -> Var x (nameToInt n)
+        LamAbs x n t  -> LamAbs x (nameToInt n) (nameToIntTerm t)
         Apply x t1 t  -> Apply x (nameToIntTerm t1) (nameToIntTerm t)
-        Error x        -> Error x
-        Constant x c   -> Constant x c
-        Builtin x b    -> Builtin x b
+        Error x       -> Error x
+        Constant x c  -> Constant x c
+        Builtin x b   -> Builtin x b
+        Prune x h     -> Prune x h
 
 nameToIntProgram :: Program N.Name a -> Program IntName a
 nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm body)
@@ -234,12 +242,12 @@ nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm
    plutus-use-cases.  This will dump the source to the terminal, along
    with all the other build output. This isn't ideal, but it's a quick
    way to get PLC. The source probably won't compile though (clashes
-   with built in names; also plc can't handle extensible builtins (yet). 
+   with built in names; also plc can't handle extensible builtins (yet).
 -}
 
 
 -- A quick converter from terms using names based on deBruijn indices
--- to ones just using Ints, to see if that makes any differenc to
+-- to ones just using Ints, to see if that makes any difference to
 -- compressibility.
 
 deBruijnToInt :: D.DeBruijn ann -> IntName ann
@@ -254,6 +262,7 @@ deBruijnToIntTerm = \case
         Error x        -> Error x
         Constant x c   -> Constant x c
         Builtin x b    -> Builtin x b
+        Prune x h -> Prune x h
 
 deBruijnToIntProgram :: Program D.DeBruijn a -> Program IntName a
 deBruijnToIntProgram (Program ann version body) = Program ann version (deBruijnToIntTerm body)
