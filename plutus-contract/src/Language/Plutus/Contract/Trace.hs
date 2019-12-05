@@ -98,6 +98,7 @@ import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
 import qualified Ledger.AddressMap                                 as AM
+import qualified Ledger.Blockchain                                 as Blockchain
 import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Tx                                         (Tx, txId)
 import           Ledger.TxId                                       (TxId)
@@ -480,7 +481,7 @@ addBlocksUntil
     => Slot
     -> ContractTrace s e m a ()
 addBlocksUntil sl = do
-    currentSlot <- lift $ gets (Slot . fromIntegral . length . NC._chainNewestFirst . EM._chainState)
+    currentSlot <- lift $ gets (Blockchain.lastSlot . NC._chainNewestFirst . EM._chainState)
     let Slot missing = sl - currentSlot
     addBlocks (max 0 missing)
 
