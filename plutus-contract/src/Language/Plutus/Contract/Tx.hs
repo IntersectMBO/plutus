@@ -16,6 +16,7 @@ module Language.Plutus.Contract.Tx(
     , forge
     , requiredSignatures
     , validityRange
+    , valueMoved
     , toLedgerTx
     , fromLedgerTx
     -- * Constructing transactions
@@ -24,6 +25,7 @@ module Language.Plutus.Contract.Tx(
     , collectFromScript
     , collectFromScriptFilter
     , forgeValue
+    , moveValue
     -- * Constructing inputs
     , Tx.pubKeyTxIn
     , Tx.scriptTxIn
@@ -68,6 +70,13 @@ data UnbalancedTx = UnbalancedTx
         , _requiredSignatures :: [PubKey]
         , _dataValues         :: [DataScript]
         , _validityRange      :: SlotRange
+        , _valueMoved         :: Value
+        -- ^ The minimum size of the transaction's left and right side. The
+        --   purpose of this field is to enable proof of ownership for tokens
+        --   (a transaction proves ownership of a token if the value consumed
+        --   and spent by it includes the token. The value in the '_valueMoved'
+        --   field will be paid from the wallet's own funds back to an address
+        --   owned by the wallet)
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
@@ -75,7 +84,7 @@ data UnbalancedTx = UnbalancedTx
 Lens.TH.makeLenses ''UnbalancedTx
 
 instance Pretty UnbalancedTx where
-    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange} =
+    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange, _valueMoved} =
         let renderOutput Tx.TxOut{Tx.txOutType, Tx.txOutValue} =
                 hang 2 $ vsep ["-" <+> pretty txOutValue <+> "locked by", pretty txOutType]
             renderInput Tx.TxIn{Tx.txInRef,Tx.txInType} =
@@ -93,6 +102,7 @@ instance Pretty UnbalancedTx where
                 , hang 2 (vsep ("required signatures:": fmap pretty _requiredSignatures))
                 , hang 2 (vsep ("data values:" : fmap pretty _dataValues))
                 , "validity range:" <+> viaShow _validityRange
+                , "value moved:" <+> pretty _valueMoved
                 ]
         in braces $ nest 2 $ vsep lines'
 
@@ -105,6 +115,7 @@ fromLedgerTx tx = UnbalancedTx
             , _requiredSignatures = Map.keys $ L.txSignatures tx
             , _dataValues = toList $ L.txData tx
             , _validityRange = L.txValidRange tx
+            , _valueMoved = mempty
             }
 
 instance Semigroup UnbalancedTx where
@@ -114,11 +125,12 @@ instance Semigroup UnbalancedTx where
         _forge = _forge tx1 <> _forge tx2,
         _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
         _dataValues = _dataValues tx1 <> _dataValues tx2,
-        _validityRange = _validityRange tx1 /\ _validityRange tx2
+        _validityRange = _validityRange tx1 /\ _validityRange tx2,
+        _valueMoved = _valueMoved tx1 <> _valueMoved tx2
         }
 
 instance Monoid UnbalancedTx where
-    mempty = UnbalancedTx mempty mempty mempty mempty mempty top
+    mempty = UnbalancedTx mempty mempty mempty mempty mempty top mempty
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
@@ -140,7 +152,7 @@ toLedgerTx utx =
 --   will be ignored.
 --   Note: this doesn't populate the data scripts, so is not exported. Prefer using 'payToScript' etc.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always mempty
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataScript -> UnbalancedTx
@@ -178,6 +190,10 @@ collectFromScriptFilter flt am vls red =
 -- | An 'UnbalancedTx' that forges the specified value.
 forgeValue :: Value -> UnbalancedTx
 forgeValue vl = mempty { _forge = vl }
+
+-- | An 'UnbalancedTx' that moves the specified value
+moveValue :: Value -> UnbalancedTx
+moveValue vl = mempty { _valueMoved = vl }
 
 {- Note [Unbalanced transactions]
 

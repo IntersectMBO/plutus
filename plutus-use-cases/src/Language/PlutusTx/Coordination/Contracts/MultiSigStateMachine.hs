@@ -9,6 +9,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -25,29 +26,22 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , contract
     ) where
 
-import           Data.Functor                 (void)
-import qualified Data.Map                     as Map
-import           Control.Applicative          (Applicative (..))
-import           Control.Lens                 ((^.), at, makeClassyPrisms, review)
-import           Control.Monad.Error.Class    (MonadError)
-import           Control.Monad.Error.Lens
+import           Control.Lens                 (makeClassyPrisms)
 import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (PendingTx, PendingTx'(..))
 import qualified Ledger.Validation            as Validation
-import qualified Ledger.Typed.Tx              as Typed
 import qualified Ledger.Typed.Scripts         as Scripts
-import qualified Ledger.Tx                    as Tx
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import           Ledger                       (PubKey, Slot)
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Language.Plutus.Contract
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
+import           Language.Plutus.Contract.StateMachine (ValueAllocation(..), AsSMContractError, StateMachine(..))
+import qualified Language.Plutus.Contract.StateMachine as SM
+import qualified Language.Plutus.Contract.Tx       as Tx
 import           Language.PlutusTx.Prelude         hiding (check, Applicative (..), (<>))
-import           Language.PlutusTx.StateMachine    (StateMachine(..))
-import qualified Language.PlutusTx.StateMachine    as SM
-import           Prelude                           ((<>))
+import qualified Prelude as Haskell
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -121,18 +115,16 @@ data Input =
 
 data MultiSigError =
     MSContractError ContractError
-    | MSContractStateNotFound
-    -- ^ No unspent output with the contact state was found at the contract
-    --   address
-    | MSInvalidTransition State Input
-    -- ^ An invalid transition was attempted
-    | MSTypedAPIError Typed.ConnectionError
+    | MSStateMachineError (SM.SMContractError State Input)
     deriving Show
 makeClassyPrisms ''MultiSigError
 
 instance AsContractError MultiSigError where
     _ContractError = _MSContractError
 
+instance AsSMContractError MultiSigError State Input where
+    _SMContractError = _MSStateMachineError
+    
 type MultiSigSchema =
     BlockchainActions
         .\/ Endpoint "propose-payment" Payment
@@ -252,84 +244,32 @@ machineInstance params =
     (StateMachine step (check params) final)
     (scriptInstance params)
 
-contract :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
-contract params = (lock params <|> propose <|> cancel <|> addSignature <|> makePaymentC params) >> contract params where
-    propose = endpoint @"propose-payment" >>= runStepC params . ProposePayment
-    cancel  = endpoint @"cancel-payment" >> runStepC params Cancel
-    addSignature = endpoint @"add-signature" >> ownPubKey >>= runStepC params . AddSignature
+allocate :: State -> Input -> Value -> ValueAllocation
+allocate (CollectingSignatures _ (Payment vp pk _) _) Pay vl =
+    let vl' = vl - vp 
+    in ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKey vp pk}
+allocate _ _ vl =
+    ValueAllocation{vaOwnAddress = vl, vaOtherPayments = Haskell.mempty}
 
-currentState :: (AsMultiSigError e, HasUtxoAt s) => Params -> Contract s e (State, Value)
-currentState params = do
-    let addr = Scripts.scriptAddress $ scriptInstance params
-    utxos <- utxoAt addr
-    txouttx <-
-        case (utxos ^. at addr) >>= listToMaybe . Map.toList of
-            Nothing      -> throwing_ _MSContractStateNotFound
-            Just (_, o)  -> pure o
-    Typed.TypedScriptTxOut{Typed.tyTxOutData=state,Typed.tyTxOutTxOut} <- 
-            withContractError (review _MSTypedAPIError)
-            $ Typed.typeScriptTxOut (scriptInstance params) txouttx
-    pure (state, Tx.txOutValue tyTxOutTxOut)
+client :: Params -> SM.StateMachineClient State Input
+client p = SM.mkStateMachineClient (machineInstance p) allocate
 
-nextState :: (MonadError e m, AsMultiSigError e) => State -> Input -> m State
-nextState oldState input = maybe (throwing _MSInvalidTransition (oldState, input)) pure (step oldState input)
-
--- | Advance a running multisig contract. This applies the transition function
---   'SM.transition' to the current contract state and uses the result to unlock
---   the funds currently in the contract, and lock them again with a data script
---   containing the new state.
---
-runStepC :: AsMultiSigError e => Params -> Input -> Contract MultiSigSchema e ()
-runStepC params input = do
-    (oldState, value) <- currentState params
-    let addr = Scripts.scriptAddress $ scriptInstance params
-    utxos <- utxoAt addr
-    newState <- nextState oldState input
-    let ins = Typed.collectFromScript utxos (scriptInstance params) input
-        outs = Typed.makeScriptPayment (scriptInstance params) value newState
-    void 
-        $ withContractError (review _MSContractError)
-        $ submitTx 
-        $ ins <> outs
-
--- | Lock some funds in a multisig contract.
-lock :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
-lock params = do
-    value <- endpoint @"lock"
-    let tx = Typed.makeScriptPayment (scriptInstance params) value (Holding value)
-    void
-        $ withContractError (review _MSContractError)
-        $ submitTx tx
-
--- | Make a payment after enough signatures have been collected.
-makePaymentC :: AsMultiSigError e => Params -> Contract MultiSigSchema e ()
-makePaymentC params = do
-    () <- endpoint @"pay"
-    (state, _) <- currentState params
-    -- we can't use 'runStep' because the outputs of the transaction are
-    -- different from the other transitions: We need two outputs, a public
-    -- key output with the payment, and the script output with the remaining
-    -- funds.
-    (currentValue, valuePaid', recipient) <- case state of
-        CollectingSignatures vl (Payment pd pk _) _ -> pure (vl, pd, pk)
-        _ -> throwing _MSInvalidTransition (state, Pay)
-    let addr = Scripts.scriptAddress $ scriptInstance params
-    utxos <- utxoAt addr
-    newState <- nextState state Pay
-    let valueLeft = currentValue - valuePaid'
-        ins       = Typed.collectFromScript utxos (scriptInstance params) Pay
-
-        -- If there is no money left, we make the final payment and don't pay
-        -- anything into the contract. Otherwise we make the payment and lock
-        -- the remaining money in the contract.
-        outs = if Value.isZero valueLeft
-               then payToPubKey valuePaid' recipient
-               else Typed.makeScriptPayment (scriptInstance params) valueLeft newState
-                    <> payToPubKey valuePaid' recipient
-    void
-        $ withContractError (review _MSContractError)
-        $ submitTx
-        $ ins <> outs
+contract :: 
+    ( AsMultiSigError e
+    , AsContractError e
+    , AsSMContractError e State Input
+    )
+    => Params
+    -> Contract MultiSigSchema e ()
+contract params = endpoints >> contract params where
+    endpoints = lock <|> propose <|> cancel <|> addSignature <|> pay
+    propose = endpoint @"propose-payment" >>= SM.runStep (client params) . ProposePayment
+    cancel  = endpoint @"cancel-payment" >> SM.runStep (client params) Cancel
+    addSignature = endpoint @"add-signature" >> ownPubKey >>= SM.runStep (client params) . AddSignature
+    lock = do
+        value <- endpoint @"lock"
+        SM.runInitialise (client params) (Holding value) value
+    pay = endpoint @"pay" >> SM.runStep (client params) Pay
 
 PlutusTx.makeIsData ''Payment
 PlutusTx.makeLift ''Payment

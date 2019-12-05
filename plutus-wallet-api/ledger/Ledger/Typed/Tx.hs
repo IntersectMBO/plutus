@@ -77,6 +77,7 @@ makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxIn ref $ ConsumePublicKeyAddress pubk
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
+
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
@@ -187,6 +188,18 @@ addManyTypedTxIns
     -> TypedTx ins outs
     -> TypedTxSomeIns outs
 addManyTypedTxIns ins tx = foldl' (\someTx inn -> addSomeTypedTxIn inn someTx) (TypedTxSomeIns tx) ins
+
+-- | A wrapper around a 'TypedTx' that hides the output list type as an existential parameter.
+data TypedTxSomeOuts (ins :: [Type]) = forall outs . TypedTxSomeOuts (TypedTx ins outs)
+
+-- | Add a 'TypedScriptTxOut' to a 'TypedTxSomeOuts'. Note that we do not have to track
+-- the output connection types explicitly.
+addSomeTypedTxOut
+    :: forall (ins :: [Type]) (newOut :: *)
+    . TypedScriptTxOut newOut
+    -> TypedTxSomeOuts ins
+    -> TypedTxSomeOuts ins
+addSomeTypedTxOut out (TypedTxSomeOuts tx) = TypedTxSomeOuts $ addTypedTxOut out tx
 
 -- | Convert a 'TypedTx' to a 'Tx'.
 toUntypedTx

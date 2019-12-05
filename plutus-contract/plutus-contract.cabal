@@ -53,6 +53,7 @@ library
         Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
+        Language.Plutus.Contract.StateMachine
         Language.Plutus.Contract.Tx
         Language.Plutus.Contract.Util
         Language.Plutus.Contract.Wallet

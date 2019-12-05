@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -27,8 +29,8 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , GameStateMachineSchema
     ) where
 
+import Control.Lens (makeClassyPrisms)
 import           Control.Monad                (void)
-import           Data.Text                    (Text)
 import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Prelude    hiding (check, Applicative (..), (<>))
 import           Ledger                       hiding (to)
@@ -39,18 +41,22 @@ import qualified Ledger.Typed.Scripts         as Scripts
 
 import qualified Data.ByteString.Lazy.Char8   as C
 
-import qualified Language.PlutusTx.StateMachine as SM
-import           Language.PlutusTx.StateMachine ()
+import           Language.Plutus.Contract.StateMachine (ValueAllocation(..), AsSMContractError)
+import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Tx as Tx
-import           Prelude ((<>))
+import qualified Prelude as Haskell
 
-newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
+newtype HashedString = HashedString ByteString 
+    deriving newtype PlutusTx.IsData
+    deriving stock Show
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
+newtype ClearString = ClearString ByteString
+    deriving newtype PlutusTx.IsData
+    deriving stock Show
 
 PlutusTx.makeLift ''ClearString
 
@@ -70,8 +76,8 @@ data GuessArgs =
         -- ^ The guess
         , guessArgsNewSecret :: String
         -- ^ The new secret
-        , guessArgsValueLocked :: Value
-        -- ^ How much to put back into the contract
+        , guessArgsValueTakenOut :: Value
+        -- ^ How much to extract from the contract
         } deriving Show
 
 -- | The schema of the contract. It consists of the usual
@@ -82,8 +88,13 @@ type GameStateMachineSchema =
         .\/ Endpoint "lock" LockArgs
         .\/ Endpoint "guess" GuessArgs
 
+data GameError =
+    GameContractError ContractError
+    | GameStateMachineError (SM.SMContractError GameState GameInput)
+    deriving (Show)
+
 -- | Top-level contract, exposing both endpoints.
-contract :: Contract GameStateMachineSchema Text ()
+contract :: Contract GameStateMachineSchema GameError ()
 contract = (lock <|> guess) >> contract
 
 -- | State of the guessing game
@@ -93,6 +104,7 @@ data GameState =
     | Locked TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
+    deriving (Show)
 
 instance Eq GameState where
     {-# INLINABLE (==) #-}
@@ -109,21 +121,26 @@ checkGuess (HashedString actual) (ClearString gss) = actual == (sha2_256 gss)
 data GameInput =
       ForgeToken TokenName
     -- ^ Forge the "guess" token
-    | Guess ClearString HashedString
-    -- ^ Make a guess and lock the remaining funds using a new secret word.
+    | Guess ClearString HashedString Value
+    -- ^ Make a guess, extract the funds, and lock the remaining funds using a 
+    --   new secret word.
+    deriving (Show)
 
 {-# INLINABLE step #-}
 step :: GameState -> GameInput -> Maybe GameState
 step state input = case (state, input) of
     (Initialised s, ForgeToken tn) -> Just $ Locked tn s
-    (Locked tn _, Guess _ nextSecret) -> Just $ Locked tn nextSecret
+    (Locked tn _, Guess _ nextSecret _) -> Just $ Locked tn nextSecret
     _ -> Nothing
 
 {-# INLINABLE check #-}
 check :: GameState -> GameInput -> PendingTx -> Bool
 check state input ptx = case (state, input) of
     (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
-    (Locked tn currentSecret, Guess theGuess _) -> checkGuess currentSecret theGuess && tokenPresent tn && checkForge zero
+    (Locked tn currentSecret, Guess theGuess _ _) -> 
+        checkGuess currentSecret theGuess 
+            && tokenPresent tn 
+            && checkForge zero
     _ -> False
     where
         -- | Given a 'TokeName', get the value that contains
@@ -165,6 +182,28 @@ scriptInstance = Scripts.Validator @(SM.StateMachine GameState GameInput)
 machineInstance :: SM.StateMachineInstance GameState GameInput
 machineInstance = SM.StateMachineInstance machine scriptInstance
 
+-- | Allocate the funds for each transition.
+allocate :: GameState -> GameInput -> Value -> ValueAllocation
+allocate (Initialised _) (ForgeToken _) currentVal = 
+    ValueAllocation
+        { vaOwnAddress    = currentVal
+        -- use 'Tx.forgeValue' to ensure that the transaction forges
+        -- the token.
+        , vaOtherPayments = Tx.forgeValue gameTokenVal
+        }
+allocate (Locked _ _) (Guess _ _ takenOut) currentVal =
+    ValueAllocation
+        { vaOwnAddress = currentVal - takenOut
+        -- use 'Tx.moveValue' to ensure that the transaction includes
+        -- the token. When the transaction is submitted the wallet will
+        -- add the token as an input and as an output.
+        , vaOtherPayments = Tx.moveValue gameTokenVal
+        }
+allocate _ _ _ = Haskell.mempty
+
+client :: SM.StateMachineClient GameState GameInput
+client = SM.mkStateMachineClient machineInstance allocate
+
 -- | Name of the token that needs to be present when making a guess.
 gameToken :: TokenName
 gameToken = "guess"
@@ -179,82 +218,38 @@ gameTokenVal =
         V.singleton cur gameToken 1
 
 -- | The @"guess"@ endpoint.
-guess :: AsContractError e => Contract GameStateMachineSchema e ()
+guess ::
+    ( AsContractError e
+    , AsSMContractError e GameState GameInput
+    )
+    => Contract GameStateMachineSchema e ()
 guess = do
-    GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueLocked} <- endpoint @"guess"
+    GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} <- endpoint @"guess"
 
     let guessedSecret = ClearString (C.pack guessArgsOldSecret)
         newSecret     = HashedString (sha2_256 (C.pack guessArgsNewSecret))
-        input         = Guess guessedSecret newSecret
-        newState      = Locked gameToken newSecret
-        ds            = DataScript $ PlutusTx.toData newState
-        redeemer      = RedeemerScript $ PlutusTx.toData input
-        addr          = Scripts.scriptAddress scriptInstance
 
-    -- We need to know the unspent outputs at the contract address, and a public
-    -- key that we can send the token to. 
-    utxo <- utxoAt addr
-    pubKey <- ownPubKey
+    void (SM.runStep client (Guess guessedSecret newSecret guessArgsValueTakenOut))
 
-    -- The transaction has three parts which are joined together using the 
-    -- '<>' semigroup operator.
-    let tx = 
-             -- part 1: Spend the outputs that are currently at the address
-            Tx.collectFromScript
-                utxo 
-                (Scripts.validatorScript scriptInstance)
-                redeemer
-
-             -- part 2: Lock the remaining funds in the contract with the new 
-             -- state 'ds'
-             <> Tx.payToScript guessArgsValueLocked addr ds 
-
-             -- part 3: Pay the token to our own public key (this is a no-op on 
-             -- the wallet's balance but it ensures that the token is present 
-             -- in the transaction)
-             <> Tx.payToPubKey gameTokenVal pubKey 
-    void $ submitTx tx
-
-lock :: AsContractError e => Contract GameStateMachineSchema e ()
+lock :: 
+    ( AsContractError e
+    , AsSMContractError e GameState GameInput
+    )
+    => Contract GameStateMachineSchema e ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- endpoint @"lock"
-    let secret            = HashedString (sha2_256 (C.pack lockArgsSecret))
-        addr              = Scripts.scriptAddress scriptInstance
-        initialDataScript = DataScript $ PlutusTx.toData (Initialised secret)
-    
-    -- 1. Create a transaction output with the value and the secret and
-    --    wait until it is confirmed.
-    let tx1 = Tx.payToScript lockArgsValue addr initialDataScript
-    _ <- submitTxConfirmed tx1
-
-    -- Get the current utxo set at the contract address. This consists of
-    -- exactly the one output that we added earlier (unless someone else
-    -- is playing the game at the same time, in which case it would be ruined
-    -- for everybody.)
-    utxo <- utxoAt addr
-    let input         = ForgeToken gameToken
-        newState      = Locked gameToken secret
-        redeemer      = RedeemerScript $ PlutusTx.toData input
-        newDataScript = DataScript $ PlutusTx.toData newState
-    
-    -- 2. The state of the contract is now 'Initialised'. To transition to
-    --    the 'Locked' state we need to run the 'Forge' action. The transaction
-    --    has three parts:
-    let tx2 = 
-             -- 1. Spend the outputs at the contract address
-             Tx.collectFromScript 
-                    utxo 
-                    (Scripts.validatorScript scriptInstance)
-                    redeemer
-             -- 2. Lock the funds at the contract address with the new state
-             <> Tx.payToScript lockArgsValue addr newDataScript
-
-             -- 3. Forge the token.
-             <> Tx.forgeValue gameTokenVal
-
-    submitTxConfirmed tx2
+    let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
+    _ <- SM.runInitialise client (Initialised secret) lockArgsValue
+    void (SM.runStep client (ForgeToken gameToken))
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState
 PlutusTx.makeIsData ''GameInput
 PlutusTx.makeLift ''GameInput
+makeClassyPrisms ''GameError
+
+instance AsContractError GameError where
+    _ContractError = _GameContractError
+
+instance AsSMContractError GameError GameState GameInput where
+    _SMContractError = _GameStateMachineError

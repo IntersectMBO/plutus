@@ -12,12 +12,14 @@
 module Language.PlutusTx.StateMachine(
       StateMachine(..)
     , StateMachineInstance (..)
+    , machineAddress
     , mkValidator
     ) where
 
 import           Language.PlutusTx.Prelude hiding (check)
 import qualified Language.PlutusTx as PlutusTx
 
+import           Ledger                    (Address)
 import           Ledger.Typed.Scripts
 import           Ledger.Scripts (DataScript (..))
 import           Ledger.Validation         (PendingTx, PendingTxOut (..), PendingTxOutType (..), getContinuingOutputs, findData)
@@ -44,6 +46,9 @@ data StateMachineInstance s i = StateMachineInstance {
     -- | The validator code for this state machine.
     validatorInstance :: ScriptInstance (StateMachine s i)
     }
+
+machineAddress :: StateMachineInstance s i -> Address
+machineAddress = scriptAddress . validatorInstance
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a transition function 's -> i -> s' into a validator script.
