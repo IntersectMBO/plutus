@@ -54,10 +54,6 @@ jsonHandlingTests = do
       assertDecodesTo
         (Proxy :: Proxy (JsonEither InterpreterError (InterpreterResult CompilationResult)))
         "test/compilation_response1.json"
-    test "Decode an EvaluationResult." do
-      assertDecodesTo
-        (Proxy :: Proxy (JsonEither PlaygroundError EvaluationResult))
-        "test/evaluation_response1.json"
     test "Decode an AuthStatus." do
       assertDecodesTo
         (Proxy :: Proxy AuthStatus)
