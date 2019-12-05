@@ -18,7 +18,7 @@ import           Data.List.NonEmpty           (NonEmpty ((:|)))
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as Text
 import qualified Data.Text.Lazy               as TL
-import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Data.Time.Units              (Minute)
 import           Game                         (GuessParams (GuessParams), LockParams (LockParams), amount, guessWord,
                                                secretWord)
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult, result),
@@ -54,8 +54,8 @@ tests =
         , knownCurrencyTest
         ]
 
-maxInterpretationTime :: Microsecond
-maxInterpretationTime = fromMicroseconds 100000000
+maxInterpretationTime :: Minute
+maxInterpretationTime = 2
 
 w1, w2, w3, w4, w5 :: Wallet
 w1 = Wallet 1

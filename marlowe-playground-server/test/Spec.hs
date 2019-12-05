@@ -8,7 +8,7 @@ import           Control.Monad.Except         (runExceptT)
 import           Data.ByteString              (ByteString)
 import qualified Data.ByteString.Char8        as BSC
 import qualified Data.Text                    as Text
-import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Data.Time.Units              (Second)
 import qualified Interpreter
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult),
                                                SourceCode (SourceCode))
@@ -143,5 +143,8 @@ runBasicSpec = describe "Basic Contract" $
 |]
 
 runHaskell :: ByteString -> IO (Either InterpreterError (InterpreterResult RunResult))
-runHaskell = let maxInterpretationTime :: Microsecond = fromMicroseconds 15000000 in
-                runExceptT . Interpreter.runHaskell maxInterpretationTime . SourceCode . Text.pack . BSC.unpack
+runHaskell =
+    let maxInterpretationTime = (15 :: Second)
+     in runExceptT .
+        Interpreter.runHaskell maxInterpretationTime .
+        SourceCode . Text.pack . BSC.unpack

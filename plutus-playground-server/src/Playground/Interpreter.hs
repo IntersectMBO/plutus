@@ -19,7 +19,7 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as Text
-import           Data.Time.Units              (TimeUnit)
+import           Data.Time.Units              (Second, TimeUnit)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode),
@@ -34,6 +34,10 @@ import           System.IO                    (Handle, IOMode (ReadWriteMode), h
 import           System.IO.Extras             (withFile)
 import           System.IO.Temp               (withSystemTempDirectory)
 import qualified Text.Regex                   as Regex
+
+
+maxInterpretationTime :: Second
+maxInterpretationTime = 80
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =

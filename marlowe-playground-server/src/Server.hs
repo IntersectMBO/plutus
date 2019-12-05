@@ -28,7 +28,7 @@ import           Data.Maybe                      (fromMaybe)
 import           Data.Proxy                      (Proxy (Proxy))
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
-import           Data.Time.Units                 (Microsecond, fromMicroseconds)
+import           Data.Time.Units                 (Second)
 import qualified Data.UUID                       as UUID
 import           Data.UUID.V4                    (nextRandom)
 import qualified Interpreter
@@ -53,7 +53,7 @@ import           WebSocket                       (Registry, WebSocketRequestMess
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
+    let maxInterpretationTime = (10 :: Second)
     r <-
         liftIO
         $ runExceptT

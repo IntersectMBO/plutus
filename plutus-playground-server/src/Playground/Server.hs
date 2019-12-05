@@ -14,7 +14,7 @@ import           Control.Monad.Except         (runExceptT, throwError)
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger         (MonadLogger, logInfoN)
 import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.Time.Units              (Microsecond, fromMicroseconds)
+import           Data.Time.Units              (Second)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult, SourceCode)
 import qualified Language.Haskell.Interpreter as Interpreter
 import           Playground.API               (API)
@@ -26,12 +26,13 @@ import           Servant.API                  ((:<|>) ((:<|>)))
 import           Servant.Server               (Handler, Server)
 import           Wallet.Rollup                (doAnnotateBlockchain)
 
+maxInterpretationTime :: Second
+maxInterpretationTime = 80
+
 compileSourceCode ::
        SourceCode
     -> Handler (Either InterpreterError (InterpreterResult CompilationResult))
 compileSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond
-        maxInterpretationTime = fromMicroseconds (80 * 1000 * 1000)
     r <- liftIO . runExceptT $ PI.compile maxInterpretationTime sourceCode
     case r of
         Right vs -> pure . Right $ vs
@@ -42,8 +43,6 @@ compileSourceCode sourceCode = do
 evaluateSimulation ::
        Evaluation -> Handler (Either PlaygroundError EvaluationResult)
 evaluateSimulation evaluation = do
-    let maxInterpretationTime :: Microsecond
-        maxInterpretationTime = fromMicroseconds (80 * 1000 * 1000)
     result <-
         liftIO . runExceptT $
         PI.evaluateSimulation maxInterpretationTime evaluation
