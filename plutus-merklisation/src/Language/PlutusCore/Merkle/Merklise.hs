@@ -38,14 +38,14 @@ numberName numbers (P.Name x s u) = P.Name (first numbers) s u
 numberType :: Numbers -> Type P.TyName a -> Type P.TyName Integer
 numberType (Numbers q l r) =
     \case
-      TyVar _ tn         -> TyVar q (numberTyname l tn)
-      TyFun _ ty ty'     -> TyFun q (numberType l ty) (numberType r ty')
-      TyIFix _ ty ty'    -> TyIFix q (numberType l ty) (numberType r ty')
-      TyForall _ tn k ty -> TyForall q (numberTyname (left l) tn) (numberKind (right l) k) (numberType r ty)
-      TyBuiltin _ tb     -> TyBuiltin q tb
-      TyLam _ tn k ty    -> TyLam q (numberTyname (left l) tn) (numberKind (right l) k) (numberType r ty)
-      TyApp _ ty ty'     -> TyApp q (numberType l ty) (numberType r ty')
-      TyPruned _ h       -> TyPruned q h
+      TyVar     _ tn      -> TyVar     q (numberTyname l tn)
+      TyFun     _ ty ty'  -> TyFun     q (numberType l ty) (numberType r ty')
+      TyIFix    _ ty ty'  -> TyIFix    q (numberType l ty) (numberType r ty')
+      TyForall  _ tn k ty -> TyForall  q (numberTyname (left l) tn) (numberKind (right l) k) (numberType r ty)
+      TyBuiltin _ tb      -> TyBuiltin q tb
+      TyLam     _ tn k ty -> TyLam     q (numberTyname (left l) tn) (numberKind (right l) k) (numberType r ty)
+      TyApp     _ ty ty'  -> TyApp     q (numberType l ty) (numberType r ty')
+      TyPruned  _ h       -> TyPruned  q h
 
 substConst :: Functor f => t -> f a -> f t
 substConst = fmap . const
@@ -71,17 +71,17 @@ numberKind (Numbers q l r) =
 numberTerm :: Numbers -> Term P.TyName P.Name a -> Term P.TyName P.Name Integer
 numberTerm (Numbers q l r) =
     \case
-      Var _ n          -> Var      q (numberName l n)
-      LamAbs _ n ty t  -> LamAbs   q (numberName l n) (numberType (left l) ty) (numberTerm r t)
-      TyInst _ t ty    -> TyInst   q (numberTerm l t) (numberType r ty)
-      IWrap _ ty1 ty t -> IWrap    q (numberType (left l) ty1) (numberType (right l) ty) (numberTerm l t)
-      TyAbs _ tn k t   -> TyAbs    q (numberTyname (left l) tn) (numberKind (right l) k) (numberTerm r t)
-      Apply _ t1 t2    -> Apply    q (numberTerm l t1) (numberTerm r t2)
-      Unwrap _ t       -> Unwrap   q (numberTerm l t)
-      Error _ ty       -> Error    q (numberType l ty)
-      Constant _ c     -> Constant q (numberConstant l c)
-      Builtin _ b      -> Builtin  q (numberBuiltin l b)
-      Prune _ h        -> Prune    q h
+      Var      _ n        -> Var      q (numberName l n)
+      LamAbs   _ n ty t   -> LamAbs   q (numberName l n) (numberType (left l) ty) (numberTerm r t)
+      TyInst   _ t ty     -> TyInst   q (numberTerm l t) (numberType r ty)
+      IWrap    _ ty1 ty t -> IWrap    q (numberType (left l) ty1) (numberType (right l) ty) (numberTerm l t)
+      TyAbs    _ tn k t   -> TyAbs    q (numberTyname (left l) tn) (numberKind (right l) k) (numberTerm r t)
+      Apply    _ t1 t2    -> Apply    q (numberTerm l t1) (numberTerm r t2)
+      Unwrap   _ t        -> Unwrap   q (numberTerm l t)
+      Error    _ ty       -> Error    q (numberType l ty)
+      Constant _ c        -> Constant q (numberConstant l c)
+      Builtin  _ b        -> Builtin  q (numberBuiltin l b)
+      Prune    _ h        -> Prune    q h
 
 numberVersion :: Numbers -> P.Version a -> P.Version Integer
 numberVersion (Numbers q _ _) = substConst q
@@ -106,14 +106,14 @@ pruneType used ty0 =
     if not $ Data.Set.member (typeId ty0) used
     then TyPruned () (merkleHash (unann ty0))
     else case ty0 of
-      TyVar _ tn         -> TyVar () (unann tn)
-      TyFun _ ty ty'     -> TyFun () (pruneType used ty) (pruneType used ty')
-      TyIFix _ ty ty'    -> TyIFix () (pruneType used ty) (pruneType used ty')
-      TyForall _ tn k ty -> TyForall () (unann tn) (unann k) (pruneType used ty)
-      TyBuiltin _ tb     -> TyBuiltin () tb
-      TyLam _ tn k ty    -> TyLam () (unann tn) (unann k) (pruneType used ty)
-      TyApp _ ty ty'     -> TyApp () (pruneType used ty) (pruneType used ty')
-      TyPruned _ h       -> TyPruned () h
+      TyVar     _ tn      -> TyVar     () (unann tn)
+      TyFun     _ ty ty'  -> TyFun     () (pruneType used ty) (pruneType used ty')
+      TyIFix    _ ty ty'  -> TyIFix    () (pruneType used ty) (pruneType used ty')
+      TyForall  _ tn k ty -> TyForall  () (unann tn) (unann k) (pruneType used ty)
+      TyBuiltin _ tb      -> TyBuiltin () tb
+      TyLam     _ tn k ty -> TyLam     () (unann tn) (unann k) (pruneType used ty)
+      TyApp     _ ty ty'  -> TyApp     () (pruneType used ty) (pruneType used ty')
+      TyPruned  _ h       -> TyPruned  () h
 
 termId :: Term P.TyName P.Name Integer -> Integer
 termId = termLoc  -- We should rename termLoc since this isn't a location
@@ -123,19 +123,19 @@ pruneTerm used t0 =
     if not $ Data.Set.member (termId t0) used
     then Prune () (merkleHash (unann t0))
     else case t0 of
-      Var _ n           -> Var      () (unann n)
-      LamAbs _ n ty t   -> LamAbs   () (unann n) (pruneType used ty) (pruneTerm used t)
-      TyInst _ t ty     -> TyInst   () (pruneTerm used t) (pruneType used ty)
-      IWrap _ ty1 ty2 t -> IWrap    () (pruneType used ty1) (pruneType used ty2) (pruneTerm used t)
-      TyAbs _ tn k t    -> TyAbs    () (unann tn) (unann k) (pruneTerm used t)
-      Apply _ t1 t2     -> Apply    () (pruneTerm used t1) (pruneTerm used t2)
-      Unwrap _ t        -> Unwrap   () (pruneTerm used t)
-      Error _ ty        -> Error    () (pruneType used ty)
-      Constant _ c      -> Constant () (unann c)
-      Builtin _ b       -> Builtin  () (unann b)
-      Prune _ h         -> Prune    () h -- Really? We shouldn't be seeing this again
+      Var      _ n         -> Var      () (unann n)
+      LamAbs   _ n ty t    -> LamAbs   () (unann n) (pruneType used ty) (pruneTerm used t)
+      TyInst   _ t ty      -> TyInst   () (pruneTerm used t) (pruneType used ty)
+      IWrap    _ ty1 ty2 t -> IWrap    () (pruneType used ty1) (pruneType used ty2) (pruneTerm used t)
+      TyAbs    _ tn k t    -> TyAbs    () (unann tn) (unann k) (pruneTerm used t)
+      Apply    _ t1 t2     -> Apply    () (pruneTerm used t1) (pruneTerm used t2)
+      Unwrap   _ t         -> Unwrap   () (pruneTerm used t)
+      Error    _ ty        -> Error    () (pruneType used ty)
+      Constant _ c         -> Constant () (unann c)
+      Builtin  _ b         -> Builtin  () (unann b)
+      Prune    _ h         -> Prune    () h -- Really? We shouldn't be seeing this again
 
 pruneProgram :: Data.Set.Set Integer -> Program P.TyName P.Name Integer -> Program P.TyName P.Name ()
 pruneProgram used (Program _ v t) = Program () (unann v) (pruneTerm used t)
 
-
+-- TODO: test that if we choose a random node and prune it, the Merkle hash of the AST doesn't change.
