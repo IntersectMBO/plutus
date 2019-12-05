@@ -28,6 +28,7 @@ import qualified Language.PlutusTx.Prelude                             as Plutus
 import           Language.PlutusTx.Lattice
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
 import qualified Ledger.Ada                                            as Ada
+import           Ledger.Slot                                           (Slot(..))
 
 w1, w2, w3, w4 :: Wallet
 w1 = Wallet 1
@@ -82,7 +83,7 @@ tests = testGroup "crowdfunding"
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Add some blocks to bring the total up to 31
             -- (that is, above the collection deadline)
-            >> Trace.addBlocks 26
+            >> Trace.addBlocksUntil (Slot 31)
             -- Then inform the wallet. It's too late to collect the funds
             -- now.
             >> Trace.notifySlot w1
@@ -109,7 +110,7 @@ tests = testGroup "crowdfunding"
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 5)
             >> makeContribution w3 (Ada.lovelaceValueOf 5)
-            >> Trace.addBlocks 25
+            >> Trace.addBlocksUntil (Slot 31)
             >> Trace.notifySlot w2
             >> Trace.notifySlot w3
             >> traverse_ Trace.handleBlockchainEvents Trace.allWallets

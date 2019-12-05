@@ -36,6 +36,7 @@ module Language.Plutus.Contract.Trace
     , callEndpoint
     , handleUtxoQueries
     , addBlocks
+    , addBlocksUntil
     , addEvent
     , addEventAll
     , notifyInterestingAddresses
@@ -97,7 +98,8 @@ import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
 import qualified Ledger.AddressMap                                 as AM
-import           Ledger.Slot                                       (Slot)
+import qualified Ledger.Blockchain                                 as Blockchain
+import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Tx                                         (Tx, txId)
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Value                                      (Value)
@@ -106,6 +108,7 @@ import           Wallet.API                                        (WalletAPIErr
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
+import qualified Wallet.Emulator.NodeClient                        as NC
 
 -- | Maximum number of iterations of `handleBlockchainEvents`.
 newtype MaxIterations = MaxIterations Natural
@@ -471,6 +474,16 @@ addBlocks
     -> ContractTrace s e m a ()
 addBlocks i =
     void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
+
+-- | Add blocks until the given slot has been reached.
+addBlocksUntil
+    :: ( MonadEmulator (TraceError e) m )
+    => Slot
+    -> ContractTrace s e m a ()
+addBlocksUntil sl = do
+    currentSlot <- lift $ gets (Blockchain.lastSlot . NC._chainNewestFirst . EM._chainState)
+    let Slot missing = sl - currentSlot
+    addBlocks (max 0 missing)
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if there are unhandled events after 'defaultMaxIterations'.
