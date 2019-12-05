@@ -102,17 +102,7 @@ unann = fmap (\_ -> ())
 type NumSet = Data.Set.Set Integer
 
 typeId :: Type P.TyName Integer -> Integer
-typeId =
-    \case
-      TyVar q _          -> q
-      TyFun q _   _      -> q
-      TyIFix q _ _       -> q
-      TyForall q _ _ _   -> q
-      TyBuiltin q _      -> q
-      TyLam q _ _ _      -> q
-      TyApp q _ _        -> q
-      TyPruned q _       -> q
-
+typeId = tyLoc
 
 pruneType :: NumSet -> Type P.TyName Integer -> Type P.TyName ()
 pruneType used ty0 =
@@ -129,7 +119,7 @@ pruneType used ty0 =
       TyPruned _ h       -> TyPruned () h
 
 termId :: Term P.TyName P.Name Integer -> Integer
-termId = termLoc-- We should rename termLoc since this isn't a location
+termId = termLoc  -- We should rename termLoc since this isn't a location
 
 pruneTerm :: NumSet -> Term P.TyName P.Name Integer -> Term P.TyName P.Name ()
 pruneTerm used t0 =
