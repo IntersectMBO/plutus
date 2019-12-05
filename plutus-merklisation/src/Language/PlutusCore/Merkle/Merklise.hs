@@ -129,20 +129,7 @@ pruneType used ty0 =
       TyPruned _ h       -> TyPruned () h
 
 termId :: Term P.TyName P.Name Integer -> Integer
-termId =
-    \case
-     Var q _          -> q
-     LamAbs q _ _ _   -> q
-     TyInst q _ _     -> q
-     IWrap q _ _ _    -> q
-     TyAbs q _ _ _    -> q
-     Apply q _ _      -> q
-     Unwrap q _       -> q
-     Error q _        -> q
-     Constant q _     -> q
-     Builtin q _      -> q
-     Prune q _        -> q
-
+termId = termLoc-- We should rename termLoc since this isn't a location
 
 pruneTerm :: NumSet -> Term P.TyName P.Name Integer -> Term P.TyName P.Name ()
 pruneTerm used t0 =
