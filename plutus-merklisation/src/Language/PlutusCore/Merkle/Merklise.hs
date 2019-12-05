@@ -95,57 +95,9 @@ numberProgram = numProg nats
 
 {- Pruning unused nodes.  While we're at it, let's convert numeric annotations back to units. -}
 
-unannotateName :: P.Name a -> P.Name ()
-unannotateName (P.Name _ s u) = P.Name () s u
+unann :: Functor f => f a -> f()
+unann = fmap (\_ -> ())
 
-unannotateConstant :: Constant a -> Constant ()
-unannotateConstant =
-    \case
-     BuiltinInt _ n -> BuiltinInt () n
-     BuiltinBS _ s  -> BuiltinBS () s
-     BuiltinStr _ s -> BuiltinStr () s
-
-unannotateBuiltin :: Builtin a -> Builtin ()
-unannotateBuiltin =
-    \case
-     BuiltinName _ n    -> BuiltinName () n
-     DynBuiltinName _ n -> DynBuiltinName () n
-
-
-unannotateTyname :: P.TyName a -> P.TyName ()
-unannotateTyname (P.TyName n) = P.TyName (unannotateName n)
-
-unannotateKind :: Kind a -> Kind ()
-unannotateKind =
-    \case
-     Type _            -> Type ()
-     KindArrow _ k1 k2 -> KindArrow () (unannotateKind k1) (unannotateKind k2)
-
-unannotateType :: Type P.TyName Integer -> Type P.TyName ()
-unannotateType =
-    \case
-      TyVar _ tn         -> TyVar () (unannotateTyname tn)
-      TyFun _ ty ty'     -> TyFun () (unannotateType ty) (unannotateType ty')
-      TyIFix _ ty ty'    -> TyIFix () (unannotateType ty) (unannotateType ty')
-      TyForall _ tn k ty -> TyForall () (unannotateTyname tn) (unannotateKind k) (unannotateType ty)
-      TyBuiltin _ tb     -> TyBuiltin () tb
-      TyLam _ tn k ty    -> TyLam () (unannotateTyname tn) (unannotateKind k) (unannotateType ty)
-      TyApp _ ty ty'     -> TyApp () (unannotateType ty) (unannotateType ty')
-      TyPruned _ h       -> TyPruned () h
-
-unannotateTerm :: Term P.TyName P.Name Integer -> Term P.TyName P.Name ()
-unannotateTerm = \case
-      Var _ n          -> Var      () (unannotateName n)
-      LamAbs _ n ty t  -> LamAbs   () (unannotateName n) (unannotateType ty) (unannotateTerm t)
-      TyInst _ t ty    -> TyInst   () (unannotateTerm t) (unannotateType ty)
-      IWrap _ ty1 ty t -> IWrap    () (unannotateType ty1) (unannotateType ty) (unannotateTerm t)
-      TyAbs _ tn k t   -> TyAbs    () (unannotateTyname tn) (unannotateKind k) (unannotateTerm t)
-      Apply _ t1 t2    -> Apply    () (unannotateTerm t1) (unannotateTerm t2)
-      Unwrap _ t       -> Unwrap   () (unannotateTerm t)
-      Error _ ty       -> Error    () (unannotateType ty)
-      Constant _ c     -> Constant () (unannotateConstant c)
-      Builtin _ b      -> Builtin  () (unannotateBuiltin b)
-      Prune _ h        -> Prune    () h
 
 type NumSet = Data.Set.Set Integer
 
@@ -165,14 +117,14 @@ typeId =
 pruneType :: NumSet -> Type P.TyName Integer -> Type P.TyName ()
 pruneType used ty0 =
     if not $ Data.Set.member (typeId ty0) used
-    then TyPruned () (merkleHash (unannotateType ty0)) -- This is why we need unannotateType
+    then TyPruned () (merkleHash (unann ty0))
     else case ty0 of
-      TyVar _ tn         -> TyVar () (unannotateTyname tn)
+      TyVar _ tn         -> TyVar () (unann tn)
       TyFun _ ty ty'     -> TyFun () (pruneType used ty) (pruneType used ty')
       TyIFix _ ty ty'    -> TyIFix () (pruneType used ty) (pruneType used ty')
-      TyForall _ tn k ty -> TyForall () (unannotateTyname tn) (unannotateKind k) (pruneType used ty)
+      TyForall _ tn k ty -> TyForall () (unann tn) (unann k) (pruneType used ty)
       TyBuiltin _ tb     -> TyBuiltin () tb
-      TyLam _ tn k ty    -> TyLam () (unannotateTyname tn) (unannotateKind k) (pruneType used ty)
+      TyLam _ tn k ty    -> TyLam () (unann tn) (unann k) (pruneType used ty)
       TyApp _ ty ty'     -> TyApp () (pruneType used ty) (pruneType used ty')
       TyPruned _ h       -> TyPruned () h
 
@@ -195,19 +147,19 @@ termId =
 pruneTerm :: NumSet -> Term P.TyName P.Name Integer -> Term P.TyName P.Name ()
 pruneTerm used t0 =
     if not $ Data.Set.member (termId t0) used
-    then Prune () (merkleHash (unannotateTerm t0))  -- This is why we need unannotateTerm
+    then Prune () (merkleHash (unann t0))
     else case t0 of
-      Var _ n          -> Var      () (unannotateName n)
-      LamAbs _ n ty t  -> LamAbs   () (unannotateName n) (pruneType used ty) (pruneTerm used t)
-      TyInst _ t ty    -> TyInst   () (pruneTerm used t) (pruneType used ty)
-      IWrap _ ty1 ty t -> IWrap    () (pruneType used ty1) (pruneType used ty) (pruneTerm used t)
-      TyAbs _ tn k t   -> TyAbs    () (unannotateTyname tn) (unannotateKind k) (pruneTerm used t)
-      Apply _ t1 t2    -> Apply    () (pruneTerm used t1) (pruneTerm used t2)
-      Unwrap _ t       -> Unwrap   () (pruneTerm used t)
-      Error _ ty       -> Error    () (pruneType used ty)
-      Constant _ c     -> Constant () (unannotateConstant c)
-      Builtin _ b      -> Builtin  () (unannotateBuiltin b)
-      Prune _ h        -> Prune    () h -- Really? We shouldn't be seeing this again
+      Var _ n           -> Var      () (unann n)
+      LamAbs _ n ty t   -> LamAbs   () (unann n) (pruneType used ty) (pruneTerm used t)
+      TyInst _ t ty     -> TyInst   () (pruneTerm used t) (pruneType used ty)
+      IWrap _ ty1 ty2 t -> IWrap    () (pruneType used ty1) (pruneType used ty2) (pruneTerm used t)
+      TyAbs _ tn k t    -> TyAbs    () (unann tn) (unann k) (pruneTerm used t)
+      Apply _ t1 t2     -> Apply    () (pruneTerm used t1) (pruneTerm used t2)
+      Unwrap _ t        -> Unwrap   () (pruneTerm used t)
+      Error _ ty        -> Error    () (pruneType used ty)
+      Constant _ c      -> Constant () (unann c)
+      Builtin _ b       -> Builtin  () (unann b)
+      Prune _ h         -> Prune    () h -- Really? We shouldn't be seeing this again
 
 pruneVersion :: P.Version a -> P.Version ()
 pruneVersion (P.Version _ a b c) = P.Version () a b c
