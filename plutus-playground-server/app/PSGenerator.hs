@@ -36,7 +36,7 @@ import           Data.Monoid                                ()
 import           Data.Proxy                                 (Proxy (Proxy))
 import           Data.Text                                  (Text)
 import qualified Data.Text.Encoding                         as T (decodeUtf8, encodeUtf8)
-import           Data.Time.Units                            (Microsecond, fromMicroseconds)
+import           Data.Time.Units                            (Second)
 import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
@@ -327,7 +327,7 @@ multilineString name value =
 
 jsonExport :: ToJSON a => Text -> a -> Text
 jsonExport name value =
-    multilineString name (T.decodeUtf8 . BSL.toStrict $ JSON.encode value)
+    multilineString name (T.decodeUtf8 . BSL.toStrict $ JSON.encodePretty value)
 
 sourceCodeExport :: Text -> SourceCode -> Text
 sourceCodeExport name (SourceCode value) = multilineString name value
@@ -375,15 +375,16 @@ writeSimulation filename sourceCode simulation = do
         Left err   -> fail $ "Error evaluating simulation: " <> show err
         Right json -> BSL.writeFile filename json
 
+maxInterpretationTime :: Second
+maxInterpretationTime = 80
+
 runSimulation ::
        (MonadMask m, MonadError PlaygroundError m, MonadIO m)
     => SourceCode
     -> Simulation
     -> m BSL.ByteString
 runSimulation sourceCode Simulation {simulationActions, simulationWallets} = do
-    let maxInterpretationTime :: Microsecond
-        maxInterpretationTime = fromMicroseconds (80 * 1000 * 1000)
-        evaluation =
+    let evaluation =
             Evaluation
                 { sourceCode
                 , wallets = simulationWallets
