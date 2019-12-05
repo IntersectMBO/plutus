@@ -30,7 +30,7 @@ makeNumbers :: Integer -> Numbers
 makeNumbers n = Numbers n (makeNumbers $ 2*n) (makeNumbers $ 2*n+1)
 
 nats :: Numbers
-nats = makeNumbers 0 --- An infinite tree containing each natural number exactly once
+nats = makeNumbers 0 -- An infinite tree containing each natural number exactly once
 
 numberName :: Numbers -> P.Name a -> P.Name Integer
 numberName numbers (P.Name x s u) = P.Name (first numbers) s u
@@ -47,19 +47,17 @@ numberType (Numbers q l r) =
       TyApp _ ty ty'     -> TyApp q (numberType l ty) (numberType r ty')
       TyPruned _ h       -> TyPruned q h
 
-numberConstant :: Numbers -> Constant a -> Constant Integer
-numberConstant (Numbers q _ _) =
-    \case
-     BuiltinInt _ n -> BuiltinInt q n
-     BuiltinBS _ s  -> BuiltinBS q s
-     BuiltinStr _ s -> BuiltinStr q s
+substConst :: Functor f => t -> f a -> f t
+substConst = fmap . const
 
 numberBuiltin :: Numbers -> Builtin a -> Builtin Integer
-numberBuiltin (Numbers q _ _)  =
-    \case
-     BuiltinName _ n    -> BuiltinName q n
-     DynBuiltinName _ n -> DynBuiltinName q n
+numberBuiltin (Numbers q _ _)  = substConst q
+-- Maybe I'm trying to be too clever here.  Success depends on the
+-- fact that builtins have no subterms, which is invisible in this
+-- code.  If we did have subterms, they'd all get the same q.
 
+numberConstant :: Numbers -> Constant a -> Constant Integer
+numberConstant (Numbers q _ _) = substConst q
 
 numberTyname :: Numbers -> P.TyName a -> P.TyName Integer
 numberTyname numbers (P.TyName n) = P.TyName (numberName numbers n)
@@ -86,7 +84,7 @@ numberTerm (Numbers q l r) =
       Prune _ h        -> Prune    q h
 
 numberVersion :: Numbers -> P.Version a -> P.Version Integer
-numberVersion (Numbers q _ _) (P.Version _ a b c) = P.Version q a b c
+numberVersion (Numbers q _ _) = substConst q
 
 numberProgram :: Program P.TyName P.Name a -> Program P.TyName P.Name Integer
 numberProgram = numProg nats
@@ -96,8 +94,7 @@ numberProgram = numProg nats
 {- Pruning unused nodes.  While we're at it, let's convert numeric annotations back to units. -}
 
 unann :: Functor f => f a -> f()
-unann = fmap (\_ -> ())
-
+unann = substConst ()
 
 type NumSet = Data.Set.Set Integer
 
@@ -138,10 +135,7 @@ pruneTerm used t0 =
       Builtin _ b       -> Builtin  () (unann b)
       Prune _ h         -> Prune    () h -- Really? We shouldn't be seeing this again
 
-pruneVersion :: P.Version a -> P.Version ()
-pruneVersion (P.Version _ a b c) = P.Version () a b c
-
 pruneProgram :: Data.Set.Set Integer -> Program P.TyName P.Name Integer -> Program P.TyName P.Name ()
-pruneProgram used (Program _ v t) = Program () (pruneVersion v) (pruneTerm used t)
+pruneProgram used (Program _ v t) = Program () (unann v) (pruneTerm used t)
 
 

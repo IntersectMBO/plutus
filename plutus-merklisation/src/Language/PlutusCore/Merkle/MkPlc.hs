@@ -84,7 +84,7 @@ embed = \case
     Error a ty        -> error a ty
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
-
+          
 -- | A "variable declaration", i.e. a name annnd a type for a variable.
 data VarDecl tyname name ann = VarDecl
     { varDeclAnn  :: ann
