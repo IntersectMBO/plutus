@@ -478,6 +478,7 @@ let
       withDevTools = env: env.overrideAttrs (attrs:
         { nativeBuildInputs = attrs.nativeBuildInputs ++
                               [ packages.cabal-install
+                                pkgs.ghcid
                                 pkgs.git
                                 pkgs.cacert
                                 pkgs.haskellPackages.hlint
