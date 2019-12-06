@@ -4,7 +4,17 @@
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Ledger.Typed.Scripts where
+module Ledger.Typed.Scripts(
+    ScriptType(..)
+    , ValidatorScript
+    , ScriptInstance
+    , validator
+    , scriptAddress
+    , validatorScript
+    , wrapValidator
+    , ValidatorType
+    , WrappedValidatorType
+    ) where
 
 import           Language.PlutusTx
 
@@ -32,21 +42,35 @@ type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.Pend
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 
--- | The type of a connection.
+-- | A typed validator script with its 'ValidatorScript' and 'Address'.
 data ScriptInstance (a :: Type) where
-    Validator
-        :: ScriptType a
+    Validator ::
+        ScriptType a
         => CompiledCode (ValidatorType a)
         -> CompiledCode (ValidatorType a -> WrappedValidatorType)
+        -> ValidatorScript
+        -> Addr.Address
         -> ScriptInstance a
+
+-- | The 'ScriptInstance' of a validator script and its wrapper.
+validator ::
+    ScriptType a
+    => CompiledCode (ValidatorType a)
+    -- ^ Validator script (compiled)
+    -> CompiledCode (ValidatorType a -> WrappedValidatorType)
+    -- ^ A wrapper for the compiled validator
+    -> ScriptInstance a
+validator vc wrapper =
+    let val = mkValidatorScript $ wrapper `applyCode` vc
+    in Validator vc wrapper val (Addr.scriptAddress val)
 
 -- | Get the address for a script instance.
 scriptAddress :: ScriptInstance a -> Addr.Address
-scriptAddress = Addr.scriptAddress . validatorScript
+scriptAddress (Validator _ _ _ address) = address
 
 -- | Get the validator script for a script instance.
 validatorScript :: ScriptInstance a -> ValidatorScript
-validatorScript (Validator vc wrapper) = mkValidatorScript $ wrapper `applyCode` vc
+validatorScript (Validator _ _ script _) = script
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since

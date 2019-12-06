@@ -135,7 +135,7 @@ instance Scripts.ScriptType CrowdFunding where
     type instance DataType CrowdFunding = PubKey
 
 scriptInstance :: Campaign -> Scripts.ScriptInstance CrowdFunding
-scriptInstance cmp = Scripts.Validator @CrowdFunding
+scriptInstance cmp = Scripts.validator @CrowdFunding
     ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
     $$(PlutusTx.compile [|| wrap ||])
     where

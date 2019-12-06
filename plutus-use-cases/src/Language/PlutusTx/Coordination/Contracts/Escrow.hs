@@ -200,7 +200,7 @@ escrowScript = Scripts.validatorScript . scriptInstance
 scriptInstance :: EscrowParams DataScript -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.dataScriptHash escrow) where
     go escrow' = 
-        Scripts.Validator @Escrow
+        Scripts.validator @Escrow
             ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode escrow')
             $$(PlutusTx.compile [|| wrap ||])
     wrap = Scripts.wrapValidator @PubKey @Action

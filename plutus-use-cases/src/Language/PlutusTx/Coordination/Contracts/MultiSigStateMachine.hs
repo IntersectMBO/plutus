@@ -232,7 +232,7 @@ validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyC
 
 type MultiSigSym = StateMachine State Input
 scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
-scriptInstance params = Scripts.Validator @MultiSigSym
+scriptInstance params = Scripts.validator @MultiSigSym
     (validatorCode params)
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -255,21 +255,22 @@ client :: Params -> SM.StateMachineClient State Input
 client p = SM.mkStateMachineClient (machineInstance p) allocate
 
 contract :: 
-    ( AsMultiSigError e
-    , AsContractError e
+    ( AsContractError e
     , AsSMContractError e State Input
     )
     => Params
     -> Contract MultiSigSchema e ()
-contract params = endpoints >> contract params where
+contract params = go where
+    theClient = client params
+    go = endpoints >> go
     endpoints = lock <|> propose <|> cancel <|> addSignature <|> pay
-    propose = endpoint @"propose-payment" >>= SM.runStep (client params) . ProposePayment
-    cancel  = endpoint @"cancel-payment" >> SM.runStep (client params) Cancel
-    addSignature = endpoint @"add-signature" >> ownPubKey >>= SM.runStep (client params) . AddSignature
+    propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
+    cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel
+    addSignature = endpoint @"add-signature" >> ownPubKey >>= SM.runStep theClient . AddSignature
     lock = do
         value <- endpoint @"lock"
-        SM.runInitialise (client params) (Holding value) value
-    pay = endpoint @"pay" >> SM.runStep (client params) Pay
+        SM.runInitialise theClient (Holding value) value
+    pay = endpoint @"pay" >> SM.runStep theClient Pay
 
 PlutusTx.makeIsData ''Payment
 PlutusTx.makeLift ''Payment

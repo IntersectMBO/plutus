@@ -170,7 +170,7 @@ mkValidator :: Scripts.ValidatorType (SM.StateMachine GameState GameInput)
 mkValidator = SM.mkValidator (SM.StateMachine step check (const False))
 
 scriptInstance :: Scripts.ScriptInstance (SM.StateMachine GameState GameInput)
-scriptInstance = Scripts.Validator @(SM.StateMachine GameState GameInput)
+scriptInstance = Scripts.validator @(SM.StateMachine GameState GameInput)
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where

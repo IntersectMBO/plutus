@@ -298,7 +298,7 @@ scriptInstance future ftos =
         validatorParam f g = SM.mkValidator (futureStateMachine f g)
         wrap = Scripts.wrapValidator @FutureState @FutureAction
     
-    in Scripts.Validator @(SM.StateMachine FutureState FutureAction)
+    in Scripts.validator @(SM.StateMachine FutureState FutureAction)
         val
         $$(PlutusTx.compile [|| wrap ||])
         

@@ -115,7 +115,7 @@ scriptInstance account =
                 `PlutusTx.applyCode`
                     PlutusTx.liftCode account
 
-    in Scripts.Validator @TokenAccount 
+    in Scripts.validator @TokenAccount 
         val
         $$(PlutusTx.compile [|| wrap ||])    
 
