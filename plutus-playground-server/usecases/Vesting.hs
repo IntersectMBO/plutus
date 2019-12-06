@@ -136,7 +136,7 @@ vestingScript :: VestingParams -> ValidatorScript
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance vesting = Scripts.Validator @Vesting
+scriptInstance vesting = Scripts.validator @Vesting
     ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode vesting)
     $$(PlutusTx.compile [|| wrap ||])
     where
