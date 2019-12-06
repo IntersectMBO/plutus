@@ -5,13 +5,9 @@ module Language.PlutusCore.Pretty.ConfigName
     , debugPrettyConfigName
     ) where
 
-{- Note [Update on PLC names]
-We no longer have such fancy names that Note [PLC names pretty-printing] describes.
-However it's still nice to have a working boileplate-free solution for sophisticated cases.
--}
-
 {- Note [PLC names pretty-printing]
-See Note [Update on PLC names] first.
+UPDATE: We no longer have such fancy names that this note describes.
+However it's still nice to have a working boileplate-free solution for sophisticated cases.
 
 There are several possible designs on how to pretty-print PLC names. We choose the simplest one
 which leads to less boilerplate on the implementation side and more concise API. The trade-off is

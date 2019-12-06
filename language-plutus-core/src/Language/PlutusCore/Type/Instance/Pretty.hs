@@ -1,7 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans -Wno-simplifiable-class-constraints #-}
-
-{-# LANGUAGE UndecidableInstances #-}
-
 module Language.PlutusCore.Type.Instance.Pretty () where
 
 import           Language.PlutusCore.Type.Instance.Pretty.Classic  ()

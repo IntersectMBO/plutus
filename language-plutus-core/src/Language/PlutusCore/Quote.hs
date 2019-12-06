@@ -18,6 +18,9 @@ module Language.PlutusCore.Quote
     , MonadQuote
     , FreshState
     , liftQuote
+    , markNonFreshBelow
+    , markNonFresh
+    , markNonFreshMax
     ) where
 
 import           PlutusPrelude
@@ -30,6 +33,8 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Data.Functor.Identity
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
 import           Hedgehog                  (GenT, PropertyT)
 
@@ -102,3 +107,16 @@ freshTyName = fmap TyName .* freshName
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
 freshenTyName :: Monad m => TyName ann -> QuoteT m (TyName ann)
 freshenTyName (TyName name) = TyName <$> freshenName name
+
+-- | Mark a all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
+markNonFreshBelow :: MonadQuote m => Unique -> m ()
+markNonFreshBelow = liftQuote . QuoteT . modify . max
+
+-- | Mark a given 'Unique' (and implicitly all 'Unique's less than it) as used, so they will not be generated in future.
+markNonFresh :: MonadQuote m => Unique -> m ()
+markNonFresh = markNonFreshBelow . succ
+
+-- | Mark the maximal 'Unique' from a set of 'Unique's (and implicitly all 'Unique's less than it)
+-- as used, so they will not be generated in future.
+markNonFreshMax :: MonadQuote m => Set Unique -> m ()
+markNonFreshMax = markNonFresh . fromMaybe (Unique 0) . Set.lookupMax

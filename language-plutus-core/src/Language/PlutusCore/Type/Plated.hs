@@ -1,22 +1,34 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Language.PlutusCore.Type.Plated
     ( typeTyBinds
     , typeTyVars
+    , typeUniques
     , typeSubtypes
     , typeSubtypesDeep
     , termTyBinds
     , termBinds
     , termVars
+    , termUniques
     , termSubtypes
     , termSubtypesDeep
     , termSubterms
     , termSubtermsDeep
+    , typeUniquesDeep
+    , termUniquesDeep
     ) where
 
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type.Core
 
 import           Control.Lens
+
+infixr 6 <^>
+
+-- | Compose two folds to make them run in parallel. The results are concatenated.
+(<^>) :: Fold s a -> Fold s a -> Fold s a
+(f1 <^> f2) g s = f1 g s *> f2 g s
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from binders.
 typeTyBinds :: Traversal' (Type tyname ann) (tyname ann)
@@ -29,6 +41,14 @@ typeTyBinds f = \case
 typeTyVars :: Traversal' (Type tyname ann) (tyname ann)
 typeTyVars f = \case
     TyVar ann n -> TyVar ann <$> f n
+    x -> pure x
+
+-- | Get all the direct child 'Unique's of the given 'Type' from binders 'TyVar's.
+typeUniques :: HasUniques (Type tyname ann) => Traversal' (Type tyname ann) Unique
+typeUniques f = \case
+    TyForall ann tn k ty -> theUnique f tn <&> \tn' -> TyForall ann tn' k ty
+    TyLam ann tn k ty -> theUnique f tn <&> \tn' -> TyLam ann tn' k ty
+    TyVar ann n -> theUnique f n <&> TyVar ann
     x -> pure x
 
 {-# INLINE typeSubtypes #-}
@@ -44,12 +64,10 @@ typeSubtypes f = \case
     v@TyVar {} -> pure v
 
 -- | Get all the transitive child 'Type's of the given 'Type'.
-typeSubtypesDeep
-    :: (Applicative f, Contravariant f)
-    => LensLike' f (Type tyname ann) (Type tyname ann)
+typeSubtypesDeep :: Fold (Type tyname ann) (Type tyname ann)
 typeSubtypesDeep = cosmosOf typeSubtypes
 
--- | Get all the direct child 'name a's of the given 'Term' from 'TyAbs'es.
+-- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
 termTyBinds :: Traversal' (Term tyname name ann) (tyname ann)
 termTyBinds f = \case
     TyAbs ann tn k t -> f tn <&> \tn' -> TyAbs ann tn' k t
@@ -65,6 +83,14 @@ termBinds f = \case
 termVars :: Traversal' (Term tyname name ann) (name ann)
 termVars f = \case
     Var ann n -> Var ann <$> f n
+    x -> pure x
+
+-- | Get all the direct child 'Unique's of the given 'Term' (including the type-level ones).
+termUniques :: HasUniques (Term tyname name ann) => Traversal' (Term tyname name ann) Unique
+termUniques f = \case
+    TyAbs ann tn k t -> theUnique f tn <&> \tn' -> TyAbs ann tn' k t
+    LamAbs ann n ty t -> theUnique f n <&> \n' -> LamAbs ann n' ty t
+    Var ann n -> theUnique f n <&> Var ann
     x -> pure x
 
 {-# INLINE termSubtypes #-}
@@ -83,9 +109,7 @@ termSubtypes f = \case
     b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
-termSubtypesDeep
-    :: (Applicative f, Contravariant f)
-    => LensLike' f (Term tyname name ann) (Type tyname ann)
+termSubtypesDeep :: Fold (Term tyname name ann) (Type tyname ann)
 termSubtypesDeep = termSubtermsDeep . termSubtypes . typeSubtypesDeep
 
 {-# INLINE termSubterms #-}
@@ -104,7 +128,13 @@ termSubterms f = \case
     b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
-termSubtermsDeep
-    :: (Applicative f, Contravariant f)
-    => LensLike' f (Term tyname name ann) (Term tyname name ann)
+termSubtermsDeep :: Fold (Term tyname name ann) (Term tyname name ann)
 termSubtermsDeep = cosmosOf termSubterms
+
+-- | Get all the transitive child 'Unique's of the given 'Type'.
+typeUniquesDeep :: HasUniques (Type tyname ann) => Fold (Type tyname ann) Unique
+typeUniquesDeep = typeSubtypesDeep . typeUniques
+
+-- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).
+termUniquesDeep :: HasUniques (Term tyname name ann) => Fold (Term tyname name ann) Unique
+termUniquesDeep = termSubtermsDeep . (termSubtypes . typeUniquesDeep <^> termUniques)

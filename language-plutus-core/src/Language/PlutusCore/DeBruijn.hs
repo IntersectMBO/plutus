@@ -104,7 +104,7 @@ levelToIndex (Level current) (Level l) = current - l
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
-    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
+    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
 
 -- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
 declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a

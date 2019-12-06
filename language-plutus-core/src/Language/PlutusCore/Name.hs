@@ -13,6 +13,7 @@ module Language.PlutusCore.Name
     , TypeUnique (..)
     , TermUnique (..)
     , HasUnique (..)
+    , theUnique
     , UniqueMap (..)
     -- * Functions
     , insertByUnique
@@ -68,7 +69,7 @@ instance Ord (Name ann) where
 
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
-    deriving (Eq, Show, Ord, Lift)
+    deriving (Eq, Show, Ord, Enum, Lift)
     deriving newtype (NFData, Pretty)
 
 -- | The unique of a type-level name.
@@ -99,6 +100,10 @@ instance HasUnique (Name ann) TermUnique where
         s n (TermUnique u) = n{nameUnique=u}
 
 instance HasUnique (TyName ann) TypeUnique
+
+-- | A lens focused on the 'Unique' of a name.
+theUnique :: HasUnique name unique => Lens' name Unique
+theUnique = unique . coerced
 
 -- | A mapping from uniques to values of type @a@.
 newtype UniqueMap unique a = UniqueMap
