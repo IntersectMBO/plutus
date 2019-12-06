@@ -26,12 +26,12 @@ module Language.PlutusCore.TypeCheck
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck.Internal
 
 import           Control.Monad.Except

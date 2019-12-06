@@ -33,13 +33,12 @@ module Language.PlutusCore.Constant.Typed
     , readKnownM
     ) where
 
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.Core
 
 import           Control.Monad.Except
 import           Control.Monad.Morph                         as Morph

@@ -11,11 +11,11 @@ module Language.PlutusCore.Examples.Data.TreeForest
     , forestCons
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Type
 

@@ -11,19 +11,22 @@
                                       ) where
 
 import PlutusPrelude
+
+import Language.PlutusCore.Error
+import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Lexer
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Core
+import Language.PlutusCore.Name
+import Language.PlutusCore.Mark
+import Language.PlutusCore.Constant.Make
+
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
-import Language.PlutusCore.Error
-import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Lexer
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Type
-import Language.PlutusCore.Name
-import Language.PlutusCore.Constant.Make
 
 }
 
@@ -91,13 +94,13 @@ parens(p)
 
 Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
-Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
+Version : naturalLit dot naturalLit dot naturalLit { Version (tkLoc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
 
-Constant : integerLit {% handleInteger (loc $1) (tkInt $1) }
-        | naturalLit {% handleInteger (loc $1) (fromIntegral (tkNat $1)) }
-        | byteStringLit { BuiltinBS (loc $1) (tkBytestring $1) } -- this is kinda broken but I'm waiting for a new spec
+Constant : integerLit {% handleInteger (tkLoc $1) (tkInt $1) }
+        | naturalLit {% handleInteger (tkLoc $1) (fromIntegral (tkNat $1)) }
+        | byteStringLit { BuiltinBS (tkLoc $1) (tkBytestring $1) } -- this is kinda broken but I'm waiting for a new spec
 
-Name : var { Name (loc $1) (name $1) (identifier $1) }
+Name : var { Name (tkLoc $1) (tkName $1) (tkIdentifier $1) }
 
 TyName : Name { TyName $1 }
 
@@ -108,7 +111,7 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen con Constant closeParen { Constant $2 $3 }
      | openParen iwrap Type Type Term closeParen { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (loc $3) (tkBuiltin $3)) }
+     | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (tkLoc $3) (tkBuiltin $3)) }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 

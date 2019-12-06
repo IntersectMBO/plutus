@@ -9,9 +9,9 @@ module Language.PlutusCore.Analysis.Definitions
     , runTypeDefs
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Data.Functor.Foldable
 
@@ -80,7 +80,7 @@ checkUndefined
     -> UniqueInfo ann -- ^ The existing info
     -> m ()
 checkUndefined n (ScopedLoc _ newDef) info = case info of
-    (Just (ScopedLoc _ prevDef), _) -> tell [MultiplyDefined (n ^. unique . coerced) prevDef newDef]
+    (Just (ScopedLoc _ prevDef), _) -> tell [MultiplyDefined (n ^. theUnique) prevDef newDef]
     _                               -> pure ()
 
 addUsage
@@ -108,7 +108,7 @@ checkDefined
     -> UniqueInfo ann -- ^ The existing info
     -> m ()
 checkDefined n (ScopedLoc _ loc) (def, _) = case def of
-    Nothing -> tell [FreeVariable (n ^. unique . coerced) loc]
+    Nothing -> tell [FreeVariable (n ^. theUnique) loc]
     Just _  -> pure ()
 
 checkCoherency
@@ -124,7 +124,7 @@ checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
 
     where
         checkLoc (ScopedLoc tpe' loc') = when (tpe' /= tpe) $
-            tell [IncoherentUsage (n ^. unique . coerced) loc' loc]
+            tell [IncoherentUsage (n ^. theUnique) loc' loc]
 
 termDefs
     :: (Ord ann,

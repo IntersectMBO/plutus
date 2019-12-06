@@ -10,11 +10,11 @@ module Language.PlutusCore.Normalize
     , normalizeTypesFullInProgram
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize.Internal
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
 
 import           Control.Monad                          ((>=>))
 

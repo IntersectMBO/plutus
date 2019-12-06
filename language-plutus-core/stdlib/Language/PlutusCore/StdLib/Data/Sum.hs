@@ -10,10 +10,10 @@ module Language.PlutusCore.StdLib.Data.Sum
 
 import           Prelude                   hiding (sum)
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 -- | 'Either' as a PLC type.
 --

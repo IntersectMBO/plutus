@@ -14,10 +14,10 @@ module Language.PlutusCore.StdLib.Data.Nat
 import           Prelude                                  hiding (succ)
 
 import           Language.PlutusCore.Constant.Make        (makeIntConstant)
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type

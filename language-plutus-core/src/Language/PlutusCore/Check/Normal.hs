@@ -10,23 +10,23 @@ module Language.PlutusCore.Check.Normal
     , NormCheckError (..)
     ) where
 
-import           Control.Monad.Except
-
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Error
+
+import           Control.Monad.Except
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram
-    :: (AsNormCheckError e TyName Name ann, MonadError e m)
-    => Program TyName Name ann -> m ()
+    :: (AsNormCheckError e tyname name ann, MonadError e m)
+    => Program tyname name ann -> m ()
 checkProgram (Program _ _ t) = checkTerm t
 
 -- | Ensure that all types in the 'Term' are normalized.
 checkTerm
-    :: (AsNormCheckError e TyName Name ann, MonadError e m)
-    => Term TyName Name ann -> m ()
+    :: (AsNormCheckError e tyname name ann, MonadError e m)
+    => Term tyname name ann -> m ()
 checkTerm p = throwingEither _NormCheckError $ check p
 
 check :: Term tyname name ann -> Either (NormCheckError tyname name ann) ()

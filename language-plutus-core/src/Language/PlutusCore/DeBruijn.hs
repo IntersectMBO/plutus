@@ -17,10 +17,10 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Control.Exception
 import           Control.Lens               hiding (Index, Level, index, ix)
@@ -53,7 +53,7 @@ instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
     prettyBy config (DeBruijn _ txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
-        where PrettyConfigName showsUnique _ = toPrettyConfigName config
+        where PrettyConfigName showsUnique = toPrettyConfigName config
 
 deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
 
@@ -104,7 +104,7 @@ levelToIndex (Level current) (Level l) = current - l
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
-    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
+    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
 
 -- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
 declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a

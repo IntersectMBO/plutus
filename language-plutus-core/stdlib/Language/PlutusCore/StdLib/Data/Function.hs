@@ -17,10 +17,10 @@ module Language.PlutusCore.StdLib.Data.Function
 import           PlutusPrelude
 import           Prelude                                    hiding (const)
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type

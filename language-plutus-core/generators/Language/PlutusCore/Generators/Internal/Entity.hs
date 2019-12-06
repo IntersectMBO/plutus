@@ -21,18 +21,20 @@ module Language.PlutusCore.Generators.Internal.Entity
     , withAnyTermLoose
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Result
+import           PlutusPrelude
+
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.Dependent
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
+
+import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
-import           PlutusPrelude
 
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader

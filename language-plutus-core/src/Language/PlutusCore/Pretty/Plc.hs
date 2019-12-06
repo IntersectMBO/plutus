@@ -4,7 +4,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Pretty.Plc
@@ -15,6 +14,7 @@ module Language.PlutusCore.Pretty.Plc
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
     , PrettyPlc
+    , DefaultPrettyPlcStrategy
     , defPrettyConfigPlcOptions
     , defPrettyConfigPlcClassic
     , debugPrettyConfigPlcClassic
@@ -28,12 +28,11 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
-import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.Readable
-import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors
@@ -79,18 +78,6 @@ instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlcStrategy a
 
 instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
     defaultPrettyBy = defaultPrettyBy . _pcpStrategy
-
-instance PrettyBy PrettyConfigPlc (Kind ann)
-instance PrettyBy PrettyConfigPlc (Builtin ann)
-instance DefaultPrettyPlcStrategy (Type tyname ann) =>
-    PrettyBy PrettyConfigPlc (Type tyname ann)
-instance DefaultPrettyPlcStrategy (Term tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Term tyname name ann)
-instance DefaultPrettyPlcStrategy (Program tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Program tyname name ann)
-
-instance PrettyBy PrettyConfigPlc BuiltinName where
-    prettyBy _ = pretty
 
 -- | The 'PrettyConfigPlcOptions' used by default:
 -- print errors in full.

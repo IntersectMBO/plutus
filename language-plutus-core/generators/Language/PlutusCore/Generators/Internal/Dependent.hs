@@ -11,10 +11,10 @@ module Language.PlutusCore.Generators.Internal.Dependent
     , proxyAsKnownType
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Pretty
+import           PlutusPrelude
 
-import           Control.Monad
+import           Language.PlutusCore.Constant
+
 import           Data.GADT.Compare
 import           Unsafe.Coerce
 

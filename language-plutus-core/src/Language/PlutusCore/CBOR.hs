@@ -8,13 +8,13 @@
 -- before touching anything in this file.
 module Language.PlutusCore.CBOR () where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer      (AlexPosn)
-import           Language.PlutusCore.Lexer.Type hiding (name)
+-- import           Language.PlutusCore.Lexer      (AlexPosn)
+import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Codec.CBOR.Decoding
@@ -244,7 +244,7 @@ instance ( Serialise ann
 deriving newtype instance (Serialise a) => Serialise (Normalized a)
 
 instance Serialise a => Serialise (Token a)
-instance Serialise AlexPosn
+-- instance Serialise AlexPosn
 instance Serialise Keyword
 instance Serialise Special
 

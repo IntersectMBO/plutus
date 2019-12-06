@@ -16,6 +16,11 @@
                                      ) where
 
 import PlutusPrelude
+
+import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.Name
+import Language.PlutusCore.Core
+
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
 import Language.PlutusCore.Error
@@ -23,8 +28,6 @@ import Language.Haskell.TH.Syntax (Lift)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Name
 import Control.Monad.Except
 import Control.Monad.State
 

@@ -13,9 +13,9 @@ module Language.PlutusCore.Evaluation.Result
     , isEvaluationFailure
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
 
 import           Control.Applicative
 import           PlutusPrelude

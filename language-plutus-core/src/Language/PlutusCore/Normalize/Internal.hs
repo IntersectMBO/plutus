@@ -17,10 +17,10 @@ module Language.PlutusCore.Normalize.Internal
     , normalizeTypesInM
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Lens

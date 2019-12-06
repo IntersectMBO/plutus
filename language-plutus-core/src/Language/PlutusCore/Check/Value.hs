@@ -8,8 +8,8 @@ module Language.PlutusCore.Check.Value
     , AsValueRestrictionError (..)
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except

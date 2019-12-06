@@ -11,11 +11,13 @@ module Language.PlutusCore.Rename
     , liftDupable
     ) where
 
+import           PlutusPrelude
+
+import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename.Internal
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import           Language.PlutusCore.Core
 
 import           Data.Functor.Identity
 

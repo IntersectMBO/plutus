@@ -28,15 +28,14 @@ module Language.PlutusCore.TypeCheck.Internal
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type         hiding (name)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import qualified Language.PlutusCore.Normalize.Internal as Norm
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Lens.TH                        (makeLenses)

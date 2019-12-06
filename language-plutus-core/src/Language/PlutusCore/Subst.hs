@@ -15,11 +15,14 @@ module Language.PlutusCore.Subst
     , vTerm
     , tvTerm
     , tvTy
+    , uniquesType
+    , uniquesTerm
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Name
 
 import           Control.Lens
 import           Data.Functor.Foldable    (cata)
@@ -147,14 +150,27 @@ ftvTy = cata f
 
 -- All variables
 
+setOf :: Getting (Set a) s a -> s -> Set a
+setOf g = foldMapOf g singleton
+
 -- | Get all the term variables in a term.
 vTerm :: Ord (name ann) => Term tyname name ann -> Set (name ann)
-vTerm = foldMapOf (termSubtermsDeep . termVars) singleton
+vTerm = setOf $ termSubtermsDeep . termVars
 
 -- | Get all the type variables in a term.
 tvTerm :: Ord (tyname ann) => Term tyname name ann -> Set (tyname ann)
-tvTerm = foldMapOf (termSubtypesDeep . typeTyVars) singleton
+tvTerm = setOf $ termSubtypesDeep . typeTyVars
 
 -- | Get all the type variables in a type.
 tvTy :: Ord (tyname ann) => Type tyname ann -> Set (tyname ann)
-tvTy = foldMapOf (typeSubtypesDeep . typeTyVars) singleton
+tvTy = setOf $ typeSubtypesDeep . typeTyVars
+
+-- All uniques
+
+-- | Get all the uniques in a type.
+uniquesType :: HasUniques (Type tyname ann) => Type tyname ann -> Set Unique
+uniquesType = setOf typeUniquesDeep
+
+-- | Get all the uniques in a term (including the type-level ones).
+uniquesTerm :: HasUniques (Term tyname name ann) => Term tyname name ann -> Set Unique
+uniquesTerm = setOf termUniquesDeep

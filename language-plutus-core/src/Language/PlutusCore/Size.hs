@@ -6,7 +6,7 @@ module Language.PlutusCore.Size
     , serialisedSize
     ) where
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy     as BSL
