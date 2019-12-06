@@ -10,7 +10,6 @@ import           Data.Text.Encoding                                    (encodeUt
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
-import           Ledger
 
 import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
@@ -23,6 +22,7 @@ import           Test.Tasty.Golden                                     (goldenVs
 import           Test.Tasty.HUnit                                      (assertFailure)
 import qualified Wallet.Emulator.Chain                                 as EM
 import           Wallet.Emulator.Types
+import qualified Wallet.Emulator.Wallet                                as EM
 import           Wallet.Rollup.Render                                  (showBlockchain)
 
 tests :: TestTree
@@ -47,8 +47,8 @@ render
     -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
     -> IO ByteString
 render con trace = do
-    let (result, EmulatorState{ _chainState = cs, _walletStates = wallets}) = runTrace con trace
-    let walletKeys = flip fmap (Map.toList wallets) $ \(w, ws) -> (toPublicKey (_ownPrivateKey ws), w)
+    let (result, EmulatorState{ _chainState = cs, _walletClientStates = wallets}) = runTrace con trace
+    let walletKeys = flip fmap (Map.keys wallets) $ \w -> (EM.walletPubKey w, w)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->

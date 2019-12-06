@@ -37,8 +37,6 @@ module Wallet.Emulator.Types(
     emptyWalletState,
     ownPrivateKey,
     ownAddress,
-    ownFunds,
-    addressMap,
     -- ** Traces
     Trace,
     runTraceChain,
@@ -100,7 +98,7 @@ type Trace a = Eff.Eff '[MultiAgentEffect, ChainEffect] a
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Wallet -> [Notification] -> Trace ()
-walletRecvNotifications w nots = void $ walletAction w (mapM_ walletNotify nots)
+walletRecvNotifications w nots = void $ walletAction w (mapM_ clientNotify nots)
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.
 walletNotifyBlock :: Wallet -> Block -> Trace ()
@@ -179,7 +177,7 @@ execTraceTxPool pl t = snd $ runTraceTxPool pl t
 
 -- | Run an action as a wallet, subsequently process any pending transactions
 --   and notify wallets. Returns the new block
-runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError] a -> Trace ([Tx], a)
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] a -> Trace ([Tx], a)
 runWalletActionAndProcessPending wallets wallet action = do
     result <- walletAction wallet action
     block <- processPending

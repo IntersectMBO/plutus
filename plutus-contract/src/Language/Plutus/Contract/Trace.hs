@@ -329,7 +329,7 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError] a
+    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect] a
     -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
@@ -412,7 +412,7 @@ addTxEvents
     -> ContractTrace s e m a ()
 addTxEvents tx = do
     let addTxEventsWallet wllt = do
-            idx <- lift (gets (view (EM.walletState wllt . EM.addressMap)))
+            idx <- lift (gets (view (EM.walletClientState wllt . EM.clientIndex)))
             let watchAddressEvents = WatchAddress.events idx tx
             addInterestingTxEvents watchAddressEvents wllt
             addTxConfirmedEvent (txId tx) wllt
@@ -553,7 +553,7 @@ handleUtxoQueries
     -> ContractTrace s e m a ()
 handleUtxoQueries wllt = do
     addresses <- utxoQueryAddresses wllt
-    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletState wllt . EM.addressMap)))
+    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletClientState wllt . EM.clientIndex)))
     let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
     traverse_ (addEvent wllt . UtxoAt.event) events
 

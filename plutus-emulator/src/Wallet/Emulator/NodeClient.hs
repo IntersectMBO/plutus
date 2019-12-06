@@ -23,6 +23,7 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc  hiding (annotate)
 import           GHC.Generics               (Generic)
 import           Ledger
+import qualified Ledger.AddressMap          as AM
 import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
@@ -35,11 +36,13 @@ instance Pretty NodeClientEvent where
     pretty (TxSubmit tx) = "TxSubmit:" <+> pretty tx
 
 data NodeClientState = NodeClientState {
-    _clientSlot :: Slot
+    _clientSlot  :: Slot,
+    _clientIndex :: AM.AddressMap
+    -- ^ Full index
 } deriving stock (Show, Eq)
 
 emptyNodeClientState :: NodeClientState
-emptyNodeClientState = NodeClientState (Slot 0)
+emptyNodeClientState = NodeClientState (Slot 0) mempty
 
 makeLenses ''NodeClientState
 
@@ -51,6 +54,7 @@ data Notification = BlockValidated Block -- ^ A new block has been validated.
 data NodeClientEffect r where
     PublishTx :: Tx -> NodeClientEffect ()
     GetClientSlot :: NodeClientEffect Slot
+    GetClientIndex :: NodeClientEffect AM.AddressMap
     ClientNotify :: Notification -> NodeClientEffect ()
 makeEffect ''NodeClientEffect
 
@@ -62,6 +66,9 @@ handleNodeClient
 handleNodeClient = interpret $ \case
     PublishTx tx -> queueTx tx >> tell [TxSubmit (txId tx)]
     GetClientSlot -> gets _clientSlot
+    GetClientIndex -> gets _clientIndex
     ClientNotify n -> case n of
-        BlockValidated _ -> modify (\s -> s & clientSlot +~ 1)
-        CurrentSlot sl   -> modify (\s -> s & clientSlot .~ sl)
+        BlockValidated blk -> modify $ \s ->
+            s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
+              & clientSlot +~ 1
+        CurrentSlot sl -> modify (\s -> s & clientSlot .~ sl)

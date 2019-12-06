@@ -82,7 +82,8 @@ import           Ledger.TxId                                     (TxId)
 import           Ledger.Value                                    (Value)
 import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
 import qualified Wallet.Emulator                                 as EM
-import qualified Wallet.Emulator.Chain                      as EM
+import qualified Wallet.Emulator.Chain                           as EM
+import qualified Wallet.Emulator.NodeClient                      as EM
 
 import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Trace                  as X
@@ -258,11 +259,11 @@ tx w flt nm = PredF $ \(_, r) -> do
 walletState
     :: forall s e a.
        Wallet
-    -> (EM.WalletState -> Bool)
+    -> (EM.NodeClientState -> Bool)
     -> String
     -> TracePredicate s e a
 walletState w flt nm = PredF $ \(_, r) -> do
-    let ws = view (at w) $ EM._walletStates $  _ctrEmulatorState r
+    let ws = view (at w) $ EM._walletClientStates $  _ctrEmulatorState r
     case ws of
         Nothing -> do
             tell $ "Wallet state of " <+> pretty w <+> "not found"
@@ -284,7 +285,7 @@ walletWatchingAddress
     -> TracePredicate s e a
 walletWatchingAddress w addr =
     let desc = "watching address " <> show addr in
-    walletState w (Map.member addr . AM.values . view EM.addressMap) desc
+    walletState w (Map.member addr . AM.values . view EM.clientIndex) desc
 
 assertEvents
     :: forall s e a.

@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -26,7 +27,6 @@ import           Data.Bifunctor
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable
 import           Data.Hashable              (Hashable)
-import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Maybe
 import qualified Data.Set                   as Set
@@ -64,6 +64,10 @@ walletPubKey = toPublicKey . walletPrivKey
 walletPrivKey :: Wallet -> PrivateKey
 walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral i
 
+-- | Get a wallet's address.
+walletAddress :: Wallet -> Address
+walletAddress = pubKeyAddress . walletPubKey
+
 -- | Sign a 'Tx' using the wallet's privat key.
 signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
@@ -78,38 +82,26 @@ instance Pretty WalletEvent where
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
-    _ownPrivateKey :: PrivateKey,
+    _ownPrivateKey :: PrivateKey
     -- ^ User's 'PrivateKey'.
-    _addressMap    :: AM.AddressMap
-    -- ^ Full index
     } deriving stock (Eq)
 
 makeLenses ''WalletState
 
 instance Show WalletState where
-    showsPrec p (WalletState kp wa) = showParen (p > 10)
+    showsPrec p (WalletState kp ) = showParen (p > 10)
         (showString "WalletState"
-            . showChar ' ' . showsPrec 10 kp
-            . showChar ' ' . showsPrec 10 wa)
-
+            . showChar ' ' . showsPrec 10 kp)
 
 -- | Get the user's own public-key address.
 ownAddress :: WalletState -> Address
 ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 
--- | Get the funds available at the user's own public-key address.
-ownFunds :: Lens' WalletState (Map TxOutRef TxOutTx)
-ownFunds = lens g s where
-    g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
-    s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
-
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState w = WalletState pk oa where
-    oa = AM.addAddress ownAddr mempty
+emptyWalletState w = WalletState pk where
     pk = walletPrivKey w
-    ownAddr = pubKeyAddress (toPublicKey pk)
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
@@ -117,9 +109,7 @@ data WalletEffect r where
     Sign :: BSL.ByteString -> WalletEffect Signature
     UpdatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> WalletEffect (Set.Set TxIn, Maybe TxOut)
     WatchedAddresses :: WalletEffect AM.AddressMap
-    StartWatching :: Address -> WalletEffect ()
     WalletSlot :: WalletEffect Slot
-    WalletNotify :: NC.Notification -> WalletEffect ()
     WalletLogMsg :: T.Text -> WalletEffect ()
 makeEffect ''WalletEffect
 
@@ -135,15 +125,17 @@ handleWallet = interpret $ \case
         privK <- gets _ownPrivateKey
         pure (Crypto.sign (BSL.toStrict bs) privK)
     UpdatePaymentWithChange vl (oldIns, changeOut) -> do
+        utxo <- NC.getClientIndex
         ws <- get
-        let -- These inputs have been already used, we won't touch them
+        let
+            addr = ownAddress ws
+            -- These inputs have been already used, we won't touch them
             usedFnds = Set.map txInRef oldIns
             -- Optional, left over change. Replace a `Nothing` with a Value of 0.
             oldChange = maybe (Ada.lovelaceValueOf 0) txOutValue changeOut
             -- Available funds.
-            fnds   = Map.withoutKeys (ws ^. ownFunds) usedFnds
-            privK  = ws ^. ownPrivateKey
-            pubK   = toPublicKey privK
+            fnds   = Map.withoutKeys (utxo ^. AM.fundsAt addr) usedFnds
+            pubK   = toPublicKey (ws ^. ownPrivateKey)
         if vl `Value.leq` oldChange
         then
           -- If the requested value is covered by the change we only need to update
@@ -156,15 +148,8 @@ handleWallet = interpret $ \case
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
-    WatchedAddresses -> gets _addressMap
-    StartWatching a -> modify $ \ws -> ws & addressMap %~ AM.addAddress a
+    WatchedAddresses -> NC.getClientIndex
     WalletSlot -> NC.getClientSlot
-    WalletNotify n -> do
-        -- TODO: this is quite backwards
-        NC.clientNotify n
-        case n of
-            NC.CurrentSlot _       -> pure ()
-            NC.BlockValidated blck -> mapM_ (\t -> modify $ \ws -> ws & addressMap %~ AM.updateAllAddresses t) blck
     WalletLogMsg m -> tell [WalletMsg m]
 
 -- HACK: these shouldn't exist, but WalletAPI needs to die first
@@ -174,7 +159,8 @@ instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
     sign = sign
     updatePaymentWithChange = updatePaymentWithChange
     watchedAddresses = watchedAddresses
-    startWatching = startWatching
+    -- TODO: Remove or rework. This is a noop, since the wallet client watches all addresses currently.
+    startWatching _ = pure ()
     slot = walletSlot
 
 instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAPIError (Eff effs) where

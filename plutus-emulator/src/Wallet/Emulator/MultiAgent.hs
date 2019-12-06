@@ -28,7 +28,8 @@ import qualified Data.Map                   as Map
 import qualified Data.Text                  as T
 import           Data.Text.Prettyprint.Doc  hiding (annotate)
 import           GHC.Generics               (Generic)
-import           Ledger                     hiding (value)
+import           Ledger                     hiding (to, value)
+import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Index               as Index
 import qualified Wallet.API                 as WAPI
 import qualified Wallet.Emulator.Chain      as Chain
@@ -77,24 +78,19 @@ walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Ju
 data MultiAgentEffect r where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect] r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
-    -- | Failure.
-    Failure :: T.Text -> MultiAgentEffect r
 
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError] r
+    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect] r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
 
 assertion :: (Member MultiAgentEffect effs) => Assertion -> Eff effs ()
 assertion a = send (Assertion a)
-
-fail :: (Member MultiAgentEffect effs) => T.Text -> Eff effs r
-fail m = send (Failure m)
 
 -- | Issue an assertion that the funds for a given wallet have the given value.
 assertOwnFundsEq :: (Member MultiAgentEffect effs) => Wallet.Wallet -> Value -> Eff effs ()
@@ -125,9 +121,17 @@ walletClientState wallet = walletClientStates . at wallet . non NC.emptyNodeClie
 chainOldestFirst :: Lens' EmulatorState Blockchain
 chainOldestFirst = chainState . Chain.chainNewestFirst . reversed
 
+chainUtxo :: Getter EmulatorState AM.AddressMap
+chainUtxo = chainState . Chain.chainNewestFirst . to AM.fromChain
+
 -- | Get a map with the total value of each wallet's "own funds".
 fundsDistribution :: EmulatorState -> Map Wallet.Wallet Value
-fundsDistribution = Map.map (foldMap (txOutValue . txOutTxOut) . view Wallet.ownFunds) . view walletStates
+fundsDistribution st =
+    let fullState = view chainUtxo st
+        wallets = Map.keys (_walletClientStates st)
+        walletFunds = flip fmap wallets $ \w ->
+            (w, foldMap (txOutValue . txOutTxOut) $ view (AM.fundsAt (Wallet.walletAddress w)) fullState)
+    in Map.fromList walletFunds
 
 -- | Get the emulator log.
 emLog :: EmulatorState -> [EmulatorEvent]
@@ -174,7 +178,7 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd2
+        & raiseEnd3
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
@@ -189,7 +193,6 @@ handleMultiAgent = interpret $ \case
             p2 :: Prism' [EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (walletClientEvent wallet)
     Assertion a -> assert a
-    Failure message -> throwError $ GenericAssertion message
 
 -- | Issue an 'Assertion'.
 assert :: (Members MultiAgentEffs effs) => Assertion -> Eff effs ()
@@ -200,10 +203,7 @@ assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
 ownFundsEqual :: (Members MultiAgentEffs effs) => Wallet.Wallet -> Value -> Eff effs ()
 ownFundsEqual wallet value = do
     es <- get
-    ws <- case Map.lookup wallet $ _walletStates es of
-        Nothing -> throwError $ GenericAssertion "Wallet not found"
-        Just ws -> pure ws
-    let total = foldMap (txOutValue . txOutTxOut) $ ws ^. Wallet.ownFunds
+    let total = foldMap (txOutValue . txOutTxOut) $ es ^. chainUtxo . AM.fundsAt (Wallet.walletAddress wallet)
     if value == total
     then pure ()
     else throwError $ GenericAssertion $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]

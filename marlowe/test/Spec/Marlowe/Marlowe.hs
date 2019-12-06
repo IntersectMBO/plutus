@@ -39,6 +39,7 @@ import           Test.Tasty.HUnit
 import           Wallet                     (PubKey (..), WalletAPIError)
 import           Wallet.Emulator
 import qualified Wallet.Emulator.Generators as Gen
+import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
 import qualified Wallet.Generators          as Gen
 
@@ -206,7 +207,7 @@ updateAll :: [Wallet] -> Trace ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 
-performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError] (MarloweData, Tx) -> Trace (MarloweData, Tx)
+performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] (MarloweData, Tx) -> Trace (MarloweData, Tx)
 performNotify wallets actor action = do
     (md, tx) <- walletAction actor action
     processPending >>= void . walletsNotifyBlock wallets

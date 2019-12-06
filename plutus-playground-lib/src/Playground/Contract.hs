@@ -106,6 +106,7 @@ import           Schema                                          (FormSchema, To
 import           Wallet.API                                      (WalletAPI, WalletAPIError, payToPublicKey_)
 import           Wallet.Emulator                                 (addBlocksAndNotify, walletPubKey)
 import qualified Wallet.Emulator                                 as Emulator
+import qualified Wallet.Emulator.NodeClient                      as Emulator
 import           Wallet.Emulator.Types                           (Trace, Wallet (..))
 import qualified Wallet.Emulator.Wallet                          as Emulator
 
@@ -113,7 +114,7 @@ payToWallet_ :: (Monad m, WalletAPI m) => PayToWalletParams -> m ()
 payToWallet_ PayToWalletParams {value, payTo} =
     payToPublicKey_ always value $ walletPubKey payTo
 
-runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[Emulator.WalletEffect, Eff.Error WalletAPIError] a -> Trace [Tx]
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[Emulator.WalletEffect, Eff.Error WalletAPIError, Emulator.NodeClientEffect] a -> Trace [Tx]
 runWalletActionAndProcessPending wllts wllt a =
     fmap fst (Emulator.runWalletActionAndProcessPending wllts wllt a)
 
