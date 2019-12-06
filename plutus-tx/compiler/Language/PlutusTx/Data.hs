@@ -43,6 +43,14 @@ instance Pretty Data where
 
 type CBORToDataError = String
 
+{- Note [Permissive decoding]
+We're using a canonical representation of lists, maps, bytes, and integers. However,
+the CBOR library does not guarantee that a TInteger gets encoded as a big integer,
+so we can't rely on getting back our canonical version when we decode (see
+https://github.com/well-typed/cborg/issues/222). So we need to be permissive
+when we decode.
+-}
+
 viewList :: CBOR.Term -> Maybe [CBOR.Term]
 viewList (CBOR.TList l)  = Just l
 viewList (CBOR.TListI l) = Just l
@@ -58,11 +66,17 @@ viewBytes (CBOR.TBytes b)  = Just (BSL.fromStrict b)
 viewBytes (CBOR.TBytesI b) = Just b
 viewBytes _                = Nothing
 
+viewInteger :: CBOR.Term -> Maybe Integer
+viewInteger (CBOR.TInt i)     = Just (fromIntegral i)
+viewInteger (CBOR.TInteger i) = Just i
+viewInteger _                 = Nothing
+
 -- TODO: try and make this match the serialization of Haskell types using derived 'Serialise'?
 -- Would at least need to handle special cases with Null etc.
 fromTerm :: CBOR.Term -> Either CBORToDataError Data
 fromTerm = \case
-    CBOR.TInteger i -> pure $ I i
+    -- See Note [Permissive decoding]
+    (viewInteger -> Just i) -> pure $ I i
     (viewBytes -> Just b) -> pure $ B b
     (viewMap -> Just entries) -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
     (viewList -> Just ts) -> List <$> traverse fromTerm ts
