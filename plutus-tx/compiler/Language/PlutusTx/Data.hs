@@ -63,6 +63,7 @@ viewBytes _                = Nothing
 fromTerm :: CBOR.Term -> Either CBORToDataError Data
 fromTerm = \case
     CBOR.TInteger i -> pure $ I i
+    CBOR.TInt i -> pure $ I $ fromIntegral i
     (viewBytes -> Just b) -> pure $ B b
     (viewMap -> Just entries) -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
     (viewList -> Just ts) -> List <$> traverse fromTerm ts
