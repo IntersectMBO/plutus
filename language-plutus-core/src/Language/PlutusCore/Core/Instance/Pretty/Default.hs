@@ -6,13 +6,13 @@
 
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Default () where
+module Language.PlutusCore.Core.Instance.Pretty.Default () where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Classic ()
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Classic ()
 
 instance Pretty (Kind ann) where
     pretty = prettyClassicDef

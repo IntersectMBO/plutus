@@ -16,7 +16,7 @@ module Language.PlutusCore.View
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp

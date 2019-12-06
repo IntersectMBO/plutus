@@ -7,14 +7,14 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Plc () where
+module Language.PlutusCore.Core.Instance.Pretty.Plc () where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Classic  ()
+import           Language.PlutusCore.Core.Instance.Pretty.Readable ()
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Plc
-import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Classic  ()
-import           Language.PlutusCore.Type.Instance.Pretty.Readable ()
 
 instance PrettyBy PrettyConfigPlc (Kind ann)
 instance PrettyBy PrettyConfigPlc (Builtin ann)

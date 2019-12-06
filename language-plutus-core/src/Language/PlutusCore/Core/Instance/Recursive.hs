@@ -2,14 +2,14 @@
 
 {-# LANGUAGE TypeFamilies #-}
 
-module Language.PlutusCore.Type.Instance.Recursive
+module Language.PlutusCore.Core.Instance.Recursive
     ( -- * Base functors
       TermF (..)
     , TypeF (..)
     , KindF (..)
     ) where
 
-import           Language.PlutusCore.Type.Core
+import           Language.PlutusCore.Core.Type
 
 import           Data.Functor.Foldable
 

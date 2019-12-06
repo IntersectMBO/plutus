@@ -14,9 +14,9 @@ module Language.PlutusCore.Lexer.Type
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
 
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL

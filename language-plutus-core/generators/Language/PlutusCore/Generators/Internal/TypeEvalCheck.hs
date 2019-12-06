@@ -25,13 +25,13 @@ import           Language.PlutusCore.Generators.Internal.Utils
 
 import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck
 
 import           Control.Lens.TH

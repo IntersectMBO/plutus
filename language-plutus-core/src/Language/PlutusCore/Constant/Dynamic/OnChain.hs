@@ -25,8 +25,8 @@ import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Control.Exception
 import           Data.Coerce

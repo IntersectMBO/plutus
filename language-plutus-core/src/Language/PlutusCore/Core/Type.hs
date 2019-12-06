@@ -6,7 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 
-module Language.PlutusCore.Type.Core
+module Language.PlutusCore.Core.Type
     ( Gas (..)
     , Kind (..)
     , TypeBuiltin (..)

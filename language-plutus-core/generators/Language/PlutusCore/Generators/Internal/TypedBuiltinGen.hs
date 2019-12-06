@@ -23,8 +23,8 @@ import           PlutusPrelude
 import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity

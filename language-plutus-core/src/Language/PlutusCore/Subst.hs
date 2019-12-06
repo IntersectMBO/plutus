@@ -21,8 +21,8 @@ module Language.PlutusCore.Subst
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Control.Lens
 import           Data.Functor.Foldable    (cata)

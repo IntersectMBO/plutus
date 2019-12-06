@@ -9,7 +9,7 @@ module Language.PlutusCore.Constant.Dynamic.Call
 
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Data.Proxy
 import           System.IO.Unsafe

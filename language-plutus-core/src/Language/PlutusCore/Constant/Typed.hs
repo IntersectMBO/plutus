@@ -38,7 +38,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Control.Monad.Except
 import           Control.Monad.Morph                         as Morph

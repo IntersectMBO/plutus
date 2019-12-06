@@ -18,11 +18,11 @@ module Language.PlutusCore.Generators.Interesting
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function as Function

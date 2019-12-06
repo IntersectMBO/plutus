@@ -21,7 +21,7 @@ import           PlutusPrelude             (showText)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable

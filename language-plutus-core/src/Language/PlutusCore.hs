@@ -103,6 +103,7 @@ import           Language.PlutusCore.CBOR                  ()
 import qualified Language.PlutusCore.Check.Normal          as Normal
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import qualified Language.PlutusCore.Check.Value           as VR
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Lexer
@@ -114,7 +115,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck             as TypeCheck
 import           Language.PlutusCore.View
 

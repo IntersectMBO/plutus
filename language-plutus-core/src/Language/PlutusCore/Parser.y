@@ -16,7 +16,7 @@ import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
-import Language.PlutusCore.Type
+import Language.PlutusCore.Core
 import Language.PlutusCore.Name
 import Language.PlutusCore.Mark
 import Language.PlutusCore.Constant.Make

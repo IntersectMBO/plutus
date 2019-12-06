@@ -7,9 +7,9 @@ module Language.PlutusCore.Check.Uniques
     ) where
 
 import           Language.PlutusCore.Analysis.Definitions
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except

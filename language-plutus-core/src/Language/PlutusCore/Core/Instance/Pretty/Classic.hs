@@ -6,15 +6,15 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Classic () where
+module Language.PlutusCore.Core.Instance.Pretty.Classic () where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Common ()
+import           Language.PlutusCore.Core.Instance.Recursive
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.Utils
-import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Common ()
-import           Language.PlutusCore.Type.Instance.Recursive
 
 import           Data.Functor.Foldable
 

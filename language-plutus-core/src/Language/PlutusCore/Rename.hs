@@ -17,7 +17,7 @@ import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename.Internal
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Data.Functor.Identity
 

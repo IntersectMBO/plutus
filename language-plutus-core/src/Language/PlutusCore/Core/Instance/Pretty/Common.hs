@@ -2,11 +2,11 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Common () where
+module Language.PlutusCore.Core.Instance.Pretty.Common () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Type.Core
+import           Language.PlutusCore.Core.Type
 
 instance Pretty BuiltinName where
     pretty AddInteger           = "addInteger"

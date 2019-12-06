@@ -37,7 +37,7 @@ module Language.PlutusCore.MkPlc
 
 import           Prelude                               hiding (error)
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Data.List                             (foldl')
 import           GHC.Generics                          (Generic)

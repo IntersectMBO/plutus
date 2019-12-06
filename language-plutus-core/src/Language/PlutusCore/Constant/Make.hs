@@ -11,8 +11,8 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinStr
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Type
 
 import qualified Data.ByteString.Lazy      as BSL
 

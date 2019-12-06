@@ -32,10 +32,10 @@ module Language.PlutusCore.Error
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
 
 import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens

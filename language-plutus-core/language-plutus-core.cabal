@@ -43,7 +43,7 @@ library
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
-        Language.PlutusCore.Type
+        Language.PlutusCore.Core
         Language.PlutusCore.DeBruijn
         Language.PlutusCore.Check.Uniques
         Language.PlutusCore.FsTree
@@ -77,17 +77,17 @@ library
     hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Pretty.ConfigName
-        Language.PlutusCore.Type.Core
-        Language.PlutusCore.Type.Plated
-        Language.PlutusCore.Type.Instance.Eq
-        Language.PlutusCore.Type.Instance.Pretty.Classic
-        Language.PlutusCore.Type.Instance.Pretty.Common
-        Language.PlutusCore.Type.Instance.Pretty.Default
-        Language.PlutusCore.Type.Instance.Pretty.Plc
-        Language.PlutusCore.Type.Instance.Pretty.Readable
-        Language.PlutusCore.Type.Instance.Pretty
-        Language.PlutusCore.Type.Instance.Recursive
-        Language.PlutusCore.Type.Instance
+        Language.PlutusCore.Core.Type
+        Language.PlutusCore.Core.Plated
+        Language.PlutusCore.Core.Instance.Eq
+        Language.PlutusCore.Core.Instance.Pretty.Classic
+        Language.PlutusCore.Core.Instance.Pretty.Common
+        Language.PlutusCore.Core.Instance.Pretty.Default
+        Language.PlutusCore.Core.Instance.Pretty.Plc
+        Language.PlutusCore.Core.Instance.Pretty.Readable
+        Language.PlutusCore.Core.Instance.Pretty
+        Language.PlutusCore.Core.Instance.Recursive
+        Language.PlutusCore.Core.Instance
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call

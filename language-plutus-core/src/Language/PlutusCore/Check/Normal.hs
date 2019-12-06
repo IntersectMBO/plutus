@@ -12,8 +12,8 @@ module Language.PlutusCore.Check.Normal
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Except
 

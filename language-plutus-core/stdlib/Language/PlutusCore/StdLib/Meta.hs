@@ -8,9 +8,9 @@ module Language.PlutusCore.StdLib.Meta
     , metaListToList
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat  as Plc

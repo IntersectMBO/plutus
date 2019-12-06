@@ -9,9 +9,9 @@ module Language.PlutusCore.Analysis.Definitions
     , runTypeDefs
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Data.Functor.Foldable
 

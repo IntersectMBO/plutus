@@ -17,10 +17,10 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Control.Exception
 import           Control.Lens               hiding (Index, Level, index, ix)

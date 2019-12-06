@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Language.PlutusCore.Type.Plated
+module Language.PlutusCore.Core.Plated
     ( typeTyBinds
     , typeTyVars
     , typeUniques
@@ -19,8 +19,8 @@ module Language.PlutusCore.Type.Plated
     , termUniquesDeep
     ) where
 
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type.Core
 
 import           Control.Lens
 

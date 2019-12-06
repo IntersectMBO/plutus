@@ -14,6 +14,7 @@ module Language.PlutusCore.Generators.Test
     ) where
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
@@ -22,7 +23,6 @@ import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Except
 import           Data.Functor                                            ((<&>))

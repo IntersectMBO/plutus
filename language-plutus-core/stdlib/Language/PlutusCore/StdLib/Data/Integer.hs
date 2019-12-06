@@ -7,10 +7,10 @@ module Language.PlutusCore.StdLib.Data.Integer
     ) where
 
 import           Language.PlutusCore.Constant.Make (makeIntConstant)
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --

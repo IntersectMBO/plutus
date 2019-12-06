@@ -12,6 +12,7 @@ module Language.PlutusCore.Constant.Dynamic.Instances
 
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -25,7 +26,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Except
 import           Data.Bifunctor

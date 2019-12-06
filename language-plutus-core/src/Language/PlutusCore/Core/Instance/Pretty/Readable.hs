@@ -7,14 +7,14 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Type.Instance.Pretty.Readable () where
+module Language.PlutusCore.Core.Instance.Pretty.Readable () where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Common ()
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Pretty.Utils
-import           Language.PlutusCore.Type.Core
-import           Language.PlutusCore.Type.Instance.Pretty.Common ()
 
 import           Data.Text.Prettyprint.Doc.Internal              (enclose)
 

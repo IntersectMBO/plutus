@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Type.Instance.Eq
+module Language.PlutusCore.Core.Instance.Eq
     ( eqTypeM
     , eqTermM
     , eqProgramM
@@ -15,10 +15,10 @@ module Language.PlutusCore.Type.Instance.Eq
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Eq
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
-import           Language.PlutusCore.Type.Core
 
 -- See Note [Annotations and equality].
 

@@ -18,8 +18,8 @@ module Language.PlutusCore.FsTree
     , foldPlcFolderContents
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 -- We use 'String's for names, because 'FilePath's are 'String's.
 -- | An 'FsTree' is either a file or a folder with a list of 'FsTree's inside.
