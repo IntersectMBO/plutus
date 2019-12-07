@@ -30,7 +30,9 @@ makeNumbers :: Integer -> Numbers
 makeNumbers n = Numbers n (makeNumbers $ 2*n) (makeNumbers $ 2*n+1)
 
 nats :: Numbers
-nats = makeNumbers 0 -- An infinite tree containing each natural number exactly once
+nats = makeNumbers 1
+-- An infinite tree containing each integer >= 1 exactly once
+-- nats is a bad name.
 
 numberName :: Numbers -> P.Name a -> P.Name Integer
 numberName numbers (P.Name x s u) = P.Name (first numbers) s u
