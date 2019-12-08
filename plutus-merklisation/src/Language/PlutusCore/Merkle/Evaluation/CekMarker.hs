@@ -13,7 +13,7 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Language.PlutusCore.Merkle.CekMarker
+module Language.PlutusCore.Merkle.Evaluation.CekMarker
     ( CekMachineException
     , EvaluationResult (..)
     , EvaluationResultDef2
@@ -25,26 +25,33 @@ module Language.PlutusCore.Merkle.CekMarker
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Merkle.Constant
+import           Language.PlutusCore.Merkle.Evaluation.MachineException
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 
-import           PlutusPrelude                                   hiding (hoist)
+import           PlutusPrelude                                          hiding (hoist)
 
-import           Control.Lens.TH                                 (makeLenses)
+import           Control.Lens.TH                                        (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Data.Map                                        as Map
-import qualified Data.Set                                        as Set
+import qualified Data.Map                                               as Map
+import qualified Data.Set                                               as Set
 
 
 type Numbered f = f TyName Name Integer
 
 type NodeIDs = Set.Set Integer
 
-type EvaluationResultDef2 = EvaluationResult NodeIDs
-type ConstAppResultDef2 = ConstAppResult NodeIDs
+type EvaluationResultDef2 = EvaluationResult (Numbered Term, NodeIDs)
+
+munge :: EvaluationResultDef -> EvaluationResultDef2
+munge (EvaluationSuccess t) = EvaluationSuccess (fakeIDs t, Set.empty)
+munge EvaluationFailure     = EvaluationFailure
+
+munge2 :: Either a EvaluationResultDef -> Either a EvaluationResultDef2
+munge2 (Left x)  = Left x
+munge2 (Right r) = Right (munge r)
 
 unann :: Functor f => f a -> f()
 unann = fmap (\_ -> ())
@@ -64,7 +71,7 @@ fakeIDs = fmap (\() -> fakeID)
    manufactured from the ones supplied as arguments.  We can't
    possibly know whether it does the former or the latter.
 
-   The best solution to this is probably to mark every node in a term
+The best solution to this is probably to mark every node in a term
    as being used when we supply it as an argument to a builtin.  We
    can't tell what the builtin's going to do with the term, so it's
    not safe to Merklise any part of it away.
@@ -188,7 +195,7 @@ computeCek con usedNodes thisTerm =
 returnCek :: Context -> NodeIDs -> Numbered Value -> CekM EvaluationResultDef2
 returnCek con0 usedNodes val =
     case con0 of
-      [] -> pure $ EvaluationSuccess (markAll usedNodes val)
+      [] -> pure $ EvaluationSuccess (val, markAll usedNodes val)
       -- We don't know what'll be done with the result, so we'd better
       -- be conservative and not Merklise any of it away
       FrameTyInstArg ty : con -> instantiateEvaluate con usedNodes ty val
@@ -241,14 +248,14 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) (unann term)
 
--- What can we do here?
-
 evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
-evaluateInCekM a = undefined
-{-    ReaderT $ \cekEnv ->
-        let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
-            in runEvaluateConstApp eval a
--}
+evaluateInCekM a =
+    ReaderT $ \cekEnv ->
+        let eval means' t = munge2 (evaluateCekIn (cekEnv & cekEnvMeans %~ mappend means') t)
+            p = runEvaluateConstApp eval a
+            q = 1+p
+        in p
+
 -- ^^^ THIS IS BROKEN ^^^ --
 
 -- runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
