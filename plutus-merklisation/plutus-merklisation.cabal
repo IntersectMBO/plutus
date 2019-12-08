@@ -89,7 +89,8 @@ executable compression-analysis
                  Language.PlutusCore.Merkle.Untyped.Term
                  Language.PlutusCore.Merkle.Merklise
                  Language.PlutusCore.Merkle.CekMarker
-                 
+                 Language.PlutusCore.Merkle.Convert
+                
 
   hs-source-dirs:
       src
@@ -144,6 +145,7 @@ executable type-sizes
                  Language.PlutusCore.Merkle.Pretty.Plc
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
+                 Language.PlutusCore.Merkle.Convert
 
   hs-source-dirs:
       src

@@ -29,12 +29,12 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
+
 import           PlutusPrelude                                   hiding (hoist)
 
 import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Inner
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 
@@ -70,8 +70,11 @@ fakeIDs = fmap (\() -> fakeID)
    not safe to Merklise any part of it away.
 -}
 
+-- Insert all of the node IDs in a term into the set of used IDs This
+-- may be extravagant because it will insert IDs of names and other
+-- things that we don't care about. Think about this again.
 markAll :: NodeIDs -> Numbered Term -> NodeIDs
-markAll usedNodes term = usedNodes -- We need a fold here.
+markAll = Prelude.foldr Set.insert
 
 -- | The CEK machine-specific 'MachineException'.
 type CekMachineException = MachineException UnknownDynamicBuiltinNameError
@@ -183,15 +186,15 @@ computeCek con usedNodes thisTerm =
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
 returnCek :: Context -> NodeIDs -> Numbered Value -> CekM EvaluationResultDef2
-returnCek con usedNodes val =
-    case con of
+returnCek con0 usedNodes val =
+    case con0 of
       [] -> pure $ EvaluationSuccess (markAll usedNodes val)
       -- We don't know what'll be done with the result, so we'd better
       -- be conservative and not Merklise any of it away
-      FrameTyInstArg ty : con' -> instantiateEvaluate con' usedNodes ty val
+      FrameTyInstArg ty : con -> instantiateEvaluate con usedNodes ty val
       FrameApplyArg argVarEnv arg : con -> do
                funVarEnv <- getVarEnv
-               withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv val : con) usedNodes val
+               withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv val : con) usedNodes arg
       FrameApplyFun funVarEnv fun : con -> do
                argVarEnv <- getVarEnv
                applyEvaluate funVarEnv argVarEnv con usedNodes fun val
@@ -241,12 +244,16 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
 -- What can we do here?
 
 evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
-evaluateInCekM a =
-    ReaderT $ \cekEnv ->
+evaluateInCekM a = undefined
+{-    ReaderT $ \cekEnv ->
         let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
             in runEvaluateConstApp eval a
-
+-}
 -- ^^^ THIS IS BROKEN ^^^ --
+
+-- runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
+-- runEvaluateConstApp eval = unInnerT . runEvaluateT eval
+-- ^ In Apply.hs
 
 
 applyStagedBuiltinName :: StagedBuiltinName -> [Numbered Value] -> CekM ConstAppResultDef
