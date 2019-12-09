@@ -27,8 +27,10 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , HasTokenAccountSchema
   , tokenAccountContract
   -- * Etc.
+  , TokenAccount
   , assertAccountBalance
   , validatorHash
+  , scriptInstance
   ) where
 
 import           Control.Lens
@@ -93,7 +95,7 @@ tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
         tokenAccountContract
     pay_ = do
         (accountOwner, value) <- endpoint @"pay" @_ @s
-        void $ pay accountOwner value
+        void $ pay (scriptInstance accountOwner) value
         tokenAccountContract
     newAccount_ = do
         (tokenName, initialOwner) <- endpoint @"new-account" @_ @s
@@ -126,12 +128,16 @@ validatorHash :: Account -> ValidatorHash
 validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance
 
 -- | A transaction that pays the given value to the account
-payTx :: Account -> Value -> UnbalancedTx
-payTx account vl = payToScript vl (address account) Ledger.Scripts.unitData
+payTx 
+    :: 
+    Scripts.ScriptInstance TokenAccount
+    -> Value
+    -> UnbalancedTx
+payTx inst vl = payToScript vl (Scripts.scriptAddress inst) Ledger.Scripts.unitData
 
 -- | Pay some money to the given token account
-pay :: (AsContractError e, HasWriteTx s) => Account -> Value -> Contract s e TxId
-pay account = submitTx . payTx account
+pay :: (AsContractError e, HasWriteTx s) => Scripts.ScriptInstance TokenAccount -> Value -> Contract s e TxId
+pay inst = submitTx . payTx inst
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
@@ -140,8 +146,9 @@ redeemTx
     -> PubKey
     -> Contract s e UnbalancedTx
 redeemTx account pk = do
-    utxos <- utxoAt (address account)
-    let tx = TypedTx.collectFromScript utxos (scriptInstance account) ()
+    let inst = scriptInstance account
+    utxos <- utxoAt (Scripts.scriptAddress inst)
+    let tx = TypedTx.collectFromScript utxos inst ()
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'UnbalancedTx' and let the
     --       balancing mechanism take care of providing the token.

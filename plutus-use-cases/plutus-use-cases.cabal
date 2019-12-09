@@ -133,6 +133,8 @@ benchmark plutus-use-cases-bench
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
                  -rtsopts
     build-depends:
+        plutus-emulator -any
+    build-depends:
         base -any,
         criterion -any,
         cryptonite -any,

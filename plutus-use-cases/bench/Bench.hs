@@ -18,11 +18,18 @@ import qualified Data.ByteArray                                    as BA
 import qualified Data.ByteString                                   as BS
 import qualified Data.ByteString.Lazy                              as BSL
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
+import qualified Language.PlutusTx.Coordination.Contracts.PubKey   as PK
+import qualified Language.PlutusTx.Coordination.Contracts.Future as FT
+import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TA
 import qualified Language.PlutusTx.Prelude                         as P
 import           Ledger
+import qualified Ledger.Ada                                            as Ada
+import qualified Ledger.Typed.Scripts                              as Scripts
 import qualified Ledger.Crypto                                     as Crypto
+import qualified Ledger.Scripts 
 import           LedgerBytes
 import           Wallet
+import           Wallet.Emulator.Types (walletPubKey, Wallet(..))
 
 import qualified Language.PlutusTx                                 as PlutusTx
 import qualified Language.PlutusTx.Prelude                         as PlutusTx
@@ -33,7 +40,7 @@ import qualified Scott                                             as Scott
 import Opt
 
 main :: IO ()
-main = defaultMain [ functions, validators ]
+main = defaultMain [ functions, validators, scriptHashes ]
 
 -- | Execution of some interesting functions.
 functions :: Benchmark
@@ -284,3 +291,36 @@ mockPendingTx = PendingTx
     , pendingTxId = TxId P.emptyByteString
     , pendingTxData = []
     }
+
+unValidatorHash :: ValidatorScript -> PlutusTx.ByteString
+unValidatorHash vs = 
+    let Ledger.Scripts.ValidatorHash h = Ledger.Scripts.validatorHash vs
+    in h
+
+-- Script hashes
+scriptHashes :: Benchmark
+scriptHashes = bgroup "script hashes" [
+    let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
+    bench "token account" $ nf (Scripts.validatorScript) si
+    , bench "public key" $ nf (PK.pkValidator) (walletPubKey $ Wallet 2)
+    , bench "future" $ nf (FT.validatorScript theFuture) accounts
+    ]
+
+-- | A futures contract over 187 units with a forward price of 1233 Lovelace,
+--   due at slot #100.
+theFuture :: FT.Future
+theFuture = FT.Future {
+    FT.ftDeliveryDate  = Ledger.Slot 100,
+    FT.ftUnits         = 187,
+    FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
+    FT.ftInitialMargin = Ada.lovelaceValueOf 800,
+    FT.ftPriceOracle   = walletPubKey (Wallet 10),
+    FT.ftMarginPenalty = Ada.lovelaceValueOf 1000
+    }
+
+accounts :: FT.FutureAccounts
+accounts = 
+    let cur = "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" in
+    FT.mkAccounts
+            (TA.Account (cur, "long"))
+            (TA.Account (cur, "short"))
