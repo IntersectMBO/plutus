@@ -31,7 +31,7 @@ import           Language.Marlowe
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     hiding (Value)
-import           Ledger.Ada                 (adaOf, adaValueOf)
+import           Ledger.Ada                 (adaValueOf)
 import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
@@ -106,8 +106,8 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
 
     let performs = performNotify [alice, bob]
     (md, tx) <- alice `performs` createContract zeroCouponBond
-    (md, tx) <- alice `performs` deposit tx md aliceAcc (adaOf 850)
-    bob `performs` deposit tx md aliceAcc (adaOf 1000)
+    (md, tx) <- alice `performs` deposit tx md aliceAcc ada 850_000_000
+    bob `performs` deposit tx md aliceAcc ada 1000_000_000
 
     assertOwnFundsEq alice (adaValueOf 1150)
     assertOwnFundsEq bob (adaValueOf 850)
@@ -171,7 +171,7 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
     (md, tx) <- alice `performs` createContract contract
     addBlocksAndNotify [alice, bob] 5
     (md, tx) <- alice `performs` makeProgress tx md
-    void $ alice `performs` deposit tx md aliceAcc (adaOf 500)
+    void $ alice `performs` deposit tx md aliceAcc ada 500_000000
 
     assertOwnFundsEq alice (adaValueOf 500)
     assertOwnFundsEq bob (adaValueOf 1500)

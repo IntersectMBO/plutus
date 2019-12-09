@@ -23,14 +23,13 @@ import           Data.Maybe                 (maybeToList)
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
-import           Language.Marlowe.Util
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (DataValue (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
 
                                              mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
-import           Ledger.Ada                 (Ada, adaValueOf, getLovelace)
+import           Ledger.Ada                 (adaValueOf)
 import           Ledger.Scripts             (RedeemerValue (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
@@ -67,7 +66,7 @@ createContract contract = do
     return (marloweData, tx)
 
 
-{-| Deposit 'amount' of money to 'accountId' to a Marlowe contract
+{-| Deposit 'amount' of 'token' to 'accountId' to a Marlowe contract
     from 'tx' with 'MarloweData' data script.
  -}
 deposit :: (
@@ -76,11 +75,12 @@ deposit :: (
     => Tx
     -> MarloweData
     -> AccountId
-    -> Ada
+    -> Token
+    -> Integer
     -> m (MarloweData, Tx)
-deposit tx marloweData accountId amount = do
+deposit tx marloweData accountId token amount = do
     pubKey <- ownPubKey
-    applyInputs tx marloweData [IDeposit accountId pubKey ada (getLovelace amount)]
+    applyInputs tx marloweData [IDeposit accountId pubKey token amount]
 
 
 {-| Notify a contract -}
