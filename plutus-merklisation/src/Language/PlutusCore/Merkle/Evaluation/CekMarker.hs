@@ -25,7 +25,8 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Merkle.Constant
+import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Merkle.Convert
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
@@ -45,13 +46,13 @@ type NodeIDs = Set.Set Integer
 
 type EvaluationResultDef2 = EvaluationResult (Numbered Term, NodeIDs)
 
-munge :: EvaluationResultDef -> EvaluationResultDef2
-munge (EvaluationSuccess t) = EvaluationSuccess (fakeIDs t, Set.empty)
-munge EvaluationFailure     = EvaluationFailure
+fixEvalResult :: EvaluationResultDef -> EvaluationResultDef2
+fixEvalResult (EvaluationSuccess t) = EvaluationSuccess (fakeIDs t, Set.empty)
+fixEvalResult EvaluationFailure     = EvaluationFailure
 
-munge2 :: Either a EvaluationResultDef -> Either a EvaluationResultDef2
-munge2 (Left x)  = Left x
-munge2 (Right r) = Right (munge r)
+fixEvalResult2 :: Either a EvaluationResultDef -> Either a EvaluationResultDef2
+fixEvalResult2 (Left x)  = Left x
+fixEvalResult2 (Right r) = Right (fixEvalResult r)
 
 unann :: Functor f => f a -> f()
 unann = fmap (\_ -> ())
@@ -249,13 +250,11 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
                         throwError $ MachineException (ConstAppMachineError err) (unann term)
 
 evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
-evaluateInCekM a =
-    ReaderT $ \cekEnv ->
-        let eval means' t = munge2 (evaluateCekIn (cekEnv & cekEnvMeans %~ mappend means') t)
-            p = runEvaluateConstApp eval a
-            q = 1+p
-        in p
-
+evaluateInCekM a = undefined
+{-    ReaderT $ \cekEnv ->
+        let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
+            in runEvaluateConstApp eval a
+-}
 -- ^^^ THIS IS BROKEN ^^^ --
 
 -- runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)

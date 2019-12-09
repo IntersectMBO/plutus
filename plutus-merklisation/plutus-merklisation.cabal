@@ -33,6 +33,9 @@ executable ast-analysis
                  Language.PlutusCore.Merkle.Pretty.Plc
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
+                 Language.PlutusCore.Merkle.Pretty.Classic
+                 Language.PlutusCore.Merkle.Pretty.Plc
+                 Language.PlutusCore.Merkle.Pretty.Readable
 
   hs-source-dirs:
       src
@@ -88,9 +91,7 @@ executable compression-analysis
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
                  Language.PlutusCore.Merkle.Merklise
-                 Language.PlutusCore.Merkle.CekMarker
                  Language.PlutusCore.Merkle.Convert
-                
 
   hs-source-dirs:
       src
@@ -139,6 +140,9 @@ executable type-sizes
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.CBOR
                  Language.PlutusCore.Merkle.Error
+                 Language.PlutusCore.Merkle.Evaluation.CekMarker
+                 Language.PlutusCore.Merkle.Evaluation.Result
+                 Language.PlutusCore.Merkle.Evaluation.MachineException
                  Language.PlutusCore.Merkle.MkPlc
                  Language.PlutusCore.Merkle.Pretty,
                  Language.PlutusCore.Merkle.Pretty.Classic
@@ -146,7 +150,7 @@ executable type-sizes
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
                  Language.PlutusCore.Merkle.Convert
-
+    
   hs-source-dirs:
       src
   ghc-options: -Wall -Wincomplete-uni-patterns
@@ -161,6 +165,7 @@ executable type-sizes
     , language-plutus-core -any
     , lens -any
     , memory -any
+    , mmorph -any
     , mtl -any
     , plutus-tx -any
     , plutus-use-cases -any
