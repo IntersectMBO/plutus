@@ -785,11 +785,11 @@ convertTransactionError (SSAAReduceError reerr) f =
   f (sTransactionError $ sTEReduceError reerr) DTError
 
 -- Try to process a transaction
-processApplyResult :: SymVal a => Bounds -> STransaction -> Contract
+processApplyResult :: SymVal a => Bounds -> STransaction -> SState -> Contract
                    -> (STransactionResult -> DetTransactionResult -> SBV a)
                    -> SApplyAllResult -> DetApplyAllResult
                    -> SBV a
-processApplyResult bnds tra c f saar (DAARNormal ncon numPays numInps) =
+processApplyResult bnds tra sta c f saar (DAARNormal ncon numPays numInps) =
   symCaseApplyAllResult
     (\aar ->
      extractAppliedAll bnds aar
@@ -797,11 +797,15 @@ processApplyResult bnds tra c f saar (DAARNormal ncon numPays numInps) =
 --        let sigs = getSignatures bnds numInps inps in
 --        let outcomes = getOutcomes bnds numPays numInps ef inps in
         if c == ncon
-        then f (sTransactionError sTEUselessTransaction) DTError
+        then (if c /= Close
+              then f (sTransactionError sTEUselessTransaction) DTError
+              else ite (SL.null $ account sta)
+                       (f (sTransactionError sTEUselessTransaction) DTError)
+                       (f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
         else f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
     saar
   where inps = inputs tra
-processApplyResult _ _ _ f saar DAARError =
+processApplyResult _ _ _ _ f saar DAARError =
   symCaseApplyAllResult
     (\aar -> convertTransactionError aar f)
     saar
@@ -809,9 +813,9 @@ processApplyResult _ _ _ f saar DAARError =
 processAux :: SymVal a => Bounds -> STransaction -> SState -> Contract
            -> (STransactionResult -> DetTransactionResult -> SBV a)
            -> SSIntervalResult -> SBV a
-processAux bnds tra _ c f (SSIntervalTrimmed env fixSta) =
+processAux bnds tra sta c f (SSIntervalTrimmed env fixSta) =
   applyAll bnds env fixSta c (inputs tra)
-           (\sym det -> processApplyResult bnds tra c f sym det)
+           (\sym det -> processApplyResult bnds tra sta c f sym det)
 processAux _ _ _ _ f (SSIntervalError intErr) =
   f (sTransactionError $ sTEIntervalError intErr) DTError
 

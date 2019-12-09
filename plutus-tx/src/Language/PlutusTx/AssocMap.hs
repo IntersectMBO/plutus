@@ -17,6 +17,7 @@ module Language.PlutusTx.AssocMap (
     Map
     , singleton
     , empty
+    , null
     , fromList
     , toList
     , keys
@@ -32,7 +33,7 @@ module Language.PlutusTx.AssocMap (
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup)
+import           Language.PlutusTx.Prelude hiding (all, lookup, null)
 import qualified Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.These
 
@@ -169,5 +170,10 @@ singleton c i = Map [(c, i)]
 -- | An empty 'Map'.
 empty :: () -> Map k v
 empty _ = Map ([] :: [(k, v)])
+
+{-# INLINABLE null #-}
+-- | Is the map empty?
+null :: Map k v -> Bool
+null = P.null . unMap
 
 makeLift ''Map

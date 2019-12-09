@@ -876,7 +876,7 @@ computeTransaction tx state contract =
     case fixInterval (unwrap tx).interval state of
       IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
         ApplyAllSuccess warnings payments newState cont ->
-          if contract == cont then
+          if (contract == cont) && ((contract /= Close) || (Map.isEmpty $ (unwrap state).accounts)) then
             Error TEUselessTransaction
           else
             TransactionOutput

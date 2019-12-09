@@ -200,7 +200,7 @@ invalidTrace = property $ do
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
     Hedgehog.assert ([] == st ^. chainState . txPool)
-    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert (case reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
@@ -236,7 +236,7 @@ invalidScript = property $ do
 
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == st ^. chainState . txPool)
-    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd{}) : ChainEvent (Chain.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
