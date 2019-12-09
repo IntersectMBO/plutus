@@ -62,7 +62,7 @@ import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import View as View
-import Wallet.Emulator.Types (Wallet(Wallet))
+import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
 
 mkSimulatorWallet :: Array KnownCurrency -> Int -> SimulatorWallet

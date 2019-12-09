@@ -38,6 +38,7 @@ library
     , bytestring
     , containers
     , cryptonite
+    , freer-simple
     , insert-ordered-containers
     , iots-export
     , playground-common

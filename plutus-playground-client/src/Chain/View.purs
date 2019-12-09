@@ -34,7 +34,7 @@ import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Types (HAction(..), _value)
-import Wallet.Emulator.Types (Wallet(..))
+import Wallet.Emulator.Wallet (Wallet(..))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 

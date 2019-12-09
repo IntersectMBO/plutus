@@ -22,15 +22,14 @@ import           Data.Text                (pack)
 import           IOTS                     (HList (HCons, HNil), Tagged (Tagged))
 import qualified IOTS
 import           Language.Haskell.TH      (Body (NormalB), Clause (Clause), Dec (FunD, SigD, TySynD, ValD),
-                                           Exp (ListE, LitE, VarE), ExpQ, Info (TyConI, VarI), Lit (StringL), Name,
+                                           Exp (ListE, LitE, VarE), Info (TyConI, VarI), Lit (StringL), Name,
                                            Pat (VarP), Q, Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
-                                           appTypeE, conE, conT, litT, lookupValueName, mkName, nameBase, normalB,
-                                           reify, sigD, strTyLit, valD, varE, varP)
+                                           appTypeE, conE, litT, lookupValueName, mkName, nameBase, normalB, reify,
+                                           sigD, strTyLit, valD, varE, varP)
 import           Language.Plutus.Contract (BlockchainActions)
 import           Playground.Schema        (endpointsToSchemas)
 import           Playground.Types         (EndpointName (EndpointName), FunctionSchema (FunctionSchema), adaCurrency)
 import           Schema                   (FormSchema, toSchema)
-import           Wallet.Emulator.Types    (MockWallet)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -49,9 +48,7 @@ iotsBindingName = "iotsDefinitions"
 
 mkIotsDefinitions :: [Name] -> Q [Dec]
 mkIotsDefinitions names = do
-    let applyMonadType :: ExpQ -> ExpQ
-        applyMonadType expr = appTypeE expr (conT ''MockWallet)
-    iotsDefinition <- [|IOTS.export $(mkTaggedList applyMonadType names)|]
+    iotsDefinition <- [|IOTS.export $(mkTaggedList names)|]
     pure [ValD (VarP (mkName iotsBindingName)) (NormalB iotsDefinition) []]
 
 unlessBound :: String -> (Name -> Q [Dec]) -> Q [Dec]
@@ -93,11 +90,11 @@ mkSchemaDefinitions ts = do
             "Incorrect Name type provided to mkSchemaDefinitions. Got: " <>
             show other
 
-mkTaggedList :: (ExpQ -> ExpQ) -> [Name] -> Q Exp
-mkTaggedList _ [] = [|HNil|]
-mkTaggedList f (x:xs) =
+mkTaggedList :: [Name] -> Q Exp
+mkTaggedList [] = [|HNil|]
+mkTaggedList (x:xs) =
     let nameTag = appTypeE (conE 'Tagged) (litT (strTyLit (nameBase x)))
-     in [|HCons ($nameTag $(f (varE x))) $(mkTaggedList f xs)|]
+     in [|HCons ($nameTag $(varE x)) $(mkTaggedList xs)|]
 
 {-# ANN mkFunction ("HLint: ignore" :: String) #-}
 

@@ -11,6 +11,9 @@ module Main(main) where
 import           Control.Lens
 import           Control.Monad              (void)
 import           Control.Monad.Trans.Except (runExcept)
+import           Control.Monad.Freer.Extras
+import qualified Control.Monad.Freer.Error as E
+import qualified Control.Monad.Freer as Eff
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
@@ -47,6 +50,8 @@ import qualified Test.Tasty.HUnit           as HUnit
 import           Wallet
 import qualified Wallet.API                 as W
 import qualified Wallet.Emulator.NodeClient as NC
+import qualified Wallet.Emulator.Chain as Chain
+import qualified Wallet.Emulator.Wallet as Wallet
 import           Wallet.Emulator.Types
 import qualified Wallet.Generators          as Gen
 import qualified Wallet.Emulator.Generators          as Gen
@@ -113,7 +118,7 @@ selectCoinProp :: Property
 selectCoinProp = property $ do
     inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
-    let result = runExcept (selectCoin inputs target)
+    let result = Eff.run $ E.runError @WalletAPIError (selectCoin inputs target)
     case result of
         Left _ ->
             Hedgehog.assert $ not $ (foldMap snd inputs) `Value.geq` target
@@ -122,7 +127,7 @@ selectCoinProp = property $ do
 
 -- | Submits a transaction that is valid in the future, then adds a number of
 --   slots, then verifies that the transaction has been validated.
-validFromTransaction :: Trace MockWallet ()
+validFromTransaction :: Trace ()
 validFromTransaction = do
     let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
@@ -147,21 +152,21 @@ txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
         ncState      = _chainState st
-    Hedgehog.assert (Index.initialise (NC._chainNewestFirst ncState) == NC._index ncState)
+    Hedgehog.assert (Index.initialise (Chain._chainNewestFirst ncState) == Chain._index ncState)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m processPending
-        idx = st ^. chainState . NC.index
+        idx = st ^. chainState . Chain.index
     Hedgehog.assert (isRight (Index.runValidation (Index.validateTransaction 0 txn) idx))
 
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated
-simpleTrace :: Tx -> Trace MockWallet ()
+simpleTrace :: Tx -> Trace ()
 simpleTrace txn = do
-    txn' <- head . snd <$> (walletAction wallet1 $ signTxAndSubmit_ txn)
+    txn' <- walletAction wallet1 $ signTxAndSubmit txn
     block <- processPending
     assertIsValidated txn'
 
@@ -173,11 +178,12 @@ txnUpdateUtxo = property $ do
 
         -- Validate a pool that contains `txn` twice. It should succeed the
         -- first and fail the second time
-        (NC.ValidatedBlock [t1] [_, e1, e2] [], _) = NC.validateBlock slot idx [txn, txn]
+        (Chain.ValidatedBlock [t1] [e2, e1, _] [], _) = Chain.validateBlock slot idx [txn, txn]
         tid = txId txn
     Hedgehog.assert (t1 == txn)
+    Hedgehog.annotateShow (e1, e2)
     Hedgehog.assert $ case (e1, e2) of
-        (NC.TxnValidate i1, NC.TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
+        (Chain.TxnValidate i1, Chain.TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
         _                                                                        -> False
 
 validTrace :: Property
@@ -195,8 +201,9 @@ invalidTrace = property $ do
     Hedgehog.assert (isLeft result)
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (null $ _emulatorLog st))
-    Hedgehog.assert (case _emulatorLog st of
-        ChainEvent (NC.SlotAdd _) : ChainEvent (NC.TxnValidationFail _ _) : _ -> True
+    Hedgehog.annotateShow (_emulatorLog st)
+    Hedgehog.assert (case reverse $ _emulatorLog st of
+        ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
         _                                                                     -> False)
 
 invalidScript :: Property
@@ -231,8 +238,8 @@ invalidScript = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert $ case _emulatorLog st of
-        ChainEvent (NC.SlotAdd{}) : ChainEvent (NC.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
+    Hedgehog.assert $ case reverse $ _emulatorLog st of
+        ChainEvent (Chain.SlotAdd{}) : ChainEvent (Chain.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
             -> True
         _
             -> False
@@ -247,7 +254,7 @@ invalidScript = property $ do
 txnFlowsTest :: Property
 txnFlowsTest = property $ do
     (_, e) <- forAll $ Gen.runTraceOn Gen.generatorModel pubKeyTransactions
-    let chain = e ^. chainState . NC.chainNewestFirst
+    let chain = e ^. chainState . Chain.chainNewestFirst
         numTx = length $ fold chain
         flows = Wallet.Graph.txnFlows [] chain
         -- there should be at least one link per tx
@@ -289,7 +296,7 @@ payToPubKeyScript2 = property $ do
                 (w3, initialBalance)]
     Hedgehog.assert $ isRight e
 
-pubKeyTransactions :: Trace MockWallet ()
+pubKeyTransactions :: Trace ()
 pubKeyTransactions = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]

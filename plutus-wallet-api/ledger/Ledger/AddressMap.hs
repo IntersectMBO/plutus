@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE Rank2Types         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- | 'AddressMap's and functions for working on them.
@@ -11,6 +12,7 @@ module Ledger.AddressMap(
     AddressMap(..),
     addAddress,
     addAddresses,
+    fundsAt,
     values,
     singleton,
     fromTxOutputs,
@@ -24,7 +26,7 @@ module Ledger.AddressMap(
     ) where
 
 import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import           Control.Lens          (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, (&), (.~), (^.))
 import           Control.Monad         (join)
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson            as JSON
@@ -44,8 +46,7 @@ import           Ledger.Blockchain
 
 -- | A map of 'Address'es and their unspent outputs.
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOutTx) }
-    deriving Show
-    deriving stock (Generic)
+    deriving stock (Show, Eq, Generic)
     deriving newtype (Serialise)
 
 -- | An address map with a single unspent transaction output.
@@ -86,6 +87,10 @@ instance At AddressMap where
     at idx = lens g s where
         g (AddressMap mp) = mp ^. at idx
         s (AddressMap mp) utxo = AddressMap $ mp & at idx .~ utxo
+
+-- | Get the funds available at a particular address.
+fundsAt :: Address -> Lens' AddressMap (Map TxOutRef TxOutTx)
+fundsAt addr = at addr . non mempty
 
 -- | Add an address with no unspent outputs to a map. If the address already
 --   exists, do nothing.

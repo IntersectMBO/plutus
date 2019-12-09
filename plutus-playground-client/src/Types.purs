@@ -53,7 +53,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
 import Validation (class Validation, ValidationError(..), WithPath, addPath, noPath, validate)
-import Wallet.Emulator.Types (Wallet, _Wallet)
+import Wallet.Emulator.Wallet (Wallet, _Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
 

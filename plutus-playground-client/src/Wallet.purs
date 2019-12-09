@@ -18,7 +18,7 @@ import Playground.Types (FunctionSchema, SimulatorWallet(..), _EndpointName, _Fu
 import Prelude (const, show, ($), (<$>), (<<<), (<>))
 import Schema (FormSchema)
 import ValueEditor (valueForm)
-import Wallet.Emulator.Types (Wallet)
+import Wallet.Emulator.Wallet (Wallet)
 
 walletsPane ::
   forall p.

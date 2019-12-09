@@ -6,7 +6,7 @@
 
 module Playground.Interpreter.Util where
 
-import           Control.Lens                    (to, view)
+import           Control.Lens                    (view)
 import           Control.Monad.Except            (throwError)
 import qualified Control.Newtype.Generics        as Newtype
 import           Data.Aeson                      (FromJSON, eitherDecode)
@@ -28,7 +28,8 @@ import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (Con
                                                   addBlocks, addEvent, handleBlockchainEvents,
                                                   notifyInterestingAddresses, notifySlot, payToWallet,
                                                   runTraceWithDistribution)
-import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), toPublicKey, txOutTxOut)
+import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), txOutTxOut)
+import           Ledger.AddressMap               (fundsAt)
 import           Ledger.Value                    (Value)
 import qualified Ledger.Value                    as Value
 import           Playground.Types                (EndpointName (EndpointName), EvaluationResult (EvaluationResult, fundsDistribution, resultBlockchain, resultRollup, walletKeys),
@@ -39,9 +40,11 @@ import           Playground.Types                (EndpointName (EndpointName), E
                                                   endpointName, payTo, simulatorWalletBalance, simulatorWalletWallet,
                                                   value, wallet)
 import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.NodeClient      (ChainState (..))
-import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletStates),
-                                                  Wallet, WalletState, ownFunds, ownPrivateKey)
+import           Wallet.Emulator.Chain           (ChainState (..))
+import           Wallet.Emulator.NodeClient      (NodeClientState (..), clientIndex)
+import           Wallet.Emulator.Types           (AssertionError (GenericAssertion), EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
+                                                  Wallet)
+import           Wallet.Emulator.Wallet          (walletAddress, walletPubKey)
 import           Wallet.Rollup                   (doAnnotateBlockchain)
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
@@ -60,7 +63,7 @@ analyzeEmulatorState EmulatorState { _chainState = ChainState {
                                         _txPool,
                                         _index
                                    }
-                                   , _walletStates
+                                   , _walletClientStates
                                    , _emulatorLog
                                    } =
     postProcessEvaluation $
@@ -70,23 +73,23 @@ analyzeEmulatorState EmulatorState { _chainState = ChainState {
               ( _chainNewestFirst
               , _emulatorLog
               , fundsDistribution
-              , Map.foldMapWithKey toKeyWalletPair _walletStates)
+              , Map.foldMapWithKey toKeyWalletPair _walletClientStates)
         }
   where
     fundsDistribution :: [SimulatorWallet]
     fundsDistribution =
         filter (not . Value.isZero . simulatorWalletBalance) $
-        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) _walletStates
-    toSimulatorWallet :: Wallet -> WalletState -> SimulatorWallet
+        Map.foldMapWithKey (\k v -> [toSimulatorWallet k v]) _walletClientStates
+    toSimulatorWallet :: Wallet -> NodeClientState -> SimulatorWallet
     toSimulatorWallet simulatorWalletWallet walletState =
         SimulatorWallet
             { simulatorWalletWallet
-            , simulatorWalletBalance = walletStateBalance walletState
+            , simulatorWalletBalance = walletStateBalance simulatorWalletWallet walletState
             }
-    walletStateBalance :: WalletState -> Value
-    walletStateBalance = foldMap (txOutValue . txOutTxOut) . view ownFunds
-    toKeyWalletPair :: Wallet -> WalletState -> [(PubKey, Wallet)]
-    toKeyWalletPair k v = [(view (ownPrivateKey . to toPublicKey) v, k)]
+    walletStateBalance :: Wallet -> NodeClientState -> Value
+    walletStateBalance w = foldMap (txOutValue . txOutTxOut) . view (clientIndex . fundsAt (walletAddress w))
+    toKeyWalletPair :: Wallet -> NodeClientState -> [(PubKey, Wallet)]
+    toKeyWalletPair k _ = [(walletPubKey k, k)]
 
 postProcessEvaluation ::
        InterpreterResult TraceResult -> Either PlaygroundError EvaluationResult

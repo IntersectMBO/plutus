@@ -16,6 +16,8 @@ module Language.Plutus.Contract.Wallet(
 
 import           Control.Lens
 import           Control.Monad.Except
+import qualified Control.Monad.Freer         as Eff
+import qualified Control.Monad.Freer.Error   as Eff
 import           Data.Bifunctor              (second)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
@@ -113,7 +115,7 @@ addInputs
     -> Tx
     -> m Tx
 addInputs mp pk vl tx = do
-    (spend, change) <- E.selectCoin (second Tx.txOutValue <$> Map.toList mp) vl
+    (spend, change) <- liftEither $ Eff.run $ Eff.runError $ E.selectCoin (second Tx.txOutValue <$> Map.toList mp) vl
     let
 
         addTxIns  =

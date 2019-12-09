@@ -25,7 +25,7 @@ import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
 import Types (Action(Action, Wait), FormArgument(..), formArgumentToJson, mkInitialValue, toArgument)
 import Validation (class Validation, ValidationError(..), validate, withPath)
-import Wallet.Emulator.Types (Wallet(..))
+import Wallet.Emulator.Wallet (Wallet(..))
 
 all :: TestSuite
 all =

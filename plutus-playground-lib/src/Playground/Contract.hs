@@ -31,7 +31,6 @@ module Playground.Contract
     , FormSchema
     , Generic
     , payToWallet_
-    , MockWallet
     , ByteString
     , printSchemas
     , printJson
@@ -69,6 +68,8 @@ module Playground.Contract
     , Expression
     ) where
 
+import qualified Control.Monad.Freer                             as Eff
+import qualified Control.Monad.Freer.Error                       as Eff
 import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Aeson                                      as JSON
 import           Data.ByteArray                                  (ByteArrayAccess)
@@ -102,16 +103,18 @@ import           Playground.Types                                (Expression, Fu
                                                                   PayToWalletParams (PayToWalletParams), adaCurrency,
                                                                   payTo, value)
 import           Schema                                          (FormSchema, ToSchema)
-import           Wallet.API                                      (WalletAPI, payToPublicKey_)
+import           Wallet.API                                      (WalletAPI, WalletAPIError, payToPublicKey_)
 import           Wallet.Emulator                                 (addBlocksAndNotify, walletPubKey)
 import qualified Wallet.Emulator                                 as Emulator
-import           Wallet.Emulator.Types                           (MockWallet, Trace, Wallet (..))
+import qualified Wallet.Emulator.NodeClient                      as Emulator
+import           Wallet.Emulator.Types                           (Trace, Wallet (..))
+import qualified Wallet.Emulator.Wallet                          as Emulator
 
 payToWallet_ :: (Monad m, WalletAPI m) => PayToWalletParams -> m ()
 payToWallet_ PayToWalletParams {value, payTo} =
     payToPublicKey_ always value $ walletPubKey payTo
 
-runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m a -> Trace m [Tx]
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[Emulator.WalletEffect, Eff.Error WalletAPIError, Emulator.NodeClientEffect] a -> Trace [Tx]
 runWalletActionAndProcessPending wllts wllt a =
     fmap fst (Emulator.runWalletActionAndProcessPending wllts wllt a)
 
