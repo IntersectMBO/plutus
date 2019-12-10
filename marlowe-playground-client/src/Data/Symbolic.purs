@@ -1,7 +1,8 @@
 module Data.Symbolic where
 
 import Prelude
-import Data.Array ((:))
+import Control.Alt ((<|>))
+import Data.Array (fold, foldMap, intercalate, (:))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -43,8 +44,19 @@ type Equation a
     , value :: a
     }
 
+data SExp
+  = Atom String
+  | Exp String (Array SExp)
+
+class ToSExp a where
+  toSexp :: a -> SExp
+
+instance showSExp :: Show SExp where
+  show (Atom x) = x
+  show (Exp name args) = "(" <> name <> foldMap (\v -> " " <> show v) args <> ")"
+
 newtype Var
-  = Var Int
+  = Var String
 
 derive instance genericVar :: Generic Var _
 
@@ -54,6 +66,9 @@ instance showVar :: Show Var where
 derive instance eqVar :: Eq Var
 
 derive instance ordVar :: Ord Var
+
+instance toSexpVar :: ToSExp Var where
+  toSexp (Var x) = Atom x
 
 data StringConstraint
   = StringVar Var
@@ -67,6 +82,13 @@ instance showStringConstraint :: Show StringConstraint where
 derive instance eqStringConstraint :: Eq StringConstraint
 
 derive instance ordStringConstraint :: Ord StringConstraint
+
+instance sexpStringConstraint :: ToSExp StringConstraint where
+  toSexp (StringVar v) = toSexp v
+  toSexp (StringConst x) = Atom x
+
+stringVar :: String -> StringConstraint
+stringVar = StringVar <<< Var
 
 data IntConstraint
   = IntVar Var
@@ -98,6 +120,21 @@ instance semiringIntConstraint :: Semiring IntConstraint where
 instance ringIntConstraint :: Ring IntConstraint where
   sub = IntSub
 
+instance sexpIntConstraint :: ToSExp IntConstraint where
+  toSexp (IntVar v) = toSexp v
+  toSexp (IntConst x) = Atom $ show x
+  toSexp (IntAdd a b) = Exp "+" $ map toSexp [ a, b ]
+  toSexp (IntMul a b) = Exp "*" $ map toSexp [ a, b ]
+  toSexp (IntSub a b) = Exp "-" $ map toSexp [ a, b ]
+  toSexp (IntEQ a b) = Exp "=" $ map toSexp [ a, b ]
+  toSexp (IntLT a b) = Exp "<" $ map toSexp [ a, b ]
+  toSexp (IntLTE a b) = Exp "<=" $ map toSexp [ a, b ]
+  toSexp (IntGT a b) = Exp ">" $ map toSexp [ a, b ]
+  toSexp (IntGTE a b) = Exp ">=" $ map toSexp [ a, b ]
+
+intVar :: String -> IntConstraint
+intVar = IntVar <<< Var
+
 infixr 5 IntLT as .<
 
 infixr 5 IntLTE as .<=
@@ -113,11 +150,21 @@ data Constraint
   | SOr Constraint Constraint
   | SInt IntConstraint
   | SString StringConstraint
+  | SEq Constraint Constraint
 
 derive instance genericConstraint :: Generic Constraint _
 
 instance showConstraint :: Show Constraint where
   show c = genericShow c
+
+instance sexpConstraint :: ToSExp Constraint where
+  toSexp STrue = Atom "true"
+  toSexp (SNot a) = Exp "not" [ toSexp a ]
+  toSexp (SAnd a b) = Exp "and" (map toSexp [ a, b ])
+  toSexp (SOr a b) = Exp "or" (map toSexp [ a, b ])
+  toSexp (SInt a) = toSexp a
+  toSexp (SString a) = toSexp a
+  toSexp (SEq a b) = Exp "=" (map toSexp [ a, b ])
 
 -- | Symbolic version of if constraint then t else f
 ite :: forall a. Constraint -> Tree a -> Tree a -> Tree a
@@ -161,3 +208,62 @@ getEquations t = go mempty mempty t
       rightEquations = go equations (rc : constraints) r
     in
       leftEquations <> rightEquations
+
+assertion :: Constraint -> SExp
+assertion constraint = Exp "assert" [ toSexp constraint ]
+
+assertions :: forall a. Equation a -> Array SExp
+assertions { constraints } = map assertion constraints
+
+intVariable :: IntConstraint -> Array SExp
+intVariable (IntVar (Var name)) = [ Exp "declare-const" [ Atom name, Atom "Int" ] ]
+
+intVariable (IntConst _) = []
+
+intVariable (IntAdd a b) = intVariable a <> intVariable b
+
+intVariable (IntMul a b) = intVariable a <> intVariable b
+
+intVariable (IntSub a b) = intVariable a <> intVariable b
+
+intVariable (IntEQ a b) = intVariable a <> intVariable b
+
+intVariable (IntLT a b) = intVariable a <> intVariable b
+
+intVariable (IntLTE a b) = intVariable a <> intVariable b
+
+intVariable (IntGT a b) = intVariable a <> intVariable b
+
+intVariable (IntGTE a b) = intVariable a <> intVariable b
+
+stringVariable :: StringConstraint -> Array SExp
+stringVariable (StringVar (Var name)) = [ Exp "declare-const" [ Atom name, Atom "String" ] ]
+
+stringVariable _ = []
+
+variable :: Constraint -> Array SExp
+variable (SInt x) = intVariable x
+
+variable (SString s) = stringVariable s
+
+variable STrue = []
+
+variable (SNot a) = variable a
+
+variable (SAnd a b) = variable a <|> variable b
+
+variable (SOr a b) = variable a <|> variable b
+
+variable (SEq a b) = variable a <|> variable b
+
+variables :: forall a. Equation a -> Array SExp
+variables { constraints } = fold $ map variable constraints
+
+checkSat :: SExp
+checkSat = Exp "check-sat" []
+
+getModel :: SExp
+getModel = Exp "get-model" []
+
+toZ3 :: forall a. Equation a -> String
+toZ3 e = intercalate "\n" $ map show $ variables e <> assertions e <> [ checkSat, getModel ]
