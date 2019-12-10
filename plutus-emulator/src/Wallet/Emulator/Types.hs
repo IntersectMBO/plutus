@@ -24,6 +24,7 @@ module Wallet.Emulator.Types(
     addSignature,
     TxPool,
     -- * Emulator
+    EmulatorEffs,
     Assertion(OwnFundsEqual, IsValidated),
     assert,
     assertIsValidated,
@@ -38,7 +39,6 @@ module Wallet.Emulator.Types(
     ownPrivateKey,
     ownAddress,
     -- ** Traces
-    Trace,
     runTraceChain,
     runTraceTxPool,
     evalTraceTxPool,
@@ -93,32 +93,31 @@ import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
 
--- | A series of 'Action's.
-type Trace a = Eff.Eff '[MultiAgentEffect, ChainEffect] a
+type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
-walletRecvNotifications :: Wallet -> [Notification] -> Trace ()
+walletRecvNotifications :: Eff.Members EmulatorEffs effs => Wallet -> [Notification] -> Eff.Eff effs ()
 walletRecvNotifications w nots = void $ walletAction w (mapM_ clientNotify nots)
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.
-walletNotifyBlock :: Wallet -> Block -> Trace ()
+walletNotifyBlock :: Eff.Members EmulatorEffs effs => Wallet -> Block -> Eff.Eff effs ()
 walletNotifyBlock w = walletRecvNotifications w . pure . BlockValidated
 
 -- | Notify a list of 'Wallet's that a block has been validated.
-walletsNotifyBlock :: [Wallet] -> Block -> Trace ()
+walletsNotifyBlock :: forall effs . Eff.Members EmulatorEffs effs => [Wallet] -> Block -> Eff.Eff effs ()
 walletsNotifyBlock wls b = mapM_ (\w -> walletNotifyBlock w b) wls
 
 -- | Validate all pending transactions.
-processPending :: Trace Block
+processPending :: forall effs . Eff.Members EmulatorEffs effs => Eff.Eff effs Block
 processPending = processBlock
 
 -- | Add a number of empty blocks to the blockchain, by performing
 --   'processPending' @n@ times.
-addBlocks :: Integer -> Trace [Block]
+addBlocks :: Eff.Members EmulatorEffs effs => Integer -> Eff.Eff effs [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
 -- | Add a number of blocks, notifying all the given 'Wallet's after each block.
-addBlocksAndNotify :: [Wallet] -> Integer -> Trace ()
+addBlocksAndNotify :: Eff.Members EmulatorEffs effs => [Wallet] -> Integer -> Eff.Eff effs ()
 addBlocksAndNotify wallets i =
     traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
 
@@ -127,7 +126,7 @@ type MonadEmulator e m = (MonadError e m, AsAssertionError e, MonadState Emulato
 newtype EmulatorAction e a = EmulatorAction { unEmulatorAction :: ExceptT e (State EmulatorState) a }
     deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError e)
 
-processEmulated :: forall m e a . (MonadEmulator e m) => Trace a -> m a
+processEmulated :: forall m e a . (MonadEmulator e m) => Eff.Eff EmulatorEffs a -> m a
 processEmulated act =
     act
         & Eff.raiseEnd2
@@ -154,30 +153,35 @@ runEmulator :: forall e a . EmulatorState -> EmulatorAction e a -> (Either e a, 
 runEmulator e a = runState (runExceptT $ unEmulatorAction a) e
 
 -- | Run an 'Trace' on a blockchain.
-runTraceChain :: Blockchain -> Trace a -> (Either AssertionError a, EmulatorState)
+runTraceChain :: Blockchain -> Eff.Eff EmulatorEffs a -> (Either AssertionError a, EmulatorState)
 runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState ch
 
 -- | Run a 'Trace' on an empty blockchain with a pool of pending transactions.
-runTraceTxPool :: TxPool -> Trace a -> (Either AssertionError a, EmulatorState)
+runTraceTxPool :: TxPool -> Eff.Eff EmulatorEffs a -> (Either AssertionError a, EmulatorState)
 runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorStatePool tp
 
 -- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
 --   transactions and return the final value, discarding the final
 --   'EmulatorState'.
-evalTraceTxPool :: TxPool -> Trace a -> Either AssertionError a
+evalTraceTxPool :: TxPool -> Eff.Eff EmulatorEffs a -> Either AssertionError a
 evalTraceTxPool pl t = fst $ runTraceTxPool pl t
 
 -- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
 --   transactions and return the final 'EmulatorState', discarding the final
 --   value.
-execTraceTxPool :: TxPool -> Trace a -> EmulatorState
+execTraceTxPool :: TxPool -> Eff.Eff EmulatorEffs a -> EmulatorState
 execTraceTxPool pl t = snd $ runTraceTxPool pl t
 
 -- | Run an action as a wallet, subsequently process any pending transactions
 --   and notify wallets. Returns the new block
-runWalletActionAndProcessPending :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] a -> Trace ([Tx], a)
+runWalletActionAndProcessPending
+    :: Eff.Members EmulatorEffs effs
+    => [Wallet]
+    -> Wallet
+    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] a
+    -> Eff.Eff effs ([Tx], a)
 runWalletActionAndProcessPending wallets wallet action = do
     result <- walletAction wallet action
     block <- processPending

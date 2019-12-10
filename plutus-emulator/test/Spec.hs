@@ -127,7 +127,7 @@ selectCoinProp = property $ do
 
 -- | Submits a transaction that is valid in the future, then adds a number of
 --   slots, then verifies that the transaction has been validated.
-validFromTransaction :: Trace ()
+validFromTransaction :: Eff.Eff EmulatorEffs ()
 validFromTransaction = do
     let [w1, w2] = [wallet1, wallet2]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2]
@@ -164,7 +164,7 @@ txnIndexValid = property $ do
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated
-simpleTrace :: Tx -> Trace ()
+simpleTrace :: Tx -> Eff.Eff EmulatorEffs ()
 simpleTrace txn = do
     txn' <- walletAction wallet1 $ signTxAndSubmit txn
     block <- processPending
@@ -296,7 +296,7 @@ payToPubKeyScript2 = property $ do
                 (w3, initialBalance)]
     Hedgehog.assert $ isRight e
 
-pubKeyTransactions :: Trace ()
+pubKeyTransactions :: Eff.Eff EmulatorEffs ()
 pubKeyTransactions = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]

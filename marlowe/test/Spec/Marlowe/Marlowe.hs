@@ -195,7 +195,7 @@ validatorSize = do
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkMarloweTrace :: MarloweScenario -> Trace () -> Property
+checkMarloweTrace :: MarloweScenario -> Eff.Eff EmulatorEffs () -> Property
 checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
@@ -203,11 +203,11 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     Hedgehog.assert (null (view (chainState . txPool) st))
 
 
-updateAll :: [Wallet] -> Trace ()
+updateAll :: [Wallet] -> Eff.Eff EmulatorEffs ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 
-performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] (MarloweData, Tx) -> Trace (MarloweData, Tx)
+performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
 performNotify wallets actor action = do
     (md, tx) <- walletAction actor action
     processPending >>= void . walletsNotifyBlock wallets
