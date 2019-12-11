@@ -78,22 +78,33 @@ data SimulatorWallet =
     deriving (Show, Generic, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | Describes the mockchain requests the frontend can make of the
+-- backend. These will be mostly calls to their contract's various
+-- endpoints, but we supply a few extra special calls for the sake of
+-- easier testing and simulation.
 data ContractCall a
-    = AddBlocks
+    = CallEndpoint
+          { caller         :: Wallet
+          , argumentValues :: FunctionSchema a
+          }
+      -- ^ Call one of the defined endpoints of your contract.
+    | AddBlocks
           { blocks :: Int
           }
+      -- ^ Add the specified number of blocks to the mockchain before continuing.
     | AddBlocksUntil
           { slot :: Slot
           }
+      -- ^ Keep adding blocks until the mockchain reaches the
+      -- specified slot, then continue.  (Note that calling
+      -- @AddBlocksUntil 20@ doesn't mean you'll continue at slot 20,
+      -- just that the slot number will now be /at least/ that high.
     | PayToWallet
           { sender    :: Wallet
           , recipient :: Wallet
           , amount    :: V.Value
           }
-    | CallEndpoint
-          { caller         :: Wallet
-          , argumentValues :: FunctionSchema a
-          }
+      -- ^ Make a wallet-to-wallet transfer of the specified value.
     deriving ( Show
              , Eq
              , Generic
