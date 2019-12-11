@@ -36,6 +36,7 @@ module Schema
     , FormSchema(..)
     , ToArgument
     , toArgument
+    , FormArgument
     , FormArgumentF(..)
     , formArgumentToJson
     ) where
@@ -86,6 +87,8 @@ data FormSchema
     deriving anyclass (FromJSON, ToJSON)
 
 ------------------------------------------------------------
+type FormArgument = Fix FormArgumentF
+
 data FormArgumentF a
     = FormUnitF
     | FormBoolF Bool
