@@ -57,7 +57,7 @@ data Type tyname ann
     | TyBuiltin ann TypeBuiltin -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname ann)
     | TyApp ann (Type tyname ann) (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 data TypeF tyname ann x
     = TyVarF ann (tyname ann)
@@ -252,14 +252,14 @@ termLoc (LamAbs ann _ _ _) = ann
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Eq, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Eq, Generic, NFData, Lift)
 
 -- | A constant value.
 data Constant ann
     = BuiltinInt ann Integer
     | BuiltinBS ann BSL.ByteString
     | BuiltinStr ann String
-    deriving (Functor, Show, Eq, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Eq, Generic, NFData, Lift)
 
 -- | A 'Term' is a value.
 data Term tyname name ann
@@ -273,7 +273,7 @@ data Term tyname name ann
     | Unwrap ann (Term tyname name ann)
     | IWrap ann (Type tyname ann) (Type tyname ann) (Term tyname name ann)
     | Error ann (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 data TermF tyname name ann x
     = VarF ann (name ann)
@@ -356,7 +356,7 @@ termVars f = \case
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 data KindF ann x
     = TypeF ann

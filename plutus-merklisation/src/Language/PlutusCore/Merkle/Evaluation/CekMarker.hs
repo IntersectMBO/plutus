@@ -24,7 +24,7 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
     , unsafeRunCek
     ) where
 
-import           Language.PlutusCore
+import           Language.PlutusCore                                    hiding (EvaluationResultDef)
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Merkle.Convert
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
@@ -36,6 +36,7 @@ import           PlutusPrelude                                          hiding (
 import           Control.Lens.TH                                        (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 import qualified Data.Map                                               as Map
 import qualified Data.Set                                               as Set
 
@@ -46,6 +47,13 @@ type NodeIDs = Set.Set Integer
 
 type EvaluationResultDef2 = EvaluationResult (Numbered Term, NodeIDs)
 
+type EvaluationResultDef ann = EvaluationResult (Term TyName Name ann)
+type Evaluator f m ann = DynamicBuiltinNameMeanings -> f TyName Name ann -> m (EvaluationResultDef ann)
+
+-- | The monad the CEK machine runs in.
+type CekM = ReaderT CekEnv (ExceptT CekMachineException (State NodeIDs))
+
+{-
 fixEvalResult :: EvaluationResultDef -> EvaluationResultDef2
 fixEvalResult (EvaluationSuccess t) = EvaluationSuccess (fakeIDs t, Set.empty)
 fixEvalResult EvaluationFailure     = EvaluationFailure
@@ -53,6 +61,7 @@ fixEvalResult EvaluationFailure     = EvaluationFailure
 fixEvalResult2 :: Either a EvaluationResultDef -> Either a EvaluationResultDef2
 fixEvalResult2 (Left x)  = Left x
 fixEvalResult2 (Right r) = Right (fixEvalResult r)
+-}
 
 unann :: Functor f => f a -> f()
 unann = fmap (\_ -> ())
@@ -78,7 +87,7 @@ The best solution to this is probably to mark every node in a term
    not safe to Merklise any part of it away.
 -}
 
--- Insert all of the node IDs in a term into the set of used IDs This
+-- Insert all of the node IDs in a term into the set of used IDs. This
 -- may be extravagant because it will insert IDs of names and other
 -- things that we don't care about. Think about this again.
 markAll :: NodeIDs -> Numbered Term -> NodeIDs
@@ -103,8 +112,6 @@ data CekEnv = CekEnv
     , _cekEnvVarEnv :: VarEnv
     }
 
--- | The monad the CEK machine runs in.
-type CekM = ReaderT CekEnv (Either CekMachineException)
 
 data Frame
     = FrameApplyFun VarEnv (Numbered Value)        -- ^ @[V _]@
@@ -249,7 +256,9 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) (unann term)
 
-evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
+
+evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
+-- evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
 evaluateInCekM a = undefined
 {-    ReaderT $ \cekEnv ->
         let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
