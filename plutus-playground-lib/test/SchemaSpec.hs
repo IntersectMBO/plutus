@@ -14,8 +14,9 @@ import           Data.Functor.Foldable (Fix (Fix))
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
 import           Ledger.Ada            (lovelaceValueOf)
+import           Ledger.Value          (Value)
 import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
-import           Schema                (FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormObjectF, FormStringF, FormValueF),
+import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormObjectF, FormStringF, FormValueF),
                                         FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple),
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Hspec            (Spec, describe, it, shouldBe)
@@ -52,40 +53,29 @@ toArgumentTests :: Spec
 toArgumentTests =
     describe "toArgument" $
     describe "Encoding of various types" $ do
-        it "Bool" $ toArgument False `shouldBe` (Fix $ FormBoolF False)
-        it "Int" $ toArgument (5 :: Int) `shouldBe` (Fix $ FormIntF $ Just 5)
+        it "Bool" $ toArgument False `shouldBe` formBoolF False
+        it "Int" $ toArgument (5 :: Int) `shouldBe` formIntF 5
         it "String" $
-            toArgument ("Test" :: String) `shouldBe`
-            (Fix $ FormStringF $ Just "Test")
+            toArgument ("Test" :: String) `shouldBe` formStringF "Test"
         it "[String]" $
             toArgument ([1, 2, 3] :: [Int]) `shouldBe`
-            Fix
-                (FormArrayF
-                     FormSchemaInt
-                     [ Fix $ FormIntF $ Just 1
-                     , Fix $ FormIntF $ Just 2
-                     , Fix $ FormIntF $ Just 3
-                     ])
+            formArrayF FormSchemaInt (formIntF <$> [1, 2, 3])
         it "User" $
             toArgument
                 User {userName = "Tester", userAge = 21, userAlive = True} `shouldBe`
-            Fix
-                (FormObjectF
-                     [ ("userName", Fix (FormStringF $ Just "Tester"))
-                     , ("userAge", Fix (FormIntF $ Just 21))
-                     , ("userAlive", Fix (FormBoolF True))
-                     ])
+            formObjectF
+                [ ("userName", formStringF "Tester")
+                , ("userAge", formIntF 21)
+                , ("userAlive", formBoolF True)
+                ]
         it "PayToWalletParams" $ do
             let payTo = Wallet 1
                 value = lovelaceValueOf 20
             toArgument PayToWalletParams {payTo, value} `shouldBe`
-                Fix
-                    (FormObjectF
-                         [ ( "payTo"
-                           , Fix (FormObjectF
-                                      [("getWallet", Fix (FormIntF $ Just 1))]))
-                         , ("value", Fix (FormValueF value))
-                         ])
+                formObjectF
+                    [ ("payTo", formObjectF [("getWallet", formIntF 1)])
+                    , ("value", formValueF value)
+                    ]
 
 data User =
     User
@@ -94,3 +84,24 @@ data User =
         , userAlive :: Bool
         }
     deriving (Show, Eq, Generic, ToSchema, ToArgument)
+
+------------------------------------------------------------
+-- A few helper constructors.
+------------------------------------------------------------
+formIntF :: Int -> FormArgument
+formIntF = Fix . FormIntF . Just
+
+formBoolF :: Bool -> FormArgument
+formBoolF = Fix . FormBoolF
+
+formStringF :: String -> FormArgument
+formStringF = Fix . FormStringF . Just
+
+formValueF :: Value -> FormArgument
+formValueF = Fix . FormValueF
+
+formObjectF :: [(String, FormArgument)] -> FormArgument
+formObjectF = Fix . FormObjectF
+
+formArrayF :: FormSchema -> [FormArgument] -> FormArgument
+formArrayF t = Fix . FormArrayF t
