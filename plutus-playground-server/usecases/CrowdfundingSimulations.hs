@@ -2,9 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module CrowdFundingSimulations where
+module CrowdfundingSimulations where
 
-import           CrowdFunding          (Contribution (Contribution), contribValue, registeredKnownCurrencies)
+import           Crowdfunding          (Contribution (Contribution), contribValue, registeredKnownCurrencies)
 import qualified Ledger.Ada            as Ada
 import           Playground.Types      (ContractCall (AddBlocks, AddBlocksUntil), Simulation (Simulation),
                                         SimulatorAction, simulationActions, simulationName, simulationWallets)
@@ -12,7 +12,7 @@ import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
 
 simulations :: [Simulation]
-simulations = [basicCrowdFunding]
+simulations = [basicCrowdfunding]
   where
     wallet1 = Wallet {getWallet = 1}
     wallet2 = Wallet {getWallet = 2}
@@ -21,7 +21,7 @@ simulations = [basicCrowdFunding]
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 30 <$>
         [wallet1, wallet2, wallet3, wallet4]
-    basicCrowdFunding =
+    basicCrowdfunding =
         Simulation
             { simulationName = "Basic Campaign"
             , simulationWallets

@@ -25,8 +25,8 @@ import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
 import           Control.Monad.IO.Class                     (MonadIO)
 import           Control.Monad.Reader                       (MonadReader)
-import qualified CrowdFunding
-import qualified CrowdFundingSimulations
+import qualified Crowdfunding
+import qualified CrowdfundingSimulations
 import           Data.Aeson                                 (ToJSON, toJSON)
 import qualified Data.Aeson                                 as JSON
 import qualified Data.Aeson.Encode.Pretty                   as JSON
@@ -443,9 +443,9 @@ contractDemos =
     , mkContractDemo
           "Crowd Funding"
           Usecases.crowdFunding
-          CrowdFundingSimulations.simulations
-          CrowdFunding.schemas
-          CrowdFunding.registeredKnownCurrencies
+          CrowdfundingSimulations.simulations
+          Crowdfunding.schemas
+          Crowdfunding.registeredKnownCurrencies
     , mkContractDemo
           "Error Handling"
           Usecases.errorHandling

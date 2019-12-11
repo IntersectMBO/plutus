@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-module CrowdFunding where
+module Crowdfunding where
 -- TRIM TO HERE
 -- Crowdfunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
@@ -68,7 +68,7 @@ data CampaignAction = Collect | Refund
 PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
-type CrowdFundingSchema =
+type CrowdfundingSchema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
         .\/ Endpoint "contribute" Contribution
@@ -100,13 +100,13 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
-data CrowdFunding
-instance Scripts.ScriptType CrowdFunding where
-    type instance RedeemerType CrowdFunding = CampaignAction
-    type instance DataType CrowdFunding = PubKey
+data Crowdfunding
+instance Scripts.ScriptType Crowdfunding where
+    type instance RedeemerType Crowdfunding = CampaignAction
+    type instance DataType Crowdfunding = PubKey
 
-scriptInstance :: Campaign -> Scripts.ScriptInstance CrowdFunding
-scriptInstance cmp = Scripts.validator @CrowdFunding
+scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
+scriptInstance cmp = Scripts.validator @Crowdfunding
     ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -130,7 +130,7 @@ validCollection campaign p =
     -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
--- | The validator script is of type 'CrowdFundingValidator', and is
+-- | The validator script is of type 'CrowdfundingValidator', and is
 -- additionally parameterized by a 'Campaign' definition. This argument is
 -- provided by the Plutus client, using 'Ledger.applyScript'.
 -- As a result, the 'Campaign' definition is part of the script address,
@@ -153,7 +153,7 @@ campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Scripts.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
+crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 crowdfunding c = contribute c <|> scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
@@ -169,7 +169,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
+contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
@@ -195,7 +195,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
+scheduleCollection :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
@@ -245,9 +245,9 @@ to change.
 
 -}
 
-endpoints :: AsContractError e => Contract CrowdFundingSchema e ()
+endpoints :: AsContractError e => Contract CrowdfundingSchema e ()
 endpoints = crowdfunding theCampaign
 
-mkSchemaDefinitions ''CrowdFundingSchema
+mkSchemaDefinitions ''CrowdfundingSchema
 
 $(mkKnownCurrencies [])

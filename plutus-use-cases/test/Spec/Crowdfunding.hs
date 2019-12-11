@@ -26,7 +26,7 @@ import qualified Language.Plutus.Contract.Trace                        as Trace
 import qualified Language.PlutusTx                                     as PlutusTx
 import qualified Language.PlutusTx.Prelude                             as PlutusTx
 import           Language.PlutusTx.Lattice
-import           Language.PlutusTx.Coordination.Contracts.CrowdFunding
+import           Language.PlutusTx.Coordination.Contracts.Crowdfunding
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Slot                                           (Slot(..))
 
