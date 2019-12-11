@@ -41,7 +41,7 @@ module Language.PlutusTx.Coordination.Contracts.Game
     ) where
 
 import Control.Monad (void)
-import qualified Data.Aeson as Aeson
+import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import IOTS (IotsType)
 import Language.Plutus.Contract
@@ -59,7 +59,7 @@ import Ledger
     , ValidatorScript
     )
 import Ledger.Typed.Scripts (wrapValidator)
-import Schema (ToSchema)
+import Schema (ToSchema, ToArgument)
 
 import qualified Ledger as Ledger
 import qualified Ledger.Ada as Ada
@@ -84,6 +84,7 @@ type GameSchema =
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
+-- | The validator script of the game.
 gameValidator :: ValidatorScript
 gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
     where validator = wrapValidator validateGuess
@@ -110,14 +111,14 @@ data LockParams = LockParams
     , amount     :: Ada
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
     deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType, ToSchema)
+    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
 
 guess :: AsContractError e => Contract GameSchema e ()
 guess = do

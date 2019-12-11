@@ -1,4 +1,4 @@
--- | Crowdfunding contract implemented using the [[Plutus]] interface.
+-- | CrowdFunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
@@ -69,7 +69,7 @@ import           Ledger.Validation                 as V
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import qualified Prelude                           as Haskell
-import           Schema                            (ToSchema)
+import           Schema                            (ToSchema, ToArgument)
 import           Wallet.Emulator                   (Wallet)
 import qualified Wallet.Emulator                   as Emulator
 
@@ -106,7 +106,7 @@ newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
         } deriving stock (Haskell.Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON, IotsType)
+          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -129,13 +129,13 @@ refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
-data CrowdFunding
-instance Scripts.ScriptType CrowdFunding where
-    type instance RedeemerType CrowdFunding = CampaignAction
-    type instance DataType CrowdFunding = PubKey
+data Crowdfunding
+instance Scripts.ScriptType Crowdfunding where
+    type instance RedeemerType Crowdfunding = CampaignAction
+    type instance DataType Crowdfunding = PubKey
 
-scriptInstance :: Campaign -> Scripts.ScriptInstance CrowdFunding
-scriptInstance cmp = Scripts.validator @CrowdFunding
+scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
+scriptInstance cmp = Scripts.validator @Crowdfunding
     ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
     $$(PlutusTx.compile [|| wrap ||])
     where

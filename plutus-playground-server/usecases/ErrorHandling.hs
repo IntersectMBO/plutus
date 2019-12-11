@@ -10,12 +10,6 @@
 module ErrorHandling where
 
 -- TRIM TO HERE
--- Demonstrates how to deal with errors in Plutus contracts. We define a custom
--- error type 'MyError' with three constructors and use
--- 'Control.Lens.makeClassyPrisms' to generate the 'AsMyError' class. We can
--- then use 'MyError' in our contracts with the combinators from
--- 'Control.Monad.Error.Lens'. The unit tests in 'Spec.ErrorHandling' show how
--- to write tests for error conditions.
 import           Control.Lens             (makeClassyPrisms)
 import           Control.Monad            (void)
 import           Control.Monad.Error.Lens (catching, throwing, throwing_)
@@ -26,6 +20,13 @@ import           Language.Plutus.Contract (type (.\/), AsContractError (_Contrac
                                            ContractError, Endpoint, HasWriteTx, endpoint, submitTx)
 import           Playground.Contract
 import           Prelude                  (Show, mempty, pure, ($), (>>))
+
+-- Demonstrates how to deal with errors in Plutus contracts. We define a custom
+-- error type 'MyError' with three constructors and use
+-- 'Control.Lens.makeClassyPrisms' to generate the 'AsMyError' class. We can
+-- then use 'MyError' in our contracts with the combinators from
+-- 'Control.Monad.Error.Lens'. The unit tests in 'Spec.ErrorHandling' show how
+-- to write tests for error conditions.
 
 type Schema =
     BlockchainActions

@@ -28,7 +28,7 @@ import qualified Data.Set                          as Set
 import           Language.Plutus.Contract          (payToScript, requiredSignatures)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
-import           Language.PlutusTx.Prelude         (Bool (True), not, ($), (&&), (.))
+import           Language.PlutusTx.Prelude         (Bool, not, ($), (&&), (.))
 import           Ledger                            (Address, DataScript (DataScript), PendingTx, PubKey,
                                                     ValidatorScript, pendingTxValidRange, valueSpent)
 import qualified Ledger                            as Ledger
@@ -68,7 +68,7 @@ data CampaignAction = Collect | Refund
 PlutusTx.makeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
-type Schema =
+type CrowdFundingSchema =
     BlockchainActions
         .\/ Endpoint "schedule collection" ()
         .\/ Endpoint "contribute" Contribution
@@ -130,7 +130,7 @@ validCollection campaign p =
     -- Check that the transaction is signed by the campaign owner
     && (p `V.txSignedBy` campaignOwner campaign)
 
--- | The validator script is of type 'CrowdfundingValidator', and is
+-- | The validator script is of type 'CrowdFundingValidator', and is
 -- additionally parameterized by a 'Campaign' definition. This argument is
 -- provided by the Plutus client, using 'Ledger.applyScript'.
 -- As a result, the 'Campaign' definition is part of the script address,
@@ -153,14 +153,14 @@ campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Scripts.scriptAddress . scriptInstance
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: AsContractError e => Campaign -> Contract Schema e ()
+crowdfunding :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
 crowdfunding c = contribute c <|> scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
 theCampaign :: Campaign
 theCampaign = Campaign
     { campaignDeadline = 40
-    , campaignTarget   = Ada.lovelaceValueOf 30
+    , campaignTarget   = Ada.lovelaceValueOf 20
     , campaignCollectionDeadline = 60
     , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
     }
@@ -169,7 +169,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: AsContractError e => Campaign -> Contract Schema e ()
+contribute :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
@@ -179,6 +179,7 @@ contribute cmp = do
     txId <- submitTx tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
+
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
@@ -194,7 +195,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: AsContractError e => Campaign -> Contract Schema e ()
+scheduleCollection :: AsContractError e => Campaign -> Contract CrowdFundingSchema e ()
 scheduleCollection cmp = do
 
     -- Expose an endpoint that lets the user fire the starting gun on the
@@ -202,13 +203,10 @@ scheduleCollection cmp = do
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
 
-    -- 'trg' describes the conditions for a successful campaign. It returns a
-    -- tuple with the unspent outputs at the campaign address, and the current
-    -- slot.
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
-    let tx = Typed.collectFromScriptFilter (\_ _ -> True) unspentOutputs (scriptInstance cmp) Collect
+    let tx = Typed.collectFromScript unspentOutputs (scriptInstance cmp) Collect
             & validityRange .~ collectionRange cmp
     void $ submitTx tx
 
@@ -247,9 +245,9 @@ to change.
 
 -}
 
-endpoints :: AsContractError e => Contract Schema e ()
+endpoints :: AsContractError e => Contract CrowdFundingSchema e ()
 endpoints = crowdfunding theCampaign
 
-mkSchemaDefinitions ''Schema
+mkSchemaDefinitions ''CrowdFundingSchema
 
 $(mkKnownCurrencies [])
