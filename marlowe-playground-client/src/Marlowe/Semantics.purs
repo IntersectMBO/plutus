@@ -975,5 +975,21 @@ instance hasMaxTimeCase :: HasMaxTime Case where
 instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
   maxTime = maxOf <<< map maxTime
 
-maxOf :: Array Timeout -> Timeout
+maxOf :: forall a. Ord a => Semiring a => Array a -> a
 maxOf = foldl max zero
+
+class HasMaxDepth a where
+  maxDepth :: a -> Int
+
+instance hasMaxDepthContract :: HasMaxDepth Contract where
+  maxDepth Close = zero
+  maxDepth (Pay _ _ _ contract) = maxDepth contract
+  maxDepth (If _ contractTrue contractFalse) = maxOf [ maxDepth contractTrue, maxDepth contractFalse ]
+  maxDepth (When cases timeout contract) = 1 + (maxOf [ maxDepth cases, maxDepth contract ])
+  maxDepth (Let _ _ contract) = maxDepth contract
+
+instance hasMaxDepthCase :: HasMaxDepth Case where
+  maxDepth (Case _ contract) = maxDepth contract
+
+instance hasMaxDepthArray :: HasMaxDepth a => HasMaxDepth (Array a) where
+  maxDepth = maxOf <<< map maxDepth

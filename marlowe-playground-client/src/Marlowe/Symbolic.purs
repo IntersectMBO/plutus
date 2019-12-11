@@ -1,7 +1,7 @@
 module Marlowe.Symbolic where
 
 import Prelude
-import Data.Array (foldl, mapMaybe, null, reverse, (:))
+import Data.Array (foldM, foldl, mapMaybe, reverse, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either(..))
@@ -13,16 +13,15 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Data.Symbolic (Constraint(..), IntConstraint(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
-import Data.TraversableWithIndex (traverseWithIndex)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Examples.Marlowe.Contracts as ME
 import Marlowe.Holes as Holes
 import Marlowe.Parser as Parser
-import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Value(..), ValueId)
+import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Value(..), ValueId, maxDepth)
 import Marlowe.Semantics as MS
 import Text.Parsing.Parser (runParser)
 
@@ -702,6 +701,18 @@ computeTransaction tx state contract = do
         ApplyAllAmbiguousSlotIntervalError -> pure $ Error TEAmbiguousSlotIntervalError
     IntervalError error -> pure $ Error (TEIntervalError error)
 
+computeTransactions :: TransactionOutput -> Array STransactionInput -> Tree TransactionOutput
+computeTransactions tout [] = pure tout
+
+computeTransactions tout@(Error _) _ = pure tout
+
+computeTransactions tout@(TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) inputs = do
+  case Array.uncons inputs of
+    Nothing -> pure tout
+    Just { head, tail } -> do
+      res <- computeTransaction head txOutState txOutContract
+      computeTransactions res tail
+
 mkInput :: String -> Tree SInput
 mkInput suffix = do
   let
@@ -767,96 +778,18 @@ derive instance genericTxInput :: Generic TxInput _
 instance showTxInput :: Show TxInput where
   show = genericShow
 
-mkTxs' :: Int -> Tree (Array TxInput)
-mkTxs' depth = do
+getTransactionOutput :: Contract -> Tree TransactionOutput
+getTransactionOutput contract = do
   let
-    mkEq i = SEq (SInt (IntVar (Var $ "tx-input" <> show i)))
+    initialSlotInterval =
+      SlotInterval
+        (Slot $ (intVar "slot-start0"))
+        (Slot $ (intVar "slot-end0"))
 
-    caseInput = SInt $ IntConst $ fromInt 0
-
-    caseEmpty = SInt $ IntConst $ fromInt 1
-
-    caseBoundary = SInt $ IntConst $ fromInt 2
-
-    -- TxEmpty represents an empty Tx so it needs a TxBoundary either side
-    -- TxBoundary doesn't make sense as the first or last element
-    go acc _ _ _ idx
-      | idx == (2 * depth) + 1 = pure acc
-
-    go acc 0 0 0 idx = pure acc
-
-    go acc 0 0 boundary idx = pure acc
-
-    go acc 0 empty 0 idx = case Array.uncons acc of
-      Nothing -> pure [ TxEmpty ]
-      Just { head: TxBoundary } -> go (TxEmpty : acc) 0 (empty - 1) 0 (idx + 1)
-      _ -> go acc 0 (empty - 1) 0 (idx + 1)
-
-    go acc 0 empty boundary idx = case Array.uncons acc of
-      Nothing -> pure [ TxEmpty ]
-      Just { head: TxBoundary } -> go (TxEmpty : acc) 0 (empty - 1) 0 (idx + 1)
-      _ -> go acc 0 (empty - 1) boundary (idx + 1)
-
-    go acc inputs 0 0 idx = case Array.uncons acc of
-      Nothing -> go [ TxInput ] (inputs - 1) 0 0 (idx + 1)
-      Just { head: TxEmpty, tail } -> go (TxInput : tail) (inputs - 1) 0 0 (idx + 1)
-      _ -> go (TxInput : acc) (inputs - 1) 0 0 (idx + 1)
-
-    go acc inputs empty 0 idx =
-      ite (mkEq idx caseInput)
-        (go (TxInput : acc) (inputs - 1) empty 0 (idx + 1))
-        ( case Array.uncons acc of
-            Nothing -> go [ TxInput ] (inputs - 1) 0 0 (idx + 1)
-            Just { head: TxBoundary } -> go (TxEmpty : acc) inputs (empty - 1) 0 (idx + 1)
-            _ -> go acc inputs 0 0 (idx + 1)
-        )
-
-    go acc inputs 0 boundary idx =
-      ite (mkEq idx caseInput)
-        (go (TxInput : acc) (inputs - 1) 0 boundary (idx + 1))
-        ( case Array.uncons acc of
-            Nothing -> go acc inputs 0 (boundary - 1) (idx + 1)
-            Just { head: TxBoundary } -> go acc inputs 0 (boundary - 1) (idx + 1)
-            _ -> go (TxBoundary : acc) inputs 0 (boundary - 1) (idx + 1)
-        )
-
-    go acc inputs empty boundary idx =
-      ite (mkEq idx caseInput)
-        (go (TxInput : acc) (inputs - 1) empty boundary (idx + 1))
-        ( ite (mkEq idx caseEmpty)
-            ( case Array.uncons acc of
-                Nothing -> go (TxBoundary : TxEmpty : acc) inputs 0 (boundary - 1) (idx + 1)
-                Just { head: TxBoundary } -> go (TxBoundary : TxEmpty : acc) inputs 0 (boundary - 1) (idx + 1)
-                _ ->
-                  if boundary >= 2 then
-                    go (TxBoundary : TxEmpty : TxBoundary : acc) inputs (empty - 1) (boundary - 2) (idx + 1)
-                  else
-                    go (TxEmpty : TxBoundary : acc) inputs (empty - 1) (boundary - 1) (idx + 1)
-            )
-            ( case Array.uncons acc of
-                Nothing -> go acc inputs empty (boundary - 1) (idx + 1)
-                Just { head: TxBoundary } -> go acc inputs empty (boundary - 1) (idx + 1)
-                _ -> go (TxBoundary : acc) inputs empty (boundary - 1) (idx + 1)
-            )
-        )
-  go [] depth 1 depth zero
-
-computeTransactions :: TransactionOutput -> Array STransactionInput -> Tree TransactionOutput
-computeTransactions tout [] = pure tout
-
-computeTransactions tout@(Error _) _ = pure tout
-
-computeTransactions tout@(TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) inputs = do
-  case Array.uncons inputs of
-    Nothing -> pure tout
-    Just { head, tail } -> do
-      res <- computeTransaction head txOutState txOutContract
-      computeTransactions res tail
-
-test :: Tree TransactionOutput
-test = do
-  let
-    slotInterval = SlotInterval (Slot $ IntConst $ fromInt 1) (Slot $ IntConst $ fromInt 2)
+    mkSlotInterval suffix (SlotInterval (Slot a) (Slot b)) =
+      SlotInterval
+        (Slot $ (IntAdd a (intVar ("slot-start" <> suffix))))
+        (Slot $ (IntAdd a (intVar ("slot-end" <> suffix))))
 
     state =
       State
@@ -866,27 +799,22 @@ test = do
         , minSlot: Slot $ IntVar $ Var "minSlot"
         }
 
-    -- contract = When [ Case (Notify FalseObs) Close ] (MS.Slot (fromInt 100)) Close
-    -- contract = When [ Case (Deposit (MS.AccountId (fromInt 1) "ace") "bob" SlotIntervalEnd) Close ] (MS.Slot (fromInt 100)) Close
-    -- contract = When [ Case (Deposit (MS.AccountId (fromInt 1) "ace") "bob" (NegValue SlotIntervalEnd)) Close ] (MS.Slot (fromInt 100)) Close
-    contract = case runParser ME.escrow Parser.contract of
-      Left _ -> Close
-      Right c -> fromMaybe Close $ Holes.fromTerm c
+    depth = maxDepth contract
 
-    -- input = INotify
-    -- input = IDeposit (toSym (MS.AccountId (fromInt 1) "ace")) (toSym "bob") (Lovelace (toSym (fromInt 2)))
-    -- input = IDeposit (toSym (MS.AccountId (fromInt 1) "ace")) (toSym "bob") (Lovelace (toSym (fromInt (-2))))
-    -- input1 = IDeposit (toSym (MS.AccountId (fromInt 0) "alice")) (toSym "alice") (Lovelace (toSym (fromInt 400)))
-    -- input2 = IChoice (toSym (MS.ChoiceId "choice" "alice")) (toSym (fromInt 0))
-    -- input3 = IChoice (toSym (MS.ChoiceId "choice" "bob")) (toSym (fromInt 0))
-    mkTx _ TxE = pure $ TransactionInput { interval: slotInterval, inputs: [] }
-
-    mkTx idx TxIn = do
-      i <- mkInput $ show idx
-      -- FIXME: need to make slotInterval higher or equal to than the last
-      pure $ TransactionInput { interval: slotInterval, inputs: [ i ] }
-  inputs <- mkTxs 1
-  txs <- traverseWithIndex mkTx inputs
+    mkTx :: (Tuple Int (Array STransactionInput)) -> TxI -> Tree (Tuple Int (Array STransactionInput))
+    mkTx (Tuple idx acc) txi = do
+      let
+        slotInterval' = case Array.uncons acc of
+          Nothing -> initialSlotInterval
+          Just { head: (TransactionInput { interval }) } -> mkSlotInterval (show idx) interval
+      inputs <- case txi of
+        TxE -> pure []
+        TxIn -> do
+          i <- mkInput $ show idx
+          pure [ i ]
+      pure $ Tuple (idx + 1) $ TransactionInput { interval: slotInterval', inputs: inputs } : acc
+  inputs <- mkTxs depth
+  txs <- foldM mkTx (Tuple 1 []) inputs
   let
     startOutput =
       TransactionOutput
@@ -895,22 +823,13 @@ test = do
         , txOutState: state
         , txOutContract: contract
         }
-  computeTransactions startOutput txs
-  -- input1 <- mkInput "0"
-  -- input2 <- mkInput "1"
-  -- input3 <- mkInput "2"
-  -- let
-    -- tx = TransactionInput { interval: slotInterval, inputs: [ input1, input2, input3 ] }
-  -- computeTransaction tx state contract
+  computeTransactions startOutput (snd txs)
 
-f :: TransactionOutput -> Boolean
-f (Error _) = true
-
-f _ = false
-
-g :: TransactionOutput -> Boolean
-g (TransactionOutput { txOutWarnings: [] }) = false
-
-g (TransactionOutput _) = true
-
-g _ = false
+test :: Tree TransactionOutput
+test =
+  let
+    contract = case runParser ME.escrow Parser.contract of
+      Left _ -> Close
+      Right c -> fromMaybe Close $ Holes.fromTerm c
+  in
+    getTransactionOutput contract
