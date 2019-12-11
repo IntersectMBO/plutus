@@ -3,7 +3,7 @@ module Language.PlutusTx.Coordination.Contracts() where
 {- Note [Contracts and Validator Scripts]
 
 Central to both examples are the validator scripts in
-`CrowdFunding.contributionScript` and `Swap.swapValidator`. In both cases we
+`Crowdfunding.contributionScript` and `Swap.swapValidator`. In both cases we
 construct a PLC script using the core-to-plutus plugin (with Template Haskell
 and the `plc` marker respectively).
 

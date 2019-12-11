@@ -1,4 +1,4 @@
--- | CrowdFunding contract implemented using the [[Plutus]] interface.
+-- | Crowdfunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
@@ -21,7 +21,7 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 
-module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
+module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     -- * Campaign parameters
       Campaign(..)
     , CrowdfundingSchema

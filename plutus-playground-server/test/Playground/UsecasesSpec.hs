@@ -9,7 +9,7 @@ module Playground.UsecasesSpec
 
 import           Control.Monad                (unless)
 import           Control.Monad.Except         (runExceptT)
-import           CrowdFunding                 (Contribution (Contribution), contribValue)
+import           Crowdfunding                 (Contribution (Contribution), contribValue)
 import           Data.Aeson                   (ToJSON)
 import qualified Data.Aeson                   as JSON
 import qualified Data.Aeson.Text              as JSON
