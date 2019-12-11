@@ -120,6 +120,10 @@ h2 {
     }
 }
 
+input.form-control {
+    min-width: 4.5rem;
+}
+
 .gist-controls {
     h1, h2, h3, h4 {
         color: $lightPurple;
