@@ -180,6 +180,7 @@ executable plutus-playground-server
         data-default-class -any,
         filepath -any,
         http-types -any,
+        iots-export -any,
         playground-common -any,
         lens -any,
         monad-logger -any,
