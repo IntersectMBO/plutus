@@ -16,8 +16,8 @@
 module IOTS
   ( export
   , IotsExportable
-  , IotsDef(..)
   , IotsType(iotsDefinition)
+  , IotsBuilder(..)
   , HList(HNil, HCons)
   , Tagged(Tagged)
   ) where
@@ -58,8 +58,9 @@ data IotsTypeRep a where
   NamedFun :: Typeable f => Text -> IotsTypeRep (a -> b) -> IotsTypeRep f
 
 ------------------------------------------------------------
-data IotsDef =
-  IotsDef
+-- | Accumulates the data we need to write out the final JavaScript string.
+data IotsBuilder =
+  IotsBuilder
     { iotsRep    :: SomeTypeRep
         -- ^ The type this record describes.
     , iotsRef    :: Doc
@@ -85,7 +86,7 @@ repName = stringDoc . fold . go
             "[]"  -> "List"
             other -> other
 
-toRef :: Tree IotsDef -> Doc
+toRef :: Tree IotsBuilder -> Doc
 toRef = iotsRef . rootLabel
 
 ------------------------------------------------------------
@@ -121,8 +122,8 @@ export _ =
       flip evalState mempty . gatherDefinitions $
       iotsTypeRep @a
     appendUnseenDefinitions ::
-         Seq Doc -> IotsDef -> State (Set SomeTypeRep) (Seq Doc)
-    appendUnseenDefinitions acc IotsDef {..} = do
+         Seq Doc -> IotsBuilder -> State (Set SomeTypeRep) (Seq Doc)
+    appendUnseenDefinitions acc IotsBuilder {..} = do
       seen <- gets (Set.member iotsRep)
       modify (Set.insert iotsRep)
       pure $
@@ -133,7 +134,7 @@ export _ =
 ------------------------------------------------------------
 type Visited = Set SomeTypeRep
 
-gatherDefinitions :: forall a. IotsTypeRep a -> State Visited (Forest IotsDef)
+gatherDefinitions :: forall a. IotsTypeRep a -> State Visited (Forest IotsBuilder)
 gatherDefinitions Atom = iotsDefinition @a
 gatherDefinitions (Group x xs) =
   mappend <$> gatherDefinitions x <*> gatherDefinitions xs
@@ -143,7 +144,7 @@ gatherDefinitions (NamedFun functionName fun) = do
     children <- gatherDefinitions fun
     let inputArguments = init children
         outputArgument = last children
-        labelledParameter :: Text -> Tree IotsDef -> Doc
+        labelledParameter :: Text -> Tree IotsBuilder -> Doc
         labelledParameter argName def =
             textStrict argName <> ":" <+> toRef def
         functionBinding = textStrict (upperFirst functionName)
@@ -173,9 +174,9 @@ gatherDefinitions (NamedFun functionName fun) = do
               jsParams [squotes functionBinding, argsBinding, returnBinding] <>
               semi
             ]
-    pure [Node (IotsDef {..}) children]
+    pure [Node (IotsBuilder {..}) children]
 
-withParameterLabels :: (Text -> Tree IotsDef -> Doc) -> Forest IotsDef -> [Doc]
+withParameterLabels :: (Text -> Tree IotsBuilder -> Doc) -> Forest IotsBuilder -> [Doc]
 withParameterLabels f = zipWith f (Text.singleton <$> ['a' .. 'z'])
 
 ------------------------------------------------------------
@@ -232,42 +233,42 @@ instance (KnownSymbol s, IotsExportable (a -> b), Typeable (a -> b)) =>
 --
 -- ...to your definition.
 class IotsType a where
-  iotsDefinition :: State Visited (Forest IotsDef)
+  iotsDefinition :: State Visited (Forest IotsBuilder)
   default iotsDefinition :: (Typeable a, Generic a, GenericIotsType (Rep a)) =>
-    State Visited (Forest IotsDef)
+    State Visited (Forest IotsBuilder)
   iotsDefinition =
     genericTypeReps (someTypeRep (Proxy @a)) $ Generics.from (undefined :: a)
 
 instance IotsType Text where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Text)
       iotsOutput = False
       iotsRef = "t.string"
 
 instance IotsType Char where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Char)
       iotsOutput = False
       iotsRef = "t.string"
 
 instance IotsType Integer where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Integer)
       iotsOutput = False
       iotsRef = "t.number"
 
 instance IotsType Int where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Int)
       iotsOutput = False
       iotsRef = "t.number"
 
 instance IotsType Bool where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @Bool)
       iotsOutput = False
@@ -285,7 +286,7 @@ instance (IotsType a, IotsType b, Typeable a, Typeable b) =>
         iotsRep = someTypeRep (Proxy @(a, b))
         iotsOutput = False
         iotsRef = "t.tuple" <> parens (jsArray (toRef <$> children))
-    pure [Node (IotsDef {..}) children]
+    pure [Node (IotsBuilder {..}) children]
 
 instance (IotsType k, IotsType v, Typeable k, Typeable v) =>
          IotsType (Map k v) where
@@ -296,14 +297,14 @@ instance (IotsType k, IotsType v, Typeable k, Typeable v) =>
         iotsRep = someTypeRep (Proxy @(Map k v))
         iotsOutput = False
         iotsRef = "t.record" <> jsParams (toRef <$> children)
-    pure [Node (IotsDef {..}) children]
+    pure [Node (IotsBuilder {..}) children]
 
 instance IotsType () where
   iotsDefinition = do
     let iotsRep = someTypeRep (Proxy @())
         iotsOutput = False
         iotsRef = "t.null"
-    pure [Node (IotsDef {..}) []]
+    pure [Node (IotsBuilder {..}) []]
 
 instance (IotsType a, Typeable a) => IotsType (Maybe a) where
   iotsDefinition = do
@@ -313,7 +314,7 @@ instance (IotsType a, Typeable a) => IotsType (Maybe a) where
         iotsRep = someTypeRep (Proxy @(Maybe a))
         iotsOutput = False
         iotsRef = "t.union" <> parens (jsArray (toRef <$> children))
-    pure [Node (IotsDef {..}) children]
+    pure [Node (IotsBuilder {..}) children]
 
 instance (IotsType a, Typeable a, IotsType b, Typeable b) => IotsType (Either a b) where
   iotsDefinition = do
@@ -323,7 +324,7 @@ instance (IotsType a, Typeable a, IotsType b, Typeable b) => IotsType (Either a 
         iotsRep = someTypeRep (Proxy @(Either a b))
         iotsOutput = False
         iotsRef = "t.union" <> parens (jsArray (toRef <$> children))
-    pure [Node (IotsDef {..}) children]
+    pure [Node (IotsBuilder {..}) children]
 
 ------------------------------------------------------------
 instance {-# OVERLAPPABLE #-} (IotsType a, Typeable a) => IotsType [a] where
@@ -332,7 +333,7 @@ instance {-# OVERLAPPABLE #-} (IotsType a, Typeable a) => IotsType [a] where
     let iotsRep = someTypeRep (Proxy @[a])
         iotsOutput = False
         iotsRef = "t.array" <> jsParams (toRef <$> child)
-    pure [Node (IotsDef {..}) child]
+    pure [Node (IotsBuilder {..}) child]
 
 instance  (IotsType a, Typeable a) => IotsType (Set a) where
   iotsDefinition = do
@@ -340,10 +341,10 @@ instance  (IotsType a, Typeable a) => IotsType (Set a) where
     let iotsRep = someTypeRep (Proxy @(Set a))
         iotsOutput = False
         iotsRef = "t.array" <> jsParams (toRef <$> child)
-    pure [Node (IotsDef {..}) child]
+    pure [Node (IotsBuilder {..}) child]
 
 instance IotsType [Char] where
-  iotsDefinition = pure [Node (IotsDef {..}) []]
+  iotsDefinition = pure [Node (IotsBuilder {..}) []]
     where
       iotsRep = someTypeRep (Proxy @String)
       iotsOutput = False
@@ -367,7 +368,7 @@ instance (IotsType t, IotsType (HList ts)) => IotsType (HList (t ': ts)) where
 
 ------------------------------------------------------------
 class GenericIotsType f where
-  genericTypeReps :: SomeTypeRep -> f a -> State Visited (Forest IotsDef)
+  genericTypeReps :: SomeTypeRep -> f a -> State Visited (Forest IotsBuilder)
 
 instance (GenericToBody p, Datatype f) => GenericIotsType (D1 f p) where
   genericTypeReps rep d = do
@@ -375,14 +376,14 @@ instance (GenericToBody p, Datatype f) => GenericIotsType (D1 f p) where
     let iotsRep = rep
         iotsOutput = False
         iotsRef = repName rep
-    pure [Node (IotsDef {..}) [child]]
+    pure [Node (IotsBuilder {..}) [child]]
 
 data Cardinality
   = SoleConstructor
   | ManyConstructors
 
 class GenericToDef f where
-  genericToDef :: SomeTypeRep -> f a -> State Visited (Tree IotsDef)
+  genericToDef :: SomeTypeRep -> f a -> State Visited (Tree IotsBuilder)
 
 instance (GenericToBody p, Datatype f) => GenericToDef (D1 f p) where
   genericToDef rep datatype@(M1 constructors) = do
@@ -402,13 +403,13 @@ instance (GenericToBody p, Datatype f) => GenericToDef (D1 f p) where
             [x] -> x SoleConstructor
             xs  -> "t.union" <> parens (jsArray (apply ManyConstructors <$> xs))
         apply x f = f x
-    pure $ Node (IotsDef {..}) childRefs
+    pure $ Node (IotsBuilder {..}) childRefs
 
 class GenericToBody f where
   genericToBody ::
        SomeTypeRep
     -> f a
-    -> State Visited ([Cardinality -> Doc], [Tree IotsDef])
+    -> State Visited ([Cardinality -> Doc], [Tree IotsBuilder])
 
 instance (Constructor f, GenericToFields p) => GenericToBody (C1 f p) where
   genericToBody rep constructor@(M1 selectors) = do
@@ -434,7 +435,7 @@ instance (GenericToBody f, GenericToBody g) => GenericToBody (f :+: g) where
     genericToBody rep (undefined :: g a)
 
 class GenericToFields f where
-  genericToFields :: SomeTypeRep -> f a -> State Visited ([Doc], [Tree IotsDef])
+  genericToFields :: SomeTypeRep -> f a -> State Visited ([Doc], [Tree IotsBuilder])
 
 instance GenericToFields U1 where
   genericToFields _ _ = pure mempty
