@@ -15,8 +15,10 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 
--- | For the Playground, we need to be able to represent function
--- signatures, and function calls, as JSON objects.
+-- | This module exists to take concrete types and convert them into
+-- something we can easily create generic UI forms for, based on their
+-- structure. As a secondary requirement, it also aims to be easy to
+-- serialize to a sensible JSON representation.
 --
 -- 'ToSchema' turns a function signature into a 'FormSchema' - a
 -- description that can serialised as JSON and analysed in PureScript
@@ -33,9 +35,9 @@
 module Schema
     ( ToSchema
     , toSchema
-    , FormSchema(..)
     , ToArgument
     , toArgument
+    , FormSchema(..)
     , FormArgument
     , FormArgumentF(..)
     , formArgumentToJson
@@ -73,9 +75,11 @@ data FormSchema
     | FormSchemaInt
     | FormSchemaString
     | FormSchemaHex
+      -- ^ A string that may only contain @0-9a-fA-F@
     | FormSchemaArray FormSchema
     | FormSchemaMaybe FormSchema
     | FormSchemaRadio [String]
+      -- ^ A radio button with a list of labels.
     | FormSchemaTuple FormSchema FormSchema
     | FormSchemaObject [(String, FormSchema)]
     -- Blessed types that get their own special UI widget.
@@ -137,13 +141,50 @@ formArgumentToJson = cata algebra
     justJSON = Just . toJSON
 
 ------------------------------------------------------------
+-- | A description of a type, suitable for consumption by the Playground's website.
+--
+-- By calling 'toSchema' on a type you get a description of its
+-- structure. Semantically:
+--
+-- >>> toSchema @Int
+-- >>> -- returns, "this is an Int."
+-- >>>
+-- >>> toSchema @SomeRecord
+-- >>>   -- returns, "this is a record, and it has
+-- >>>   -- these named fields with these types".
+--
+-- The description you get back is the 'FormSchema' type, which
+-- describes all the obvious primitives, plus some Plutus types
+-- deemed worthy of special treatment (eg. 'Value').
+--
+-- Internally it relies on 'GHC.Generics' to extract the type
+-- information, but the implementation jumps through some hoops
+-- because generics is geared towards getting the type-description of
+-- a specific value (eg. @Left "Foo"@ or @Right 5@) rather than on the
+-- type itself (eg. @Either String Int@).
 class ToSchema a where
     toSchema :: FormSchema
     default toSchema :: (Generic a, GenericToSchema (Rep a)) =>
         FormSchema
     toSchema = genericToSchema $ from (undefined :: a)
 
-class ToArgument a where
+-- | The value-level equivalent of 'ToSchema'. Where 'ToSchema' takes
+-- your type and returns a generic description of its structure,
+-- 'ToArgument' takes your value and returns an equivalent value with
+-- a more generic structure. So semantially:
+--
+-- The description you get back is the 'FormArgument' type, which
+-- describes all the obvious primitives, plus some Plutus types
+-- deemed worthy of special treatment (eg. 'Value').
+--
+-- >>> toSchema @User
+-- >>> -- returns, "this is a record with a 'name' field, which is a String."
+-- >>>
+-- >>> toArgument (User "Dave")
+-- >>> -- returns, "this is a record with a 'name' field, which is a the String 'Dave'."
+class ToSchema a =>
+      ToArgument a
+    where
     toArgument :: a -> Fix FormArgumentF
     default toArgument :: (Generic a, GenericToArgument (Rep a)) =>
         a -> Fix FormArgumentF
