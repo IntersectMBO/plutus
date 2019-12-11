@@ -73,7 +73,7 @@ tests =
         >> handleBlockchainEvents wallet1)
 
     , Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (vestingScript vesting) 33000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (vestingScript vesting) 33114)
     ]
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a

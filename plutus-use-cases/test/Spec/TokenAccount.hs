@@ -63,7 +63,7 @@ tokenName = "test token"
 
 account :: Account
 account =
-    let currencySymbol = "add3a37fb97b24d6f36572498273c066168b2c5929400dee829dec4c390d07a0"
+    let currencySymbol = "496ff7cca4e2b3e758e15e3199b5c50ef2da37caa6e3206db2a8a78e963ceea3"
     in Account (currencySymbol, tokenName)
 
 theToken :: Value
