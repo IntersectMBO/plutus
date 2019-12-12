@@ -59,7 +59,7 @@ eqKind (_ ⇒ _) * = Bool.false
 eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
 
 open import Relation.Nullary
-open import Relation.Binary.Core using (Decidable)
+open import Relation.Binary using (Decidable)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 eqKind' : Decidable {A = Kind} _≡_

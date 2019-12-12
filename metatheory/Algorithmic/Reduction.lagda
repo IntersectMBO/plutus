@@ -10,13 +10,13 @@ open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
 open import Function hiding (_∋_)
-open import Data.Integer renaming (_*_ to _**_)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.List hiding ([_]; take; drop)
 import Data.Bool as Bool
-open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
+open import Data.Nat using (zero)
 
 open import Type
 open import Algorithmic
@@ -34,7 +34,7 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Utils
 
-open import Data.String hiding (_++_; _≟_)
+open import Data.String using (String)
 \end{code}
 
 ## Values
@@ -155,7 +155,7 @@ BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
 BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
 BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.<? j) true false
+  decIf (i <? j) true false
 BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   = decIf (i ≤? j) true false
 BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =

@@ -6,11 +6,11 @@ module Builtin.Constant.Type where
 
 \begin{code}
 open import Agda.Builtin.Int
-open import Data.Integer hiding (_*_)
-open import Data.Bool
+open import Data.Integer using (ℤ;-_;+≤+;-≤+;-≤-;_<_;_>_;_≤?_;_<?_;_≥_;_≤_)
+open import Data.Bool using (Bool)
 open import Data.Product
 open import Relation.Binary
-open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_; _≤?_;_<?_;_>?_;_≥?_) renaming (_*_ to _**_)
+open import Data.Nat using (ℕ;_*_;z≤n;s≤s;zero;suc) 
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Function
@@ -93,15 +93,11 @@ postulate
 -- cut-off exponentiation
 _^_ : ℕ → ℕ → ℕ
 x ^ ℕ.zero  = 1
-x ^ ℕ.suc n = x ** (x ^ n)
+x ^ ℕ.suc n = x * (x ^ n)
 
 -≤0 : forall x -> - pos x ≤ pos 0
 -≤0 ℕ.zero = +≤+ z≤n
 -≤0 (ℕ.suc n) = -≤+
-
-
-_<?_ : Decidable _<_
-i <? j = Data.Integer.suc i ≤? j
 
 _>?_ : Decidable _>_
 i >? j = j <? i

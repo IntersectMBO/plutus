@@ -5,6 +5,7 @@ module Untyped where
 \begin{code}
 open import Data.Nat
 open import Data.Fin
+open import Data.Bool using (true;false)
 open import Data.Integer hiding (suc)
 open import Data.List hiding (_++_)
 open import Data.String
@@ -56,8 +57,8 @@ open import Relation.Nullary
 
 builtinEater : ∀{n} → Builtin → List (n ⊢) → n ⊢ → n ⊢
 builtinEater b ts u with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
-builtinEater b ts u | Dec.yes p = builtin b (ts Data.List.++ [ u ])
-builtinEater b ts u | Dec.no ¬p = builtin b ts · u
+builtinEater b ts u | true because ofʸ p   = builtin b (ts Data.List.++ [ u ])
+builtinEater b ts u | false because ofⁿ ¬p = builtin b ts · u
 \end{code}
 
 \begin{code}
@@ -93,10 +94,9 @@ ugly error = "error"
 \end{code}
 
 \begin{code}
-true : ∀{n} → n ⊢
-true = ƛ "t" (ƛ "f" (` (suc zero)))
+plc_true : ∀{n} → n ⊢
+plc_true = ƛ "t" (ƛ "f" (` (suc zero)))
 
-false : ∀{n} → n ⊢
-false = ƛ "t" (ƛ "f" (` zero))
-
+plc_false : ∀{n} → n ⊢
+plc_false = ƛ "t" (ƛ "f" (` zero))
 \end{code}
