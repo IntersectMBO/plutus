@@ -1,12 +1,15 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Playground.THSpec where
+module Playground.THSpec
+    ( spec
+    ) where
 
 import           Data.Text        (Text)
 import           Ledger.Value     (Value)
@@ -55,7 +58,9 @@ spec =
         it
             "f3"
             (f3Schema `shouldBe`
-             (FunctionSchema (EndpointName "f3") [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema))
+             (FunctionSchema
+                  (EndpointName "f3")
+                  [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema))
         it
             "f4"
             (f4Schema `shouldBe`

@@ -73,7 +73,7 @@ test-suite plutus-playground-lib-test
         hspec-discover:hspec-discover -any
     other-modules:
         Playground.THSpec
-        Playground.APISpec
+        Playground.TypesSpec
         SchemaSpec
     build-depends:
         base >=4.9 && <5,
