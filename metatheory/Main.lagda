@@ -55,7 +55,7 @@ postulate
   Program : Set
   convP : Program → RawTm
   readFile : String → IO ByteString
-  parse : ByteString → Maybe Program
+  parse : ByteString → Maybe Program -- this should deBruijnify too
   showTerm : RawTm → String
   getContents : IO ByteString
   exitFailure : IO ⊤
@@ -82,7 +82,7 @@ postulate
 {-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
@@ -99,7 +99,6 @@ mapper f nothing = nothing
 mapper f (just a) = just (f a)
 
 open import Untyped
-
 
 -- untyped evaluation
 --utestPLC : ByteString → Maybe String

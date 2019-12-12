@@ -9,7 +9,7 @@ import           GHC.Natural
 import           Data.ByteString.Lazy       as BSL
 import qualified Data.Text                  as T
 import           Language.PlutusCore
-import           Language.PlutusCore.Name
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 
@@ -19,10 +19,10 @@ data RKind = RKiStar
            | RKiFun RKind RKind
            deriving Show
 
-data RType = RTyVar T.Text
+data RType = RTyVar Natural
            | RTyFun RType RType
-           | RTyPi T.Text RKind RType
-           | RTyLambda T.Text RKind RType
+           | RTyPi RKind RType
+           | RTyLambda RKind RType
            | RTyApp RType RType
            | RTyCon TypeBuiltin
            | RTyMu RType RType
@@ -33,10 +33,10 @@ data RConstant = RConInt Integer
                | RConStr T.Text
                deriving Show
 
-data RTerm = RVar T.Text
-           | RTLambda T.Text RKind RTerm
+data RTerm = RVar Natural
+           | RTLambda RKind RTerm
            | RTApp RTerm RType
-           | RLambda T.Text RType RTerm
+           | RLambda RType RTerm
            | RApp RTerm RTerm
            | RCon RConstant
            | RError RType
@@ -45,23 +45,23 @@ data RTerm = RVar T.Text
            | RUnWrap RTerm
   deriving Show
 
+unIndex :: Index -> Natural
+unIndex (Index n) = n
 
--- should this happen in Agda and infer the bounds proof at this point?
-
-convP :: Program TyName Name a -> RTerm
+convP :: Program TyDeBruijn DeBruijn a -> RTerm
 convP (Program _ _ t) = conv t
 
 convK :: Kind a -> RKind
 convK (Type _)            = RKiStar
 convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
 
-convT :: Type TyName a -> RType
-convT (TyVar _ x)          = RTyVar (nameString $ unTyName x)
+convT :: Type TyDeBruijn a -> RType
+convT (TyVar _ (TyDeBruijn x)) = RTyVar (unIndex (dbnIndex x))
 convT (TyFun _ _A _B)      = RTyFun (convT _A) (convT _B)
-convT (TyForall _ x _K _A) =
-  RTyPi (nameString $ unTyName x) (convK _K) (convT _A)
-convT (TyLam _ x _K _A)    =
-  RTyLambda (nameString $ unTyName x) (convK _K) (convT _A)
+convT (TyForall _ _ _K _A) =
+  RTyPi (convK _K) (convT _A)
+convT (TyLam _ _ _K _A)    =
+  RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)      = RTyCon b
 convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
@@ -71,11 +71,11 @@ convC (BuiltinInt _ i) = RConInt i
 convC (BuiltinBS _ b)  = RConBS b
 convC (BuiltinStr _ s) = RConStr (T.pack s)
 
-conv :: Term TyName Name a -> RTerm
-conv (Var _ x)                        = RVar (nameString x)
-conv (TyAbs _ x _K t)                 = RTLambda (nameString $ unTyName x) (convK _K) (conv t)
+conv :: Term TyDeBruijn DeBruijn a -> RTerm
+conv (Var _ x)                        = RVar (unIndex (dbnIndex x))
+conv (TyAbs _ _ _K t)                 = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)                  = RTApp (conv t) (convT _A)
-conv (LamAbs _ x _A t)                = RLambda (nameString x) (convT _A) (conv t)
+conv (LamAbs _ _ _A t)                = RLambda (convT _A) (conv t)
 conv (Apply _ t u)                    = RApp (conv t) (conv u)
 conv (Builtin _ (BuiltinName _ b))    = RBuiltin b
 conv (Builtin _ (DynBuiltinName _ b)) = undefined
@@ -84,18 +84,22 @@ conv (Unwrap _ t)                     = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t)              = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)                     = RError (convT _A)
 
-mkName :: T.Text -> Name ()
-mkName x = Name {nameAttribute = (), nameString = x, nameUnique = undefined}
-
 unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
-unconvT :: RType -> Type TyName ()
-unconvT (RTyVar x)        = TyVar () (TyName $ mkName x)
+dZero :: DeBruijn ()
+dZero = DeBruijn () (T.pack "") (Index 0)
+
+
+-- this should take a level and render levels as names
+unconvT :: RType -> Type TyDeBruijn ()
+unconvT (RTyVar x)        =
+  TyVar () (TyDeBruijn (DeBruijn () (T.pack "") (Index x)))
 unconvT (RTyFun t u)      = TyFun () (unconvT t) (unconvT u)
-unconvT (RTyPi x k t)     = TyForall () (TyName $ mkName x) (unconvK k) (unconvT t)
-unconvT (RTyLambda x k t) = TyLam () (TyName $ mkName x) (unconvK k) (unconvT t)
+unconvT (RTyPi k t)       =
+  TyForall () (TyDeBruijn dZero) (unconvK k) (unconvT t)
+unconvT (RTyLambda k t) = TyLam () (TyDeBruijn dZero) (unconvK k) (unconvT t)
 unconvT (RTyApp t u)      = TyApp () (unconvT t) (unconvT u)
 unconvT (RTyCon c)        = TyBuiltin () c
 unconvT (RTyMu t u)       = TyIFix () (unconvT t) (unconvT u)
@@ -105,11 +109,11 @@ unconvC (RConInt i)  = BuiltinInt () i
 unconvC (RConBS b)   = BuiltinBS () b
 unconvC  (RConStr s) = BuiltinStr () (T.unpack s)
 
-unconv :: RTerm -> Term TyName Name ()
-unconv (RVar x)          = Var () (mkName x)
-unconv (RTLambda x k tm) = TyAbs () (TyName $ mkName x) (unconvK k) (unconv tm)
+unconv :: RTerm -> Term TyDeBruijn DeBruijn ()
+unconv (RVar x)          = Var () (DeBruijn () (T.pack "") (Index x))
+unconv (RTLambda k tm)   = TyAbs () (TyDeBruijn dZero) (unconvK k) (unconv tm)
 unconv (RTApp t ty)      = TyInst () (unconv t) (unconvT ty)
-unconv (RLambda x ty tm) = LamAbs () (mkName x) (unconvT ty) (unconv tm)
+unconv (RLambda ty tm)   = LamAbs () dZero (unconvT ty) (unconv tm)
 unconv (RApp t u)        = Apply () (unconv t) (unconv u)
 unconv (RCon c)          = Constant () (unconvC c)
 unconv (RError ty)       = Error () (unconvT ty)
