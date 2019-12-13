@@ -90,13 +90,13 @@ inferKind Φ (A ⇒ B) = do
   * ,, B ← inferKind Φ B
     where _ → inj₂ notTypeError
   return (* ,, A ⇒ B)
-inferKind Φ (Π x K A) = do
+inferKind Φ (Π K A) = do
   * ,, A ← inferKind (Φ ,⋆ K) A
     where _ → inj₂ notTypeError
-  return (* ,, Π x A)
-inferKind Φ (ƛ x K A) = do
+  return (* ,, Π "" A)
+inferKind Φ (ƛ K A) = do
   J ,, A ← inferKind (Φ ,⋆ K) A
-  return (K ⇒ J ,, ƛ x A)
+  return (K ⇒ J ,, ƛ "" A)
 inferKind Φ (A · B) = do
   K ⇒ J ,, A ← inferKind Φ A
     where _ → inj₂ notFunction
@@ -235,20 +235,20 @@ inferTypeBuiltin _ _ _ = inj₂ builtinError
 
 inferType Γ (` x)             =
   Data.Sum.map (λ{(A ,, x) → A ,, ` x}) id (inferVarType Γ x)
-inferType Γ (Λ x K L)         = do
+inferType Γ (Λ K L)         = do
   A ,, L ← inferType (Γ ,⋆ K) L
-  return (Π x A ,, Λ x L)
+  return (Π "" A ,, Λ "" L)
 inferType Γ (L ·⋆ A)          = do
   Π {K = K} x B ,, L ← inferType Γ L
     where _ → inj₂ notPiError
   K' ,, A ← inferKind _ A
   refl ← meqKind K K'
   return (B [ A ]Nf ,, (·⋆ L A reflNf))
-inferType Γ (ƛ x A L)         = do
+inferType Γ (ƛ A L)         = do
   * ,, A ← inferKind _ A
     where _ → inj₂ notTypeError
   B ,, L ← inferType (Γ , A) L 
-  return (A ⇒ B ,, ƛ x L)
+  return (A ⇒ B ,, ƛ "" L)
 inferType Γ (L · M)           = do
   A ⇒ B ,, L ← inferType Γ L
     where _ → inj₂ notFunction

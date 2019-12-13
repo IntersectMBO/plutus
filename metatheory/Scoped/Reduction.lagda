@@ -27,8 +27,8 @@ infix 2 _—→_
 
 \begin{code}
 data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
-  V-ƛ : ∀ x (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ x A t)
-  V-Λ : ∀ x {K}{t : ScopedTm (T w)} → Value t → Value (Λ x K t)
+  V-ƛ : ∀ (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ A t)
+  V-Λ : ∀ {K}{t : ScopedTm (T w)} → Value t → Value (Λ K t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
   V-builtin : (b : Builtin)
@@ -56,24 +56,24 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
    E-·₂ : {L M : ScopedTm w} → Error M → Error (L · M)
    
    E-·⋆ : {L : ScopedTm w}{A : ScopedTy n} → Error L → Error (L ·⋆ A)
-   E-Λ : ∀{x K}{L : ScopedTm (T w)} → Error L → Error (Λ x K L)
+   E-Λ : ∀{K}{L : ScopedTm (T w)} → Error L → Error (Λ K L)
 
    E-unwrap : {L : ScopedTm w} → Error L → Error (unwrap L)
    E-wrap : {A B : ScopedTy n}{L : ScopedTm w} → Error L → Error (wrap A B L)
    
    -- runtime type errors
    -- these couldn't happen in the intrinsically typed version
-   E-Λ·    : ∀{x K}{L : ScopedTm (T w)}{M : ScopedTm w} → Error (Λ x K L · M)
-   E-ƛ·⋆   : ∀{x}{B : ScopedTy n}{L : ScopedTm (S w)}{A : ScopedTy n}
-     → Error (ƛ x B L ·⋆ A)
+   E-Λ·    : ∀{K}{L : ScopedTm (T w)}{M : ScopedTm w} → Error (Λ K L · M)
+   E-ƛ·⋆   : ∀{B : ScopedTy n}{L : ScopedTm (S w)}{A : ScopedTy n}
+     → Error (ƛ B L ·⋆ A)
    E-con·  : ∀{tcn}{M : ScopedTm w} → Error (con tcn · M)
    E-con·⋆ : ∀{tcn}{A : ScopedTy n} → Error (con tcn ·⋆ A)
    E-wrap· : {A B : ScopedTy n}{t M : ScopedTm w} → Error (wrap A B t · M)
    E-wrap·⋆ : {A' B A : ScopedTy n}{t : ScopedTm w}
      → Error (wrap A' B t ·⋆ A)
-   E-ƛunwrap : ∀{x}{A : ScopedTy n}{t : ScopedTm (S w)}
-     → Error (unwrap (ƛ x A t) )
-   E-Λunwrap : ∀{x K}{t : ScopedTm (T w)} → Error (unwrap (Λ x K t))
+   E-ƛunwrap : {A : ScopedTy n}{t : ScopedTm (S w)}
+     → Error (unwrap (ƛ A t) )
+   E-Λunwrap : ∀{K}{t : ScopedTm (T w)} → Error (unwrap (Λ K t))
    E-conunwrap : ∀{tcn} → Error (unwrap (con tcn))
 
    -- this stuff is required due to unsaturated builtins in term args only
@@ -165,16 +165,16 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
   ξ-·₂ : {L M M' : ScopedTm w} → Value L → M —→ M' → L · M —→ L · M'
   ξ-·⋆ : {L L' : ScopedTm w}{A : ScopedTy n} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
-  ξ-Λ : ∀{x K}{L L' : ScopedTm (T w)} → L —→ L' → Λ x K L —→ Λ x K L
+  ξ-Λ : ∀{K}{L L' : ScopedTm (T w)} → L —→ L' → Λ K L —→ Λ K L
   ξ-wrap : {A B : ScopedTy n}{L L' : ScopedTm w}
     → L —→ L' → wrap A B L —→ wrap A B L'
 
 
 
-  β-ƛ : ∀{x}{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
-      → (ƛ x A L) · M —→ (L [ M ])
-  β-Λ : ∀{x K}{L : ScopedTm (T w)}{A : ScopedTy n}
-      → (Λ x K L) ·⋆ A —→ (L [ A ]⋆)
+  β-ƛ : ∀{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
+      → (ƛ A L) · M —→ (L [ M ])
+  β-Λ : ∀{K}{L : ScopedTm (T w)}{A : ScopedTy n}
+      → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
   ξ-builtin : {b : Builtin}
               {As : List (ScopedTy n)}
               {tel : Tel w}
@@ -225,8 +225,8 @@ data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
 \begin{code}
 progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → (u : ScopedTm i) → Progress (t · u)
 progress· (step p)                   u = step (ξ-·₁ p)
-progress· (done (V-ƛ x A t))         u = step β-ƛ
-progress· (done (V-Λ x p))           u = error E-Λ·
+progress· (done (V-ƛ A t))         u = step β-ƛ
+progress· (done (V-Λ p))           u = error E-Λ·
 progress· (done (V-con tcn))         u = error E-con·
 progress· (done (V-wrap A B t))      u = error E-wrap·
 progress· (done (V-builtin b As ts)) u = step sat-builtin
@@ -235,8 +235,8 @@ progress· (error e)                  u = error (E-·₁ e)
 progress·⋆ : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → (A : ScopedTy n)
   → Progress (t ·⋆ A)
 progress·⋆ (step p)                   A = step (ξ-·⋆ p)
-progress·⋆ (done (V-ƛ x B t))         A = error E-ƛ·⋆
-progress·⋆ (done (V-Λ x p))           A = step β-Λ
+progress·⋆ (done (V-ƛ B t))         A = error E-ƛ·⋆
+progress·⋆ (done (V-Λ p))           A = step β-Λ
 progress·⋆ (done (V-con tcn))         A = error E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
 progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆
@@ -244,8 +244,8 @@ progress·⋆ (error e)                  A = error (E-·⋆ e)
 
 progress-unwrap : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → Progress (unwrap t)
 progress-unwrap (step p)                   = step (ξ-unwrap p)
-progress-unwrap (done (V-ƛ x A t))         = error E-ƛunwrap
-progress-unwrap (done (V-Λ x p))           = error E-Λunwrap
+progress-unwrap (done (V-ƛ A t))         = error E-ƛunwrap
+progress-unwrap (done (V-Λ p))           = error E-Λunwrap
 progress-unwrap (done (V-con tcn))         = error E-conunwrap
 progress-unwrap (done (V-wrap A B t))      = step β-wrap
 progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap
@@ -289,12 +289,12 @@ progressTel p []        = done [] tt
 progressTel p (t ∷ tel) = progressTelCons (progress p t) (progressTel p tel)
 
 progress p (` x)             = ⊥-elim (noVar p x)
-progress p (Λ x K t)         with progress p t
-progress p (Λ x K t) | step  q = step (ξ-Λ q)
-progress p (Λ x K t) | done  q = done (V-Λ x q)
-progress p (Λ x K t) | error q = error (E-Λ q)
+progress p (Λ K t)         with progress p t
+progress p (Λ K t) | step  q = step (ξ-Λ q)
+progress p (Λ K t) | done  q = done (V-Λ q)
+progress p (Λ K t) | error q = error (E-Λ q)
 progress p (t ·⋆ A)          = progress·⋆ (progress p t) A
-progress p (ƛ x A t)         = done (V-ƛ x A t)
+progress p (ƛ A t)         = done (V-ƛ A t)
 progress p (t · u)           = progress· (progress p t) u
 progress p (con c)           = done (V-con c)
 progress p (error A)         = error (E-error A)

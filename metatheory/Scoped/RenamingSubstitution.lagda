@@ -22,8 +22,8 @@ lift⋆ ρ (suc α) = suc (ρ α)
 ren⋆ : ∀{m n} → Ren⋆ m n → ScopedTy m → ScopedTy n
 ren⋆ ρ (` α) = ` (ρ α)
 ren⋆ ρ (A ⇒ B) = ren⋆ ρ A ⇒ ren⋆ ρ B
-ren⋆ ρ (Π x K A) = Π x K (ren⋆ (lift⋆ ρ) A)
-ren⋆ ρ (ƛ x K A) = ƛ x K (ren⋆ (lift⋆ ρ) A)
+ren⋆ ρ (Π K A) = Π K (ren⋆ (lift⋆ ρ) A)
+ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
@@ -48,9 +48,9 @@ renL : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
   → List (ScopedTm w) → List (ScopedTm v)
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
-ren ρ⋆ ρ (Λ x K t) = Λ x K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
+ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
 ren ρ⋆ ρ (t ·⋆ A) = ren ρ⋆ ρ t ·⋆ ren⋆ ρ⋆ A
-ren ρ⋆ ρ (ƛ x A t)  = ƛ x (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
+ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
@@ -72,8 +72,8 @@ slift⋆ ρ (suc α) = ren⋆ suc (ρ α)
 sub⋆ : ∀{m n} → Sub⋆ m n → ScopedTy m → ScopedTy n
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
-sub⋆ σ (Π x K A) = Π x K (sub⋆ (slift⋆ σ) A)
-sub⋆ σ (ƛ x K A) = ƛ x K (sub⋆ (slift⋆ σ) A)
+sub⋆ σ (Π K A) = Π K (sub⋆ (slift⋆ σ) A)
+sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
@@ -98,9 +98,9 @@ subL : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
   → List (ScopedTm v) → List (ScopedTm w)
 
 sub σ⋆ σ (` x) = σ x
-sub σ⋆ σ (Λ x K t) = Λ x K (sub (slift⋆ σ⋆) (⋆slift σ) t)
+sub σ⋆ σ (Λ K t) = Λ K (sub (slift⋆ σ⋆) (⋆slift σ) t)
 sub σ⋆ σ (t ·⋆ A) = sub σ⋆ σ t ·⋆ sub⋆ σ⋆ A
-sub σ⋆ σ (ƛ x A t) = ƛ x (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
+sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
@@ -145,8 +145,8 @@ ren⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → ∀ x → ren⋆ ρ x ≡ ren⋆ ρ' x
 ren⋆-cong p (` x) = cong ` (p x)
 ren⋆-cong p (A ⇒ B) = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
-ren⋆-cong p (Π x K A) = cong (Π x K) (ren⋆-cong (lift⋆-cong p) A)
-ren⋆-cong p (ƛ x K A) = cong (ƛ x K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (Π K A) = cong (Π K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (ƛ K A) = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (A · B) = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
 ren⋆-cong p (con c) = refl
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
@@ -162,8 +162,8 @@ sub⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
   → ∀ x → sub⋆ σ x ≡ sub⋆ σ' x
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
-sub⋆-cong p (Π x K A)   = cong (Π x K) (sub⋆-cong (slift⋆-cong p) A)
-sub⋆-cong p (ƛ x K A)   = cong (ƛ x K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (Π K A)   = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (ƛ K A)   = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)

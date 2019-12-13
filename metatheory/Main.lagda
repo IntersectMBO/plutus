@@ -124,18 +124,18 @@ data EvalMode : Set where
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
 evalPLC m plc with parse plc
-evalPLC m plc | just t with deBruijnifyTm nil (convP t)
+evalPLC m plc | just t with scopeCheckTm {0}{Z} (convP t)
 evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  inj₁ (prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
+  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
 evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
   ("runtime error" Data.String.++
-  prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
+  prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  inj₁ (prettyPrintTm (deDeBruijnify [] nil (unsaturate t'')))
+  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
@@ -143,7 +143,7 @@ evalPLC TCK plc | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
 ... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
-  inj₁ (prettyPrintTm (deDeBruijnify [] nil (extricate t''')))
+  inj₁ (prettyPrintTm (extricateScope (extricate t''')))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
 
@@ -158,11 +158,11 @@ junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
 ... | nothing = inj₂ "parse error"
-... | just t with deBruijnifyTm nil (convP t)
+... | just t with scopeCheckTm {0}{Z} (convP t)
 ... | nothing = inj₂ "scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
-  inj₁ (prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A)))
+  inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
 ... | inj₂ typeError = inj₂ "typeError"
 ... | inj₂ kindEqError = inj₂ "kindEqError"
 ... | inj₂ notTypeError = inj₂ "notTypeError"
@@ -171,11 +171,11 @@ tcPLC plc with parse plc
 ... | inj₂ notPat = inj₂ "notPat"
 ... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
 ... | inj₂ (typeEqError n n') = inj₂ (
-  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n))
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
   Data.String.++
   "\n != \n"
   Data.String.++
-  prettyPrintTy (deDeBruijnify⋆ junk (extricateNf⋆ n')))
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
   
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"

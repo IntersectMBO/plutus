@@ -31,18 +31,18 @@ extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-extricateNf⋆ (Π {K = K} x A) = Π x K (extricateNf⋆ A)
+extricateNf⋆ (Π {K = K} x A) = Π K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
-extricateNf⋆ (ƛ {K = K} x A) = ƛ x K (extricateNf⋆ A)
+extricateNf⋆ (ƛ {K = K} x A) = ƛ K (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
 extricateNf⋆ (con c) = con c
 
 extricateNe⋆ (` α) = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
 -- ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-extricateNe⋆ (μ1 {K = K}) = ƛ "x"
+extricateNe⋆ (μ1 {K = K}) = ƛ 
   ((K ⇒ *) ⇒ K ⇒ *)
-  (ƛ "y" (K) (μ (` (suc zero)) (` zero)))
+  (ƛ (K) (μ (` (suc zero)) (` zero)))
 \end{code}
 
 
@@ -86,9 +86,9 @@ extricateTel σ [] x = []
 extricateTel σ (A ∷ As) (t P., ts) = extricate t ∷ extricateTel σ As ts
 
 extricate (` x) = ` (extricateVar x)
-extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ x (extricateNf⋆ A) (extricate t)
+extricate {Φ}{Γ} (ƛ {A = A} x t) = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
-extricate (Λ {K = K} x t) = Λ x K (extricate t)
+extricate (Λ {K = K} x t) = Λ K (extricate t)
 extricate {Φ}{Γ} (·⋆ t A _) = extricate t ScopedTm.·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
