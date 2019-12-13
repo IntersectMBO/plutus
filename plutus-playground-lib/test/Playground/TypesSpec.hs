@@ -1,24 +1,32 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Playground.TypesSpec where
+module Playground.TypesSpec
+    ( tests
+    ) where
 
 import           Data.Aeson       (encode, object, toJSON)
 import           Playground.Types (adaCurrency)
-import           Test.Hspec       (Spec, describe, it, shouldBe)
+import           Test.Tasty       (TestTree, testGroup)
+import           Test.Tasty.HUnit (assertEqual, testCase)
 
-spec :: Spec
-spec = knownCurrenciesSpec
+tests :: TestTree
+tests = knownCurrenciesSpec
 
-knownCurrenciesSpec :: Spec
+knownCurrenciesSpec :: TestTree
 knownCurrenciesSpec =
-    describe "mkKnownCurrencies" $
-    it "Should serialise Ada properly" $
-    encode adaCurrency `shouldBe`
-    -- note that the object is the same as
-    -- plutus-playground-client\test\known_currency.json
-    encode
-        (object
-             [ ("hash", "")
-             , ("friendlyName", "Ada")
-             , ("knownTokens", toJSON [object [("unTokenName", "")]])
-             ])
+    testGroup
+        "mkKnownCurrencies"
+        [ testCase "Serialisation" $ do
+              assertEqual
+                  "Should serialise Ada properly"
+                  (encode adaCurrency)
+                  -- note that the object is the same as
+                  -- plutus-playground-client\test\known_currency.json
+                  (encode
+                       (object
+                            [ ("hash", "")
+                            , ("friendlyName", "Ada")
+                            , ( "knownTokens"
+                              , toJSON [object [("unTokenName", "")]])
+                            ]))
+        ]
