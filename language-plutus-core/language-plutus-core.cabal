@@ -45,6 +45,7 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Error
         Language.PlutusCore.Rename.Internal
         Language.PlutusCore.Rename
         Language.PlutusCore.Normalize
@@ -78,6 +79,7 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
+        Language.PlutusCore.TypeCheck
         Language.PlutusCore.Untyped.CBOR
         Language.PlutusCore.Untyped.Constant
         Language.PlutusCore.Untyped.MkPlc
@@ -111,10 +113,8 @@ library
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Readable
-        Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
-        Language.PlutusCore.TypeCheck
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest

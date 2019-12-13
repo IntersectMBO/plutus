@@ -28,7 +28,7 @@ module Ledger.Scripts(
     applyScript,
     -- * Script wrappers
     mkValidatorScript,
-    ValidatorScript,
+    ValidatorScript(..),
     unValidatorScript,
     RedeemerScript(..),
     DataScript(..),

@@ -23,6 +23,7 @@ module Language.PlutusCore.Type
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
     , Gas (..)
+    , HasDefault (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -43,6 +44,22 @@ import           Language.Haskell.TH.Syntax     (Lift)
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
+-- kwxm: class for manufacturing default annotations.
+-- Needed for builtin evaluation during merklisation
+class HasDefault a where
+    defaultValue :: a
+
+instance HasDefault () where
+    defaultValue = ()
+
+instance HasDefault Int where
+    defaultValue = -1
+              
+instance HasDefault Integer where
+    defaultValue = -1
+
+
+    
 newtype Gas = Gas
     { unGas :: Natural
     }

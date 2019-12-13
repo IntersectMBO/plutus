@@ -125,7 +125,7 @@ type Context = [Frame]
 makeLenses ''CekEnv
 
 runCekM :: CekEnv -> CekM a -> Either CekMachineException a
-runCekM = flip runReaderT
+runCekM = undefined -- flip runReaderT
 
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM VarEnv

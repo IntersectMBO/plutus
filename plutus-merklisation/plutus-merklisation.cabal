@@ -150,7 +150,20 @@ executable type-sizes
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
                  Language.PlutusCore.Merkle.Convert
-    
+                 Language.PlutusCore.Merkle.Constant.Typed
+                 Language.PlutusCore.Merkle.Constant.Apply
+                 Language.PlutusCore.Merkle.Constant.Dynamic.Call
+                 Language.PlutusCore.Merkle.Constant.Dynamic.OnChain
+                 Language.PlutusCore.Merkle.Constant.Dynamic.OffChain
+                 Language.PlutusCore.Merkle.Constant.Dynamic.Emit
+                 Language.PlutusCore.Merkle.Constant.Dynamic.Instances
+                 Language.PlutusCore.Merkle.Constant.Dynamic.BuiltinName
+                 Language.PlutusCore.Merkle.Constant.Make
+                 Language.PlutusCore.Merkle.Constant.Name
+                 Language.PlutusCore.Merkle.Constant.Function
+                 Language.PlutusCore.Merkle.Constant.Dynamic
+
+
   hs-source-dirs:
       src
   ghc-options: -Wall -Wincomplete-uni-patterns

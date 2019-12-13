@@ -73,7 +73,7 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
 
     makeKnown = unOpaqueTerm
 
-    readKnown eval = fmap OpaqueTerm . makeRightReflectT . eval mempty
+    readKnown eval = (fmap OpaqueTerm) . makeRightReflectT . (eval mempty)
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin () TyInteger
