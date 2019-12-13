@@ -54328,8 +54328,6 @@ license = stdenv.lib.licenses.asl20;
 , deriving-compat
 , freer-simple
 , hedgehog
-, hspec
-, hspec-discover
 , insert-ordered-containers
 , iots-export
 , lens
@@ -54396,7 +54394,6 @@ aeson
 base
 containers
 hedgehog
-hspec
 iots-export
 playground-common
 plutus-emulator
@@ -54408,9 +54405,6 @@ tasty
 tasty-hunit
 template-haskell
 text
-];
-testToolDepends = [
-hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -54432,7 +54426,6 @@ license = stdenv.lib.licenses.asl20;
 , exceptions
 , file-embed
 , filepath
-, hspec
 , http-client
 , http-client-tls
 , http-conduit
@@ -54498,7 +54491,6 @@ cryptonite
 exceptions
 file-embed
 filepath
-hspec
 http-client
 http-client-tls
 http-conduit

@@ -1,1 +1,15 @@
-{-# OPTIONS_GHC -F -pgmF hspec-discover -fno-warn-missing-import-lists #-}
+module Main
+    ( main
+    ) where
+
+import qualified Playground.THSpec
+import qualified Playground.TypesSpec
+import qualified SchemaSpec
+import           Test.Tasty           (defaultMain, testGroup)
+
+main :: IO ()
+main =
+    defaultMain $
+    testGroup
+        "all tests"
+        [SchemaSpec.tests, Playground.THSpec.tests, Playground.TypesSpec.tests]
