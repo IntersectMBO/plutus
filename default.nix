@@ -378,6 +378,8 @@ let
       inherit pkgs haskellPackages;
     };
 
+    z3em = pkgs.callPackage ./nix/z3em.nix { inherit sources; };
+
     dev = rec {
       packages = localLib.getPackages {
         inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];

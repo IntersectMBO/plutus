@@ -9,4 +9,7 @@ import 'ace-builds/src-min-noconflict/keybinding-vim.js';
 import 'ace-builds/src-min-noconflict/theme-monokai.js';
 import 'node-blockly/browser';
 
+import 'z3w.js';
+import 'z3w.wasm';
+
 import './src/Main.purs';

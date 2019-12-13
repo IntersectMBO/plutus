@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(..))
@@ -23,6 +24,7 @@ import Web.HTML.Location as WL
 import Web.HTML.Window as WW
 import Web.Socket.WebSocket as WS
 import Websockets (wsConsumer, wsProducer, wsSender)
+import Z3.Monad (runZ3)
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -39,6 +41,7 @@ main ::
   Effect Unit
 main = do
   -- TODO: need to get the proper url, same as the client
+  _ <- runZ3 $ pure 1
   window <- W.window
   location <- WW.location window
   protocol <- WL.protocol location

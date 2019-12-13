@@ -77,5 +77,16 @@
         "type": "file",
         "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
+    },
+    "z3": {
+        "branch": "master",
+        "description": "The Z3 Theorem Prover",
+        "homepage": "",
+        "owner": "Z3Prover",
+        "repo": "z3",
+        "rev": "a069b6566903968e5482057d6ac5d2a36d5fbf55",
+        "sha256": "1pvmn5mnylzgxh56ph6km15p7sblhp660k2q2bsf3jrzc8h7zcgp",
+        "type": "tarball",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

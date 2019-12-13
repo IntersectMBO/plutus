@@ -10,14 +10,14 @@ const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-
 const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
-      isWebpackDevServer || !isWatch ? [] : [
-          function(){
-              this.plugin('done', function(stats){
-                  process.stderr.write(stats.toString('errors-only'));
-              });
-          }
-      ]
-;
+    isWebpackDevServer || !isWatch ? [] : [
+        function () {
+            this.plugin('done', function (stats) {
+                process.stderr.write(stats.toString('errors-only'));
+            });
+        }
+    ]
+    ;
 
 module.exports = {
     devtool: 'eval-source-map',
@@ -40,6 +40,10 @@ module.exports = {
         path: path.join(__dirname, 'dist'),
         pathinfo: true,
         filename: 'app.[hash].js'
+    },
+
+    node: {
+        fs: "empty"
     },
 
     module: {
@@ -79,15 +83,24 @@ module.exports = {
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
                 use: 'url-loader'
+            },
+            {
+                test: /z3w\.js$/,
+                loader: "exports-loader"
+            },
+            {
+                test: /z3w\.wasm$/,
+                type: "javascript/auto",
+                loader: "file-loader"
             }
         ]
     },
 
     resolve: {
         modules: [
-            'node_modules'
+            'node_modules', '.'
         ],
-        extensions: [ '.purs', '.js']
+        extensions: ['.purs', '.js']
     },
 
     plugins: [
