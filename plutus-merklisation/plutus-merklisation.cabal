@@ -150,6 +150,7 @@ executable type-sizes
                  Language.PlutusCore.Merkle.Pretty.Readable
                  Language.PlutusCore.Merkle.Untyped.Term
                  Language.PlutusCore.Merkle.Convert
+                 Language.PlutusCore.Merkle.Constant
                  Language.PlutusCore.Merkle.Constant.Typed
                  Language.PlutusCore.Merkle.Constant.Apply
                  Language.PlutusCore.Merkle.Constant.Dynamic.Call

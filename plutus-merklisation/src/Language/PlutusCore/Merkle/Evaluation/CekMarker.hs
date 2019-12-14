@@ -11,6 +11,10 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
+-- *** This version works on the standard AST annotated with Integer
+-- IDs.  It collects a set full of the IDs of those nodes which are
+-- actually used during evaluation, for later use in Merklisation.
+
 {-# LANGUAGE TemplateHaskell #-}
 
 module Language.PlutusCore.Merkle.Evaluation.CekMarker
@@ -24,8 +28,8 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
     , unsafeRunCek
     ) where
 
-import           Language.PlutusCore                                    hiding (EvaluationResultDef)
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore                                    hiding (ConstAppResultDef, EvaluationResultDef)
+import           Language.PlutusCore.Merkle.Constant
 import           Language.PlutusCore.Merkle.Convert
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
 import           Language.PlutusCore.Name
@@ -127,6 +131,16 @@ makeLenses ''CekEnv
 runCekM :: CekEnv -> CekM a -> Either CekMachineException a
 runCekM = undefined -- flip runReaderT
 
+-- Dynamic stuff now works with Integer annotations for standard PLC
+-- ASTs We need to annotate a standard AST with unique IDs, evaluate
+-- it here, collecting the IDs of the nodes which are used, then use
+-- those to convert the original AST into the pruned AST type with the
+-- unused nodes Merklised away.
+
+-- We should now be able to get runCekM to work with the
+-- integer-annotated ASTs, with the addition of a State monad to the
+-- CEK monad.
+
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM VarEnv
 getVarEnv = asks _cekEnvVarEnv
@@ -145,7 +159,7 @@ lookupVarName :: Name Integer -> CekM Closure
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
-        Nothing   -> throwError $ MachineException OpenTermEvaluatedMachineError (Var () (unann varName))
+        Nothing   -> throwError $ MachineException OpenTermEvaluatedMachineError (Var (-1) varName)
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -155,7 +169,7 @@ lookupDynamicBuiltinName dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwError $ MachineException err term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-            term = Builtin () $ DynBuiltinName () dynName
+            term = Builtin (-1) $ DynBuiltinName (-1) dynName
         Just mean -> pure mean
 
 -- We need a set of node ids in the state, and whenever
@@ -217,7 +231,7 @@ returnCek con0 usedNodes val =
       FrameUnwrap : con ->
           case val of
             IWrap _ _ _ term -> returnCek con usedNodes term
-            term             -> throwError $ MachineException NonWrapUnwrappedMachineError (unann term)
+            term             -> throwError $ MachineException NonWrapUnwrappedMachineError term
 
 -- TODO: Check that we never need to update the used nodes aboves
 
@@ -230,7 +244,7 @@ instantiateEvaluate con usedNodes  _  (TyAbs _ _ _ body)= computeCek con usedNod
 instantiateEvaluate con usedNodes ty fun
     | isJust $ termAsPrimIterApp fun = returnCek con usedNodes (TyInst fakeID fun ty)
     | otherwise                      =
-        throwError $ MachineException NonPrimitiveInstantiationMachineError (unann fun)
+        throwError $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -246,15 +260,15 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
     let term = Apply 0 fun arg in  -- 0????
         case termAsPrimIterApp term of
             Nothing                       ->
-                throwError $ MachineException NonPrimitiveApplicationMachineError (unann term)
+                throwError $ MachineException NonPrimitiveApplicationMachineError term
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    ConstAppSuccess res -> computeCek con usedNodes (fakeIDs res)
+                    ConstAppSuccess res -> computeCek con usedNodes res
                     ConstAppFailure     -> pure EvaluationFailure
                     ConstAppStuck       -> returnCek con usedNodes term
                     ConstAppError   err ->
-                        throwError $ MachineException (ConstAppMachineError err) (unann term)
+                        throwError $ MachineException (ConstAppMachineError err) term
 
 
 evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
@@ -274,9 +288,9 @@ evaluateInCekM a = undefined
 applyStagedBuiltinName :: StagedBuiltinName -> [Numbered Value] -> CekM ConstAppResultDef
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
-    evaluateInCekM $ applyTypeSchemed sch x (map unann args)
+    evaluateInCekM $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
-    evaluateInCekM $ applyBuiltinName name (map unann args)
+    evaluateInCekM $ applyBuiltinName name args
                    -- FIXME: Do we have to mark the args as being
                    -- used? If so, we have to do it deeply because we
                    -- can't know what the builtin will do with them.
