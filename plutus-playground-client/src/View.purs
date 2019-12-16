@@ -4,10 +4,10 @@ import Types
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, col5_, col7_, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
-import Data.Tuple.Nested ((/\))
+import Bootstrap as Bootstrap
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array (cons) as Array
+import Data.Array (cons, find) as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_Right, view)
@@ -175,16 +175,30 @@ mainHeader =
       [ text name ]
 
 mainTabBar :: forall p. View -> HTML p HAction
-mainTabBar activeView = navTabs_ (mkTab <$> tabs)
+mainTabBar activeView =
+  div_
+    [ navTabs_ (mkTab <$> tabs)
+    , div [ class_ $ ClassName "tab-help" ]
+        [ helpText ]
+    ]
   where
   tabs =
-    [ Editor /\ "Editor"
-    , Simulations /\ "Simulation"
-    , Transactions /\ "Transactions"
+    [ { link: Editor
+      , title: "Editor"
+      , help: "Edit and compile your contract."
+      }
+    , { link: Simulations
+      , title: "Simulation"
+      , help: "Set up simulations to test your contract's behavior."
+      }
+    , { link: Transactions
+      , title: "Transactions"
+      , help: "See how your contract behaves on a simulated blockchain."
+      }
     ]
 
-  mkTab :: Tuple View String -> HTML p HAction
-  mkTab (link /\ title) =
+  mkTab :: forall r. { link :: View, title :: String | r } -> HTML p HAction
+  mkTab { link, title } =
     navItem_
       [ a
           [ id_ $ "tab-" <> String.toLower (show link)
@@ -199,3 +213,7 @@ mainTabBar activeView = navTabs_ (mkTab <$> tabs)
         [ active ]
       else
         []
+
+  helpText = case Array.find (\({ link }) -> link == activeView) tabs of
+    Nothing -> Bootstrap.empty
+    Just { help } -> text help
