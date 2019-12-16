@@ -1,6 +1,10 @@
 @import '../../web-common/static/main.scss';
 @import 'chain.scss';
 
+.tab-help {
+    font-style: italic;
+}
+
 table.balance-map {
     overflow: hidden;
     border: 2px solid $gray-700;
