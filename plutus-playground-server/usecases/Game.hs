@@ -36,8 +36,14 @@ import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Language.Plutus.Contract.Tx
+import qualified Language.PlutusTx           as PlutusTx
+import           Language.PlutusTx.Prelude   hiding (pure, (<$>))
+import           Ledger                      (Address, DataScript (DataScript), PendingTx,
+                                              RedeemerScript (RedeemerScript), ValidatorScript, Value,
+                                              mkValidatorScript, scriptAddress)
+import           Ledger.Typed.Scripts        (wrapValidator)
 import           Playground.Contract
-import           Prelude                    (Eq, Ord, Show)
+import qualified Prelude
 
 ------------------------------------------------------------
 
@@ -82,16 +88,16 @@ gameAddress = Ledger.scriptAddress gameValidator
 -- | Parameters for the "lock" endpoint
 data LockParams = LockParams
     { secretWord :: String
-    , amount     :: Ada
+    , amount     :: Value
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
@@ -108,9 +114,8 @@ lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
-        vl         = Ada.toValue amt
-        dataValue = gameDataScript secret
-        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataValue
+        dataScript = gameDataScript secret
+        tx         = payToScript amt (Ledger.scriptAddress gameValidator) dataValue
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()

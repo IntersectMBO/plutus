@@ -51,12 +51,12 @@ import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx as PlutusTx
 import Language.PlutusTx.Prelude
 import Ledger
-    ( Ada
-    , Address
+    ( Address
     , DataValue
     , PendingTx
     , RedeemerValue
     , Validator
+    , Value
     )
 import Ledger.Typed.Scripts (wrapValidator)
 import Schema (ToSchema, ToArgument)
@@ -108,17 +108,17 @@ gameAddress = Ledger.scriptAddress gameValidator
 -- | Parameters for the "lock" endpoint
 data LockParams = LockParams
     { secretWord :: String
-    , amount     :: Ada
+    , amount     :: Value
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 guess :: AsContractError e => Contract GameSchema e ()
 guess = do
@@ -132,9 +132,8 @@ lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
-        vl         = Ada.toValue amt
         dataValue = gameDataScript secret
-        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataValue
+        tx         = payToScript amt (Ledger.scriptAddress gameValidator) dataValue
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()
@@ -145,7 +144,7 @@ lockTrace
     => ContractTrace GameSchema e m () ()
 lockTrace =
     let w1 = Trace.Wallet 1 in
-    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10)
+    Trace.callEndpoint @"lock" w1 (LockParams "secret" (Ada.lovelaceValueOf 10))
         >> Trace.handleBlockchainEvents w1
 
 guessTrace
