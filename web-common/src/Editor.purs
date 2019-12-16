@@ -1,6 +1,7 @@
 module Editor
   ( EditorAction(..)
   , editorPane
+  , compileButton
   , withEditor
   ) where
 
@@ -89,31 +90,12 @@ editorPane initialContents slotLabel bufferLocalStorageKey state =
             (Just <<< HandleEditorMessage)
         ]
     , br_
-    , div_
-        [ button
-            [ id_ "compile"
-            , classes [ btn, btnClass ]
-            , onClick $ const $ Just $ CompileProgram
-            , disabled (isLoading state)
-            ]
-            [ btnText ]
-        ]
+    , compileButton state
     , br_
     , errorList
     , warningList
     ]
   where
-  btnClass = case state of
-    Success (Right _) -> btnSuccess
-    Success (Left _) -> btnDanger
-    Failure _ -> btnDanger
-    Loading -> btnSecondary
-    NotAsked -> btnPrimary
-
-  btnText = case state of
-    Loading -> icon Spinner
-    _ -> text "Compile"
-
   errorList = case state of
     Success (Left error) -> listGroup_ (interpreterErrorPane error)
     Failure error -> ajaxErrorPane error
@@ -129,6 +111,27 @@ editorPane initialContents slotLabel bufferLocalStorageKey state =
               <<< to compilationWarningsPane
           )
           state
+
+compileButton :: forall p a. CompilationState a -> HTML p EditorAction
+compileButton state =
+  button
+    [ id_ "compile"
+    , classes [ btn, btnClass ]
+    , onClick $ const $ Just $ CompileProgram
+    , disabled (isLoading state)
+    ]
+    [ btnText ]
+  where
+  btnClass = case state of
+    Success (Right _) -> btnSuccess
+    Success (Left _) -> btnDanger
+    Failure _ -> btnDanger
+    Loading -> btnSecondary
+    NotAsked -> btnPrimary
+
+  btnText = case state of
+    Loading -> icon Spinner
+    _ -> text "Compile"
 
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p EditorAction)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]

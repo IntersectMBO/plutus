@@ -1,10 +1,10 @@
 module View (render) where
 
 import Types
-import StaticData (_contractDemoEditorContents)
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, col5_, col7_, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
+import Data.Tuple.Nested ((/\))
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Array (cons) as Array
@@ -16,11 +16,11 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
-import Data.Tuple.Nested ((/\))
 import Editor (EditorAction(..), editorPane)
+import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, br_, button, div, div_, h1, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_)
@@ -29,6 +29,7 @@ import Language.Haskell.Interpreter (_SourceCode)
 import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
 import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
+import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
 render ::
@@ -50,12 +51,20 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos }
                 ]
             ]
         , viewContainer currentView Editor
-            [ EditorAction <$> contractDemosPane contractDemos
-            , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey (unwrap <$> view _compilationResult state)
-            , case view _compilationResult state of
-                Failure error -> ajaxErrorPane error
-                _ -> empty
-            ]
+            let
+              compilationResult = unwrap <$> view _compilationResult state
+            in
+              [ EditorAction
+                  <$> row_
+                      [ col7_ [ Editor.compileButton compilationResult ]
+                      , col5_ [ contractDemosPane contractDemos ]
+                      ]
+              , br_
+              , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey compilationResult
+              , case compilationResult of
+                  Failure error -> ajaxErrorPane error
+                  _ -> empty
+              ]
         , viewContainer currentView Simulations
             $ let
                 knownCurrencies = evalState getKnownCurrencies state
