@@ -1,27 +1,32 @@
 /*eslint-env node*/
 'use strict';
 
-// FIXME: this needs to come from webpack, it would also be nice if it could be used in the repl
-exports.createInstance = function () {
-    const Module = require('z3w.js');
-    const WasmModule = require('z3w.wasm');
-    const z3 = Module({
-        locateFile: function (path) {
-            // we can add a condition for when this is run in node that should mean it works in the repl
-            if (path.endsWith('.wasm')) {
-                console.log("https://localhost:8009/" + WasmModule);
-                return (WasmModule);
-            }
-            return path;
+/**
+ * TODO: I'm sorry but we need to use a global here to force the WASM to load exactly once
+ * This will be in a web worker soon anyway
+ */
+const Module = require('z3w.js');
+const WasmModule = require('z3w.wasm');
+var Z3 = Module({
+    locateFile: function (path) {
+        // we can add a condition for when this is run in node that should mean it works in the repl
+        if (path.endsWith('.wasm')) {
+            console.log("https://localhost:8009/" + WasmModule);
+            return WasmModule;
         }
-    });
-    z3.onRuntimeInitialized = () => {
-        // FIXME: need to somehow wait for this to happen before doing anything else
-        // really though this should be in a web worker I think
-        // P.S. needs -s BINARYEN_ASYNC_COMPILATION=1 to work
-        // If you try sync compilation it fails to load at all
-    };
-    return z3;
+        return path;
+    }
+});
+Z3.onRuntimeInitialized = () => {
+    // FIXME: need to somehow wait for this to happen before doing anything else
+    // really though this should be in a web worker I think
+    // P.S. needs -s BINARYEN_ASYNC_COMPILATION=1 to work
+    // If you try sync compilation it fails to load at all
+    console.log("WASM loaded");
+};
+
+exports.createInstance = function () {
+    return Z3;
 }
 
 exports.mk_config = function (z3) {
@@ -85,23 +90,23 @@ exports.mk_not = function (z3, ctx, ast) {
 }
 
 exports.mk_and = function (z3, ctx, x, y) {
-    return z3.ccall('Z3_mk_and', 'number', ['number', 'number', 'number'], [ctx, 2, [x, y]]);
+    return z3.ccall('Z3_mk_and', 'number', ['number', 'number', 'array'], [ctx, 2, [x, y]]);
 }
 
 exports.mk_add = function (z3, ctx, x, y) {
-    return z3.ccall('Z3_mk_add', 'number', ['number', 'number', 'number'], [ctx, 2, [x, y]]);
+    return z3.ccall('Z3_mk_add', 'number', ['number', 'number', 'array'], [ctx, 2, [x, y]]);
 }
 
 exports.mk_mul = function (z3, ctx, x, y) {
-    return z3.ccall('Z3_mk_mul', 'number', ['number', 'number', 'number'], [ctx, 2, [x, y]]);
+    return z3.ccall('Z3_mk_mul', 'number', ['number', 'number', 'array'], [ctx, 2, [x, y]]);
 }
 
 exports.mk_sub = function (z3, ctx, x, y) {
-    return z3.ccall('Z3_mk_sub', 'number', ['number', 'number', 'number'], [ctx, 2, [x, y]]);
+    return z3.ccall('Z3_mk_sub', 'number', ['number', 'number', 'array'], [ctx, 2, [x, y]]);
 }
 
 exports.mk_or = function (z3, ctx, x, y) {
-    return z3.ccall('Z3_mk_or', 'number', ['number', 'number', 'number'], [ctx, 2, [x, y]]);
+    return z3.ccall('Z3_mk_or', 'number', ['number', 'number', 'array'], [ctx, 2, [x, y]]);
 }
 
 exports.mk_eq = function (z3, ctx, x, y) {
@@ -182,4 +187,8 @@ exports.solver_inc_ref = function (z3, ctx, solver) {
 
 exports.solver_dec_ref = function (z3, ctx, solver) {
     return z3.ccall('Z3_solver_dec_ref', null, ['number', 'number'], [ctx, solver]);
+}
+
+exports.eval_smtlib2_string = function (z3, ctx, str) {
+    return z3.ccall('Z3_eval_smtlib2_string', 'string', ['number', 'string'], [ctx, str]);
 }

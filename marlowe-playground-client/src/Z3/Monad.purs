@@ -28,6 +28,7 @@
 module Z3.Monad where
 
 import Prelude
+
 import Data.Function.Uncurried (runFn1, runFn2, runFn3, runFn4)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
@@ -99,11 +100,78 @@ mkIntVar name =
     in
       { decl, ast }
 
+mkInt :: Int -> Z3 { ast :: Z3Ast }
+mkInt value =
+  Z3 \state ->
+    let
+      sort = runFn2 Z3.mk_int_sort state.z3 state.ctx
+
+      ast = runFn4 Z3.mk_int state.z3 state.ctx value sort
+    in
+      { ast }
+
+mkStringVar :: String -> Z3 { decl :: Z3FuncDecl, ast :: Z3Ast }
+mkStringVar name =
+  Z3 \state ->
+    let
+      sym = runFn3 Z3.mk_string_symbol state.z3 state.ctx name
+
+      sort = runFn2 Z3.mk_string_sort state.z3 state.ctx
+
+      decl = runFn4 Z3.mk_func_decl state.z3 state.ctx sym sort
+
+      ast = runFn3 Z3.mk_app state.z3 state.ctx decl
+    in
+      { decl, ast }
+
+mkString :: String -> Z3 { ast :: Z3Ast }
+mkString value =
+  Z3 \state ->
+    let
+      sort = runFn2 Z3.mk_string_sort state.z3 state.ctx
+
+      ast = runFn4 Z3.mk_string state.z3 state.ctx value sort
+    in
+      { ast }
+
 not :: Z3Ast -> Z3 Z3Ast
 not ast = Z3 \state -> runFn3 Z3.mk_not state.z3 state.ctx ast
 
 eq :: Z3Ast -> Z3Ast -> Z3 Z3Ast
 eq x y = Z3 \state -> runFn4 Z3.mk_eq state.z3 state.ctx x y
+
+and :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+and x y = Z3 \state -> runFn4 Z3.mk_and state.z3 state.ctx x y
+
+or :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+or x y = Z3 \state -> runFn4 Z3.mk_or state.z3 state.ctx x y
+
+add :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+add x y = Z3 \state -> runFn4 Z3.mk_add state.z3 state.ctx x y
+
+mul :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+mul x y = Z3 \state -> runFn4 Z3.mk_mul state.z3 state.ctx x y
+
+sub :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+sub x y = Z3 \state -> runFn4 Z3.mk_sub state.z3 state.ctx x y
+
+lt :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+lt x y = Z3 \state -> runFn4 Z3.mk_lt state.z3 state.ctx x y
+
+le :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+le x y = Z3 \state -> runFn4 Z3.mk_le state.z3 state.ctx x y
+
+gt :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+gt x y = Z3 \state -> runFn4 Z3.mk_gt state.z3 state.ctx x y
+
+ge :: Z3Ast -> Z3Ast -> Z3 Z3Ast
+ge x y = Z3 \state -> runFn4 Z3.mk_ge state.z3 state.ctx x y
+
+tr :: Z3 Z3Ast
+tr = Z3 \state -> runFn2 Z3.mk_true state.z3 state.ctx
+
+fl :: Z3 Z3Ast
+fl = Z3 \state -> runFn2 Z3.mk_false state.z3 state.ctx
 
 assert :: Z3Ast -> Z3 Unit
 assert x = Z3 \state -> runFn4 Z3.solver_assert state.z3 state.ctx state.solver x
@@ -129,3 +197,9 @@ getAstFromModel model decl = Z3 \state -> runFn4 Z3.model_get_const_interp state
 
 astToString :: Z3Ast -> Z3 String
 astToString ast = Z3 \state -> runFn3 Z3.ast_to_string state.z3 state.ctx ast
+
+modelToString :: Z3Model -> Z3 String
+modelToString model = Z3 \state -> runFn3 Z3.model_to_string state.z3 state.ctx model
+
+evalString :: String -> Z3 String
+evalString str = Z3 \state -> runFn3 Z3.eval_smtlib2_string state.z3 state.ctx str

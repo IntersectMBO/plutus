@@ -1,6 +1,7 @@
 module MonadApp where
 
 import Prelude
+
 import API (RunResult)
 import Ace (Annotation, Editor)
 import Ace as Ace
@@ -11,6 +12,7 @@ import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
 import Data.Array (fold, fromFoldable)
+import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -23,31 +25,35 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Symbolic (checkSat, equationModel, getEquations, getModel, solveEquation)
 import Data.Tuple (Tuple(..), fst)
+import Debug.Trace (trace)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
-import Foreign.Class (encode)
 import Gist (Gist, GistId, NewGist)
-import Global.Unsafe (unsafeStringify)
-import Halogen (HalogenM, liftAff, liftEffect, query, raise)
+import Halogen (HalogenM, liftAff, liftEffect, query)
 import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
+import Marlowe.Holes as Holes
 import Marlowe.Parser (parseTerm, contract)
+import Marlowe.Parser as Parser
 import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Symbolic (getTransactionOutput)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
-import WebSocket (WebSocketRequestMessage(CheckForWarnings))
+import Z3.Monad (evalString, mkInt, mkIntVar, modelToString, runZ3)
+import Z3.Monad as Z3
 
 class
   Monad m <= MonadApp m where
@@ -153,10 +159,27 @@ instance monadAppHalogenApp ::
   postContractHaskell source = runAjax $ Server.postContractHaskell source
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
-  checkContractForWarnings contract = do
+  checkContractForWarnings contractString = do
     let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings contract
-    wrap $ raise (WebsocketMessage msgString)
+      contract = case runParser contractString Parser.contract of
+        Left _ -> Close
+        Right c -> fromMaybe Close $ Holes.fromTerm c
+      tree = getTransactionOutput contract
+      equations = getEquations tree
+    case Array.uncons equations of
+        Just { head, tail } -> do
+          let solver = solveEquation head
+          res <- wrap $ liftEffect $ runZ3 do
+            s <- solver
+            _ <- evalString $ show checkSat
+            equationModel head
+          trace res \_ -> pure unit
+          pure unit
+        Nothing -> pure unit
+    pure unit
+    -- let
+      -- msgString = unsafeStringify <<< encode $ CheckForWarnings contract
+    -- wrap $ raise (WebsocketMessage msgString)
 
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
 -- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run

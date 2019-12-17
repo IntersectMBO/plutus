@@ -2,6 +2,7 @@
 module Z3.Internal where
 
 import Prelude
+
 import Data.Function.Uncurried (Fn1, Fn2, Fn3, Fn4)
 import Effect (Effect)
 
@@ -138,3 +139,5 @@ foreign import solver_pop :: Fn3 Z3Instance Z3Context Z3Solver Unit
 foreign import solver_inc_ref :: Fn3 Z3Instance Z3Context Z3Solver Unit
 
 foreign import solver_dec_ref :: Fn3 Z3Instance Z3Context Z3Solver Unit
+
+foreign import eval_smtlib2_string :: Fn3 Z3Instance Z3Context String String

@@ -1,6 +1,7 @@
 module Marlowe.Symbolic where
 
 import Prelude
+
 import Data.Array (foldM, foldl, mapMaybe, reverse, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
@@ -16,7 +17,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
-import Data.Symbolic (Constraint(..), IntConstraint(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
+import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
 import Data.Tuple (Tuple(..), snd)
 import Examples.Marlowe.Contracts as ME
 import Marlowe.Holes as Holes
@@ -35,9 +36,9 @@ overM l f s = do
 class ToSymbolic a b where
   toSym :: a -> b
 
-instance toSymbolicBoolean :: ToSymbolic Boolean Constraint where
-  toSym true = STrue
-  toSym false = SNot STrue
+instance toSymbolicBoolean :: ToSymbolic Boolean BooleanConstraint where
+  toSym true = True
+  toSym false = Not True
 
 instance toSymbolicString :: ToSymbolic String StringConstraint where
   toSym = StringConst
@@ -45,11 +46,11 @@ instance toSymbolicString :: ToSymbolic String StringConstraint where
 instance toSymbolicInt :: ToSymbolic BigInteger IntConstraint where
   toSym = IntConst
 
-validInterval :: SSlotInterval -> Constraint
-validInterval (SlotInterval (Slot from) (Slot to)) = SInt $ from .<= to
+validInterval :: SSlotInterval -> BooleanConstraint
+validInterval (SlotInterval (Slot from) (Slot to)) = from .<= to
 
-above :: SSlot -> SSlotInterval -> Constraint
-above (Slot v) (SlotInterval _ (Slot to)) = SInt $ v .>= to
+above :: SSlot -> SSlotInterval -> BooleanConstraint
+above (Slot v) (SlotInterval _ (Slot to)) = v .>= to
 
 fixInterval :: SSlotInterval -> SState -> Tree SIntervalResult
 fixInterval interval@(SlotInterval from to) state =
@@ -70,13 +71,13 @@ fixInterval interval@(SlotInterval from to) state =
     )
     (pure (IntervalError $ InvalidInterval interval))
 
-inBounds :: IntConstraint -> Array Bound -> Constraint
+inBounds :: IntConstraint -> Array Bound -> BooleanConstraint
 inBounds num bounds = do
-  foldl SOr STrue $ inBound <$> bounds
+  foldl Or True $ inBound <$> bounds
   where
-  inBound :: Bound -> Constraint
+  inBound :: Bound -> BooleanConstraint
   inBound (Bound l u) = do
-    SInt (num .>= (toSym l)) `SAnd` SInt (num .<= (toSym u))
+    (num .>= (toSym l)) `And` (num .<= (toSym u))
 
 newtype SState
   = State
@@ -305,23 +306,23 @@ evalObservation env state obs =
       ValueGE lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
-        is <<< SInt $ l .>= r
+        is $ l .>= r
       ValueGT lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
-        is <<< SInt $ l .> r
+        is $ l .> r
       ValueLT lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
-        is <<< SInt $ l .< r
+        is $ l .< r
       ValueLE lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
-        is <<< SInt $ l .<= r
+        is $ l .<= r
       ValueEQ lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
-        is <<< SInt $ l `IntEQ` r
+        is $ l `IntEQ` r
       TrueObs -> pure true
       FalseObs -> pure false
 
@@ -338,7 +339,7 @@ refundOne accounts = case Array.uncons (Map.toUnfoldable accounts) of
 
       rest = Map.fromFoldable tail
     in
-      ite (SInt ((unwrap value) .> zero))
+      ite ((unwrap value) .> zero)
         (pure (pure (Tuple (Tuple (accountOwner key) value) rest)))
         (refundOne rest)
 
@@ -373,7 +374,7 @@ addMoneyToAccount accId money accounts =
 
     newBalance = balance + money
   in
-    ite (SInt (unwrap money .<= zero))
+    ite (unwrap money .<= zero)
       (pure accounts)
       (pure (Map.insert accId newBalance accounts))
 
@@ -426,7 +427,7 @@ reduceContractStep env state contract = case contract of
       Nothing -> pure NotReduced
   Pay accId payee val nextContract -> do
     moneyToPay <- Lovelace <$> evalValue env state val
-    ite (SInt (unwrap moneyToPay .<= zero))
+    ite (unwrap moneyToPay .<= zero)
       (pure $ Reduced (ReduceNonPositivePay accId (toSym payee) moneyToPay) ReduceNoPayment state nextContract)
       ( do
           let
@@ -437,7 +438,7 @@ reduceContractStep env state contract = case contract of
 
             newAccounts = Map.insert (toSym accId) newBalance (unwrap state).accounts
           warning <-
-            ite (SInt ((unwrap paidMoney) .< (unwrap moneyToPay)))
+            ite ((unwrap paidMoney) .< (unwrap moneyToPay))
               (pure $ ReducePartialPay accId payee paidMoney moneyToPay)
               (pure ReduceNoWarning)
           (Tuple payment finalAccounts) <- giveMoney (toSym payee) paidMoney newAccounts
@@ -456,9 +457,9 @@ reduceContractStep env state contract = case contract of
 
       endSlot = view (_slotInterval <<< to ivTo) env
     in
-      ite (SInt (unwrap endSlot .< IntConst (unwrap timeout)))
+      ite (unwrap endSlot .< IntConst (unwrap timeout))
         (pure NotReduced)
-        ( ite (SInt (IntConst (unwrap timeout) .<= unwrap startSlot))
+        ( ite ((IntConst (unwrap timeout) .<= unwrap startSlot))
             (pure $ Reduced ReduceNoWarning ReduceNoPayment state nextContract)
             (pure AmbiguousSlotIntervalReductionError)
         )
@@ -530,16 +531,16 @@ applyCases env state input cases = case input of
     Just { head: (Case (Deposit accId2 party2 val) cont), tail } -> do
       amount <- evalValue env state val
       warning <-
-        ite (SInt (amount .> zero))
+        ite (amount .> zero)
           (pure ApplyNoWarning)
           (pure (ApplyNonPositiveDeposit party1 (toSym accId2) (Lovelace amount)))
       newState <- overM _accounts (addMoneyToAccount accId1 money) state
       ite
         ( toSym (accId1 == (toSym accId2))
-            `SAnd`
+            `And`
               toSym (party1 == (toSym party2))
-            `SAnd`
-              SInt (unwrap money `IntEQ` amount)
+            `And`
+              (unwrap money `IntEQ` amount)
         )
         (pure $ Applied warning newState cont)
         (applyCases env state input tail)
@@ -553,7 +554,7 @@ applyCases env state input cases = case input of
         isValidChoice = inBounds choice bounds
 
         isEqualChoice = toSym $ choId1 == toSym choId2
-      ite (isEqualChoice `SAnd` isValidChoice)
+      ite (isEqualChoice `And` isValidChoice)
         (pure $ Applied ApplyNoWarning newState cont)
         (applyCases env state input tail)
     Just { tail } -> applyCases env state input tail
@@ -716,13 +717,13 @@ computeTransactions tout@(TransactionOutput { txOutWarnings, txOutPayments, txOu
 mkInput :: String -> Tree SInput
 mkInput suffix = do
   let
-    var = Var $ "input" <> suffix
+    var = Var ("input" <> suffix) IntSort
 
-    mkEq = SEq (SInt (IntVar var))
+    mkEq = IntEQ (IntVar var)
 
-    caseDeposit = SInt (IntConst (fromInt 0))
+    caseDeposit = IntConst (fromInt 0)
 
-    caseChoice = SInt (IntConst (fromInt 1))
+    caseChoice = IntConst (fromInt 1)
   ite (mkEq caseDeposit)
     ( pure
         $ IDeposit
@@ -753,9 +754,9 @@ instance showTxI :: Show TxI where
 mkTxs :: Int -> Tree (Array TxI)
 mkTxs depth = do
   let
-    mkEq i = SEq (SInt (IntVar (Var $ "tx-input" <> show i)))
+    mkEq i = IntEQ (IntVar (Var ("tx-input" <> show i) IntSort))
 
-    caseInput = SInt $ IntConst $ fromInt 0
+    caseInput = IntConst $ fromInt 0
 
     go acc inputs idx
       | idx == depth + 1 = pure acc
@@ -796,7 +797,7 @@ getTransactionOutput contract = do
         { accounts: mempty
         , choices: mempty
         , boundValues: mempty
-        , minSlot: Slot $ IntVar $ Var "minSlot"
+        , minSlot: Slot $ IntVar $ Var "minSlot" IntSort
         }
 
     depth = maxDepth contract
