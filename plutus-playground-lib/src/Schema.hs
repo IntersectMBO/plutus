@@ -55,8 +55,8 @@ import           Data.Monoid                ((<>))
 import           Data.Proxy                 (Proxy)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
-import           GHC.Generics               ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Generic, K1 (K1), M1 (M1), Rec0,
-                                             Rep, S1, Selector, U1, conIsRecord, conName, from, selName)
+import           GHC.Generics               ((:*:) ((:*:)), (:+:) (L1, R1), C1, Constructor, D1, Generic, K1 (K1),
+                                             M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord, conName, from, selName)
 import qualified Language.PlutusTx.AssocMap
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (Ada, CurrencySymbol, DataScriptHash, Interval, PubKey, RedeemerHash,
@@ -279,6 +279,21 @@ instance (GenericToPairs f, Constructor c) => GenericToArgument (C1 c f) where
             then Fix $ FormObjectF $ genericToPairs selectors
             else Fix $ FormUnsupportedF "Unsupported, non-record constructor."
 
+instance (GenericToConstructorName c1, GenericToConstructorName c2) =>
+         GenericToArgument (c1 :+: c2) where
+    genericToArgument (L1 _) = Fix $ FormRadioF names (safeHead name)
+      where
+        name = genericToConstructorName (undefined :: c1 a)
+        names =
+            genericToConstructorName (undefined :: c1 a) <>
+            genericToConstructorName (undefined :: c2 a)
+    genericToArgument (R1 _) = Fix $ FormRadioF names (safeHead name)
+      where
+        name = genericToConstructorName (undefined :: c2 a)
+        names =
+            genericToConstructorName (undefined :: c1 a) <>
+            genericToConstructorName (undefined :: c2 a)
+
 class GenericToPairs f where
     genericToPairs :: f a -> [(String, Fix FormArgumentF)]
 
@@ -311,6 +326,12 @@ instance (GenericToFields f, GenericToFields g) =>
 
 instance (ToSchema f, Selector s) => GenericToFields (S1 s (Rec0 f)) where
     genericToFields selector = [(selName selector, toSchema @f)]
+
+------------------------------------------------------------
+-- We could take this from the `safe` package, but I don't think it's worth the extra dependency.
+safeHead :: [a] -> Maybe a
+safeHead []    = Nothing
+safeHead (x:_) = Just x
 
 ------------------------------------------------------------
 deriveEq1 ''FormArgumentF

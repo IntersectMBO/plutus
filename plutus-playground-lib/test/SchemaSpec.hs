@@ -16,8 +16,8 @@ import           GHC.Generics          (Generic)
 import           Ledger.Ada            (lovelaceValueOf)
 import           Ledger.Value          (Value)
 import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
-import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormObjectF, FormStringF, FormValueF),
-                                        FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaString, FormSchemaTuple),
+import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormObjectF, FormRadioF, FormStringF, FormValueF),
+                                        FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaRadio, FormSchemaString, FormSchemaTuple),
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Tasty            (TestTree, testGroup)
 import           Test.Tasty.HUnit      (assertEqual, testCase)
@@ -55,6 +55,10 @@ toSchemaTests =
                        , ("userAge", FormSchemaInt)
                        , ("userAlive", FormSchemaBool)
                        ])
+              assertEqual
+                  "Size"
+                  (toSchema @Size)
+                  (FormSchemaRadio ["Small", "Medium", "Large"])
         ]
 
 toArgumentTests :: TestTree
@@ -82,6 +86,10 @@ toArgumentTests =
                        , ("userAge", formIntF 21)
                        , ("userAlive", formBoolF True)
                        ])
+              assertEqual
+                  "Size"
+                  (toArgument Medium)
+                  (formRadioF ["Small", "Medium", "Large"] (Just "Medium"))
               let payTo = Wallet 1
                   value = lovelaceValueOf 20
               assertEqual
@@ -101,6 +109,12 @@ data User =
         }
     deriving (Show, Eq, Generic, ToSchema, ToArgument)
 
+data Size
+    = Small
+    | Medium
+    | Large
+    deriving (Show, Eq, Generic, ToSchema, ToArgument)
+
 ------------------------------------------------------------
 -- A few helper constructors.
 ------------------------------------------------------------
@@ -115,6 +129,9 @@ formStringF = Fix . FormStringF . Just
 
 formValueF :: Value -> FormArgument
 formValueF = Fix . FormValueF
+
+formRadioF :: [String] -> Maybe String -> FormArgument
+formRadioF options selection = Fix $ FormRadioF options selection
 
 formObjectF :: [(String, FormArgument)] -> FormArgument
 formObjectF = Fix . FormObjectF
