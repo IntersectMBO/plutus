@@ -378,7 +378,9 @@ instance KnownType () where
     readKnown eval term = do
         let int = TyBuiltin (-1) TyInteger
             asInt = Constant (-1) . BuiltinInt (-1)
-        res <- makeRightReflectT . eval mempty . Apply (-1) (TyInst (-1) term int) $ asInt 1
+            f e = Apply (-1) (TyInst (-1) term int) e
+        res <- (makeRightReflectT . eval mempty . f) $ asInt 1
         case res of
             Constant _ (BuiltinInt _ 1) -> pure ()
-            _                             -> throwError "Not a builtin ()"
+            _                           -> throwError "Not a builtin ()"
+                                             

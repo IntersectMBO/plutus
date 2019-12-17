@@ -32,11 +32,14 @@ import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                         as BSL
 import           Data.Char
 import           Data.Proxy
+import qualified Data.Set
 import qualified Data.Text                                    as Text
 import qualified Data.Text.Prettyprint.Doc                    as Doc
 import           Data.Traversable
 import           GHC.TypeLits
 import           PlutusPrelude                                (showText)
+
+
 
 tweak :: Functor a => a () -> a Integer
 tweak x = -1 <$ x
@@ -78,9 +81,7 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
 
     makeKnown = unOpaqueTerm
 
-    readKnown eval term =
-        let term' = eval mempty term
-        in (fmap OpaqueTerm) . makeRightReflectT $ term'
+    readKnown eval = (fmap OpaqueTerm) . makeRightReflectT . (eval mempty)
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin (-1) TyInteger

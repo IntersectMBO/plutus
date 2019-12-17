@@ -19,8 +19,6 @@
 
 module Language.PlutusCore.Merkle.Evaluation.CekMarker
     ( CekMachineException
-    , EvaluationResult (..)
-    , EvaluationResultDef2
     , evaluateCek
     , unsafeEvaluateCek
 --    , readKnownCek
@@ -28,10 +26,12 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
     , unsafeRunCek
     ) where
 
-import           Language.PlutusCore                                    hiding (ConstAppResultDef, EvaluationResultDef)
+import           Language.PlutusCore                                    hiding (EvaluationFailure, EvaluationResultDef,
+                                                                         EvaluationSuccess)
 import           Language.PlutusCore.Merkle.Constant
 import           Language.PlutusCore.Merkle.Convert
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
+import           Language.PlutusCore.Merkle.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 
@@ -49,13 +49,29 @@ type Numbered f = f TyName Name Integer
 
 type NodeIDs = Set.Set Integer
 
-type EvaluationResultDef2 = EvaluationResult (Numbered Term, NodeIDs)
+-- | A 'Value' packed together with the environment it's defined in.
+data Closure = Closure
+    { _closureVarEnv :: VarEnv
+    , _closureValue  :: Numbered Value
+    }
 
-type EvaluationResultDef ann = EvaluationResult (Term TyName Name ann)
-type Evaluator f m ann = DynamicBuiltinNameMeanings -> f TyName Name ann -> m (EvaluationResultDef ann)
+-- | Variable environments used by the CEK machine.
+-- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
+type VarEnv = UniqueMap TermUnique Closure
+
+-- | The environment the CEK machine runs in.
+data CekEnv = CekEnv
+    { _cekEnvMeans  :: DynamicBuiltinNameMeanings
+    , _cekEnvVarEnv :: VarEnv
+    }
+
+type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 
 -- | The monad the CEK machine runs in.
 type CekM = ReaderT CekEnv (ExceptT CekMachineException (State NodeIDs))
+
+-- type CekM = ReaderT CekEnv (ExceptT CekMachineException)
+
 
 {-
 fixEvalResult :: EvaluationResultDef -> EvaluationResultDef2
@@ -98,23 +114,6 @@ markAll :: NodeIDs -> Numbered Term -> NodeIDs
 markAll = Prelude.foldr Set.insert
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException = MachineException UnknownDynamicBuiltinNameError
-
--- | A 'Value' packed together with the environment it's defined in.
-data Closure = Closure
-    { _closureVarEnv :: VarEnv
-    , _closureValue  :: Numbered Value
-    }
-
--- | Variable environments used by the CEK machine.
--- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
-type VarEnv = UniqueMap TermUnique Closure
-
--- | The environment the CEK machine runs in.
-data CekEnv = CekEnv
-    { _cekEnvMeans  :: DynamicBuiltinNameMeanings
-    , _cekEnvVarEnv :: VarEnv
-    }
 
 
 data Frame
@@ -128,8 +127,8 @@ type Context = [Frame]
 
 makeLenses ''CekEnv
 
-runCekM :: CekEnv -> CekM a -> Either CekMachineException a
-runCekM = undefined -- flip runReaderT
+runCekM :: CekEnv -> CekM a -> (Either CekMachineException a, NodeIDs)
+runCekM env m = runState (runExceptT (runReaderT m env)) Set.empty
 
 -- Dynamic stuff now works with Integer annotations for standard PLC
 -- ASTs We need to annotate a standard AST with unique IDs, evaluate
@@ -185,26 +184,27 @@ lookupDynamicBuiltinName dynName = do
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
-computeCek :: Context -> NodeIDs -> Numbered Term -> CekM EvaluationResultDef2
-computeCek con usedNodes thisTerm =
-    let usedNodes' = Set.insert (termLoc thisTerm) usedNodes
-    in case thisTerm of
-         TyInst _ body ty       -> computeCek (FrameTyInstArg ty : con) usedNodes' body
+computeCek :: Context -> Numbered Term -> CekM EvaluationResultDef
+computeCek con thisTerm = do
+    usedNodes <- get
+    put (Set.insert (termLoc thisTerm) usedNodes)
+    case thisTerm of
+         TyInst _ body ty       -> computeCek (FrameTyInstArg ty : con) body
          Apply _ fun arg        ->
              do
                varEnv <- getVarEnv
-               computeCek (FrameApplyArg varEnv arg : con) usedNodes' fun
-         IWrap ann pat arg term -> computeCek (FrameIWrap ann pat arg : con) usedNodes' term
-         Unwrap _ term          -> computeCek (FrameUnwrap : con) usedNodes' term
-         tyAbs@TyAbs{}          -> returnCek con usedNodes' tyAbs
-         lamAbs@LamAbs{}        -> returnCek con usedNodes' lamAbs
-         constant@Constant{}    -> returnCek con usedNodes' constant
-         bi@Builtin{}           -> returnCek con usedNodes' bi
+               computeCek (FrameApplyArg varEnv arg : con) fun
+         IWrap ann pat arg term -> computeCek (FrameIWrap ann pat arg : con) term
+         Unwrap _ term          -> computeCek (FrameUnwrap : con) term
+         tyAbs@TyAbs{}          -> returnCek con tyAbs
+         lamAbs@LamAbs{}        -> returnCek con lamAbs
+         constant@Constant{}    -> returnCek con constant
+         bi@Builtin{}           -> returnCek con bi
          Error{}                -> pure EvaluationFailure
          Var _ varName          ->
              do
                Closure newVarEnv term <- lookupVarName varName
-               withVarEnv newVarEnv $ returnCek con usedNodes' term
+               withVarEnv newVarEnv $ returnCek con term
 
 
 -- | The returning part of the CEK machine.
@@ -214,23 +214,23 @@ computeCek con usedNodes thisTerm =
 -- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
-returnCek :: Context -> NodeIDs -> Numbered Value -> CekM EvaluationResultDef2
-returnCek con0 usedNodes val =
+returnCek :: Context -> Numbered Value -> CekM EvaluationResultDef
+returnCek con0 val =
     case con0 of
-      [] -> pure $ EvaluationSuccess (val, markAll usedNodes val)
+      [] -> pure $ EvaluationSuccess val
       -- We don't know what'll be done with the result, so we'd better
       -- be conservative and not Merklise any of it away
-      FrameTyInstArg ty : con -> instantiateEvaluate con usedNodes ty val
+      FrameTyInstArg ty : con -> instantiateEvaluate con ty val
       FrameApplyArg argVarEnv arg : con -> do
                funVarEnv <- getVarEnv
-               withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv val : con) usedNodes arg
+               withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv val : con) arg
       FrameApplyFun funVarEnv fun : con -> do
                argVarEnv <- getVarEnv
-               applyEvaluate funVarEnv argVarEnv con usedNodes fun val
-      FrameIWrap ann pat arg : con -> returnCek con usedNodes (IWrap ann pat arg val)
+               applyEvaluate funVarEnv argVarEnv con fun val
+      FrameIWrap ann pat arg : con -> returnCek con (IWrap ann pat arg val)
       FrameUnwrap : con ->
           case val of
-            IWrap _ _ _ term -> returnCek con usedNodes term
+            IWrap _ _ _ term -> returnCek con term
             term             -> throwError $ MachineException NonWrapUnwrappedMachineError term
 
 -- TODO: Check that we never need to update the used nodes aboves
@@ -239,10 +239,10 @@ returnCek con0 usedNodes val =
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> NodeIDs -> Type TyName Integer -> Numbered Term -> CekM EvaluationResultDef2
-instantiateEvaluate con usedNodes  _  (TyAbs _ _ _ body)= computeCek con usedNodes body
-instantiateEvaluate con usedNodes ty fun
-    | isJust $ termAsPrimIterApp fun = returnCek con usedNodes (TyInst fakeID fun ty)
+instantiateEvaluate :: Context -> Type TyName Integer -> Numbered Term -> CekM EvaluationResultDef
+instantiateEvaluate con _  (TyAbs _ _ _ body)= computeCek con body
+instantiateEvaluate con ty fun
+    | isJust $ termAsPrimIterApp fun = returnCek con (TyInst fakeID fun ty)
     | otherwise                      =
         throwError $ MachineException NonPrimitiveInstantiationMachineError fun
 
@@ -253,10 +253,10 @@ instantiateEvaluate con usedNodes ty fun
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
-    :: VarEnv -> VarEnv -> Context -> NodeIDs -> Numbered Value -> Numbered Value -> CekM EvaluationResultDef2
-applyEvaluate funVarEnv argVarEnv con usedNodes (LamAbs _ name _ body) arg =
-    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con usedNodes body
-applyEvaluate funVarEnv _         con usedNodes fun                    arg =
+    :: VarEnv -> VarEnv -> Context -> Numbered Value -> Numbered Value -> CekM EvaluationResultDef
+applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
+    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
+applyEvaluate funVarEnv _         con fun                    arg =
     let term = Apply 0 fun arg in  -- 0????
         case termAsPrimIterApp term of
             Nothing                       ->
@@ -264,9 +264,9 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    ConstAppSuccess res -> computeCek con usedNodes res
+                    ConstAppSuccess res -> computeCek con res
                     ConstAppFailure     -> pure EvaluationFailure
-                    ConstAppStuck       -> returnCek con usedNodes term
+                    ConstAppStuck       -> returnCek con term
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) term
 
@@ -274,7 +274,8 @@ applyEvaluate funVarEnv _         con usedNodes fun                    arg =
 evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
 -- evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
 evaluateInCekM a = undefined
-{-    ReaderT $ \cekEnv ->
+                   {-
+    ReaderT $ \cekEnv ->
         let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
             in runEvaluateConstApp eval a
 -}
@@ -297,26 +298,26 @@ applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekIn
-    :: CekEnv -> Numbered Term -> Either CekMachineException EvaluationResultDef2
-evaluateCekIn cekEnv = (runCekM cekEnv) . (computeCek [] Set.empty)
+    :: CekEnv -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
+evaluateCekIn cekEnv t = runCekM cekEnv (computeCek [] t)
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
-    :: DynamicBuiltinNameMeanings -> Numbered Term -> Either CekMachineException EvaluationResultDef2
+    :: DynamicBuiltinNameMeanings -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
 evaluateCek means term = evaluateCekIn (CekEnv means mempty) term
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
-unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Numbered Term -> EvaluationResultDef2
-unsafeEvaluateCek means term = either throw id $ (evaluateCek means term)
+unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Numbered Term -> EvaluationResultDef
+unsafeEvaluateCek means term = either throw id $ fst (evaluateCek means term)
 
 {- Deleted readKnownCek -}
 
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
-runCek :: DynamicBuiltinNameMeanings -> Numbered Program -> Either CekMachineException EvaluationResultDef2
+runCek :: DynamicBuiltinNameMeanings -> Numbered Program -> (Either CekMachineException EvaluationResultDef, NodeIDs)
 runCek means (Program _ _ term) = evaluateCek means term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
-unsafeRunCek :: DynamicBuiltinNameMeanings -> Numbered Program -> EvaluationResultDef2
+unsafeRunCek :: DynamicBuiltinNameMeanings -> Numbered Program -> EvaluationResultDef
 unsafeRunCek means (Program _ _ term) = unsafeEvaluateCek means term

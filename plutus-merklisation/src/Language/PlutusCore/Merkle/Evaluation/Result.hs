@@ -18,7 +18,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 import           Control.Applicative
-import qualified Data.Set                   as Set hiding (null)
 import           PlutusPrelude
 
 -- | The parameterized type of results various evaluation engines return.
@@ -30,7 +29,7 @@ data EvaluationResult a
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
 
 -- | The default type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Term TyName Name Integer) -- , Set.Set Integer) !!! FIXME
+type EvaluationResultDef = EvaluationResult (Term TyName Name Integer)
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
