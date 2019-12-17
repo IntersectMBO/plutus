@@ -92,15 +92,6 @@ newtype GuessParams = GuessParams
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
--- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: AsContractError e => Contract GameSchema e ()
-guess = do
-    GuessParams theGuess <- endpoint @"guess" @GuessParams
-    mp <- utxoAt gameAddress
-    let redeemer = gameRedeemerValue theGuess
-        tx       = collectFromScript mp gameValidator redeemer
-    void (submitTx tx)
-
 -- | The "lock" contract endpoint. See note [Contract endpoints]
 lock :: AsContractError e => Contract GameSchema e ()
 lock = do
@@ -110,8 +101,17 @@ lock = do
         tx         = payToScript amt gameAddress dataValue
     void (submitTx tx)
 
+-- | The "guess" contract endpoint. See note [Contract endpoints]
+guess :: AsContractError e => Contract GameSchema e ()
+guess = do
+    GuessParams theGuess <- endpoint @"guess" @GuessParams
+    mp <- utxoAt gameAddress
+    let redeemer = gameRedeemerValue theGuess
+        tx       = collectFromScript mp gameValidator redeemer
+    void (submitTx tx)
+
 game :: AsContractError e => Contract GameSchema e ()
-game = guess <|> lock
+game = lock <|> guess
 
 {- Note [Contract endpoints]
 
