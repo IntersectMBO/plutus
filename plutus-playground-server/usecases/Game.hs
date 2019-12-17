@@ -24,23 +24,15 @@ module Game where
 -- Player 2 guesses the word by attempting to spend the transaction
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
-import           Control.Applicative        ((<|>))
-import           Control.Monad              (void)
-import qualified Data.ByteString.Lazy.Char8 as C
-import           IOTS                       (IotsType)
-import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.Prelude  hiding (pure, (<$>))
-import           Ledger                     (Address, DataValue (DataValue), PendingTx,
-                                             RedeemerValue (RedeemerValue), Validator, mkValidatorScript, scriptAddress)
-import           Ledger.Ada                 (Ada)
-import qualified Ledger.Ada                 as Ada
-import           Ledger.Typed.Scripts       (wrapValidator)
+import           Control.Applicative         ((<|>))
+import           Control.Monad               (void)
+import qualified Data.ByteString.Lazy.Char8  as C
+import           IOTS                        (IotsType)
 import           Language.Plutus.Contract.Tx
 import qualified Language.PlutusTx           as PlutusTx
 import           Language.PlutusTx.Prelude   hiding (pure, (<$>))
-import           Ledger                      (Address, DataScript (DataScript), PendingTx,
-                                              RedeemerScript (RedeemerScript), ValidatorScript, Value,
-                                              mkValidatorScript, scriptAddress)
+import           Ledger                      (Address, DataValue (DataValue), PendingTx, RedeemerValue (RedeemerValue),
+                                              Validator, Value, mkValidatorScript, scriptAddress)
 import           Ledger.Typed.Scripts        (wrapValidator)
 import           Playground.Contract
 import qualified Prelude
@@ -114,8 +106,8 @@ lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
-        dataScript = gameDataScript secret
-        tx         = payToScript amt (Ledger.scriptAddress gameValidator) dataValue
+        dataValue = gameDataScript secret
+        tx         = payToScript amt gameAddress dataValue
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()

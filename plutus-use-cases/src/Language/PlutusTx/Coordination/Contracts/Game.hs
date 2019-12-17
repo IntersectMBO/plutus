@@ -132,8 +132,8 @@ lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
-        dataValue = gameDataScript secret
-        tx         = payToScript amt (Ledger.scriptAddress gameValidator) dataValue
+        dataValue  = gameDataScript secret
+        tx         = payToScript amt gameAddress dataValue
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()
