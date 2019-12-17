@@ -356,6 +356,38 @@ module LazinessStrictness where
   -- `x₁` and `x₂` block the recursive calls from being forced, so `k` at some point can decide not to
   -- recurse anymore (i.e. not to force recursive calls) and return a result instead.
 
+module StrictPolymorphic where
+  open UncurriedGeneral using (fixBy)
+
+  -- `fix2'` discussed in the previous section allows to take the fixed point of two functions,
+  -- but those functions have to be monomorphic. It's not an inherent limitation though, by
+  -- tweaking `by*` functions we can take the fixed-point of polymorphic mutually recursive
+  -- functions:
+
+  module Poly {F₁ G₁ F₂ G₂ : Set -> Set} where
+    F = λ (Q : Set) -> (∀ {A} -> F₁ A -> G₁ A) -> (∀ {A} -> F₂ A -> G₂ A) -> Q
+
+    poly-by2' : (∀ {Q} -> F Q -> Q) -> {R : Set} -> F R -> R
+    poly-by2' r k = k (λ x₁ -> r λ f₁ f₂ -> f₁ x₁) (λ {A} x₂ -> r λ f₁ f₂ -> f₂ x₂)
+
+    poly-fix2' : (∀ {Q} -> F Q -> F Q) -> {R : Set} -> F R -> R
+    poly-fix2' = fixBy poly-by2'
+
+  -- In the same manner we can take the fixed point of a polymorphic and a monomorphic function:
+
+  module PolyMono {B₁ A₂ B₂ : Set} {F₁ : Set -> Set} where
+    F = λ (Q : Set) -> (∀ {A} -> F₁ A -> B₁) -> (A₂ -> B₂) -> Q
+
+    poly-mono-by2' : (∀ {Q} -> F Q -> Q) -> {R : Set} -> F R -> R
+    poly-mono-by2' r k = k (λ x₁ -> r λ f₁ f₂ -> f₁ x₁) (λ x₂ -> r λ f₁ f₂ -> f₂ x₂)
+
+    poly-mono-fix2' : (∀ {Q} -> F Q -> F Q) -> {R : Set} -> F R -> R
+    poly-mono-fix2' = fixBy poly-mono-by2'
+
+  -- So in Plutus Core we can just generate appropriate `by*` functions on the fly depending on
+  -- the type schema of each of the functions that we take the fixed point of, while compiling
+  -- those functions from Plutus IR.
+
 module ComputeUncurriedGeneral where
   -- You might wonder whether we can define a single `fixN` which receives a natural number and
   -- computes the appropriate fixed-point combinator of mutually recursive functions. E.g.
