@@ -131,9 +131,9 @@ lock = do
 guess :: AsContractError e => Contract GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
-    mp <- utxoAt gameAddress
+    unspentOutputs <- utxoAt gameAddress
     let redeemer = gameRedeemerValue theGuess
-        tx       = collectFromScript mp gameValidator redeemer
+        tx       = collectFromScript unspentOutputs gameValidator redeemer
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()
