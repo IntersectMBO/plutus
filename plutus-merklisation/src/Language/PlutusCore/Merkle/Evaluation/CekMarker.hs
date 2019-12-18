@@ -263,11 +263,9 @@ applyEvaluate funVarEnv _         con fun                    arg =
 
 evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
 evaluateInCekM eca = undefined
-{-
     ReaderT $ \cekEnv ->
         let eval means' = evaluateCekIn $ cekEnv & (cekEnvMeans %~ mappend means')
         in runEvaluateConstApp eval eca
--}
 -- Still have to be careful about marking builtin arguments
 
 -- runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
@@ -287,14 +285,13 @@ applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekIn
-    :: CekEnv -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
-evaluateCekIn cekEnv t = runCekM cekEnv (computeCek [] t)
-
+    :: CekEnv -> Numbered Term -> ExceptT CekMachineException (State NodeIDs) EvaluationResultDef
+evaluateCekIn cekEnv t = runReaderT (computeCek [] t) cekEnv
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
     :: DynamicBuiltinNameMeanings -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
-evaluateCek means term = evaluateCekIn (CekEnv means mempty) term
+evaluateCek means = runCekM (CekEnv means mempty) . computeCek []
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Numbered Term -> EvaluationResultDef
