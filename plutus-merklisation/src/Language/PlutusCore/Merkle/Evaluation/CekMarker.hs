@@ -15,7 +15,11 @@
 -- IDs.  It collects a set full of the IDs of those nodes which are
 -- actually used during evaluation, for later use in Merklisation.
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Language.PlutusCore.Merkle.Evaluation.CekMarker
     ( CekMachineException
@@ -26,10 +30,9 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
     , unsafeRunCek
     ) where
 
-import           Language.PlutusCore                                    hiding (EvaluationFailure, EvaluationResultDef,
-                                                                         EvaluationSuccess)
+import           Language.PlutusCore                                    hiding (EvaluationFailure, EvaluationResult,
+                                                                         EvaluationResultDef, EvaluationSuccess)
 import           Language.PlutusCore.Merkle.Constant
-import           Language.PlutusCore.Merkle.Convert
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
 import           Language.PlutusCore.Merkle.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -69,19 +72,6 @@ type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 
 -- | The monad the CEK machine runs in.
 type CekM = ReaderT CekEnv (ExceptT CekMachineException (State NodeIDs))
-
--- type CekM = ReaderT CekEnv (ExceptT CekMachineException)
-
-
-{-
-fixEvalResult :: EvaluationResultDef -> EvaluationResultDef2
-fixEvalResult (EvaluationSuccess t) = EvaluationSuccess (fakeIDs t, Set.empty)
-fixEvalResult EvaluationFailure     = EvaluationFailure
-
-fixEvalResult2 :: Either a EvaluationResultDef -> Either a EvaluationResultDef2
-fixEvalResult2 (Left x)  = Left x
-fixEvalResult2 (Right r) = Right (fixEvalResult r)
--}
 
 unann :: Functor f => f a -> f()
 unann = fmap (\_ -> ())
@@ -272,14 +262,13 @@ applyEvaluate funVarEnv _         con fun                    arg =
 
 
 evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
--- evaluateInCekM :: EvaluateConstApp (Either CekMachineException) a -> CekM (ConstAppResult a)
-evaluateInCekM a = undefined
-                   {-
+evaluateInCekM eca = undefined
+{-
     ReaderT $ \cekEnv ->
-        let eval means' = evaluateCekIn $ cekEnv & cekEnvMeans %~ mappend means'
-            in runEvaluateConstApp eval a
+        let eval means' = evaluateCekIn $ cekEnv & (cekEnvMeans %~ mappend means')
+        in runEvaluateConstApp eval eca
 -}
--- ^^^ THIS IS BROKEN ^^^ --
+-- Still have to be careful about marking builtin arguments
 
 -- runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
 -- runEvaluateConstApp eval = unInnerT . runEvaluateT eval
@@ -301,6 +290,7 @@ evaluateCekIn
     :: CekEnv -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
 evaluateCekIn cekEnv t = runCekM cekEnv (computeCek [] t)
 
+
 -- | Evaluate a term using the CEK machine.
 evaluateCek
     :: DynamicBuiltinNameMeanings -> Numbered Term -> (Either CekMachineException EvaluationResultDef, NodeIDs)
@@ -310,7 +300,7 @@ evaluateCek means term = evaluateCekIn (CekEnv means mempty) term
 unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Numbered Term -> EvaluationResultDef
 unsafeEvaluateCek means term = either throw id $ fst (evaluateCek means term)
 
-{- Deleted readKnownCek -}
+{- Deleted readKnownCek: apparently only used in plutus-tx/test/Plugin/ReadValue/Spec.hs -}
 
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
