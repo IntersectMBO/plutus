@@ -294,7 +294,18 @@ main = do
   putStrLn $ " Compressed size = " ++ (show $ BSL.length (compress s2)) ++ " bytes"
   putStrLn ""
   putStrLn $ "Merkle hash before pruning: " ++ (show $ hash1)
-  putStrLn $ "Merkle hash after pruning:  " ++ (show $ hash2)
+  putStrLn $ "Merkle hash after  pruning: " ++ (show $ hash2)
+
+{- We only mark nodes which are touched by the evaluator.  This means that 
+   types are never marked, so they are all Merklised away.  For the examples
+   here, this reduces the number of nodes in the AST by a factor of about 3 
+   (unused terms plus all types) and reduces the serialised size from 
+   4892 bytes to 4070.  However, it increases the compressed size of the 
+   serialised version from 1388 bytes to 2317 bytes, presumably because
+   we now have incompressible hashes where we previously had compressible
+   types.  Remember also that most types are pretty small: generate some
+   histograms of the distribution of type sizes, and maybe the sizes of serialised types. }
+           
 {-
   putStr "\n\n==========================\n\n"
   T.putStrLn $ PLC.prettyPlcDefText vd2
