@@ -22,7 +22,7 @@ import qualified Language.PlutusTx as PlutusTx
 
 import           Ledger                    (Address)
 import           Ledger.Typed.Scripts
-import           Ledger.Scripts (DataScript (..))
+import           Ledger.Scripts (DataValue (..))
 import           Ledger.Validation         (PendingTx, PendingTxOut (..), PendingTxOutType (..), getContinuingOutputs, findData)
 
 -- | Specification of a state machine, consisting of a transition function that determines the
@@ -63,7 +63,7 @@ mkValidator (StateMachine step check final) currentState input ptx =
                     (True, outs) -> traceIfFalseH "There must be no ongoing output from a final state" (null outs)
                     -- It's fine to duplicate the data script - only the one on the continuing output matters.
                     -- So we just check that the unique continuing output is one of the ones with this data script.
-                    (False, [PendingTxOut{pendingTxOutType=(ScriptTxOut _ dsh)}]) | Just (DataScript d) <- findData dsh ptx, Just givenState <- PlutusTx.fromData d ->
+                    (False, [PendingTxOut{pendingTxOutType=(ScriptTxOut _ dsh)}]) | Just (DataValue d) <- findData dsh ptx, Just givenState <- PlutusTx.fromData d ->
                         traceIfFalseH "State transition invalid - 'givenState' not equal to 'newState'" (givenState == newState)
                     (False, [_]) -> traceH "Data didn't decode properly" False
                     -- It is *not* okay to have multiple outputs with the current validator script, that allows "spliting" the machine.

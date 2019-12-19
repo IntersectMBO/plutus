@@ -375,7 +375,7 @@ In such cases, the types of the data scripts
 associated with a script address to which a transaction is paying
 are arbitrary and not necessarily known ahead of time. This does not impact
 the `PendingTx` representation of the transaction, as it stores all the data
-scripts opaquely as `DataScript`s,
+scripts opaquely as `DataValue`s,
 but without knowing the underlying Plutus Core types of these terms,
 adding such functionality creates a typing
 challenge for performing Plutus Core computations in the validation process.
@@ -418,7 +418,7 @@ is how the data scripts are passed, `v2_ds1` and `v2_ds2` in our example.
 The function `runScript` _seals_ these data scripts using
 
 ----
-newtype Sealer = Sealer (forall a . a -> DataScriptHash -> Sealed (HashedDataScript a))
+newtype Sealer = Sealer (forall a . a -> DataValueHash -> Sealed (HashedDataScript a))
 ----
 
 For the moment, ignore the hashing of the data script - we will elabourate
@@ -480,7 +480,7 @@ the off-chain function that returns a PlutusTx validator script takes a paramete
 This parameter is of a different type for each kind of contract. For example,
 it will be a term of type `Campaign` for a crowdfunder contract:
 
-`contributionScript {two-colons} Campaign -> ValidatorScript`
+`contributionScript {two-colons} Campaign -> Validator`
 
 This parameter for any kind of contract is a
 data structure containing necessary non-state, immutable data about the contract

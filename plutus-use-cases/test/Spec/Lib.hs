@@ -17,14 +17,14 @@ import           Data.Text.Prettyprint.Doc
 
 import           Language.PlutusTx
 import qualified Language.PlutusTx.Prelude as P
-import           Ledger                    (ValidatorScript)
+import           Ledger                    (Validator)
 import qualified Ledger
 import qualified Ledger.Ada                as Ada
 import           Ledger.Value              (Value)
 
--- | Assert that the size of a 'ValidatorScript' is below
+-- | Assert that the size of a 'Validator' is below
 --   the maximum.
-reasonable :: ValidatorScript -> Integer -> Assertion
+reasonable :: Validator -> Integer -> Assertion
 reasonable (Ledger.unValidatorScript -> s) maxSize = do
     let sz = Ledger.scriptSize s
         msg = "Script too big! Max. size: " <> show maxSize <> ". Actual size: " <> show sz

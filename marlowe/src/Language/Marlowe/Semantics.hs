@@ -47,7 +47,7 @@ import           Ledger                     (PubKey (..), Slot (..))
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (DataScript (..))
+import           Ledger.Scripts             (DataValue (..))
 import           Ledger.Validation
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
@@ -760,7 +760,7 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
                     [PendingTxOut
                         { pendingTxOutType=(ScriptTxOut _ dsh)
                         , pendingTxOutValue
-                        }] | Just (DataScript ds) <- findData dsh pendingTx -> case PlutusTx.fromData ds of
+                        }] | Just (DataValue ds) <- findData dsh pendingTx -> case PlutusTx.fromData ds of
                             Just (MarloweData expectedCreator expectedState expectedContract) -> let
                                 scriptOutputValue = Ada.fromValue pendingTxOutValue
                                 validContract = expectedCreator == creator
@@ -777,7 +777,7 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
 
 
 {-|
-    Marlowe Interpreter ValidatorScript generator.
+    Marlowe Interpreter Validator generator.
 -}
 marloweValidator
   :: PubKey -> MarloweData -> [Input] -> PendingTx -> Bool

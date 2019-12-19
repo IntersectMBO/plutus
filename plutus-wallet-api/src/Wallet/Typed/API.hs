@@ -97,8 +97,8 @@ spendScriptOutputs ct red = do
 
     pure typedIns
 
--- | Given the pay to script address of the 'ValidatorScript', collect from it
---   all the outputs that match a predicate, using the 'RedeemerScript'.
+-- | Given the pay to script address of the 'Validator', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
     forall a
     . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))

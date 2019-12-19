@@ -51,10 +51,10 @@ validateNonFungible nf () name tx =
             name
             1
 
-mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
+mkNonFungibleRedeemer :: String -> RedeemerValue
+mkNonFungibleRedeemer name = RedeemerValue $ toData $ TokenName $ C.pack name
 
-mkNonFungibleValidator :: NonFungible -> ValidatorScript
+mkNonFungibleValidator :: NonFungible -> Validator
 mkNonFungibleValidator = mkValidatorScript
                        . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . liftCode
@@ -120,7 +120,7 @@ forge n = do
                 , txForge      = v
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
-                , txData       = Map.singleton (dataScriptHash unitData) unitData
+                , txData       = Map.singleton (dataValueHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"

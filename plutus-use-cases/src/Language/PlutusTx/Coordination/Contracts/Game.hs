@@ -30,7 +30,7 @@ module Language.PlutusTx.Coordination.Contracts.Game
     -- * Scripts
     , gameValidator
     , gameDataScript
-    , gameRedeemerScript
+    , gameRedeemerValue
     -- * Address
     , gameAddress
     , validateGuess
@@ -53,10 +53,10 @@ import Language.PlutusTx.Prelude
 import Ledger
     ( Ada
     , Address
-    , DataScript
+    , DataValue
     , PendingTx
-    , RedeemerScript
-    , ValidatorScript
+    , RedeemerValue
+    , Validator
     )
 import Ledger.Typed.Scripts (wrapValidator)
 import Schema (ToSchema, ToArgument)
@@ -80,26 +80,26 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
--- | The validator (datascript -> redeemer -> PendingTx -> Bool)
+-- | The validator (datavalue -> redeemer -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.
-gameValidator :: ValidatorScript
+gameValidator :: Validator
 gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
     where validator = wrapValidator validateGuess
 
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation
-gameDataScript :: String -> DataScript
+gameDataScript :: String -> DataValue
 gameDataScript =
-    Ledger.DataScript . PlutusTx.toData . HashedString . sha2_256 . C.pack
+    Ledger.DataValue . PlutusTx.toData . HashedString . sha2_256 . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation
-gameRedeemerScript :: String -> RedeemerScript
-gameRedeemerScript =
-    Ledger.RedeemerScript . PlutusTx.toData . ClearString . C.pack
+gameRedeemerValue :: String -> RedeemerValue
+gameRedeemerValue =
+    Ledger.RedeemerValue . PlutusTx.toData . ClearString . C.pack
 
 -- | The address of the game (the hash of its validator script)
 gameAddress :: Address
@@ -124,7 +124,7 @@ guess :: AsContractError e => Contract GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     mp <- utxoAt gameAddress
-    let redeemer = gameRedeemerScript theGuess
+    let redeemer = gameRedeemerValue theGuess
         tx       = collectFromScript mp gameValidator redeemer
     void (submitTx tx)
 
@@ -133,8 +133,8 @@ lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
         vl         = Ada.toValue amt
-        dataScript = gameDataScript secret
-        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataScript
+        dataValue = gameDataScript secret
+        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataValue
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()

@@ -29,8 +29,8 @@ import           Language.Plutus.Contract          (payToScript, requiredSignatu
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         (Bool, not, ($), (&&), (.))
-import           Ledger                            (Address, DataScript (DataScript), PendingTx, PubKey,
-                                                    ValidatorScript, pendingTxValidRange, valueSpent)
+import           Ledger                            (Address, DataValue (DataValue), PendingTx, PubKey,
+                                                    Validator, pendingTxValidRange, valueSpent)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Interval                   as Interval
@@ -145,7 +145,7 @@ mkValidator c con act p = case act of
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
-contributionScript :: Campaign -> ValidatorScript
+contributionScript :: Campaign -> Validator
 contributionScript = Scripts.validatorScript . scriptInstance
 
 -- | The address of a [[Campaign]]
@@ -173,7 +173,7 @@ contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
-    let ds = Ledger.DataScript (PlutusTx.toData contributor)
+    let ds = Ledger.DataValue (PlutusTx.toData contributor)
         tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     txId <- submitTx tx

@@ -49,8 +49,7 @@ import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lattice
 
 import           IOTS                      (IotsType)
-import           Ledger                    (Address, DataScript, PubKey, RedeemerScript, TxOutRef, TxOutTx,
-                                            ValidatorScript)
+import           Ledger                    (Address, DataValue, PubKey, RedeemerValue, TxOutRef, TxOutTx, Validator)
 import qualified Ledger                    as L
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
@@ -68,7 +67,7 @@ data UnbalancedTx = UnbalancedTx
         , _outputs            :: [L.TxOut]
         , _forge              :: V.Value
         , _requiredSignatures :: [PubKey]
-        , _dataValues         :: [DataScript]
+        , _dataValues         :: [DataValue]
         , _validityRange      :: SlotRange
         , _valueMoved         :: Value
         -- ^ The minimum size of the transaction's left and right side. The
@@ -144,7 +143,7 @@ toLedgerTx utx =
             , L.txFee = 0
             , L.txValidRange = _validityRange utx
             , L.txSignatures = Map.empty
-            , L.txData = Map.fromList $ fmap (\ds -> (L.dataScriptHash ds, ds)) (_dataValues utx)
+            , L.txData = Map.fromList $ fmap (\ds -> (L.dataValueHash ds, ds)) (_dataValues utx)
             }
      in tx { L.txFee = minFee tx }
 
@@ -155,7 +154,7 @@ unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
 unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always mempty
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
-payToScript :: Value -> Address -> DataScript -> UnbalancedTx
+payToScript :: Value -> Address -> DataValue -> UnbalancedTx
 payToScript v a ds = unbalancedTx mempty [outp] & dataValues <>~ [ds] where
     outp = Tx.scriptTxOut' v a ds
 
@@ -169,8 +168,8 @@ payToPubKey v pk = unbalancedTx mempty [outp] where
 --   for all outputs. See 'Wallet.API.collectFromScript'.
 collectFromScript
     :: AddressMap
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> UnbalancedTx
 collectFromScript = collectFromScriptFilter (\_ -> const True)
 
@@ -178,8 +177,8 @@ collectFromScript = collectFromScriptFilter (\_ -> const True)
 collectFromScriptFilter
     :: (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> UnbalancedTx
 collectFromScriptFilter flt am vls red =
     let inp = WAPI.getScriptInputsFilter flt am vls red

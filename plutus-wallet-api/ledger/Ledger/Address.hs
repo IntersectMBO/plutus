@@ -47,7 +47,7 @@ pubKeyAddress pk = Address $ BSL.fromStrict $ BA.convert h' where
     e = encode pk
 
 -- | The address that should be used by a transaction output locked by the given validator script.
-scriptAddress :: ValidatorScript -> Address
+scriptAddress :: Validator -> Address
 scriptAddress vl = Address hsh where
     (ValidatorHash hsh) = validatorHash vl
 

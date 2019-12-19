@@ -42,7 +42,7 @@ tests =
         (F.futureContract theFuture)
         (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2410)))
-        ( initContract 
+        ( initContract
         >> joinFuture
         >> addBlocks 20
         >> increaseMargin
@@ -53,7 +53,7 @@ tests =
         (F.futureContract theFuture)
         (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 0))
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 4246)))
-        ( initContract 
+        ( initContract
         >> joinFuture
         >> addBlocks 20
         >> settleEarly)
@@ -62,14 +62,14 @@ tests =
         (F.futureContract theFuture)
         (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
-        ( initContract 
+        ( initContract
         >> joinFuture
         >> addBlocks 93
         >> payOut)
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript theFuture accounts) 50000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 50000)
 
     ]
 
@@ -86,8 +86,8 @@ w1 = Wallet 1
 
 w2 :: Wallet
 w2 = Wallet 2
-        
--- | A futures contract over 187 units with a forward price of 1233 Lovelace, 
+
+-- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
 theFuture :: Future
 theFuture = Future {
@@ -101,7 +101,7 @@ theFuture = Future {
 
 -- | This is the address of contract 'theFuture', initialised by wallet 1
 tokenCurrency :: CurrencySymbol
-tokenCurrency = "e1c5fdd12f4263887e7712b59e02825a2b098337cc31d998efe98c285af2f093"
+tokenCurrency = "b7a5934310d0aeb07cb3fb6c728e43cf736a3c6e42410f50461d28b822405272"
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
@@ -125,7 +125,7 @@ joinFuture = do
 --   all resulting transactions.
 payOut :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 payOut = do
-    let 
+    let
         spotPrice = Ada.lovelaceValueOf 1124
         ov = OracleValue oracle (ftDeliveryDate theFuture) spotPrice
     callEndpoint @"settle-future" (Wallet 2) ov
@@ -161,7 +161,7 @@ increaseMargin = do
 
 settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 settleEarly = do
-    let 
+    let
         spotPrice = Ada.lovelaceValueOf 11240
         ov = OracleValue oracle (Ledger.Slot 25) spotPrice
     callEndpoint @"settle-early" (Wallet 2) ov
