@@ -1,6 +1,5 @@
 /*eslint-env node*/
 'use strict';
-
 /**
  * TODO: I'm sorry but we need to use a global here to force the WASM to load exactly once
  * This will be in a web worker soon anyway
@@ -24,6 +23,8 @@ Z3.onRuntimeInitialized = () => {
     // If you try sync compilation it fails to load at all
     console.log("WASM loaded");
 };
+
+const W = new Worker('worker.[hash].js');
 
 exports.createInstance = function () {
     return Z3;

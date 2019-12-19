@@ -4,6 +4,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
+const fs = require('fs');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
 
@@ -26,7 +27,9 @@ module.exports = {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
+        // hot: false,
         https: true,
+        writeToDisk: true,
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'
@@ -34,12 +37,12 @@ module.exports = {
         }
     },
 
-    entry: './entry.js',
+    entry: { main: './entry.js', worker: './worker.js' },
 
     output: {
         path: path.join(__dirname, 'dist'),
         pathinfo: true,
-        filename: 'app.[hash].js'
+        filename: '[name].[hash].js'
     },
 
     node: {
@@ -52,6 +55,31 @@ module.exports = {
             { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
             {
                 test: /\.purs$/,
+                exclude: /src/,
+                use: [
+                    {
+                        loader: 'purs-loader',
+                        options: {
+                            src: [
+                                'worker/**/*.purs',
+                                '.spago/*/*/src/**/*.purs'
+                            ],
+                            spago: true,
+                            psc: null,
+                            // TODO: https://github.com/ethul/purs-loader/issues/139
+                            // bundle: !(isWebpackDevServer || isWatch),
+                            bundle: true,
+                            warnings: true,
+                            watch: isWebpackDevServer || isWatch,
+                            pscPackage: false,
+                            pscIde: false
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.purs$/,
+                exclude: /worker/,
                 use: [
                     {
                         loader: 'purs-loader',
@@ -62,8 +90,11 @@ module.exports = {
                                 '.spago/*/*/src/**/*.purs',
                                 '../web-common/src/**/*.purs'
                             ],
+                            spago: true,
                             psc: null,
-                            bundle: !(isWebpackDevServer || isWatch),
+                            // TODO: https://github.com/ethul/purs-loader/issues/139
+                            // bundle: !(isWebpackDevServer || isWatch),
+                            bundle: true,
                             warnings: true,
                             watch: isWebpackDevServer || isWatch,
                             pscPackage: false,
@@ -112,8 +143,42 @@ module.exports = {
             favicon: 'static/favicon.ico',
             title: 'Marlowe Playground',
             productName: 'marlowe-playground',
+            chunks: ['main'],
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
-        new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js')
+        new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js'),
+
+        function (compiler) {
+            compiler.hooks.done.tap('ReplaceWithHash', (stats) => {
+                var replaceInFile = function (filePath, toReplace, replacement) {
+                    logger.info("replace " + toReplace + " with " + replacement + " in " + filePath);
+                    var replacer = function (match) {
+                        logger.info('Replacing in %s: %s => %s', filePath, match, replacement);
+                        return replacement
+                    };
+                    try {
+                        var str = compiler.inputFileSystem.readFileSync(filePath, 'utf8').toString();
+                        var out = str.replace(toReplace, replacer);
+                        compiler.outputFileSystem.writeFile(filePath, out, (err) => {
+                            logger.info("wrote file");
+                            if (err) {
+                                logger.error("failed to write file: " + err);
+                            }
+                        });
+                    } catch (error) {
+                        // ignore file not found
+                        logger.error("couldn't replace file" + filePath);
+                        logger.error(error);
+                    }
+                };
+
+                var hash = stats.hash; // Build's hash, found in `stats` since build lifecycle is done.
+                var logger = compiler.getInfrastructureLogger('ReplaceWithHash');
+                replaceInFile(path.join(compiler.outputPath, 'main.' + hash + '.js'),
+                    /worker.\[hash\].js/g,
+                    'worker.' + hash + '.js'
+                );
+            });
+        }
     ].concat(plugins)
 };
