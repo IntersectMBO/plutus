@@ -8,21 +8,21 @@
 -- before touching anything in this file.
 module Language.PlutusCore.Merkle.CBOR () where
 
-import           Language.PlutusCore.Name ()
-import           Language.PlutusCore.CBOR ()
+import           Language.PlutusCore.CBOR         ()
 import           Language.PlutusCore.Merkle.Error
+import           Language.PlutusCore.Merkle.MkPlc (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Merkle.Type
-import           Language.PlutusCore.Merkle.MkPlc      (TyVarDecl (..), VarDecl (..))
+import           Language.PlutusCore.Name         ()
 import           PlutusPrelude
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Crypto.Hash
-import qualified Data.ByteArray                 as BA
-import qualified Data.ByteString                as BSS
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable          hiding (fold)
+import qualified Data.ByteArray                   as BA
+import qualified Data.ByteString                  as BSS
+import qualified Data.ByteString.Lazy             as BSL
+import           Data.Functor.Foldable            hiding (fold)
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -71,9 +71,26 @@ decodeConstructorTag = decodeWord
    `ByteString` fixes this because cborg just serialises this as a
    sequence of bytes. -}
 
+{-
 instance Serialise (Digest SHA256) where
     encode = encode . BSS.pack . BA.unpack
     decode = do
+      d :: BSS.ByteString <- decode
+      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
+      case digestFromByteString bs of
+        Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
+        Just v  -> pure v
+-}
+
+-- FIXME: The above instance doesn't work because of an overlapping
+-- instance in Ledger.Orphans.  However, I can't get the .cabal file
+-- to include this in the build for this file
+
+encodeDigest :: Digest SHA256 -> Encoding
+encodeDigest = encode . BSS.pack. BA.unpack
+
+decodeDigest :: Decoder s (Digest SHA256)
+decodeDigest = do
       d :: BSS.ByteString <- decode
       let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
       case digestFromByteString bs of
@@ -99,8 +116,8 @@ instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) 
         a (TyBuiltinF ann con)   = encodeConstructorTag 4 <> encode ann <> encode con
         a (TyLamF ann n k t)     = encodeConstructorTag 5 <> encode ann <> encode n <> encode k <> t
         a (TyAppF ann t t')      = encodeConstructorTag 6 <> encode ann <> t <> t'
-        a (TyPrunedF ann h)      = encodeConstructorTag 7 <> encode ann <> encode h
-                                   
+        a (TyPrunedF ann h)      = encodeConstructorTag 7 <> encode ann <> encodeDigest h
+
     decode = go =<< decodeConstructorTag
         where go 0 = TyVar <$> decode <*> decode
               go 1 = TyFun <$> decode <*> decode <*> decode
@@ -109,7 +126,7 @@ instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) 
               go 4 = TyBuiltin <$> decode <*> decode
               go 5 = TyLam <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp <$> decode <*> decode <*> decode
-              go 7 = TyPruned <$> decode <*> decode
+              go 7 = TyPruned <$> decode <*> decodeDigest
               go _ = fail "Failed to decode Type TyName ()"
 
 instance Serialise ann => Serialise (Builtin ann) where
@@ -147,21 +164,21 @@ instance ( Serialise ann
         a (IWrapF ann pat arg t) = encodeConstructorTag 7 <> encode ann <> encode pat <> encode arg <> t
         a (ErrorF ann ty)        = encodeConstructorTag 8 <> encode ann <> encode ty
         a (BuiltinF ann bi)      = encodeConstructorTag 9 <> encode ann <> encode bi
-        a (PruneF ann h)         = encodeConstructorTag 10 <> encode ann <> encode h
+        a (PruneF ann h)         = encodeConstructorTag 10 <> encode ann <> encodeDigest h
 
     decode = go =<< decodeConstructorTag
-        where go 0 = Var <$> decode <*> decode
-              go 1 = TyAbs <$> decode <*> decode <*> decode <*> decode
-              go 2 = LamAbs <$> decode <*> decode <*> decode <*> decode
-              go 3 = Apply <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 5 = TyInst <$> decode <*> decode <*> decode
-              go 6 = Unwrap <$> decode <*> decode
-              go 7 = IWrap <$> decode <*> decode <*> decode <*> decode
-              go 8 = Error <$> decode <*> decode
-              go 9 = Builtin <$> decode <*> decode
-              go 10 = Prune <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+        where go 0  = Var <$> decode <*> decode
+              go 1  = TyAbs <$> decode <*> decode <*> decode <*> decode
+              go 2  = LamAbs <$> decode <*> decode <*> decode <*> decode
+              go 3  = Apply <$> decode <*> decode <*> decode
+              go 4  = Constant <$> decode <*> decode
+              go 5  = TyInst <$> decode <*> decode <*> decode
+              go 6  = Unwrap <$> decode <*> decode
+              go 7  = IWrap <$> decode <*> decode <*> decode <*> decode
+              go 8  = Error <$> decode <*> decode
+              go 9  = Builtin <$> decode <*> decode
+              go 10 = Prune <$> decode <*> decodeDigest
+              go _  = fail "Failed to decode Term TyName Name ()"
 
 instance ( Serialise ann
          , Serialise (tyname ann)

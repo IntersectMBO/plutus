@@ -23,6 +23,7 @@ executable ast-analysis
   main-is: AstAnalysis.hs
   other-modules: Hashes
                  Merkle
+                 Language.PlutusCore.Merkle.Size
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.Merklisable
                  Language.PlutusCore.Merkle.CBOR
@@ -81,6 +82,7 @@ executable compression-analysis
   other-modules: Hashes
                  Language.PlutusCore.Merkle.Merklisable
                  Merkle
+                 Language.PlutusCore.Merkle.Size
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.CBOR
                  Language.PlutusCore.Merkle.Error
@@ -137,6 +139,8 @@ executable type-sizes
   other-modules: Hashes
                  Merkle
                  Language.PlutusCore.Merkle.Merklisable
+                 Language.PlutusCore.Merkle.Merklise
+                 Language.PlutusCore.Merkle.Size
                  Language.PlutusCore.Merkle.Type
                  Language.PlutusCore.Merkle.CBOR
                  Language.PlutusCore.Merkle.Error
@@ -181,6 +185,7 @@ executable type-sizes
     , memory -any
     , mmorph -any
     , mtl -any
+    , plutus-core-interpreter -any
     , plutus-tx -any
     , plutus-use-cases -any
     , plutus-wallet-api -any

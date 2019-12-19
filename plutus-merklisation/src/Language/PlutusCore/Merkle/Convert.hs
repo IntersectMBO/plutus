@@ -1,11 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Language.PlutusCore.Merkle.Convert
-    ( fromCoreProgram,
-      fromCoreTerm,
-      toCoreProgram,
-      toCoreTerm
-    ) where
+where
 
 import qualified Language.PlutusCore             as P
 import qualified Language.PlutusCore.Merkle.Type as M

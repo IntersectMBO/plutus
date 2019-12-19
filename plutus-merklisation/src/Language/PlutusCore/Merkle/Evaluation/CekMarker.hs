@@ -262,7 +262,7 @@ applyEvaluate funVarEnv _         con fun                    arg =
 
 
 evaluateInCekM :: EvaluateConstApp (ExceptT CekMachineException (State NodeIDs)) a -> CekM (ConstAppResult a)
-evaluateInCekM eca = undefined
+evaluateInCekM eca =
     ReaderT $ \cekEnv ->
         let eval means' = evaluateCekIn $ cekEnv & (cekEnvMeans %~ mappend means')
         in runEvaluateConstApp eval eca
