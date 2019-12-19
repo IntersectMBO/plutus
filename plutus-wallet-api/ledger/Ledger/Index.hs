@@ -91,9 +91,9 @@ data ValidationError =
     | TxOutRefNotFound TxOutRef
     -- ^ The transaction output consumed by a transaction input could not be found (either because it was already spent, or because
     -- there was no transaction with the given hash on the blockchain).
-    | InvalidScriptHash ValidatorScript
+    | InvalidScriptHash Validator
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
-    | InvalidDataHash DataScript DataScriptHash
+    | InvalidDataHash DataValue DataValueHash
     -- ^ For pay-to-script outputs: the data value provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
@@ -207,9 +207,9 @@ checkForgingAuthorised tx =
 data InOutMatch =
     ScriptMatch
         TxIn
-        ValidatorScript
-        RedeemerScript
-        DataScript
+        Validator
+        RedeemerValue
+        DataValue
         Address
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
@@ -228,7 +228,7 @@ matchInputOutput :: ValidationMonad m
     -> m InOutMatch
 matchInputOutput txid mp i txo = case (txInType i, txOutType txo) of
     (ConsumeScriptAddress v r d, PayToScript dh) ->
-        if dataScriptHash d == dh
+        if dataValueHash d == dh
         then pure $ ScriptMatch i v r d (txOutAddress txo)
         else throwError $ InvalidDataHash d dh
     (ConsumePublicKeyAddress pk', PayToPubKey pk)
@@ -320,12 +320,12 @@ mkOut t = Validation.PendingTxOut (txOutValue t) tp where
 pendingTxInScript
     :: ValidationMonad m
     => TxOutRef
-    -> ValidatorScript
-    -> RedeemerScript
-    -> DataScript
+    -> Validator
+    -> RedeemerValue
+    -> DataValue
     -> m Validation.PendingTxInScript
 pendingTxInScript outRef val red dat = txInFromRef outRef witness where
-        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.dataScriptHash dat)
+        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.dataValueHash dat)
 
 txInFromRef
     :: ValidationMonad m

@@ -122,7 +122,7 @@ data Tx = Tx {
     -- ^ The 'SlotRange' during which this transaction may be validated.
     txSignatures :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
-    txData       :: Map DataScriptHash DataScript
+    txData       :: Map DataValueHash DataValue
     -- ^ Data values recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
@@ -191,7 +191,7 @@ signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
 
-dataWitnesses :: Lens' Tx (Map DataScriptHash DataScript)
+dataWitnesses :: Lens' Tx (Map DataValueHash DataValue)
 dataWitnesses = lens g s where
     g = txData
     s tx dat = tx { txData = dat }
@@ -199,7 +199,7 @@ dataWitnesses = lens g s where
 lookupSignature :: PubKey -> Tx -> Maybe Signature
 lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
 
-lookupData :: Tx -> DataScriptHash -> Maybe DataScript
+lookupData :: Tx -> DataValueHash -> Maybe DataValue
 lookupData Tx{txData} h = Map.lookup h txData
 
 -- | Check that all values in a transaction are non-negative.
@@ -254,7 +254,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 
 -- | The type of a transaction input.
 data TxInType =
-      ConsumeScriptAddress !ValidatorScript !RedeemerScript !DataScript -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
+      ConsumeScriptAddress !Validator !RedeemerValue !DataValue -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
     | ConsumePublicKeyAddress !PubKey -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
@@ -279,7 +279,7 @@ inType = lens txInType s where
 
 -- | Validator, redeemer, and data scripts of a transaction input that spends a
 --   "pay to script" output.
-inScripts :: TxIn -> Maybe (ValidatorScript, RedeemerScript, DataScript)
+inScripts :: TxIn -> Maybe (Validator, RedeemerValue, DataValue)
 inScripts TxIn{ txInType = t } = case t of
     ConsumeScriptAddress v r d -> Just (v, r, d)
     ConsumePublicKeyAddress _  -> Nothing
@@ -295,12 +295,12 @@ pubKeyTxIn :: PubKey -> TxOutRef -> TxIn
 pubKeyTxIn pubK r = TxIn r (ConsumePublicKeyAddress pubK)
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> ValidatorScript -> RedeemerScript -> DataScript -> TxIn
+scriptTxIn :: TxOutRef -> Validator -> RedeemerValue -> DataValue -> TxIn
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | The type of a transaction output.
 data TxOutType =
-    PayToScript !DataScriptHash -- ^ A pay-to-script output with the given data script hash.
+    PayToScript !DataValueHash -- ^ A pay-to-script output with the given data script hash.
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
@@ -320,7 +320,7 @@ data TxOut = TxOut {
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
 -- | The data script attached to a 'TxOutOf', if there is one.
-txOutData :: TxOut -> Maybe DataScriptHash
+txOutData :: TxOut -> Maybe DataValueHash
 txOutData TxOut{txOutType = t} = case  t of
     PayToScript s -> Just s
     PayToPubKey _ -> Nothing
@@ -362,17 +362,17 @@ data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
-txOutTxData :: TxOutTx -> Maybe DataScript
+txOutTxData :: TxOutTx -> Maybe DataValue
 txOutTxData (TxOutTx tx out) = txOutData out >>= lookupData tx
 
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
-scriptTxOut' :: Value -> Address -> DataScript -> TxOut
+scriptTxOut' :: Value -> Address -> DataValue -> TxOut
 scriptTxOut' v a ds = TxOut a v tp where
-    tp = PayToScript (dataScriptHash ds)
+    tp = PayToScript (dataValueHash ds)
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
-scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut
+scriptTxOut :: Value -> Validator -> DataValue -> TxOut
 scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
 
 -- | Create a transaction output locked by a public key.

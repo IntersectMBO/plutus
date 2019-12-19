@@ -75,12 +75,12 @@ So we can choose `()` for the redeemer scripts, too.
 
 [source,haskell]
 ----
-dataScript :: DataScript
-dataScript = DataScript $ toData ()
+dataValue :: DataValue
+dataValue = DataValue $ toData ()
 
 -- The redeemer is passed the data script (unit), which it just ignores.
-redeemerScript :: RedeemerScript
-redeemerScript = RedeemerScript $ toData ()
+redeemerValue :: RedeemerValue
+redeemerValue = RedeemerValue $ toData ()
 ----
 
 We are now in a position to define the validator script.
@@ -105,7 +105,7 @@ validate v () () tx =
     in     (remaining >= unreleased)
         && (tx `txSignedBy` owner v)
 
-mkValidator :: Vesting -> ValidatorScript
+mkValidator :: Vesting -> Validator
 mkValidator = mkValidatorScript
                   . applyCode $$(compile [|| \v -> wrapValidator (validate v) ||])
                   . liftCode
@@ -148,7 +148,7 @@ vest v = do
         defaultSlotRange
         (vestingAddress v)
         (toValue $ totalAmount v)
-        dataScript
+        dataValue
 ----
 
 Function `withdraw` is the most interesting and complicated one:
@@ -190,8 +190,8 @@ withdraw t1 t2 ada = do
                  , scriptTxOut
                     (toValue change)
                     (mkValidator v)
-                    dataScript
-                 ], [dataScript])
+                    dataValue
+                 ], [dataValue])
             else ([o], [])
 
     void $ createTxAndSubmit
@@ -208,8 +208,8 @@ withdraw t1 t2 ada = do
         [ scriptTxIn
             r
             (mkValidator v)
-            redeemerScript
-            dataScript
+            redeemerValue
+            dataValue
         | r <- Map.keys utxos
         ]
 

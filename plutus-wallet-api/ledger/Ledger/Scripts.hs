@@ -29,16 +29,16 @@ module Ledger.Scripts(
     applyScript,
     -- * Script wrappers
     mkValidatorScript,
-    ValidatorScript,
+    Validator,
     unValidatorScript,
-    RedeemerScript(..),
-    DataScript(..),
+    RedeemerValue(..),
+    DataValue(..),
     ValidationData(..),
     -- * Hashes
-    DataScriptHash(..),
+    DataValueHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
-    dataScriptHash,
+    dataValueHash,
     redeemerHash,
     validatorHash,
     -- * Example scripts
@@ -189,51 +189,51 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> ValidatorScript
-mkValidatorScript = ValidatorScript . fromCompiledCode
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript = Validator . fromCompiledCode
 
-unValidatorScript :: ValidatorScript -> Script
+unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
--- | 'ValidatorScript' is a wrapper around 'Script's which are used as validators in transaction outputs.
-newtype ValidatorScript = ValidatorScript { getValidator :: Script }
+-- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
+newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType)
-  deriving Pretty via (PrettyShow ValidatorScript)
+  deriving Pretty via (PrettyShow Validator)
 
-instance Show ValidatorScript where
-    show = const "ValidatorScript { <script> }"
+instance Show Validator where
+    show = const "Validator { <script> }"
 
-instance BA.ByteArrayAccess ValidatorScript where
+instance BA.ByteArrayAccess Validator where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'DataScript' is a wrapper around 'Data' values which are used as data in transaction outputs.
-newtype DataScript = DataScript { getDataScript :: Data  }
+-- | 'DataValue' is a wrapper around 'Data' values which are used as data in transaction outputs.
+newtype DataValue = DataValue { getDataScript :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
   deriving Pretty via Data
 
-instance BA.ByteArrayAccess DataScript where
+instance BA.ByteArrayAccess DataValue where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'RedeemerScript' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
-newtype RedeemerScript = RedeemerScript { getRedeemer :: Data }
+-- | 'RedeemerValue' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
+newtype RedeemerValue = RedeemerValue { getRedeemer :: Data }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Pretty RedeemerScript where
-    pretty (RedeemerScript dat) = "RedeemerScript:" <+> pretty dat
+instance Pretty RedeemerValue where
+    pretty (RedeemerValue dat) = "RedeemerValue:" <+> pretty dat
 
-instance BA.ByteArrayAccess RedeemerScript where
+instance BA.ByteArrayAccess RedeemerValue where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -251,14 +251,14 @@ instance IotsType ValidatorHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
-newtype DataScriptHash =
-    DataScriptHash Builtins.ByteString
+newtype DataValueHash =
+    DataValueHash Builtins.ByteString
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
-instance IotsType DataScriptHash where
+instance IotsType DataValueHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
@@ -272,13 +272,13 @@ newtype RedeemerHash =
 instance IotsType RedeemerHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
-dataScriptHash :: DataScript -> DataScriptHash
-dataScriptHash = DataScriptHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+dataValueHash :: DataValue -> DataValueHash
+dataValueHash = DataValueHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-redeemerHash :: RedeemerScript -> RedeemerHash
+redeemerHash :: RedeemerValue -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-validatorHash :: ValidatorScript -> ValidatorHash
+validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     h' :: Digest SHA256 = hash h
@@ -295,26 +295,26 @@ runScript
     :: (MonadError ScriptError m)
     => Checking
     -> ValidationData
-    -> ValidatorScript
-    -> DataScript
-    -> RedeemerScript
+    -> Validator
+    -> DataValue
+    -> RedeemerValue
     -> m [Haskell.String]
-runScript checking (ValidationData valData) (ValidatorScript validator) (DataScript dataScript) (RedeemerScript redeemer) = do
-    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataScript)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+runScript checking (ValidationData valData) (Validator validator) (DataValue dataValue) (RedeemerValue redeemer) = do
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
-unitData :: DataScript
-unitData = DataScript $ toData ()
+unitData :: DataValue
+unitData = DataValue $ toData ()
 
 -- | @()@ as a redeemer.
-unitRedeemer :: RedeemerScript
-unitRedeemer = RedeemerScript $ toData ()
+unitRedeemer :: RedeemerValue
+unitRedeemer = RedeemerValue $ toData ()
 
 makeLift ''ValidatorHash
 
-makeLift ''DataScriptHash
+makeLift ''DataValueHash
 
 makeLift ''RedeemerHash
 
-makeLift ''DataScript
+makeLift ''DataValue

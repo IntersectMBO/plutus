@@ -124,7 +124,7 @@ instance AsContractError MultiSigError where
 
 instance AsSMContractError MultiSigError State Input where
     _SMContractError = _MSStateMachineError
-    
+
 type MultiSigSchema =
     BlockchainActions
         .\/ Endpoint "propose-payment" Payment
@@ -246,7 +246,7 @@ machineInstance params =
 
 allocate :: State -> Input -> Value -> ValueAllocation
 allocate (CollectingSignatures _ (Payment vp pk _) _) Pay vl =
-    let vl' = vl - vp 
+    let vl' = vl - vp
     in ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKey vp pk}
 allocate _ _ vl =
     ValueAllocation{vaOwnAddress = vl, vaOtherPayments = Haskell.mempty}
@@ -254,7 +254,7 @@ allocate _ _ vl =
 client :: Params -> SM.StateMachineClient State Input
 client p = SM.mkStateMachineClient (machineInstance p) allocate
 
-contract :: 
+contract ::
     ( AsContractError e
     , AsSMContractError e State Input
     )

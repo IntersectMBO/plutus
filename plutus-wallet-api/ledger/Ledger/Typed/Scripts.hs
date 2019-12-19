@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts(
     ScriptType(..)
-    , ValidatorScript
+    , Validator
     , ScriptInstance
     , validator
     , scriptAddress
@@ -42,13 +42,13 @@ type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.Pend
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 
--- | A typed validator script with its 'ValidatorScript' and 'Address'.
+-- | A typed validator script with its 'Validator' and 'Address'.
 data ScriptInstance (a :: Type) where
     Validator ::
         ScriptType a
         => CompiledCode (ValidatorType a)
         -> CompiledCode (ValidatorType a -> WrappedValidatorType)
-        -> ValidatorScript
+        -> Validator
         -> Addr.Address
         -> ScriptInstance a
 
@@ -69,7 +69,7 @@ scriptAddress :: ScriptInstance a -> Addr.Address
 scriptAddress (Validator _ _ _ address) = address
 
 -- | Get the validator script for a script instance.
-validatorScript :: ScriptInstance a -> ValidatorScript
+validatorScript :: ScriptInstance a -> Validator
 validatorScript (Validator _ _ script _) = script
 
 {- Note [Scripts returning Bool]

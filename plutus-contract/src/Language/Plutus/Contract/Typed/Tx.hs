@@ -18,8 +18,8 @@ import           Ledger.Value                (Value)
 
 import qualified Wallet.Typed.API            as Typed
 
--- | Given the pay to script address of the 'ValidatorScript', collect from it
---   all the outputs that match a predicate, using the 'RedeemerScript'.
+-- | Given the pay to script address of the 'Validator', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
     forall a
     . (PlutusTx.IsData (Scripts.DataType a), PlutusTx.IsData (Scripts.RedeemerType a))
@@ -47,7 +47,7 @@ collectFromScript ::
     -> Contract.UnbalancedTx
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
--- | Given a 'ScriptInstance', lock a value with it using the 'DataScript'.
+-- | Given a 'ScriptInstance', lock a value with it using the 'DataValue'.
 makeScriptPayment ::
     forall a
     . (PlutusTx.IsData (Scripts.DataType a))

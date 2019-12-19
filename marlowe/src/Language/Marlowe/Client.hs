@@ -24,12 +24,12 @@ import qualified Data.Set                   as Set
 import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
-import           Ledger                     (DataScript (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
+import           Ledger                     (DataValue (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
                                              mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
-import           Ledger.Scripts             (RedeemerScript (..), ValidatorScript)
+import           Ledger.Scripts             (RedeemerValue (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
 import           Wallet                     (WalletAPI (..), WalletAPIError, createPaymentWithChange, createTxAndSubmit,
                                              throwOtherError)
@@ -51,7 +51,7 @@ createContract contract = do
             marloweCreator = creator,
             marloweContract = contract,
             marloweState = emptyState slot }
-        ds = DataScript $ PlutusTx.toData marloweData
+        ds = DataValue $ PlutusTx.toData marloweData
 
         deposit = Ada.adaValueOf 1
 
@@ -139,7 +139,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
         depositPayment = Payment marloweCreator depositAmount
         redeemer = mkRedeemer inputs
         validator = validatorScript marloweCreator
-        dataScript = DataScript (PlutusTx.toData marloweData)
+        dataValue = DataValue (PlutusTx.toData marloweData)
         address = scriptAddress validator
     slot <- slot
 
@@ -157,7 +157,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
         _ -> throwOtherError ("Tx has multiple contracts of address "
             <> Text.pack (show address))
 
-    let scriptIn = scriptTxIn ref validator redeemer dataScript
+    let scriptIn = scriptTxIn ref validator redeemer dataValue
     let computedResult = computeTransaction txInput marloweState marloweContract
 
     (deducedTxOutputs, marloweData) <- case computedResult of
@@ -174,9 +174,9 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
                         payouts = txPaymentOuts txOutPayments
                         totalPayouts = foldMap (Ada.fromValue . txOutValue) payouts
                         finalBalance = totalIncome - totalPayouts + depositAmount
-                        dataScript = DataScript (PlutusTx.toData marloweData)
+                        dataValue = DataValue (PlutusTx.toData marloweData)
                         scriptOutValue = Ada.toValue finalBalance
-                        scriptOut = scriptTxOut scriptOutValue validator dataScript
+                        scriptOut = scriptTxOut scriptOutValue validator dataValue
                         in scriptOut : payouts
 
             return (deducedTxOutputs, marloweData)
@@ -191,7 +191,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
         slotRange
         (Set.insert scriptIn payment)
         (deducedTxOutputs ++ maybeToList change)
-        [DataScript (PlutusTx.toData marloweData)]
+        [DataValue (PlutusTx.toData marloweData)]
 
     return (marloweData, tx)
   where
@@ -217,7 +217,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
 
 
 {-| Generate a validator script for 'creator' PubKey -}
-validatorScript :: PubKey -> ValidatorScript
+validatorScript :: PubKey -> Validator
 validatorScript creator = mkValidatorScript ($$(PlutusTx.compile [|| validatorParam ||])
     `PlutusTx.applyCode`
         PlutusTx.liftCode creator)
@@ -225,5 +225,5 @@ validatorScript creator = mkValidatorScript ($$(PlutusTx.compile [|| validatorPa
 
 
 {-| Make redeemer script -}
-mkRedeemer :: [Input] -> RedeemerScript
-mkRedeemer inputs = RedeemerScript (PlutusTx.toData inputs)
+mkRedeemer :: [Input] -> RedeemerValue
+mkRedeemer inputs = RedeemerValue (PlutusTx.toData inputs)

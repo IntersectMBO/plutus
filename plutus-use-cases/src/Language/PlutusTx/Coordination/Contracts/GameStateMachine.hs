@@ -48,7 +48,7 @@ import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Tx as Tx
 import qualified Prelude as Haskell
 
-newtype HashedString = HashedString ByteString 
+newtype HashedString = HashedString ByteString
     deriving newtype PlutusTx.IsData
     deriving stock Show
 
@@ -61,7 +61,7 @@ newtype ClearString = ClearString ByteString
 PlutusTx.makeLift ''ClearString
 
 -- | Arguments for the @"lock"@ endpoint
-data LockArgs = 
+data LockArgs =
     LockArgs
         { lockArgsSecret :: String
         -- ^ The secret
@@ -122,7 +122,7 @@ data GameInput =
       ForgeToken TokenName
     -- ^ Forge the "guess" token
     | Guess ClearString HashedString Value
-    -- ^ Make a guess, extract the funds, and lock the remaining funds using a 
+    -- ^ Make a guess, extract the funds, and lock the remaining funds using a
     --   new secret word.
     deriving (Show)
 
@@ -137,9 +137,9 @@ step state input = case (state, input) of
 check :: GameState -> GameInput -> PendingTx -> Bool
 check state input ptx = case (state, input) of
     (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
-    (Locked tn currentSecret, Guess theGuess _ _) -> 
-        checkGuess currentSecret theGuess 
-            && tokenPresent tn 
+    (Locked tn currentSecret, Guess theGuess _ _) ->
+        checkGuess currentSecret theGuess
+            && tokenPresent tn
             && checkForge zero
     _ -> False
     where
@@ -184,7 +184,7 @@ machineInstance = SM.StateMachineInstance machine scriptInstance
 
 -- | Allocate the funds for each transition.
 allocate :: GameState -> GameInput -> Value -> ValueAllocation
-allocate (Initialised _) (ForgeToken _) currentVal = 
+allocate (Initialised _) (ForgeToken _) currentVal =
     ValueAllocation
         { vaOwnAddress    = currentVal
         -- use 'Tx.forgeValue' to ensure that the transaction forges
@@ -231,7 +231,7 @@ guess = do
 
     void (SM.runStep client (Guess guessedSecret newSecret guessArgsValueTakenOut))
 
-lock :: 
+lock ::
     ( AsContractError e
     , AsSMContractError e GameState GameInput
     )

@@ -245,7 +245,7 @@ invalidScript = property $ do
             -> False
 
     where
-        failValidator :: ValidatorScript
+        failValidator :: Validator
         failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
         validator :: () -> () -> PendingTx -> Bool
         validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"

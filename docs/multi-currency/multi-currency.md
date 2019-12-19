@@ -46,12 +46,12 @@ The function `s` [1, Def. 13], providing information about the current state of 
 
 data TxOut =
   PayToPubKey PubKey Value
-  | PayToScript ScriptHash DataScript Value
+  | PayToScript ScriptHash DataValue Value
 
 data TxOutRef = TxOutRef { txOutRefId :: TxHash, txOutRefIndex :: Int }
 
 data TxIn =
-  ConsumeScriptAddress TxOutRef ValidatorScript RedeemerScript
+  ConsumeScriptAddress TxOutRef Validator RedeemerValue
   | ConsumePublicKeyAddress TxOutRef Signature
 
 ```
@@ -64,7 +64,7 @@ The ledger rules are a set of conditions that need to hold for a transaction to 
 
 1. **(balanced)** The sum of the values of the `txInputs` field plus the `txForge` value must be equal to the sum of the values of the `txOutputs` field plus the `txFee` field.
 2. **(forging)** A transaction with a non-zero `txForge` field is only valid if the ledger is empty (that is, if it is the initial transaction). Note that the details of this rule depend on the monetary policy of the ledger itself, as there may be other transactions that forge value.
-3. **(legitimacy)** Every transaction must prove that it is allowed to spend the inputs. To spend a `PayToPubKey` transaction output, the signature provided in `ConsumePublicKeyAddress` must match the public key. For a `PayToScript` transaction output, the hash of the `ConsumeScriptAddress` input's `ValidatorScript` must be equal to the output's `ScriptHash`, and evaluation of the `ValidatorScript` applied to the output's `DataScript`, the input's `RedeemerScript` and the `PendingTx` value of the spending transaction must finish successfully.
+3. **(legitimacy)** Every transaction must prove that it is allowed to spend the inputs. To spend a `PayToPubKey` transaction output, the signature provided in `ConsumePublicKeyAddress` must match the public key. For a `PayToScript` transaction output, the hash of the `ConsumeScriptAddress` input's `Validator` must be equal to the output's `ScriptHash`, and evaluation of the `Validator` applied to the output's `DataValue`, the input's `RedeemerValue` and the `PendingTx` value of the spending transaction must finish successfully.
 4. **(no double spending)** Every transaction output may be spent at most once. That is, a `Tx` is only valid if none of the `TxOut` values referred to by its `txInputs` field has been spent by a transaction already in the ledger.
 
 For details of the implementation of the ledger rules please refer to `validateTransaction` in [`Ledger.Index`](../../wallet-api/src/Ledger/Index.hs).
@@ -185,8 +185,8 @@ data CirculationChange = CirculationChange {
   }
 
 -- | Create the validator script for a `Currency`.
-currencyScript :: Currency -> ValidatorScript
-currencyScript cur = ValidatorScript val where
+currencyScript :: Currency -> Validator
+currencyScript cur = Validator val where
   val = Ledger.applyScript inner (Ledger.lifted cur)
   inner = $$(Ledger.compileScript [|| \(Currency maxCirc role txout) ->
     let
@@ -262,7 +262,7 @@ currencyScript cur = ValidatorScript val where
 To create a new currency with a maximum supply of 10000 and an initial supply of 100 we need to do the following. Steps 1-4 cover the initial setup and are only needed once. Step 5 demonstrates a regular interaction with the currency (changing its supply).
 
 1. Select an unspent transaction output `txout` owned by us
-2. Define `dsCur :: ValidatorScript, dsReserve :: ValidatorScript` with `dsCur = currencyScript (Currency 10000 ActualCurrency txout)` and `dsReserve = currencyScript (Currency 10000 MirrorCurrency txout)`. Their hashes are `hCur :: ByteString = hash dsCur` and `hRes :: ByteString = hash dsReserve`. `hCur` identifies the new currency, and `hRes` identifies its reserve currency.
+2. Define `dsCur :: Validator, dsReserve :: Validator` with `dsCur = currencyScript (Currency 10000 ActualCurrency txout)` and `dsReserve = currencyScript (Currency 10000 MirrorCurrency txout)`. Their hashes are `hCur :: ByteString = hash dsCur` and `hRes :: ByteString = hash dsReserve`. `hCur` identifies the new currency, and `hRes` identifies its reserve currency.
 3. Create a transaction `tx1`. `tx1` produces two pay-to-script outputs: `cur1` and `res1`. The address of `cur1` is `hCur`. The address of `res1` is `hRes`. `cur1` and `res1` have the same data script, `(InitialState, Initialise hRes hCur)` (see below for an explanation of the (state, action) tuples in data and redeemer scripts). The `valueForged` field of `tx1` is empty.
 4. Create a transaction `tx2`. `tx2` spends `cur1` and `res1`, using the redeemer `r = (Circulating hRes hCur 0, Initialise hRes hCur)` for both outputs. `tx2` also spends `txout` and potentially other outputs that are needed to cover the fee. `tx2` produces pay-to-script outputs `cur2` and `res2`. The address of `cur2` is `hCur` and the address of `res2` is `hRes`. The outputs `cur2` and `res2` have the same data script: `r`, and their value is zero. In addition `tx2` produces an output `o` of `10000 hRes` to a pubkey address owned by us. The `valueForged` field of `tx2` is `{ hResror -> 10000 }`.
 5. To issue `100 hCur` currency, create a transaction `tx3`. `tx3` spends `o` as well as `cur2` and `res2`, using the redeemer `r = (Circulating hRes hCur 100, Forge 100)`. `tx3` produces outputs `cur3` and `res3` to the addresses `hCur` and `hRes` respectively, using the data script `r`. In addition, `tx3` produces an output `p` with a value of `100 hCur`, and an output `q` with a value of `9900 hRes`. The address of `q` is a public key address owned by us. The address of `p` can be any public key or script address (wherever we want to send the new currency). The `valueForged` field of `tx3` is `{ hRes -> -100, hCur -> 100 }`.

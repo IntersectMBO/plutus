@@ -28,7 +28,7 @@ import           Language.Plutus.Contract     as Contract
 mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy p pk'
 
-pkValidator :: PubKey -> ValidatorScript
+pkValidator :: PubKey -> Validator
 pkValidator pk = mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`

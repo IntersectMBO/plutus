@@ -82,7 +82,7 @@ redeemer and data scripts of all of its inputs and outputs.
 -- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
     = PubKeyTxOut PubKey -- ^ Pub key address
-    | ScriptTxOut ValidatorHash DataScriptHash -- ^ The hash of the validator script and the data script (see note [Script types in pending transactions])
+    | ScriptTxOut ValidatorHash DataValueHash -- ^ The hash of the validator script and the data script (see note [Script types in pending transactions])
     deriving (Generic)
 
 -- | An output of a pending transaction.
@@ -108,8 +108,8 @@ data PendingTxIn' w = PendingTxIn
 instance Functor PendingTxIn' where
     fmap f p = p{pendingTxInWitness = f (pendingTxInWitness p) }
 
-type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash, DataScriptHash))
-type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash, DataScriptHash)
+type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash, DataValueHash))
+type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash, DataValueHash)
 
 toLedgerTxIn :: PendingTxInScript -> PendingTxIn
 toLedgerTxIn = fmap Just
@@ -124,7 +124,7 @@ data PendingTx' i = PendingTx
     , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
     , pendingTxSignatures :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
-    , pendingTxData       :: [(DataScriptHash, DataScript)]
+    , pendingTxData       :: [(DataValueHash, DataValue)]
     , pendingTxId         :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic, Haskell.Functor)
@@ -136,7 +136,7 @@ type PendingTx = PendingTx' PendingTxInScript
 
 {-# INLINABLE findData #-}
 -- | Find the data corresponding to a data hash, if there is one
-findData :: DataScriptHash -> PendingTx -> Maybe DataScript
+findData :: DataValueHash -> PendingTx -> Maybe DataValue
 findData dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
     where
         f (dsh', _) = dsh' == dsh
@@ -174,7 +174,7 @@ definition for now:
   validator script.
 Examples of this can be found in the
 Language.Plutus.Coordination.Contracts.Swap.swapValidator and
-Language.Plutus.Coordination.Contracts.Future.validatorScript scripts.
+Language.Plutus.Coordination.Contracts.Future.validator scripts.
 -}
 
 -- | @OracleValue a@ is a value observed at a time signed by
@@ -211,8 +211,8 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 
 {-# INLINABLE scriptCurrencySymbol #-}
--- | The 'CurrencySymbol' of an 'ValidatorScript'
-scriptCurrencySymbol :: ValidatorScript -> CurrencySymbol
+-- | The 'CurrencySymbol' of an 'Validator'
+scriptCurrencySymbol :: Validator -> CurrencySymbol
 scriptCurrencySymbol scrpt = let (ValidatorHash hsh) = validatorHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
@@ -248,7 +248,7 @@ pubKeyOutput o = case pendingTxOutType o of
 {-# INLINABLE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
-ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DataScriptHash)
+ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DataValueHash)
 ownHashes PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=h}} = h
 
 {-# INLINABLE ownHash #-}
@@ -264,7 +264,7 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'PendingTxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataScriptHash, Value)]
+scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataValueHash, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
             case pendingTxOutType ptxo of

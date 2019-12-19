@@ -88,13 +88,13 @@ and addresses:
 
 [source,haskell]
 ----
-fungibleDataScript :: DataScript
-fungibleDataScript = DataScript $ toData ()
+fungibleDataScript :: DataValue
+fungibleDataScript = DataValue $ toData ()
 
-mkFungibleRedeemerScript :: Integer -> RedeemerScript
-mkFungibleRedeemerScript = RedeemerScript . toData
+mkFungibleRedeemerValue :: Integer -> RedeemerValue
+mkFungibleRedeemerValue = RedeemerValue . toData
 
-mkFungibleValidator :: Fungible -> ValidatorScript
+mkFungibleValidator :: Fungible -> Validator
 mkFungibleValidator = mkValidatorScript
                     . applyCode $$(compile [|| \f -> wrapValidator (validateFungible f) ||])
                     . liftCode
@@ -167,14 +167,14 @@ forge n s = do
                     { txInputs     = Set.singleton $ scriptTxIn      -- <6>
                                         ref
                                         (mkFungibleValidator f)
-                                        (mkFungibleRedeemerScript s)
+                                        (mkFungibleRedeemerValue s)
                                         unitData
                     , txOutputs    = [pubKeyTxOut v $ issuer f]      -- <7>
                     , txFee        = zero
                     , txForge      = v                               -- <8>
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
-                    , txData = Map.singleton (dataScriptHash unitData) unitData
+                    , txData = Map.singleton (dataValueHash unitData) unitData
                     }
             _         -> go f                                        -- <9>
 ----
@@ -291,18 +291,18 @@ We write the usual helper functions and have completed the on-chain part:
 
 [source,haskell]
 ----
-mkTradeValidator :: Trade -> ValidatorScript
+mkTradeValidator :: Trade -> Validator
 mkTradeValidator =
       mkValidatorScript
     . applyCode $$(compile [|| v ||])
     . liftCode
     where v t = wrapValidator (validateTrade t)
 
-tradeDataScript :: DataScript
-tradeDataScript = DataScript $ toData ()
+tradeDataScript :: DataValue
+tradeDataScript = DataValue $ toData ()
 
-mkTradeRedeemerScript :: TradeAction -> RedeemerScript
-mkTradeRedeemerScript = RedeemerScript . toData
+mkTradeRedeemerValue :: TradeAction -> RedeemerValue
+mkTradeRedeemerValue = RedeemerValue . toData
 
 tradeAddress :: Trade -> Address
 tradeAddress = scriptAddress . mkTradeValidator
@@ -381,7 +381,7 @@ sell i c n v2 p2 dl = do
                 [ scriptTxIn
                     r
                     (mkTradeValidator t)
-                    (mkTradeRedeemerScript Execute)
+                    (mkTradeRedeemerValue Execute)
                     unitData
                 | r <- Map.keys m
                 ]
@@ -401,7 +401,7 @@ sell i c n v2 p2 dl = do
         collectFromScriptTxn
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
-            (mkTradeRedeemerScript Reclaim)
+            (mkTradeRedeemerValue Reclaim)
             (txId tx)
 ----
 
@@ -467,7 +467,7 @@ buy i c n p1 v2 dl = do
         collectFromScriptTxn
             (intervalFrom $ deadline t)
             (mkTradeValidator t)
-            (mkTradeRedeemerScript Reclaim)
+            (mkTradeRedeemerValue Reclaim)
             (txId tx)
 
 $(mkFunctions ['forge, 'sell, 'buy])

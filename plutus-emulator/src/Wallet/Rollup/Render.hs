@@ -37,8 +37,7 @@ import           Ledger                                (Address, PubKey, Signatu
                                                         txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataScript (getDataScript), Script, ValidatorScript,
-                                                        unValidatorScript)
+import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator, unValidatorScript)
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
                                                         getValue)
 import qualified Ledger.Value                          as Value
@@ -214,10 +213,10 @@ instance Render Script where
         let v = JSON.encodeSerialise script
          in "Script:" <+> pretty (abbreviate 40 v)
 
-instance Render ValidatorScript where
+instance Render Validator where
     render = render . unValidatorScript
 
-instance Render DataScript where
+instance Render DataValue where
     render = render . getDataScript
 
 instance Render a => Render (Set a) where

@@ -56,10 +56,10 @@ validateAdmin (h, i) () () tx =
             == 1
         []      -> False
 
-adminRedeemer :: RedeemerScript
-adminRedeemer = RedeemerScript $ toData ()
+adminRedeemer :: RedeemerValue
+adminRedeemer = RedeemerValue $ toData ()
 
-mkAdminValidator :: Admin -> ValidatorScript
+mkAdminValidator :: Admin -> Validator
 mkAdminValidator = mkValidatorScript
                        . applyCode $$(compile [|| \a -> wrapValidator (validateAdmin a) ||])
                        . liftCode
@@ -118,10 +118,10 @@ validateNonFungible nf () name tx =
     v  = V.singleton s name 1
     v2 = v + v
 
-mkNonFungibleRedeemer :: String -> RedeemerScript
-mkNonFungibleRedeemer name = RedeemerScript $ toData $ TokenName $ C.pack name
+mkNonFungibleRedeemer :: String -> RedeemerValue
+mkNonFungibleRedeemer name = RedeemerValue $ toData $ TokenName $ C.pack name
 
-mkNonFungibleValidator :: NonFungible -> ValidatorScript
+mkNonFungibleValidator :: NonFungible -> Validator
 mkNonFungibleValidator = mkValidatorScript
                        . applyCode $$(compile [|| \nf -> wrapValidator (validateNonFungible nf) ||])
                        . liftCode
@@ -204,8 +204,8 @@ This leads us to use:
 ----
 type EAState = ([(PubKey, Ada)], Bool)
 
-initialEAData :: DataScript
-initialEAData = DataScript $ toData (([], False) :: EAState)
+initialEAData :: DataValue
+initialEAData = DataValue $ toData (([], False) :: EAState)
 ----
 Script `initialEAData` describes the _initial_ state, before any bids have been
 placed.
@@ -368,11 +368,11 @@ arguments and computes the correct data script for the unique script output:
 ----
 updateEAData :: EnglishAuction
              -> EAAction
-             -> DataScript
-             -> Maybe DataScript
-updateEAData ea a (DataScript d) = case fromData d of
+             -> DataValue
+             -> Maybe DataValue
+updateEAData ea a (DataValue d) = case fromData d of
     Just state -> case eaTransit ea state a of
-        Just state' -> Just $ DataScript $ toData state'
+        Just state' -> Just $ DataValue $ toData state'
         Nothing -> Nothing
     Nothing -> Nothing
 ----
@@ -533,7 +533,7 @@ eaStateMachine ea = StateMachine
     , smFinal      = const False
     }
 
-mkEAValidator :: EnglishAuction -> ValidatorScript
+mkEAValidator :: EnglishAuction -> Validator
 mkEAValidator ea = mkValidatorScript $ $$(compile [|| v ||]) `applyCode` liftCode ea
     where v ea' = wrapValidator (mkValidator (eaStateMachine ea'))
 
@@ -545,8 +545,8 @@ The redeemer is just the action.
 
 [source,haskell]
 ----
-mkEARedeemer :: EAAction -> RedeemerScript
-mkEARedeemer a = RedeemerScript $ toData a
+mkEARedeemer :: EAAction -> RedeemerValue
+mkEARedeemer a = RedeemerValue $ toData a
 ----
 
 ////
@@ -611,7 +611,7 @@ start' = do
                     , txForge      = adminValue admin
                     , txValidRange = defaultSlotRange
                     , txSignatures = Map.empty
-                    , txData = Map.singleton (dataScriptHash unitData) unitData
+                    , txData = Map.singleton (dataValueHash unitData) unitData
                     }
                 logMsg $ T.pack $
                     "forging admin token " ++
@@ -691,7 +691,7 @@ forge s n = do
                 , txForge      = v2
                 , txValidRange = defaultSlotRange
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash unitData) unitData
+                , txData = Map.singleton (dataValueHash unitData) unitData
                 }
         _         -> throwError $
                         OtherError $ T.pack "'start' has not run"
@@ -762,7 +762,7 @@ we therefore first write two helper functions that will make this easier:
 withAuctionOutput' :: MonadWallet m
                    => EnglishAuction
                    -> m a                                        -- <1>
-                   -> (TxOutRef -> TxOut -> DataScript -> m a)   -- <2>
+                   -> (TxOutRef -> TxOut -> DataValue -> m a)   -- <2>
                    -> m a
 withAuctionOutput' ea notFound cont = do
     outs <- outputsAt $ eaAddress ea
@@ -801,7 +801,7 @@ withAuctionOutput' ea notFound cont = do
 ----
 withAuctionOutput :: MonadWallet m
                   => EnglishAuction
-                  -> (TxOutRef -> TxOut -> DataScript -> m ())
+                  -> (TxOutRef -> TxOut -> DataValue -> m ())
                   -> m ()
 withAuctionOutput ea =
     withAuctionOutput' ea $ return ()
@@ -836,7 +836,7 @@ bid ea ada = do
                 , txFee        = zero
                 , txValidRange = intervalTo $ eaEndBid ea        -- <6>
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds') ds'
+                , txData = Map.singleton (dataValueHash ds') ds'
                 }
         Nothing -> pure ()
 ----
@@ -895,7 +895,7 @@ claimBid s n b inc e f ada = do
                 , txFee        = zero
                 , txValidRange = intervalFrom $ eaEndBid ea -- <4>
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds') ds'
+                , txData = Map.singleton (dataValueHash ds') ds'
                 }
         Nothing -> pure ()
 ----
@@ -932,7 +932,7 @@ claimToken ea = do
                 , txFee        = zero
                 , txValidRange = intervalFrom $ eaFinish ea  -- <3>
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds') ds'
+                , txData = Map.singleton (dataValueHash ds') ds'
                 }
         Nothing -> pure ()
 ----
@@ -971,7 +971,7 @@ reclaimBid ea ada = do
                 , txFee        = zero
                 , txValidRange = defaultSlotRange            -- <3>
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds') ds'
+                , txData = Map.singleton (dataValueHash ds') ds'
                 }
         Nothing -> pure ()
 ----
@@ -1023,7 +1023,7 @@ reclaimToken s n b inc e f = do
                 , txFee        = zero
                 , txValidRange = intervalFrom $ eaEndBid ea   -- <3>
                 , txSignatures = Map.empty
-                , txData = Map.singleton (dataScriptHash ds') ds'
+                , txData = Map.singleton (dataValueHash ds') ds'
                 }
         Nothing -> pure ()
 ----
@@ -1066,7 +1066,7 @@ trackAuction :: forall m s. MonadWallet m
              -> s                                     -- <1>
              -> (   Slot
                  -> Ada
-                 -> DataScript
+                 -> DataValue
                  -> s
                  -> m (Maybe s))                      -- <2>
              -> m ()
@@ -1207,9 +1207,9 @@ isHighestBidder pk s = case highestBid s of
     Just (pk', _) -> pk == pk'
 
 isHighestBidderM :: MonadWallet m
-                 => DataScript
+                 => DataValue
                  -> m Bool
-isHighestBidderM (DataScript ds) = case fromData ds of
+isHighestBidderM (DataValue ds) = case fromData ds of
     Just s -> do
         pk <- ownPubKey
         return $ isHighestBidder pk s

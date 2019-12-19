@@ -38,8 +38,8 @@ import           Language.PlutusTx.Prelude    hiding (Applicative (..)) -- <.>
 
 import qualified Language.PlutusTx            as PlutusTx -- <.>
 
-import           Ledger                       (Address, DataScript(..), RedeemerScript(..),
-                                               ValidatorScript, mkValidatorScript)
+import           Ledger                       (Address, DataValue(..), RedeemerValue(..),
+                                               Validator, mkValidatorScript)
 import qualified Ledger                       as L -- <.>
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
@@ -97,23 +97,23 @@ newtype ClearText = ClearText ByteString -- <.>
 PlutusTx.makeLift ''HashedText
 PlutusTx.makeLift ''ClearText -- <.>
 
-mkDataScript :: String -> DataScript
-mkDataScript word =
+mkDataValue :: String -> DataValue
+mkDataValue word =
     let hashedWord = sha2_256 (C.pack word)
-    in  DataScript (PlutusTx.toData (HashedText hashedWord)) -- <.>
+    in  DataValue (PlutusTx.toData (HashedText hashedWord)) -- <.>
 
-mkRedeemerScript :: String -> RedeemerScript
-mkRedeemerScript word =
+mkRedeemerValue :: String -> RedeemerValue
+mkRedeemerValue word =
     let clearWord = C.pack word
-    in RedeemerScript (PlutusTx.toData (ClearText clearWord)) -- <.>
+    in RedeemerValue (PlutusTx.toData (ClearText clearWord)) -- <.>
 ----
 <.> To avoid any confusion between cleartext and hash we wrap them in data
 types called `HashedText` and `ClearText`, respectively.
 <.> To enable values of our string types to be lifted to Plutus Core, we
 need to call `makeLift`.
-<.> `mkDataScript` creates a data script for the guessing game by hashing
+<.> `mkDataValue` creates a data script for the guessing game by hashing
 the string and lifting the hash to its on-chain representation.
-<.> `mkRedeemerScript` creates a redeemer script for the guessing game by
+<.> `mkRedeemerValue` creates a redeemer script for the guessing game by
 lifting the string to its on-chain representation.
 
 === The validator script
@@ -166,7 +166,7 @@ Finally, we can compile this into on-chain code.
 [source,haskell]
 ----
 -- | The validator script of the game.
-gameValidator :: ValidatorScript
+gameValidator :: Validator
 gameValidator = mkValidatorScript $$(PlutusTx.compile [|| v ||]) -- <.>
     where v = wrapValidator validator
 ----
@@ -213,7 +213,7 @@ lock word adaValue = W.payToScript_ -- <.>
      W.defaultSlotRange -- <.>
      gameAddress
      (Ada.toValue adaValue) -- <.>
-     (mkDataScript word)
+     (mkDataValue word)
 ----
 <.> `payToScript_` is a function of the wallet API. It makes a payment to a script address
 of the specified value.footnote:[
@@ -237,7 +237,7 @@ guess :: MonadWallet m => String -> m ()
 guess word = W.collectFromScript -- <.>
       W.defaultSlotRange
       gameValidator
-      (mkRedeemerScript word)
+      (mkRedeemerValue word)
 ----
 <.> `collectFromScript` is a function of the wallet API. It consumes the
 unspent transaction outputs at a script address and pays them to a

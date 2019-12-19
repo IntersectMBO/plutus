@@ -29,7 +29,7 @@ import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, DataScript(..), RedeemerScript(..), Slot, TxOutRef, TxIn, ValidatorScript, mkValidatorScript)
+import           Ledger                    (Address, DataValue(..), RedeemerValue(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
@@ -125,7 +125,7 @@ That gives our validator script the signature: `Vesting -> () -> () -> PendingTx
 
 [source,haskell]
 ----
-vestingValidatorScript :: Vesting -> ValidatorScript
+vestingValidatorScript :: Vesting -> Validator
 vestingValidatorScript v = mkValidatorScript $
     $$(PlutusTx.compile [|| \vd -> wrapValidator (vestingValidator vd) ||]) `PlutusTx.applyCode` PlutusTx.liftCode v
 
@@ -191,8 +191,8 @@ vestFunds :: MonadWallet m => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
-        dataScript = DataScript (PlutusTx.toData ())
-    W.payToScript_ W.defaultSlotRange adr amt dataScript
+        dataValue = DataValue (PlutusTx.toData ())
+    W.payToScript_ W.defaultSlotRange adr amt dataValue
 
 registerVestingScheme :: MonadWallet m =>  Vesting -> m ()
 registerVestingScheme vst = WAPI.startWatching (contractAddress vst)
@@ -225,12 +225,12 @@ withdraw vst vl = do
 
     let
         -- the redeemer and data scripts containing the unit value ()
-        redeemer   = RedeemerScript (PlutusTx.toData ())
-        dataScript = DataScript (PlutusTx.toData ())
+        redeemer   = RedeemerValue (PlutusTx.toData ())
+        dataValue = DataValue (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = L.scriptTxIn r validator redeemer dataScript
+        mkIn r = L.scriptTxIn r validator redeemer dataValue
 
         ins = Set.map mkIn (Map.keysSet utxos)
 ----
@@ -257,7 +257,7 @@ that keeps the remaining value.
 
         (otherOutputs, datas) = if Value.isZero remaining
                        then ([], [])
-                       else ([L.scriptTxOut remaining validator dataScript], [dataScript])
+                       else ([L.scriptTxOut remaining validator dataValue], [dataValue])
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs) datas
