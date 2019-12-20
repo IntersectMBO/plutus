@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{11th October 2019}
+\date{20th December 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -117,7 +117,7 @@
 \newcommand{\val}{\mi{value}}  %% \value is already defined
 
 \newcommand{\validator}{\mi{validator}}
-\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\redeemerval}{\mi{redeemerVal}}
 \newcommand{\dataval}{\mi{dataVal}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
@@ -309,11 +309,13 @@ Equality on finitely-supported functions is defined as pointwise equality.
 If the type $M$ is a monoid then we define the sum of two finitely-supported
 functions
 $f, g \in \FinSup{K}{M}$ to be the function $f+g \in \FinSup{K}{M}$ with
-support $\support (f+g) = \support(f) \cup \support(g)$ given by
+support $\support (f+g) \subseteq \support(f) \cup \support(g)$ given by
 \[(f+g)(k) = f(k) + g(k) \]
-Note that the type $\FinSup{K}{M}$ is a monoid with this
-operation, and the empty function as
-identity element.
+Note that the type $\FinSup{K}{M}$ is a monoid with this operation,
+and the empty function as identity element; note also that $\support
+(f+g)$ can be strictly smaller than $\support(f) \cup \support(g)$
+because there may be elements $k \in K$ with $f(k) \ne 0$ and $g(k)
+\ne 0$ but $f(k) + g(k) = 0$.
 
 If the type $M$ is a group, then we can
 similarly define the inverse of a finitely-supported function $f$ as
@@ -321,7 +323,7 @@ the function $(-f)$ with the same support, given by
 \[ (-f)(k) = -f(k) \]
 Again, $\FinSup{K}{M}$ is a group with this operation.
 
-See note~\ref{note:finitely-supported-functions} for discussion of using
+See Note~\ref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
 
 \subsection{The \Data{} type}
@@ -372,10 +374,10 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \item Each unspent output now has an object $\dataval$ of type
   \Data{} associated with it: we call this the output's
-  \textit{data value} (see note~\ref{note:data-values}).
+  \textit{data value} (see Note~\ref{note:data-values}).
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a redeemer object of type \Data{}.
+  replaced with a \textit{redeemer value}  of type \Data{}.
 
 \item Validator scripts make use of information about the pending
   transaction (ie, the transaction which is just about to take place, assuming that
@@ -385,9 +387,9 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 \item Validation of an output is performed by running the validator
   script with three inputs:
   \begin{enumerate}
-  \item the data value,
-  \item the redeemer,
-  \item the \ptx{}, encoded as \Data{}.
+  \item The data value.
+  \item The redeemer value.
+  \item The \ptx{} structure, encoded as \Data{}.
   \end{enumerate}
 
 \end{itemize}
@@ -440,7 +442,7 @@ the ledger.
     \\
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
-               & &\ \redeemer: \Data)\\
+               & &\ \redeemerval: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
@@ -481,7 +483,7 @@ Fig.~\ref{fig:eutxo-1-types-cardano}.
 
 \paragraph{Inputs and outputs. } Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
-note~\ref{note:inputs-and-outputs} for a discussion of why.
+Note~\ref{note:inputs-and-outputs} for a discussion of why.
 
 \paragraph{Scripts.} Note that data values are modelled as components
 of outputs, but validator scripts as components of inputs, even though
@@ -557,7 +559,7 @@ but has the data value for the output in full.\footnote{See
   Note~\ref{note:data-values-in-ptx} for further explanation.}
 The \i{inputInfo} field contains information about the
 inputs to the pending transaction, but provides only the hashes of the
-validator and redeemer scripts for the inputs.  The \i{thisInput}
+validator script and the redeeemer value for the inputs.  The \i{thisInput}
 field is an index pointing to the element of \i{inputInfo}
 relating to the input currently undergoing validation.
 % Note: in the code at the moment, the hashes of the validator
@@ -620,7 +622,7 @@ Fig.~\ref{fig:validation-functions-1} defines some auxiliary functions used in v
 
 \noindent The function $\lookupTx{l}{id}$ looks up the unique transaction
 $T$ whose $\TxId$ is $id$. This can of course fail, but we will assume it does
-not, since rule~\ref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
+not, since Rule~\ref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
 of the transaction inputs refer to existing unspent outputs, and hence that
 looking up the input cannot fail.
 
@@ -628,7 +630,7 @@ We can now define what it means for a transaction $t$ of
 type $\eutxotx$ to be valid for a ledger: see
 Figure~\ref{fig:eutxo-1-validity}.  Our definition combines
 Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
-the latter in rule~\ref{rule:all-inputs-validate}.
+the latter in Rule~\ref{rule:all-inputs-validate}.
 \todokwxm{Check this.}
 
 \begin{ruledfigure}{H}
@@ -675,7 +677,7 @@ the latter in rule~\ref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (\getSpent(i, l).\dataval,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (\getSpent(i, l).\dataval,\, i.\redeemerval,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -699,7 +701,7 @@ $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
 
 In practice, validity imposes a limit on the size of the
-\script{} values of the $\validator$, $\redeemer$ and
+\script{} values of the $\validator$, $\redeemerval$ and
 $\dataval$ fields and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
@@ -772,7 +774,7 @@ currency, as in EUTXO-1.
     \\
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
-                & &\ \redeemer: \Data)\\
+                & &\ \redeemerval: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
@@ -819,7 +821,7 @@ in the native currency, as fees can only be paid in that.
 
 It may be desirable to choose \nativeCur{} outside the range
 of \scriptAddr{}, since this will prevent forging of the native currency
-except in the initial transaction (see rule~\ref{rule:forging-2}).
+except in the initial transaction (see Rule~\ref{rule:forging-2}).
 
 \subsection{The \ptx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
@@ -936,7 +938,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(\getSpent(i,l).\dataval,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(\getSpent(i,l).\dataval,\, i.\redeemerval,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -953,7 +955,7 @@ EUTXO-2: see Figure~\ref{fig:eutxo-2-validity}.
 
 \subsection{Remarks}
 \paragraph{Preservation of value over \qtymap{}s.}
-In rule~\ref{rule:value-is-preserved-2},
+In Rule~\ref{rule:value-is-preserved-2},
 $+$ and $\sum$ operate over \qtymap{}, which is
 a finitely-supported function (which, with their operations,
 are defined in Section~\ref{sec:fsfs}). Preservation of value
@@ -962,10 +964,9 @@ quantities of each of the individual currencies involved in the
 transaction are preserved.
 
 \paragraph{Preservation of value and forging.}
-Recall that values in $\forge$ can
-be negative whereas values in outputs must be non-negative. This allows
-currency to be destroyed as well as created. The
-rule~\ref{rule:value-is-preserved-2} implies that a
+Recall that values in $\forge$ can be negative whereas values in
+outputs must be non-negative. This allows currency to be destroyed as
+well as created. Rule~\ref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
 
@@ -1002,7 +1003,7 @@ support for the finitely-supported function it represents.
 We can compute the support from the weak support by simply checking the function
 at each value and removing those that are zero. This is potentially expensive,
 but we only need to do it when we need the support, which we only do during the
-computation of rule~\ref{rule:value-is-preserved-2}.
+computation of Rule~\ref{rule:value-is-preserved-2}.
 
 Pointwise equality between two finitely-supported functions $f$ and $g$ is
 equivalent to checking pointwise equality only over the union of $\support(f)$
@@ -1029,17 +1030,17 @@ requiring another script to unlock it.  In the basic model, each input
 to a transaction comes with a \i{validator} script which checks that
 the transaction is allowed to spend the output. In order to spend an
 output, the transaction supplies a value, called the
-\i{redeemer}, which provides evidence that the transaction has the
+\i{redeemer value}, which provides evidence that the transaction has the
 authority to do so;\footnote{The validator plays a role similar to
   that of BitCoin's \texttt{scriptPubKey} and the redeemer to
   \texttt{scriptSig}.  } a process called \i{validation} is then
-performed which checks that the redeemer satisfies the conditions
+performed which checks that the redeemer value satisfies the conditions
 required by the validator. Before a transaction can proceed, all inputs
 must be successfully validated: if one or more inputs fails to
 validate then the transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer consists of a signature for the current transaction produced
+redeemer value consists of a signature for the current transaction produced
 using a private key belonging to the owner of the output.  The
 validator (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
@@ -1169,7 +1170,7 @@ defined by some script $H$, and the address $h = \scriptAddr(H)$ is used as the
 identifier of the currency.
 
 Whenever a new quantity of the currency is forged,
-rules~\ref{rule:custom-forge}, \ref{rule:all-inputs-validate-2}, and
+Rules~\ref{rule:custom-forge}, \ref{rule:all-inputs-validate-2}, and
 \ref{rule:validator-scripts-hash-2} imply that $H$ must be executed;
 $H$ is provided with the \forge{} field of the transaction via the
 \ptx{} object, and so it knows how much of the currency is to be
