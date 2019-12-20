@@ -8,3 +8,6 @@
 /.psc-package2nix/
 /.spago/
 /.spago2nix/
+/.cache/
+z3w.js
+z3w.wasm

@@ -2,11 +2,25 @@
 
 ## Getting started
 
+You must build the Z3 WASM and JS components first and copy them to `./z3w.wasm` and `./z3w.js`. TODO: get nix building this.
+
 ```bash
 cd marlowe-playground-client
 $(nix-build -A dev.scripts.updateClientDeps ../default.nix)
 yarn run webpack
 ```
+
+## Development mode
+
+The project has a web worker which we need to build separately so we do:
+```
+yarn worker:dev
+```
+And in another window:
+```
+yarn webpack:server
+```
+We can now visit (https://localhost:8009/)[https://localhost:8009/] and the website will reload every time any code is changed.
 
 ## Adding dependencies
 

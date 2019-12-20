@@ -24,7 +24,13 @@ Z3.onRuntimeInitialized = () => {
     console.log("WASM loaded");
 };
 
-const W = new Worker('worker.[hash].js');
+const Worker = require('output/worker.js');
+const worker = new Worker();
+// const W = new Worker('worker.[hash].js');
+console.log("post message");
+worker.postMessage({ a: 1 });
+worker.postMessage({ a: 1 });
+console.log("posted message");
 
 exports.createInstance = function () {
     return Z3;
