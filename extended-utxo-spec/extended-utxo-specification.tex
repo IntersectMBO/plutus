@@ -500,7 +500,7 @@ The Cardano implementation of EUTXO-1 uses the primitives given in
 \cref{note:inputs-and-outputs} for a discussion of why.
 
 \paragraph{Validator addresses in outputs.} The \textit{addr} field
-of an output should contain the address of the validator for
+of an output should contain the address of the validator script for
 that output: this requirement is enforced in
 \cref{rule:validator-scripts-hash} of
 \cref{fig:eutxo-1-validity} below.
@@ -707,7 +707,7 @@ the latter in \cref{rule:all-inputs-validate}.
 
 \item
   \label{rule:validator-scripts-hash}
-  \textbf{Validators match output addresses}
+  \textbf{Validator scripts match output addresses}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
@@ -971,7 +971,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:validator-scripts-hash-2}
-  \textbf{Validators match output addresses}
+  \textbf{Validator scripts match output addresses}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
@@ -1053,7 +1053,7 @@ output could be spendable by anyone, or by no-one.
 In order to deal with this complexity, an output can be locked by a
 \textit{script}%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec}.}
+  programs~\citep{Plutus-Core-spec}git push.}
 which must be supplied with suitable evidence to unlock the output.
 In the basic model, each input to a transaction comes with a
 \i{validator} script which checks that the transaction is allowed to
@@ -1071,7 +1071,7 @@ transaction is rejected.
 A simple example of this is a \i{pay-to-pubkey} script, where the
 redeemer value consists of a signature for the current transaction produced
 using a private key belonging to the owner of the output.  The
-validator (provided by the owner of the output) would check the
+validator script (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
