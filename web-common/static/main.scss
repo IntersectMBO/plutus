@@ -19,7 +19,7 @@
 @import './node_modules/bootstrap/scss/dropdown';
 @import './node_modules/bootstrap/scss/button-group';
 @import './node_modules/bootstrap/scss/input-group';
-//  @import './node_modules/bootstrap/scss/custom-forms';
+@import './node_modules/bootstrap/scss/custom-forms';
 @import './node_modules/bootstrap/scss/nav';
 @import './node_modules/bootstrap/scss/navbar';
 @import './node_modules/bootstrap/scss/card';
@@ -296,4 +296,19 @@ input.form-control {
 .input-group-append button {
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
+}
+
+#editor {
+    #editor-preferences {
+        text-align: right;
+        background-color: $dark;
+        padding: 5px 0x;
+
+        .custom-select {
+            width: 5rem;
+            color: $white;
+            border-color: $dark;
+            background-color: $gray-800;
+        }
+    }
 }

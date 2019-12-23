@@ -4,7 +4,7 @@ module MainFrameTests
 
 import Prelude
 import Auth (AuthRole(..), AuthStatus(..))
-import Control.Monad.Error.Extra (mapError, mapErrorT)
+import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (class MonadThrow)
 import Control.Monad.RWS.Trans (RWSResult(..), RWST(..), runRWST)
@@ -25,7 +25,7 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
-import Editor (EditorAction(..))
+import Editor as Editor
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
@@ -104,8 +104,8 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorSetContents contents cursor =
     MockApp
       $ assign (_1 <<< _editorContents) (Just contents)
+  editorHandleAction _ = pure unit
   editorSetAnnotations annotations = pure unit
-  editorGotoLine row column = pure unit
   --
   delay time = pure unit
   saveBuffer contents =
@@ -138,7 +138,7 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
 
 execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
 execMockApp world queries = do
-  initialState <- mapErrorT error mkInitialState
+  initialState <- mkInitialState (Editor.Preferences { keyBindings: Editor.Ace })
   RWSResult state result writer <-
     runRWST
       (unwrap (traverse_ handleAction queries :: MockApp m Unit))
@@ -211,7 +211,7 @@ evalTests =
     test "Loading a script works." do
       Tuple finalWorld finalState <-
         ( execMockApp (set _editorContents Nothing mockWorld)
-            [ EditorAction $ LoadScript "Game" ]
+            [ LoadScript "Game" ]
         )
       contractDemos :: Array ContractDemo <- mapError (error <<< show) mkContractDemos
       equal' "Script gets loaded."
@@ -225,7 +225,7 @@ evalTests =
               Tuple _ finalState <-
                 execMockApp (mockWorld { compilationResult = compilationResult })
                   [ ChangeView Simulations
-                  , EditorAction $ LoadScript "Game"
+                  , LoadScript "Game"
                   ]
               equal' "View is reset." Editor $ view _currentView finalState
 

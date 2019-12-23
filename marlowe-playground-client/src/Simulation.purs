@@ -38,7 +38,7 @@ import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, p
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -95,8 +95,10 @@ simulationPane state =
     )
   where
   marloweEditor =
-    aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey)
+    aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey editorPreferences)
       (Just Live)
+
+  editorPreferences = view _editorPreferences state
 
   initialContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
 
