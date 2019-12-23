@@ -4,7 +4,7 @@ module Action
   ) where
 
 import Types
-import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
+import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnLink, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, pullRight, responsiveThird, row, row_, textMuted, validFeedback_, wasValidated)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -20,12 +20,14 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, small, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, br_, button, code_, div, div_, h2_, h3_, hr_, input, label, p_, pre_, small, small_, strong_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChecked, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Properties (InputType(..), checked, class_, classes, disabled, draggable, for, id_, name, placeholder, required, type_, value)
 import Halogen.HTML.Properties as HP
 import Icons (Icon(..), icon)
+import Language.Haskell.Interpreter (CompilationError(..))
+import Language.Haskell.Interpreter as PI
 import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
 import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
@@ -676,20 +678,48 @@ actionsErrorPane error =
   div
     [ class_ $ ClassName "ajax-error" ]
     [ alertDanger_
-        [ text (showPlaygroundError error)
-        , br_
-        , text "Please try again or contact support for assistance."
-        ]
+        ( (div_ <<< pure)
+            <$> (showPlaygroundError error <> [ text "Please try again or contact support for assistance." ])
+        )
     ]
 
 -- | There's a few errors that make sense to display nicely, others should not occur so lets
 -- | not deal with them.
-showPlaygroundError :: PlaygroundError -> String
-showPlaygroundError PlaygroundTimeout = "Evaluation timed out"
+showPlaygroundError :: forall p i. PlaygroundError -> Array (HTML p i)
+showPlaygroundError (CompilationErrors errors) =
+  [ text "Compilation Errors" ]
+    <> (showCompilationError <$> errors)
 
-showPlaygroundError (OtherError error) = error
+showPlaygroundError (InterpreterError (PI.TimeoutError error)) =
+  [ text "Interpreter Timed Out"
+  , code_ [ text error ]
+  ]
 
-showPlaygroundError _ = "Unexpected interpreter error"
+showPlaygroundError (InterpreterError (PI.CompilationErrors errors)) =
+  [ text "Interpreter Errors" ]
+    <> (showCompilationError <$> errors)
+
+showPlaygroundError (RollupError error) =
+  [ text "Error Calculating Final Blockchain State"
+  , code_ [ text error ]
+  ]
+
+showPlaygroundError (OtherError error) =
+  [ text "Unknown Evaluation Error"
+  , code_ [ text error ]
+  ]
+
+showPlaygroundError (JsonDecodingError { expected, decodingError, input }) =
+  [ text "Decoding Error"
+  , code_ [ text $ "Expected: " <> expected ]
+  , code_ [ text $ "Error: " <> decodingError ]
+  , code_ [ text $ "Input: " <> input ]
+  ]
+
+showCompilationError :: forall p i. CompilationError -> HTML p i
+showCompilationError (RawError error) = code_ [ text error ]
+
+showCompilationError (CompilationError { text: errors }) = pre_ [ text (String.joinWith "\n" errors) ]
 
 onIntInput :: forall i r. (Int -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onIntInput f = onValueInput $ map f <<< Int.fromString
