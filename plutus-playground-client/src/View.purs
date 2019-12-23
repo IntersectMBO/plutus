@@ -16,8 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
-import Editor (EditorAction(..), editorPane)
-import Editor as Editor
+import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, br_, button, div, div_, h1, strong_, text)
@@ -36,7 +35,7 @@ render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { currentView, blockchainVisualisationState, contractDemos }) =
+render state@(State { currentView, blockchainVisualisationState, contractDemos, editorPreferences }) =
   div_
     [ bannerMessage
     , div
@@ -54,13 +53,14 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos }
             let
               compilationResult = unwrap <$> view _compilationResult state
             in
-              [ EditorAction
-                  <$> row_
-                      [ col7_ [ Editor.compileButton compilationResult ]
-                      , col5_ [ contractDemosPane contractDemos ]
-                      ]
+              [ row_
+                  [ col7_ [ compileButton CompileProgram compilationResult ]
+                  , col5_ [ contractDemosPane contractDemos ]
+                  ]
               , br_
-              , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey compilationResult
+              , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
+              , compileButton CompileProgram compilationResult
+              , mapComponent EditorAction $ editorFeedback compilationResult
               , case compilationResult of
                   Failure error -> ajaxErrorPane error
                   _ -> empty
@@ -117,13 +117,13 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos }
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-contractDemosPane :: forall p. Array ContractDemo -> HTML p EditorAction
+contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
 contractDemosPane contractDemos =
   div [ id_ "demos" ]
     ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> contractDemos)
     )
 
-demoScriptButton :: forall p. ContractDemo -> HTML p EditorAction
+demoScriptButton :: forall p. ContractDemo -> HTML p HAction
 demoScriptButton (ContractDemo { contractDemoName }) =
   button
     [ classes [ btn, btnInfo, btnSmall ]

@@ -11,6 +11,7 @@ import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
+import Editor as Editor
 import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Semantics (AccountId(..), Ada(..), ChoiceId(..), Contract(..), Input(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
@@ -42,9 +43,10 @@ instance monadAppState :: MonadApp MockApp where
   haskellEditorSetValue _ _ = pure unit
   haskellEditorGetValue = pure Nothing
   haskellEditorSetAnnotations _ = pure unit
-  haskellEditorGotoLine _ _ = pure unit
+  haskellEditorHandleAction _ = pure unit
   marloweEditorSetValue _ _ = pure unit
   marloweEditorGetValue = pure (Just Contracts.escrow)
+  marloweEditorHandleAction _ = pure unit
   marloweEditorSetAnnotations _ = pure unit
   marloweEditorMoveCursorToPosition _ = pure unit
   preventDefault _ = pure unit
@@ -53,10 +55,8 @@ instance monadAppState :: MonadApp MockApp where
     updateContractInStateImpl contract
     annotations <- use (_marloweState <<< _Head <<< _editorErrors)
     marloweEditorSetAnnotations annotations
-  updateState = do
-    -- saveInitialStateImpl
-    wrap $ modifying _currentMarloweState updateStateP
-  saveInitialState = pure unit -- saveInitialStateImpl
+  updateState = wrap $ modifying _currentMarloweState updateStateP
+  saveInitialState = pure unit
   updateMarloweState f = wrap $ modifying _marloweState (extendWith f)
   applyTransactions = wrap $ modifying _marloweState (extendWith updateStateP)
   resetContract = pure unit
@@ -78,6 +78,7 @@ initialState :: FrontendState
 initialState =
   FrontendState
     { view: HaskellEditor
+    , editorPreferences: Editor.Preferences { keyBindings: Editor.Ace }
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked

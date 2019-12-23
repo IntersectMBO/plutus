@@ -367,6 +367,9 @@ formCheck = ClassName "form-check"
 formCheck_ :: forall p i. Array (HTML p i) -> HTML p i
 formCheck_ = div [ class_ formCheck ]
 
+formCheckInline :: ClassName
+formCheckInline = ClassName "form-check-inline"
+
 formCheckInput :: ClassName
 formCheckInput = ClassName "form-check-input"
 
@@ -399,6 +402,9 @@ inputGroupAppend_ = div [ class_ inputGroupAppend ]
 
 inputGroupText :: ClassName
 inputGroupText = ClassName "input-group-text"
+
+customSelect :: ClassName
+customSelect = ClassName "custom-select"
 
 validFeedback :: ClassName
 validFeedback = ClassName "valid-feedback"

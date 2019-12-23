@@ -27,7 +27,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Editor (EditorAction)
+import Editor as Editor
 import Foreign (Foreign)
 import Foreign.Class (encode)
 import Foreign.Generic (encodeJSON)
@@ -185,8 +185,10 @@ data HAction
   -- Tabs.
   | ChangeView View
   -- Editor.
-  | EditorAction EditorAction
+  | EditorAction Editor.Action
+  | CompileProgram
   -- Simulations
+  | LoadScript String
   | AddSimulationSlot
   | SetSimulationSlot Int
   | RemoveSimulationSlot Int
@@ -273,6 +275,7 @@ newtype State
   = State
   { currentView :: View
   , contractDemos :: Array ContractDemo
+  , editorPreferences :: Editor.Preferences
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
@@ -290,6 +293,9 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _contractDemos :: Lens' State (Array ContractDemo)
 _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
+
+_editorPreferences :: Lens' State Editor.Preferences
+_editorPreferences = _Newtype <<< prop (SProxy :: SProxy "editorPreferences")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")

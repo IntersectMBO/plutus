@@ -12,11 +12,10 @@ import Control.Monad.State.Class (class MonadState)
 import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Data.Json.JsonEither (JsonEither)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Editor as Editor
-import Effect (Effect)
 import Effect.Aff (Milliseconds)
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -25,7 +24,6 @@ import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM)
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
-import LocalStorage as LocalStorage
 import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
 import Playground.Server as Server
@@ -42,8 +40,8 @@ class
   Monad m <= MonadApp m where
   editorGetContents :: m (Maybe SourceCode)
   editorSetContents :: SourceCode -> Maybe Int -> m Unit
+  editorHandleAction :: Editor.Action -> m Unit
   editorSetAnnotations :: Array Annotation -> m Unit
-  editorGotoLine :: Int -> Maybe Int -> m Unit
   --
   saveBuffer :: String -> m Unit
   preventDefault :: DragEvent -> m Unit
@@ -94,20 +92,21 @@ instance monadAppHalogenApp ::
   , MonadAff m
   ) =>
   MonadApp (HalogenApp m) where
-  editorGetContents = map SourceCode <$> withEditor AceEditor.getValue
-  editorSetContents (SourceCode contents) cursor = void $ withEditor $ AceEditor.setValue contents cursor
+  editorGetContents = map SourceCode <$> withEditor (liftEffect <<< AceEditor.getValue)
+  editorSetContents (SourceCode contents) cursor = void $ withEditor $ liftEffect <<< AceEditor.setValue contents cursor
+  editorHandleAction action = void $ withEditor $ Editor.handleAction bufferLocalStorageKey action
   editorSetAnnotations annotations =
     void
-      $ withEditor \editor -> do
-          session <- AceEditor.getSession editor
-          Session.setAnnotations annotations session
-  editorGotoLine row column = void $ withEditor $ AceEditor.gotoLine row column (Just true)
+      $ withEditor \editor ->
+          liftEffect do
+            session <- AceEditor.getSession editor
+            Session.setAnnotations annotations session
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   setDropEffect dropEffect event = wrap $ liftEffect $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
   setDataTransferData event mimeType value = wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   delay ms = wrap $ liftAff $ Aff.delay ms
-  saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+  saveBuffer text = wrap $ Editor.saveBuffer bufferLocalStorageKey text
   getOauthStatus = runAjax Server.getOauthStatus
   getGistByGistId gistId = runAjax $ Server.getGistsByGistId gistId
   postEvaluation evaluation = runAjax $ Server.postEvaluate evaluation
@@ -121,14 +120,14 @@ runAjax ::
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
-withEditor :: forall a m. MonadEffect m => (Editor -> Effect a) -> HalogenApp m (Maybe a)
+withEditor :: forall a m. MonadEffect m => (Editor -> m a) -> HalogenApp m (Maybe a)
 withEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
 
 instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   editorGetContents = lift editorGetContents
   editorSetContents contents cursor = lift $ editorSetContents contents cursor
+  editorHandleAction action = lift $ editorHandleAction action
   editorSetAnnotations annotations = lift $ editorSetAnnotations annotations
-  editorGotoLine row column = lift $ editorGotoLine row column
   preventDefault event = lift $ preventDefault event
   setDropEffect dropEffect event = lift $ setDropEffect dropEffect event
   setDataTransferData event mimeType value = lift $ setDataTransferData event mimeType value
