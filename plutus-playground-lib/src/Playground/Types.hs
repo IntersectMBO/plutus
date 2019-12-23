@@ -187,8 +187,6 @@ data FunctionSchema a =
 data PlaygroundError
     = CompilationErrors [CompilationError]
     | InterpreterError HI.InterpreterError
-    | FunctionSchemaError
-    | PlaygroundTimeout
     | RollupError Text
     | OtherError String
     | JsonDecodingError
