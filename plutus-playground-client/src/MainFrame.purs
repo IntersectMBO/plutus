@@ -396,8 +396,8 @@ _details = _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
 handleGistAction PublishGist = do
-  void $ runMaybeT
-    $ do
+  void
+    $ runMaybeT do
         mContents <- lift $ editorGetContents
         simulations <- use _simulations
         newGist <- hoistMaybe $ mkNewGist { source: mContents, simulations }

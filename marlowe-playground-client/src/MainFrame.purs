@@ -9,6 +9,7 @@ import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped, map, void, when)
 import Control.Monad.Except (runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
@@ -32,7 +33,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Gist (gistFileContent, gistId)
+import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..), gistControls, parseGistUrl)
 import Halogen (Component, ComponentHTML)
 import Halogen as H
@@ -389,20 +390,21 @@ handleHaskellEditorAction CompileProgram = do
 handleHaskellEditorAction (ScrollTo { row, column }) = haskellEditorGotoLine row (Just column)
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
-handleGistAction PublishGist = do
-  mContents <- haskellEditorGetValue
-  case mkNewGist (SourceCode <$> mContents) of
-    Nothing -> pure unit
-    Just newGist -> do
-      mGist <- use _createGistResult
-      assign _createGistResult Loading
-      newResult <- case preview (_Success <<< gistId) mGist of
-        Nothing -> postGist newGist
-        Just gistId -> patchGistByGistId newGist gistId
-      assign _createGistResult newResult
-      case preview (_Success <<< gistId) newResult of
-        Nothing -> pure unit
-        Just gistId -> assign _gistUrl (Just (unwrap gistId))
+handleGistAction PublishGist =
+  void
+    $ runMaybeT do
+        mContents <- lift haskellEditorGetValue
+        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> mContents)
+        mGist <- use _createGistResult
+        assign _createGistResult Loading
+        newResult <-
+          lift
+            $ case preview (_Success <<< gistId) mGist of
+                Nothing -> postGist newGist
+                Just gistId -> patchGistByGistId newGist gistId
+        assign _createGistResult newResult
+        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
+        assign _gistUrl (Just gistId)
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
