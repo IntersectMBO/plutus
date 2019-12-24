@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.PlutusTx.Plugin (plugin, plc) where
+module Language.PlutusTx.Plugin (mkCompiledCode, plugin, plc) where
 
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Compiler.Builtins
@@ -25,6 +25,10 @@ import           Language.PlutusTx.Utils
 import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
+import qualified LoadIface                              as GHC
+import qualified TcRnMonad                              as GHC
+import qualified Finder                                 as GHC
+import qualified OccName                                as GHCO
 
 import qualified Language.PlutusCore                    as PLC
 import qualified Language.PlutusCore.Constant.Dynamic   as PLC
@@ -43,6 +47,8 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 
+import           Data.Char (isDigit)
+import           Data.List (intercalate)
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
@@ -146,7 +152,96 @@ with this, since you can't really specify a polymorphic type in a type applicati
 -}
 
 getMarkerName :: GHC.CoreM (Maybe GHC.Name)
-getMarkerName = GHC.thNameToGhcName 'plc
+getMarkerName = thNameToGhcName 'plc
+
+loadName_maybe :: String -> GHC.ModuleName -> GHC.NameSpace -> String -> GHC.CoreM (Maybe GHC.Name)
+loadName_maybe pkg mod_name namespace occ = do
+  hsc_env <- GHC.getHscEnv
+  liftIO $ fmap (fmap fst) (lookupRdrNameInModule hsc_env
+                                           (GHC.mkFastString pkg)
+                                           mod_name
+                                           (GHC.mkUnqual namespace $ GHC.mkFastString occ))
+
+loadNameOrFail :: String -> GHC.ModuleName -> GHC.NameSpace -> String -> GHC.CoreM GHC.Name
+loadNameOrFail pkg mod_name namespace occ = do
+  mb_name <- loadName_maybe pkg mod_name namespace occ
+  case mb_name of
+    Just ghc_name -> pure ghc_name
+    _             -> failCompilation $ "could not load name: " ++
+                                       pkg ++
+                                       ":" ++
+                                       GHC.moduleNameString mod_name ++
+                                       "." ++
+                                       occ
+
+lookupRdrNameInModule :: GHC.HscEnv -> GHC.FastString -> GHC.ModuleName
+                      -> GHC.RdrName -> IO (Maybe (GHC.Name, GHC.ModIface))
+lookupRdrNameInModule hsc_env pkg mod_name rdr_name = do
+    -- First find the package the module resides in by searching exposed packages and home modules
+    -- Fixme: package name completely removed from query, since name mangling on macOS breaks the lookup
+    found_module0 <- GHC.findExposedPackageModule hsc_env mod_name Nothing {-(Just pkg)-}
+    let found_module = case found_module0 of
+                        (GHC.NotFound _paths _missing_hi [mod_hidden_unit] _pkgs_hidden _unusables _suggs) ->
+                           GHC.Found undefined (GHC.mkModule mod_hidden_unit mod_name)
+                        (GHC.NotFound _paths _missing_hi _mod_hidden_unit [pkg_hidden_unit] _unusables _suggs) ->
+                           GHC.Found undefined (GHC.mkModule pkg_hidden_unit mod_name)
+                        x -> x
+    case found_module of
+        GHC.Found _ mod -> do
+            -- Find the exports of the module
+            (_, mb_iface) <- GHC.initTcInteractive hsc_env $
+                             GHC.initIfaceTcRn $
+                             GHC.loadPluginInterface doc mod -- fixme is loadPluginInterface correct?
+            case mb_iface of
+                Just iface -> do
+                    -- Try and find the required name in the exports
+                    let decl_spec = GHC.ImpDeclSpec { GHC.is_mod = mod_name, GHC.is_as = mod_name
+                                                , GHC.is_qual = False, GHC.is_dloc = GHC.noSrcSpan }
+                        imp_spec = GHC.ImpSpec decl_spec GHC.ImpAll
+                        env = GHC.mkGlobalRdrEnv (GHC.gresFromAvails (Just imp_spec) (GHC.mi_exports iface))
+                    case GHC.lookupGRE_RdrName rdr_name env of
+                        [gre] -> return (Just (GHC.gre_name gre, iface))
+                        []    -> return Nothing
+                        _     -> GHC.panic "lookupRdrNameInModule"
+
+                Nothing -> throwCmdLineErrorS dflags $ GHC.hsep [GHC.text "Could not determine the exports of the module", GHC.ppr mod_name]
+        err -> throwCmdLineErrorS dflags $ GHC.cannotFindModule dflags mod_name err
+  where
+    dflags = GHC.hsc_dflags hsc_env
+    doc = GHC.text "contains a name used in an invocation of lookupRdrNameInModule"
+
+
+throwCmdLineErrorS :: GHC.DynFlags -> GHC.SDoc -> IO a
+throwCmdLineErrorS dflags = throwCmdLineError . GHC.showSDoc dflags
+
+throwCmdLineError :: String -> IO a
+throwCmdLineError = GHC.throwGhcExceptionIO . GHC.CmdLineError
+
+-- | Get the 'GHC.Name' corresponding to the given 'TH.Name'
+--
+-- We cannot use 'GHC.thNameToGhcName' here, because the Template Haskell
+-- names refer to the packages used for building the plugin.
+--
+-- When we're cross compiling, these are different from the ones we actually
+-- need.
+--
+-- Instead we drop the package key and version and use GHC's 'Finder' to
+-- locate the names.
+thNameToGhcName :: TH.Name -> GHC.CoreM (Maybe GHC.Name)
+thNameToGhcName name =
+  case name of
+    (TH.Name (TH.OccName occ) flav) -> do
+      case flav of
+        TH.NameG nameSpace (TH.PkgName pkg) (TH.ModName mod_name) -> do
+          let real_pkg = dropVersion pkg
+              ghc_ns = case nameSpace of
+                         TH.VarName -> GHCO.varName
+                         TH.DataName -> GHCO.dataName
+                         TH.TcClsName -> GHCO.tcClsName
+          ghcName <- loadNameOrFail real_pkg (GHC.mkModuleName mod_name) ghc_ns occ
+          thing <- GHC.lookupThing ghcName
+          pure (Just ghcName)
+        _ -> pure Nothing
 
 messagePrefix :: String
 messagePrefix = "GHC Core to PLC plugin"
@@ -161,7 +256,7 @@ failCompilationSDoc message sdoc = liftIO $ GHC.throwGhcExceptionIO $ GHC.PprPro
 -- we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> GHC.CoreM GHC.Name
 thNameToGhcNameOrFail name = do
-    maybeName <- GHC.thNameToGhcName name
+    maybeName <- thNameToGhcName name
     case maybeName of
         Just n  -> pure n
         Nothing -> failCompilation $ "Unable to get Core name needed for the plugin to function: " ++ show name
@@ -205,6 +300,14 @@ makePrimitiveNameInfo names = do
         thing <- GHC.lookupThing ghcName
         pure (name, thing)
     pure $ Map.fromList infos
+
+dropVersion :: String -> String
+dropVersion pkg = intercalate "-" (mkParts pkg)
+    where mkParts xs =
+            let (a,b) = break (=='-') xs
+            in if all (\x -> isDigit x || x == '.') a
+                then []
+                else a : mkParts (drop 1 b)
 
 -- | Strips all enclosing 'GHC.Tick's off an expression.
 stripTicks :: GHC.CoreExpr -> GHC.CoreExpr

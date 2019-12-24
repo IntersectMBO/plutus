@@ -121,6 +121,9 @@ library plutus-tx-compiler
         th-abstraction <0.3.0.0,
         text -any,
         transformers -any
+    if impl(ghcjs) || os(ghcjs)
+        build-depends:
+            plutus-ghc-stub
 
 test-suite plutus-tx-tests
     type: exitcode-stdio-1.0
