@@ -153,7 +153,7 @@ A related issue here is that CBOR serialisation does not preserve sharing.  In t
 ## Conclusions on types and Merklisation
 Our ASTs contain a lot of type information: the earlier table shows that typically 70% or more of the nodes in an AST are accounted for by types.  The table in https://github.com/input-output-hk/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md shows that a great deal of space can be saved if we use an untyped representation.  
 
-It might be hoped that Merklisation would enable us to retain types for on-chain code but reduce sizes.  The figures above suggest quite strongly that this is not the case.  Note that we still haven't yet said anything about Merklising away unused code, but even when we do this the problems above will still persist: types will still account for the majority of remaining AST nodes, and indiscriminate Merklisation of types won't help to reduce sizes much.
+It might be hoped that Merklisation would enable us to retain types for on-chain code but reduce sizes.  The figures above suggest quite strongly that this is not the case.  We haven't yet said anything about Merklising away unused code, but even when we do this the problems above will still persist: types will still account for the majority of remaining AST nodes, and indiscriminate Merklisation of types won't help to reduce sizes much.
 
 There are at least four possible ways to deal with this.
   * Discard types entirely. This saves a great deal of space.
