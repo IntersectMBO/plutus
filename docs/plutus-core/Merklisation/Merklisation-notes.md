@@ -97,7 +97,7 @@ The following table shows what happens if we Merklise all of the types in the va
 | Vesting | 29504 | 21145 | 186134 (100.0%) | 180601 (97.0%) | 
 | (Compressed) | | | 33782 (18.1%) | 62796 (33.7%) |
 
-We see that Merklising all of the types in general doesn't save much space.  This is because types are generally quite small (see below) and replacing them all with 32-byte hashes doesn't save a lot of space.  Note also that after Merklisation the serialised code becomes much less compressible: this is because we replace the fairly simple structured AST representations of types with incompressible hashes.
+We see that Merklising all of the types in general doesn't save much space.  This is because types are generally quite small (see below) and replacing them all with 32-byte hashes doesn't do a lot of good.  Note also that after Merklisation the serialised code becomes much less compressible: this is because we replace the fairly simple structured AST representations of types with incompressible hashes.
 
 
 ### Distribution of types sizes
