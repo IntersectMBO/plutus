@@ -17,7 +17,7 @@ For each AST node `N` we can produce a hash `M#(N)` as follows:
   * Take some unique bytestring identifying the type of the node (for example, serialise the name of the constructor).  This is required in case two different types of node have the same structure but different functions.
   * Serialise all of the contents of the node into bytestrings.
   * Recursively calculate `M#(S)` for every child `S` of `N` and serialise these hashes to obtain bytestrings.
-  * Concatenate all of these bytestrings and take a cryptographic hash of the result (in my experimental implementation I've used SHA256 for this, giving 512-bit/32-byte hashes).
+  * Concatenate all of these bytestrings and take a cryptographic hash of the result (in my experimental implementation I've used SHA-256 for this, giving 512-bit/32-byte hashes).
 
 This produces a Merkle root which will identify a Plutus Core AST uniquely, modulo the usual assumptions about cryptographic hash functions. 
 
@@ -55,8 +55,8 @@ This suggests that Merkle hashing is typically 9-11 times more expensive than ou
 
 #### Objections to Merkle hashes
 
-  * As seen above, calculating the Merkle hash of an AST is quite expensive.  It requires repeated calculation of SHA256 hashes, which are computationally expensive.
-  * For the addresses of scripts, we currently use a SHA256 digest of their serialised form.  This will not be the same for an AST and a version where some nodes are Merklised away.  We'd probably need to need to start using expensive Merkle hashes for contract addresses instead, which would be quite a big change.
+  * As seen above, calculating the Merkle hash of an AST is quite expensive.  It requires repeated calculation of SHA-256 hashes, which are computationally expensive.
+  * For the addresses of scripts, we currently use a SHA-256 digest of their serialised form.  This will not be the same for an AST and a version where some nodes are Merklised away.  We'd probably need to need to start using expensive Merkle hashes for contract addresses instead, which would be quite a big change.
   * Why bother?  Can't we just take an AST with some missing nodes and compare it with the known full AST?  Maybe this would require more on-chain storage.
 
 #### Security
