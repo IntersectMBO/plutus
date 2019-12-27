@@ -150,7 +150,7 @@ The preponderance of small types explains the shapes of the histograms above.
 A related issue here is that CBOR serialisation does not preserve sharing.  In the GHC heap an AST may contain multiple pointers to the same type object, but when the AST is serialised the structure will be flattened out and the output will contain multiple occurrences of the serialised type (this probably partially explains why the amenability of the CBOR to compression).  When the CBOR is deserialised on-chain we will get multiple copies of the types in the heap.  One way to avoid this would be to intern types in a separate table and have references to this table in the AST; this would probably reduce the size of the AST substantially.
 
 
-### Conclusions on Merklising types.
+## Conclusions on types and Merklisation
 Our ASTs contain a lot of type information: the earlier table shows that typically 70% or more of the nodes in an AST are accounted for by types.  The table in https://github.com/input-output-hk/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md shows that a great deal of space can be saved if we use an untyped representation.  
 
 It might be hoped that Merklisation would enable us to retain types for on-chain code but reduce sizes.  The figures above suggest quite strongly that this is not the case.  Note that we still haven't yet said anything about Merklising away unused code, but even when we do this the problems above will still persist: types will still account for the majority of remaining AST nodes, and indiscriminate Merklisation of types won't help to reduce sizes much.
