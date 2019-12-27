@@ -114,14 +114,15 @@ The validator contains 2016 types and kinds, totalling 13634 nodes. The
 mean number of nodes is 6.76.  The total size of serialised types is
 76242 bytes. 
 
-The mean number of bytes in serialised types is 37.8.  1446 types have
-serialised size <= 32.  This is 72% of the types. The maximum
-serialised type size is 664. The minimum serialised size is 2, and
-276 types are of this size; 158 have length 3, so 22% of the serialised
+The mean number of bytes in serialised types is 37.8, and 72% of the
+types (1446 types) have serialised size <= 32.  The maximum
+serialised type size is 664. The minimum serialised size is 2, and 276
+types are of this size; 158 have length 3, so 22% of the serialised
 types have length 2 or 3.
 
 #### MultiSigStateMachine
-The distribution of type sizes is shown in the two histograms below.
+The distribution of type sizes is shown in the two histograms below; again,
+the majority of the types are small.
 
 
 ![](./multisigsm-nodes.png)
@@ -132,10 +133,10 @@ The `MultiSigStateMachine` validator contains 3750 types and kinds, totalling 23
 nodes.  The mean number of nodes is 6.14.  The total size of serialised
 types is 126034 bytes.
 
-The mean number of bytes in serialised types is 33.6.  2808 types have
-serialised size <= 32.  This is 75% of the types. The maximum
-serialised type size is 661. The minimum serialised size is 2, and
-417 types are of this size; 683 have length 3, so 30% of the serialised
+The mean number of bytes in serialised types is 33.6, and 75% of the
+types (2808 types) have serialised size <= 32.  The maximum
+serialised type size is 661. The minimum serialised size is 2, and 417
+types are of this size; 683 have length 3, so 30% of the serialised
 types have length 2 or 3.
 
 #### Duplicated types
