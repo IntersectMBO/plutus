@@ -1,9 +1,6 @@
-# plutus-merklisation
+# plutus-core
 
-This directory contains the results of some experiments involving type erasure
-and Merklisation for Plutus Core abstract syntax trees.
+This directory contains some documentation related to Plutus Core.
 
-  * [Erasure-merklisation.md](./Erasure-Merklisation.md): Statistics
-    and comments on type erasure in PLC ASTs for validator code from our use cases.
+  * [Merklisation](./Merklisation): experiments on Merklised abstract syntax trees for Plutus Core
 
-  * [ast-analysis.md](./ast-analysis.md): Some basic statistics for validator  ASTs for our use cases.
