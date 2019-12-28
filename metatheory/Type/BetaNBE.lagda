@@ -26,7 +26,7 @@ either neutral or Kripke functions
 \begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
-Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ String × ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
+Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
 We can embed neutral terms into values at any kind using reflect.
@@ -53,7 +53,7 @@ Renaming for values
 renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
 renVal {*}     ψ n        = renNf ψ n
 renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
-renVal {σ ⇒ τ} ψ (inj₂ (x , f)) = inj₂ (x , λ ρ' →  f (ρ' ∘ ψ))
+renVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ λ ρ' →  f (ρ' ∘ ψ)
 \end{code}
 
 Weakening for values
@@ -69,7 +69,7 @@ Reify takes a value and yields a normal form.
 reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
 reify {*}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
-reify {σ ⇒ τ} (inj₂ (x , f))  = ƛ x (reify (f S fresh)) -- has a name been lost here?
+reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh)) -- has a name been lost here?
 \end{code}
 
 An environment is a mapping from variables to values
@@ -112,7 +112,7 @@ renaming.
 \begin{code}
 _·V_ : ∀{Φ K J} → Val Φ (K ⇒ J) → Val Φ K → Val Φ J
 inj₁ n ·V v = reflect (n · reify v)
-inj₂ (_ , f) ·V v = f id v
+inj₂ f ·V v = f id v
 \end{code}
 
 Evaluation a term in an environment yields a value. The most
@@ -124,9 +124,9 @@ reifying.
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
 eval (` α)       η = η α
-eval (Π x B)     η = Π x (reify (eval B (exte η)))
+eval (Π B)       η = Π (reify (eval B (exte η)))
 eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
-eval (ƛ x B)     η = inj₂ (x , λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v))
+eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
 eval (A · B)     η = eval A η ·V eval B η
 eval μ1          η = inj₁ μ1
 eval (con tcn)   η = con tcn
