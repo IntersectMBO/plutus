@@ -91,8 +91,8 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
         Nothing -> WAPI.throwOtherError "Invalid transition"
     let redeemer :: Scripts.RedeemerType (SM.StateMachine s i)
         redeemer = input
-        dataScript :: Scripts.DataType (SM.StateMachine s i)
-        dataScript = newState
+        dataValue :: Scripts.DataType (SM.StateMachine s i)
+        dataValue = newState
 
     -- TODO: This needs to check that all the inputs have exactly the state we specify as the argument here,
     -- otherwise you can poison the contract by adding a state machine output that's not in the same state.
@@ -100,7 +100,7 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
     -- would fail.
     typedIns <- WAPITyped.spendScriptOutputs si redeemer
     let totalVal = foldMap Typed.txInValue typedIns
-        output = Typed.makeTypedScriptTxOut si dataScript (valueAllocator totalVal)
+        output = Typed.makeTypedScriptTxOut si dataValue (valueAllocator totalVal)
         txWithOuts = Typed.addTypedTxOut output Typed.baseTx
         fullTx :: Typed.TypedTxSomeIns '[SM.StateMachine s i]
         fullTx = Typed.addManyTypedTxIns typedIns txWithOuts

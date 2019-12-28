@@ -118,6 +118,7 @@ playgroundDecode expected input =
                  {expected, input = BSL.unpack input, decodingError = err}) $
     eitherDecode input
 
+-- | Evaluate a JSON payload from the Playground frontend against a given contract schema.
 stage ::
        forall s a.
        (ContractRow s, HasBlockchainActions s, Forall (Input s) FromJSON)

@@ -39,9 +39,9 @@ module Tutorial.WalletAPI where
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as I
-import           Ledger                       (Address, DataScript(..), PubKey(..),
-                                               RedeemerScript(..), Slot(..),
-                                               TxId, ValidatorScript, mkValidatorScript)
+import           Ledger                       (Address, DataValue(..), PubKey(..),
+                                               RedeemerValue(..), Slot(..),
+                                               TxId, Validator, mkValidatorScript)
 import qualified Ledger                       as L
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Ada                   (Ada)
@@ -146,7 +146,7 @@ the addresses through some other mechanism.
 === The validator script
 
 The general form of a validator script is
-`Data -> RedeemerScript -> PendingTx -> Bool`. The types of data
+`Data -> RedeemerValue -> PendingTx -> Bool`. The types of data
 and redeemer scripts are `Contributor` and `CampaignAction`,
 respectively, so the signature of the validator script is:
 
@@ -170,7 +170,7 @@ which we do in `mkValidator`.
 
 [source,haskell]
 ----
-mkValidator :: Campaign -> ValidatorScript
+mkValidator :: Campaign -> Validator
 mkValidator campaign = mkValidatorScript $
   $$(PlutusTx.compile [|| v ||])
   `PlutusTx.applyCode` -- <1>
@@ -388,18 +388,18 @@ Contributors put their public key in a data script:
 
 [source,haskell]
 ----
-mkDataScript :: PubKey -> DataScript
-mkDataScript pk = DataScript (PlutusTx.toData (Contributor pk))
+mkDataValue :: PubKey -> DataValue
+mkDataValue pk = DataValue (PlutusTx.toData (Contributor pk))
 ----
 
 When we want to spend the contributions we need to provide a
-link:{wallet-api-haddock}/Ledger-Scripts.html#v:RedeemerScript[`RedeemerScript`]
+link:{wallet-api-haddock}/Ledger-Scripts.html#v:RedeemerValue[`RedeemerValue`]
 value. In our case this is just the `CampaignAction`:
 
 [source,haskell]
 ----
-mkRedeemer :: CampaignAction -> RedeemerScript
-mkRedeemer action = RedeemerScript (PlutusTx.toData action)
+mkRedeemer :: CampaignAction -> RedeemerValue
+mkRedeemer action = RedeemerValue (PlutusTx.toData action)
 ----
 
 ==== The `collect` endpoint
@@ -456,9 +456,9 @@ immediately.
 [source,haskell]
 ----
     W.logMsg "Collecting funds"
-    let redeemerScript = mkRedeemer Collect
+    let redeemerValue = mkRedeemer Collect
         range          = W.interval (endDate cmp) (collectionDeadline cmp)
-    W.collectFromScript range (mkValidator cmp) redeemerScript -- <.>
+    W.collectFromScript range (mkValidator cmp) redeemerValue -- <.>
 ----
 <.> To collect the funds we use
 link:{wallet-api-haddock}/Wallet-API.html#v:collectFromScript[`collectFromScript`],
@@ -555,10 +555,10 @@ automatically claim a refund if it is possible to do so.
 contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp adaAmount = do
     pk <- W.ownPubKey
-    let dataScript = mkDataScript pk
+    let dataValue = mkDataValue pk
         amount = Ada.toValue adaAmount
 
-    tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataScript -- <.>
+    tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataValue -- <.>
     W.logMsg "Submitted contribution"
 
     let tid = L.txId tx -- <.>

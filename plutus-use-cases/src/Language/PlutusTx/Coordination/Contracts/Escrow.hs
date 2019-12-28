@@ -41,8 +41,8 @@ import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 import qualified Data.Set                       as Set
 import qualified Ledger
-import           Ledger                         (Address, DataScript(..), PubKey, Slot, ValidatorHash, DataScriptHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, ValidatorScript, TxOutTx (..))
+import           Ledger                         (Address, DataValue(..), PubKey, Slot, ValidatorHash, DataValueHash, scriptOutputsAt,
+                                                 txSignedBy, valuePaidTo, interval, TxId, Validator, TxOutTx (..))
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import           Ledger.AddressMap              (values)
@@ -98,9 +98,9 @@ makeClassyPrisms ''EscrowError
 -- called from within another contract, for example during setup (collection of
 -- the initial deposits).
 
--- | Defines where the money should go. Usually we have `d = DataScript` (when
+-- | Defines where the money should go. Usually we have `d = DataValue` (when
 --   defining `EscrowTarget` values in off-chain code). Sometimes we have
---   `d = DataScriptHash` (when checking the hashes in on-chain code)
+--   `d = DataValueHash` (when checking the hashes in on-chain code)
 data EscrowTarget d =
     PubKeyTarget PubKey Value
     | ScriptTarget ValidatorHash d Value
@@ -114,7 +114,7 @@ payToPubKeyTarget = PubKeyTarget
 
 -- | An 'EscrowTarget' that pays the value to a script address, with the
 --   given data script.
-payToScriptTarget :: ValidatorHash -> DataScript -> Value -> EscrowTarget DataScript
+payToScriptTarget :: ValidatorHash -> DataValue -> Value -> EscrowTarget DataValue
 payToScriptTarget = ScriptTarget
 
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
@@ -133,7 +133,7 @@ PlutusTx.makeLift ''EscrowParams
 -- | The total 'Value' that must be paid into the escrow contract
 --   before it can be unlocked
 targetTotal :: EscrowParams d -> Value
-targetTotal = foldl (\vl tgt -> vl + targetValue tgt) mempty . escrowTargets 
+targetTotal = foldl (\vl tgt -> vl + targetValue tgt) mempty . escrowTargets
 
 -- | The 'Value' specified by an 'EscrowTarget'
 targetValue :: EscrowTarget d -> Value
@@ -142,14 +142,14 @@ targetValue = \case
     ScriptTarget _ _ vl -> vl
 
 -- | Create a 'Ledger.TxOut' value for the target
-mkTx :: EscrowTarget DataScript -> UnbalancedTx
+mkTx :: EscrowTarget DataValue -> UnbalancedTx
 mkTx = \case
-    PubKeyTarget pk vl -> 
+    PubKeyTarget pk vl ->
         Tx.payToPubKey vl pk
-    ScriptTarget vs ds vl -> 
-        Tx.payToScript 
+    ScriptTarget vs ds vl ->
+        Tx.payToScript
             vl
-            (Ledger.scriptHashAddress vs) 
+            (Ledger.scriptHashAddress vs)
             ds
 
 data Action = Redeem | Refund
@@ -167,19 +167,19 @@ PlutusTx.makeLift ''Action
 --   the target address is also used as a change address for the spending
 --   transaction, and allowing the target to be exceed prevents outsiders from
 --   poisoning the contract by adding arbitrary outputs to the script address.
-meetsTarget :: PendingTx -> EscrowTarget DataScriptHash -> Bool
+meetsTarget :: PendingTx -> EscrowTarget DataValueHash -> Bool
 meetsTarget ptx = \case
     PubKeyTarget pk vl ->
         valuePaidTo ptx pk `geq` vl
-    ScriptTarget validatorHash dataScript vl ->
+    ScriptTarget validatorHash dataValue vl ->
         case scriptOutputsAt validatorHash ptx of
-            [(dataScript', vl')] -> 
-                traceIfFalseH "dataScript" (dataScript' == dataScript) 
+            [(dataValue', vl')] ->
+                traceIfFalseH "dataValue" (dataValue' == dataValue)
                 && traceIfFalseH "value" (vl' `geq` vl)
             _ -> False
 
 {-# INLINABLE validate #-}
-validate :: EscrowParams DataScriptHash -> PubKey -> Action -> PendingTx -> Bool
+validate :: EscrowParams DataValueHash -> PubKey -> Action -> PendingTx -> Bool
 validate EscrowParams{escrowDeadline, escrowTargets} contributor action ptx@PendingTx{pendingTxValidRange} =
     case action of
         Redeem ->
@@ -194,24 +194,24 @@ instance Scripts.ScriptType Escrow where
     type instance RedeemerType Escrow = Action
     type instance DataType Escrow = PubKey
 
-escrowScript :: EscrowParams DataScript -> ValidatorScript
+escrowScript :: EscrowParams DataValue -> Validator
 escrowScript = Scripts.validatorScript . scriptInstance
 
-scriptInstance :: EscrowParams DataScript -> Scripts.ScriptInstance Escrow
-scriptInstance escrow = go (Haskell.fmap Ledger.dataScriptHash escrow) where
-    go escrow' = 
+scriptInstance :: EscrowParams DataValue -> Scripts.ScriptInstance Escrow
+scriptInstance escrow = go (Haskell.fmap Ledger.dataValueHash escrow) where
+    go escrow' =
         Scripts.validator @Escrow
             ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode escrow')
             $$(PlutusTx.compile [|| wrap ||])
     wrap = Scripts.wrapValidator @PubKey @Action
 
 -- | The address of an escrow contract
-escrowAddress :: EscrowParams DataScript -> Ledger.Address
+escrowAddress :: EscrowParams DataValue -> Ledger.Address
 escrowAddress = Scripts.scriptAddress . scriptInstance
 
-escrowContract 
+escrowContract
     :: (AsEscrowError e, AsContractError e)
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract EscrowSchema e ()
 escrowContract escrow =
     let payAndRefund = do
@@ -230,7 +230,7 @@ payEp
     , HasEndpoint "pay-escrow" Value s
     , AsContractError e
     )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract s e TxId
 payEp escrow = do
     vl <- endpoint @"pay-escrow"
@@ -242,14 +242,14 @@ pay
        , HasOwnPubKey s
        , AsContractError e
        )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -- ^ The escrow contract
     -> Value
     -- ^ How much money to pay in
     -> Contract s e TxId
 pay escrow vl = do
     pk <- ownPubKey
-    let ds = DataScript (PlutusTx.toData pk)
+    let ds = DataValue (PlutusTx.toData pk)
         tx = payToScript vl (escrowAddress escrow) ds
                 & validityRange .~ Ledger.interval 1 (escrowDeadline escrow)
     submitTx tx
@@ -267,7 +267,7 @@ redeemEp
     , AsEscrowError e
     , AsContractError e
     )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract s e RedeemSuccess
 redeemEp escrow = endpoint @"redeem-escrow" >> redeem escrow
 
@@ -281,7 +281,7 @@ redeem
     , AsEscrowError e
     , AsContractError e
     )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract s e RedeemSuccess
 redeem escrow = do
     currentSlot <- awaitSlot 0
@@ -309,7 +309,7 @@ refundEp
     , AsEscrowError e
     , AsContractError e
     )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract s e RefundSuccess
 refundEp escrow = endpoint @"refund-escrow" >> refund escrow
 
@@ -320,12 +320,12 @@ refund
        , AsEscrowError e
        , AsContractError e
        , HasWriteTx s)
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Contract s e RefundSuccess
 refund escrow = do
     pk <- ownPubKey
     unspentOutputs <- utxoAt (escrowAddress escrow)
-    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataScriptHash $ DataScript (PlutusTx.toData pk))
+    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataValueHash $ DataValue (PlutusTx.toData pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 & validityRange .~ from (succ $ escrowDeadline escrow)
     if not . Set.null $ tx' ^. inputs
@@ -344,15 +344,15 @@ payRedeemRefund
        , AsEscrowError e
        , AsContractError e
        )
-    => EscrowParams DataScript
+    => EscrowParams DataValue
     -> Value
     -> Contract s e (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
     -- Pay the value 'vl' into the contract and, at the same time, wait
     -- for the 'targetTotal' of the contract to appear at the address, or
     -- for the 'escrowDeadline' to pass, whichever happens first.
-    (_, outcome) <- both 
-                        (pay params vl) 
+    (_, outcome) <- both
+                        (pay params vl)
                         (awaitSlot (escrowDeadline params) `selectEither` fundsAtAddressGeq (escrowAddress params) (targetTotal params))
     -- If 'outcome' is a 'Right' then the total amount was deposited before the
     -- deadline, and we procedd with 'redeem'. If it's a 'Left', there are not

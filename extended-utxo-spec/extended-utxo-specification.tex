@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{15th November 2019}
+\date{20th December 2019}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -126,9 +126,9 @@
 \newcommand{\val}{\mi{value}}  %% \value is already defined
 
 \newcommand{\validator}{\mi{validator}}
-\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\redeemerVal}{\mi{redeemerVal}}
 \newcommand{\dataVal}{\mi{dataVal}}
-\newcommand{\dataHsh}{\mi{dataHash}}
+\newcommand{\dataHash}{\mi{dataHash}}
 \newcommand{\dataWits}{\mi{dataWitnesses}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
@@ -381,12 +381,13 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   interval.
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a redeemer object of type \Data{}.
+  replaced with a \textit{redeemer value} of type \Data{}.
 
-\item Each unspent output now has a hash $\dataHsh$ of a
-  value of type \Data{} associated with it: we call this the output's
-  \textit{data value hash} (see \cref{note:data-values}). This must
-  be provided in full by the spending input as $\dataVal$, much like the validator.
+\item Each unspent output now has a hash $\dataHash$ of a value of
+  type \Data{} associated with it: we call this the output's
+  \textit{data value hash} (see \cref{note:data-values}). This must be
+  provided in full by the spending input as $\dataVal$, much like the
+  validator.
 
 \item Validator scripts make use of information about the pending
   transaction (ie, the transaction which is just about to take place, assuming that
@@ -394,10 +395,10 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   which we call \ptx{} (see \cref{sec:pendingtx} for its definition).
 
 \item Validation of an output is performed by running the validator
-  script with three inputs:
+  with three inputs:
   \begin{enumerate}
   \item the data value,
-  \item the redeemer,
+  \item the redeemer value,
   \item the \ptx{} information, encoded as \Data{}.
   \end{enumerate}
 
@@ -446,14 +447,14 @@ the ledger.
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
-                & &\ \dataHsh: \DataHash)\\
+                & &\ \dataHash: \DataHash)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
                & &\ \dataVal: \Data,\\
-               & &\ \redeemer: \Data)\\
+               & &\ \redeemerVal: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
@@ -499,12 +500,12 @@ The Cardano implementation of EUTXO-1 uses the primitives given in
 \cref{note:inputs-and-outputs} for a discussion of why.
 
 \paragraph{Validator addresses in outputs.} The \textit{addr} field
-of an output should contain the address of the validator for
+of an output should contain the address of the validator script for
 that output: this requirement is enforced in
 \cref{rule:validator-scripts-hash} of
 \cref{fig:eutxo-1-validity} below.
 
-\paragraph{Scripts and hashes.} Note that data values and validator scripts are
+\paragraph{Scripts and hashes.} Note that data values and validators are
 provided as parts of transaction inputs, even though they are
 \emph{conceptually} part of the output being spent.
 The reasons for this are explained in \cref{note:scripts}.
@@ -536,7 +537,7 @@ to be uniquely identified and retrieved.
 \subsubsection{The \ptx{} type}
 \label{sec:pendingtx}
 Recall from the introduction to \cref{sec:eutxo-1} that when a
-transaction input is being validated, the validator script is supplied
+transaction input is being validated, the validator is supplied
 with an object of type \ptx{} which contains information about the
 pending transaction.  The \ptx{} type for the current version of
 EUTXO-1 is defined in \cref{fig:ptx-1-types}, along with some
@@ -547,7 +548,7 @@ related types.
   \begin{array}{rll}
     \s{OutputInfo } &=&(\val: \qty,\\
                     & &\ \i{validatorHash}: \Address,\\
-                    & &\ \dataHsh: \DataHash)\\
+                    & &\ \dataHash: \DataHash)\\
     \\
     \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
                    & &\ \i{validatorHash}: \Address,\\
@@ -573,20 +574,19 @@ related types.
 
 \subsection{Remarks}
 \paragraph{The contents of \ptx{}.}
-The \ptx{} type is essentially a summary of the information
-contained in the $\eutxotx$ type in
-\cref{fig:eutxo-1-types}. The \fee{}, \forge{}, and
-\i{validityInterval} fields are copied directly from the pending
-transaction.  The \i{outputInfo} field contains information about the
-outputs which will be produced if the pending transaction validates
-successfully: it contains only the address of the relevant validator,
-and the hash of the data value.\footnote{See
-  \cref{note:data-values-in-ptx} for further explanation.}
-The \i{inputInfo} field contains information about the
-inputs to the pending transaction, but provides only the hashes of the
-validator and redeemer scripts for the inputs.  The \i{thisInput}
-field is an index pointing to the element of \i{inputInfo}
-relating to the input currently undergoing validation.
+The \ptx{} type is essentially a summary of the information contained
+in the $\eutxotx$ type in \cref{fig:eutxo-1-types}. The \fee{},
+\forge{}, and \i{validityInterval} fields are copied directly from the
+pending transaction.  The \i{outputInfo} field contains information
+about the outputs which will be produced if the pending transaction
+validates successfully: it contains only the address of the relevant
+validator, and the hash of the data value.\footnote{See
+  \cref{note:data-values-in-ptx} for further explanation.}  The
+\i{inputInfo} field contains information about the inputs to the
+pending transaction, but provides only the hashes of the validators
+and redeemer values for the inputs.  The \i{thisInput} field
+is an index pointing to the element of \i{inputInfo} relating to the
+input currently undergoing validation.
 % Note: in the code at the moment, the hashes of the validator
 % and redeemer scripts in inputInfo are allowed to be absent
 % when we have pubkey inputs.  We're ignoring that special case here.
@@ -702,7 +702,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\dataVal,\, i.\redeemer,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \delta(\tau(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -725,7 +725,7 @@ $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
 In practice, validity imposes a limit on the size of the
-$\validator$ \script{}; the $\redeemer$ and
+$\validator$ \script{}; the $\redeemerVal$ and
 $\dataVal$ \Data{} fields; and the result of $\delta$. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
@@ -792,14 +792,14 @@ currency, as in EUTXO-1.
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
-                 & &\ \dataHsh: \DataHash)\\
+                 & &\ \dataHash: \DataHash)\\
     \\
     \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
                 & &\ \dataVal: \Data,\\
-                & &\ \redeemer: \Data)\\
+                & &\ \redeemerVal: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
@@ -860,7 +860,7 @@ the details are given in \cref{fig:ptx-2-types}.
   \begin{array}{rll}
     \s{OutputInfo}_2\s{ } &=&(\val: \qtymap,\\
                           & &\ \i{validatorHash}: \Address,\\
-                          & &\ \dataHsh: \DataHash)\\
+                          & &\ \dataHash: \DataHash)\\
     \\
     \s{InputInfo}_2\s{ } &=& (\outputref: \s{OutputRef},\\
                          & &\ \i{validatorHash}: \Address,\\
@@ -966,7 +966,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\dataVal,\, i.\redeemer,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \delta_2(\tau_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -1051,25 +1051,27 @@ a certain period of time may have to pass).  At the extremes, an
 output could be spendable by anyone, or by no-one.
 
 In order to deal with this complexity, an output can be locked by a
-\textit{script},%
+\textit{script}%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec} (equivalently, expressions).}
-requiring another script to unlock it.  In the basic model, each input
-to a transaction comes with a \i{validator} script which checks that
-the transaction is allowed to spend the output.  In order to spend an
-output, the transaction supplies a value, called the \i{redeemer},
-which provides evidence that the transaction has the authority to do
-so;\footnote{The validator plays a role similar to that of BitCoin's
-  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.  } a
-process called \i{validation} is then performed which checks that the
-redeemer satisfies the conditions required by the validator.  Before a
-transaction can proceed, all inputs must be successfully validated: if
-one or more inputs fails to validate then the transaction is rejected.
+  programs~\citep{Plutus-Core-spec}git push.}
+which must be supplied with suitable evidence to unlock the output.
+In the basic model, each input to a transaction comes with a
+\i{validator} script which checks that the transaction is allowed to
+spend the output.  In order to spend an output, the transaction
+supplies a value, called the \i{redeemer value}, which provides
+evidence that the transaction has the authority to do so;\footnote{The
+  validator plays a role similar to that of BitCoin's
+  \texttt{scriptPubKey} and the redeemer value to \texttt{scriptSig}.
+} a process called \i{validation} is then performed which checks that
+the redeemer value satisfies the conditions required by the validator.
+Before a transaction can proceed, all inputs must be successfully
+validated: if one or more inputs fails to validate then the
+transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer consists of a signature for the current transaction produced
+redeemer value consists of a signature for the current transaction produced
 using a private key belonging to the owner of the output.  The
-validator (provided by the owner of the output) would check the
+validator script (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
 the private key then validation succeeds, otherwise it fails.  Thus
 the output can only be spent by the owner of the relevant private key
@@ -1091,7 +1093,7 @@ This is for two reasons:
     equal and therefore if we kept them in a \s{Set} one would be lost.
 \end{itemize}
 
-An alternative design would be to include a unique nonce in transaction outputs
+\noindent An alternative design would be to include a unique nonce in transaction outputs
 (effectively: their index in the list), and then we could use this to identify
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
@@ -1124,7 +1126,7 @@ amount covered by the fee then the transaction will fail.
 
 \note{Scripts and Hashes.}
 \label{note:scripts} The spendability of an output is determined by
-its validator script, and thus the validator for an output must be
+its validator, and thus the validator for an output must be
 known at the time when the output is created (a completely new validator
 may be created, or an existing validator may be re-used).
 
@@ -1184,7 +1186,7 @@ later transactions.  See~\cite{Plutus-book} for examples of this.
 \note{Determinism of the validation process.}
 \label{note:validation-determinism} The \ptx{} type is the only
 information about the ``outside world'' available to a validator
-script at the time of validation.  Allowing the validator access to
+at the time of validation.  Allowing the validator access to
 this information gives the EUTXO models a considerable amount of
 power, as can be seen from the example contracts
 in~\cite{Plutus-book}.  However, it is important not to make too much

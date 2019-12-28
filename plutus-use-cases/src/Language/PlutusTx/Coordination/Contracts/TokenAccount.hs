@@ -115,9 +115,9 @@ scriptInstance account =
                 `PlutusTx.applyCode`
                     PlutusTx.liftCode account
 
-    in Scripts.validator @TokenAccount 
+    in Scripts.validator @TokenAccount
         val
-        $$(PlutusTx.compile [|| wrap ||])    
+        $$(PlutusTx.compile [|| wrap ||])
 
 address :: Account -> Address
 address = Scripts.scriptAddress . scriptInstance

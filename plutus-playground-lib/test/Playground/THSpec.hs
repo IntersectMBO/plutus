@@ -1,19 +1,23 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Playground.THSpec where
+module Playground.THSpec
+    ( tests
+    ) where
 
 import           Data.Text        (Text)
 import           Ledger.Value     (Value)
 import           Playground.TH    (mkFunctions, mkSingleFunction)
 import           Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
 import           Schema           (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
-import           Test.Hspec       (Spec, describe, it, shouldBe)
+import           Test.Tasty       (TestTree, testGroup)
+import           Test.Tasty.HUnit (assertEqual, testCase)
 import           Wallet           (MonadWallet)
 
 -- f1..fn are functions that we should be able to generate schemas
@@ -37,32 +41,37 @@ $(mkSingleFunction 'f0)
 
 $(mkFunctions ['f1, 'f2, 'f3, 'f4])
 
-spec :: Spec
-spec =
-    describe "TH" $ do
-        it
-            "f0"
-            (f0Schema `shouldBe`
-             (FunctionSchema (EndpointName "f0") [] :: FunctionSchema FormSchema))
-        it
-            "f1"
-            (f1Schema `shouldBe`
-             (FunctionSchema (EndpointName "f1") [] :: FunctionSchema FormSchema))
-        it
-            "f2"
-            (f2Schema `shouldBe`
-             (FunctionSchema (EndpointName "f2") [FormSchemaString] :: FunctionSchema FormSchema))
-        it
-            "f3"
-            (f3Schema `shouldBe`
-             (FunctionSchema (EndpointName "f3") [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema))
-        it
-            "f4"
-            (f4Schema `shouldBe`
-             (FunctionSchema
-                  (EndpointName "f4")
-                  [ FormSchemaString
-                  , FormSchemaString
-                  , FormSchemaTuple FormSchemaInt FormSchemaInt
-                  , FormSchemaArray FormSchemaString
-                  ] :: FunctionSchema FormSchema))
+tests :: TestTree
+tests =
+    testGroup
+        "TH"
+        [ testCase "Schemas compile as expected" $ do
+              assertEqual
+                  "f0"
+                  f0Schema
+                  (FunctionSchema (EndpointName "f0") [] :: FunctionSchema FormSchema)
+              assertEqual
+                  "f1"
+                  f1Schema
+                  (FunctionSchema (EndpointName "f1") [] :: FunctionSchema FormSchema)
+              assertEqual
+                  "f2"
+                  f2Schema
+                  (FunctionSchema (EndpointName "f2") [FormSchemaString] :: FunctionSchema FormSchema)
+              assertEqual
+                  "f3"
+                  f3Schema
+                  (FunctionSchema
+                       (EndpointName "f3")
+                       [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema)
+              assertEqual
+                  "f4"
+                  f4Schema
+                  (FunctionSchema
+                       (EndpointName "f4")
+                       [ FormSchemaString
+                       , FormSchemaString
+                       , FormSchemaTuple FormSchemaInt FormSchemaInt
+                       , FormSchemaArray FormSchemaString
+                       ] :: FunctionSchema FormSchema)
+        ]

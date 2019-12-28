@@ -124,6 +124,9 @@ colSm12 = ClassName "col-sm-12"
 colMd4 :: ClassName
 colMd4 = ClassName "col-md-4"
 
+colMd5 :: ClassName
+colMd5 = ClassName "col-md-5"
+
 colMd6 :: ClassName
 colMd6 = ClassName "col-md-6"
 
@@ -138,6 +141,9 @@ offset3 = ClassName "offset-3"
 
 offset6 :: ClassName
 offset6 = ClassName "offset-6"
+
+offset7 :: ClassName
+offset7 = ClassName "offset-7"
 
 justifyContentBetween :: ClassName
 justifyContentBetween = ClassName "justify-content-between"

@@ -36,7 +36,7 @@ import           Language.Plutus.Contract     hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.PlutusTx.Prelude    hiding (fold)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Address, Slot(..), PubKey (..), ValidatorScript, unitData)
+import           Ledger                       (Address, Slot(..), PubKey (..), Validator, unitData)
 import qualified Ledger.AddressMap            as AM
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
@@ -140,7 +140,7 @@ instance Scripts.ScriptType Vesting where
     type instance RedeemerType Vesting = ()
     type instance DataType Vesting = ()
 
-vestingScript :: VestingParams -> ValidatorScript
+vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting

@@ -85,11 +85,11 @@ scripts:
 
 [source,haskell]
 ----
-mkRedeemerScript :: CampaignAction -> RedeemerScript
-mkRedeemerScript = RedeemerScript . toData
+mkRedeemerValue :: CampaignAction -> RedeemerValue
+mkRedeemerValue = RedeemerValue . toData
 
-mkDataScript :: PubKey -> DataScript
-mkDataScript = DataScript . toData . Contributor
+mkDataValue :: PubKey -> DataValue
+mkDataValue = DataValue . toData . Contributor
 ----
 
 Let us turn our attention to the validator script now! As in the last example,
@@ -221,7 +221,7 @@ parameters.
 
 [source,haskell]
 ----
-mkValidator :: Campaign -> ValidatorScript
+mkValidator :: Campaign -> Validator
 mkValidator campaign = mkValidatorScript $
     $$(compile [|| v ||]) `applyCode` liftCode campaign
     where v c = wrapValidator (validate c)
@@ -273,7 +273,7 @@ startCampaign ft ed cd = do
         collectFromScript
             (collectionRange campaign)
             (mkValidator campaign)
-            (mkRedeemerScript Collect)                      -- <3>
+            (mkRedeemerValue Collect)                      -- <3>
 ----
 
 <1> Has the funding target been reached?
@@ -295,7 +295,7 @@ contribute campaign ada = do
         defaultSlotRange
         (campaignAddress campaign)
         (toValue ada)
-        (mkDataScript key)
+        (mkDataValue key)
     registerOnce trigger (handler tx)
   where
     range :: SlotRange
@@ -315,7 +315,7 @@ contribute campaign ada = do
         collectFromScriptTxn                                     -- <5>
             range
             (mkValidator campaign)
-            (mkRedeemerScript Refund)                            -- <6>
+            (mkRedeemerValue Refund)                            -- <6>
             tid
 
 $(mkFunctions ['startCampaign, 'contribute])

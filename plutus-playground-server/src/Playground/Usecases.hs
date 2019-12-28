@@ -30,7 +30,7 @@ errorHandling =
 
 crowdFunding :: SourceCode
 crowdFunding =
-    process $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)
+    process $(makeRelativeToProject "usecases/Crowdfunding.hs" >>= embedFile)
 
 starter :: SourceCode
 starter = process $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)

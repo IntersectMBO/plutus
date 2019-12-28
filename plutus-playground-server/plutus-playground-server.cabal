@@ -13,7 +13,7 @@ description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
 build-type: Simple
 data-files:
-    usecases/CrowdFunding.hs
+    usecases/Crowdfunding.hs
     usecases/ErrorHandling.hs
     usecases/Game.hs
     usecases/Vesting.hs
@@ -35,8 +35,8 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-        CrowdFunding
-        CrowdFundingSimulations
+        Crowdfunding
+        CrowdfundingSimulations
         ErrorHandling
         ErrorHandlingSimulations
         Game
@@ -100,8 +100,8 @@ library
 library plutus-playground-usecases
     hs-source-dirs: usecases
     other-modules:
-        CrowdFunding
-        CrowdFundingSimulations
+        Crowdfunding
+        CrowdfundingSimulations
         ErrorHandling
         ErrorHandlingSimulations
         Game
@@ -125,7 +125,6 @@ library plutus-playground-usecases
         lens -any,
         bytestring -any,
         containers -any,
-        hspec -any,
         insert-ordered-containers -any,
         iots-export -any,
         mtl -any,
@@ -152,8 +151,8 @@ executable plutus-playground-server
         Webserver
         Types
         PSGenerator
-        CrowdFunding
-        CrowdFundingSimulations
+        Crowdfunding
+        CrowdfundingSimulations
         ErrorHandling
         ErrorHandlingSimulations
         Game
@@ -241,6 +240,8 @@ test-suite plutus-playground-server-test
         plutus-wallet-api -any,
         plutus-playground-usecases -any,
         plutus-emulator -any,
+        tasty -any,
+        tasty-hunit -any,
         text -any,
         time-units -any,
         transformers -any,

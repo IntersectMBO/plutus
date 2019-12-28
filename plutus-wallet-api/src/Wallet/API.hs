@@ -192,45 +192,45 @@ signTxn tx = do
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
-payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScript)] -> m Tx
+payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
-        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (dataScriptHash ds))) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (dataValueHash ds))) ins
         datas        = fmap (\(_, _, d) -> d) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
 
 -- | Transfer some funds to a number of script addresses.
-payToScripts_ :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScript)] -> m ()
+payToScripts_ :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m ()
 payToScripts_ range = void . payToScripts range
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m Tx
+payToScript :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
 payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
-payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataScript -> m ()
+payToScript_ :: (Monad m, WalletAPI m) => SlotRange -> Address -> Value -> DataValue -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
 getScriptInputs
     :: AddressMap
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> [(TxIn, Value)]
 getScriptInputs = getScriptInputsFilter (\_ _ -> True)
 
 getScriptInputsFilter
     :: (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> [(TxIn, Value)]
 getScriptInputsFilter flt am vls red =
     let utxo    = fromMaybe Map.empty $ am ^. at (scriptAddress vls)
         ourUtxo = Map.filterWithKey flt utxo
-        mkIn :: TxOutRef -> DataScript -> TxIn
+        mkIn :: TxOutRef -> DataValue -> TxIn
         mkIn ref = scriptTxIn ref vls red
         inputs =
             fmap (\(ref, dat, val) -> (mkIn ref dat, val)) $
@@ -238,15 +238,15 @@ getScriptInputsFilter flt am vls red =
             Map.toList ourUtxo
     in inputs
 
-spendScriptOutputs :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> m [(TxIn, Value)]
+spendScriptOutputs :: (Monad m, WalletAPI m) => Validator -> RedeemerValue -> m [(TxIn, Value)]
 spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
 
 -- | Take all known outputs at an 'Address' and spend them using the
 --   validator and redeemer scripts.
 spendScriptOutputsFilter :: (Monad m, WalletAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> m [(TxIn, Value)]
 spendScriptOutputsFilter flt vls red = do
     am <- watchedAddresses
@@ -254,31 +254,31 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (WalletDiagnostics m, WalletAPI m) => SlotRange -> ValidatorScript -> RedeemerScript -> m ()
+collectFromScript :: (WalletDiagnostics m, WalletAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
--- | Given the pay to script address of the 'ValidatorScript', collect from it
+-- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
---   'RedeemerScript'.
+--   'RedeemerValue'.
 collectFromScriptTxn ::
     (WalletAPI m, WalletDiagnostics m)
     => SlotRange
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> TxId
     -> m ()
 collectFromScriptTxn range vls red txid =
     let flt k _ = txid == Ledger.txOutRefId k in
     collectFromScriptFilter flt range vls red
 
--- | Given the pay to script address of the 'ValidatorScript', collect from it
---   all the outputs that match a predicate, using the 'RedeemerScript'.
+-- | Given the pay to script address of the 'Validator', collect from it
+--   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
     (WalletAPI m, WalletDiagnostics m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
-    -> ValidatorScript
-    -> RedeemerScript
+    -> Validator
+    -> RedeemerValue
     -> m ()
 collectFromScriptFilter flt range vls red = do
     inputsWithValues <- spendScriptOutputsFilter flt vls red
@@ -318,7 +318,7 @@ createTxAndSubmit ::
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
-    -> [DataScript]
+    -> [DataValue]
     -> m Tx
 createTxAndSubmit range ins outs datas = do
     let tx = Tx
@@ -328,7 +328,7 @@ createTxAndSubmit range ins outs datas = do
             , txFee = 0
             , txValidRange = range
             , txSignatures = Map.empty
-            , txData = Map.fromList $ fmap (\ds -> (dataScriptHash ds, ds)) datas
+            , txData = Map.fromList $ fmap (\ds -> (dataValueHash ds, ds)) datas
             }
     signTxAndSubmit $ tx { txFee = minFee tx }
 

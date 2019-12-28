@@ -61,8 +61,8 @@ makeTypedScriptTxIn
     -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
-        rs = RedeemerScript (toData r)
-        ds = DataScript (toData d)
+        rs = RedeemerValue (toData r)
+        ds = DataValue (toData d)
         txInType = ConsumeScriptAddress vs rs ds
     in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
 
@@ -87,7 +87,7 @@ makeTypedScriptTxOut
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = PayToScript $ dataScriptHash $ DataScript $ toData d
+    let outTy = PayToScript $ dataValueHash $ DataValue $ toData d
     in TypedScriptTxOut @out (TxOut (scriptAddress ct) value outTy) d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
@@ -221,7 +221,7 @@ toUntypedTx TypedTx{
     txSignatures = mempty,
     txData = Map.fromList $ hfOut dsEntry tyTxTypedTxOuts}
     where
-        dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataScript $ toData d in (dataScriptHash ds, ds)
+        dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataValue $ toData d in (dataValueHash ds, ds)
 
 -- Checking
 -- TODO: these could be in a separate module
@@ -234,7 +234,7 @@ data ConnectionError =
     | WrongValidatorType String
     | WrongRedeemerType
     | WrongDataType
-    | NoData TxId DataScriptHash
+    | NoData TxId DataValueHash
     | UnknownRef
     deriving (Show, Eq, Ord)
 
@@ -249,7 +249,7 @@ checkValidatorScript
     :: forall a m
     . (MonadError ConnectionError m)
     => ScriptInstance a
-    -> ValidatorScript
+    -> Validator
     -> m (CompiledCode WrappedValidatorType)
 checkValidatorScript _ (unValidatorScript -> (Script prog)) =
     case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
@@ -257,13 +257,13 @@ checkValidatorScript _ (unValidatorScript -> (Script prog)) =
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 
 -- | Checks that the given redeemer script has the right type.
-checkRedeemerScript
+checkRedeemerValue
     :: forall inn m
     . (IsData (RedeemerType inn), MonadError ConnectionError m)
     => ScriptInstance inn
-    -> RedeemerScript
+    -> RedeemerValue
     -> m (RedeemerType inn)
-checkRedeemerScript _ (RedeemerScript d) =
+checkRedeemerValue _ (RedeemerValue d) =
     case fromData d of
         Just v  -> pure v
         Nothing -> throwError WrongRedeemerType
@@ -272,9 +272,9 @@ checkRedeemerScript _ (RedeemerScript d) =
 checkDataScript
     :: forall a m . (IsData (DataType a), MonadError ConnectionError m)
     => ScriptInstance a
-    -> DataScript
+    -> DataValue
     -> m (DataType a)
-checkDataScript _ (DataScript d) =
+checkDataScript _ (DataValue d) =
     case fromData d of
         Just v  -> pure v
         Nothing -> throwError WrongDataType
@@ -294,7 +294,7 @@ typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
         ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
         x                             -> throwError $ WrongInType x
     _ <- checkValidatorScript si vs
-    rsVal <- checkRedeemerScript si rs
+    rsVal <- checkRedeemerValue si rs
     _ <- checkDataScript si ds
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef
     pure $ makeTypedScriptTxIn si rsVal typedOut

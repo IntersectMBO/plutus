@@ -62,7 +62,7 @@ value :: Blockchain -> TxOutRef -> Maybe Value
 value bc o = txOutValue <$> out bc o
 
 -- | Determine the data script that a transaction output refers to.
-dataTxo :: Blockchain -> TxOutRef -> Maybe DataScriptHash
+dataTxo :: Blockchain -> TxOutRef -> Maybe DataValueHash
 dataTxo bc o = txOutData =<< out bc o
 
 -- | Determine the public key that locks a transaction output, if there is one.

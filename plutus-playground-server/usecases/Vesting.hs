@@ -24,7 +24,7 @@ import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (fold)
 import           Ledger                            (Address, PubKey, Slot (Slot),
-                                                    ValidatorScript, unitData)
+                                                    Validator, unitData)
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.AddressMap                 as AM
 import qualified Ledger.Interval                   as Interval
@@ -132,7 +132,7 @@ instance Scripts.ScriptType Vesting where
     type instance RedeemerType Vesting = ()
     type instance DataType Vesting = ()
 
-vestingScript :: VestingParams -> ValidatorScript
+vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting

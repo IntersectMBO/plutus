@@ -1,0 +1,1 @@
+This document will eventually contain some figures about Merklising away unused nodes in PLC ASTs.

@@ -16,8 +16,8 @@ module Starter where
 --
 -- What you should change to something more suitable for
 -- your use case:
---   * The DataScript type
---   * The Redeemer type
+--   * The MyDataValue type
+--   * The MyMyRedeemerValue type
 --
 -- And add function implementations (and rename them to
 -- something suitable) for the endpoints:
@@ -27,8 +27,8 @@ module Starter where
 import           Control.Monad              (void)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, DataScript (DataScript), PendingTx,
-                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
+import           Ledger                     (Address, DataValue (DataValue), PendingTx,
+                                             RedeemerValue (RedeemerValue), Validator, mkValidatorScript,
                                              scriptAddress)
 import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
@@ -38,33 +38,33 @@ import           Language.Plutus.Contract.Tx (payToScript, collectFromScript)
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-newtype DataValue = DataValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''DataValue
+newtype MyDataValue = MyDataValue Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyDataValue
 
-newtype RedeemerValue = RedeemerValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''RedeemerValue
+newtype MyRedeemerValue = MyRedeemerValue Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyRedeemerValue
 
 -- | This method is the spending validator (which gets lifted to
 --   its on-chain representation).
-validateSpend :: DataValue -> RedeemerValue -> PendingTx -> Bool
-validateSpend _dataValue _redeemerValue _ = error () -- Please provide an implementation.
+validateSpend :: MyDataValue -> MyRedeemerValue -> PendingTx -> Bool
+validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
 -- | This function lifts the validator previously defined to
 --   the on-chain representation.
-contractValidator :: ValidatorScript
+contractValidator :: Validator
 contractValidator =
     mkValidatorScript $$(PlutusTx.compile [|| wrap validateSpend ||])
-    where wrap = wrapValidator @DataValue @RedeemerValue
+    where wrap = wrapValidator @MyDataValue @MyRedeemerValue
 
--- | Helper function used to build the DataScript.
-mkDataScript :: Integer -> DataScript
-mkDataScript =
-    DataScript . PlutusTx.toData . DataValue
+-- | Helper function used to build the DataValue.
+mkDataValue :: Integer -> DataValue
+mkDataValue =
+    DataValue . PlutusTx.toData . MyDataValue
 
--- | Helper function used to build the RedeemerScript.
-mkRedeemerScript :: Integer -> RedeemerScript
-mkRedeemerScript =
-    RedeemerScript . PlutusTx.toData . RedeemerValue
+-- | Helper function used to build the RedeemerValue.
+mkRedeemerValue :: Integer -> RedeemerValue
+mkRedeemerValue =
+    RedeemerValue . PlutusTx.toData . MyRedeemerValue
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
@@ -82,16 +82,16 @@ contract = publish <|> redeem
 -- | The "publish" contract endpoint.
 publish :: AsContractError e => Contract Schema e ()
 publish = do
-    (dataValue, lockedFunds) <- endpoint @"publish"
-    let tx = payToScript lockedFunds contractAddress (mkDataScript dataValue)
+    (myDataValue, lockedFunds) <- endpoint @"publish"
+    let tx = payToScript lockedFunds contractAddress (mkDataValue myDataValue)
     void $ submitTx tx
 
 -- | The "redeem" contract endpoint.
 redeem :: AsContractError e => Contract Schema e ()
 redeem = do
-    redeemerValue <- endpoint @"redeem"
+    myRedeemerValue <- endpoint @"redeem"
     unspentOutputs <- utxoAt contractAddress
-    let redeemer = mkRedeemerScript redeemerValue
+    let redeemer = mkRedeemerValue myRedeemerValue
         tx = collectFromScript unspentOutputs contractValidator redeemer
     void $ submitTx tx
 

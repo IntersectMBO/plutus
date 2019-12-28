@@ -25,8 +25,8 @@ import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
 import           Control.Monad.IO.Class                     (MonadIO)
 import           Control.Monad.Reader                       (MonadReader)
-import qualified CrowdFunding
-import qualified CrowdFundingSimulations
+import qualified Crowdfunding
+import qualified CrowdfundingSimulations
 import           Data.Aeson                                 (ToJSON, toJSON)
 import qualified Data.Aeson                                 as JSON
 import qualified Data.Aeson.Encode.Pretty                   as JSON
@@ -55,9 +55,9 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, DataScript, PubKey, RedeemerScript, Signature, Tx,
+import           Ledger                                     (Address, DataValue, PubKey, RedeemerValue, Signature, Tx,
                                                              TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutType,
-                                                             ValidatorScript)
+                                                             Validator)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
 import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
@@ -180,7 +180,7 @@ validatorHashBridge = do
 
 dataHashBridge :: BridgePart
 dataHashBridge = do
-    typeName ^== "DataScriptHash"
+    typeName ^== "DataValueHash"
     typeModule ^== "Ledger.Scripts"
     pure psString
 
@@ -260,9 +260,9 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @DataScript)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @ValidatorScript)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerScript)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @DataValue)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerValue)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
@@ -443,9 +443,9 @@ contractDemos =
     , mkContractDemo
           "Crowd Funding"
           Usecases.crowdFunding
-          CrowdFundingSimulations.simulations
-          CrowdFunding.schemas
-          CrowdFunding.registeredKnownCurrencies
+          CrowdfundingSimulations.simulations
+          Crowdfunding.schemas
+          Crowdfunding.registeredKnownCurrencies
     , mkContractDemo
           "Error Handling"
           Usecases.errorHandling

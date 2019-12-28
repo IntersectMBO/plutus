@@ -7,7 +7,17 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe, Warning(..), InterpreterResult(..)) where
+
+module Language.Haskell.Interpreter
+    ( runghc
+    , CompilationError(..)
+    , InterpreterError(..)
+    , SourceCode(..)
+    , avoidUnsafe
+    , Warning(..)
+    , InterpreterResult(..)
+    , parseErrorText
+    ) where
 
 import           Control.Monad             (unless)
 import           Control.Monad.Catch       (MonadCatch, MonadMask)

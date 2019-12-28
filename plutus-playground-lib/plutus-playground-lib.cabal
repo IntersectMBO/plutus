@@ -69,11 +69,9 @@ test-suite plutus-playground-lib-test
     hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    build-tool-depends:
-        hspec-discover:hspec-discover -any
     other-modules:
         Playground.THSpec
-        Playground.APISpec
+        Playground.TypesSpec
         SchemaSpec
     build-depends:
         base >=4.9 && <5,
@@ -82,7 +80,6 @@ test-suite plutus-playground-lib-test
         iots-export -any,
         playground-common -any,
         tasty -any,
-        hspec -any,
         tasty-hunit -any,
         text -any,
         template-haskell -any,
@@ -91,7 +88,6 @@ test-suite plutus-playground-lib-test
         plutus-emulator -any,
         plutus-tx -any,
         recursion-schemes -any,
-        hspec -any,
         QuickCheck -any,
         aeson -any
   ghc-options: -threaded -rtsopts -with-rtsopts=-N

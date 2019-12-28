@@ -1,4 +1,4 @@
--- | CrowdFunding contract implemented using the [[Plutus]] interface.
+-- | Crowdfunding contract implemented using the [[Plutus]] interface.
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
@@ -21,7 +21,7 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 
-module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
+module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     -- * Campaign parameters
       Campaign(..)
     , CrowdfundingSchema
@@ -59,7 +59,7 @@ import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative (..), return, (<$>), (>>), (>>=))
-import           Ledger                            (Address, PendingTx, PubKey, Slot, ValidatorScript)
+import           Ledger                            (Address, PendingTx, PubKey, Slot, Validator)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Interval                   as Interval
@@ -178,7 +178,7 @@ mkValidator c con act p = case act of
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
-contributionScript :: Campaign -> ValidatorScript
+contributionScript :: Campaign -> Validator
 contributionScript = Scripts.validatorScript . scriptInstance
 
 -- | The address of a [[Campaign]]
@@ -206,7 +206,7 @@ contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
-    let ds = Ledger.DataScript (PlutusTx.toData contributor)
+    let ds = Ledger.DataValue (PlutusTx.toData contributor)
         tx = payToScript contribValue (campaignAddress cmp) ds
                 & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
     txId <- submitTx tx

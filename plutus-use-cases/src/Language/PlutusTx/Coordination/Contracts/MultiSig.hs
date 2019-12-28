@@ -54,7 +54,7 @@ validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy p) signatories)
     in traceIfFalseH "not enough signatures" (present >= minNumSignatures)
 
-validator :: MultiSig -> ValidatorScript
+validator :: MultiSig -> Validator
 validator sig = mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`
