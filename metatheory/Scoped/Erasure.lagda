@@ -36,9 +36,9 @@ eraseList []       = []
 eraseList (t ∷ ts) = eraseTm t ∷ eraseList ts
 
 eraseTm (` x)              = ` (eraseVar x)
-eraseTm (Λ x K t)          = eraseTm t
+eraseTm (Λ K t)            = eraseTm t
 eraseTm (t ·⋆ A)           = eraseTm t
-eraseTm (ƛ x A t)          = ƛ x (eraseTm t)
+eraseTm (ƛ A t)            = ƛ {!!} (eraseTm t)
 eraseTm (t · u)            = eraseTm t · eraseTm u
 eraseTm (con c)            = con (eraseTC c)
 eraseTm (error A)          = error
