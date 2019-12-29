@@ -44,10 +44,10 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   →  ∀ {K}
     --------------------------------
   → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
-ext⋆ {Δ = Δ} _ ρ {K}{A} (T x) = {!!} {- T
-  (ρ x)
-  (trans (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
-          ?) -- (⋆.ren-cong (λ _ → refl) p)) -}
+ext⋆ ρ⋆ ρ (T x) = conv∋
+  refl
+  (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
+  (T (ρ x))
 \end{code}
 
 \begin{code}
@@ -63,7 +63,6 @@ renTermCon ρ⋆ (string s)     = string s
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
-
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
@@ -124,7 +123,6 @@ weaken⋆ x = ren _ T x
 
 ## Substitution
 \begin{code}
-{-
 Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
 Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
 \end{code}
@@ -138,7 +136,7 @@ exts : ∀ {Φ Ψ Γ Δ}
      → Γ , B ∋ A
      -------------------------------
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
-exts σ⋆ σ (Z p) = ` Z
+exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
 \end{code}
 
@@ -151,10 +149,10 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
      → Γ ,⋆ K ∋ A 
        -------------------------------
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
-exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x p) = conv⊢
+exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) = conv⊢
   refl
-  (trans (sym (⋆.ren-subst A)) (trans (⋆.subst-ren A) {! ⋆.subst-cong' _ p !}))
-          (weaken⋆ (σ x))
+  (trans (sym (⋆.ren-subst A)) (⋆.subst-ren A))
+  (weaken⋆ (σ x))
 \end{code}
 
 \begin{code}
@@ -186,32 +184,27 @@ substTel _ σ {As = []}     _         = _
 substTel _ σ {As = A ∷ As} (M ,, Ms) = 
   conv⊢ refl (sym (⋆.subst-comp A)) (subst _ σ M)  ,, substTel _ σ Ms
 subst _ σ (` k)                       = σ k
-subst _ σ (ƛ x N)                     = ƛ x (subst _ (exts _ σ) N)
+subst _ σ (ƛ N)                       = ƛ (subst _ (exts _ σ) N)
 subst _ σ (L · M)                     = subst _ σ L · subst _ σ M
-subst _ σ (Λ x N)                     = Λ x (subst _ (exts⋆ _ σ) N)
-subst {Δ = Δ} σ⋆ σ (·⋆ {B = B} L A p) = ·⋆
-  (subst _ σ L)
-  (⋆.subst σ⋆ A)
-  (trans
-    (sym (⋆.subst-comp B))
-    (trans
-      (⋆.subst-cong (⋆.subst-subst-cons _ A) B)
-      (trans (⋆.subst-comp B) {! ⋆.subst-cong' _ p !})))
+subst _ σ (Λ N)                       = Λ (subst _ (exts⋆ _ σ) N)
+subst {Δ = Δ} σ⋆ σ (·⋆ {B = B} L A) = conv⊢
+  refl
+  (trans (sym (⋆.subst-comp B))
+         (trans (⋆.subst-cong (⋆.subst-subst-cons σ⋆ A) B)
+                (⋆.subst-comp B)))
+  (·⋆ (subst σ⋆ σ L) (⋆.subst σ⋆ A))
 subst _ σ (wrap1 pat arg t)           = wrap1 _ _ (subst _ σ t)
-subst _ σ (unwrap1 t p)               =
-  unwrap1 (subst _ σ t) {! ⋆.subst-cong' _ p !}
+subst _ σ (unwrap1 t)                 = unwrap1 (subst _ σ t)
 subst _ σ (conv p t)                  = conv (subst≡β _ p) (subst _ σ t)
 subst σ⋆ σ (con cn)                   = con (substTermCon σ⋆ cn)
-subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel p) = builtin
-  bn
-  (⋆.subst σ⋆ ∘ σ')
-  (substTel σ⋆ σ tel)
-  (trans (⋆.subst-comp (proj₂ (proj₂ (SIG bn)))) {! ⋆.subst-cong' _ p !})
+subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢
+  refl
+  (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
 subst _ σ (error A) = error (⋆.subst _ A)
 \end{code}
 
 \begin{code}
-
 substcons : ∀{Φ Ψ Γ Δ} →
   (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢⋆ K)
   → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -219,7 +212,7 @@ substcons : ∀{Φ Ψ Γ Δ} →
   → (t : Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------
   → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
-substcons _ σ t (Z p) = conv⊢ refl {! ⋆.subst-cong' _ p!} t
+substcons _ σ t Z     = t
 substcons _ σ t (S x) = σ x
 \end{code}
 
@@ -246,10 +239,9 @@ _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
         → Γ ⊢ B ⋆.[ A ]
 _[_]⋆ {J}{Γ = Γ}{K}{B} t A = subst
   _
-  (λ { (T {A = A'} x p) → ` (conv∋
+  (λ {(T {A = A'} x) → conv⊢
     refl
-    (trans (trans (sym (⋆.subst-id A')) (⋆.subst-ren A'))
-            {! ⋆.subst-cong' _ p !}) x)})
-    t
--}
+    (trans (sym (⋆.subst-id A')) (⋆.subst-ren A'))
+    (` x)})
+  t
 \end{code}
