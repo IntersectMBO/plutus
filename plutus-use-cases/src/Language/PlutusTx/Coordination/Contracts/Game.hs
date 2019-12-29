@@ -38,6 +38,7 @@ module Language.PlutusTx.Coordination.Contracts.Game
     , guessTrace
     , guessWrongTrace
     , lockTrace
+    , exportedValidator
     ) where
 
 import Control.Monad (void)
@@ -88,6 +89,13 @@ validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 
 gameValidator :: Validator
 gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
     where validator = wrapValidator validateGuess
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (PlutusTx.Data -> PlutusTx.Data -> PlutusTx.Data -> ())
+exportedValidator = $$(PlutusTx.compile [|| validator ||])
+    where validator = wrapValidator validateGuess
+
+
 
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation

@@ -10,7 +10,8 @@
 module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
     -- * Script
-    swapValidator
+    swapValidator,
+    exportedValidator
     ) where
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -160,6 +161,11 @@ swapValidator swp = Ledger.mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode swp
+    where validatorParam s = Scripts.wrapValidator (mkValidator s)
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Swap -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
     where validatorParam s = Scripts.wrapValidator (mkValidator s)
 
 {- Note [Swap Transactions]

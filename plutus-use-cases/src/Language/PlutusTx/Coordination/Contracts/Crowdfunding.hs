@@ -43,6 +43,7 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     , startCampaign
     , makeContribution
     , successfulCampaign
+    , exportedValidator
     ) where
 
 import           Control.Applicative               (Alternative (..), Applicative (..))
@@ -140,6 +141,11 @@ scriptInstance cmp = Scripts.validator @Crowdfunding
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @PubKey @CampaignAction
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
+
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKey -> PendingTx -> Bool

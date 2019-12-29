@@ -29,6 +29,7 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   -- * Etc.
   , assertAccountBalance
   , validatorHash
+  , exportedValidator
   ) where
 
 import           Control.Lens
@@ -118,6 +119,10 @@ scriptInstance account =
     in Scripts.validator @TokenAccount
         val
         $$(PlutusTx.compile [|| wrap ||])
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Account -> () -> () -> V.PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validate ||])
 
 address :: Account -> Address
 address = Scripts.scriptAddress . scriptInstance

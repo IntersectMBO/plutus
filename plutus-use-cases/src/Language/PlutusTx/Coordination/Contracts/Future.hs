@@ -35,6 +35,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , futureAddress
     , tokenFor
     , initialState
+    , exportedValidator
     ) where
 
 import           Control.Lens                   ((&), (.~), prism', review, makeClassyPrisms)
@@ -301,6 +302,12 @@ scriptInstance future ftos =
     in Scripts.validator @(SM.StateMachine FutureState FutureAction)
         val
         $$(PlutusTx.compile [|| wrap ||])
+
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Future -> FutureAccounts -> FutureState -> FutureAction -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
+    where         validatorParam f g = SM.mkValidator (futureStateMachine f g)
 
 machineInstance
     :: Future

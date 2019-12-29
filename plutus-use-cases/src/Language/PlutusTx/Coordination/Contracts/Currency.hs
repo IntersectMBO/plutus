@@ -15,6 +15,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgeContract
     , forgedValue
     , currencySymbol
+    , exportedValidator
     ) where
 
 import           Control.Lens               ((&), (.~), (%~))
@@ -93,6 +94,10 @@ curValidator cur = mkValidatorScript $
     $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode cur
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Currency -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
 
 {- note [Obtaining the currency symbol]
 

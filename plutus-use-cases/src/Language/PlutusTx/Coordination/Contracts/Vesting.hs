@@ -21,7 +21,8 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     totalAmount,
     vestingContract,
     validate,
-    vestingScript
+    vestingScript,
+    exportedValidator
     ) where
 
 import           Control.Lens
@@ -149,6 +150,10 @@ scriptInstance vesting = Scripts.validator @Vesting
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @() @()
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (VestingParams -> () -> () -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validate ||])
 
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance

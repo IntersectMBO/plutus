@@ -34,6 +34,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , RedeemSuccess(..)
     , RefundSuccess(..)
     , EscrowSchema
+    , exportedValidator
     ) where
 
 import           Control.Lens                   ((&), (^.), (.~), at, folded, prism', makeClassyPrisms)
@@ -205,6 +206,10 @@ scriptInstance escrow = go (Haskell.fmap Ledger.dataValueHash escrow) where
             $$(PlutusTx.compile [|| wrap ||])
     wrap = Scripts.wrapValidator @PubKey @Action
 
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (EscrowParams DataValueHash -> PubKey -> Action -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| validate ||])
+               
 -- | The address of an escrow contract
 escrowAddress :: EscrowParams DataValue -> Ledger.Address
 escrowAddress = Scripts.scriptAddress . scriptInstance

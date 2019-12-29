@@ -18,6 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     , lock
     , validator
     , validate
+    , exportedValidator
     ) where
 
 import           Control.Lens                 ((&), (.~))
@@ -59,6 +60,11 @@ validator sig = mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode sig
+    where validatorParam s = Scripts.wrapValidator (validate s)
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (MultiSig -> Scripts.WrappedValidatorType)
+exportedValidator = $$(PlutusTx.compile [|| validatorParam ||])
     where validatorParam s = Scripts.wrapValidator (validate s)
 
 -- | Lock some funds in a 'MultiSig' contract.

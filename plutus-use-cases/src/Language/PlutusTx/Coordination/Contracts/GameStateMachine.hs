@@ -27,6 +27,7 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , LockArgs(..)
     , GuessArgs(..)
     , GameStateMachineSchema
+    , exportedValidator
     ) where
 
 import Control.Lens (makeClassyPrisms)
@@ -175,6 +176,11 @@ scriptInstance = Scripts.validator @(SM.StateMachine GameState GameInput)
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @GameState @GameInput
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (GameState -> GameInput -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
+
 
 -- | The 'SM.StateMachineInstance' of the game state machine contract. It uses
 --   the functions in 'Language.PlutusTx.StateMachine' to generate a validator

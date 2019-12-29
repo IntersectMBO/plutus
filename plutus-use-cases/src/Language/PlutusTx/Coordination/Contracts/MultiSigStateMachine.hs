@@ -24,6 +24,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , MultiSigError(..)
     , MultiSigSchema
     , contract
+    , exportedValidator
     ) where
 
 import           Control.Lens                 (makeClassyPrisms)
@@ -229,6 +230,10 @@ mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
 validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
+
+-- For Merklisation/erasure experiments
+exportedValidator :: PlutusTx.CompiledCode (Params -> State -> Input -> PendingTx -> Bool)
+exportedValidator = $$(PlutusTx.compile [|| mkValidator ||])
 
 type MultiSigSym = StateMachine State Input
 scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
