@@ -85,12 +85,12 @@ ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ N)    = ƛ (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
 ren _ ρ (Λ N)    = Λ (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} ρ⋆ ρ (·⋆ {B = B} t A) = conv⊢
+ren {Δ = Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
   refl
   (trans (sym (⋆.subst-ren B))
          (trans (⋆.subst-cong (⋆.ren-subst-cons ρ⋆ A) B)
                 (⋆.ren-subst B)))
-  (·⋆ (ren _ ρ t) (⋆.ren ρ⋆ A))
+  (_·⋆_ (ren _ ρ t) (⋆.ren ρ⋆ A))
 ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
 ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
@@ -187,12 +187,12 @@ subst _ σ (` k)                       = σ k
 subst _ σ (ƛ N)                       = ƛ (subst _ (exts _ σ) N)
 subst _ σ (L · M)                     = subst _ σ L · subst _ σ M
 subst _ σ (Λ N)                       = Λ (subst _ (exts⋆ _ σ) N)
-subst {Δ = Δ} σ⋆ σ (·⋆ {B = B} L A) = conv⊢
+subst {Δ = Δ} σ⋆ σ (_·⋆_ {B = B} L A) = conv⊢
   refl
   (trans (sym (⋆.subst-comp B))
          (trans (⋆.subst-cong (⋆.subst-subst-cons σ⋆ A) B)
                 (⋆.subst-comp B)))
-  (·⋆ (subst σ⋆ σ L) (⋆.subst σ⋆ A))
+  (_·⋆_ (subst σ⋆ σ L) (⋆.subst σ⋆ A))
 subst _ σ (wrap1 pat arg t)           = wrap1 _ _ (subst _ σ t)
 subst _ σ (unwrap1 t)                 = unwrap1 (subst _ σ t)
 subst _ σ (conv p t)                  = conv (subst≡β _ p) (subst _ σ t)
