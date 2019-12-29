@@ -27,7 +27,7 @@ Tel : ℕ → Set
 
 data _⊢ : ℕ → Set where
   `       : ∀{n} → Fin n → n ⊢
-  ƛ       : ∀{n} → String → suc n ⊢ → n ⊢
+  ƛ       : ∀{n} → suc n ⊢ → n ⊢
   _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
   con     : ∀{n} → TermCon → n ⊢
   builtin : ∀{n} → Builtin → Tel n → n ⊢
@@ -44,7 +44,7 @@ open import Data.Product renaming (_,_ to _,,_)
 -- should do this when de Bruijnifying so it can be shared
 builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
 builtinMatcher (` x) = inj₂ (` x)
-builtinMatcher (ƛ x t) = inj₂ (ƛ x t)
+builtinMatcher (ƛ t) = inj₂ (ƛ t)
 builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
@@ -86,7 +86,7 @@ uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
 ugly : ∀{n} → n  ⊢ → String
 ugly (` x) = "(` " ++ uglyFin x ++ ")"
-ugly (ƛ x t) = "(ƛ " ++ x ++  ugly t ++ ")"
+ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
@@ -95,8 +95,8 @@ ugly error = "error"
 
 \begin{code}
 plc_true : ∀{n} → n ⊢
-plc_true = ƛ "t" (ƛ "f" (` (suc zero)))
+plc_true = ƛ (ƛ (` (suc zero)))
 
 plc_false : ∀{n} → n ⊢
-plc_false = ƛ "t" (ƛ "f" (` zero))
+plc_false = ƛ (ƛ (` zero))
 \end{code}
