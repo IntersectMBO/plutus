@@ -33,7 +33,7 @@ ext : ∀ {Φ Ψ Γ Δ}
   → {B : Φ ⊢⋆ *}
     ----------------------------------
   → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
-ext _ ρ (Z p)     = Z (⋆.ren-cong (λ _ → refl) p)
+ext _ ρ Z     = Z 
 ext _ ρ (S x) = S (ρ x)
 \end{code}
 
@@ -44,10 +44,10 @@ ext⋆ : ∀ {Φ Ψ Γ Δ}
   →  ∀ {K}
     --------------------------------
   → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
-ext⋆ {Δ = Δ} _ ρ {K}{A} (T x p) = T
+ext⋆ {Δ = Δ} _ ρ {K}{A} (T x) = {!!} {- T
   (ρ x)
-  (transα (transα (symα (⋆.ren-comp _)) (⋆.ren-comp _))
-          (⋆.ren-cong (λ _ → refl) p))
+  (trans (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
+          ?) -- (⋆.ren-cong (λ _ → refl) p)) -}
 \end{code}
 
 \begin{code}
@@ -80,28 +80,26 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
 
 renTel _ ρ {As = []}     _         = _
 renTel _ ρ {As = A ∷ As} (M ,, Ms) =
-  conv⊢ reflCtx (symα (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
+  conv⊢ refl (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
 
 ren _ ρ (` x)    = ` (ρ x)
-ren _ ρ (ƛ x N)  = ƛ x (ren _ (ext _ ρ) N)
+ren _ ρ (ƛ N)    = ƛ (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
-ren _ ρ (Λ x N)  = Λ x (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} _ ρ (·⋆ {B = B} t A p) = ·⋆
-  (ren _ ρ t)
-  (⋆.ren _ A)
-  (transα (symα (⋆.subst-ren B))
-          (transα (transα (⋆.subst-cong (⋆.ren-subst-cons _ A) B)
-                          (⋆.ren-subst B))
-                  (⋆.ren-cong (λ _ → refl) p))) 
+ren _ ρ (Λ N)    = Λ (ren _ (ext⋆ _ ρ) N )
+ren {Δ = Δ} ρ⋆ ρ (·⋆ {B = B} t A) = conv⊢
+  refl
+  (trans (sym (⋆.subst-ren B))
+         (trans (⋆.subst-cong (⋆.ren-subst-cons ρ⋆ A) B)
+                (⋆.ren-subst B)))
+  (·⋆ (ren _ ρ t) (⋆.ren ρ⋆ A))
 ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
-ren _ ρ (unwrap1 t p)       = unwrap1 (ren _ ρ t) (⋆.ren-cong (λ _ → refl) p)
+ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
 ren ρ⋆ ρ (con cn)   = con (renTermCon ρ⋆ cn)
-ren {Δ = Δ} _ ρ (builtin bn σ X p) = builtin
-  bn
-  (⋆.ren _ ∘ σ)
-  (renTel _ ρ X)
-  (transα (⋆.ren-subst (proj₂ (proj₂ (SIG bn)))) (⋆.ren-cong (λ _ → refl) p))
+ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
+  refl
+  (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
 ren _ ρ (error A) = error (⋆.ren _ A)
 \end{code}
 
@@ -111,9 +109,9 @@ weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
     ---------
   → Γ , B ⊢ A
 weaken {Γ = Γ}{A}{B} x = conv⊢
-  reflCtx
+  refl
   (⋆.ren-id A)
-  (ren _ (λ y → conv∋ reflCtx (symα (⋆.ren-id _)) (S y)) x)
+  (ren _ (λ y → conv∋ refl (sym (⋆.ren-id _)) (S y)) x)
 \end{code}
 
 \begin{code}
@@ -121,12 +119,12 @@ weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
   → Γ ⊢ A
     -------------------
   → Γ ,⋆ K ⊢ ⋆.weaken A
-weaken⋆ x = ren _ (λ y → T y reflα) x
+weaken⋆ x = ren _ T x
 \end{code}
 
 ## Substitution
 \begin{code}
-
+{-
 Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
 Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
 \end{code}
@@ -140,7 +138,7 @@ exts : ∀ {Φ Ψ Γ Δ}
      → Γ , B ∋ A
      -------------------------------
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
-exts σ⋆ σ (Z p) = ` (Z (⋆.subst-cong' _ p))
+exts σ⋆ σ (Z p) = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
 \end{code}
 
@@ -154,8 +152,8 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
        -------------------------------
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
 exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x p) = conv⊢
-  reflCtx
-  (transα (symα (⋆.ren-subst A)) (transα (⋆.subst-ren A) (⋆.subst-cong' _ p)))
+  refl
+  (trans (sym (⋆.ren-subst A)) (trans (⋆.subst-ren A) {! ⋆.subst-cong' _ p !}))
           (weaken⋆ (σ x))
 \end{code}
 
@@ -186,7 +184,7 @@ substTel : ∀ {Φ Ψ Γ Γ' Δ}
  → Tel Γ' Δ (⋆.subst σ⋆ ∘ σ') As
 substTel _ σ {As = []}     _         = _
 substTel _ σ {As = A ∷ As} (M ,, Ms) = 
-  conv⊢ reflCtx (symα (⋆.subst-comp A)) (subst _ σ M)  ,, substTel _ σ Ms
+  conv⊢ refl (sym (⋆.subst-comp A)) (subst _ σ M)  ,, substTel _ σ Ms
 subst _ σ (` k)                       = σ k
 subst _ σ (ƛ x N)                     = ƛ x (subst _ (exts _ σ) N)
 subst _ σ (L · M)                     = subst _ σ L · subst _ σ M
@@ -194,21 +192,21 @@ subst _ σ (Λ x N)                     = Λ x (subst _ (exts⋆ _ σ) N)
 subst {Δ = Δ} σ⋆ σ (·⋆ {B = B} L A p) = ·⋆
   (subst _ σ L)
   (⋆.subst σ⋆ A)
-  (transα
-    (symα (⋆.subst-comp B))
-    (transα
+  (trans
+    (sym (⋆.subst-comp B))
+    (trans
       (⋆.subst-cong (⋆.subst-subst-cons _ A) B)
-      (transα (⋆.subst-comp B) (⋆.subst-cong' _ p))))
+      (trans (⋆.subst-comp B) {! ⋆.subst-cong' _ p !})))
 subst _ σ (wrap1 pat arg t)           = wrap1 _ _ (subst _ σ t)
 subst _ σ (unwrap1 t p)               =
-  unwrap1 (subst _ σ t) (⋆.subst-cong' _ p)
+  unwrap1 (subst _ σ t) {! ⋆.subst-cong' _ p !}
 subst _ σ (conv p t)                  = conv (subst≡β _ p) (subst _ σ t)
 subst σ⋆ σ (con cn)                   = con (substTermCon σ⋆ cn)
 subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel p) = builtin
   bn
   (⋆.subst σ⋆ ∘ σ')
   (substTel σ⋆ σ tel)
-  (transα (⋆.subst-comp (proj₂ (proj₂ (SIG bn)))) (⋆.subst-cong' _ p))
+  (trans (⋆.subst-comp (proj₂ (proj₂ (SIG bn)))) {! ⋆.subst-cong' _ p !})
 subst _ σ (error A) = error (⋆.subst _ A)
 \end{code}
 
@@ -221,7 +219,7 @@ substcons : ∀{Φ Ψ Γ Δ} →
   → (t : Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------
   → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
-substcons _ σ t (Z p) = conv⊢ reflCtx (⋆.subst-cong' _ p) t
+substcons _ σ t (Z p) = conv⊢ refl {! ⋆.subst-cong' _ p!} t
 substcons _ σ t (S x) = σ x
 \end{code}
 
@@ -232,12 +230,12 @@ _[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
           ---------
         → Γ ⊢ A
 _[_]  {Γ = Γ}{A}{B} t s = conv⊢
-  reflCtx
+  refl
   (⋆.subst-id A)
   (subst
     _
-    (substcons ` (λ x → ` (conv∋ reflCtx (symα (⋆.subst-id _)) x))
-    (conv⊢ reflCtx (symα (⋆.subst-id B)) s)) t)
+    (substcons ` (λ x → ` (conv∋ refl (sym (⋆.subst-id _)) x))
+    (conv⊢ refl (sym (⋆.subst-id B)) s)) t)
 \end{code}
 
 \begin{code}
@@ -249,8 +247,9 @@ _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
 _[_]⋆ {J}{Γ = Γ}{K}{B} t A = subst
   _
   (λ { (T {A = A'} x p) → ` (conv∋
-    reflCtx
-    (transα (transα (symα (⋆.subst-id A')) (⋆.subst-ren A'))
-            (⋆.subst-cong' _ p)) x)})
+    refl
+    (trans (trans (sym (⋆.subst-id A')) (⋆.subst-ren A'))
+            {! ⋆.subst-cong' _ p !}) x)})
     t
+-}
 \end{code}

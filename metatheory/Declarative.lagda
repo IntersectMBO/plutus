@@ -110,7 +110,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     → Γ ⊢ A
 
   ƛ : ∀ {A B}
-    → String
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
