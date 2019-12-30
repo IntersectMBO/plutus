@@ -45,7 +45,6 @@ import Main
 -- types
 
 import Algorithmic
-import Algorithmic.Equality
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation

@@ -147,7 +147,6 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
     → Tel Γ Δ σ As
-    → {B : Φ ⊢Nf⋆ *}
       -------------------------------
     → Γ ⊢ substNf σ C
 
