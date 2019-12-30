@@ -1,0 +1,80 @@
+cabal-version: 2.0
+name:           plutus-merklisation
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/plutus-merklisation#readme>
+homepage:       https://github.com/githubuser/plutus-merklisation#readme
+bug-reports:    https://github.com/githubuser/plutus-merklisation/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 IOHK
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+
+source-repository head
+  type: git
+  location: https://github.com/input-output-hk/plutus
+
+
+library
+  hs-source-dirs: src
+  exposed-modules: Language.PlutusCore.Merkle.Merklise
+                   Language.PlutusCore.Merkle.Size
+                   Language.PlutusCore.Merkle.Type
+                   Language.PlutusCore.Merkle.Merklisable
+                   Language.PlutusCore.Merkle.CBOR
+                   Language.PlutusCore.Merkle.Error
+                   Language.PlutusCore.Merkle.MkPlc
+                   Language.PlutusCore.Merkle.Untyped.Term
+                   Language.PlutusCore.Merkle.Evaluation.CekMarker
+                   Language.PlutusCore.Merkle.Evaluation.MachineException
+                   Language.PlutusCore.Merkle.Evaluation.Result
+                   Language.PlutusCore.Merkle.PLCSize
+                   Language.PlutusCore.Merkle.Constant
+                   Language.PlutusCore.Merkle.Constant.Apply
+                   Language.PlutusCore.Merkle.Constant.Dynamic.Instances
+                   Language.PlutusCore.Merkle.Constant.Function
+                   Language.PlutusCore.Merkle.Constant.Make
+                   Language.PlutusCore.Merkle.Constant.Name
+                   Language.PlutusCore.Merkle.Constant.Typed
+                   Language.PlutusCore.Merkle.Convert
+                   Language.PlutusCore.Erasure.Untyped
+                   Language.PlutusCore.Erasure.Untyped.CBOR
+                   Language.PlutusCore.Erasure.Untyped.Term
+
+  default-language: Haskell2010
+  default-extensions: ExplicitForAll ScopedTypeVariables
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveTraversable FlexibleContexts
+  ghc-options: -Wall -Wnoncanonical-monad-instances
+               -Wincomplete-uni-patterns -Wincomplete-record-updates
+               -Wredundant-constraints -Widentities
+               -- See Plutus Tx readme
+               -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  build-depends:
+        base <5
+      , bytestring
+      , cborg -any
+      , containers -any
+      , cryptonite -any
+      , language-plutus-core -any
+      , lens -any
+      , memory -any
+      , mmorph -any
+      , mtl -any
+      , plutus-tx -any
+      , prettyprinter -any
+      , recursion-schemes -any
+      , serialise -any
+      , template-haskell -any
+      , text -any
+      , th-lift-instances
+      , transformers -any
+      , zlib -any
+                        
+  
