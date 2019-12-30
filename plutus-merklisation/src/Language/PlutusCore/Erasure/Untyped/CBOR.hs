@@ -10,10 +10,11 @@ module Language.PlutusCore.Erasure.Untyped.CBOR () where
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Functor.Foldable                    hiding (fold)
-import qualified Language.PlutusCore.Core                 as PLC
+import qualified Data.ByteString.Lazy                                   as BSL
+import           Data.Functor.Foldable                                  hiding (fold)
+import qualified Language.PlutusCore.Core                               as PLC
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Erasure.Untyped.Instance.Recursive
 import           Language.PlutusCore.Erasure.Untyped.Term
 import           Language.PlutusCore.Name
 import           PlutusPrelude

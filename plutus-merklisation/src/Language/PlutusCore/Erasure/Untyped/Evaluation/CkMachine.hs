@@ -11,6 +11,7 @@ module Language.PlutusCore.Erasure.Untyped.Evaluation.CkMachine
     , runCk
     ) where
 
+import qualified Language.PlutusCore.Core                                        as PLC
 import           Language.PlutusCore.Erasure.Untyped.Constant.Apply
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.MachineException
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.Result
@@ -51,12 +52,12 @@ throwCkMachineException = throw .* MachineException
 substituteDb
     :: Eq (name a) => name a -> Value name a -> Term name a -> Term name a
 substituteDb varFor new = go where
-    go (Var ann var)            = if var == varFor then new else Var ann var
-    go (LamAbs ann var body)    = LamAbs ann var (goUnder var body)
-    go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
-    go (Constant ann constant)  = Constant ann constant
-    go (Builtin ann bi)         = Builtin ann bi
-    go (Error ann)              = Error ann
+    go (Var ann var)           = if var == varFor then new else Var ann var
+    go (LamAbs ann var body)   = LamAbs ann var (goUnder var body)
+    go (Apply ann fun arg)     = Apply ann (go fun) (go arg)
+    go (Constant ann constant) = Constant ann constant
+    go (Builtin ann bi)        = Builtin ann bi
+    go (Error ann)             = Error ann
 
     goUnder var term = if var == varFor then term else go term
 
@@ -102,9 +103,9 @@ applyEvaluate stack fun                    arg =
         case termAsPrimIterApp term of
             Nothing                                 ->
                 throwCkMachineException NonPrimitiveApplicationMachineError term
-            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+            Just (IterApp PLC.DynamicStagedBuiltinName{}     _    ) ->
                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
-            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+            Just (IterApp (PLC.StaticStagedBuiltinName name) spine) ->
                 case applyEvaluateCkBuiltinName name spine of
                     ConstAppSuccess term' -> stack |> term'
                     ConstAppFailure       -> EvaluationFailure
@@ -112,7 +113,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value Name ()] -> ConstAppResultDef
+applyEvaluateCkBuiltinName :: PLC.BuiltinName -> [Value Name ()] -> ConstAppResultDef
 applyEvaluateCkBuiltinName name =
     runIdentity . runApplyBuiltinName (const $ Identity . evaluateCk) name
 

@@ -11,9 +11,10 @@ module Language.PlutusCore.Erasure.Untyped.Evaluation.MachineException
     ) where
 
 import           Language.PlutusCore.Erasure.Untyped.Constant
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Erasure.Untyped.Pretty.Plc
+import           Language.PlutusCore.Erasure.Untyped.Instance.Pretty ()
 import           Language.PlutusCore.Erasure.Untyped.Term
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           PlutusPrelude
 
 -- | Errors which can occur during a run of an abstract machine.

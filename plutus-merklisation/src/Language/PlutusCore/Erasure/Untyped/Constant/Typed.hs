@@ -34,11 +34,12 @@ module Language.PlutusCore.Erasure.Untyped.Constant.Typed
     ) where
 
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Erasure.Untyped.Pretty
+import           Language.PlutusCore.Erasure.Untyped.Instance.Pretty ()
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Erasure.Untyped.Term
+import qualified Language.PlutusCore.Core as PLC
+
 import           PlutusPrelude
 
 import           Control.Monad.Except
@@ -93,7 +94,7 @@ data TypeScheme a r where
     -- That's a TODO perhaps.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName a r = TypedBuiltinName BuiltinName (TypeScheme a r)
+data TypedBuiltinName a r = TypedBuiltinName PLC.BuiltinName (TypeScheme a r)
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -115,11 +116,11 @@ data DynamicBuiltinNameMeaning =
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition =
-    DynamicBuiltinNameDefinition DynamicBuiltinName DynamicBuiltinNameMeaning
+    DynamicBuiltinNameDefinition PLC.DynamicBuiltinName DynamicBuiltinNameMeaning
 
 -- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
 newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
+    { unDynamicBuiltinNameMeanings :: Map PLC.DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of

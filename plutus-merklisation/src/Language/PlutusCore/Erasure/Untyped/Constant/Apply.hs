@@ -22,22 +22,23 @@ module Language.PlutusCore.Erasure.Untyped.Constant.Apply
     , runApplyBuiltinName
     ) where
 
+import qualified Language.PlutusCore.Core                                       as PLC
 import           Language.PlutusCore.Erasure.Untyped.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Erasure.Untyped.Constant.Name
 import           Language.PlutusCore.Erasure.Untyped.Constant.Typed
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
-import           Language.PlutusCore.Name
+import           Language.PlutusCore.Erasure.Untyped.Instance.Eq                ()
 import           Language.PlutusCore.Erasure.Untyped.Term
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Inner
 import           Crypto
-import qualified Data.ByteString.Lazy                           as BSL
-import qualified Data.ByteString.Lazy.Hash                      as Hash
+import qualified Data.ByteString.Lazy                                           as BSL
+import qualified Data.ByteString.Lazy.Hash                                      as Hash
 import           Data.Proxy
-import           Data.Text                                      (Text)
+import           Data.Text                                                      (Text)
 
 -- | The type of constant applications errors.
 data ConstAppError
@@ -174,52 +175,52 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
-    :: Monad m => BuiltinName -> [Value Name ()] -> EvaluateConstAppDef m
-applyBuiltinName AddInteger           =
+    :: Monad m => PLC.BuiltinName -> [Value Name ()] -> EvaluateConstAppDef m
+applyBuiltinName PLC.AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+)
-applyBuiltinName SubtractInteger      =
+applyBuiltinName PLC.SubtractInteger      =
     applyTypedBuiltinName typedSubtractInteger      (-)
-applyBuiltinName MultiplyInteger      =
+applyBuiltinName PLC.MultiplyInteger      =
     applyTypedBuiltinName typedMultiplyInteger      (*)
-applyBuiltinName DivideInteger        =
+applyBuiltinName PLC.DivideInteger        =
     applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
-applyBuiltinName QuotientInteger      =
+applyBuiltinName PLC.QuotientInteger      =
     applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
-applyBuiltinName RemainderInteger     =
+applyBuiltinName PLC.RemainderInteger     =
     applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
-applyBuiltinName ModInteger           =
+applyBuiltinName PLC.ModInteger           =
     applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
-applyBuiltinName LessThanInteger      =
+applyBuiltinName PLC.LessThanInteger      =
     applyTypedBuiltinName typedLessThanInteger      (<)
-applyBuiltinName LessThanEqInteger    =
+applyBuiltinName PLC.LessThanEqInteger    =
     applyTypedBuiltinName typedLessThanEqInteger    (<=)
-applyBuiltinName GreaterThanInteger   =
+applyBuiltinName PLC.GreaterThanInteger   =
     applyTypedBuiltinName typedGreaterThanInteger   (>)
-applyBuiltinName GreaterThanEqInteger =
+applyBuiltinName PLC.GreaterThanEqInteger =
     applyTypedBuiltinName typedGreaterThanEqInteger (>=)
-applyBuiltinName EqInteger            =
+applyBuiltinName PLC.EqInteger            =
     applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName Concatenate          =
+applyBuiltinName PLC.Concatenate          =
     applyTypedBuiltinName typedConcatenate          (<>)
-applyBuiltinName TakeByteString       =
+applyBuiltinName PLC.TakeByteString       =
     applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
-applyBuiltinName DropByteString       =
+applyBuiltinName PLC.DropByteString       =
     applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
-applyBuiltinName SHA2                 =
+applyBuiltinName PLC.SHA2                 =
     applyTypedBuiltinName typedSHA2                 Hash.sha2
-applyBuiltinName SHA3                 =
+applyBuiltinName PLC.SHA3                 =
     applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      =
+applyBuiltinName PLC.VerifySignature      =
     applyTypedBuiltinName typedVerifySignature      verifySignature
-applyBuiltinName EqByteString         =
+applyBuiltinName PLC.EqByteString         =
     applyTypedBuiltinName typedEqByteString         (==)
-applyBuiltinName LtByteString         =
+applyBuiltinName PLC.LtByteString         =
     applyTypedBuiltinName typedLtByteString         (<)
-applyBuiltinName GtByteString         =
+applyBuiltinName PLC.GtByteString         =
     applyTypedBuiltinName typedGtByteString         (>)
 
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.
 runApplyBuiltinName
-    :: Monad m => Evaluator Term m -> BuiltinName -> [Value Name ()] -> m ConstAppResultDef
+    :: Monad m => Evaluator Term m -> PLC.BuiltinName -> [Value Name ()] -> m ConstAppResultDef
 runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name

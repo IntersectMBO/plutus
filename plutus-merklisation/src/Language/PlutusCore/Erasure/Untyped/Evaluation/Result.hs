@@ -13,9 +13,9 @@ module Language.PlutusCore.Erasure.Untyped.Evaluation.Result
     , isEvaluationFailure
     ) where
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Erasure.Untyped.Pretty
 import           Language.PlutusCore.Erasure.Untyped.Term
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 
 import           Control.Applicative
 import           PlutusPrelude

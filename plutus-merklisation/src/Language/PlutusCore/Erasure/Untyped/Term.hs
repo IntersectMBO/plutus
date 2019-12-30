@@ -18,8 +18,6 @@ module Language.PlutusCore.Erasure.Untyped.Term ( Term (..)
 --                                , BuiltinName (..)
 --                                , DynamicBuiltinName (..)
 --                                , StagedBuiltinName (..)
-                                -- * Base functors
-                                , TermF (..)
                                 -- * Helper functions
                                 , termLoc
                                 -- * Normalized
@@ -36,7 +34,7 @@ import           Codec.CBOR.Decoding
 import           Codec.Serialise
 import           Control.Lens                 hiding (anon)
 import qualified Data.ByteString.Lazy         as BSL
-import           Data.Functor.Foldable
+--import           Data.Functor.Foldable
 import           Instances.TH.Lift            ()
 import           Language.Haskell.TH.Syntax   (Lift)
 import qualified Language.PlutusCore.Core     as PLC
@@ -54,7 +52,7 @@ termLoc (LamAbs l _ _) = l
 
 data Builtin a = BuiltinName a PLC.BuiltinName  -- Just copy Builtin and Constant to simplify things
                | DynBuiltinName a PLC.DynamicBuiltinName
-               deriving (Functor, Show, Eq, Generic, NFData, Lift)
+               deriving (Functor, Show, Generic, NFData, Lift)
 
 translateBuiltin :: PLC.Builtin a -> Builtin a
 translateBuiltin = \case
@@ -65,7 +63,7 @@ translateBuiltin = \case
 data Constant a = BuiltinInt a Integer
                 | BuiltinBS a BSL.ByteString
                 | BuiltinStr a String
-                deriving (Functor, Show, Eq, Generic, NFData, Lift)
+                deriving (Functor, Show, Generic, NFData, Lift)
 
 translateConstant :: PLC.Constant a -> Constant a
 translateConstant = \case
@@ -80,38 +78,12 @@ data Term name a = Var a (name a) -- ^ A named variable
                  | Constant a (Constant a) -- ^ A constant term
                  | Builtin a (Builtin a)
                  | Error a
-                   deriving (Functor, Show, Eq, Generic, NFData, Lift)
-
-data TermF name a x = VarF a (name a)
-                    | LamAbsF a (name a) x
-                    | ApplyF a x x
-                    | ConstantF a (Constant a)
-                    | BuiltinF a (Builtin a)
-                    | ErrorF a
-                      deriving (Functor, Traversable, Foldable)
-
-type instance Base (Term name a) = TermF name a
+                   deriving (Functor, Show, Generic, NFData, Lift)
 
 type Value = Term
 
 data Program name ann = Program ann (PLC.Version ann) (Term name ann)
-    deriving (Show, Eq, Functor, Generic, NFData, Lift)
-
-instance Recursive (Term name a) where
-    project (Var x n)      = VarF x n
-    project (LamAbs x n t) = LamAbsF x n t
-    project (Apply x t t') = ApplyF x t t'
-    project (Constant x c) = ConstantF x c
-    project (Builtin x bi) = BuiltinF x bi
-    project (Error x)      = ErrorF x
-
-instance Corecursive (Term name a) where
-    embed (VarF x n)      = Var x n
-    embed (LamAbsF x n t) = LamAbs x n t
-    embed (ApplyF x t t') = Apply x t t'
-    embed (ConstantF x c) = Constant x c
-    embed (BuiltinF x bi) = Builtin x bi
-    embed (ErrorF x)      = Error x
+    deriving (Show, Functor, Generic, NFData, Lift)
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
@@ -256,4 +228,5 @@ deBruijnToIntTerm = \case
 
 deBruijnToIntProgram :: Program D.DeBruijn a -> Program IntName a
 deBruijnToIntProgram (Program ann version body) = Program ann version (deBruijnToIntTerm body)
+
 

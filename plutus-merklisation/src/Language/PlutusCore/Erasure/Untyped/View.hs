@@ -14,7 +14,7 @@ module Language.PlutusCore.Erasure.Untyped.View
     , termAsPrimIterApp
     ) where
 
-import           Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
+import qualified Language.PlutusCore.Core                 as PLC
 import           Language.PlutusCore.Erasure.Untyped.Term
 import           PlutusPrelude
 
@@ -30,7 +30,7 @@ type TermIterApp name a =
 
 -- | An iterated application of a 'BuiltinName' to a list of 'Value's.
 type PrimIterApp name a =
-    IterApp StagedBuiltinName (Value name a)
+    IterApp PLC.StagedBuiltinName (Value name a)
 
 instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp head arg) where
     prettyBy config (IterApp appHead appSpine) =
@@ -42,9 +42,9 @@ constantAsInteger (BuiltinInt _ int) = Just int
 constantAsInteger _                  = Nothing
 
 -- | View a 'Constant' as a 'StagedBuiltinName'.
-constantAsStagedBuiltinName :: Builtin a -> StagedBuiltinName
-constantAsStagedBuiltinName (BuiltinName    _ name) = StaticStagedBuiltinName  name
-constantAsStagedBuiltinName (DynBuiltinName _ name) = DynamicStagedBuiltinName name
+constantAsStagedBuiltinName :: Builtin a -> PLC.StagedBuiltinName
+constantAsStagedBuiltinName (BuiltinName    _ name) = PLC.StaticStagedBuiltinName  name
+constantAsStagedBuiltinName (DynBuiltinName _ name) = PLC.DynamicStagedBuiltinName name
 
 -- | View a 'Term' as a 'Constant'.
 termAsBuiltin :: Term name a -> Maybe (Builtin a)

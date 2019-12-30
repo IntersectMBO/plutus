@@ -16,16 +16,16 @@ module Language.PlutusCore.Erasure.Untyped.Constant.Dynamic.Instances
 import           Language.PlutusCore.Erasure.Untyped.Constant.Make
 import           Language.PlutusCore.Erasure.Untyped.Constant.Typed
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.Result
-import           Language.PlutusCore.Erasure.Untyped.Term
-import           Language.PlutusCore.Lexer.Type             (prettyBytes)
+import           Language.PlutusCore.Erasure.Untyped.Instance.Pretty
 import           Language.PlutusCore.Erasure.Untyped.MkPlc
+import           Language.PlutusCore.Erasure.Untyped.Term
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Erasure.Untyped.Pretty
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
-import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
+import qualified Language.PlutusCore.StdLib.Data.Function              as Plc
 import           Language.PlutusCore.StdLib.Data.List
-import           Language.PlutusCore.StdLib.Data.Sum        as Plc
+import           Language.PlutusCore.StdLib.Data.Sum                   as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
@@ -33,11 +33,11 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Control.Monad.Except
 import           Data.Bifunctor
-import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.ByteString.Lazy                                  as BSL
 import           Data.Char
 import           Data.Proxy
-import qualified Data.Text                                  as Text
-import qualified Data.Text.Prettyprint.Doc                  as Doc
+import qualified Data.Text                                             as Text
+import qualified Data.Text.Prettyprint.Doc                             as Doc
 import           GHC.TypeLits
 
 {- Note [Sequencing]
@@ -54,7 +54,7 @@ instance KnownType a => KnownType (EvaluationResult a) where
     toTypeAst _ = () -- toTypeAst @a Proxy
 
     -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
-    makeKnown EvaluationFailure     = Error () 
+    makeKnown EvaluationFailure     = Error ()
     makeKnown (EvaluationSuccess x) = makeKnown x
 
     -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
@@ -164,7 +164,7 @@ instance KnownType a => KnownType (() -> a) where
 
     prettyKnown f = "\\() ->" Doc.<+> prettyKnown (f ())
 
-{- 
+{-
 makeTypeAndKnown :: forall a. KnownType a => a -> Term Name ()
 makeTypeAndKnown x = dx where
 --    da = toTypeAst @a Proxy
@@ -262,7 +262,7 @@ instance (KnownType a, KnownType b) => KnownType (Either a b) where
     prettyKnown = either prettyKnown prettyKnown
 -}
 
-{-                  
+{-
 newtype PlcList a = PlcList
     { unPlcList :: [a]
     } deriving (Eq, Show)

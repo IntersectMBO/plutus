@@ -24,6 +24,7 @@ library
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
+        Language.PlutusCore.Eq
         Language.PlutusCore.Evaluation.Machine.Ck
         Language.PlutusCore.Evaluation.Machine.Cek
         Language.PlutusCore.Evaluation.Machine.L
@@ -41,6 +42,10 @@ library
         Language.PlutusCore.Normalize
         Language.PlutusCore.Normalize.Internal
         Language.PlutusCore.Pretty
+        Language.PlutusCore.Pretty.ConfigName
+        Language.PlutusCore.Pretty.Classic
+        Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
@@ -48,6 +53,7 @@ library
         Language.PlutusCore.DeBruijn
         Language.PlutusCore.Check.Uniques
         Language.PlutusCore.FsTree
+        Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -77,7 +83,6 @@ library
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
     hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
-        Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Core.Type
         Language.PlutusCore.Core.Plated
         Language.PlutusCore.Core.Instance.Eq
@@ -101,14 +106,8 @@ library
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Lexer.Type
-        Language.PlutusCore.Eq
         Language.PlutusCore.Mark
-        Language.PlutusCore.Pretty.Classic
-        Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
-        Language.PlutusCore.Pretty.Plc
-        Language.PlutusCore.Pretty.Readable
-        Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck

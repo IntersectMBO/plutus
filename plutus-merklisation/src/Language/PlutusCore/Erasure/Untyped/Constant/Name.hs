@@ -25,12 +25,12 @@ module Language.PlutusCore.Erasure.Untyped.Constant.Name
     , typedGtByteString
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Erasure.Untyped.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Erasure.Untyped.Constant.Typed
 import           Language.PlutusCore.Erasure.Untyped.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
 
-import qualified Data.ByteString.Lazy.Char8                     as BSL
+import qualified Data.ByteString.Lazy.Char8                                     as BSL
 import           Data.Proxy
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.

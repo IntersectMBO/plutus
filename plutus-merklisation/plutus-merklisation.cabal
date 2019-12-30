@@ -45,6 +45,27 @@ library
                    Language.PlutusCore.Erasure.Untyped
                    Language.PlutusCore.Erasure.Untyped.CBOR
                    Language.PlutusCore.Erasure.Untyped.Term
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty
+                   Language.PlutusCore.Evaluation.Machine.Untyped.Cek
+                   Language.PlutusCore.Erasure.Untyped.Evaluation.CkMachine
+  other-modules:
+                   Language.PlutusCore.Erasure.Untyped.Constant
+                   Language.PlutusCore.Erasure.Untyped.Constant.Apply
+                   Language.PlutusCore.Erasure.Untyped.Constant.Dynamic.Instances
+                   Language.PlutusCore.Erasure.Untyped.Constant.Make
+                   Language.PlutusCore.Erasure.Untyped.Constant.Name
+                   Language.PlutusCore.Erasure.Untyped.Constant.Typed
+                   Language.PlutusCore.Erasure.Untyped.Evaluation.MachineException
+                   Language.PlutusCore.Erasure.Untyped.Evaluation.Result
+                   Language.PlutusCore.Erasure.Untyped.MkPlc
+                   Language.PlutusCore.Erasure.Untyped.View
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty.Classic
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty.Common
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty.Default
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty.Plc
+                   Language.PlutusCore.Erasure.Untyped.Instance.Pretty.Readable
+                   Language.PlutusCore.Erasure.Untyped.Instance.Recursive
+                   Language.PlutusCore.Erasure.Untyped.Instance.Eq
 
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables

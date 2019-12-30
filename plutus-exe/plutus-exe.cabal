@@ -29,7 +29,14 @@ executable plc
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
-        text -any,
+        cborg -any,
+        filepath -any,
+        language-plutus-core -any,
         lens -any,
+        optparse-applicative -any,
+        plutus-merklisation -any,
         prettyprinter -any,
-        optparse-applicative -any
+        serialise -any,
+        text -any,
+        transformers -any
+
