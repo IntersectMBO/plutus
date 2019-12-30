@@ -44,13 +44,13 @@ data Name ann = Name
     { nameAttribute :: ann
     , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
     , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
-    } deriving (Show, Functor, Generic, NFData, Lift)
+    } deriving (Show, Functor, Foldable, Generic, NFData, Lift)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName ann = TyName { unTyName :: Name ann }
     deriving (Show, Generic, Lift)
-    deriving newtype (Eq, Ord, Functor, NFData)
+    deriving newtype (Eq, Ord, Functor, Foldable, NFData)
 instance Wrapped (TyName ann)
 
 -- | Apply a function to the string representation of a 'Name'.

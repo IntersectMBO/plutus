@@ -52,7 +52,7 @@ newtype Gas = Gas
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 -- | A builtin type
 data TypeBuiltin
@@ -71,7 +71,7 @@ data Type tyname ann
     | TyBuiltin ann TypeBuiltin -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname ann)
     | TyApp ann (Type tyname ann) (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 -- | Builtin functions
 data BuiltinName
@@ -115,14 +115,14 @@ data StagedBuiltinName
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 -- | A constant value.
 data Constant ann
     = BuiltinInt ann Integer
     | BuiltinBS ann BSL.ByteString
     | BuiltinStr ann String
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 data Term tyname name ann
     = Var ann (name ann) -- ^ a named variable
@@ -135,7 +135,7 @@ data Term tyname name ann
     | Unwrap ann (Term tyname name ann)
     | IWrap ann (Type tyname ann) (Type tyname ann) (Term tyname name ann)
     | Error ann (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Foldable, Show, Generic, NFData, Lift)
 
 type Value = Term
 

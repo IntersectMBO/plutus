@@ -17,6 +17,9 @@ packages: language-plutus-core
           deployment-server
           iots-export
           metatheory
+	  plutus-merklisation
+	  plutus-merklisation-exe
+
 optimization: 2
 max-backjumps: 160000
 write-ghc-environment-files: never
