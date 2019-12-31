@@ -20,7 +20,7 @@ w1 = Wallet 1
 w2 = Wallet 2
 
 tests :: TestTree
-tests = testGroup "game"
+tests = testGroup "*** game ***"
     [ checkPredicate @_ @R.ContractError "Expose 'lock' and 'guess' endpoints"
         game
         (endpointAvailable @"lock" w1 /\ endpointAvailable @"guess" w1)

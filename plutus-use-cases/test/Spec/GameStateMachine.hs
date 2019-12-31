@@ -23,7 +23,7 @@ import qualified Wallet.Emulator                                           as EM
 
 tests :: TestTree
 tests =
-    testGroup "state machine tests"
+    testGroup "*** state machine tests ***"
     [ checkPredicate @GameStateMachineSchema "run a successful game trace"
         G.contract
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> G.gameTokenVal)

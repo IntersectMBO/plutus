@@ -35,6 +35,7 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Error
         Language.PlutusCore.Rename.Internal
         Language.PlutusCore.Rename.Monad
@@ -67,6 +68,7 @@ library
         Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Meta.Data.Function
         Language.PlutusCore.StdLib.Type
+        Language.PlutusCore.TypeCheck
         Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.AST
@@ -100,7 +102,6 @@ library
         Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Constant.Dynamic.Instances
         Language.PlutusCore.Constant.Dynamic.OnChain
-        Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
@@ -110,7 +111,6 @@ library
         Language.PlutusCore.Pretty.Default
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
-        Language.PlutusCore.TypeCheck
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest

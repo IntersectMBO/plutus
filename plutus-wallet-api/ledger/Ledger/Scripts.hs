@@ -79,6 +79,9 @@ import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Orphans                           ()
 
+import Language.PlutusCore.Merkle.Merklise                (merklisationStatistics)
+import Debug.Trace
+    
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
 -- Note: the program inside the 'Script' should have normalized types.
@@ -284,6 +287,10 @@ validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
     h' :: Digest SHA256 = hash h
     e = encode vl
 
+-- getHash :: Script -> Digest SHA256
+-- getHash val =
+--    hash . Write.toStrictByteString . encode $ val
+        
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype ValidationData = ValidationData Data
@@ -300,8 +307,11 @@ runScript
     -> RedeemerValue
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (Validator validator) (DataValue dataValue) (RedeemerValue redeemer) = do
-    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
-    evaluateScript checking appliedValidator
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue))
+                            `applyScript` (fromCompiledCode $ liftCode redeemer))
+                            `applyScript` (fromCompiledCode $ liftCode valData)
+    Debug.Trace.trace (merklisationStatistics (unScript appliedValidator)) $
+         evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
 unitData :: DataValue

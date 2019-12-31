@@ -31,7 +31,7 @@ import           Language.PlutusTx.Lattice
 
 tests :: TestTree
 tests =
-    testGroup "futures"
+    testGroup "*** futures ***"
     [ checkPredicate @FutureSchema "can initialise and obtain tokens"
         (F.futureContract theFuture)
         (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short accounts)
@@ -88,7 +88,7 @@ w2 :: Wallet
 w2 = Wallet 2
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
---   due at slot #100.
+--   due at slot ***100.
 theFuture :: Future
 theFuture = Future {
     ftDeliveryDate  = Ledger.Slot 100,
@@ -101,7 +101,8 @@ theFuture = Future {
 
 -- | This is the address of contract 'theFuture', initialised by wallet 1
 tokenCurrency :: CurrencySymbol
-tokenCurrency = "b7a5934310d0aeb07cb3fb6c728e43cf736a3c6e42410f50461d28b822405272"
+--tokenCurrency = "b7a5934310d0aeb07cb3fb6c728e43cf736a3c6e42410f50461d28b822405272"
+tokenCurrency = "1c44e7b665e5560583ffff5f18c1b856cca07b47a8b1d4c6890e278cefc41f8e"
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.

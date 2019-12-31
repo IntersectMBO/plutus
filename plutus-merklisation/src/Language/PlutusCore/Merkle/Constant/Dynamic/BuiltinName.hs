@@ -15,14 +15,13 @@ module Language.PlutusCore.Merkle.Constant.Dynamic.BuiltinName
     , dynamicTraceDefinitionMock
     ) where
 
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Merkle.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Merkle.Constant.Make
 import           Language.PlutusCore.Merkle.Constant.Typed
-import           Language.PlutusCore.Core
 
 import           Data.Proxy
-import           Debug.Trace                                           (trace)
+-- import           Debug.Trace                                           (trace)
 
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
@@ -60,8 +59,8 @@ dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"
 
-dynamicTraceMeaningMock :: DynamicBuiltinNameMeaning
-dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) where
+dynamicTraceMeaningMock :: DynamicBuiltinNameMeaning  -- Don't want this here.
+dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip (\_ y -> y) ()) where
     sch =
         Proxy @String `TypeSchemeArrow`
         TypeSchemeResult (Proxy @())

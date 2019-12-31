@@ -32,7 +32,7 @@ import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine a
 
 tests :: TestTree
 tests = 
-    testGroup "multi sig state machine tests"
+    testGroup "*** multi sig state machine tests ***"
     [ checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay - SUCCESS"
         (MS.contract params)
         (assertNoFailedTransactions

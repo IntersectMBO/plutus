@@ -20,7 +20,7 @@ import qualified Spec.Lib                                        as Lib
 import           Prelude                                         hiding (not)
 
 tests :: TestTree
-tests = testGroup "multisig" 
+tests = testGroup "*** multisig ***" 
     [ checkPredicate @MultiSigSchema @Text "2 out of 5"
         MS.contract
         (assertFailedTransaction (\_ err -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))

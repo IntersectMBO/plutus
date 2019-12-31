@@ -28,18 +28,19 @@ module Language.PlutusCore.Merkle.Evaluation.CekMarker
 --    , readKnownCek
     , runCek
     , unsafeRunCek
+    , runCekWithStringBuiltins
     ) where
 
 import           Language.PlutusCore                                    hiding (EvaluationFailure, EvaluationResult,
                                                                          EvaluationResultDef, EvaluationSuccess)
-import           Language.PlutusCore.Core
 import           Language.PlutusCore.Merkle.Constant
+import           Language.PlutusCore.Merkle.Constant.Dynamic
 import           Language.PlutusCore.Merkle.Evaluation.MachineException
 import           Language.PlutusCore.Merkle.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 
-import           PlutusPrelude                                          hiding (hoist)
+import           PlutusPrelude
 
 import           Control.Lens.TH                                        (makeLenses)
 import           Control.Monad.Except
@@ -48,6 +49,7 @@ import           Control.Monad.State
 import qualified Data.Map                                               as Map
 import qualified Data.Set                                               as Set
 
+import           Debug.Trace
 
 type Numbered f = f TyName Name Integer
 
@@ -74,16 +76,21 @@ type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 -- | The monad the CEK machine runs in.
 type CekM = ReaderT CekEnv (ExceptT CekMachineException (State NodeIDs))
 
+{-
 unann :: Functor f => f a -> f()
 unann = fmap (\_ -> ())
 -- Remove annotations.  We require this because the builtin
 -- application mechanism expects terms annotated with ().
+-}
+
 
 fakeID :: Integer
 fakeID = -1
 
+{-
 fakeIDs :: Functor f => f () -> f Integer
 fakeIDs = fmap (\() -> fakeID)
+-}
 {- Again with the builtins.  Builtin application gives us back something
    of type Plain Term, but we expect a Numbered Term.  This is
    problematic: we may give a builtin a numbered term and it might
@@ -101,8 +108,8 @@ The best solution to this is probably to mark every node in a term
 -- Insert all of the node IDs in a term into the set of used IDs. This
 -- may be extravagant because it will insert IDs of names and other
 -- things that we don't care about. Think about this again.
-markAll :: NodeIDs -> Numbered Term -> NodeIDs
-markAll = Prelude.foldr Set.insert
+--markAll :: NodeIDs -> Numbered Term -> NodeIDs
+--markAll = Prelude.foldr Set.insert
 
 -- | The CEK machine-specific 'MachineException'.
 
@@ -157,7 +164,7 @@ lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
-        Nothing   -> throwError $ MachineException err term where
+        Nothing   -> Debug.Trace.trace ("\n>>>> " ++ show dynName ++ "\n\n") $ throwError $ MachineException err term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
             term = Builtin (-1) $ DynBuiltinName (-1) dynName
         Just mean -> pure mean
@@ -309,3 +316,14 @@ runCek means (Program _ _ term) = evaluateCek means term
 -- Calls 'evaluateCek' under the hood.
 unsafeRunCek :: DynamicBuiltinNameMeanings -> Numbered Program -> EvaluationResultDef
 unsafeRunCek means (Program _ _ term) = unsafeEvaluateCek means term
+
+
+-- From Language.PlutusTx.Evaluation
+stringBuiltins :: DynamicBuiltinNameMeanings
+stringBuiltins =
+    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
+   (insertDynamicBuiltinNameDefinition dynamicAppendDefinition
+   (insertDynamicBuiltinNameDefinition dynamicTraceDefinitionMock mempty))
+
+runCekWithStringBuiltins :: Numbered Program -> (Either CekMachineException EvaluationResultDef, NodeIDs)
+runCekWithStringBuiltins = runCek stringBuiltins

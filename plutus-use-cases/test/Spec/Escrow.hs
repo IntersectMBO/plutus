@@ -19,7 +19,7 @@ import           Test.Tasty
 import qualified Test.Tasty.HUnit                                as HUnit
 
 tests :: TestTree
-tests = testGroup "escrow"
+tests = testGroup "*** escrow ***"
     [ checkPredicate @EscrowSchema @EscrowError "can pay"
         (void $ payEp escrowParams)
         (assertDone w1 (const True) "escrow pay not done" /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10)))

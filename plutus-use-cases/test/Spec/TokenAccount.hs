@@ -16,7 +16,7 @@ import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account 
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
 
 tests :: TestTree
-tests = testGroup "token account"
+tests = testGroup "*** token account ***"
     [ checkPredicate @TokenAccountSchema @ContractError "Create a token account"
         tokenAccountContract
         (assertNoFailedTransactions
@@ -63,7 +63,8 @@ tokenName = "test token"
 
 account :: Account
 account =
-    let currencySymbol = "5c3fc9c923c688c6521d911c2996fe7616044e57fc8eaacb5776ef13e396d016"
+    let currencySymbol = "e273b8ed6ecc6e1069eb37cbfbc07382ec40b997cd982b6fa7d95f763b942c0f"
+                      -- "5c3fc9c923c688c6521d911c2996fe7616044e57fc8eaacb5776ef13e396d016"
     in Account (currencySymbol, tokenName)
 
 theToken :: Value

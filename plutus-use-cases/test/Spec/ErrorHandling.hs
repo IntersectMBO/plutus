@@ -10,7 +10,7 @@ import           Language.PlutusTx.Coordination.Contracts.ErrorHandling
 import           Test.Tasty
 
 tests :: TestTree
-tests = testGroup "error handling"
+tests = testGroup "*** error handling ***"
     [ checkPredicate @Schema @MyError "throw an error"
         contract
         (assertContractError w1 (\case { ContractError (Error1 _) -> True; _ -> False}) "should throw error")

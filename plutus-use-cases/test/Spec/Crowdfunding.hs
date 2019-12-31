@@ -40,7 +40,7 @@ theContract :: Contract CrowdfundingSchema T.Text ()
 theContract = crowdfunding theCampaign
 
 tests :: TestTree
-tests = testGroup "crowdfunding"
+tests = testGroup "*** crowdfunding ***"
     [ checkPredicate "Expose 'contribute' and 'scheduleCollection' endpoints"
         theContract
         (endpointAvailable @"contribute" w1 /\ endpointAvailable @"schedule collection" w1)

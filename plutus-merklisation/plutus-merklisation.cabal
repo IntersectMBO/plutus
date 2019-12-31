@@ -47,6 +47,12 @@ library
                    Language.PlutusCore.Evaluation.Machine.Untyped.Cek
                    Language.PlutusCore.Erasure.Untyped.Evaluation.CkMachine
   other-modules:
+                   Language.PlutusCore.Merkle.Constant.Dynamic
+                   Language.PlutusCore.Merkle.Constant.Dynamic.BuiltinName
+                   Language.PlutusCore.Merkle.Constant.Dynamic.Call
+                   Language.PlutusCore.Merkle.Constant.Dynamic.Emit
+                   Language.PlutusCore.Merkle.Constant.Dynamic.OffChain
+                   Language.PlutusCore.Merkle.Constant.Dynamic.OnChain
                    Language.PlutusCore.Erasure.Untyped.Constant
                    Language.PlutusCore.Erasure.Untyped.Constant.Apply
                    Language.PlutusCore.Erasure.Untyped.Constant.Dynamic.Instances

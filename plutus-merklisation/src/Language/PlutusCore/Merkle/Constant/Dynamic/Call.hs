@@ -7,10 +7,9 @@ module Language.PlutusCore.Merkle.Constant.Dynamic.Call
     , dynamicCall
     ) where
 
-import           Language.PlutusCore.Lexer.Type            hiding (name)
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Merkle.Constant.Make
 import           Language.PlutusCore.Merkle.Constant.Typed
-import           Language.PlutusCore.Core
 
 import           Data.Proxy
 import           System.IO.Unsafe

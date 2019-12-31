@@ -236,8 +236,8 @@ printResult r =
       Left _  -> putStrLn "Error"
       Right v -> putStrLn $ show v
 
-nodynamics :: M.DynamicBuiltinNameMeanings
-nodynamics = M.DynamicBuiltinNameMeanings Map.empty
+--nodynamics :: M.DynamicBuiltinNameMeanings
+--nodynamics = M.DynamicBuiltinNameMeanings Map.empty
 
 type NodeIDs = Set.Set Integer
 
@@ -261,7 +261,7 @@ merklisationAnalysis _name code = do
       numberedProgram = M.numberProgram program
       P.Program progAnn _ numberedBody = numberedProgram
       bodyAnn = P.termLoc numberedBody
-      usedNodes =  getUsedNodes $ CekMarker.evaluateCek nodynamics numberedBody
+      usedNodes =  getUsedNodes $ CekMarker.runCekWithStringBuiltins numberedProgram
       prunedProgram = M.pruneProgram usedNodes numberedProgram
       s2 = serialise prunedProgram
       hash1 = M.merkleHash $ M.fromCoreProgram program

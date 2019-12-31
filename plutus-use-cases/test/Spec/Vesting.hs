@@ -33,7 +33,7 @@ wallet2 = Wallet 2
 tests :: TestTree
 tests =
     let con = vestingContract vesting in
-    testGroup "vesting"
+    testGroup "*** vesting ***"
     [ checkPredicate "secure some funds with the vesting script"
         con
         (walletFundsChange wallet2 (Numeric.negate $ totalAmount vesting))

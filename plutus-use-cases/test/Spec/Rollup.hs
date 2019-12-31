@@ -26,7 +26,7 @@ import qualified Wallet.Emulator.Wallet                                as EM
 import           Wallet.Rollup.Render                                  (showBlockchain)
 
 tests :: TestTree
-tests = testGroup "showBlockchain"
+tests = testGroup "*** showBlockchain ***"
      [ goldenVsString
           "renders a crowdfunding scenario sensibly"
           "test/Spec/renderCrowdfunding.txt"

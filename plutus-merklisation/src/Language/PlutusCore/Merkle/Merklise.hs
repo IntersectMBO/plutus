@@ -163,8 +163,8 @@ pruneProgram used (P.Program _ v t) = Program () (unann v) (pruneTerm used t)
 getUsedNodes :: (Either CekMarker.CekMachineException M.EvaluationResultDef, NodeIDs) -> NodeIDs
 getUsedNodes (e, nodes) =
     case e of
-     Left _                             -> error "getUsedNodes: Left _"
-     Right M.EvaluationFailure          -> error "Evaluation failure in getUsedNodes"
+     Left k                             -> error $ "getUsedNodes: Left " ++ show k
+     Right M.EvaluationFailure          -> nodes  -- EvaluationFailure is when we evaluate Error, which is actually OK.
      Right (M.EvaluationSuccess _term ) -> nodes
 
 compress :: B.ByteString -> B.ByteString
@@ -177,7 +177,7 @@ merklisationStatistics program =
         numberedProgram = numberProgram program
         P.Program progAnn _ numberedBody = numberedProgram
         bodyAnn = P.termLoc numberedBody
-        usedNodes =  getUsedNodes $ CekMarker.evaluateCek nodynamics numberedBody
+        usedNodes =  getUsedNodes $ CekMarker.runCekWithStringBuiltins numberedProgram
         prunedProgram = pruneProgram usedNodes numberedProgram
         s2 = serialise prunedProgram
         hash1 = merkleHash $ fromCoreProgram program
@@ -191,16 +191,17 @@ merklisationStatistics program =
          "",
          "After Merklisation",
          " Number of terms used during execution = " ++ (show $ Data.Set.size usedNodes) ,
-         "Used nodes: " ++ (show usedNodes),
-         "Prog ann = " ++ ( show progAnn),
-         "Body ann = " ++ ( show bodyAnn),
+--         "Used nodes: " ++ (show usedNodes),
+--         "Prog ann = " ++ ( show progAnn),
+--         "Body ann = " ++ ( show bodyAnn),
          " Remaining nodes: " ++ (show $ M.programSize prunedProgram),
          " AST size: " ++ (show $ M.astInfo prunedProgram),
          " Serialised size = " ++ (show $ BSL.length s2) ++ " bytes",
-         " Compressed size = " ++ (show $ BSL.length (compress s2)) ++ " bytes",
-         "",
-         "Merkle hash before pruning: " ++ (show $ hash1),
-         "Merkle hash after  pruning: " ++ (show $ hash2)]
+         " Compressed size = " ++ (show $ BSL.length (compress s2)) ++ " bytes"
+--         "",
+--         "Merkle hash before pruning: " ++ (show $ hash1),
+--         "Merkle hash after  pruning: " ++ (show $ hash2)
+         ]
     in Data.List.intercalate "\n" messages
 
 

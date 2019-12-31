@@ -23,7 +23,7 @@ theContract = do
   void $ submitTx $ mempty & inputs .~ Set.singleton txin
 
 tests :: TestTree
-tests = testGroup "pubkey"
+tests = testGroup "*** pubkey ***"
   [ checkPredicate "works like a public key output"
       theContract
       (walletFundsChange w1 mempty /\ assertDone w1 (const True) "pubkey contract not done")
