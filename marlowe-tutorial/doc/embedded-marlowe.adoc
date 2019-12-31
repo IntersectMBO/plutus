@@ -18,7 +18,7 @@ While we presented it there as a “monolothic” contract, we can use Haskell d
 [source,haskell]
 ----
 contract :: Contract
-contract = When [Case (Deposit "alice" "alice" price) inner]
+contract = When [Case (Deposit "alice" "alice" ada price) inner]
                 10
                 Close
 
@@ -50,13 +50,13 @@ agreement :: Contract
 agreement =
   If
     (aliceChosen `ValueEQ` (Constant 0))
-    (Pay "alice" (Party "bob") price Close)
+    (Pay "alice" (Party "bob") ada price Close)
     Close
 
 arbitrate :: Contract
 arbitrate =
   When  [ Case carolClose Close,
-          Case carolPay (Pay "alice" (Party "bob") price Close) ]
+          Case carolPay (Pay "alice" (Party "bob") ada price Close) ]
         100
         Close
 ----

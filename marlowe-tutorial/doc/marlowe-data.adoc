@@ -40,28 +40,33 @@ data Slot    = Slot Integer
 type Timeout = Slot
 ----
 
-Marlowe Account holds amounts of multiple currencies and/or fungible and non-fungible tokens.
+A Marlowe Account holds amounts of multiple currencies and/or fungible and non-fungible tokens.
 Concrete amount is indexed by a `Token`, which is a pair of `CurrencySymbol` and `TokenName`.
-You can think of Account as a `Map Token Integer`, where
+You can think of an Account as a `Map Token Integer`, where
 
 [source,haskell]
 ----
 data Token = Token CurrencySymbol TokenName
 ----
 
-For Cardano's Ada token is `Token adaSymbol adaToken`. But you are free to create your own currencies
-and tokens. This effectively embedds Ethereum ERC-20/ERC-721 standards into a primitive values in Cardano.
+Cardano's Ada token is `Token adaSymbol adaToken`. But you are free to create your own currencies
+and tokens.
 
-A currency can represent shares of stocks, e.g APPL, and TSLA.
+A currency tokens can represent roles in a contract, e.g "buyer" and "seller".
+Think of a legal contract's part "hereafter referred to as the Performer/Vendor/Artist/Consultant".
+This way we can decouple notion of ownership of a contract role, and make it tradable.
+So you can sell your loan or buy a share of a role in some contract.
+
 
 [source]
 ----
-shares = CurrencySymbol "Shares"
-appl = TokenName "APPL"
-account = fromList[(Token shares appl, 10), (ada 1000)]
+tradeRoles = CurrencySymbol "TradeRoles"
+buyer = TokenName "buyer"
+seller = TokenName "seller"
+account = fromList[(Token tradeRoles buyer, 1), (ada 1000)]
 ----
 
-Here `account` holds 10 APPL tokens of currency "Shares", and 1000 Ada.
+Here `account` holds a `buyer` token of currency "TradeRoles", and 1000 Ada.
 
 
 Accounts have a number `NumAccount` and an owner, who is a `Party` to the contract.
@@ -150,7 +155,7 @@ data Bound = Bound Integer Integer
 ----
 Three kinds of action are possible:
 
-* A `Deposit n p t v` makes a deposit of value `v` of tokens `t` into account number `n` belonging to party `p`.
+* A `Deposit n p t v` makes a deposit of value `v` of token `t` into account number `n` belonging to party `p`.
 * A choice is made for a particular id with a list of bounds on the values that are acceptable.  For example, `[Bound 0 0, Bound 3 5]` offers the choice of one of `0`, `3`, `4` and `5`.
 * The contract is notified that a particular observation be made. Typically this would be done by one of the parties, or one of their wallets acting automatically.
 

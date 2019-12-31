@@ -43,21 +43,21 @@ When [
   (Case
      (Deposit
         (AccountId 0 "investor")
-        "investor"
+        "investor" ada
         (Constant 850))
      (Pay
         (AccountId 0 "investor")
-        (Party "issuer")
+        (Party "issuer") ada
         (Constant 850)
         (When [
            (Case
               (Deposit
                  (AccountId 0 "investor")
-                 "issuer"
+                 "issuer" ada
                  (Constant 1000))
               (Pay
                  (AccountId 0 "investor")
-                 (Party "investor")
+                 (Party "investor") ada
                  (Constant 1000)
                  Close))
             ]
@@ -104,20 +104,20 @@ This more complex bond involves an `investor` who deposits 1000 Lovelace, which 
 ----
 couponBondFor3Month12Percent =
     -- investor deposits 1000 Lovelace
-    When [ Case (Deposit "investor" "investor" (Constant 1000))
+    When [ Case (Deposit "investor" "investor" ada (Constant 1000))
         -- and pays it to the issuer
-        (Pay "investor" (Party "issuer") (Constant 1000)
+        (Pay "investor" (Party "issuer") ada (Constant 1000)
             -- after 10 slots expect to receive 10 Lovelace interest
-            (When [ Case (Deposit "investor" "issuer" (Constant 10))
+            (When [ Case (Deposit "investor" "issuer" ada (Constant 10))
                 -- and pay it to the investor
-                (Pay "investor" (Party "investor" ) (Constant 10)
+                (Pay "investor" (Party "investor" ) ada (Constant 10)
                     -- same for 2nd 10 slots
-                    (When [ Case (Deposit "investor" "issuer" (Constant 10))
-                        (Pay "investor" (Party "investor" ) (Constant 10)
+                    (When [ Case (Deposit "investor" "issuer" ada (Constant 10))
+                        (Pay "investor" (Party "investor" ) ada (Constant 10)
                             -- after maturity date investor
                             -- expects to receive notional + interest payment
-                            (When [ Case (Deposit "investor" "issuer" (Constant 1010))
-                                (Pay "investor" (Party "investor" ) (Constant 1010) Close)]
+                            (When [ Case (Deposit "investor" "issuer" ada (Constant 1010))
+                                (Pay "investor" (Party "investor" ) ada (Constant 1010) Close)]
                             (Slot 40)
                             Close))]
                     (Slot 30)
