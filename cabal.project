@@ -17,22 +17,16 @@ packages: language-plutus-core
           deployment-server
           iots-export
           metatheory
-optimization: 2
-max-backjumps: 160000
+
+-- We never, ever, want this.
 write-ghc-environment-files: never
+
+-- Always build tests and benchmarks.
 tests: true
 benchmarks: true
 
-allow-boot-library-installs:
-    true
-
-allow-newer:
-    cborg:containers
-
-program-options
-  alex-options: -g
-  happy-options: -gcsa
-
+-- stack.yaml is the source of truth for these pins, they are explained there
+-- and need to be kept in sync.
 source-repository-package
   type: git
   location: https://github.com/target/row-types
