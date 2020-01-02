@@ -76,12 +76,15 @@ eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
 eqTermM (Builtin _ bi1) (Builtin _ bi2) =
     eqM bi1 bi2
+eqTermM (Prune _ h1) (Prune _ h2) =
+    error "eqTermM Prune: see  Language.PlutusCore.Eq"
 eqTermM LamAbs{}   _ = empty
 eqTermM Apply{}    _ = empty
 eqTermM Error{}    _ = empty
 eqTermM Var{}      _ = empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
+eqTermM Prune{}    _ = empty
 
 -- | Check equality of two 'Program's.
 eqProgramM :: EqRenameOf ScopedRenaming (Program name ann)

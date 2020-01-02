@@ -43,7 +43,8 @@ import qualified Data.Map                                                       
 type Plain f = f Name ()
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException = MachineException PLC.UnknownDynamicBuiltinNameError
+type CekMachineException =
+    MachineException PLC.UnknownDynamicBuiltinNameError
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -120,6 +121,7 @@ computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
 computeCek con constant@Constant{}      = returnCek con constant
 computeCek con bi@Builtin{}             = returnCek con bi
 computeCek _   Error{}                  = pure EvaluationFailure
+computeCek _   Prune{}                  = error "PRUNE"
 computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term

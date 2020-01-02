@@ -21,6 +21,8 @@ import           GHC.Natural                                                   (
 import           Numeric
 
 import qualified Language.PlutusCore                                           as P
+import           Language.PlutusCore.Pretty
+
 import qualified Language.PlutusCore.Merkle.CBOR                               as M
 import           Language.PlutusCore.Merkle.Merklisable                        (Merklisable, merkleHash)
 import qualified Language.PlutusCore.Merkle.PLCSize                            as PLCSize
@@ -30,7 +32,7 @@ import qualified Language.PlutusCore.Merkle.Type                               a
 
 
 import           Language.PlutusTx.Coordination.Contracts.Crowdfunding         as Crowdfunding (exportedValidator)
-import           Language.PlutusTx.Coordination.Contracts.Currency             as Currrency (exportedValidator)
+import           Language.PlutusTx.Coordination.Contracts.Currency             as Currency (exportedValidator)
 import           Language.PlutusTx.Coordination.Contracts.Escrow               as Escrow (exportedValidator)
 import           Language.PlutusTx.Coordination.Contracts.Future               as Future (exportedValidator)
 import           Language.PlutusTx.Coordination.Contracts.Game                 as Game (exportedValidator)
@@ -151,7 +153,7 @@ analyseContracts = do
   printHeader
   analyseProg    "Crowdfunding"         Crowdfunding.exportedValidator
   printSeparator
-  analyseProg    "Currrency"            Currrency.exportedValidator
+  analyseProg    "Currency"             Currency.exportedValidator
   printSeparator
   analyseProg    "Escrow"               Escrow.exportedValidator
   printSeparator
@@ -202,4 +204,8 @@ printTypes name code = do
 
 
 main :: IO ()
-main = printTypes "MultiSigStateMachine" MultiSigStateMachine.exportedValidator
+main = analyseContracts
+--main = printTypes "MultiSigStateMachine" MultiSigStateMachine.exportedValidator
+--main = do
+--  putStrLn . show . prettyPlcClassicDef . PlutusTx.getPlc $ Currency.exportedValidator
+

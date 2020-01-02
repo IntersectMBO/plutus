@@ -1,12 +1,10 @@
 module Language.PlutusCore.Merkle.Constant.Dynamic.OffChain ( getStringBuiltinTypes ) where
 
 import           Control.Monad.Except
-import qualified Language.PlutusCore.Constant.Dynamic.OffChain           as PLC
+import qualified Language.PlutusCore.Constant.Dynamic.OffChain as PLC
 import           Language.PlutusCore.Error
-import qualified Language.PlutusCore.Merkle.Constant.Dynamic.BuiltinName as B
-import qualified Language.PlutusCore.Merkle.Constant.Function            as F
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.TypeCheck                           as T
+import qualified Language.PlutusCore.TypeCheck                 as T
 
 getStringBuiltinTypes
     :: (AsTypeError e ann, MonadError e m, MonadQuote m) => ann -> m T.DynamicBuiltinNameTypes

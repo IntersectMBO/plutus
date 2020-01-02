@@ -234,8 +234,8 @@ printDepthHeader = do
   putStrLn "| :---: | ---: | ---: | ---: |"
 
 printDepths :: String -> CompiledCode ann -> IO ()
-printDepths name validator = do
-  let PLC.Program _ver _ty body = PlutusTx.getPlc validator
+printDepths name code = do
+  let PLC.Program _ver _ty body = PlutusTx.getPlc code
   putStr "| "
   putStr name
   putStr " | "

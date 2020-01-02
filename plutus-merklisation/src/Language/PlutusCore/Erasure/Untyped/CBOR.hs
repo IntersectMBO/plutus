@@ -10,8 +10,12 @@ module Language.PlutusCore.Erasure.Untyped.CBOR () where
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
+import           Crypto.Hash
+import qualified Data.ByteArray                                         as BA
+import qualified Data.ByteString                                        as BSS
 import qualified Data.ByteString.Lazy                                   as BSL
 import           Data.Functor.Foldable                                  hiding (fold)
+
 import qualified Language.PlutusCore.Core                               as PLC
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Erasure.Untyped.Instance.Recursive
@@ -138,6 +142,16 @@ instance Serialise a => Serialise (Builtin a) where
               go 1 = DynBuiltinName <$> decode <*> decode
               go _ = fail "Failed to decode Builtin ()"
 
+encodeDigest :: Digest SHA256 -> Encoding
+encodeDigest = encode . BSS.pack. BA.unpack
+
+decodeDigest :: Decoder s (Digest SHA256)
+decodeDigest = do
+      d :: BSS.ByteString <- decode
+      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
+      case digestFromByteString bs of
+        Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
+        Just v  -> pure v
 
 instance Serialise a => Serialise (Constant a) where
     encode (BuiltinInt x i) = fold [ encodeConstructorTag 0, encode x, encodeInteger i ]
@@ -157,6 +171,7 @@ instance (Serialise a, Serialise (name a)) => Serialise (Term name a) where
         a (ConstantF x c) = encodeConstructorTag 3 <> encode x <> encode c
         a (ErrorF x)      = encodeConstructorTag 4 <> encode x
         a (BuiltinF x bi) = encodeConstructorTag 5 <> encode x <> encode bi
+        a (PruneF x h)    = encodeConstructorTag 6 <> encode x <> encodeDigest h
 
     decode = go =<< decodeConstructorTag
         where go 0 = Var <$> decode <*> decode
@@ -165,6 +180,7 @@ instance (Serialise a, Serialise (name a)) => Serialise (Term name a) where
               go 3 = Constant <$> decode <*> decode
               go 4 = Error <$> decode
               go 5 = Builtin <$> decode <*> decode
+              go 6 = Prune <$> decode <*> decodeDigest
               go _ = fail "Failed to decode Term Name ()"
 
 instance (Serialise a, Serialise (name a)) => Serialise (Program name a) where

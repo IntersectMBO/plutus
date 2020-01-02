@@ -9,6 +9,7 @@ module Language.PlutusCore.Erasure.Untyped.Instance.Recursive
 
 import           Language.PlutusCore.Erasure.Untyped.Term
 
+import           Crypto.Hash
 import           Data.Functor.Foldable
 
 data TermF name a x
@@ -18,6 +19,7 @@ data TermF name a x
     | ConstantF a (Constant a)
     | BuiltinF a (Builtin a)
     | ErrorF a
+    | PruneF a (Digest SHA256)
       deriving (Functor, Traversable, Foldable)
 
 type instance Base (Term name a) = TermF name a
@@ -29,6 +31,7 @@ instance Recursive (Term name a) where
     project (Constant x c) = ConstantF x c
     project (Builtin x bi) = BuiltinF x bi
     project (Error x)      = ErrorF x
+    project (Prune x h)    = PruneF x h
 
 instance Corecursive (Term name a) where
     embed (VarF x n)      = Var x n
@@ -37,4 +40,5 @@ instance Corecursive (Term name a) where
     embed (ConstantF x c) = Constant x c
     embed (BuiltinF x bi) = Builtin x bi
     embed (ErrorF x)      = Error x
+    embed (PruneF x h)    = Prune x h
 

@@ -36,6 +36,7 @@ instance PrettyClassicBy configName (name a) =>
         a (VarF _ n)      = prettyName n
         a (LamAbsF _ n t) = parens' ("lam" </> vsep' [prettyName n, t])
         a (ErrorF _)      = "error"
+        a (PruneF _ _)    = "<prune>"
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config

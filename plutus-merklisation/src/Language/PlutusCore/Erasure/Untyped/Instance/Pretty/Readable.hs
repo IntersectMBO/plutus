@@ -37,6 +37,7 @@ instance PrettyReadableBy configName (name a) =>
         LamAbs _ name body     -> bind $ \bindBody ->
             "\\" <> parens (prettyName name) <+> "->" <+> bindBody body
         Error _                -> "error"
+        Prune _ _              -> "<pruned>"
       where
         prettyName = prettyBy config
         unit = unitaryDoc  config

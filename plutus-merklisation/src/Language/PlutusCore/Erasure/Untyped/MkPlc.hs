@@ -7,11 +7,12 @@ module Language.PlutusCore.Erasure.Untyped.MkPlc ( TermLike (..)
                                  , mkIterApp
                                  ) where
 
-import           Prelude                  hiding (error)
+import           Prelude                                  hiding (error)
 
 import           Language.PlutusCore.Erasure.Untyped.Term
 
-import           Data.List                (foldl')
+import           Crypto.Hash
+import           Data.List                                (foldl')
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term name | term -> name where
@@ -21,6 +22,7 @@ class TermLike term name | term -> name where
     constant :: a -> Constant a -> term a
     builtin  :: a -> Builtin a -> term a
     error    :: a -> term a
+    prune    :: a -> (Digest SHA256) -> term a
 
 instance TermLike (Term name) name where
     var      = Var
@@ -29,6 +31,7 @@ instance TermLike (Term name) name where
     constant = Constant
     builtin  = Builtin
     error    = Error
+    prune    = Prune
 
 embed :: TermLike term name => Term name a -> term a
 embed = \case
@@ -38,7 +41,7 @@ embed = \case
     Constant a c      -> constant a c
     Builtin a bi      -> builtin a bi
     Error a           -> Language.PlutusCore.Erasure.Untyped.MkPlc.error a
-
+    Prune a h         -> prune a h
 
 -- | Make an iterated application.
 mkIterApp

@@ -79,7 +79,7 @@ import           Language.PlutusTx.Builtins               as Builtins
 import           LedgerBytes                              (LedgerBytes (..))
 import           Ledger.Orphans                           ()
 
-import Language.PlutusCore.Merkle.Merklise                (merklisationStatistics)
+import Language.PlutusCore.Merkle.Merklise                (merklisationStatistics, componentStatistics)
 import Debug.Trace
     
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -310,8 +310,10 @@ runScript checking (ValidationData valData) (Validator validator) (DataValue dat
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue))
                             `applyScript` (fromCompiledCode $ liftCode redeemer))
                             `applyScript` (fromCompiledCode $ liftCode valData)
-    Debug.Trace.trace (merklisationStatistics (unScript appliedValidator)) $
-         evaluateScript checking appliedValidator
+    Debug.Trace.trace (componentStatistics (unScript validator) (unScript . fromCompiledCode $ liftCode dataValue)
+                       (unScript . fromCompiledCode $ liftCode redeemer) (unScript . fromCompiledCode $ liftCode valData)) $
+             (Debug.Trace.trace (merklisationStatistics (unScript appliedValidator)) $
+                   evaluateScript checking appliedValidator)
 
 -- | @()@ as a data script.
 unitData :: DataValue

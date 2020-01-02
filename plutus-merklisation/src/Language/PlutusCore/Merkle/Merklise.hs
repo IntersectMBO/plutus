@@ -31,6 +31,7 @@ import           Language.PlutusCore.Merkle.Merklisable
 import qualified Language.PlutusCore.Merkle.PLCSize              as PLCSize
 import qualified Language.PlutusCore.Merkle.Size                 as M
 import           Language.PlutusCore.Merkle.Type
+import           Language.PlutusCore.Pretty
 import qualified Language.PlutusTx.Builtins                      as B
 
 {- Numbering nodes.  We replace the annotations in an AST with unique
@@ -182,8 +183,10 @@ merklisationStatistics program =
         s2 = serialise prunedProgram
         hash1 = merkleHash $ fromCoreProgram program
         hash2 = merkleHash prunedProgram
+        scr =  prettyPlcClassicDef program
 
         messages = [
+         "Script: " ++ show scr,
          "\nBefore Merklisation",
          " AST size: " ++ (show $ PLCSize.astInfo program),
          " Serialised size = " ++ (show $ BSL.length s1) ++ " bytes",
@@ -197,11 +200,22 @@ merklisationStatistics program =
          " Remaining nodes: " ++ (show $ M.programSize prunedProgram),
          " AST size: " ++ (show $ M.astInfo prunedProgram),
          " Serialised size = " ++ (show $ BSL.length s2) ++ " bytes",
-         " Compressed size = " ++ (show $ BSL.length (compress s2)) ++ " bytes"
---         "",
---         "Merkle hash before pruning: " ++ (show $ hash1),
+         " Compressed size = " ++ (show $ BSL.length (compress s2)) ++ " bytes",
+         "",
+         "Merkle hash: " ++ (show $ hash1)
 --         "Merkle hash after  pruning: " ++ (show $ hash2)
          ]
     in Data.List.intercalate "\n" messages
 
 
+type Prog = P.Program P.TyName P.Name ()
+componentStatistics ::  Prog -> Prog -> Prog -> Prog -> String
+componentStatistics validator dataVal redeemer ptx =
+    let sizes prog = show (PLCSize.astInfo prog) ++ "/" ++ show (BSL.length (serialise prog))
+        messages = ["\n",
+                    "validator: " ++ sizes validator,
+                    "dataval  : " ++ sizes dataVal,
+                    "redeemer : " ++ sizes redeemer,
+                    "pendingtx: " ++ sizes ptx
+                   ]
+    in Data.List.intercalate "\n" messages

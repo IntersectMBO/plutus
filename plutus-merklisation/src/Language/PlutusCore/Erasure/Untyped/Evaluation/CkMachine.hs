@@ -24,11 +24,14 @@ import           Data.Functor.Identity
 
 infix 4 |>, <|
 
--- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
-data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
+data CkMachineError
+    = NoDynamicBuiltinNamesMachineError
+    | EvaluatedMerklisedNodeError
 
 -- | The CK machine-specific 'MachineException'.
-type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
+type CkMachineException
+    = MachineException CkMachineError
+
 
 data Frame
     = FrameApplyFun (Value Name ())             -- ^ @[V _]@
@@ -36,15 +39,17 @@ data Frame
 
 type Context = [Frame]
 
-instance Pretty NoDynamicBuiltinNamesMachineError where
+instance Pretty CkMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
         "The CK machine doesn't support dynamic extensions to the set of built-in names."
+    pretty EvaluatedMerklisedNodeError =
+        "Attempted to evaluate a Merklised AST node"
 
 -- | Throw a 'CkMachineException'. This function is needed, because it constrains 'MachinerError'
 -- to be parametrized by a 'NoDynamicBuiltinNamesError' which is required in order to disambiguate
 -- @throw .* MachineException@.
 throwCkMachineException
-    :: MachineError NoDynamicBuiltinNamesMachineError -> Term Name () -> a
+    :: MachineError CkMachineError -> Term Name () -> a
 throwCkMachineException = throw .* MachineException
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
@@ -58,7 +63,7 @@ substituteDb varFor new = go where
     go (Constant ann constant) = Constant ann constant
     go (Builtin ann bi)        = Builtin ann bi
     go (Error ann)             = Error ann
-
+    go (Prune ann h)           = Prune ann h
     goUnder var term = if var == varFor then term else go term
 
 -- | The computing part of the CK machine. Rules are as follows:
@@ -78,7 +83,7 @@ stack |> bi@Builtin{}           = stack <| bi
 stack |> constant@Constant{}    = stack <| constant
 _     |> Error{}                = EvaluationFailure
 _     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachineError var
-
+_     |> p@Prune{}              = error "throwCkMachineException EvaluatedMerklisedNodeError p"
 -- | The returning part of the CK machine. Rules are as follows:
 --
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N

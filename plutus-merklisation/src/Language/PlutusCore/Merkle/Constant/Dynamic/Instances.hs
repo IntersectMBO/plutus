@@ -31,7 +31,6 @@ import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                         as BSL
 import           Data.Char
 import           Data.Proxy
-import qualified Data.Set
 import qualified Data.Text                                    as Text
 import qualified Data.Text.Prettyprint.Doc                    as Doc
 import           Data.Traversable

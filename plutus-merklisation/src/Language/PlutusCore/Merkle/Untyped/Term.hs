@@ -39,7 +39,7 @@ import           Crypto.Hash                     (Digest, SHA256)
 import qualified Data.ByteString.Lazy            as BSL
 import           Data.Functor.Foldable
 import           Instances.TH.Lift               ()
-import qualified Language.PlutusCore.Core        as PLC
+import           Language.PlutusCore.Core        (BuiltinName, DynamicBuiltinName, Version)
 import qualified Language.PlutusCore.DeBruijn    as D
 import qualified Language.PlutusCore.Merkle.Type as T
 import qualified Language.PlutusCore.Name        as N
@@ -54,8 +54,8 @@ termLoc (Error l)      = l
 termLoc (LamAbs l _ _) = l
 termLoc (Prune l _)    = l
 
-data Builtin a = BuiltinName a PLC.BuiltinName  -- Just copy Builtin and Constant to simplify things
-               | DynBuiltinName a PLC.DynamicBuiltinName
+data Builtin a = BuiltinName a BuiltinName  -- Just copy Builtin and Constant to simplify things
+               | DynBuiltinName a DynamicBuiltinName
                deriving (Functor, Show, Eq, Generic, NFData)
 
 translateBuiltin :: T.Builtin a -> Builtin a
@@ -98,7 +98,7 @@ type instance Base (Term name a) = TermF name a
 
 type Value = Term
 
-data Program name ann = Program ann (PLC.Version ann) (Term name ann)
+data Program name ann = Program ann (Version ann) (Term name ann)
     deriving (Show, Eq, Functor, Generic, NFData)
 
 instance Recursive (Term name a) where

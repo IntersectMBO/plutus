@@ -33,6 +33,10 @@ module Language.PlutusCore.Merkle.Type
     , termLoc
     -- * Normalized
     , Normalized (..)
+    , TypeBuiltin
+    , BuiltinName
+    , DynamicBuiltinName
+    , Version
     ) where
 
 import           Control.Lens
@@ -40,7 +44,7 @@ import           Crypto.Hash
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
 import qualified Data.Map                       as M
-import qualified Language.PlutusCore.Core       as PLC
+import           Language.PlutusCore.Core   (TypeBuiltin, BuiltinName, DynamicBuiltinName, Version)
 import           PlutusPrelude
 
 newtype Gas = Gas
@@ -54,7 +58,7 @@ data Type tyname ann
     | TyIFix ann (Type tyname ann) (Type tyname ann)
       -- ^ Fix-point type, for constructing self-recursive types
     | TyForall ann (tyname ann) (Kind ann) (Type tyname ann)
-    | TyBuiltin ann PLC.TypeBuiltin -- ^ Builtin type
+    | TyBuiltin ann TypeBuiltin -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname ann)
     | TyApp ann (Type tyname ann) (Type tyname ann)
     | TyPruned ann (Digest SHA256)
@@ -65,7 +69,7 @@ data TypeF tyname ann x
     | TyFunF ann x x
     | TyIFixF ann x x
     | TyForallF ann (tyname ann) (Kind ann) x
-    | TyBuiltinF ann PLC.TypeBuiltin
+    | TyBuiltinF ann TypeBuiltin
     | TyLamF ann (tyname ann) (Kind ann) x
     | TyAppF ann x x
     | TyPrunedF ann (Digest SHA256)
@@ -257,8 +261,8 @@ termLoc (LamAbs ann _ _ _) = ann
 termLoc (Prune ann _)      = ann
 
 data Builtin ann
-    = BuiltinName ann PLC.BuiltinName
-    | DynBuiltinName ann PLC.DynamicBuiltinName
+    = BuiltinName ann BuiltinName
+    | DynBuiltinName ann DynamicBuiltinName
     deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | A constant value.
@@ -389,7 +393,7 @@ instance Recursive (Kind ann) where
     project (KindArrow ann k k') = KindArrowF ann k k'
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program tyname name ann = Program ann (PLC.Version ann) (Term tyname name ann)
+data Program tyname name ann = Program ann (Version ann) (Term tyname name ann)
     deriving (Show, Eq, Functor, Generic, NFData)
 
 newtype Normalized a = Normalized

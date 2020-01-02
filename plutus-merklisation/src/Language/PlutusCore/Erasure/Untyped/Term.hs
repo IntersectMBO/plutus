@@ -28,15 +28,17 @@ module Language.PlutusCore.Erasure.Untyped.Term ( Term (..)
                                 , IntName (..)
                                 , nameToIntProgram
                                 , deBruijnToIntProgram
+                                , PLC.BuiltinName
+                                , PLC.DynamicBuiltinName
+                                , PLC.Version
                                 ) where
 
 import           Codec.CBOR.Decoding
 import           Codec.Serialise
 import           Control.Lens                 hiding (anon)
+import           Crypto.Hash
 import qualified Data.ByteString.Lazy         as BSL
 --import           Data.Functor.Foldable
-import           Instances.TH.Lift            ()
-import           Language.Haskell.TH.Syntax   (Lift)
 import qualified Language.PlutusCore.Core     as PLC
 import qualified Language.PlutusCore.DeBruijn as D
 import qualified Language.PlutusCore.Name     as N
@@ -49,10 +51,11 @@ termLoc (Constant l _) = l
 termLoc (Builtin l _)  = l
 termLoc (Error l)      = l
 termLoc (LamAbs l _ _) = l
+termLoc (Prune l _)    = l
 
 data Builtin a = BuiltinName a PLC.BuiltinName  -- Just copy Builtin and Constant to simplify things
                | DynBuiltinName a PLC.DynamicBuiltinName
-               deriving (Functor, Show, Generic, NFData, Lift)
+               deriving (Functor, Show, Generic, NFData)
 
 translateBuiltin :: PLC.Builtin a -> Builtin a
 translateBuiltin = \case
@@ -63,7 +66,7 @@ translateBuiltin = \case
 data Constant a = BuiltinInt a Integer
                 | BuiltinBS a BSL.ByteString
                 | BuiltinStr a String
-                deriving (Functor, Show, Generic, NFData, Lift)
+                deriving (Functor, Show, Generic, NFData)
 
 translateConstant :: PLC.Constant a -> Constant a
 translateConstant = \case
@@ -78,12 +81,13 @@ data Term name a = Var a (name a) -- ^ A named variable
                  | Constant a (Constant a) -- ^ A constant term
                  | Builtin a (Builtin a)
                  | Error a
-                   deriving (Functor, Show, Generic, NFData, Lift)
+                 | Prune a (Digest SHA256)
+                   deriving (Functor, Show, Generic, NFData)
 
 type Value = Term
 
 data Program name ann = Program ann (PLC.Version ann) (Term name ann)
-    deriving (Show, Functor, Generic, NFData, Lift)
+                        deriving (Show, Functor, Generic, NFData)
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
@@ -95,6 +99,7 @@ termSubterms f = \case
     v@Var {} -> pure v
     c@Constant {} -> pure c
     b@Builtin {} -> pure b
+    p@Prune {} -> pure p
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
 termVars :: Traversal' (Term name a) (name a)
@@ -193,6 +198,9 @@ nameToIntTerm = \case
         Error x        -> Error x
         Constant x c   -> Constant x c
         Builtin x b    -> Builtin x b
+        Prune x h      -> Prune x h
+-- NOTE: This will mess up the Merkle hashes, but that doesn't matter too much
+-- for the purposes of this code.
 
 nameToIntProgram :: Program N.Name a -> Program IntName a
 nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm body)
@@ -225,6 +233,7 @@ deBruijnToIntTerm = \case
         Error x        -> Error x
         Constant x c   -> Constant x c
         Builtin x b    -> Builtin x b
+        Prune x h      -> Prune x h
 
 deBruijnToIntProgram :: Program D.DeBruijn a -> Program IntName a
 deBruijnToIntProgram (Program ann version body) = Program ann version (deBruijnToIntTerm body)
