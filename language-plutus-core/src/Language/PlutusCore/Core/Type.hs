@@ -39,6 +39,7 @@ import           Data.Text (Text)
 import           GHC.Exts (Constraint)
 import           Instances.TH.Lift              ()
 import           Language.Haskell.TH.Syntax     (Lift)
+import Data.Hashable
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -52,14 +53,14 @@ newtype Gas = Gas
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
 -- | A builtin type
 data TypeBuiltin
     = TyByteString
     | TyInteger
     | TyString
-    deriving (Show, Eq, Ord, Generic, NFData, Lift)
+    deriving (Show, Eq, Ord, Generic, NFData, Lift, Hashable)
 
 -- | A 'Type' assigned to expressions.
 data Type tyname ann
@@ -71,7 +72,7 @@ data Type tyname ann
     | TyBuiltin ann TypeBuiltin -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname ann)
     | TyApp ann (Type tyname ann) (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
 -- | Builtin functions
 data BuiltinName
@@ -96,7 +97,7 @@ data BuiltinName
     | EqByteString
     | LtByteString
     | GtByteString
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -104,25 +105,25 @@ data BuiltinName
 newtype DynamicBuiltinName = DynamicBuiltinName
     { unDynamicBuiltinName :: Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Lift)
+      deriving newtype (NFData, Lift, Hashable)
 
 -- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
 data StagedBuiltinName
     = StaticStagedBuiltinName  BuiltinName
     | DynamicStagedBuiltinName DynamicBuiltinName
-    deriving (Show, Eq, Generic, NFData, Lift)
+    deriving (Show, Eq, Generic, NFData, Lift, Hashable)
 
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
 -- | A constant value.
 data Constant ann
     = BuiltinInt ann Integer
     | BuiltinBS ann BSL.ByteString
     | BuiltinStr ann String
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
 data Term tyname name ann
     = Var ann (name ann) -- ^ a named variable
@@ -135,18 +136,18 @@ data Term tyname name ann
     | Unwrap ann (Term tyname name ann)
     | IWrap ann (Type tyname ann) (Type tyname ann) (Term tyname name ann)
     | Error ann (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift)
+    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
 type Value = Term
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Lift)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name ann = Program ann (Version ann) (Term tyname name ann)
-    deriving (Show, Functor, Generic, NFData, Lift)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 newtype Normalized a = Normalized
     { unNormalized :: a

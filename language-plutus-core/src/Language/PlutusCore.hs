@@ -153,7 +153,7 @@ printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType
-    :: (AsParseError e AlexPosn,
+    :: forall e m. (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m)

@@ -123,15 +123,16 @@ library
         Language.PlutusCore.Generators.Internal.Utils
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
+        Language.PlutusCore.Evaluation.Machine.GenericSemigroup
     default-language: Haskell2010
     default-extensions: ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
+                        DeriveTraversable DerivingStrategies DerivingVia
     other-extensions: DeriveAnyClass FlexibleInstances
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      RankNTypes TemplateHaskell QuasiQuotes 
                       ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -166,7 +167,11 @@ library
         tasty -any,
         tasty-golden -any,
         cryptonite,
-        cardano-crypto
+        cardano-crypto,
+        tuple,
+        monoidal-containers,
+        semigroups,
+        hashable
 
 executable language-plutus-core-generate-evaluation-test
     main-is: Main.hs
@@ -224,7 +229,8 @@ test-suite language-plutus-core-test
         prettyprinter -any,
         containers -any,
         mtl -any,
-        mmorph -any
+        mmorph -any,
+        tuple -any
 
 benchmark language-plutus-core-bench
     type: exitcode-stdio-1.0

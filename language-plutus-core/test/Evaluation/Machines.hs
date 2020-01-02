@@ -14,6 +14,7 @@ import           Language.PlutusCore.Evaluation.Machine.L
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
 import           Language.PlutusCore.Pretty
+import Data.Tuple.Select
 
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -30,6 +31,6 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup "machines"
     [ testMachine "CK"  $ pureTry @CkMachineException . evaluateCk
-    , testMachine "CEK" $ evaluateCek mempty
+    , testMachine "CEK" $ (sel1 . evaluateCek @() @() mempty ())
     , testMachine "L"   $ pureTry @LMachineException . evaluateL
     ]

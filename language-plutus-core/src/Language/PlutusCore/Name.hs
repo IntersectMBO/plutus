@@ -38,19 +38,20 @@ import qualified Data.IntMap                           as IM
 import qualified Data.Text                             as T
 import           Instances.TH.Lift                     ()
 import           Language.Haskell.TH.Syntax            (Lift)
+import Data.Hashable
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name ann = Name
     { nameAttribute :: ann
     , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
     , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
-    } deriving (Show, Functor, Generic, NFData, Lift)
+    } deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName ann = TyName { unTyName :: Name ann }
     deriving (Show, Generic, Lift)
-    deriving newtype (Eq, Ord, Functor, NFData)
+    deriving newtype (Eq, Ord, Functor, NFData, Hashable)
 instance Wrapped (TyName ann)
 
 -- | Apply a function to the string representation of a 'Name'.
@@ -70,17 +71,19 @@ instance Ord (Name ann) where
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Enum, Lift)
-    deriving newtype (NFData, Pretty)
+    deriving newtype (NFData, Pretty, Hashable)
 
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique
     { unTypeUnique :: Unique
     } deriving (Eq)
+    deriving newtype Hashable
 
 -- | The unique of a term-level name.
 newtype TermUnique = TermUnique
     { unTermUnique :: Unique
     } deriving (Eq)
+    deriving newtype Hashable
 
 -- | Types which have a 'Unique' attached to them, mostly names.
 class Coercible unique Unique => HasUnique a unique | a -> unique where
