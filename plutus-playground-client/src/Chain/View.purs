@@ -27,9 +27,8 @@ import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
-import Ledger.Extra (humaniseInterval, adaToValue)
+import Ledger.Extra (humaniseInterval)
 import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
