@@ -147,12 +147,14 @@ redeemTx
     -> Contract s e UnbalancedTx
 redeemTx account pk = do
     let inst = scriptInstance account
-    utxos <- utxoAt (Scripts.scriptAddress inst)
-    let tx = TypedTx.collectFromScript utxos inst ()
+    utxos <- utxoAt (address account)
+    let pkOut = pubKeyTxOut (accountToken account) pk
+        tx = TypedTx.collectFromScript utxos inst ()
+                <> mustProduceOutput pkOut
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'UnbalancedTx' and let the
     --       balancing mechanism take care of providing the token.
-    pure $ tx & outputs .~ [pubKeyTxOut (accountToken account) pk]
+    pure tx
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem

@@ -39,14 +39,14 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , scriptInstance
     ) where
 
-import           Control.Lens                   ((&), (.~), prism', review, makeClassyPrisms)
+import           Control.Lens                   (prism', review, makeClassyPrisms)
 import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Prelude      hiding (Semigroup(..))
 import qualified Language.PlutusTx.StateMachine as SM
 import           Ledger                         (PubKey, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
 import qualified Ledger
@@ -66,6 +66,7 @@ import           Language.Plutus.Contract.StateMachine (ValueAllocation(..), AsS
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import qualified Prelude as Haskell
+import           Prelude (Semigroup(..))
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
@@ -341,7 +342,7 @@ payoutsTx
     Payouts{payoutsShort, payoutsLong}
     FutureAccounts{ftoShort, ftoLong} =
         TokenAccount.payTx (TokenAccount.scriptInstance ftoShort) payoutsShort
-        Haskell.<> TokenAccount.payTx (TokenAccount.scriptInstance ftoLong) payoutsLong
+        <> TokenAccount.payTx (TokenAccount.scriptInstance ftoLong) payoutsLong
 
 {-# INLINABLE payouts #-}
 -- | Compute the payouts for each role given the future data,
@@ -415,7 +416,7 @@ allocate future ftos (Running accounts) (Settle ov) vl = do
         { vaOwnAddress = mempty
         , vaOtherPayments =
             payoutsTx payments ftos
-                & validityRange .~ Interval.from (succ $ ftDeliveryDate future)
+                <> mustBeValidIn (Interval.from (succ $ ftDeliveryDate future))
         }
 allocate _ _ _ _ vl = Nothing
 
