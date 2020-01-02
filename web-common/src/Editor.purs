@@ -2,6 +2,7 @@ module Editor
   ( EditorAction(..)
   , editorPane
   , compileButton
+  , initEditor
   , withEditor
   ) where
 
