@@ -161,14 +161,14 @@ entryClass = ClassName "entry"
 triangleRight :: forall p i. HTML p i
 triangleRight = div [ class_ $ ClassName "triangle-right" ] []
 
-feeView :: forall p i. Ada -> HTML p i
-feeView (Lovelace { getLovelace: 0 }) = empty
+feeView :: forall p i. Value -> HTML p i
+feeView (Value { getValue: (AssocMap.Map []) }) = empty
 
 feeView txFee =
   div [ classes [ card, entryClass, feeClass ] ]
     [ cardHeader_ [ text "Fee" ]
     , cardBody_
-        [ valueView $ adaToValue txFee
+        [ valueView txFee
         ]
     ]
 

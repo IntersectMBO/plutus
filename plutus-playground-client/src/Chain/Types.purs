@@ -80,7 +80,7 @@ _balances = _Newtype <<< prop (SProxy :: SProxy "balances")
 _tx :: Lens' AnnotatedTx Tx
 _tx = _Newtype <<< prop (SProxy :: SProxy "tx")
 
-_txFee :: Lens' Tx Ada
+_txFee :: Lens' Tx Value
 _txFee = _Newtype <<< prop (SProxy :: SProxy "txFee")
 
 _txForge :: Lens' Tx Value
