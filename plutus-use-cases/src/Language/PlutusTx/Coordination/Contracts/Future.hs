@@ -36,6 +36,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , futureAddress
     , tokenFor
     , initialState
+    , scriptInstance
     ) where
 
 import           Control.Lens                   ((&), (.~), prism', review, makeClassyPrisms)
@@ -154,7 +155,6 @@ data FutureError =
     -- ^ Something went wrong during the setup of the two tokens
     | StateMachineError (SM.SMContractError FutureState FutureAction)
     | OtherFutureError ContractError
-    -- ^ Something went wrong during a margin payment
     | EscrowFailed EscrowError
     -- ^ The escrow that initialises the future contract failed
     | EscrowRefunded RefundSuccess

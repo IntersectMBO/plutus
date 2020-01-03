@@ -26,7 +26,6 @@ import           Ledger
 import qualified Ledger.Ada                                            as Ada
 import qualified Ledger.Typed.Scripts                              as Scripts
 import qualified Ledger.Crypto                                     as Crypto
-import qualified Ledger.Scripts 
 import           LedgerBytes
 import           Wallet
 import           Wallet.Emulator.Types (walletPubKey, Wallet(..))
@@ -292,18 +291,13 @@ mockPendingTx = PendingTx
     , pendingTxData = []
     }
 
-unValidatorHash :: ValidatorScript -> PlutusTx.ByteString
-unValidatorHash vs = 
-    let Ledger.Scripts.ValidatorHash h = Ledger.Scripts.validatorHash vs
-    in h
-
 -- Script hashes
 scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
     let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
-    bench "token account" $ nf (Scripts.validatorScript) si
-    , bench "public key" $ nf (PK.pkValidator) (walletPubKey $ Wallet 2)
-    , bench "future" $ nf (FT.validatorScript theFuture) accounts
+    bench "token account" $ nf Scripts.validatorScript si
+    , bench "public key" $ nf PK.pkValidator (walletPubKey $ Wallet 2)
+    , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
     ]
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,

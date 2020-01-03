@@ -133,8 +133,6 @@ benchmark plutus-use-cases-bench
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
                  -rtsopts
     build-depends:
-        plutus-emulator -any
-    build-depends:
         base -any,
         criterion -any,
         cryptonite -any,
@@ -144,7 +142,8 @@ benchmark plutus-use-cases-bench
         plutus-tx -any,
         plutus-use-cases -any,
         plutus-wallet-api -any,
-        bytestring -any
+        bytestring -any,
+        plutus-emulator -any
 
 executable contract-guessing-game
     default-language: Haskell2010
