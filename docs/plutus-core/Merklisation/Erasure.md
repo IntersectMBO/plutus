@@ -116,6 +116,11 @@ version), but performing post-erasure optimisations would break the
 clean correspondence between typed off-chain code and untyped on-chain
 code.
 
+The are a large number of possible combinations of the transformations
+mentioned above and the table only contains a limited number of these
+in order to save space.  It would be quite easy to get figures for
+other combinations as well if necessary.
+
 ### Conclusion
 
 Clearly, removing types and name strings helps a lot with sizes.  The
