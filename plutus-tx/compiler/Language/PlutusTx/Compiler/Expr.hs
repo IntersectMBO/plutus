@@ -155,8 +155,18 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
     -- See Note [Case expressions and laziness]
     GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
 
+-- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
 isErrorId ghcId = ghcId `elem` GHC.errorIds
+
+-- See Note [Uses of Eq]
+isProbablyBytestringEq :: GHC.Id -> Bool
+isProbablyBytestringEq (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Internal" || GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Lazy.Internal"
+    , GHC.occNameString (GHC.nameOccName n) == "eq"
+    = True
+isProbablyBytestringEq _ = False
 
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
@@ -166,6 +176,23 @@ We just translate these directly into calls to error, throwing away any other in
 Annoyingly, unlike void, we can't mangle the type uniformly to make sure we are safe
 with respect to the value restriction (see note [Value restriction]), so we just have to force
 our error call and hope that it doesn't end up somewhere it shouldn't.
+-}
+
+{- Note [Uses of Eq]
+Eq can pop up in some annoying places:
+- Literal patterns can introduce guards that use == from Eq
+- Users can just plain use it instead of our Eq
+
+This typically then leads to things we can't compile.
+
+So, we can try and give an error when people do this. The obvious thing to do is to give an
+error if we see a method of Eq. However, this doesn't work since the methods often get
+inlined before we see them, either by the simplifier pass we run on our own module, or
+because the simplifier does at least gentle inlining on unfoldings from other modules
+before we see them.
+
+So we have a few special cases in addition to catch things that look like inlined Integer or
+ByteString equality, since those are especially likely to come up.
 -}
 
 {- Note [At patterns]
@@ -316,6 +343,10 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
             force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
+        -- See Note [Uses of Eq]
+        GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
+        GHC.Var n | GHC.getName n == GHC.eqIntegerPrimName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+        GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
         -- Special kinds of id

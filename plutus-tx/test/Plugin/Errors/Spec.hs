@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -15,7 +16,7 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
-import           Language.PlutusTx.Plugin
+import           Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
@@ -33,6 +34,9 @@ errors = testNested "Errors" [
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+    , goldenPlcCatch "literalCaseInt" literalCaseInt
+    , goldenPlcCatch "literalCaseBs" literalCaseBs
+    , goldenPlcCatch "literalCaseOther" literalCaseOther
   ]
 
 machInt :: CompiledCode Int
@@ -65,3 +69,22 @@ oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
 mutualRecursionUnfoldingsLocal :: CompiledCode Bool
 mutualRecursionUnfoldingsLocal = plc @"mutualRecursionUnfoldingsLocal" (evenDirectLocal 4)
+
+literalCaseInt :: CompiledCode (Integer -> Integer)
+literalCaseInt = plc @"literalCaseInt" (\case { 1 -> 2; x -> x})
+
+literalCaseBs :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+literalCaseBs = plc @"literalCaseBs" (\x -> case x of { "abc" -> ""; x -> x})
+
+data AType = AType
+
+instance IsString AType where
+    fromString _ = AType
+
+instance Eq AType where
+    AType == AType = True
+
+-- Unfortunately, this actually succeeds, since the match gets turned into an equality and we can actually inline it.
+-- I'm leaving it here since I'd really prefer it were an error for consistency, but I'm not sure how to do that nicely.
+literalCaseOther :: CompiledCode (AType -> AType)
+literalCaseOther = plc @"literalCaseOther" (\x -> case x of { "abc" -> ""; x -> x})
