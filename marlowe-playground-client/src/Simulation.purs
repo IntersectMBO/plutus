@@ -455,11 +455,8 @@ transactionComposerPane state =
                     [ card ]
                 )
             ]
-            [ cardBody_ $ transactionInputs (view (_marloweState <<< _Head) state)
-                -- <> ( signatures (view (_marloweState <<< _Head <<< _transaction <<< _signatures) state) (isContractValid state) (view (_marloweState <<< _Head <<< _transaction <<< _outcomes) state)
-                
-                --   )
-                
+            [ cardBody_
+                $ transactionInputs (view (_marloweState <<< _Head) state)
                 <> transactionButtons state
             ]
         ]
