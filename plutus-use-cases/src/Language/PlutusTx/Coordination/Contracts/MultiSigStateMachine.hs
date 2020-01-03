@@ -244,12 +244,12 @@ machineInstance params =
     (StateMachine step (check params) final)
     (scriptInstance params)
 
-allocate :: State -> Input -> Value -> ValueAllocation
+allocate :: State -> Input -> Value -> Maybe ValueAllocation
 allocate (CollectingSignatures _ (Payment vp pk _) _) Pay vl =
     let vl' = vl - vp
-    in ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKey vp pk}
+    in Just $ ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKey vp pk}
 allocate _ _ vl =
-    ValueAllocation{vaOwnAddress = vl, vaOtherPayments = Haskell.mempty}
+    Just $ ValueAllocation{vaOwnAddress = vl, vaOtherPayments = Haskell.mempty}
 
 client :: Params -> SM.StateMachineClient State Input
 client p = SM.mkStateMachineClient (machineInstance p) allocate

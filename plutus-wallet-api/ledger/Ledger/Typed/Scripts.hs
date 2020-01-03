@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -23,7 +25,9 @@ import qualified Ledger.Address            as Addr
 import           Ledger.Scripts
 import qualified Ledger.Validation         as Validation
 
+import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Kind
+import           GHC.Generics              (Generic)
 
 -- | A class that associates a type standing for a connection type with two types, the type of the redeemer
 -- and the data script for that connection type.
@@ -42,35 +46,32 @@ type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.Pend
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 
--- | A typed validator script with its 'Validator' and 'Address'.
-data ScriptInstance (a :: Type) where
-    Validator ::
-        ScriptType a
-        => CompiledCode (ValidatorType a)
-        -> CompiledCode (ValidatorType a -> WrappedValidatorType)
-        -> Validator
-        -> Addr.Address
-        -> ScriptInstance a
+-- | A typed validator script with its 'ValidatorScript' and 'Address'.
+data ScriptInstance (a :: Type) =
+    Validator
+        { instanceScript  :: Validator
+        , instanceAddress :: Addr.Address
+        }
+    deriving (Generic, ToJSON, FromJSON)
 
 -- | The 'ScriptInstance' of a validator script and its wrapper.
 validator ::
-    ScriptType a
-    => CompiledCode (ValidatorType a)
+    CompiledCode (ValidatorType a)
     -- ^ Validator script (compiled)
     -> CompiledCode (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
     -> ScriptInstance a
 validator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
-    in Validator vc wrapper val (Addr.scriptAddress val)
+    in Validator val (Addr.scriptAddress val)
 
 -- | Get the address for a script instance.
 scriptAddress :: ScriptInstance a -> Addr.Address
-scriptAddress (Validator _ _ _ address) = address
+scriptAddress = instanceAddress
 
 -- | Get the validator script for a script instance.
 validatorScript :: ScriptInstance a -> Validator
-validatorScript (Validator _ _ script _) = script
+validatorScript = instanceScript
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since

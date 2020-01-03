@@ -66,6 +66,7 @@ import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
 import           Control.Monad.Trans.Class                         (lift)
+import           Data.Bifunctor                                    (first)
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
@@ -96,6 +97,8 @@ import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx          (TxSymbol, WriteTxResponse)
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
+import           Language.Plutus.Contract.Record                   (Record, record)
+import           Language.Plutus.Contract.Resumable                (ResumableError)
 
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
@@ -134,12 +137,20 @@ type InitialDistribution = Map Wallet Value
 
 type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
-data WalletState s =
+data WalletState s e =
     WalletState
-        { walletEvents         :: Seq (Event s)
-        , walletHandlers       :: Handlers s
+        { walletContractState  :: Either (ResumableError e) (Record (Event s), Handlers s)
         , walletSigningProcess :: SigningProcess
+        , walletEvents         :: Seq (Event s)
         }
+
+walletHandlers
+    :: ( Forall (Output s) Monoid
+    , Forall (Output s) Semigroup
+    , AllUniqueLabels (Output s)
+    )
+    => WalletState s (TraceError e) -> Handlers s
+walletHandlers = either mempty snd . walletContractState
 
 emptyWalletState
     :: ( Forall (Output s) Monoid
@@ -147,12 +158,14 @@ emptyWalletState
        , AllUniqueLabels (Output s)
        )
     => Contract s e a
-    -> WalletState s
+    -> WalletState s e
 emptyWalletState (Contract c) =
     WalletState
-        { walletEvents = mempty
-        , walletHandlers = either mempty id $ State.execResumable [] c
+        { walletContractState =
+            fmap (first (view (from record) . fmap fst))
+            $ State.runResumable [] c
         , walletSigningProcess = Wallet.defaultSigningProcess
+        , walletEvents = mempty
         }
 
 addEventWalletState
@@ -162,18 +175,19 @@ addEventWalletState
        )
     => Contract s e a
     -> Event s
-    -> WalletState s
-    -> WalletState s
-addEventWalletState contract event s@WalletState{walletEvents} =
-    let events'  = walletEvents |> event
-        handlers =
-            either mempty id
-            $ State.execResumable (toList events') (unContract contract)
-    in s { walletEvents = events', walletHandlers = handlers }
+    -> WalletState s e
+    -> WalletState s e
+addEventWalletState (Contract c) event s@WalletState{walletContractState, walletEvents} =
+    case walletContractState of
+        Left _ -> s
+        Right (oldRecord, _) ->
+            let state' = State.insertAndUpdate c oldRecord event
+                events' = walletEvents |> event
+            in s { walletContractState = state', walletEvents = events' }
 
 data ContractTraceState s e a =
     ContractTraceState
-        { _ctsWalletStates :: Map Wallet (WalletState s)
+        { _ctsWalletStates :: Map Wallet (WalletState s e)
         -- ^ The state of the contract instance (per wallet). To get
         --   the 'Record' of a sequence of events, use
         --   'Language.Plutus.Contract.Resumable.runResumable'.
