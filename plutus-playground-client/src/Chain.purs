@@ -11,7 +11,6 @@ import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toC
 import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
-import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
