@@ -77,13 +77,15 @@ substituteDb varFor new = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>) :: Context -> Term Name () -> EvaluationResultDef
-stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
-stack |> lamAbs@LamAbs{}        = stack <| lamAbs
-stack |> bi@Builtin{}           = stack <| bi
-stack |> constant@Constant{}    = stack <| constant
-_     |> Error{}                = EvaluationFailure
-_     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachineError var
-_     |> p@Prune{}              = error "throwCkMachineException EvaluatedMerklisedNodeError p"
+stack |> Apply _ fun arg     = FrameApplyArg arg : stack |> fun
+stack |> lamAbs@LamAbs{}     = stack <| lamAbs
+stack |> bi@Builtin{}        = stack <| bi
+stack |> constant@Constant{} = stack <| constant
+_     |> Error{}             = EvaluationFailure
+_     |> var@Var{}           = throwCkMachineException OpenTermEvaluatedMachineError var
+_     |> Prune{}             = error "Attempted to evaluate a Merklised node"
+-- FIXME: wasted a long time trying to deal with the error properly then gave up.
+
 -- | The returning part of the CK machine. Rules are as follows:
 --
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N

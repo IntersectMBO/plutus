@@ -76,21 +76,9 @@ type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 -- | The monad the CEK machine runs in.
 type CekM = ReaderT CekEnv (ExceptT CekMachineException (State NodeIDs))
 
-{-
-unann :: Functor f => f a -> f()
-unann = fmap (\_ -> ())
--- Remove annotations.  We require this because the builtin
--- application mechanism expects terms annotated with ().
--}
-
-
 fakeID :: Integer
 fakeID = -1
 
-{-
-fakeIDs :: Functor f => f () -> f Integer
-fakeIDs = fmap (\() -> fakeID)
--}
 {- Again with the builtins.  Builtin application gives us back something
    of type Plain Term, but we expect a Numbered Term.  This is
    problematic: we may give a builtin a numbered term and it might
@@ -99,7 +87,7 @@ fakeIDs = fmap (\() -> fakeID)
    manufactured from the ones supplied as arguments.  We can't
    possibly know whether it does the former or the latter.
 
-The best solution to this is probably to mark every node in a term
+   The best solution to this is probably to mark every node in a term
    as being used when we supply it as an argument to a builtin.  We
    can't tell what the builtin's going to do with the term, so it's
    not safe to Merklise any part of it away.

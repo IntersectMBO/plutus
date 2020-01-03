@@ -63,7 +63,7 @@ data CekEnv = CekEnv
     }
 
 -- | The monad the CEK machine runs in.
-type CekM = ReaderT CekEnv (Either CekMachineException)
+type CekM a = ReaderT CekEnv (Either CekMachineException) a
 
 data Frame
     = FrameApplyFun VarEnv (Plain Value)               -- ^ @[V _]@
@@ -121,7 +121,8 @@ computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
 computeCek con constant@Constant{}      = returnCek con constant
 computeCek con bi@Builtin{}             = returnCek con bi
 computeCek _   Error{}                  = pure EvaluationFailure
-computeCek _   Prune{}                  = error "PRUNE"
+computeCek _   Prune{}                  = error "Attempting to compute Merklised term"
+-- ^ FIXME: Wasted a long time trying to do this properly then gave up
 computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term

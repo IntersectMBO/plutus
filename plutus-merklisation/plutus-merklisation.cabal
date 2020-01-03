@@ -25,6 +25,7 @@ library
                    Language.PlutusCore.Merkle.Type
                    Language.PlutusCore.Merkle.Merklisable
                    Language.PlutusCore.Merkle.CBOR
+                   Language.PlutusCore.Merkle.CBOR2
                    Language.PlutusCore.Merkle.Error
                    Language.PlutusCore.Merkle.MkPlc
                    Language.PlutusCore.Merkle.Untyped.Term
@@ -42,6 +43,7 @@ library
                    Language.PlutusCore.Merkle.Convert
                    Language.PlutusCore.Erasure.Untyped
                    Language.PlutusCore.Erasure.Untyped.CBOR
+                   Language.PlutusCore.Erasure.Untyped.CBOR2
                    Language.PlutusCore.Erasure.Untyped.Term
                    Language.PlutusCore.Erasure.Untyped.Instance.Pretty
                    Language.PlutusCore.Evaluation.Machine.Untyped.Cek

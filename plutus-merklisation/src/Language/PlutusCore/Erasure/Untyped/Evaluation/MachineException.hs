@@ -27,6 +27,9 @@ data MachineError err
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+    | PruneEvaluationError
+      -- ^ Attempting to evaluate a Merklised AST node (Prune).
+      -- ^ This will only occur if we've got the Merklisation process wrong.
     | OtherMachineError err
     deriving (Eq)
 
@@ -45,6 +48,8 @@ instance Pretty err => PrettyBy config (MachineError err) where
         "Cannot evaluate an open term."
     prettyBy _ (ConstAppMachineError _)  =
          "constAppError" -- prettyBy config constAppError
+    prettyBy _ PruneEvaluationError =
+         "Attempting to evaluate a Merklised term"
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
