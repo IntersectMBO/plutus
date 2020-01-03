@@ -18,7 +18,7 @@ import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff, Canceler, makeAff)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
-import Prelude (class Show, Unit, map, (<$>), (<<<))
+import Prelude
 
 newtype Key
   = Key String
@@ -26,6 +26,9 @@ newtype Key
 derive instance genericKey :: Generic Key _
 
 derive instance newtypeKey :: Newtype Key _
+
+instance semigroupKey :: Semigroup Key where
+  append (Key a) (Key b) = Key (append a b)
 
 instance showKey :: Show Key where
   show = genericShow
