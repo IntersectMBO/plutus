@@ -59,6 +59,8 @@ encodeConstructorTag = encodeWord
 decodeConstructorTag :: Decoder s Word
 decodeConstructorTag = decodeWord
 
+
+
 instance Serialise PLC.TypeBuiltin where
     encode bi = case bi of
         PLC.TyByteString -> encodeConstructorTag 0
@@ -152,6 +154,16 @@ decodeDigest = do
       case digestFromByteString bs of
         Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
+
+
+
+instance Serialise ann => Serialise (StringlessName ann) where
+    encode (StringlessName ann (Unique u)) = encode ann <> encodeInt u
+    decode = StringlessName <$> decode <*> (Unique <$> decodeInt)
+
+instance Serialise ann => Serialise (StringlessTyName ann) where
+    encode (StringlessTyName n) = encode n
+    decode = StringlessTyName <$> decode
 
 instance Serialise a => Serialise (Constant a) where
     encode (BuiltinInt x i) = fold [ encodeConstructorTag 0, encode x, encodeInteger i ]

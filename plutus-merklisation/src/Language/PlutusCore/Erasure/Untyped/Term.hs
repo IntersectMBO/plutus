@@ -25,7 +25,10 @@ module Language.PlutusCore.Erasure.Untyped.Term ( Term (..)
                                 , erase
                                 , eraseProgram
                                 , anonProgram
+                                , removeNameStrings
                                 , IntName (..)
+                                , StringlessName (..)
+                                , StringlessTyName (..)
                                 , nameToIntProgram
                                 , deBruijnToIntProgram
                                 , PLC.BuiltinName
@@ -34,6 +37,7 @@ module Language.PlutusCore.Erasure.Untyped.Term ( Term (..)
                                 ) where
 
 import           Codec.CBOR.Decoding
+import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Control.Lens                 hiding (anon)
 import           Crypto.Hash
@@ -137,46 +141,79 @@ eraseProgram :: PLC.Program _ty name a -> Program name a
 eraseProgram (PLC.Program ann version body) = Program ann version (erase body)
 
 
--- Let's also try getting rid of names
+-- Some functions for altering names in typed programs
 
-anon :: N.Name ann -> N.Name ann
-anon (N.Name ann _str uniq) = N.Name ann "" uniq
-
-anonTn :: N.TyName ann -> N.TyName ann
-anonTn (N.TyName n) = N.TyName (anon n)
-
-anonTy :: PLC.Type N.TyName ann -> PLC.Type N.TyName ann
-anonTy = \case
-      PLC.TyVar x tn         -> PLC.TyVar x (anonTn tn)
-      PLC.TyFun x ty ty'     -> PLC.TyFun x (anonTy ty) (anonTy ty')
-      PLC.TyIFix x ty ty'    -> PLC.TyIFix x (anonTy ty) (anonTy ty')
-      PLC.TyForall x tn k ty -> PLC.TyForall x (anonTn tn) k (anonTy ty)
+changeNamesTy :: (tn1 ann -> tn2 ann) -> PLC.Type tn1 ann -> PLC.Type tn2 ann
+changeNamesTy g = \case
+      PLC.TyVar x tn         -> PLC.TyVar x (g tn)
+      PLC.TyFun x ty ty'     -> PLC.TyFun x (changeNamesTy g ty) (changeNamesTy g ty')
+      PLC.TyIFix x ty ty'    -> PLC.TyIFix x (changeNamesTy g ty) (changeNamesTy g ty')
+      PLC.TyForall x tn k ty -> PLC.TyForall x (g tn) k (changeNamesTy g ty)
       PLC.TyBuiltin x tb     -> PLC.TyBuiltin x tb
-      PLC.TyLam x tn k ty    -> PLC.TyLam x (anonTn tn) k (anonTy ty)
-      PLC.TyApp x ty ty'     -> PLC.TyApp x (anonTy ty) (anonTy ty')
+      PLC.TyLam x tn k ty    -> PLC.TyLam x (g tn) k (changeNamesTy g ty)
+      PLC.TyApp x ty ty'     -> PLC.TyApp x (changeNamesTy g ty) (changeNamesTy g ty')
 
-
-anonTerm :: PLC.Term N.TyName N.Name ann -> PLC.Term N.TyName N.Name ann
-anonTerm = \case
-           PLC.Var x n          -> PLC.Var x (anon n)
-           PLC.TyAbs x tn k e   -> PLC.TyAbs x (anonTn tn) k (anonTerm e)
-           PLC.LamAbs x n ty e  -> PLC.LamAbs x (anon n) (anonTy ty) (anonTerm e)
-           PLC.Apply x e1 e2    -> PLC.Apply x (anonTerm e1) (anonTerm e2)
+changeNamesTerm ::  (n1 ann -> n2 ann) -> (tn1 ann -> tn2 ann) -> PLC.Term tn1 n1 ann -> PLC.Term tn2 n2 ann
+changeNamesTerm f g = \case
+           PLC.Var x n          -> PLC.Var x (f n)
+           PLC.TyAbs x tn k e   -> PLC.TyAbs x (g tn) k (changeNamesTerm f g e)
+           PLC.LamAbs x n ty e  -> PLC.LamAbs x (f n) (changeNamesTy g ty) (changeNamesTerm f g e)
+           PLC.Apply x e1 e2    -> PLC.Apply x (changeNamesTerm f g e1) (changeNamesTerm f g e2)
            PLC.Constant x c     -> PLC.Constant x c
            PLC.Builtin x b      -> PLC.Builtin x b
-           PLC.TyInst x e ty    -> PLC.TyInst x (anonTerm e) (anonTy ty)
-           PLC.Unwrap x e       -> PLC.Unwrap x (anonTerm e)
-           PLC.IWrap x ty ty' e -> PLC.IWrap x (anonTy ty) (anonTy ty') (anonTerm e)
-           PLC.Error x ty       -> PLC.Error x (anonTy ty)
+           PLC.TyInst x e ty    -> PLC.TyInst x (changeNamesTerm f g e) (changeNamesTy g ty)
+           PLC.Unwrap x e       -> PLC.Unwrap x (changeNamesTerm f g e)
+           PLC.IWrap x ty ty' e -> PLC.IWrap x (changeNamesTy g ty) (changeNamesTy g ty') (changeNamesTerm f g e)
+           PLC.Error x ty       -> PLC.Error x (changeNamesTy g ty)
 
-anonProgram :: PLC.Program N.TyName N.Name a -> PLC.Program N.TyName N.Name a
-anonProgram (PLC.Program ann version body) = PLC.Program ann version (anonTerm body)
+-- Map f over names, g over type names
+changeNamesProgram :: (n1 ann -> n2 ann) -> (tn1 ann -> tn2 ann) -> PLC.Program tn1 n1 ann -> PLC.Program tn2  n2 ann
+changeNamesProgram f g (PLC.Program ann version body) = PLC.Program ann version (changeNamesTerm f g body)
 
 
--- Now get rid of names completely, and also annotations in names.
--- It's a bit tricky to do this on the typed syntax because the TyName
--- type there isn't parametric over the name type: it has N.Name built
--- in.  This problem doesn't arise with the untyped AST.
+-- Replace names with empty strings in typed programs
+anonProgram :: PLC.Program N.TyName N.Name ann -> PLC.Program N.TyName N.Name ann
+anonProgram =
+    changeNamesProgram anon anonTy
+        where anon (N.Name ann _ u) = N.Name ann "" u
+              anonTy (N.TyName n) = N.TyName (anon n)
+
+
+-- Names with no string ids
+data StringlessName ann = StringlessName
+    { nameAttribute :: ann
+    , nameUnique    :: N.Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+    } deriving (Eq, Ord, Show, Functor, Generic, NFData)
+
+newtype StringlessTyName ann = StringlessTyName { unTyName :: StringlessName ann }
+    deriving (Show, Generic)
+    deriving newtype (Eq, Ord, Functor, NFData)
+
+removeNameStrings :: PLC.Program N.TyName N.Name ann -> PLC.Program StringlessTyName StringlessName ann
+removeNameStrings = changeNamesProgram f g
+              where f (N.Name ann _ u) = StringlessName ann u
+                    g (N.TyName n) = StringlessTyName (f n)
+
+
+-- Changing names in untyped code
+
+changeNamesUntypedTerm :: (name1 ann -> name2 ann) -> Term name1 ann -> Term name2 ann
+changeNamesUntypedTerm f = \case
+        Var x n        -> Var x (f n)
+        LamAbs x n t   -> LamAbs x (f n) (changeNamesUntypedTerm f t)
+        Apply x t1 t2   -> Apply x (changeNamesUntypedTerm f t1) (changeNamesUntypedTerm f t2)
+        Error x        -> Error x
+        Constant x c   -> Constant x c
+        Builtin x b    -> Builtin x b
+        Prune x h      -> Prune x h
+-- NOTE: Changing names will mess up the Merkle hashes, but that
+-- doesn't matter too much for the purposes of this code.
+
+changeNamesUntyped :: (name1 ann -> name2 ann) -> Program name1 ann -> Program name2 ann
+changeNamesUntyped f (Program ann version body) = Program ann version (changeNamesUntypedTerm f body)
+
+
+-- Names without strings and without annotations: essentially only Uniques
 
 newtype IntName a = IntName Int
 instance Serialise (IntName a) where
@@ -189,21 +226,9 @@ instance Show (IntName a) where
 nameToInt :: N.Name a -> IntName a
 nameToInt (N.Name _ _ (N.Unique uniq)) = IntName uniq
 
-
-nameToIntTerm :: Term N.Name ann -> Term IntName ann
-nameToIntTerm = \case
-        Var x n        -> Var x (nameToInt n)
-        LamAbs x n t   -> LamAbs x (nameToInt n) (nameToIntTerm t)
-        Apply x t1 t  -> Apply x (nameToIntTerm t1) (nameToIntTerm t)
-        Error x        -> Error x
-        Constant x c   -> Constant x c
-        Builtin x b    -> Builtin x b
-        Prune x h      -> Prune x h
--- NOTE: This will mess up the Merkle hashes, but that doesn't matter too much
--- for the purposes of this code.
-
 nameToIntProgram :: Program N.Name a -> Program IntName a
-nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm body)
+nameToIntProgram = changeNamesUntyped nameToInt
+
 
 {- To get plc source for the use cases,  add
 
@@ -213,7 +238,7 @@ nameToIntProgram (Program ann version body) = Program ann version (nameToIntTerm
    plutus-use-cases.  This will dump the source to the terminal, along
    with all the other build output. This isn't ideal, but it's a quick
    way to get PLC. The source probably won't compile though (clashes
-   with built in names; also plc can't handle extensible builtins (yet).
+   with built in names; also plc can't handle extensible builtins (yet)).
 -}
 
 
@@ -225,17 +250,7 @@ deBruijnToInt :: D.DeBruijn ann -> IntName ann
 deBruijnToInt (D.DeBruijn _attr _string (D.Index n)) = IntName (fromIntegral n)
 
 
-deBruijnToIntTerm :: Term D.DeBruijn ann -> Term IntName ann
-deBruijnToIntTerm = \case
-        Var x n        -> Var x (deBruijnToInt n)
-        LamAbs x n t   -> LamAbs x (deBruijnToInt n) (deBruijnToIntTerm t)
-        Apply x t1 t   -> Apply x (deBruijnToIntTerm t1) (deBruijnToIntTerm t)
-        Error x        -> Error x
-        Constant x c   -> Constant x c
-        Builtin x b    -> Builtin x b
-        Prune x h      -> Prune x h
-
 deBruijnToIntProgram :: Program D.DeBruijn a -> Program IntName a
-deBruijnToIntProgram (Program ann version body) = Program ann version (deBruijnToIntTerm body)
+deBruijnToIntProgram = changeNamesUntyped deBruijnToInt
 
 

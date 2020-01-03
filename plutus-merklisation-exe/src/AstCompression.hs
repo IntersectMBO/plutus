@@ -13,11 +13,9 @@ module AstCompression (main) where
 
 import qualified Language.PlutusCore                                           as PLC
 import qualified Language.PlutusCore.CBOR                                      as PLC ()
---import qualified Language.PlutusCore.Pretty                 as PLC
 
-import qualified Language.PlutusCore.Erasure.Untyped.CBOR                      as U ()
--- import qualified Language.PlutusCore.Untyped.Pretty         as U
-import qualified Language.PlutusCore.Erasure.Untyped.Term                      as U
+import qualified Language.PlutusCore.Erasure.Untyped.CBOR2                     as U ()
+import           Language.PlutusCore.Erasure.Untyped.Term                      as U
 
 import qualified Language.PlutusCore.DeBruijn                                  as D
 
@@ -49,8 +47,8 @@ import           Numeric
 
 printHeader :: IO ()
 printHeader = do
-  putStrLn "| Contract | Compression | Typed | Typed, empty names | Untyped | Untyped, empty names | Untyped, no names | Untyped, de Bruijn |"
-  putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
+  putStrLn "| Contract | Compression | Typed | Typed, stringless names | Untyped | Untyped, stringless names | Untyped, integer IDs only | Untyped, de Bruijn | Untyped, de Bruijn, annotations not serialised"
+  putStrLn "| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
 
 printSeparator :: IO ()
 printSeparator = do
@@ -96,12 +94,17 @@ printInfo fullSize entries = do
   putStr "|     | Compressed | "
   printInfo1 fullSize entries Compressed
 
+
+-- Print out various compression statistics for a program.  By
+-- default, serialisation will include units.  Replace the import of
+-- Erasure.Untyped.CBOR above by Erasure.Untyped.CBOR2 to omit unit annotations.
+
 analyseCompression :: String -> PLC.Program PLC.TyName PLC.Name () -> IO ()
 analyseCompression name prog = do
   let s1 = serialise prog
-      s2 = serialise $ U.anonProgram prog
+      s2 = serialise $ U.removeNameStrings prog
       s3 = serialise $ U.eraseProgram prog
-      s4 = serialise $ U.eraseProgram $ U.anonProgram prog
+      s4 = serialise $ U.eraseProgram $ U.removeNameStrings prog
       s5 = serialise $ U.nameToIntProgram $ U.eraseProgram prog
       s6 = serialise $ U.deBruijnToIntProgram $ U.eraseProgram $ deBrProg prog
   putStr $ "| " ++ name ++ " | "

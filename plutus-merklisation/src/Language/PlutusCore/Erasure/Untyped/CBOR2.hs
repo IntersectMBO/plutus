@@ -11,7 +11,7 @@
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.
-module Language.PlutusCore.Erasure.Untyped.CBOR2 () where
+module Language.PlutusCore.Erasure.Untyped.CBOR2 (serialiseNoAnnotations) where
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
@@ -159,6 +159,14 @@ decodeDigest = do
         Nothing -> error $ "Couldn't decode SHA256 Digest: " ++ show d
         Just v  -> pure v
 
+instance Serialise (StringlessName ()) where
+    encode (StringlessName () (Unique u)) = encodeInt u
+    decode = StringlessName <$> pure () <*> (Unique <$> decodeInt)
+
+instance Serialise (StringlessTyName ()) where
+    encode (StringlessTyName n) = encode n
+    decode = StringlessTyName <$> decode
+
 instance Serialise (Constant ()) where
     encode (BuiltinInt () i) = fold [ encodeConstructorTag 0, encodeInteger i ]
     encode (BuiltinBS () bs) = fold [ encodeConstructorTag 1, encodeBytes (BSL.toStrict bs) ]
@@ -204,6 +212,9 @@ instance Serialise (DeBruijn ()) where
 instance Serialise (TyDeBruijn ()) where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
+
+serialiseNoAnnotations :: Serialise (name ()) => Program name () -> BSL.ByteString
+serialiseNoAnnotations = serialise
 
 {-
 instance (Serialise a) => Serialise (ParseError a)
