@@ -2,14 +2,14 @@
 
 [kwxm, November 2019]
 
-The table below shows some simple statistics relating to the validator
-code for our sample contracts, obtained from Haskell code using the
-PlutusTx compilation infrastructure.  The figures show the number of
-basic AST nodes for each contract.  The PLC AST also contains large
-amounts of type information, but this is not considered here.  The
-final column shows the total number of names occurring in variables
-and lambda abstractions; types also contain names, but these are
-omitted.
+The table below shows some simple statistics relating to the
+(unapplied) validator code for our sample contracts, obtained from
+Haskell code using the PlutusTx compilation infrastructure.  The
+figures show the number of basic AST nodes for each contract.  The PLC
+AST also contains large amounts of type information, but this is not
+considered here.  The final column shows the total number of names
+occurring in variables and lambda abstractions; types also contain
+names, but these are omitted.
 
 Variables, lambda abstractions and applications account for about 80%
 of the nodes in the ASTs, with type-level abstraction and application
