@@ -41,7 +41,7 @@ The table also contains figures showing the sizes of the various versions of the
 
 Certain validators reappeared numerous times during the tests, so I've removed duplicates.  The compressed sizes of identically-sized validators sometimes varied by a few bytes (presumably because differences in identically sized pieces of data within the validators would make the serialised version slightly more or less compressible), so I've removed those as well.  Note that for a given use-case, validators with significantly different sizes may appear: this is because multiple different types of transaction can occur during a test and these have different validators (for example, the Crowdfunding example performs transactions which collect from and pay to scripts in addition to the main validator).
 
-Here are the results (if the table is too wide for the page you can click on
+Here are the results (if the table's too wide for the page you can click on
 it and use the left and right arrow keys to scroll it horizontally).
 
 | Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, mimnimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised , minimised |

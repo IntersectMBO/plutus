@@ -162,4 +162,4 @@ There are at least four possible ways to deal with this.
   * Avoid type duplication by interning types.
 
 ## Further results
-See [this page](./Merklising-programs) for some experiments on Merklising the validators in our example contracts.
+See [this page](./Merklising-programs.md) for some experiments on Merklising the validators in our example contracts.
