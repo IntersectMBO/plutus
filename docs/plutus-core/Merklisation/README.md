@@ -10,6 +10,8 @@ and Merklisation for Plutus Core abstract syntax trees.
     erasure in PLC ASTs for validator code from our use cases.
 
   * [Merklisation-notes.md](./Merklisation-notes.md): a proposal for Merklised ASTs for Plutus Core, together with
-    soem analysis of Merklisation of types.
+    some analysis of Merklisation of types.
 
+  * [Merklising-programs.md](./Merklising-programs.md): experiments on Merklising unrequired nodes in the ASTs for our sample contracts.
+  
 
