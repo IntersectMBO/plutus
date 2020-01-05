@@ -160,3 +160,6 @@ There are at least four possible ways to deal with this.
   * Don't Merklise types at all.
   * Only Merklise types if their serialised forms take up more than 32 bytes.
   * Avoid type duplication by interning types.
+
+## Further results
+See [this page](./Merklising-programs) for some experiments on Merklising the validators in our example contracts.
