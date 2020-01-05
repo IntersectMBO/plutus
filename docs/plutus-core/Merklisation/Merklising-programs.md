@@ -41,7 +41,8 @@ The table also contains figures showing the sizes of the various versions of the
 
 Certain validators reappeared numerous times during the tests, so I've removed duplicates.  The compressed sizes of identically-sized validators sometimes varied by a few bytes (presumably because differences in identically sized pieces of data within the validators would make the serialised version slightly more or less compressible), so I've removed those as well.  Note that for a given use-case, validators with significantly different sizes may appear: this is because multiple different types of transaction can occur during a test and these have different validators (for example, the Crowdfunding example performs transactions which collect from and pay to scripts in addition to the main validator).
 
-Here are the results.
+Here are the results (if the table is too wide for the page you can click on
+it and use the left and right arrow keys to scroll it horizontally).
 
 | Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, mimnimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised , minimised |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:  |
@@ -83,7 +84,7 @@ Here are the results.
 |      | Compressed: | 21369 | 2814 | 33947 | 28108 | 23575 | 10895 |
 | 5396 | 3848 | 190850 | 12708 | 98541 | 79406 | 128451 | 20652 | 
 |      | Compressed: | 21369 | 2812 | 34003 | 28127 | 23593 | 10897 |
-|  **Gamestate machine ** | | | | | | | |
+|  **Game state machine** | | | | | | | |
 | 12174| 6763 | 316653 | 28951 | 167208 | 134955 | 216000 | 31648 | 
 |      | Compressed: | 41371 | 5083 | 64101 | 52073 | 41563 | 16032 |
 | 12416 | 8131 | 320652 | 29624 | 195061 | 157358 | 249763 | 34669 | 
@@ -97,7 +98,7 @@ Here are the results.
 |      | Compressed: | 25027 | 3417 | 41331 | 33573 | 27388 | 11590 |
 | 6496 | 4677 | 209252 | 15688 | 115574 | 92541 | 148470 | 23283 | 
 |      | Compressed: | 25142 | 3496 | 41131 | 33639 | 27667 | 11826 |
-|  **Multisigstate machine ** | | | | | | | |
+|  **Multisig state machine** | | | | | | | |
 | 16787| 9130 | 403721 | 39660 | 224930 | 181296 | 291423 | 41606 | 
 |      | Compressed: | 55584 | 7096 | 87637 | 70558 | 56403 | 20674 |
 | 16809 | 9600 | 404135 | 39775 | 233918 | 187531 | 292849 | 43502 | 
@@ -115,7 +116,7 @@ Here are the results.
 |  **Pubkey** | | | | | | | |
 | 5994| 4199 | 198673 | 14187 | 106193 | 85443 | 138074 | 21701 | 
 |      | Compressed: | 22942 | 3002 | 37186 | 30637 | 25204 | 11211 |
-|  **Tokenaccount ** | | | | | | | |
+|  **Token account** | | | | | | | |
 | 8556| 6785 | 253227 | 19976 | 155710 | 123150 | 191524 | 28368 | 
 |      | Compressed: | 31486 | 3754 | 55991 | 44741 | 34815 | 12714 |
 | 6234 | 4439 | 202646 | 14945 | 110254 | 89504 | 142047 | 22459 | 
