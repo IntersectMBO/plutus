@@ -56,7 +56,7 @@ module Playground.Contract
     , ownPubKey
     , BlockchainActions
     , awaitSlot
-    , inputs
+    , modifiesUtxoSet
     , nextTransactionAt
     , utxoAt
     , validityRange
@@ -79,7 +79,7 @@ import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
 import           IOTS                                            (IotsType (iotsDefinition))
 import           Language.Plutus.Contract                        (type (.\/), AsContractError, BlockchainActions,
-                                                                  Contract, Endpoint, awaitSlot, inputs,
+                                                                  Contract, Endpoint, awaitSlot, modifiesUtxoSet,
                                                                   nextTransactionAt, submitTx, utxoAt, validityRange,
                                                                   watchAddressUntil)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (endpoint)

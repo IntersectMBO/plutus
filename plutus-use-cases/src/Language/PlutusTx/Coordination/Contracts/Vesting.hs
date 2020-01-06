@@ -24,17 +24,17 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     vestingScript
     ) where
 
-import           Control.Lens
 import           Control.Monad        (void, when)
 import           Control.Monad.Except (throwError)
 import           Data.Foldable        (fold)
 import qualified Data.Text as T
 import qualified Prelude as Haskell
+import           Prelude (Semigroup(..))
 
 import           GHC.Generics                 (Generic)
 import           Language.Plutus.Contract     hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.PlutusTx.Prelude    hiding (fold)
+import           Language.PlutusTx.Prelude    hiding (Semigroup(..), fold)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (Address, Slot(..), PubKey (..), Validator, unitData)
 import qualified Ledger.AddressMap            as AM
@@ -212,9 +212,10 @@ retrieveFundsC vesting payment = do
         remainingOutputs = case liveness of
                             Alive -> payIntoContract vesting remainingValue
                             Dead  -> Haskell.mempty
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) () Haskell.<> remainingOutputs
-                & validityRange .~ Interval.from nextSlot
-                & requiredSignatures .~ [vestingOwner vesting]
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) () 
+                <> remainingOutputs
+                <> mustBeValidIn (Interval.from nextSlot)
+                <> mustBeSignedBy (vestingOwner vesting)
                 -- we don't need to add a pubkey output for 'vestingOwner' here
                 -- because this will be done by the wallet when it balances the
                 -- transaction.

@@ -17,10 +17,10 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , currencySymbol
     ) where
 
-import           Control.Lens               ((&), (.~), (%~))
-import qualified Data.Set                   as Set
+import           Language.PlutusTx.Prelude  hiding (Semigroup(..))
+import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 
-import           Language.PlutusTx.Prelude
+import           Language.Plutus.Contract     as Contract
 
 import qualified Ledger.Ada                 as Ada
 import qualified Ledger.AddressMap          as AM
@@ -35,9 +35,7 @@ import           Ledger                     (CurrencySymbol, TxId, PubKey, TxOut
 import qualified Ledger                     as Ledger
 import           Ledger.Value               (TokenName, Value)
 
-import           Language.Plutus.Contract     as Contract
-
-import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
+import           Prelude (Semigroup(..))
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
 
@@ -137,7 +135,7 @@ forgeContract pk amounts = do
         scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr unitData
     scriptTxOuts <- AM.fromTxOutputs <$> (submitTx scriptTx >>= awaitTransactionConfirmed curAddr)
     let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
-                    & inputs %~ Set.insert refTxIn
-                    & forge .~ forgedVal
+                    <> mustSpendInput refTxIn
+                    <> forgeValue forgedVal
     _ <- submitTx forgeTx
     pure theCurrency

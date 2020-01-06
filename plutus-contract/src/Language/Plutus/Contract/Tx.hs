@@ -1,22 +1,13 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DeriveGeneric          #-}
-{-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE NamedFieldPuns         #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
 module Language.Plutus.Contract.Tx(
       UnbalancedTx
-    , inputs
-    , outputs
-    , forge
-    , requiredSignatures
-    , validityRange
-    , valueMoved
     , toLedgerTx
     , fromLedgerTx
     -- * Constructing transactions
@@ -26,6 +17,17 @@ module Language.Plutus.Contract.Tx(
     , collectFromScriptFilter
     , forgeValue
     , moveValue
+    , mustBeValidIn
+    , mustBeSignedBy
+    , mustSpendInput
+    , mustProduceOutput
+    -- * Inspecting 'UnbalancedTx' values
+    , valueMoved
+    , requiredSignatures
+    , validityRange
+    -- * Inspecting 'UnbalancedTx' constraints
+    , modifiesUtxoSet
+    , hasValidTx
     -- * Constructing inputs
     , Tx.pubKeyTxIn
     , Tx.scriptTxIn
@@ -36,8 +38,6 @@ module Language.Plutus.Contract.Tx(
     , Tx.scriptTxOut'
     ) where
 
-import           Control.Lens              ((&), (<>~))
-import qualified Control.Lens.TH           as Lens.TH
 import qualified Data.Aeson                as Aeson
 import           Data.Foldable             (toList)
 import qualified Data.Map                  as Map
@@ -80,7 +80,19 @@ data UnbalancedTx = UnbalancedTx
         deriving stock (Eq, Show, Generic)
         deriving anyclass (Aeson.FromJSON, Aeson.ToJSON, IotsType)
 
-Lens.TH.makeLenses ''UnbalancedTx
+instance Semigroup UnbalancedTx where
+    tx1 <> tx2 = UnbalancedTx {
+        _inputs = _inputs tx1 <> _inputs tx2,
+        _outputs = _outputs tx1 <> _outputs tx2,
+        _forge = _forge tx1 <> _forge tx2,
+        _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
+        _dataValues = _dataValues tx1 <> _dataValues tx2,
+        _validityRange = _validityRange tx1 /\ _validityRange tx2,
+        _valueMoved = _valueMoved tx1 <> _valueMoved tx2
+        }
+
+instance Monoid UnbalancedTx where
+    mempty = UnbalancedTx mempty mempty mempty mempty mempty top mempty
 
 instance Pretty UnbalancedTx where
     pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange, _valueMoved} =
@@ -105,7 +117,44 @@ instance Pretty UnbalancedTx where
                 ]
         in braces $ nest 2 $ vsep lines'
 
+valueMoved :: UnbalancedTx -> Value
+valueMoved = _valueMoved
+
+requiredSignatures :: UnbalancedTx -> [PubKey]
+requiredSignatures = _requiredSignatures
+
+validityRange :: UnbalancedTx -> SlotRange
+validityRange = _validityRange
+
+-- | Does the transaction modify the UTXO set?
+modifiesUtxoSet :: UnbalancedTx -> Bool
+modifiesUtxoSet UnbalancedTx{_inputs, _outputs} =
+    not (null _inputs && null _outputs)
+
+-- | Is there a valid transaction that satisfies the constraint?
+hasValidTx :: UnbalancedTx -> Bool
+hasValidTx UnbalancedTx{_validityRange} =
+    not (I.isEmpty _validityRange)
+
+-- | @mustBeValidIn r@ requires the transaction's slot range to be contained
+--   in @r@.
+mustBeValidIn :: SlotRange -> UnbalancedTx
+mustBeValidIn range = mempty { _validityRange = range }
+
+-- | Require the transaction to be signed by the public key.
+mustBeSignedBy :: PubKey -> UnbalancedTx
+mustBeSignedBy pk = mempty { _requiredSignatures = [pk] }
+
+-- | Require the transaction to spend the input
+mustSpendInput :: L.TxIn -> UnbalancedTx
+mustSpendInput i = mempty { _inputs = Set.singleton i }
+
+-- | Require the transaction to produce the ouptut
+mustProduceOutput :: L.TxOut -> UnbalancedTx
+mustProduceOutput o = mempty { _outputs = [o] }
+
 -- TODO: this is a bit of a hack, I'm not sure quite what the best way to avoid this is
+-- (used in the typed contract stuff only)
 fromLedgerTx :: L.Tx -> UnbalancedTx
 fromLedgerTx tx = UnbalancedTx
             { _inputs = L.txInputs tx
@@ -116,20 +165,6 @@ fromLedgerTx tx = UnbalancedTx
             , _validityRange = L.txValidRange tx
             , _valueMoved = mempty
             }
-
-instance Semigroup UnbalancedTx where
-    tx1 <> tx2 = UnbalancedTx {
-        _inputs = _inputs tx1 <> _inputs tx2,
-        _outputs = _outputs tx1 <> _outputs tx2,
-        _forge = _forge tx1 <> _forge tx2,
-        _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
-        _dataValues = _dataValues tx1 <> _dataValues tx2,
-        _validityRange = _validityRange tx1 /\ _validityRange tx2,
-        _valueMoved = _valueMoved tx1 <> _valueMoved tx2
-        }
-
-instance Monoid UnbalancedTx where
-    mempty = UnbalancedTx mempty mempty mempty mempty mempty top mempty
 
 -- | The ledger transaction of the 'UnbalancedTx'. Note that the result
 --   does not have any signatures, and is potentially unbalanced (ie. invalid).
@@ -155,7 +190,7 @@ unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempt
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataValue -> UnbalancedTx
-payToScript v a ds = unbalancedTx mempty [outp] & dataValues <>~ [ds] where
+payToScript v a ds = (unbalancedTx mempty [outp]) { _dataValues = [ds] } where
     outp = Tx.scriptTxOut' v a ds
 
 -- | Create an 'UnbalancedTx' that pays money to a public-key address
