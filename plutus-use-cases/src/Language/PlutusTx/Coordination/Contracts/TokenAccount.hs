@@ -28,7 +28,6 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , tokenAccountContract
   -- * Etc.
   , TokenAccount
-  , assertAccountBalance
   , validatorHash
   , scriptInstance
   ) where
@@ -43,7 +42,6 @@ import           Language.Plutus.Contract
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Language.Plutus.Contract.Test                     (TracePredicate, fundsAtAddress)
 import           Ledger                                            (Address, PubKey, TxOutTx (..), ValidatorHash)
 import qualified Ledger                                            as Ledger
 import qualified Ledger.Scripts
@@ -198,14 +196,6 @@ newAccount tokenName pk = do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Ledger.scriptCurrencySymbol (Currency.curValidator cur)
     pure $ Account (sym, tokenName)
-
--- | Check that the balance of the given account satisfies a predicate.
-assertAccountBalance
-    :: forall s e a.
-       Account
-    -> (Value -> Bool)
-    -> TracePredicate s e a
-assertAccountBalance account check = fundsAtAddress (address account) check
 
 PlutusTx.makeLift ''Account
 PlutusTx.makeIsData ''Account
