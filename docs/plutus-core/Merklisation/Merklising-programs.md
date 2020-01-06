@@ -197,12 +197,12 @@ when minimised and serialised it takes up 24444 bytes, compressing to
 
 As you'd expect, the smallest serialised sizes occur when the
 Merklisation threshold is 36, the point at which the serialised forms
-of Merklised terms are the same size as their unMerklised versions;
+of Merklised terms are the same size as their un-Merklised versions;
 however, after that point (fewer terms Merklised) serialised sizes
 increase but compressed sizes _decrease_.  I suspect that this is
 because different terms often have similar subterms (except perhaps
 for identifiers in names) and that this is favourable for compression.
-When terms are Merklised, any difference changes the hash completely
+When terms are Merklised, any differences change the hash completely
 and reduces compressibility.
 
 
