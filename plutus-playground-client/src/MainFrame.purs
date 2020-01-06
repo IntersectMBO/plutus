@@ -16,7 +16,7 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader.Class (class MonadAsk)
+import Control.Monad.Reader (class MonadAsk, runReaderT)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Control.Monad.Trans.Class (lift)
@@ -47,7 +47,7 @@ import Foreign.Generic (decodeJSON)
 import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..))
 import Gists as Gists
-import Halogen (Component)
+import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
@@ -57,11 +57,11 @@ import Matryoshka (cata)
 import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
-import Playground.Server (SPParams_)
+import Playground.Server (SPParams_(..))
 import Playground.Types (ContractCall(..), ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(SimulatorWallet), _CallEndpoint, _FunctionSchema, _PayToWallet)
 import Schema (FormArgumentF(..))
 import Servant.PureScript.Ajax (errorToString)
-import Servant.PureScript.Settings (SPSettings_)
+import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
 import Types (ActionEvent(..), ChildSlots, DragAndDropEventType(..), FieldEvent(..), FormArgument, FormEvent(..), HAction(..), Query, SimulatorAction, State(..), ValueEvent(..), View(..), WalletEvent(..), WebData, _actionDrag, _amount, _argumentValues, _arguments, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _recipient, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _value, _walletId, getKnownCurrencies, mkInitialValue, toArgument, toEvaluation)
@@ -107,17 +107,19 @@ mkInitialState editorPreferences = do
         }
 
 ------------------------------------------------------------
+ajaxSettings :: SPSettings_ SPParams_
+ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
+
 mkMainFrame ::
   forall m n.
   MonadThrow Error n =>
   MonadEffect n =>
   MonadAff m =>
-  MonadAsk (SPSettings_ SPParams_) m =>
   n (Component HTML Query HAction Void m)
 mkMainFrame = do
   editorPreferences <- Editor.loadPreferences
   initialState <- mkInitialState editorPreferences
-  pure
+  pure $ hoist (flip runReaderT ajaxSettings)
     $ H.mkComponent
         { initialState: const initialState
         , render: View.render
