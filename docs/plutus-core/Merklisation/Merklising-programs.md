@@ -44,7 +44,7 @@ Certain validators reappeared numerous times during the tests, so I've removed d
 Here are the results (if the table's too wide for the page you can click on
 it and use the left and right arrow keys to scroll it horizontally).
 
-| Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, mimnimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised , minimised |
+| Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, mimnimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised, minimised |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:  |
 |  **Crowdfunding** | | | | | | | |
 | 10539| 7297 | 307807 | 24444 | 175130 | 140947 | 219398 | 31721 | 
@@ -138,3 +138,71 @@ The difference is even more noticeable for the minimised versions: if we minimis
 These patterns are repeated throughout the results.  Every Merklised validator contains 300-600 hashed terms (these numbers aren't shown in the table), and probably because of this the compressed versions of the minimised Merklised validators are uniformly on the order of 10K larger than the un-Merklised versions.  If you look at the figures for the Merklised versions, the compressed sizes vary inversely with the uncompressed sizes, even when we try to be careful about not Merklising small types.  The earlier suggestion of interning types might solve this problem, although I didn't try that because it would have required quite a lot of work.
 
 It's not clear to me why Merklisation of terms seems to be unhelpful.  I was quite surprised that there are so many (300-600) Merklised nodes in the validators: I'd only expected a few.  Presumably there are small nodes near the leaves of the AST for which Merklisation is counterproductive, but it's hard to see exactly what's going on (it's also not inconceivable that I'm doing something wrong).  Again, we might be able to improve matters by only Merklising large subtrees, but this would introduce a lot of extra computation into the procedure for calculating Merkle hashes, since for every node that we looked at we'd either have to serialise it and see how big the result was, or count the number of sub-nodes.
+
+
+## Appendix
+
+Closer inspection of the data showed that a large number of small
+terms were being Merklised. For eample, for the first entry in the
+table above (the Crowdfunding validator), 418 AST nodes were being
+Merklised, but 286 of these had 10 or fewer subnodes and only 31 had
+70 or more subnodes.  In an effort to avoid Merklisation of small
+terms I added a threshold to the Merklisation process so that only
+nodes whose serialised form was greater than the threshold would be
+Merklised.  The table below shows the effect of varying this
+threshold. I've only included figures for the first entry from the
+earlier table, but the behaviour appears to be similar for the other
+examples.  Merklised AST nodes serialise to 36 bytes, so there's a
+special entry for that threshold in the table.  For completeness the
+table still contains data for different type-Merklisation strategies,
+but it's probably best to look at the last two columns: "No types
+Merklised", where the variations are purely due to term
+Merklisation and "Merklised, minimised", where terms are Merklised
+but types are discarded and names are replaced with De Bruijn indices
+with no extraneous data.
+
+Recall that the validator contained 10539 term nodes, of which only
+7297 were used in that particular run.  When serialised the
+um-Merklised validator takes up 307807 bytes, compressing to 40592;
+when minimised and serialised it takes up 24444 bytes, compressing to
+4519.
+
+
+| Merklisation Threshold | Merklised nodes | All types Merklised |  Big types Merklised |  No types Merklised | Merklised, minimised | 
+| ---: | ---: | ---: | ---: | ---: |---: |
+| 0       | 418 | 175130 | 140947 | 219398 | 31721 | 
+| | (compressed) |  68520 | 54805 | 42577 | 14980 |
+| 36      | 319  | 173560 | 139377 | 217828 | 28660 | 
+| | (compressed) | 66374 | 52629 | 40202 | 12416 |
+| 50      | 244  | 174022 | 139839 | 218290 | 26328 | 
+| | (compressed) | 65658 | 51844 | 39340 | 11567 |
+| 100     | 123  | 177865 | 143682 | 222133 | 22927 | 
+| | (compressed) | 62611 | 48595 | 35826 | 7759 |
+| 150     | 81   | 181310 | 147127 | 225578 | 21929 | 
+| | (compressed) | 62081 | 47965 | 35057 | 6431 |
+| 200     | 64   | 183586 | 149403 | 227854 | 21755 | 
+| | (compressed) | 62120 | 47928 | 34901 | 5908 |
+| 250     | 50   | 186070 | 151887 | 230338 | 21564 | 
+| | (compressed) | 62290 | 48014 | 34947 | 5592 |
+| 300     | 45   | 187206 | 153023 | 231474 | 21613 | 
+| | (compressed) | 62380 | 48027 | 34955 | 5449 |
+| 350     | 42   | 188115 | 153932 | 232383 | 21684 | 
+| | (compressed) | 62446 | 48043 | 34939 | 5381 |
+| 400     | 36   | 190208 | 156025 | 234476 | 21827 | 
+| | (compressed) | 62719 | 48234 | 35038 | 5236 |
+| 450     | 35   | 190612 | 156429 | 234880 | 21897 | 
+| | (compressed) | 62810 | 48306 | 35081 | 5222 |
+| 500     | 33   |  191488 | 157305 | 235756 | 22016 | 
+| | (compressed) | 62922 | 48407 | 35175 | 5189 |
+
+As you'd expect, the smallest serialised sizes occur when the
+Merklisation threshold is 36, the point at which the serialised forms
+of Merklised terms are the same size as their unMerklised versions;
+however, after that point (fewer terms Merklised) serialised sizes
+increase but compressed sizes _decrease_.  I suspect that this is
+because different terms often have similar subterms (except perhaps
+for identifiers in names) and that this is favourable for compression.
+When terms are Merklised, any difference changes the hash completely
+and reduces compressibility.
+
+
