@@ -66,7 +66,10 @@ handleAction _ (SetPreferences preferencesAction) editor = setPreferences prefer
 
 handleAction _ (HandleDragEvent event) _ = liftEffect $ preventDefault event
 
-handleAction _ (ScrollTo { row, column }) editor = liftEffect $ AceEditor.gotoLine row (Just column) (Just true) editor
+handleAction _ (ScrollTo { row, column }) editor =
+  liftEffect do
+    AceEditor.gotoLine row (Just column) (Just true) editor
+    AceEditor.focus editor
 
 handleAction bufferLocalStorageKey (HandleDropEvent event) editor =
   liftAff do
