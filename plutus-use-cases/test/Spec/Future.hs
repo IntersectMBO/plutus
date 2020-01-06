@@ -15,6 +15,7 @@ import           Test.Tasty
 import qualified Test.Tasty.HUnit                                      as HUnit
 
 import qualified Spec.Lib                                              as Lib
+import           Spec.TokenAccount                                     (assertAccountBalance)
 
 import           Ledger                                                (OracleValue (..))
 import qualified Ledger
@@ -27,7 +28,7 @@ import qualified Language.PlutusTx                                     as Plutus
 import           Language.PlutusTx.Coordination.Contracts.Future       (Future (..), FutureAccounts (..), FutureError,
                                                                         FutureSchema, FutureSetup (..), Role (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future       as F
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..), assertAccountBalance)
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import           Language.PlutusTx.Lattice
 
 tests :: TestTree

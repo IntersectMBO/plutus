@@ -54075,8 +54075,6 @@ row-types
 semigroupoids
 servant
 servant-server
-tasty
-tasty-hunit
 text
 transformers
 transformers-base
@@ -54111,6 +54109,83 @@ homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"plutus-contract-tasty" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, extensible-effects
+, iots-export
+, lens
+, mmorph
+, monad-control
+, mtl
+, plutus-contract
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, prettyprinter
+, profunctors
+, row-types
+, semigroupoids
+, stdenv
+, tasty
+, tasty-hunit
+, text
+, transformers
+, transformers-base
+}:
+mkDerivation {
+
+pname = "plutus-contract-tasty";
+version = "0.1.0.0";
+src = .././plutus-contract-tasty;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+iots-export
+lens
+mmorph
+monad-control
+mtl
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+prettyprinter
+profunctors
+row-types
+semigroupoids
+tasty
+tasty-hunit
+text
+transformers-base
+];
+testHaskellDepends = [
+aeson
+base
+containers
+extensible-effects
+lens
+mtl
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+tasty
+tasty-hunit
+text
+transformers
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plutus-emulator" = callPackage
 ({
   mkDerivation
@@ -54136,7 +54211,6 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
-, playground-common
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
@@ -54183,7 +54257,6 @@ mtl
 natural-transformation
 newtype-generics
 operational
-playground-common
 plutus-tx
 plutus-wallet-api
 prettyprinter
@@ -54718,8 +54791,8 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
-, playground-common
 , plutus-contract
+, plutus-contract-tasty
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -54748,7 +54821,6 @@ containers
 iots-export
 lens
 mtl
-playground-common
 plutus-contract
 plutus-emulator
 plutus-playground-lib
@@ -54771,6 +54843,7 @@ hedgehog
 lens
 mtl
 plutus-contract
+plutus-contract-tasty
 plutus-emulator
 plutus-tx
 plutus-wallet-api
@@ -54789,6 +54862,7 @@ cryptonite
 language-plutus-core
 lens
 memory
+plutus-emulator
 plutus-tx
 plutus-wallet-api
 ];

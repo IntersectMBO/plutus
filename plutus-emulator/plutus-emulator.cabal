@@ -85,7 +85,6 @@ library
         deriving-compat -any,
         newtype-generics,
         http-api-data,
-        playground-common,
         freer-simple -any,
         cardano-crypto
 
