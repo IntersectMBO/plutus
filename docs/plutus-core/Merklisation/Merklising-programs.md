@@ -23,7 +23,7 @@ The sizes of the validators that we'll see later differ from the sizes seen in o
 
 ### Results
 I modified the `plutus-use-cases` test to analyse all of the validators.  Some of the analysis involved "minimising" the validators, by which I mean applying the transformations in the second-last column of the table in the [type erasure document](./Erasure.md): removing all kinds, types, and type-related information from the AST; 
-removing all textual names; and replacing unique indentifiers in names with De Bruin indices.  The serialsed versions still included unit annotations, so could be made slightly smaller.
+removing all textual names; and replacing unique identifiers in names with De Bruijn indices.  The serialised versions still included unit annotations, so could be made slightly smaller.
 
 The information collected (and summarised in the table below) was as follows:
 
@@ -44,7 +44,7 @@ Certain validators reappeared numerous times during the tests, so I've removed d
 Here are the results (if the table's too wide for the page you can click on
 it and use the left and right arrow keys to scroll it horizontally).
 
-| Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, mimnimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised, minimised |
+| Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, minimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised, minimised |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:  |
 |  **Crowdfunding** | | | | | | | |
 | 10539| 7297 | 307807 | 24444 | 175130 | 140947 | 219398 | 31721 | 
@@ -131,7 +131,7 @@ it and use the left and right arrow keys to scroll it horizontally).
 
 #### Remarks
 
-The results of Merklisation are rather disappointing.  For example, in the first line of the table we see that the validator has 10539 term nodes and only 7297 of those are used during evaluation. This suggests that Merklising away the unused nodes would save about 30% for the term nodes alone, with additional savings from type nodes.  This is indeed the case: the original AST serialises to 307807 bytes and the Merklised versions serialise to 175130, 140947, and 219398 bytes (depending on the type-Merklisation strategy); hwoever the Merklised versions are much less compressible: the unaltered validator compresses to 40592 bytes, but the compressed sizes of the Merklised ones are all larger: 68520, 54805, and 42577 bytes.  
+The results of Merklisation are rather disappointing.  For example, in the first line of the table we see that the validator has 10539 term nodes and only 7297 of those are used during evaluation. This suggests that Merklising away the unused nodes would save about 30% for the term nodes alone, with additional savings from type nodes.  This is indeed the case: the original AST serialises to 307807 bytes and the Merklised versions serialise to 175130, 140947, and 219398 bytes (depending on the type-Merklisation strategy); however the Merklised versions are much less compressible: the unaltered validator compresses to 40592 bytes, but the compressed sizes of the Merklised ones are all larger: 68520, 54805, and 42577 bytes.  
 
 The difference is even more noticeable for the minimised versions: if we minimise the original validator and then compress it we get something 4519 bytes long (less than 1.5% of the size of the uncompressed unminimised validator), but if we Merklise, minimise, and then compress then we get something 14980 bytes long.  This is presumably because the hashes introduced by Merklisation are highly incompressible, which might be expected for information-theoretic reasons.  The Merklised validator in this case contains 418 hashes in term nodes, each occupying 32 bytes.  In total this is 13376 bytes, which is of the same order of magnitude as the difference between the compressed versions of the Merklised and un-Merklised validators (10461 bytes).
 
@@ -143,7 +143,7 @@ It's not clear to me why Merklisation of terms seems to be unhelpful.  I was qui
 ## Appendix
 
 Closer inspection of the data showed that a large number of small
-terms were being Merklised. For eample, for the first entry in the
+terms were being Merklised. For example, for the first entry in the
 table above (the Crowdfunding validator), 418 AST nodes were being
 Merklised, but 286 of these had 10 or fewer subnodes and only 31 had
 70 or more subnodes.  In an effort to avoid Merklisation of small

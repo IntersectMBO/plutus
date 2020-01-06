@@ -9,7 +9,7 @@ The term _Merklised Abstract Syntax Tree_ (MAST) is used in various Bitcoin prop
 ### Merklised ASTs and Plutus Core
 See [this document](./PLC-AST-types.md) for a summary of the structure of Plutus Core ASTs.
 
-The Merklisation technique described above is not suitable for Plutus Core validation code.  Here validators do not just consist of a collection of independent sub-validators; instead, one can have very complex ASTs where a lot of important code is contained in internal nodes.  To deal with this I've used a variant of the standard Merklisation techique.
+The Merklisation technique described above is not suitable for Plutus Core validation code.  Here validators do not just consist of a collection of independent sub-validators; instead, one can have very complex ASTs where a lot of important code is contained in internal nodes.  To deal with this I've used a variant of the standard Merklisation technique.
 
 #### Modified Merklisation technique
 For each AST node `N` we can produce a hash `M#(N)` as follows:
