@@ -9,7 +9,7 @@ The term _Merklised Abstract Syntax Tree_ (MAST) is used in various Bitcoin prop
 ### Merklised ASTs and Plutus Core
 See [this document](./PLC-AST-types.md) for a summary of the structure of Plutus Core ASTs.
 
-The Merklisation technique described above is not suitable for Plutus Core validation code.  Here validators do not just consist of a collection of independent sub-validators; instead, one can have very complex ASTs where a lot of important code is contained in internal nodes.  To deal with this I've used a variant of the standard Merklisation techique.
+The Merklisation technique described above is not suitable for Plutus Core validation code.  Here validators do not just consist of a collection of independent sub-validators; instead, one can have very complex ASTs where a lot of important code is contained in internal nodes.  To deal with this I've used a variant of the standard Merklisation technique.
 
 #### Modified Merklisation technique
 For each AST node `N` we can produce a hash `M#(N)` as follows:
@@ -21,7 +21,7 @@ For each AST node `N` we can produce a hash `M#(N)` as follows:
 
 This produces a Merkle root which will identify a Plutus Core AST uniquely, modulo the usual assumptions about cryptographic hash functions. 
 
-When we run a validator with a particular input, not all of the nodes in its AST may actually be required.  By extending the Plutus Core AST type slightly we can produce AST which omit unneeded nodes while still having the same Merkle root. To do this, introduce new constructors `Pruned` into the `Term` type and `PrunedTy` into the `Type` type, each with a single argument containing a hash.  To Merklise a validator with particular inputs, we run it with those inputs and observe (using a suitably modified evaluator) which nodes are actually use during execution.  Having done this, we take the unused nodes and replace each one with a `Pruned`/`PrunedTy` node containing their Merkle hashes.  
+When we run a validator with a particular input, not all of the nodes in its AST may actually be required.  By extending the Plutus Core AST type slightly we can produce AST which omit unneeded nodes while still having the same Merkle root. To do this, introduce new constructors `Pruned` into the `Term` type and `PrunedTy` into the `Type` type, each with a single argument containing a hash.  To Merklise a validator with particular inputs, we run it with those inputs and observe (using a suitably modified evaluator) which nodes are actually used during execution.  Having done this, we take the unused nodes and replace each one with a `Pruned`/`PrunedTy` node containing their Merkle hashes.  
 
 The function `M#` for calculating Merkle hashes now has to be extended to deal with `Pruned` nodes: we do exactly the same as above except that when we encounter a `Pruned` node we just extract the hash which it contains rather than calculating a new hash. This means that if we take an AST `T` and another AST `T'` obtained by replacing any number of nodes with their `Pruned` version, then we have `M#(T) = M#(T')`.  This allows one to use a validator which has been shrunk to contain only relevant code, while allowing an on-chain check that the Merkle hash is as expected.  If such a validator is executed and an attempt to evaluate a `Pruned` node is encountered then validation should fail.  This might happen if, for example, Merklisation was performed with program inputs differing from those provided on chain.
 
@@ -37,18 +37,18 @@ The table below contains these figures for our example contracts.
 
 | Contract | Number of nodes | Serialised size (bytes) | 512-bit blocks | Merkle hash overhead |
 | :---: | ---: | ---: | ---: | ---: |
-| Crowdfunding | 18264 | 108939 | 1703 | 11x |
-| Currency | 24218 | 150733 | 2356 | 11x |
-| Escrow | 20855 | 123775 | 1934 | 11x |
-| Future | 26312 | 167320 | 2615 | 10x |
-| Game | 13273 | 90960 | 1422 | 9x |
-| GameStateMachine | 19238 | 109276 | 1708 | 11x |
-| MultiSig | 15376 | 103038 | 1610 | 10x | 
-| MultiSigStateMachine | 32783 | 190516 | 2977 | 11x |
-| PubKey | 14605 | 98492 | 1539 | 9.5x |
-| Swap | 22008 | 146143 | 2284 | 9.6x |
-| TokenAccount | 13464 | 76763 | 1200 | 11x |
-| Vesting | 29504 | 186134 | 2909 | 10x |
+| Crowdfunding | 18540 | 110413 | 1726 | 10.7x |
+| Currency | 25478 | 159160 | 2487 | 10.2x |
+| Escrow | 19891 | 117438 | 1835 | 10.8x |
+| Future | 36026 | 206137 | 3221 | 11.2x |
+| Game | 14465 | 98970 | 1547 | 9.4x |
+| GameStateMachine | 20664 | 117053 | 1829 | 11.3x |
+| MultiSig | 16766 | 111990 | 1750 | 9.6x |
+| MultiSigStateMachine | 33897 | 196628 | 3073 | 11.0x |
+| PubKey | 15815 | 106535 | 1665 | 9.5x |
+| Swap | 23332 | 154724 | 2418 | 9.6x |
+| TokenAccount | 13690 | 78030 | 1220 | 11.2x |
+| Vesting | 20440 | 119514 | 1868 | 10.9x |
 
 This suggests that Merkle hashing is typically 9-11 times more expensive than our current contract address scheme.  The figures above are just based on the estimated number of applications of the SHA-256 compression function though, and ignore the overhead involved in CBOR serialisation (although we have do do that anyway) and in the AST traversal and node-serialisation required to calculate Merkle hashes.  If this question becomes important, we could do some experiments to measure actual computation times of the two methods.
 
@@ -72,36 +72,36 @@ The following table shows what happens if we Merklise all of the types in the va
 
 | Contract | Total Nodes | Type nodes | Serialised Size | Serialised, types Merklised |
 | :---: | ---: | ---: | ---: | ---: |
-| Crowdfunding | 18264 | 13634 | 108939 (100.0%) | 95147 (87.3%) | 
-| (Compressed) | | | 21182 (19.4%) | 39810 (36.5%) |
-| Currency | 24218 | 17353 | 150733 (100.0%) | 145318 (96.4%) | 
-| (Compressed) | | | 27713 (18.4%) | 51811 (34.4%) |
-| Escrow | 20855 | 15273 | 123775 (100.0%) | 111135 (89.8%) | 
-| (Compressed) | | | 23477 (19.0%) | 43236 (34.9%) |
-| Future | 26312 | 18617 | 167320 (100.0%) | 166949 (99.8%) | 
-| (Compressed) | | | 31149 (18.6%) | 59027 (35.3%) |
-| Game | 13273 | 9225 | 90960 (100.0%) | 92143 (101.3%) | 
-| (Compressed) | | | 15722 (17.3%) | 28340 (31.2%) |
-| GameStateMachine | 19238 | 13546 | 109276 (100.0%) | 101303 (92.7%) | 
-| (Compressed) | | | 20752 (19.0%) | 39138 (35.8%) |
-| MultiSig | 15376 | 10500 | 103038 (100.0%) | 107104 (103.9%) | 
-| (Compressed) | | | 18480 (17.9%) | 34310 (33.3%) |
-| MultiSigStateMachine | 32783 | 23052 | 190516 (100.0%) | 184120 (96.6%) | 
-| (Compressed) | | | 36447 (19.1%) | 67658 (35.5%) |
-| PubKey | 14605 | 9968 | 98492 (100.0%) | 102428 (104.0%) | 
-| (Compressed) | | | 17315 (17.6%) | 31703 (32.2%) |
-| Swap | 22008 | 14388 | 146143 (100.0%) | 161214 (110.3%) | 
-| (Compressed) | | | 26970 (18.5%) | 52720 (36.1%) |
-| TokenAccount | 13464 | 11031 | 76763 (100.0%) | 51692 (67.3%) | 
-| (Compressed) | | | 15439 (20.1%) | 29147 (38.0%) |
-| Vesting | 29504 | 21145 | 186134 (100.0%) | 180601 (97.0%) | 
-| (Compressed) | | | 33782 (18.1%) | 62796 (33.7%) |
+| Crowdfunding | 18540 | 13877 | 110413 (100.0%) | 95951 (86.9%) | 
+| (Compressed) | | | 21440 (19.4%) | 40230 (36.4%) |
+| Currency | 25478 | 18169 | 159160 (100.0%) | 155312 (97.6%) | 
+| (Compressed) | | | 29004 (18.2%) | 54210 (34.1%) |
+| Escrow | 19891 | 14674 | 117438 (100.0%) | 102931 (87.6%) | 
+| (Compressed) | | | 22064 (18.8%) | 39698 (33.8%) |
+| Future | 36026 | 26725 | 206137 (100.0%) | 176634 (85.7%) | 
+| (Compressed) | | | 40134 (19.5%) | 70530 (34.2%) |
+| Game | 14465 | 9978 | 98970 (100.0%) | 101915 (103.0%) | 
+| (Compressed) | | | 16898 (17.1%) | 30777 (31.1%) |
+| GameStateMachine | 20664 | 14710 | 117053 (100.0%) | 107203 (91.6%) | 
+| (Compressed) | | | 22322 (19.1%) | 41789 (35.7%) |
+| MultiSig | 16766 | 11312 | 111990 (100.0%) | 118709 (106.0%) | 
+| (Compressed) | | | 19771 (17.7%) | 36964 (33.0%) |
+| MultiSigStateMachine | 33897 | 23923 | 196628 (100.0%) | 189564 (96.4%) | 
+| (Compressed) | | | 37535 (19.1%) | 69999 (35.6%) |
+| PubKey | 15815 | 10738 | 106535 (100.0%) | 112243 (105.4%) | 
+| (Compressed) | | | 18483 (17.3%) | 34079 (32.0%) |
+| Swap | 23332 | 15270 | 154724 (100.0%) | 171136 (110.6%) | 
+| (Compressed) | | | 28243 (18.3%) | 55288 (35.7%) |
+| TokenAccount | 13690 | 11226 | 78030 (100.0%) | 52410 (67.2%) | 
+| (Compressed) | | | 15765 (20.2%) | 29539 (37.9%) |
+| Vesting | 20440 | 15480 | 119514 (100.0%) | 101552 (85.0%) | 
+| (Compressed) | | | 23348 (19.5%) | 43789 (36.6%) |
 
 We see that Merklising all of the types in general doesn't save much space.  This is because types are generally quite small (see below) and replacing them all with 32-byte hashes doesn't do a lot of good.  Note also that after Merklisation the serialised code becomes much less compressible: this is because we replace the fairly simple structured AST representations of types with incompressible hashes.
 
 
 ### Distribution of types sizes
-I looked at the details of the distribution of type sizes for the validators of the `Crowdfunding` and `MultiSigStateMachine` contracts.
+I looked at the details of the distribution of type sizes for the validators of the `Crowdfunding` and `MultiSigStateMachine` contracts. (These were actually earlier versions of the validators (with the old contract API), but the figures are similar for the current validators).
 
 #### Crowdfunding
 The two histograms below how the distributions of the number of AST nodes in types (and kinds) and their serialised lengths.  The vertical red line in the second histogram is at 32 bytes: to the left of this Merklisation is counterproductive because it increases the size of the type.  It is clear that the majority of types are relatively small, with a long tail of a few very large types.  
@@ -160,3 +160,6 @@ There are at least four possible ways to deal with this.
   * Don't Merklise types at all.
   * Only Merklise types if their serialised forms take up more than 32 bytes.
   * Avoid type duplication by interning types.
+
+## Further results
+See [this page](./Merklising-programs.md) for some experiments on Merklising the validators in our example contracts.
