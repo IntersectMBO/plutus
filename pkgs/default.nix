@@ -54211,7 +54211,6 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
-, playground-common
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
@@ -54258,7 +54257,6 @@ mtl
 natural-transformation
 newtype-generics
 operational
-playground-common
 plutus-tx
 plutus-wallet-api
 prettyprinter
@@ -54793,7 +54791,6 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
-, playground-common
 , plutus-contract
 , plutus-contract-tasty
 , plutus-emulator
@@ -54824,7 +54821,6 @@ containers
 iots-export
 lens
 mtl
-playground-common
 plutus-contract
 plutus-emulator
 plutus-playground-lib

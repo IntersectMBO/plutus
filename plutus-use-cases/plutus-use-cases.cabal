@@ -60,7 +60,6 @@ library
         containers -any,
         iots-export -any,
         mtl -any,
-        playground-common -any,
         plutus-tx -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
