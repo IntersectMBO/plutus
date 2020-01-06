@@ -1,17 +1,18 @@
-## Type erasure and CBOR sizes for Plutus Core
-
-[kwxm, November 2019]
-
-This document describes some experiments looking at how erasing
-various things from the Plutus Core AST affects the size of serialised
-programs.  The full Plutus Core AST contains type information and
-human-readable names, neither of which are necessary for evaluation,
-so we may not need to keep them around.  This is related to issues
+## Type erasure and CBOR sizes for Plutus Core This document describes
+some experiments looking at how erasing various things from the Plutus
+Core AST affects the size of serialised programs.  The full Plutus
+Core AST contains type information and human-readable names, neither
+of which are necessary for evaluation, so we may not need to keep them
+around.  This is related to issues
 [#1592](https://github.com/input-output-hk/plutus/issues/1592) and
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
-GitHub.  The next step will be to look at Merklisation.
+GitHub.  Merklisation is considered in
+[Merklisation-notes.md](./Merklisation-notes.md) and
+[Merklising-programs.md](./Merklising-programs.md).
 
-See also [ast-analysis.md](./ast-analysis.md) for some basic
+See [PLC-AST-types.md](./PLC-AST-types.md) for a summary of the structure of Plutus Core ASTs.
+
+See also [AST-analysis.md](./AST-analysis.md) for some basic
 statistics about the number and types of nodes in Plutus Core ASTs.
 
 I've implemented two basic transformations:
