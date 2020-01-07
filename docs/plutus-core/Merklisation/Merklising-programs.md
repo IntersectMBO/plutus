@@ -321,5 +321,4 @@ information from ASTs and then compressing their serialised forms.
 
 Type information takes up a great deal of space in Plutus Core ASTs
 (typically of the order of 70% of the serialised AST), but we might be
-able to mitigate this by interning types in a separate table, probably
-included as an extra component in a PLC `Program` object.
+able to mitigate this by interning types in a separate table.
