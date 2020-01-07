@@ -3,11 +3,11 @@ module View (render) where
 import Types
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, col5_, col7_, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd5, colMd7, colMd8, colSm4, colSm5, colSm6, colSm8, colXs12, container, container_, empty, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
 import Bootstrap as Bootstrap
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array (cons, find) as Array
+import Data.Array (find) as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_Right, view)
@@ -19,10 +19,10 @@ import Data.Tuple (Tuple(Tuple))
 import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, br_, button, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, span, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
-import Halogen.HTML.Properties (class_, classes, href, id_)
+import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
 import Network.RemoteData (RemoteData(..), _Success)
@@ -54,10 +54,15 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
               compilationResult = unwrap <$> view _compilationResult state
             in
               [ row_
-                  [ col7_ [ compileButton CompileProgram compilationResult ]
-                  , col5_ [ contractDemosPane contractDemos ]
+                  [ div
+                      [ classes [ colXs12, colMd4, colLg7 ] ]
+                      [ compileButton CompileProgram compilationResult ]
+                  , div
+                      [ classes [ colXs12, colMd8, colLg5 ] ]
+                      [ documentationLinksPane
+                      , contractDemosPane contractDemos
+                      ]
                   ]
-              , br_
               , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
               , compileButton CompileProgram compilationResult
               , mapComponent EditorAction $ editorFeedback compilationResult
@@ -120,8 +125,9 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
 contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
 contractDemosPane contractDemos =
   div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> contractDemos)
-    )
+    [ strong_ [ text "Demos: " ]
+    , span [ classes [ btnGroup ] ] (demoScriptButton <$> contractDemos)
+    ]
 
 demoScriptButton :: forall p. ContractDemo -> HTML p HAction
 demoScriptButton (ContractDemo { contractDemoName }) =
@@ -153,11 +159,16 @@ viewContainer currentView targetView =
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, floatRight ] ]
-        (makeLink <$> links)
-    , h1
+    [ h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
+    ]
+
+documentationLinksPane :: forall p i. HTML p i
+documentationLinksPane =
+  div [ id_ "docs" ]
+    [ strong_ [ text "Documentation: " ]
+    , span [ classes [ btnGroup ] ] (makeLink <$> links)
     ]
   where
   links =
@@ -169,8 +180,9 @@ mainHeader =
 
   makeLink (Tuple name link) =
     a
-      [ classes [ btn, btnSmall ]
+      [ classes [ btn, btnInfo, btnSmall ]
       , href link
+      , target "_blank"
       ]
       [ text name ]
 
