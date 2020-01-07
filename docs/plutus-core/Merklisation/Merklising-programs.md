@@ -1,4 +1,6 @@
-## Introduction
+## Merklising Programs
+
+### Introduction
 
 This document carries on from the previous notes on [Merklised
 Abstract Syntax Trees](./Merklisation-notes.md) and looks at the
@@ -234,7 +236,7 @@ might solve this problem, although I didn't try that because it would
 have required quite a lot of work.
 
 
-## Update: being more careful about what we Merklise
+### Update: being more careful about what we Merklise
 
 It wasn't initially clear why Merklisation seems to be ineffective in
 the table above, but closer inspection of the data showed that a large
