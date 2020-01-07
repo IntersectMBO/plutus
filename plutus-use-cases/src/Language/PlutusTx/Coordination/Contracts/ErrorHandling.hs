@@ -63,17 +63,15 @@ throwAndCatch =
         handleError1 _ = pure ()
     in catching _Error1 throw handleError1
 
--- | Handle an error from another contract (in this case, 'writeTxSucess')
-catchContractError :: (AsMyError e, AsContractError e, HasWriteTx s) => Contract s e ()
+-- | Handle an error from another contract (in this case, 'awaitSlot')
+catchContractError :: (AsMyError e, HasAwaitSlot s) => Contract s e ()
 catchContractError =
     catching _MyContractError
-        (void $ submitTx mempty)
+        (void $ awaitSlot 10)
         (\_ -> throwing_ _Error2)
 
 contract
-    :: ( AsMyError e
-       , AsContractError e
-       )
+    :: ( AsMyError e )
     => Contract Schema e ()
 contract =
     (endpoint @"throwError" >> throw)

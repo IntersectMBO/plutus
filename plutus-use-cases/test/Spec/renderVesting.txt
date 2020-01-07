@@ -101,11 +101,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  10000
 
 ==== Slot #1, Tx #0 ====
-TxId:       69af5ee548f4e72a318f4d81e35d9fef3e5e3e31fac71d91514e2d1e2565fd2f
+TxId:       78b213437f562c4eade47e84005891b7b606e2cbdbc5eb8567318d0e766c53a0
 Fee:        -
 Forge:      -
 Signatures  PubKey: fc51cd8e6218a1a38da47ed00230f0580816ed13...
-              Signature: 5f5820524f52018e7e5c24d9fd5889473b165527...
+              Signature: 5f5820b6819b74e6c71efb1c0f39f344ae26d391...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 03d200a81ee0feace8fb845e5ec950a6f9add837... (Wallet 2)
@@ -124,7 +124,7 @@ Outputs:
     Ada:      Lovelace:  9940
   
   ---- Output 1 ----
-  Destination:  Script: f54166b654a2c99bc0309df4d3668eb3790cb239830f5a5dfa81f76414cbc177
+  Destination:  Script: 12a01ca9130fea3b498dc11feb7212de18436ab8e32652605adfdb39dcf67e45
   Value:
     Ada:      Lovelace:  60
 
@@ -170,25 +170,25 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  10000
   
-  Script: f54166b654a2c99bc0309df4d3668eb3790cb239830f5a5dfa81f76414cbc177
+  Script: 12a01ca9130fea3b498dc11feb7212de18436ab8e32652605adfdb39dcf67e45
   Value:
     Ada:      Lovelace:  60
 
 ==== Slot #13, Tx #0 ====
-TxId:       062c479557d6f547544d39a4657ece02686a948499077d1515dd8057b1c84ada
+TxId:       14eed700892ce84ea3122fae98755e402bf107f603a0769a27425cc8a56f3f6e
 Fee:        -
 Forge:      -
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-              Signature: 5f5820fd53ea5b6cfa8ef9e3837786a98664cb8f...
+              Signature: 5f5820dc2bb03904ba602c061826ce593d04b521...
 Inputs:
   ---- Input 0 ----
-  Destination:  Script: f54166b654a2c99bc0309df4d3668eb3790cb239830f5a5dfa81f76414cbc177
+  Destination:  Script: 12a01ca9130fea3b498dc11feb7212de18436ab8e32652605adfdb39dcf67e45
   Value:
     Ada:      Lovelace:  60
   Source:
-    Tx:     69af5ee548f4e72a318f4d81e35d9fef3e5e3e31fac71d91514e2d1e2565fd2f
+    Tx:     78b213437f562c4eade47e84005891b7b606e2cbdbc5eb8567318d0e766c53a0
     Output #1
-    Script: f6f601000003f603f602f6f66466697831190819...
+    Script: f6f601000003f603f602f6f6646669783119081d...
 
 
 Outputs:
@@ -198,7 +198,7 @@ Outputs:
     Ada:      Lovelace:  10
   
   ---- Output 1 ----
-  Destination:  Script: f54166b654a2c99bc0309df4d3668eb3790cb239830f5a5dfa81f76414cbc177
+  Destination:  Script: 12a01ca9130fea3b498dc11feb7212de18436ab8e32652605adfdb39dcf67e45
   Value:
     Ada:      Lovelace:  50
 
@@ -244,6 +244,6 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  10000
   
-  Script: f54166b654a2c99bc0309df4d3668eb3790cb239830f5a5dfa81f76414cbc177
+  Script: 12a01ca9130fea3b498dc11feb7212de18436ab8e32652605adfdb39dcf67e45
   Value:
     Ada:      Lovelace:  50

@@ -28,12 +28,6 @@ module Language.Plutus.Contract(
     , HasEndpoint
     , Endpoint
     , endpoint
-    -- * Transactions
-    , HasWriteTx
-    , WriteTx
-    , WalletAPIError
-    , submitTx
-    , submitTxConfirmed
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
@@ -51,7 +45,18 @@ module Language.Plutus.Contract(
     , OwnPubKey
     , ownPubKey
     -- * Transactions
+    , HasWriteTx
+    , WriteTx
+    , WalletAPIError
+    , submitTx
+    , submitTxConfirmed
+    , submitTxConstraints
+    , submitTxConstraintsSpending
+    , submitTxConstraintsWith
+    , submitUnbalancedTx
+    -- ** Creating transactions
     , module Tx
+    -- ** Tx confirmation
     , HasTxConfirmation
     , TxConfirmation
     , awaitTxConfirmed
@@ -79,8 +84,7 @@ import           Language.Plutus.Contract.Request                  (AsContractEr
                                                                     ContractError (..), ContractRow, checkpoint, select,
                                                                     withContractError)
 import           Language.Plutus.Contract.Schema                   (Handlers)
-
-import           Language.Plutus.Contract.Tx                       as Tx
+import           Language.Plutus.Contract.Typed.Tx                 as Tx
 
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)

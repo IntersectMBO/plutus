@@ -1,16 +1,11 @@
 -- | Re-export functions that are needed when creating a Contract for use in the playground
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
@@ -59,7 +54,6 @@ module Playground.Contract
     , modifiesUtxoSet
     , nextTransactionAt
     , utxoAt
-    , validityRange
     , watchAddressUntil
     , submitTx
     , Tx
@@ -79,12 +73,12 @@ import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
 import           IOTS                                            (IotsType (iotsDefinition))
 import           Language.Plutus.Contract                        (type (.\/), AsContractError, BlockchainActions,
-                                                                  Contract, Endpoint, awaitSlot, modifiesUtxoSet,
-                                                                  nextTransactionAt, submitTx, utxoAt, validityRange,
-                                                                  watchAddressUntil)
+                                                                  Contract, Endpoint, awaitSlot, nextTransactionAt,
+                                                                  submitTx, utxoAt, watchAddressUntil)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (endpoint)
 import           Language.Plutus.Contract.Effects.OwnPubKey      (ownPubKey)
 import           Language.Plutus.Contract.Trace                  (TraceError (..), runTraceWithDistribution)
+import           Ledger.Constraints                              (modifiesUtxoSet)
 import           Ledger.Interval                                 (interval)
 import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
 import           Ledger.Tx                                       (Tx, TxOutRef (TxOutRef), txOutRefId)

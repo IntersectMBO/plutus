@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
@@ -27,14 +28,13 @@ module Starter where
 import           Control.Monad              (void)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, DataValue (DataValue), PendingTx,
-                                             RedeemerValue (RedeemerValue), Validator, mkValidatorScript,
+import           Ledger                     (Address, PendingTx, 
                                              scriptAddress)
-import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Tx (payToScript, collectFromScript)
+import qualified Ledger.Constraints as Constraints
+import qualified Ledger.Typed.Scripts as Scripts
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
@@ -49,26 +49,21 @@ PlutusTx.makeLift ''MyRedeemerValue
 validateSpend :: MyDataValue -> MyRedeemerValue -> PendingTx -> Bool
 validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
--- | This function lifts the validator previously defined to
---   the on-chain representation.
-contractValidator :: Validator
-contractValidator =
-    mkValidatorScript $$(PlutusTx.compile [|| wrap validateSpend ||])
-    where wrap = wrapValidator @MyDataValue @MyRedeemerValue
-
--- | Helper function used to build the DataValue.
-mkDataValue :: Integer -> DataValue
-mkDataValue =
-    DataValue . PlutusTx.toData . MyDataValue
-
--- | Helper function used to build the RedeemerValue.
-mkRedeemerValue :: Integer -> RedeemerValue
-mkRedeemerValue =
-    RedeemerValue . PlutusTx.toData . MyRedeemerValue
-
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
-contractAddress = Ledger.scriptAddress contractValidator
+contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
+
+data Starter
+instance Scripts.ScriptType Starter where
+    type instance RedeemerType Starter = MyRedeemerValue
+    type instance DataType Starter = MyDataValue
+
+-- | The script instance is the compiled validator (ready to go onto the chain)
+starterInstance :: Scripts.ScriptInstance Starter
+starterInstance = Scripts.validator @Starter
+    $$(PlutusTx.compile [|| validateSpend ||])
+    $$(PlutusTx.compile [|| wrap ||]) where
+        wrap = Scripts.wrapValidator @MyDataValue @MyRedeemerValue
 
 -- | The schema of the contract, with two endpoints.
 type Schema =
@@ -82,18 +77,18 @@ contract = publish <|> redeem
 -- | The "publish" contract endpoint.
 publish :: AsContractError e => Contract Schema e ()
 publish = do
-    (myDataValue, lockedFunds) <- endpoint @"publish"
-    let tx = payToScript lockedFunds contractAddress (mkDataValue myDataValue)
-    void $ submitTx tx
+    (i, lockedFunds) <- endpoint @"publish"
+    let tx = Constraints.mustPayToTheScript (MyDataValue i) lockedFunds
+    void $ submitTxConstraints starterInstance tx
 
 -- | The "redeem" contract endpoint.
 redeem :: AsContractError e => Contract Schema e ()
 redeem = do
     myRedeemerValue <- endpoint @"redeem"
     unspentOutputs <- utxoAt contractAddress
-    let redeemer = mkRedeemerValue myRedeemerValue
-        tx = collectFromScript unspentOutputs contractValidator redeemer
-    void $ submitTx tx
+    let redeemer = MyRedeemerValue myRedeemerValue
+        tx       = collectFromScript unspentOutputs redeemer
+    void $ submitTxConstraintsSpending starterInstance unspentOutputs tx
 
 endpoints :: AsContractError e => Contract Schema e ()
 endpoints = contract

@@ -45,9 +45,11 @@ import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract
+import qualified Ledger.Constraints  as Constraints
+import           Ledger.Constraints.TxConstraints (TxConstraints)
 import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding (Semigroup(..))
+import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.StateMachine as SM
 import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, DataValue(..), ValidatorHash)
 import qualified Ledger
@@ -56,8 +58,7 @@ import           Ledger.Oracle                  (SignedMessage(..), Observation(
 import qualified Ledger.Oracle                  as Oracle
 import           Ledger.Tokens
 import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Validation              (PendingTx, PendingTx' (..))
-import qualified Ledger.Validation              as Validation
+import           Ledger.Scripts                 (unitData)
 import           Ledger.Value                   as Value
 
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
@@ -65,11 +66,10 @@ import Language.PlutusTx.Coordination.Contracts.Escrow (EscrowParams(..), AsEscr
 import qualified Language.PlutusTx.Coordination.Contracts.Escrow as Escrow
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
 import Language.PlutusTx.Coordination.Contracts.TokenAccount (Account(..))
-import           Language.Plutus.Contract.StateMachine (ValueAllocation(..), AsSMContractError, StateMachine(..))
+import           Language.Plutus.Contract.StateMachine (AsSMContractError, StateMachine(..), State(..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import qualified Prelude as Haskell
-import           Prelude (Semigroup(..))
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
@@ -285,12 +285,9 @@ futureStateMachine
     :: Future
     -> FutureAccounts
     -> StateMachine FutureState FutureAction
-futureStateMachine ft fos =
-    StateMachine
-        { smTransition = futureTransition
-        , smCheck      = futureCheck ft fos
-        , smFinal      = \case { Finished -> True; _ -> False }
-        }
+futureStateMachine ft fos = SM.mkStateMachine (transition ft fos) isFinal where
+    isFinal Finished = True
+    isFinal _ = False
 
 scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
 scriptInstance future ftos =
@@ -313,18 +310,16 @@ machineClient
     -> SM.StateMachineClient FutureState FutureAction
 machineClient inst future ftos =
     let machine = futureStateMachine future ftos
-        i = SM.StateMachineInstance machine inst
-    in SM.mkStateMachineClient i (allocate future ftos)
+    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 
-{-# INLINABLE verifyOracleOnChain #-}
-verifyOracleOnChain :: PlutusTx.IsData a => PendingTx -> Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
-verifyOracleOnChain ptx Future{ftPriceOracle} sm =
-    case Oracle.verifySignedMessageOnChain ptx ftPriceOracle sm of
-        Left _ -> Nothing
-        Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
+{-# INLINABLE verifyOracle #-}
+verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
+verifyOracle pubKey sm =
+    either (const Nothing) pure 
+    $ Oracle.verifySignedMessageConstraints pubKey sm
 
 verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
@@ -332,12 +327,46 @@ verifyOracleOffChain Future{ftPriceOracle} sm =
         Left _ -> Nothing
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
-{-# INLINABLE futureTransition #-}
-futureTransition :: FutureState -> FutureAction -> Maybe FutureState
-futureTransition (Running accounts) (AdjustMargin role value) = Just (Running (adjustMargin role value accounts))
-futureTransition Running{} Settle{}      = Just Finished
-futureTransition Running{} SettleEarly{} = Just Finished
-futureTransition _ _                     = Nothing
+{-# INLINABLE transition #-}
+transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> Maybe (TxConstraints Void Void, State FutureState)
+transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s, stateValue=currentValue} i =
+    case (s, i) of
+        (Running accounts, AdjustMargin role topUp) ->
+            Just ( mempty
+                    , State
+                    { stateData = Running (adjustMargin role topUp accounts)
+                    , stateValue = topUp + totalMargin accounts
+                    }
+                    )
+        (Running accounts, Settle ov)
+            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, ftDeliveryDate == oracleDate ->
+                let payment = payouts future accounts spotPrice
+                    constraints = 
+                        Constraints.mustValidateIn (Interval.from ftDeliveryDate)
+                        <> oracleConstraints
+                        <> payoutsTx payment owners
+                in Just ( constraints
+                        , State
+                            { stateData = Finished
+                            , stateValue = mempty
+                            }
+                        )
+        (Running accounts, SettleEarly ov)
+            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, Just vRole <- violatingRole future accounts spotPrice, ftDeliveryDate > oracleDate ->
+                let
+                    total = totalMargin accounts
+                    FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
+                    payment = case vRole of
+                                Short -> Constraints.mustPayToOtherScript ftoLongAccount unitData total
+                                Long -> Constraints.mustPayToOtherScript ftoShortAccount unitData total
+                    constraints = payment <> oracleConstraints
+                in Just ( constraints 
+                        , State
+                            { stateData = Finished
+                            , stateValue = mempty
+                            }
+                        )
+        _ -> Nothing
 
 data Payouts =
     Payouts
@@ -345,15 +374,16 @@ data Payouts =
         , payoutsLong  :: Value
         }
 
+{-# INLINABLE payoutsTx #-}
 payoutsTx
     :: Payouts
     -> FutureAccounts
-    -> UnbalancedTx
-payoutsTx
+    -> TxConstraints Void Void
+payoutsTx 
     Payouts{payoutsShort, payoutsLong}
-    FutureAccounts{ftoShort, ftoLong} =
-        TokenAccount.payTx (TokenAccount.scriptInstance ftoShort) payoutsShort
-        <> TokenAccount.payTx (TokenAccount.scriptInstance ftoLong) payoutsLong
+    FutureAccounts{ftoLongAccount, ftoShortAccount} =
+        Constraints.mustPayToOtherScript ftoLongAccount unitData payoutsLong
+        <> Constraints.mustPayToOtherScript ftoShortAccount unitData payoutsShort
 
 {-# INLINABLE payouts #-}
 -- | Compute the payouts for each role given the future data,
@@ -365,72 +395,6 @@ payouts Future{ftUnits, ftUnitPrice} Margins{ftsShortMargin, ftsLongMargin} spot
         { payoutsShort = ftsShortMargin - delta
         , payoutsLong  = ftsLongMargin + delta
         }
-
-{-# INLINABLE futureCheck #-}
-futureCheck :: Future -> FutureAccounts -> FutureState -> FutureAction -> PendingTx -> Bool
-futureCheck future owners state action ptx =
-    let
-        (ownHash, _, _) = Validation.ownHashes ptx
-        vl = Validation.valueLockedBy ptx ownHash
-    in
-    case (state, action) of
-        (Running accounts, AdjustMargin _ topUp) ->
-                vl == (topUp + totalMargin accounts)
-        (Running accounts, SettleEarly ov) ->
-            let
-                Future{ftDeliveryDate} = future
-                FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
-                Just (oracleDate, spotPrice) = verifyOracleOnChain ptx future ov
-                err = traceH "Margin requirements not violated" (error ())
-                vRole = fromMaybe err (violatingRole future accounts spotPrice)
-                payoutValid = case vRole of
-                        Short -> Validation.valueLockedBy ptx ftoLongAccount `geq` totalMargin accounts
-                        Long  -> Validation.valueLockedBy ptx ftoShortAccount `geq` totalMargin accounts
-                slotValid = oracleDate < ftDeliveryDate
-            in payoutValid && slotValid
-        (Running accounts, Settle ov) ->
-            let
-                Future{ftDeliveryDate} = future
-                FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
-                Just (oracleDate, spotPrice) = verifyOracleOnChain ptx future ov
-                Payouts{payoutsShort, payoutsLong} = payouts future accounts spotPrice
-                payoutValid =
-                    Validation.valueLockedBy ptx ftoLongAccount `geq` payoutsLong
-                    && Validation.valueLockedBy ptx ftoShortAccount `geq` payoutsShort
-                slotvalid   = oracleDate == ftDeliveryDate
-                                && ftDeliveryDate `Interval.before` pendingTxValidRange ptx
-            in slotvalid && payoutValid
-        _ -> False
-
-allocate :: Future -> FutureAccounts -> FutureState -> FutureAction -> Value -> Maybe ValueAllocation
-allocate _ _ Running{} (AdjustMargin _ topUp) vl =
-    Just $ ValueAllocation
-        { vaOwnAddress = topUp + vl
-        , vaOtherPayments=Haskell.mempty
-        }
-allocate future ftos (Running margins) (SettleEarly ov) vl = do
-    (_, spotPrice) <- verifyOracleOffChain future ov
-    rl <- violatingRole future margins vl
-    let Margins{ftsShortMargin, ftsLongMargin} = margins
-        payments  =
-            case rl of
-                Long -> Payouts{payoutsLong=mempty, payoutsShort = ftsShortMargin + ftsLongMargin }
-                Short -> Payouts{payoutsLong=ftsShortMargin+ftsLongMargin, payoutsShort = mempty}
-    Just $ ValueAllocation
-        { vaOwnAddress = mempty
-        , vaOtherPayments = payoutsTx payments ftos <> mustIncludeDataValue (osmData ov)
-        }
-allocate future ftos (Running accounts) (Settle ov) vl = do
-    (_, spotPrice) <- verifyOracleOffChain future ov
-    let payments = payouts future accounts spotPrice
-    Just $ ValueAllocation
-        { vaOwnAddress = mempty
-        , vaOtherPayments =
-            payoutsTx payments ftos
-                <> mustBeValidIn (Interval.from (succ $ ftDeliveryDate future))
-                <> mustIncludeDataValue (osmData ov)
-        }
-allocate _ _ _ _ vl = Nothing
 
 -- | Compute the required margin from the current price of the
 --   underlying asset.
@@ -560,6 +524,7 @@ increaseMargin
     :: ( HasEndpoint "increase-margin" (Value, Role) s
        , HasUtxoAt s
        , HasWriteTx s
+       , HasOwnPubKey s
        , HasTxConfirmation s
        , AsSMContractError e FutureState FutureAction
        , AsContractError e

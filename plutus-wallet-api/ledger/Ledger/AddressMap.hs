@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE Rank2Types         #-}
-{-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- | 'AddressMap's and functions for working on them.
 --
@@ -10,8 +9,10 @@
 -- only tracks the UTxOs at particular addresses.
 module Ledger.AddressMap(
     AddressMap(..),
+    UtxoMap,
     addAddress,
     addAddresses,
+    filterRefs,
     fundsAt,
     values,
     singleton,
@@ -26,7 +27,7 @@ module Ledger.AddressMap(
     ) where
 
 import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, (&), (.~), (^.))
+import           Control.Lens          (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, view, (&), (.~), (^.))
 import           Control.Monad         (join)
 import           Data.Aeson            (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson            as JSON
@@ -43,9 +44,12 @@ import           GHC.Generics          (Generic)
 import           Ledger                (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), Value,
                                         txId)
 import           Ledger.Blockchain
+import qualified Ledger.Tx             as Tx
+
+type UtxoMap = Map TxOutRef TxOutTx
 
 -- | A map of 'Address'es and their unspent outputs.
-newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOutTx) }
+newtype AddressMap = AddressMap { getAddressMap :: Map Address UtxoMap }
     deriving stock (Show, Eq, Generic)
     deriving newtype (Serialise)
 
@@ -55,6 +59,11 @@ singleton (addr, ref, tx, ot) = AddressMap $ Map.singleton addr (Map.singleton r
 
 outRefMap :: AddressMap -> Map TxOutRef TxOutTx
 outRefMap (AddressMap am) = Map.unions (snd <$> Map.toList am)
+
+-- | Filter the transaction output references in the map
+filterRefs :: (TxOutRef -> TxOutTx -> Bool) -> AddressMap -> AddressMap
+filterRefs flt =
+    AddressMap . Map.map (Map.filterWithKey flt) . getAddressMap
 
 -- NB: The ToJSON and FromJSON instance for AddressMap use the `Serialise`
 -- instance with a base16 encoding, similar to the instances in Types.hs.
@@ -89,14 +98,14 @@ instance At AddressMap where
         s (AddressMap mp) utxo = AddressMap $ mp & at idx .~ utxo
 
 -- | Get the funds available at a particular address.
-fundsAt :: Address -> Lens' AddressMap (Map TxOutRef TxOutTx)
+fundsAt :: Address -> Lens' AddressMap UtxoMap
 fundsAt addr = at addr . non mempty
 
 -- | Add an address with no unspent outputs to a map. If the address already
 --   exists, do nothing.
 addAddress :: Address -> AddressMap -> AddressMap
 addAddress adr (AddressMap mp) = AddressMap $ Map.alter upd adr mp where
-    upd :: Maybe (Map TxOutRef TxOutTx) -> Maybe (Map TxOutRef TxOutTx)
+    upd :: Maybe UtxoMap -> Maybe UtxoMap
     upd = maybe (Just Map.empty) Just
 
 -- | Add a list of 'Address'es with no unspent outputs to the map.
@@ -163,7 +172,7 @@ inputs addrs = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
     . Set.toList
-    . txInputs
+    . view Tx.inputs
 
 -- | Restrict an 'AddressMap' to a set of addresses.
 restrict :: AddressMap -> Set.Set Address -> AddressMap

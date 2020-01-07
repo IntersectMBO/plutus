@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds       #-}
@@ -17,7 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , currencySymbol
     ) where
 
-import           Language.PlutusTx.Prelude  hiding (Semigroup(..))
+import           Language.PlutusTx.Prelude  hiding (Semigroup(..), Monoid(..))
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 
 import           Language.Plutus.Contract     as Contract
@@ -28,11 +29,12 @@ import qualified Language.PlutusTx.AssocMap as AssocMap
 import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
+import qualified Ledger.Constraints         as Constraints
 import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     (CurrencySymbol, TxId, PubKeyHash, TxOutRef(..), scriptCurrencySymbol, txInRef)
+import           Ledger                     (CurrencySymbol, TxId, PubKeyHash, TxOutRef(..), scriptCurrencySymbol)
 import           Ledger.Value               (TokenName, Value)
 
-import qualified Data.Set   as Set
+import qualified Data.Map as Map
 import           Prelude (Semigroup(..))
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
@@ -122,11 +124,13 @@ forgeContract
     -> [(TokenName, Integer)]
     -> Contract s e Currency
 forgeContract pk amounts = do
-    refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
-    let theCurrency = mkCurrency (txInRef refTxIn) amounts
-        forgedVal   = forgedValue theCurrency
+    (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
+    let theCurrency = mkCurrency txOutRef amounts
         curVali     = curPolicy theCurrency
-
-    let forgeTx = mustSpendInput refTxIn <> forgeValue forgedVal (Set.singleton curVali)
-    _ <- submitTx forgeTx
+        lookups     = Constraints.monetaryPolicy curVali
+                        <> Constraints.otherScript (Scripts.validatorScript pkInst)
+                        <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
+    let forgeTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
+                    <> Constraints.mustForgeValue (forgedValue theCurrency)
+    _ <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
     pure theCurrency

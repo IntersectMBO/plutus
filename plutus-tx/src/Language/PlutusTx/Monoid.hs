@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
 
@@ -32,6 +34,10 @@ instance Monoid [a] where
 instance Semigroup a => Monoid (Maybe a) where
     {-# INLINABLE mempty #-}
     mempty = Nothing
+
+instance Monoid () where
+    {-# INLINABLE mempty #-}
+    mempty = ()
 
 class Monoid a => Group a where
     inv :: a -> a
