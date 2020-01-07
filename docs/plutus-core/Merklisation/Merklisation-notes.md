@@ -1,4 +1,4 @@
-## Merkle trees and Merklised Abstract Syntax Trees
+## 2. Merkle trees and Merklised Abstract Syntax Trees
 
 A [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree) is a tree with blocks of data at the leaves; internal nodes contain cryptographic hashes of the contents of their child nodes.  The hash at the root is called the _Merkle root_ of the tree.  The advantage of Merkle trees is that one can prove that a block of data occurs in the tree just by supplying the data and the path from the root to the leaf containing it, together with the hashes of branches which are not taken.  Given this information, one can calculate what the Merkle root of the tree should be and compare it with the Merkle root of the complete tree (provided by some trusted entity). 
 

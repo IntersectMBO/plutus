@@ -1,4 +1,4 @@
-## Type erasure and CBOR sizes for Plutus Core 
+## 1. Type erasure and CBOR sizes for Plutus Core 
 
 This document describes some experiments looking at how erasing
 various things from the Plutus Core AST affects the size of serialised

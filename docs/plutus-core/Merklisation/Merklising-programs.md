@@ -1,4 +1,4 @@
-## Merklising Programs
+## 3. Merklising Programs
 
 ### Introduction
 
