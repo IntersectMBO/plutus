@@ -89,6 +89,9 @@ The information collected (and summarised in the table below) was as follows:
       * All types were replaced by Merkle hashes
       * Types were only replaced by Merkle hashes if their serialised versions took up more than 32 bytes
       * Types were left unchanged, with no type-level Merkle hashes
+      * Another strategy would have been to intern types in a separate table 
+        (probably included in PLC `Program` objects), but this would have 
+        required major changes to the Plutus codebase, so I didn't attempt to do it.
   * Finally, the Merklised version of the validator was minimised and serialised, 
     and the size measured (the type-Merklisation strategy doesn't affect this number, 
     since all types are discarded during minimisation).
@@ -310,4 +313,13 @@ and see how big the result is before deciding whether to proceed with
 Merklisation, which is already expensive.
 
 
+## Overall conclusions
 
+Merklisation doesn't seem to be very effective for Plutus Core.  On
+the other hand, we can save a lot of space by removing extraneous
+information from ASTs and then compressing their serialised forms.
+
+Type information takes up a great deal of space in Plutus Core ASTs
+(typically of the order of 70% of the serialised AST), but we might be
+able to mitigate this by interning types in a separate table, probably
+included as an extra component in a PLC `Program` object.
