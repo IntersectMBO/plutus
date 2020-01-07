@@ -44,7 +44,7 @@ import           Language.Haskell.TH
 -- The PlutusTx Prelude is a collection of useful functions that work with 
 -- builtin Haskell data types such as 'Maybe' and @[]@ (list).
 --
--- Functions from the Prelude can be used with the the typed Template Haskell 
+-- Functions from the Prelude can be used with the typed Template Haskell
 -- splice operator @$$()@:
 --
 -- @

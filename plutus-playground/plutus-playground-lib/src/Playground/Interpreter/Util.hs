@@ -19,7 +19,7 @@ import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chai
 import           Wallet.Generators          (GeneratorModel (GeneratorModel))
 import qualified Wallet.Generators          as Gen
 
--- | Unfortunately any uncaught errors in the interpreter kill the thread that is running it rather than returning the error. This means we need to handle all expected errors in the expression we are interpreting. This gets a little tricky because we have to decode JSON inside the interpreter (since we don't have access to it's type outside) so we need to wrap the @apply functions up in something that can throw errors.
+-- | Unfortunately any uncaught errors in the interpreter kill the thread that is running it rather than returning the error. This means we need to handle all expected errors in the expression we are interpreting. This gets a little tricky because we have to decode JSON inside the interpreter (since we don't have access to its type outside) so we need to wrap the @apply functions up in something that can throw errors.
 runTrace ::
      [(Wallet, Int)]
   -> [Either PlaygroundError (Trace MockWallet [Tx])]

@@ -194,7 +194,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         GHC.App l (GHC.Type t) -> PIR.TyInst () <$> convExpr l <*> convType t
         -- otherwise it's a normal application
         GHC.App l arg -> PIR.Apply () <$> convExpr l <*> convExpr arg
-        -- if we're biding a type variable it's a type abstraction
+        -- if we're binding a type variable it's a type abstraction
         GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ convExpr body
         -- othewise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ convExpr body
