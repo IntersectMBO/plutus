@@ -321,5 +321,6 @@ information from ASTs and then compressing their serialised forms.
 
 Type information takes up a great deal of space in Plutus Core ASTs
 (typically of the order of 70% of the serialised AST), but we might be
-able to mitigate this by interning types in a separate table; apart
-from discarding types altogether, other strategies are ineffective.
+able to mitigate this by interning types in a separate table; with the
+exception of discarding types altogether, other strategies were not 
+very effective.
