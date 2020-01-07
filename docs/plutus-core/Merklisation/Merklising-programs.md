@@ -220,8 +220,8 @@ something 4519 bytes long (less than 1.5% of the size of the
 uncompressed unminimised validator), but if we Merklise, minimise, and
 then compress then we get something 14980 bytes long.  This is
 presumably because the hashes introduced by Merklisation are highly
-incompressible, which might be expected for information-theoretic
-reasons.  The Merklised validator in this case contains 418 hashes in
+incompressible, which might be expected on information-theoretic
+grounds.  The Merklised validator in this case contains 418 hashes in
 term nodes, each occupying 32 bytes.  In total this is 13376 bytes,
 which is of the same order of magnitude as the difference between the
 compressed versions of the Merklised and un-Merklised validators
