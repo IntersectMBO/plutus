@@ -33,11 +33,11 @@ import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
-import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
-import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
+import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
+import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
 evaluationPane ::
   forall m.

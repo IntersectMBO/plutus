@@ -23,6 +23,8 @@ import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM)
+import Halogen as H
+import Halogen.Chartist as Chartist
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
@@ -31,7 +33,7 @@ import Playground.Types (CompilationResult, Evaluation, EvaluationResult, Playgr
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
-import Types (ChildSlots, HAction, State, WebData, _editorSlot)
+import Types (ChildSlots, HAction, State, WebData, _balancesChartSlot, _editorSlot)
 import Web.HTML.Event.DataTransfer (DropEffect)
 import Web.HTML.Event.DataTransfer as DataTransfer
 import Web.HTML.Event.DragEvent (DragEvent, dataTransfer)
@@ -57,6 +59,7 @@ class
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContract :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
+  resizeBalancesChart :: m Unit
 
 newtype HalogenApp m a
   = HalogenApp (HalogenM State HAction ChildSlots Void m a)
@@ -113,6 +116,7 @@ instance monadAppHalogenApp ::
   postGist newGist = runAjax $ Server.postGists newGist
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContract source = runAjax $ Server.postContract source
+  resizeBalancesChart = wrap $ void $ H.query _balancesChartSlot unit (Chartist.Resize unit)
 
 runAjax ::
   forall m a.
@@ -140,3 +144,4 @@ instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   postGist newGist = lift $ postGist newGist
   patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
   postContract source = lift $ postContract source
+  resizeBalancesChart = lift resizeBalancesChart

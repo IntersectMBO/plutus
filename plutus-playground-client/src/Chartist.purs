@@ -10,6 +10,7 @@ module Chartist
   , AxisTitleOptions
   , AxisTitleAxisOptions
   , updateData
+  , resize
   , ChartistData
   , ChartistItem
   , ChartistPoint
@@ -17,7 +18,7 @@ module Chartist
   ) where
 
 import Effect (Effect)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+import Effect.Uncurried (EffectFn1, runEffectFn1, EffectFn2, runEffectFn2)
 import Control.Semigroupoid ((<<<))
 import Web.HTML.HTMLElement (HTMLElement)
 import Data.Array as Array
@@ -97,8 +98,13 @@ foreign import _barChart :: EffectFn2 HTMLElement ChartistOptions Chart
 
 foreign import _updateData :: EffectFn2 Chart ChartistData Unit
 
+foreign import _resize :: EffectFn1 Chart Unit
+
 updateData :: Chart -> ChartistData -> Effect Unit
 updateData = runEffectFn2 _updateData
+
+resize :: Chart -> Effect Unit
+resize = runEffectFn1 _resize
 
 barChart ::
   HTMLElement ->

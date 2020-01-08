@@ -128,6 +128,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
     MockApp do
       Tuple { compilationResult } _ <- get
       pure compilationResult
+  resizeBalancesChart = pure unit
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
   tailRecM step a = do
