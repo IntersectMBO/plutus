@@ -194,7 +194,7 @@ foreign import javascript unsafe
   js_toMutableByteArray :: JSVal -> MutableByteArray# RealWorld
 
 foreign import javascript unsafe
-  "var start = $1_2 + $1_1.u8.byteOffset + $2; $r = $1_1 ? $1_1.u8.buffer.slice(start, start + $3) : null;"
+  "var start = $1_1 ? ($1_2 + $1_1.u8.byteOffset + $2) : 0; $r = $1_1 ? $1_1.u8.buffer.slice(start, start + $3) : null;"
   js_sliceBuffer :: Addr# -> Int -> Int -> JSVal
 
 foreign import javascript unsafe
