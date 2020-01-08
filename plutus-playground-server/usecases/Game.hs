@@ -52,7 +52,7 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
--- | The validator (datavalue -> redeemer -> PendingTx -> Bool)
+-- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
