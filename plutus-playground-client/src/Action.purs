@@ -235,7 +235,7 @@ actionPaneBody index (AddBlocks { blocks }) =
     , formGroup_
         [ formRow_
             [ label [ classes [ col, colFormLabel ] ]
-                [ text "Block" ]
+                [ text "Blocks" ]
             , col_
                 [ input
                     [ type_ InputNumber
