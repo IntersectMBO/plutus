@@ -35,10 +35,9 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens                   ((&), (^.), (.~), at, folded, prism', makeClassyPrisms)
+import           Control.Lens                   ((^.), at, folded, prism', makeClassyPrisms)
 import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
-import qualified Data.Set                       as Set
 import qualified Ledger
 import           Ledger                         (DataValue(..), PubKey, Slot, ValidatorHash, DataValueHash, scriptOutputsAt,
                                                  txSignedBy, valuePaidTo, interval, TxId, TxOutTx (..))
@@ -54,9 +53,10 @@ import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Tx    as Tx
 import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding (Applicative (..), check)
+import           Language.PlutusTx.Prelude      hiding (Applicative (..), Semigroup(..), check, foldMap)
 
 import qualified Prelude                        as Haskell
+import           Prelude                        (Semigroup(..), foldMap)
 
 type EscrowSchema =
     BlockchainActions
@@ -247,7 +247,7 @@ pay inst escrow vl = do
     pk <- ownPubKey
     let ds = DataValue (PlutusTx.toData pk)
         tx = payToScript vl (Scripts.scriptAddress inst) ds
-                & validityRange .~ Ledger.interval 1 (escrowDeadline escrow)
+                <> mustBeValidIn (Ledger.interval 1 (escrowDeadline escrow))
     submitTx tx
 
 newtype RedeemSuccess = RedeemSuccess TxId
@@ -286,8 +286,9 @@ redeem inst escrow = do
     unspentOutputs <- utxoAt addr
     let 
         valRange = Interval.to (pred $ escrowDeadline escrow)
-        tx = Typed.collectFromScript unspentOutputs inst Redeem Haskell.<> Haskell.foldMap mkTx (escrowTargets escrow)
-            & validityRange .~ valRange
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance escrow) Redeem 
+                <> foldMap mkTx (escrowTargets escrow)
+                <> mustBeValidIn valRange
     if currentSlot >= escrowDeadline escrow
     then throwing _RedeemFailed DeadlinePassed
     else if (values unspentOutputs ^. at addr . folded) `lt` targetTotal escrow
@@ -325,9 +326,9 @@ refund inst escrow = do
     pk <- ownPubKey
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
     let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataValueHash $ DataValue (PlutusTx.toData pk))
-        tx' = Typed.collectFromScriptFilter flt unspentOutputs inst Refund
-                & validityRange .~ from (succ $ escrowDeadline escrow)
-    if not . Set.null $ tx' ^. inputs
+        tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
+                <> mustBeValidIn (from (succ $ escrowDeadline escrow))
+    if modifiesUtxoSet tx'
     then RefundSuccess <$> submitTx tx'
     else throwing _RefundFailed ()
 

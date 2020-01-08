@@ -1,4 +1,4 @@
-## Merkle trees and Merklised Abstract Syntax Trees
+## 2. Merkle trees and Merklised Abstract Syntax Trees
 
 A [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree) is a tree with blocks of data at the leaves; internal nodes contain cryptographic hashes of the contents of their child nodes.  The hash at the root is called the _Merkle root_ of the tree.  The advantage of Merkle trees is that one can prove that a block of data occurs in the tree just by supplying the data and the path from the root to the leaf containing it, together with the hashes of branches which are not taken.  Given this information, one can calculate what the Merkle root of the tree should be and compare it with the Merkle root of the complete tree (provided by some trusted entity). 
 
@@ -21,17 +21,66 @@ For each AST node `N` we can produce a hash `M#(N)` as follows:
 
 This produces a Merkle root which will identify a Plutus Core AST uniquely, modulo the usual assumptions about cryptographic hash functions. 
 
-When we run a validator with a particular input, not all of the nodes in its AST may actually be required.  By extending the Plutus Core AST type slightly we can produce AST which omit unneeded nodes while still having the same Merkle root. To do this, introduce new constructors `Pruned` into the `Term` type and `PrunedTy` into the `Type` type, each with a single argument containing a hash.  To Merklise a validator with particular inputs, we run it with those inputs and observe (using a suitably modified evaluator) which nodes are actually used during execution.  Having done this, we take the unused nodes and replace each one with a `Pruned`/`PrunedTy` node containing their Merkle hashes.  
+When we run a validator with a particular input, not all of the nodes
+in its AST may actually be required.  By extending the Plutus Core AST
+type slightly we can produce ASTs which omit unneeded nodes while
+still having the same Merkle root. To do this, introduce new
+constructors `Pruned` into the `Term` type and `PrunedTy` into the
+`Type` type, each with a single argument containing a hash.  To
+Merklise a validator with particular inputs, we run it with those
+inputs and observe (using a suitably modified evaluator) which nodes
+are actually used during execution.  Having done this, we take the
+unused nodes and replace each one with a `Pruned`/`PrunedTy` node
+containing their Merkle hashes.
 
-The function `M#` for calculating Merkle hashes now has to be extended to deal with `Pruned` nodes: we do exactly the same as above except that when we encounter a `Pruned` node we just extract the hash which it contains rather than calculating a new hash. This means that if we take an AST `T` and another AST `T'` obtained by replacing any number of nodes with their `Pruned` version, then we have `M#(T) = M#(T')`.  This allows one to use a validator which has been shrunk to contain only relevant code, while allowing an on-chain check that the Merkle hash is as expected.  If such a validator is executed and an attempt to evaluate a `Pruned` node is encountered then validation should fail.  This might happen if, for example, Merklisation was performed with program inputs differing from those provided on chain.
+The function `M#` for calculating Merkle hashes now has to be extended
+to deal with `Pruned` nodes: we do exactly the same as above except
+that when we encounter a `Pruned` node we just extract the hash which
+it contains rather than calculating a new hash. This means that if we
+take an AST `T` and another AST `T'` obtained by replacing any number
+of nodes with their `Pruned` version, then we have `M#(T) = M#(T')`.
+This allows one to use a validator which has been shrunk to contain
+only relevant code, while allowing an on-chain check that the Merkle
+hash is as expected.  If such a validator is executed and an attempt
+to evaluate a `Pruned` node is encountered then validation should
+fail.  This might happen if, for example, Merklisation was performed
+with program inputs differing from those provided on chain.
 
 #### The cost of calculating Merkle hashes
 
-The procedure described above requires quite a lot of computation, and here we try to quantify this. To do this, it's necessary to understand the basic structure of the [SHA-256](https://en.wikipedia.org/wiki/SHA-2) algorithm.   
+The procedure described above requires quite a lot of computation, and
+here we try to quantify this. To do this, it's necessary to understand
+the basic structure of the
+[SHA-256](https://en.wikipedia.org/wiki/SHA-2) algorithm.
 
-The core of the algorithm is a _compression function_ which maps 768-bit numbers to 256-bit numbers.  Computing the compression function involves 64 rounds of quite complex bit-twiddling operations.  The compression function is extended to bytestrings of arbitrary length using the [Merkle-Damgård construction](https://en.wikipedia.org/wiki/Merkle%E2%80%93Damg%C3%A5rd_construction), which essentially folds the compression function over the input bytestring.  In more detail, the algorithm pads the input so that its length is an exact multiple of 512 bits and then processes it in 512-bit blocks. It begins with a fixed 256-bit _initialisation vector_, appends the first block, and applies the compression function to get a new 256-bit value; this process is completed until the entire input has been consumed, and the final 256-bit value is the SHA-256 hash of the input.  The cost of computing the SHA-256 hash is thus proportional to the number of 512-bit (64-byte) blocks in the padded input.  The padding procedure adds at least 65 bits to the size of the input, and an input consisting of at most 447 bits can be processed with a single application of the compression function.
+The core of the algorithm is a _compression function_ which maps
+768-bit numbers to 256-bit numbers.  Computing the compression
+function involves 64 rounds of quite complex bit-twiddling operations.
+The compression function is extended to bytestrings of arbitrary
+length using the [Merkle-Damgård
+construction](https://en.wikipedia.org/wiki/Merkle%E2%80%93Damg%C3%A5rd_construction),
+which essentially folds the compression function over the input
+bytestring.  In more detail, the algorithm pads the input so that its
+length is an exact multiple of 512 bits and then processes it in
+512-bit blocks. It begins with a fixed 256-bit _initialisation
+vector_, appends the first block, and applies the compression function
+to get a new 256-bit value; this process is completed until the entire
+input has been consumed, and the final 256-bit value is the SHA-256
+hash of the input.  The cost of computing the SHA-256 hash is thus
+proportional to the number of 512-bit (64-byte) blocks in the padded
+input.  The padding procedure adds at least 65 bits to the size of the
+input, and an input consisting of at most 447 bits can be processed
+with a single application of the compression function.
 
-Contract addresses are currently calculated as the SHA-256 hash of the CBOR-serialised contract, so the number of applications of the compression function required will be about `ceil(s/64)`, where `s` is the number of bytes in the serialised contract.  Calculating a Merkle hash as described above requires one SHA-256 computation per AST node, and typically the serialised contents of each node will be under the 447-bit limit mentioned above, so we will require about `n` applications of the compression function, where `n` is the number of nodes in the AST.  
+Contract addresses are currently calculated as the SHA-256 hash of the
+CBOR-serialised contract, so the number of applications of the
+compression function required will be about `ceil(s/64)`, where `s` is
+the number of bytes in the serialised contract.  Calculating a Merkle
+hash as described above requires one SHA-256 computation per AST node,
+and typically the serialised contents of each node will be under the
+447-bit limit mentioned above, so we will require about `n`
+applications of the compression function, where `n` is the number of
+nodes in the AST.
 
 The table below contains these figures for our example contracts.
 
@@ -50,14 +99,31 @@ The table below contains these figures for our example contracts.
 | TokenAccount | 13690 | 78030 | 1220 | 11.2x |
 | Vesting | 20440 | 119514 | 1868 | 10.9x |
 
-This suggests that Merkle hashing is typically 9-11 times more expensive than our current contract address scheme.  The figures above are just based on the estimated number of applications of the SHA-256 compression function though, and ignore the overhead involved in CBOR serialisation (although we have do do that anyway) and in the AST traversal and node-serialisation required to calculate Merkle hashes.  If this question becomes important, we could do some experiments to measure actual computation times of the two methods.
+This suggests that Merkle hashing is typically 9-11 times more
+expensive than our current contract address scheme.  The figures above
+are just based on the estimated number of applications of the SHA-256
+compression function though, and ignore the overhead involved in CBOR
+serialisation (although we have do do that anyway) and in the AST
+traversal and node-serialisation required to calculate Merkle hashes.
+If this question becomes important, we could do some experiments to
+measure actual computation times of the two methods.
 
 
 #### Objections to Merkle hashes
 
-  * As seen above, calculating the Merkle hash of an AST is quite expensive.  It requires repeated calculation of SHA-256 hashes, which are computationally expensive.
-  * For the addresses of scripts, we currently use a SHA-256 digest of their serialised form.  This will not be the same for an AST and a version where some nodes are Merklised away.  We'd probably need to need to start using expensive Merkle hashes for contract addresses instead, which would be quite a big change.
-  * Why bother?  Can't we just take an AST with some missing nodes and compare it with the known full AST?  Maybe this would require more on-chain storage.
+  * As seen above, calculating the Merkle hash of an AST is quite
+    expensive.  It requires repeated calculation of SHA-256 hashes,
+    which are computationally expensive.
+
+  * For theaddr esses of scripts, we currently use a SHA-256 digest of
+    their serialised form.  This will not be the same for an AST and a
+    version where some nodes are Merklised away.  We'd probably need
+    to need to start using expensive Merkle hashes for contract
+    addresses instead, which would be quite a big change.
+
+  * Why bother?  Can't we just take an AST with some missing nodes and
+    compare it with the known full AST?  Maybe this would require more
+    on-chain storage.
 
 #### Security
   * Think carefully about the claims made above about the extended Merklisation process.
@@ -65,10 +131,24 @@ This suggests that Merkle hashing is typically 9-11 times more expensive than ou
   * See eg https://github.com/sipa/bips/blob/bip-schnorr/bip-taproot.mediawiki for some issues regarding security and Merklised ASTs in Bitcoin.
 
 ## Merklising types
-Since types are not used during evaluation of Plutus Core programs, every type (and there are a lot of these ) in a program with be replaced by a Merkle hash before submission to the chain if we apply the Merklisation process above without modification. The experiments below show that this is not a good strategy.
+
+Since types are not used during evaluation of Plutus Core programs,
+every type (and there are a lot of these ) in a program with be
+replaced by a Merkle hash before submission to the chain if we apply
+the Merklisation process above without modification. The experiments
+below show that this is not a good strategy.
 
 ### Merklising all types
-The following table shows what happens if we Merklise all of the types in the validators for our [use cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases), leaving terms untouched.  The first two columns show the total number of nodes in the validator AST and the number used by types, and the final two columns show the serialised sizes of the original AST and the version of the AST with all of the types Merklised.  The second row for each contract shows the compressed sizes of the two serialised ASTs.
+
+The following table shows what happens if we Merklise all of the types
+in the validators for our [use
+cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases),
+leaving terms untouched.  The first two columns show the total number
+of nodes in the validator AST and the number used by types, and the
+final two columns show the serialised sizes of the original AST and
+the version of the AST with all of the types Merklised.  The second
+row for each contract shows the compressed sizes of the two serialised
+ASTs.
 
 | Contract | Total Nodes | Type nodes | Serialised Size | Serialised, types Merklised |
 | :---: | ---: | ---: | ---: | ---: |
@@ -97,14 +177,30 @@ The following table shows what happens if we Merklise all of the types in the va
 | Vesting | 20440 | 15480 | 119514 (100.0%) | 101552 (85.0%) | 
 | (Compressed) | | | 23348 (19.5%) | 43789 (36.6%) |
 
-We see that Merklising all of the types in general doesn't save much space.  This is because types are generally quite small (see below) and replacing them all with 32-byte hashes doesn't do a lot of good.  Note also that after Merklisation the serialised code becomes much less compressible: this is because we replace the fairly simple structured AST representations of types with incompressible hashes.
+We see that Merklising all of the types in general doesn't save much
+space.  This is because types are generally quite small (see below)
+and replacing them all with 32-byte hashes doesn't do a lot of good.
+Note also that after Merklisation the serialised code becomes much
+less compressible: this is because we replace the fairly simple
+structured AST representations of types with incompressible hashes.
 
 
 ### Distribution of types sizes
-I looked at the details of the distribution of type sizes for the validators of the `Crowdfunding` and `MultiSigStateMachine` contracts. (These were actually earlier versions of the validators (with the old contract API), but the figures are similar for the current validators).
+
+I looked at the details of the distribution of type sizes for the
+validators of the `Crowdfunding` and `MultiSigStateMachine`
+contracts. (These were actually earlier versions of the validators
+(with the old contract API), but the figures are similar for the
+current validators).
 
 #### Crowdfunding
-The two histograms below how the distributions of the number of AST nodes in types (and kinds) and their serialised lengths.  The vertical red line in the second histogram is at 32 bytes: to the left of this Merklisation is counterproductive because it increases the size of the type.  It is clear that the majority of types are relatively small, with a long tail of a few very large types.  
+
+The two histograms below how the distributions of the number of AST
+nodes in types (and kinds) and their serialised lengths.  The vertical
+red line in the second histogram is at 32 bytes: to the left of this
+Merklisation is counterproductive because it increases the size of the
+type.  It is clear that the majority of types are relatively small,
+with a long tail of a few very large types.
 
 ![](./crowdfunding-nodes.png)
 
@@ -140,20 +236,52 @@ types are of this size; 683 have length 3, so 30% of the serialised
 types have length 2 or 3.
 
 #### Duplicated types
-Visual inspection of the types above (rendered using `show`) reveals a great deal of repetition.  For example, 
-in the `MultiSigStateMachine` validator (3750 types and kinds in total), `TyBuiltin () TyInteger` appears 543 times, `TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "Unit", nameUnique = Unique {unUnique = 0}}})` (the name of unit type) appears 385 times, and `TyBuiltin () TyByteString` appears 137 times. Another 19 types appear 10 to 80 times each.  
 
-Kinds are even more repetitious: 457 kinds appear in the `MultiSigStateMachine` validator, but there are only 4 unique ones: `*`  (417 times), `* -> *` (36 times), `* -> (* -> *)` (5 times), and `(* ->*) -> *` (once).  These kinds take up 1, 3, 5, and 5 nodes respectively.
+Visual inspection of the types above (rendered using `show`) reveals a
+great deal of repetition.  For example, in the `MultiSigStateMachine`
+validator (3750 types and kinds in total), `TyBuiltin () TyInteger`
+appears 543 times, 
+`TyVar () (TyName {unTyName = Name {nameAttribute =(), nameString = "Unit", nameUnique = Unique {unUnique = 0}}})` 
+(the name of unit type) appears 385 times, and `TyBuiltin () TyByteString` 
+appears 137 times. Another 19 types appear 10 to 80 times each.
+
+Kinds are even more repetitious: 457 kinds appear in the
+`MultiSigStateMachine` validator, but there are only 4 unique ones:
+`*` (417 times), `* -> *` (36 times), `* -> (* -> *)` (5 times), and
+`(* ->*) -> *` (once).  These kinds take up 1, 3, 5, and 5 nodes
+respectively.
 
 The preponderance of small types explains the shapes of the histograms above.
 
-A related issue here is that CBOR serialisation does not preserve sharing.  In the GHC heap an AST may contain multiple pointers to the same type object, but when the AST is serialised the structure will be flattened out and the output will contain multiple occurrences of the serialised type (this probably partially explains why the amenability of the CBOR to compression).  When the CBOR is deserialised on-chain we will get multiple copies of the types in the heap.  One way to avoid this would be to intern types in a separate table and have references to this table in the AST; this would probably reduce the size of the AST substantially.
+A related issue here is that CBOR serialisation does not preserve
+sharing.  In the GHC heap an AST may contain multiple pointers to the
+same type object, but when the AST is serialised the structure will be
+flattened out and the output will contain multiple occurrences of the
+serialised type (this probably partially explains why the amenability
+of the CBOR to compression).  When the CBOR is deserialised on-chain
+we will get multiple copies of the types in the heap.  One way to
+avoid this would be to intern types in a separate table and have
+references to this table in the AST; this would probably reduce the
+size of the AST substantially.
 
 
 ## Conclusions on types and Merklisation
-Our ASTs contain a lot of type information: the earlier table shows that typically 70% or more of the nodes in an AST are accounted for by types.  The table in https://github.com/input-output-hk/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md shows that a great deal of space can be saved if we use an untyped representation.  
 
-It might be hoped that Merklisation would enable us to retain types for on-chain code but reduce sizes.  The figures above suggest quite strongly that this is not the case.  We haven't yet said anything about Merklising away unused code (see [Merklising-programs.md](./Merklising-programs.md)), but even when we do this the problems above will still persist: types will still account for the majority of remaining AST nodes, and indiscriminate Merklisation of types won't help to reduce sizes much.
+Our ASTs contain a lot of type information: the earlier table shows
+that typically 70% or more of the nodes in an AST are accounted for by
+types.  The table in
+https://github.com/input-output-hk/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md
+shows that a great deal of space can be saved if we use an untyped
+representation.
+
+It might be hoped that Merklisation would enable us to retain types
+for on-chain code but reduce sizes.  The figures above suggest quite
+strongly that this is not the case.  We haven't yet said anything
+about Merklising away unused code (see
+[Merklising-programs.md](./Merklising-programs.md)), but even when we
+do this the problems above will still persist: types will still
+account for the majority of remaining AST nodes, and indiscriminate
+Merklisation of types won't help to reduce sizes much.
 
 There are at least four possible ways to deal with this.
   * Discard types entirely. This saves a great deal of space.

@@ -15,7 +15,7 @@ import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
-import MainFrame (mainFrame)
+import MainFrame (mkMainFrame)
 import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 import Web.HTML as W
@@ -51,6 +51,7 @@ main = do
 
     wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
   socket <- WS.create wsPath []
+  mainFrame <- mkMainFrame
   runHalogenAff do
     body <- awaitBody
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body

@@ -20,15 +20,16 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     , validate
     ) where
 
-import           Control.Lens                 ((&), (.~))
 import           Control.Monad                (void)
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Tx  as Tx
-import           Language.PlutusTx.Prelude    hiding (foldMap)
+import           Language.PlutusTx.Prelude    hiding (Semigroup(..), foldMap)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
+
+import           Prelude                      (Semigroup(..), foldMap)
 
 type MultiSigSchema =
     BlockchainActions
@@ -76,5 +77,5 @@ unlock = do
     let val = validator ms
     utx <- utxoAt (Ledger.scriptAddress val)
     let tx = collectFromScript utx val unitRedeemer
-                & Tx.requiredSignatures .~ pks
+                <> foldMap Tx.mustBeSignedBy pks
     void $ submitTx tx

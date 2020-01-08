@@ -1,9 +1,10 @@
-## Type erasure and CBOR sizes for Plutus Core This document describes
-some experiments looking at how erasing various things from the Plutus
-Core AST affects the size of serialised programs.  The full Plutus
-Core AST contains type information and human-readable names, neither
-of which are necessary for evaluation, so we may not need to keep them
-around.  This is related to issues
+## 1. Type erasure and CBOR sizes for Plutus Core 
+
+This document describes some experiments looking at how erasing
+various things from the Plutus Core AST affects the size of serialised
+programs.  The full Plutus Core AST contains type information and
+human-readable names, neither of which are necessary for evaluation,
+so we may not need to keep them around.  This is related to issues
 [#1592](https://github.com/input-output-hk/plutus/issues/1592) and
 [#1524](https://github.com/input-output-hk/plutus/issues/1524) on
 GitHub.  Merklisation is considered in
@@ -67,72 +68,33 @@ de Bruijn indices.  This turns out to be surprisingly effective.
 
 ### Results
 
-The experiments here were all carried out on (unapplied) validator scripts from
-the the Plutus [use cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
+The experiments here were all carried out on (unapplied) validator
+scripts from the the Plutus [use
+cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
 in the Plutus repository.  Plutus Core ASTs were obtained from Haskell
 source using the PlutusTx compiler infrastructure and then serialised
 into bytestrings using the
 [CBOR](http://hackage.haskell.org/package/serialise) format.  I
 applied various transformations to the ASTs before serialising and
-then measured the number of bytes in the output.  I also compressed the
-results (using `gzip` with maximum compression) and measured the size
-again.  The results are shown in the table below.  The figures in
+then measured the number of bytes in the output.  I also compressed
+the results (using `gzip` with maximum compression) and measured the
+size again.  The results are shown in the table below.  The figures in
 brackets after some entries show their size as a percentage of the
 size of the serialised version of the full AST.  All of the ASTs here
-are annotated with units, which take up space when serialised.  The final
-column of the table shows what happens when these unit annotations are not
-included in the serialised form (it's safe to do this because we know where they
-will occur so can insert them automatically when deserialising, although maybe on-chain
-ASTs shouldn't have annotations at all).
-
-Deleting unnecessary information and compressing reduces the size of
-the CBOR to less than 10K in every case, with the size decreasing by a
-factor of 20 or more (except for the swap contract, at 5.6%) (compare
-the top left and third from right on the bottom for each contract).  Even
-without compression, type erasure and name anonymisation reduces sizes
-by a factor of 6 or more.
-
-If we delete types and replace names with de Bruijn indices then the
-size the CBOR is consistently reduced by a factor of about 10
-compared to the typed CBOR.  With compression, the size is reduced
-by a factor of 40 to 100, and is never more than half the size of the
-version involving name which are just integer IDs (the previous
-column).  I think there are two reasons for this
-
- 1. De Bruijn indices are generally small: in the examples I looked
-    at, the largest index was typically about 200, compared with
-    several thousand for the version involving unique integer
-    identifiers for names.  This means that they fit into a single
-    byte and CBOR can encode them more efficiently.
-
- 2. Using de Bruijn indices will make more terms equal to each other, and
-    this will make the CBOR more amenable to compression
-
-The fact that the de Bruijn version is significantly more compressible
-than the non-de Bruijn version suggests that there will be significant
-opportunities for optimisation in the original Plutus Core code.  Some
-caution is required however: optimisations may be more effective in
-the type-erased code (probably more things are equal than in the typed
-version), but performing post-erasure optimisations would break the
-clean correspondence between typed off-chain code and untyped on-chain
-code.
+are annotated with units, which take up space when serialised.  The
+final column of the table shows what happens when these unit
+annotations are not included in the serialised form (it's safe to do
+this because we know where they will occur so can insert them
+automatically when deserialising, although maybe on-chain ASTs
+shouldn't have annotations at all).
 
 The are a large number of possible combinations of the transformations
 mentioned above and the table only contains a limited number of these
 in order to save space.  It would be quite easy to get figures for
 other combinations as well if necessary.
 
-### Conclusion
-
-Clearly, removing types and name strings helps a lot with sizes.  The
-CBOR representation is very small (six tags for AST nodes types and
-about twenty for built-in names, plus standard CBOR encodings for
-constants and names of extensible built-ins), which probably accounts
-for its compressibility.  The uncompressed CBOR is sufficiently simple
-that we might well be able to execute it directly without having to
-decode most of it back to Haskell types.  It's beginning to look a lot
-like bytecode ...
-
+The table below may be too wide for the page, but if you click on it you
+can use left and right arrow keys to scroll horizontally.
 
 | Contract | Compression | Typed | Typed, stringless names | Untyped | Untyped, stringless names | Untyped, integer IDs only | Untyped, de Bruijn | Untyped, de Bruijn, annotations not serialised
 | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -184,5 +146,56 @@ like bytecode ...
 |     | Compressed | 23348 | 19473 | 7866 | 5671 | 5582 (4.7%) | 1783 (1.5%) |  1614 (1.4%) | 
 
 
+### Conclusions
 
+Deleting unnecessary information and compressing reduces the size of
+the CBOR to less than 10K in every case, with the size decreasing by a
+factor of 20 or more (except for the swap contract, at 5.6%) (compare
+the top left and third from right on the bottom for each contract).  Even
+without compression, type erasure and name anonymisation reduces sizes
+by a factor of 6 or more.
+
+If we delete types and replace names with de Bruijn indices then the
+size the CBOR is consistently reduced by a factor of about 10
+compared to the typed CBOR.  With compression, the size is reduced
+by a factor of 40 to 100, and is never more than half the size of the
+version involving names which are just integer IDs (the previous
+column).  I think there are two reasons for this
+
+ 1. De Bruijn indices are generally small: in the examples I looked
+    at, the largest index was typically about 200, compared with
+    several thousand for the version involving unique integer
+    identifiers for names.  This means that they fit into a single
+    byte and CBOR can encode them more efficiently.
+
+ 2. Using de Bruijn indices will make more terms equal to each other, and
+    this will make the CBOR more amenable to compression
+
+The fact that the de Bruijn version is significantly more compressible
+than the non-de Bruijn version suggests that there will be significant
+opportunities for optimisation in the original Plutus Core code.  Some
+caution is required however: optimisations may be more effective in
+the type-erased code (probably more things are equal than in the typed
+version), but performing post-erasure optimisations would break the
+clean correspondence between typed off-chain code and untyped on-chain
+code.
+
+I'm not sure how easy it would be to evaluate code which uses De
+Bruijn indices, but this is arguably irrelevant: one could use the De
+Bruijn version of a program as a transporation format and convert back
+to the original identifier scheme on the chain (although this would
+obviously incur an extra cost, as would compression and
+decompression).  Another problem with these transformations is that
+they will change the hash of scripts, and hashes are generally
+used as unique addresses for scripts.
+
+
+Clearly, removing types and name strings helps a lot with sizes.  The
+CBOR representation is very small (six tags for AST nodes types and
+about twenty for built-in names, plus standard CBOR encodings for
+constants and names of extensible built-ins), which probably accounts
+for its compressibility.  The uncompressed CBOR is sufficiently simple
+that we might well be able to execute it directly without having to
+decode most of it back to Haskell types.  This is beginning to look
+rather like bytecode...
 

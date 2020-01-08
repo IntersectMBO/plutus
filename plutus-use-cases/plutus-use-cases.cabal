@@ -60,7 +60,6 @@ library
         containers -any,
         iots-export -any,
         mtl -any,
-        playground-common -any,
         plutus-tx -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
@@ -103,7 +102,8 @@ test-suite plutus-use-cases-test
         plutus-contract -any,
         plutus-wallet-api -any,
         plutus-use-cases -any,
-        plutus-emulator -any
+        plutus-emulator -any,
+        plutus-contract-tasty -any
     build-depends:
         base >=4.9 && <5,
         aeson -any,

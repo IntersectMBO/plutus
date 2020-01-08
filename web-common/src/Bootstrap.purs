@@ -112,11 +112,20 @@ colXs6 = ClassName "col-xs-6"
 colXs12 :: ClassName
 colXs12 = ClassName "col-xs-12"
 
+colSm4 :: ClassName
+colSm4 = ClassName "col-sm-4"
+
 colSm5 :: ClassName
 colSm5 = ClassName "col-sm-5"
 
 colSm6 :: ClassName
 colSm6 = ClassName "col-sm-6"
+
+colSm7 :: ClassName
+colSm7 = ClassName "col-sm-7"
+
+colSm8 :: ClassName
+colSm8 = ClassName "col-sm-8"
 
 colSm12 :: ClassName
 colSm12 = ClassName "col-sm-12"
@@ -129,6 +138,18 @@ colMd5 = ClassName "col-md-5"
 
 colMd6 :: ClassName
 colMd6 = ClassName "col-md-6"
+
+colMd7 :: ClassName
+colMd7 = ClassName "col-md-7"
+
+colMd8 :: ClassName
+colMd8 = ClassName "col-md-8"
+
+colLg5 :: ClassName
+colLg5 = ClassName "col-lg-5"
+
+colLg7 :: ClassName
+colLg7 = ClassName "col-lg-7"
 
 colAuto :: ClassName
 colAuto = ClassName "col-auto"
@@ -367,6 +388,9 @@ formCheck = ClassName "form-check"
 formCheck_ :: forall p i. Array (HTML p i) -> HTML p i
 formCheck_ = div [ class_ formCheck ]
 
+formCheckInline :: ClassName
+formCheckInline = ClassName "form-check-inline"
+
 formCheckInput :: ClassName
 formCheckInput = ClassName "form-check-input"
 
@@ -399,6 +423,9 @@ inputGroupAppend_ = div [ class_ inputGroupAppend ]
 
 inputGroupText :: ClassName
 inputGroupText = ClassName "input-group-text"
+
+customSelect :: ClassName
+customSelect = ClassName "custom-select"
 
 validFeedback :: ClassName
 validFeedback = ClassName "valid-feedback"

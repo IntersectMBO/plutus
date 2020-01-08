@@ -15,6 +15,7 @@ packages:
 - plutus-tutorial
 - plutus-book
 - plutus-contract
+- plutus-contract-tasty
 - plutus-emulator
 - deployment-server
 - iots-export

@@ -1,14 +1,11 @@
 module Simulation where
 
 import API (RunResult(RunResult))
-import Ace.EditSession as Session
-import Ace.Editor as Editor
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
-import Ace.Types (Editor)
 import Ace.Types as Ace
 import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
 import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
-import Control.Alternative (map, (<|>))
+import Control.Alternative (map)
 import Data.Array (catMaybes, fromFoldable, head, sortBy)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
@@ -23,27 +20,25 @@ import Data.List (List, toUnfoldable, null)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
-import Effect (Effect)
+import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), a, b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, classes, enabled, id_, placeholder, prop, type_, value)
 import Halogen.HTML.Properties.ARIA (role)
-import LocalStorage as LocalStorage
 import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (class Show, Unit, bind, compare, const, discard, flip, identity, mempty, not, pure, show, unit, void, zero, ($), (+), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -88,7 +83,7 @@ simulationPane state =
               , onDrop $ Just <<< MarloweHandleDropEvent
               ]
               [ row_
-                  [ div [ class_ $ col9 ] [ slot _marloweEditorSlot unit (aceComponent initEditor (Just Live)) unit (Just <<< MarloweHandleEditorMessage) ]
+                  [ div [ class_ col9 ] [ slot _marloweEditorSlot unit marloweEditor unit (Just <<< MarloweHandleEditorMessage) ]
                   , holesPane (view _selectedHole state) (view (_marloweState <<< _Head <<< _holes) $ state)
                   ]
               ]
@@ -99,32 +94,19 @@ simulationPane state =
         ]
     )
   where
+  marloweEditor =
+    aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey editorPreferences)
+      (Just Live)
+
+  editorPreferences = view _editorPreferences state
+
+  initialContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
+
   errorList = case view _marloweCompileResult state of
     Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
     _ -> empty
 
   warnings = view (_marloweState <<< _Head <<< _transactionWarnings) state
-
-loadBuffer :: Effect (Maybe String)
-loadBuffer = LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
-
-initEditor ::
-  forall m.
-  MonadAff m =>
-  Editor ->
-  m Unit
-initEditor editor =
-  liftEffect
-    $ do
-        savedContents <- liftEffect loadBuffer
-        let
-          defaultContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
-        let
-          contents = fromMaybe "" (savedContents <|> defaultContents)
-        void $ Editor.setValue contents (Just 1) editor
-        Editor.setTheme "ace/theme/monokai" editor
-        session <- Editor.getSession editor
-        Session.setMode "ace/mode/haskell" session
 
 holesPane :: forall p. Maybe String -> Holes -> HTML p HAction
 holesPane selectedHole (Holes holes) =
@@ -455,11 +437,8 @@ transactionComposerPane state =
                     [ card ]
                 )
             ]
-            [ cardBody_ $ transactionInputs (view (_marloweState <<< _Head) state)
-                -- <> ( signatures (view (_marloweState <<< _Head <<< _transaction <<< _signatures) state) (isContractValid state) (view (_marloweState <<< _Head <<< _transaction <<< _outcomes) state)
-                
-                --   )
-                
+            [ cardBody_
+                $ transactionInputs (view (_marloweState <<< _Head) state)
                 <> transactionButtons state
             ]
         ]

@@ -46,10 +46,8 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     ) where
 
 import           Control.Applicative               (Alternative (..), Applicative (..))
-import           Control.Lens                      ((&), (.~), (^.))
 import           Control.Monad                     (Monad ((>>)), void)
 import           Data.Aeson                        (FromJSON, ToJSON)
-import qualified Data.Set                          as Set
 import           GHC.Generics                      (Generic)
 import           IOTS                              (IotsType)
 
@@ -58,7 +56,7 @@ import           Language.Plutus.Contract.Trace    (ContractTrace, MonadEmulator
 import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
-import           Language.PlutusTx.Prelude         hiding (Applicative (..), return, (<$>), (>>), (>>=))
+import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup(..), return, (<$>), (>>), (>>=))
 import           Ledger                            (Address, PendingTx, PubKey, Slot, Validator)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
@@ -69,6 +67,7 @@ import           Ledger.Validation                 as V
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import qualified Prelude                           as Haskell
+import           Prelude                           (Semigroup(..))
 import           Schema                            (ToSchema, ToArgument)
 import           Wallet.Emulator                   (Wallet)
 import qualified Wallet.Emulator                   as Emulator
@@ -208,7 +207,7 @@ contribute cmp = do
     contributor <- ownPubKey
     let ds = Ledger.DataValue (PlutusTx.toData contributor)
         tx = payToScript contribValue (campaignAddress cmp) ds
-                & validityRange .~ Ledger.interval 1 (campaignDeadline cmp)
+                <> mustBeValidIn (Ledger.interval 1 (campaignDeadline cmp))
     txId <- submitTx tx
 
     utxo <- watchAddressUntil (campaignAddress cmp) (campaignCollectionDeadline cmp)
@@ -219,9 +218,9 @@ contribute cmp = do
 
     let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo (scriptInstance cmp) Refund
-                & validityRange .~ refundRange cmp
-                & requiredSignatures .~ [contributor]
-    if not . Set.null $ tx' ^. inputs
+                <> mustBeValidIn (refundRange cmp)
+                <> mustBeSignedBy contributor
+    if modifiesUtxoSet tx'
     then void (submitTx tx')
     else pure ()
 
@@ -240,7 +239,7 @@ scheduleCollection cmp = do
     unspentOutputs <- utxoAt (campaignAddress cmp)
 
     let tx = Typed.collectFromScript unspentOutputs (scriptInstance cmp) Collect
-            & validityRange .~ collectionRange cmp
+            <> mustBeValidIn (collectionRange cmp)
     void $ submitTx tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's

@@ -1,14 +1,15 @@
-module MainFrame (mainFrame) where
+module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
 import Ace.EditSession as Session
-import Ace.Editor as Editor
+import Ace.Editor (getSession) as Editor
 import Ace.Halogen.Component (AceMessage(TextChanged))
 import Ace.Types (Editor, Annotation)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped, map, void, when)
 import Control.Monad.Except (runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
@@ -26,13 +27,14 @@ import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import Editor (EditorAction(..), editorPane)
+import Editor (compileButton, editorView, editorFeedback)
+import Editor (Action(..), Preferences, loadPreferences) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Gist (gistFileContent, gistId)
+import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..), gistControls, parseGistUrl)
 import Halogen (Component, ComponentHTML)
 import Halogen as H
@@ -50,20 +52,21 @@ import Marlowe.Holes (MarloweHole(..), replaceInPositions)
 import Marlowe.Parser (contract, hole)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
-import MonadApp (class MonadApp, marloweEditorMoveCursorToPosition, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorGotoLine, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (haskellEditorHandleAction, class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
 import Prelude (Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
-initialState :: FrontendState
-initialState =
+mkInitialState :: Editor.Preferences -> FrontendState
+mkInitialState editorPreferences =
   FrontendState
     { view: Simulation
+    , editorPreferences
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked
@@ -77,24 +80,29 @@ initialState =
     }
 
 ------------------------------------------------------------
-mainFrame ::
-  forall m.
+mkMainFrame ::
+  forall m n.
   MonadAff m =>
+  MonadEffect n =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  Component HTML HQuery Unit WebsocketMessage m
-mainFrame =
-  H.mkComponent
-    { initialState: const initialState
-    , render
-    , eval:
-      H.mkEval
-        { handleQuery
-        , handleAction: handleActionWithAnalyticsTracking
-        , receive: const Nothing
-        , initialize: Just $ CheckAuthStatus
-        , finalize: Nothing
+  n (Component HTML HQuery Unit WebsocketMessage m)
+mkMainFrame = do
+  editorPreferences <- Editor.loadPreferences
+  let
+    initialState = mkInitialState editorPreferences
+  pure
+    $ H.mkComponent
+        { initialState: const initialState
+        , render
+        , eval:
+          H.mkEval
+            { handleQuery
+            , handleAction: handleActionWithAnalyticsTracking
+            , receive: const Nothing
+            , initialize: Just $ CheckAuthStatus
+            , finalize: Nothing
+            }
         }
-    }
 
 handleActionWithAnalyticsTracking ::
   forall m.
@@ -114,17 +122,9 @@ analyticsTracking action = do
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 toEvent :: HAction -> Maybe Event
-toEvent (HaskellEditorAction (HandleEditorMessage _)) = Nothing
+toEvent (HaskellEditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
 
-toEvent (HaskellEditorAction (HandleDragEvent _)) = Nothing
-
-toEvent (HaskellEditorAction (HandleDropEvent _)) = Just $ defaultEvent "DropScript"
-
-toEvent (HaskellEditorAction (LoadScript script)) = Just $ (defaultEvent "LoadScript") { label = Just script }
-
-toEvent (HaskellEditorAction CompileProgram) = Just $ defaultEvent "CompileProgram"
-
-toEvent (HaskellEditorAction (ScrollTo _)) = Nothing
+toEvent (HaskellEditorAction _) = Just $ (defaultEvent "ConfigureEditor")
 
 toEvent (MarloweHandleEditorMessage _) = Nothing
 
@@ -142,7 +142,11 @@ toEvent (GistAction (SetGistUrl _)) = Nothing
 
 toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
+toEvent CompileHaskellProgram = Just $ defaultEvent "CompileProgram"
+
 toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
+
+toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
 
 toEvent (LoadMarloweScript script) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
@@ -192,7 +196,7 @@ handleAction ::
   MonadApp m =>
   MonadState FrontendState m =>
   HAction -> m Unit
-handleAction (HaskellEditorAction subEvent) = handleHaskellEditorAction subEvent
+handleAction (HaskellEditorAction subEvent) = haskellEditorHandleAction subEvent
 
 handleAction (MarloweHandleEditorMessage (TextChanged text)) = do
   assign _selectedHole Nothing
@@ -221,6 +225,26 @@ handleAction (GistAction subEvent) = handleGistAction subEvent
 handleAction (ChangeView view) = do
   assign _view view
   void resizeBlockly
+
+handleAction CompileHaskellProgram = do
+  mContents <- haskellEditorGetValue
+  case mContents of
+    Nothing -> pure unit
+    Just contents -> do
+      assign _compilationResult Loading
+      result <- postContractHaskell $ SourceCode contents
+      assign _compilationResult result
+      -- Update the error display.
+      haskellEditorSetAnnotations
+        $ case result of
+            Success (JsonEither (Left errors)) -> toAnnotations errors
+            _ -> []
+
+handleAction (LoadHaskellScript key) = do
+  case Map.lookup key StaticData.demoFiles of
+    Nothing -> pure unit
+    Just contents -> do
+      haskellEditorSetValue contents (Just 1)
 
 handleAction (LoadMarloweScript key) = do
   case Map.lookup key StaticData.marloweContracts of
@@ -356,53 +380,22 @@ handleAction AnalyseContract = do
       checkContractForWarnings (show contract)
       assign _analysisState Loading
 
-handleHaskellEditorAction :: forall m. MonadApp m => MonadState FrontendState m => EditorAction -> m Unit
-handleHaskellEditorAction (HandleEditorMessage (TextChanged text)) = saveBuffer text
-
-handleHaskellEditorAction (HandleDragEvent event) = preventDefault event
-
-handleHaskellEditorAction (HandleDropEvent event) = do
-  preventDefault event
-  contents <- readFileFromDragEvent event
-  haskellEditorSetValue contents (Just 1)
-
-handleHaskellEditorAction (LoadScript key) = do
-  case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
-    Just contents -> do
-      haskellEditorSetValue contents (Just 1)
-
-handleHaskellEditorAction CompileProgram = do
-  mContents <- haskellEditorGetValue
-  case mContents of
-    Nothing -> pure unit
-    Just contents -> do
-      assign _compilationResult Loading
-      result <- postContractHaskell $ SourceCode contents
-      assign _compilationResult result
-      -- Update the error display.
-      haskellEditorSetAnnotations
-        $ case result of
-            Success (JsonEither (Left errors)) -> toAnnotations errors
-            _ -> []
-
-handleHaskellEditorAction (ScrollTo { row, column }) = haskellEditorGotoLine row (Just column)
-
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
-handleGistAction PublishGist = do
-  mContents <- haskellEditorGetValue
-  case mkNewGist (SourceCode <$> mContents) of
-    Nothing -> pure unit
-    Just newGist -> do
-      mGist <- use _createGistResult
-      assign _createGistResult Loading
-      newResult <- case preview (_Success <<< gistId) mGist of
-        Nothing -> postGist newGist
-        Just gistId -> patchGistByGistId newGist gistId
-      assign _createGistResult newResult
-      case preview (_Success <<< gistId) newResult of
-        Nothing -> pure unit
-        Just gistId -> assign _gistUrl (Just (unwrap gistId))
+handleGistAction PublishGist =
+  void
+    $ runMaybeT do
+        mContents <- lift haskellEditorGetValue
+        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> mContents)
+        mGist <- use _createGistResult
+        assign _createGistResult Loading
+        newResult <-
+          lift
+            $ case preview (_Success <<< gistId) mGist of
+                Nothing -> postGist newGist
+                Just gistId -> patchGistByGistId newGist gistId
+        assign _createGistResult newResult
+        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
+        assign _gistUrl (Just gistId)
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
@@ -459,6 +452,8 @@ render ::
 render state =
   let
     stateView = view _view state
+
+    editorPreferences = view _editorPreferences state
   in
     div [ class_ $ ClassName "main-frame" ]
       [ container_
@@ -471,9 +466,11 @@ render state =
               ]
           ]
       , viewContainer stateView HaskellEditor
-          [ HaskellEditorAction <$> loadScriptsPane
+          [ loadScriptsPane
           , mapComponent HaskellEditorAction
-              $ editorPane defaultContents _haskellEditorSlot StaticData.bufferLocalStorageKey (unwrap <$> (view _compilationResult state))
+              $ editorView defaultContents _haskellEditorSlot StaticData.bufferLocalStorageKey editorPreferences
+          , compileButton CompileHaskellProgram (unwrap <$> (view _compilationResult state))
+          , mapComponent HaskellEditorAction $ editorFeedback (unwrap <$> (view _compilationResult state))
           , resultPane state
           ]
       , viewContainer stateView Simulation
@@ -490,7 +487,7 @@ render state =
 
   blockDefinitions = MB.blockDefinitions
 
-loadScriptsPane :: forall p. HTML p EditorAction
+loadScriptsPane :: forall p. HTML p HAction
 loadScriptsPane =
   div [ class_ $ ClassName "mb-3" ]
     ( Array.cons
@@ -501,11 +498,11 @@ loadScriptsPane =
         (loadScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
     )
 
-loadScriptButton :: forall p. String -> HTML p EditorAction
+loadScriptButton :: forall p. String -> HTML p HAction
 loadScriptButton key =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript key
+    , onClick $ const $ Just $ LoadHaskellScript key
     ]
     [ text key ]
 

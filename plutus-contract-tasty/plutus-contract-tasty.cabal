@@ -1,5 +1,5 @@
 cabal-version: 2.2
-name: plutus-contract
+name: plutus-contract-tasty
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
@@ -35,34 +35,14 @@ common lang
 library
     import: lang
     exposed-modules:
-        Data.Row.Extras
-        Language.Plutus.Contract
-        Language.Plutus.Contract.App
-        Language.Plutus.Contract.Effects.AwaitSlot
-        Language.Plutus.Contract.Effects.AwaitTxConfirmed
-        Language.Plutus.Contract.Effects.ExposeEndpoint
-        Language.Plutus.Contract.Effects.OwnPubKey
-        Language.Plutus.Contract.Effects.UtxoAt
-        Language.Plutus.Contract.Effects.WatchAddress
-        Language.Plutus.Contract.Effects.WriteTx
-        Language.Plutus.Contract.Request
-        Language.Plutus.Contract.Schema
-        Language.Plutus.Contract.Trace
-        Language.Plutus.Contract.Record
-        Language.Plutus.Contract.IOTS
-        Language.Plutus.Contract.Servant
-        Language.Plutus.Contract.Resumable
-        Language.Plutus.Contract.StateMachine
-        Language.Plutus.Contract.Tx
-        Language.Plutus.Contract.Util
-        Language.Plutus.Contract.Wallet
-        Language.Plutus.Contract.Typed.Tx
+        Language.Plutus.Contract.Test
     hs-source-dirs: src
     build-depends:
         plutus-wallet-api -any,
         plutus-emulator -any,
         plutus-tx -any,
-        iots-export -any
+        iots-export -any,
+        plutus-contract -any
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -70,51 +50,27 @@ library
         lens -any,
         text -any,
         bytestring -any,
-        servant -any,
-        servant-server -any,
         mtl -any,
         semigroupoids -any,
         profunctors -any,
-        transformers -any,
-        warp -any,
         transformers-base -any,
         monad-control -any,
         mmorph -any,
+        tasty -any,
+        tasty-hunit -any,
         row-types -any,
-        freer-simple -any,
         prettyprinter >=1.1.0.1
 
-test-suite contract-doctests
-    type: exitcode-stdio-1.0
-    hs-source-dirs: doctest
-    default-language: Haskell2010
-    main-is: Main.hs
-    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
-    build-tool-depends: unlit:unlit -any, doctest:doctest -any
-    other-modules:
-      ContractAPI
-    build-depends:
-      base >=4.9 && <5,
-      template-haskell >=2.13.0.0,
-      bytestring -any,
-      language-plutus-core -any,
-      plutus-contract -any,
-      plutus-wallet-api -any,
-      prettyprinter -any,
-      containers -any
-
-test-suite plutus-contract-test
+test-suite plutus-contract-tasty-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Spec.Rows
-        Spec.State
+        Spec.Contract
     build-depends:
         base >=4.9 && <5,
         containers -any,
-        hedgehog -any,
         tasty -any,
         tasty-hunit -any,
         text -any,
@@ -127,4 +83,5 @@ test-suite plutus-contract-test
         plutus-contract -any,
         plutus-wallet-api -any,
         plutus-tx -any,
+        plutus-contract-tasty -any,
         aeson -any
