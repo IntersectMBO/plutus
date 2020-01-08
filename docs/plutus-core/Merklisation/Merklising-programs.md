@@ -139,6 +139,16 @@ These patterns are repeated throughout the results.  Every Merklised validator c
 
 It's not clear to me why Merklisation of terms seems to be unhelpful.  I was quite surprised that there are so many (300-600) Merklised nodes in the validators: I'd only expected a few.  Presumably there are small nodes near the leaves of the AST for which Merklisation is counterproductive, but it's hard to see exactly what's going on (it's also not inconceivable that I'm doing something wrong).  Again, we might be able to improve matters by only Merklising large subtrees, but this would introduce a lot of extra computation into the procedure for calculating Merkle hashes, since for every node that we looked at we'd either have to serialise it and see how big the result was, or count the number of sub-nodes.
 
+[Update] The numbers above are all for applied validators.  Rather
+belatedly, I now realise that what I should probably have done was to
+determine which validator nodes are unused when the validator is
+applied to specific arguments, then Merklise those away in the
+unapplied validator (since what we care about is probably the
+transporation cost of the unapplied validator). I think the machinery
+I've implemented would be able to do that, but it'd take some time to
+set up and to carry out the experiments.  I can do that, but I don't
+think it'll change the results siginificantly.
+
 
 ## Appendix
 
