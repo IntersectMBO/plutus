@@ -238,6 +238,15 @@ Merklising small types.  The earlier suggestion of interning types
 might solve this problem, although I didn't try that because it would
 have required quite a lot of work.
 
+[Update] The numbers above are all for applied validators.  Rather
+belatedly, I now realise that what I should probably have done was to
+determine which validator nodes are unused when the validator is
+applied to specific arguments, then Merklise those away in the
+unapplied validator (since what we care about is probably the
+transporation cost of the unapplied validator). I think the machinery
+I've implemented would be able to do that, but it'd take some time to
+set up and to carry out the experiments.  I can do that, but I don't
+think it'll change the results significantly.
 
 ### Update: being more careful about what we Merklise
 
