@@ -42,70 +42,13 @@ import qualified Data.Map                                         as Map
 import Control.Monad.RWS.Strict
 import Data.Tuple.Select
 import Data.HashMap.Monoidal
-import Data.Functor.Foldable
 import Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 import Foreign.Storable
 import qualified Data.Text                             as T
 import qualified Data.ByteString.Lazy           as BSL
 
-type Plain f = f TyName Name ()
-type WithMemory f = f TyName Name ExMemory
+import Language.PlutusCore.Evaluation.Machine.ExMemory
 
-class ExMemoryUsage a where
-    memoryUsage :: a -> ExMemory
-
-instance ExMemoryUsage (Constant ann) where
-    memoryUsage (BuiltinInt _ _) = 1 + 2 -- TODO bignum representation
-    memoryUsage (BuiltinStr _ val) = 1 + memoryUsage val
-    memoryUsage (BuiltinBS _ val) = 1 + memoryUsage val
-
-instance ExMemoryUsage BSL.ByteString where
-    memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
-
-instance ExMemoryUsage T.Text where
-    memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
-
-instance ExMemoryUsage Int where
-    memoryUsage _ = 1
-
-deriving newtype instance ExMemoryUsage Unique
-
-instance ExMemoryUsage String where
-    memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
-
-instance ExMemoryUsage (Name ann) where
-    memoryUsage (Name _ name u) = 1 + memoryUsage name + memoryUsage u
-
-instance ExMemoryUsage (Type TyName ann) where
-    memoryUsage _ = 1 -- TODO
-
-deriving newtype instance ExMemoryUsage (TyName ann)
-
-instance ExMemoryUsage (Builtin ()) where
-    memoryUsage _ = 1 -- TODO
-
-instance ExMemoryUsage (Kind ()) where
-    memoryUsage _ = 1 -- TODO
-
-withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
-withMemory x = fmap (const (memoryUsage x)) x
-
-memoryAlg :: TermF TyName Name () (WithMemory Term)
-    -> TermF TyName Name ExMemory (WithMemory Term)
-memoryAlg (VarF () name) = VarF (2 + memoryUsage name) (withMemory name)
-memoryAlg (TyAbsF () tyname t x) = TyAbsF 1 (withMemory tyname) (withMemory t) x -- TODO
-memoryAlg (LamAbsF () name typ x) = LamAbsF 1 (withMemory name) (withMemory typ) x -- TODO
-memoryAlg (ApplyF () a b) = ApplyF 1 a b -- TODO
-memoryAlg (ConstantF () c) = ConstantF (2 + memoryUsage c) (fmap (const $ memoryUsage c) c)
-memoryAlg (BuiltinF () builtin) = BuiltinF 1 (withMemory builtin) -- TODO
-memoryAlg (TyInstF () x typ) = TyInstF 1 x (withMemory typ) -- TODO
-memoryAlg (UnwrapF () x) = UnwrapF 1 x -- TODO
-memoryAlg (IWrapF () typ1 typ2 x) = IWrapF 1 (withMemory typ1) (withMemory typ2) x -- TODO
-memoryAlg (ErrorF () typ) = ErrorF 1 (withMemory typ) -- TODO
-
--- TODO this should probably cost something
-annotateMemory :: Plain Term -> WithMemory Term
-annotateMemory = refold (embed . memoryAlg) project -- TODO there's probably a better way
 
 -- | The CEK machine-specific 'MachineException'.
 type CekMachineException = MachineException UnknownDynamicBuiltinNameError
@@ -128,15 +71,6 @@ data CekEnv = CekEnv
     }
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
-
--- TODO memory should probably be fixed size - but then how do we handle overflow?
-newtype ExMemory = ExMemory Integer -- Probably machine word size
-  deriving (Eq, Ord)
-  deriving newtype Num
-  deriving (Semigroup, Monoid) via (Sum Integer)
-newtype ExCPU = ExCPU Integer
-  deriving (Eq, Ord)
-  deriving newtype Num
 
 makeLenses ''ExBudget
 
