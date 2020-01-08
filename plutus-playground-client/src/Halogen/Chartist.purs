@@ -4,10 +4,10 @@ module Halogen.Chartist
   , Message(..)
   ) where
 
-import Chartist (Chart, ChartistData, ChartistOptions, updateData)
+import Chartist (Chart, ChartistData, ChartistOptions, resize, updateData)
 import Chartist as Chartist
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind, (>>=), discard)
 import Control.Category ((<<<))
 import Data.Function (const, ($))
 import Data.Maybe (Maybe(Just, Nothing))
@@ -26,6 +26,7 @@ type State
     }
 
 data Query a
+  = Resize a
 
 data Action
   = Init ChartistOptions
@@ -54,8 +55,13 @@ chartist options =
         }
     }
 
-handleQuery :: forall a input m. Query a -> HalogenM State Action input Message m (Maybe a)
-handleQuery _ = pure Nothing
+handleQuery :: forall a input m. MonadEffect m => Query a -> HalogenM State Action input Message m (Maybe a)
+handleQuery (Resize next) = do
+  H.gets _.chart
+    >>= case _ of
+        Nothing -> pure unit
+        Just chart -> liftEffect $ resize chart
+  pure $ Just next
 
 handleAction :: forall slots m. MonadEffect m => Action -> HalogenM State Action slots Message m Unit
 handleAction (Init options) = do
