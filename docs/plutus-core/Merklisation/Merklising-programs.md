@@ -147,7 +147,7 @@ unapplied validator (since what we care about is probably the
 transporation cost of the unapplied validator). I think the machinery
 I've implemented would be able to do that, but it'd take some time to
 set up and to carry out the experiments.  I can do that, but I don't
-think it'll change the results siginificantly.
+think it'll change the results significantly.
 
 
 ## Appendix
