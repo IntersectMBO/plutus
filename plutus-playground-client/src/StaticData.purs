@@ -12,10 +12,10 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (class Foldable, traverse)
+import Data.Traversable (class Foldable)
 import Foreign (F)
 import Foreign.Generic (decodeJSON)
-import Language.Haskell.Interpreter (SourceCode(..))
+import Language.Haskell.Interpreter (SourceCode)
 import LocalStorage as LocalStorage
 import Playground.Types (ContractDemo)
 import Playground.Usecases as Usecases

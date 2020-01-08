@@ -3,7 +3,7 @@ module View (render) where
 import Types
 import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd5, colMd7, colMd8, colSm4, colSm5, colSm6, colSm8, colXs12, container, container_, empty, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
+import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container, container_, empty, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
 import Bootstrap as Bootstrap
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
