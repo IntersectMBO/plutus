@@ -145,6 +145,9 @@ can use left and right arrow keys to scroll horizontally.
 | Vesting |  Uncompressed | 119514 | 76615 | 30089 | 17252 | 14784 (12.4%) | 10976 (9.2%) |  6967 (5.8%) | 
 |     | Compressed | 23348 | 19473 | 7866 | 5671 | 5582 (4.7%) | 1783 (1.5%) |  1614 (1.4%) | 
 
+See [FixpointSharing.md](./FixpointSharing.md) for a version of this
+table where the compiler optimises the code by sharing the (sizeable)
+fixpoint combinator instead of generating multiple instances.
 
 ### Conclusions
 
