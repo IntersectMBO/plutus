@@ -9,6 +9,6 @@ const fs = require('fs');
 const source = fs.readFileSync("all.js");
 const handler = loadWebPlutusContract(source);
 handler.execute( "GET"
-               , "/layout"
+               , "/initialise"
                , { headers: [], body: "" }
                , x => console.log(x));
