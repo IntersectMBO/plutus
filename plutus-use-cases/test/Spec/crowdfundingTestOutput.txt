@@ -7,21 +7,21 @@ Events by wallet:
     • {slot:
        Slot: 27}
     • {utxo-at:
-       Utxo at 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba = 0549951e74ddeb44a2189126cfdd43007e2b6530617d0d9aa9c74c313354da54!1: PayToScript: c65f3e0419312701a5f8778399344ce2642b44af45b453c0dd9c1e6e4414de88 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         bc91fc821f1bf698600f219b6df8cc4945608a2fa124a2e3dc2ceec52cfc2f8b!1: PayToScript: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         d67326ef593379a5234d1c33d210cf210aab0d2e4fde9695a2fcb000852e84ff!1: PayToScript: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
+       Utxo at 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 = 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448!1: PayToScript: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
+         e32acb156d0efeddcefd4f0e40691d92f40f36a02fdf6e692baeb8e70e99f654!1: PayToScript: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         f6c961aff58d40ba1ff91270830ad8cadca8eea7a5ac03e497fa9f9c11d72a98!1: PayToScript: c65f3e0419312701a5f8778399344ce2642b44af45b453c0dd9c1e6e4414de88 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
     • {tx:
-       WriteTxSuccess: 675ec6348e6eb3c8ada03fc095e2f88f9f44f2113e1aa00a0a63a8e02bc30ba4}
+       WriteTxSuccess: b8f22198d432174fff35d423c645d7bde7cce14b4cb87ed566bf7537618de5c8}
   Events for W2:
     • {contribute:
        EndpointValue: Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     • {own-pubkey:
        fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
     • {tx:
-       WriteTxSuccess: 0549951e74ddeb44a2189126cfdd43007e2b6530617d0d9aa9c74c313354da54}
+       WriteTxSuccess: f6c961aff58d40ba1ff91270830ad8cadca8eea7a5ac03e497fa9f9c11d72a98}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx 0549951e74ddeb44a2189126cfdd43007e2b6530617d0d9aa9c74c313354da54:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx f6c961aff58d40ba1ff91270830ad8cadca8eea7a5ac03e497fa9f9c11d72a98:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!8
               fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
@@ -36,8 +36,8 @@ Events by wallet:
            fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx bc91fc821f1bf698600f219b6df8cc4945608a2fa124a2e3dc2ceec52cfc2f8b:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx e32acb156d0efeddcefd4f0e40691d92f40f36a02fdf6e692baeb8e70e99f654:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -52,8 +52,8 @@ Events by wallet:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx d67326ef593379a5234d1c33d210cf210aab0d2e4fde9695a2fcb000852e84ff:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -73,10 +73,10 @@ Events by wallet:
     • {own-pubkey:
        98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
     • {tx:
-       WriteTxSuccess: bc91fc821f1bf698600f219b6df8cc4945608a2fa124a2e3dc2ceec52cfc2f8b}
+       WriteTxSuccess: e32acb156d0efeddcefd4f0e40691d92f40f36a02fdf6e692baeb8e70e99f654}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx bc91fc821f1bf698600f219b6df8cc4945608a2fa124a2e3dc2ceec52cfc2f8b:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx e32acb156d0efeddcefd4f0e40691d92f40f36a02fdf6e692baeb8e70e99f654:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!3
               98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
@@ -91,8 +91,8 @@ Events by wallet:
            98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx d67326ef593379a5234d1c33d210cf210aab0d2e4fde9695a2fcb000852e84ff:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -112,10 +112,10 @@ Events by wallet:
     • {own-pubkey:
        f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
     • {tx:
-       WriteTxSuccess: d67326ef593379a5234d1c33d210cf210aab0d2e4fde9695a2fcb000852e84ff}
+       WriteTxSuccess: 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448}
     • {address:
-       ( 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba
-       , Tx d67326ef593379a5234d1c33d210cf210aab0d2e4fde9695a2fcb000852e84ff:
+       ( 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78
+       , Tx 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448:
          {inputs:
             - 7296eb0a70a1b64b155fb5a8f2ab987eec948d5d978b7cba9403f6d3483786f0!7
               f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
@@ -134,7 +134,7 @@ Contract result by wallet:
     Done
     Wallet: W2
       Running, waiting for input:
-        {address: [ 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba ]
+        {address: [ 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]
@@ -144,7 +144,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: [ 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba ]
+        {address: [ 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]
@@ -154,7 +154,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: [ 1a48a11748a35db74b9867449aac53ff8496f9da4be0a09e46f397b0e85fceba ]
+        {address: [ 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]

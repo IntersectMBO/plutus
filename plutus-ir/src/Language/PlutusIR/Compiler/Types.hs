@@ -1,6 +1,7 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Language.PlutusIR.Compiler.Types where
 
 import qualified Language.PlutusIR                     as PIR
@@ -16,6 +17,8 @@ import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
+
+import qualified Data.Text                             as T
 
 newtype CompilationOpts = CompilationOpts {
     _coOptimize :: Bool
@@ -77,3 +80,10 @@ type PIRType a = PIR.Type PIR.TyName (Provenance a)
 type Compiling m e a = (Monad m, MonadReader (CompilationCtx a) m, AsError e (Provenance a), MonadError e m, MonadQuote m)
 
 type TermDef tyname name a = PLC.Def (PLC.VarDecl tyname name a) (PIR.Term tyname name a)
+
+-- | We generate some shared definitions compilation, this datatype
+-- defines the "keys" for those definitions.
+data SharedName = FixpointCombinator Integer deriving (Show, Eq, Ord)
+
+toProgramName :: SharedName -> Quote (PLC.Name ())
+toProgramName (FixpointCombinator n) = freshName () ("fix" <> T.pack (show n))
