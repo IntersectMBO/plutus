@@ -169,6 +169,10 @@ the local projects only, then:
 . Run `nix-shell`.
 . Run `cabal v2-build` as normal.
 
+=== How to setup HIE
+
+Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
+
 
 [[nix-build-attributes]]
 === Which attributes to use to build different artifacts

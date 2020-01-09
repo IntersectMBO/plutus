@@ -2,44 +2,43 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 
 module Language.PlutusCore.Core.Type
-    ( Gas (..)
-    , Kind (..)
-    , TypeBuiltin (..)
-    , Type (..)
-    , BuiltinName (..)
-    , DynamicBuiltinName (..)
-    , StagedBuiltinName (..)
-    , Builtin (..)
-    , Constant (..)
-    , Term (..)
+    ( Gas(..)
+    , Kind(..)
+    , TypeBuiltin(..)
+    , Type(..)
+    , BuiltinName(..)
+    , DynamicBuiltinName(..)
+    , StagedBuiltinName(..)
+    , Builtin(..)
+    , Constant(..)
+    , Term(..)
     , Value
-    , Version (..)
-    , Program (..)
-    , Normalized (..)
+    , Version(..)
+    , Program(..)
+    , Normalized(..)
     , HasUniques
     , defaultVersion
     , allBuiltinNames
     -- * Helper functions
     , tyLoc
     , termLoc
-    ) where
+    )
+where
 
 import           PlutusPrelude
 
 import           Language.PlutusCore.Name
 
 import           Control.Lens
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Text (Text)
-import           GHC.Exts (Constraint)
-import           Instances.TH.Lift              ()
-import           Language.Haskell.TH.Syntax     (Lift)
-import Data.Hashable
+import qualified Data.ByteString.Lazy          as BSL
+import           Data.Text                      ( Text )
+import           GHC.Exts                       ( Constraint )
+import           Instances.TH.Lift              ( )
+import           Data.Hashable
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -53,14 +52,14 @@ newtype Gas = Gas
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Functor, Show, Generic, NFData, Hashable)
 
 -- | A builtin type
 data TypeBuiltin
     = TyByteString
     | TyInteger
     | TyString
-    deriving (Show, Eq, Ord, Generic, NFData, Lift, Hashable)
+    deriving (Show, Eq, Ord, Generic, NFData, Hashable)
 
 -- | A 'Type' assigned to expressions.
 data Type tyname ann
@@ -72,7 +71,7 @@ data Type tyname ann
     | TyBuiltin ann TypeBuiltin -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname ann)
     | TyApp ann (Type tyname ann) (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Functor, Show, Generic, NFData, Hashable)
 
 -- | Builtin functions
 data BuiltinName
@@ -97,7 +96,7 @@ data BuiltinName
     | EqByteString
     | LtByteString
     | GtByteString
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -105,25 +104,25 @@ data BuiltinName
 newtype DynamicBuiltinName = DynamicBuiltinName
     { unDynamicBuiltinName :: Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Lift, Hashable)
+      deriving newtype (NFData, Hashable)
 
 -- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
 data StagedBuiltinName
     = StaticStagedBuiltinName  BuiltinName
     | DynamicStagedBuiltinName DynamicBuiltinName
-    deriving (Show, Eq, Generic, NFData, Lift, Hashable)
+    deriving (Show, Eq, Generic, NFData, Hashable)
 
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Functor, Show, Generic, NFData, Hashable)
 
 -- | A constant value.
 data Constant ann
     = BuiltinInt ann Integer
     | BuiltinBS ann BSL.ByteString
     | BuiltinStr ann String
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Functor, Show, Generic, NFData, Hashable)
 
 data Term tyname name ann
     = Var ann (name ann) -- ^ a named variable
@@ -136,18 +135,18 @@ data Term tyname name ann
     | Unwrap ann (Term tyname name ann)
     | IWrap ann (Type tyname ann) (Type tyname ann) (Term tyname name ann)
     | Error ann (Type tyname ann)
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Functor, Show, Generic, NFData, Hashable)
 
 type Value = Term
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name ann = Program ann (Version ann) (Term tyname name ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 newtype Normalized a = Normalized
     { unNormalized :: a
@@ -160,9 +159,10 @@ deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 type family HasUniques a :: Constraint
 type instance HasUniques (Kind ann) = ()
 type instance HasUniques (Type tyname ann) = HasUnique (tyname ann) TypeUnique
-type instance HasUniques (Term tyname name ann) =
-    (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
-type instance HasUniques (Program tyname name ann) = HasUniques (Term tyname name ann)
+type instance HasUniques (Term tyname name ann)
+    = (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
+type instance HasUniques (Program tyname name ann) = HasUniques
+    (Term tyname name ann)
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
@@ -175,22 +175,22 @@ allBuiltinNames = [minBound .. maxBound]
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
 
 tyLoc :: Type tyname ann -> ann
-tyLoc (TyVar ann _)        = ann
-tyLoc (TyFun ann _ _)      = ann
-tyLoc (TyIFix ann _ _)     = ann
+tyLoc (TyVar ann _       ) = ann
+tyLoc (TyFun ann _ _     ) = ann
+tyLoc (TyIFix ann _ _    ) = ann
 tyLoc (TyForall ann _ _ _) = ann
-tyLoc (TyBuiltin ann _)    = ann
-tyLoc (TyLam ann _ _ _)    = ann
-tyLoc (TyApp ann _ _)      = ann
+tyLoc (TyBuiltin ann _   ) = ann
+tyLoc (TyLam ann _ _ _   ) = ann
+tyLoc (TyApp ann _ _     ) = ann
 
 termLoc :: Term tyname name ann -> ann
-termLoc (Var ann _)        = ann
-termLoc (TyAbs ann _ _ _)  = ann
-termLoc (Apply ann _ _)    = ann
-termLoc (Constant ann _)   = ann
-termLoc (Builtin ann _)    = ann
-termLoc (TyInst ann _ _)   = ann
-termLoc (Unwrap ann _)     = ann
-termLoc (IWrap ann _ _ _)  = ann
-termLoc (Error ann _ )     = ann
+termLoc (Var ann _       ) = ann
+termLoc (TyAbs ann _ _ _ ) = ann
+termLoc (Apply ann _ _   ) = ann
+termLoc (Constant ann _  ) = ann
+termLoc (Builtin  ann _  ) = ann
+termLoc (TyInst ann _ _  ) = ann
+termLoc (Unwrap ann _    ) = ann
+termLoc (IWrap ann _ _ _ ) = ann
+termLoc (Error ann _     ) = ann
 termLoc (LamAbs ann _ _ _) = ann

@@ -169,7 +169,6 @@ library
         tasty-golden -any,
         cryptonite,
         cardano-crypto,
-        tuple,
         monoidal-containers,
         semigroups,
         hashable
@@ -231,6 +230,7 @@ test-suite language-plutus-core-test
         containers -any,
         mtl -any,
         mmorph -any,
+        lens -any,
         tuple -any
 
 benchmark language-plutus-core-bench

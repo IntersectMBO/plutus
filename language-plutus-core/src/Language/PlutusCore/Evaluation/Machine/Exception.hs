@@ -29,8 +29,6 @@ data MachineError err
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
-    | OutOfExError
-      -- ^ An attempt to continue evaluation without sufficient Ex
     | OtherMachineError err
     deriving (Eq)
 
@@ -51,8 +49,6 @@ instance ( PrettyBy config (Term TyName Name ())
         "Cannot reduce a not immediately reducible application."
     prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
-    prettyBy _      OutOfExError         =
-        "Cannot continue without Ex."
     prettyBy config (ConstAppMachineError constAppError)  =
         prettyBy config constAppError
     prettyBy _      (OtherMachineError err)               =

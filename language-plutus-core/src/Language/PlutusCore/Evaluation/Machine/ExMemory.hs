@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE RankNTypes #-}
@@ -8,27 +7,40 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
 
-module Language.PlutusCore.Evaluation.Machine.ExMemory where
+module Language.PlutusCore.Evaluation.Machine.ExMemory
+( Plain
+, WithMemory
+, ExMemory(..)
+, ExCPU(..)
+, GenericExMemoryUsage(..)
+, ExMemoryUsage(..)
+, withMemory
+) where
+
+{- Note [Memory accounting]
+Each operation costs a certain amount of memory. Plutus counts this usage via
+ExMemory units, which correspond to machine words (64bit). First, the cost of
+the initial AST is added to the budget. Then each operation requires a certain
+amount of memory. Builtins may require different amounts of memory depending on
+the input size. Memory cost is only counted on creation of a value, so passing
+it around won't increase the cost, because sharing is assumed. If a computation
+runs out of Memory, it is aborted.
+-}
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import Control.Monad.RWS.Strict
-import Foreign.Storable
-import qualified Data.Text                             as T
-import qualified Data.ByteString.Lazy           as BSL
+import           Control.Monad.RWS.Strict
+import           Foreign.Storable
+import qualified Data.Text                     as T
+import qualified Data.ByteString.Lazy          as BSL
 
-import GHC.Generics
+import           GHC.Generics
 
 type Plain f = f TyName Name ()
 type WithMemory f = f TyName Name ExMemory
 
--- TODO memory should probably be fixed size - but then how do we handle overflow?
-newtype ExMemory = ExMemory Integer -- Probably machine word size
+newtype ExMemory = ExMemory Integer -- Counts size in machine words (64bit for the near future)
   deriving (Eq, Ord, Show)
   deriving newtype Num
   deriving (Semigroup, Monoid) via (Sum Integer)
@@ -65,11 +77,10 @@ instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :+: g) where
 
 newtype GenericExMemoryUsage a = GenericExMemoryUsage { getGenericExMemoryUsage :: a }
 instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUsage a) where
-    memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
-
+  memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
 
 class ExMemoryUsage a where
-    memoryUsage :: a -> ExMemory
+    memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
 deriving via (GenericExMemoryUsage (Constant ann)) instance ExMemoryUsage ann => ExMemoryUsage (Constant ann)
 deriving via (GenericExMemoryUsage (Name ann)) instance ExMemoryUsage ann => ExMemoryUsage (Name ann)
@@ -86,26 +97,22 @@ deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 instance ExMemoryUsage () where
-    memoryUsage _ = 0 -- TODO or 1?
+  memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-    memoryUsage _ = 2 -- TODO
+  memoryUsage _ = 2 -- TODO
 
 instance ExMemoryUsage BSL.ByteString where
-    memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
+  memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
 
 instance ExMemoryUsage T.Text where
-    memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
+  memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
 
 instance ExMemoryUsage Int where
-    memoryUsage _ = 1
+  memoryUsage _ = 1
 
 instance ExMemoryUsage String where
-    memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
+  memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
 
 withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
 withMemory x = fmap (const (memoryUsage x)) x
-
--- TODO this should probably cost something
-annotateMemory :: Plain Term -> WithMemory Term
-annotateMemory = withMemory
