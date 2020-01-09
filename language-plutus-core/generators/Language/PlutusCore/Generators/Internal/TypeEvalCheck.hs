@@ -23,7 +23,6 @@ import           PlcTestUtils
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
-import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
@@ -54,9 +53,6 @@ makeClassyPrisms ''TypeEvalCheckError
 
 instance ann ~ () => AsError TypeEvalCheckError ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
-
-instance (tyname ~ TyName, ann ~ ()) => AsValueRestrictionError TypeEvalCheckError tyname ann where
-    _ValueRestrictionError = _TypeEvalCheckErrorIllFormed . _ValueRestrictionError
 
 instance ann ~ () => AsTypeError TypeEvalCheckError ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
@@ -91,7 +87,6 @@ typeEvalCheckBy
     -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
-    _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure

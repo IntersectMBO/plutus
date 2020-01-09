@@ -13,8 +13,6 @@
 module Language.PlutusCore.Error
     ( ParseError (..)
     , AsParseError (..)
-    , ValueRestrictionError (..)
-    , AsValueRestrictionError (..)
     , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
@@ -66,11 +64,6 @@ data ParseError ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
-data ValueRestrictionError tyname ann
-    = ValueRestrictionViolation ann (tyname ann)
-    deriving (Show, Eq, Generic, NFData)
-makeClassyPrisms ''ValueRestrictionError
-
 data UniqueError ann
     = MultiplyDefined Unique ann ann
     | IncoherentUsage Unique ann ann
@@ -114,7 +107,6 @@ makeClassyPrisms ''TypeError
 
 data Error ann
     = ParseErrorE (ParseError ann)
-    | ValueRestrictionErrorE (ValueRestrictionError TyName ann)
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError ann)
     | NormCheckErrorE (NormCheckError TyName Name ann)
@@ -123,9 +115,6 @@ makeClassyPrisms ''Error
 
 instance AsParseError (Error ann) ann where
     _ParseError = _ParseErrorE
-
-instance tyname ~ TyName => AsValueRestrictionError (Error ann) tyname ann where
-    _ValueRestrictionError = _ValueRestrictionErrorE
 
 instance AsUniqueError (Error ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -146,12 +135,6 @@ instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
     pretty (Overflow ann _ _) = "Integer overflow at" <+> pretty ann <> "."
-
-instance (Pretty ann, PrettyBy config (tyname ann)) =>
-            PrettyBy config (ValueRestrictionError tyname ann) where
-    prettyBy config (ValueRestrictionViolation ann name) =
-        "Value restriction violation at" <+> pretty ann <+>
-        "after the binding for this name:" <+> prettyBy config name
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
@@ -215,8 +198,7 @@ instance Pretty ann => PrettyBy PrettyConfigPlc (TypeError ann) where
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty ann => PrettyBy PrettyConfigPlc (Error ann) where
-    prettyBy _      (ParseErrorE e)            = pretty e
-    prettyBy config (ValueRestrictionErrorE e) = prettyBy config e
-    prettyBy _      (UniqueCoherencyErrorE e)  = pretty e
-    prettyBy config (TypeErrorE e)             = prettyBy config e
-    prettyBy config (NormCheckErrorE e)        = prettyBy config e
+    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
+    prettyBy config (TypeErrorE e)            = prettyBy config e
+    prettyBy config (NormCheckErrorE e)       = prettyBy config e

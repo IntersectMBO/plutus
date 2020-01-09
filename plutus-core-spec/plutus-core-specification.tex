@@ -244,7 +244,7 @@ combinator and Church/Scott encoded booleans) for such purposes.
 in~\citep{Plutus-exe-repo}.
 
 \paragraph{Formalisation.} The Agda formalisation of Plutus Core mentioned earlier
-can be found in~\citep{Plutus-metatheory-repo}, 
+can be found in~\citep{Plutus-metatheory-repo},
 and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 \subsection{Blockchain issues}
@@ -332,10 +332,8 @@ may use the multi-argument forms.
 \item $\con{cn}$ represents a constant belonging to some built-in
   type: for example \texttt{(con 4)} is an integer with the value 127.
   See Section~\ref{sec:builtins} for more on this.
-\item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
-  over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
-  Note that we require the body of the abstraction to be a
-  \textit{value}, not a term: see the note on the value restriction below.
+\item $\abs{\alpha}{K}{M}$ represents a polymorphic value abstracted
+  over a type; this would often be denoted by $\Lambda\alpha{::}K.M$.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
@@ -343,19 +341,6 @@ may use the multi-argument forms.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
 \item $\error{A}$ causes an error, terminating computation.
 \end{itemize}
-
-%% Re the value restriction:  Phil says
-% Value restriction: This guarantees that one can erase a type
-% abstraction to its body (otherwise, one needs to erase a type
-% abstraction to a value abstraction). It also corresponds to the value
-% restriction in Standard ML, which ensures polymorphism works with
-% effects. For instance, if we wanted to translate Plutus into a monad
-% to make non-termination and reading the environment explicit, that is
-% easy with the value restriction; otherwise, it is (so far as I know)
-% not known how to do it. The restriction appears in my paper Theorems
-% for Free for Free with Ahmed, Jamner, and Siek in ICFP 2017.
-
-
 
 \paragraph{Values.} Values are terms which cannot undergo any further reduction.
 
@@ -383,7 +368,7 @@ is the type of integers.  See Section~\ref{sec:builtins} for more information.
   opportunities for type reduction and thus have little effect on the
   proof.
 
-\paragraph{Kinds.} In Plutus Core we have a copy of the 
+\paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
 \textit{kinds} in Plutus Core, allowing the type system to talk about
@@ -401,7 +386,7 @@ Signatures are not used in the concrete syntax of Plutus Core, but we
 do use them later in this document, in typing rules and in the
 description of built-in values and functions.
 
-\paragraph{Programs and Versions.} A complete Plutus Core program 
+\paragraph{Programs and Versions.} A complete Plutus Core program
 consists of a standard version number (1.0.2, for example) indicating
 the Plutus Core version and a \textit{closed} term (i.e., a term with no
 free variables) forming the body of the program.  The version number
@@ -428,11 +413,11 @@ Plutus Core language.
 %% variable sizes: integers and bytestrings (blocks of binary data used
 %% for cryptographic purposes).  There is no fixed upper bound on the
 %% size of values of these types, but -- as mentioned in the introduction -- it
-%% could be problematic if users were allowed to create values of arbitrary size 
-%% at runtime. To avoid this, sizes are tracked in the type system so that 
-%% appropriate charges can be made. 
+%% could be problematic if users were allowed to create values of arbitrary size
+%% at runtime. To avoid this, sizes are tracked in the type system so that
+%% appropriate charges can be made.
 
-%% For integers, this works as follows (the system for 
+%% For integers, this works as follows (the system for
 %% bytestrings is similar).  Integers are signed values:
 %% there is no fixed upper bound, but values are represented as sequences
 %% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
@@ -491,21 +476,6 @@ write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
-
-\subsubsection{The value restriction}
-In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
-refer to this restriction as the \textit{value restriction} because it
-can be regarded as a generalisation of the value restriction in
-Standard ML \citep[22.7]{Pierce:TAPL}. Experience has shown that
-allowing general terms as bodies of type abstractions can cause a
-number of difficulties.  For example, Standard ML's value restriction
-is required to avoid a number of problems when (implicit) type
-abstractions include non-values; other issues are explored
-in~\citep[2.4]{Ahmed:2017}
-and~\citep[7.4.1]{Pitts:typed-operational-reasoning}. Plutus Core's
-restriction to values avoids these problems and is not very onerous in
-practice.
-  
 \section{Type Correctness}
 
 We define for Plutus Core a number of typing judgments which explain
@@ -597,7 +567,7 @@ kind.
 %
 %     \begin{prooftree}
 %        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-%        \AxiomC{\(x \not= y\)}        
+%        \AxiomC{\(x \not= y\)}
 %        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
 %    \end{prooftree}
 
@@ -607,7 +577,7 @@ kind.
     \label{fig:contexts}
 \end{figure}
 
-\newpage 
+\newpage
 \noindent Figure \ref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
@@ -762,7 +732,7 @@ and builtins we have con, builtin and error.
         \RightLabel{error}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
@@ -788,12 +758,12 @@ In this section we define a standard eager,
 small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
 \textit{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
 Core in terms of the reduction relation for types
-(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction}) 
+(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction})
 and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
 incorporates both $\beta$ reduction and contextual congruence. We make
 use of the transitive closure of these stepping relations via the
 usual Kleene star notation.
-% It seems that Harper talks about "contextual semactics" in the 
+% It seems that Harper talks about "contextual semactics" in the
 % first edition of his book, but changed it to "contextual dymanics"
 % in the second.  It doesn't seem to be a standard term elsewhere though.
 
@@ -840,7 +810,7 @@ standard operational semantics.
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
-and Friedman~\citep{Felleisen-CK-CEK}. 
+and Friedman~\citep{Felleisen-CK-CEK}.
 
 This machine is intended as a reference implementation which is
 amenable to formalisation, ideally so that it can be proved to
@@ -860,7 +830,7 @@ purposes.
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
 the AST looking for values, saving surrounding contexts as frames (or
-\textit{reduction contexts}) on a stack as it goes; and the 
+\textit{reduction contexts}) on a stack as it goes; and the
 \textit{return} phase ($\triangleleft$), where it has obtained a value and
 pops a frame off the stack to tell it how to proceed next.  In
 addition there is an error state $\blacklozenge$ which halts execution
@@ -917,13 +887,13 @@ Figure~\ref{fig:type_constants}: for example \texttt{(con
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.  
+abbreviations given in Figure~\ref{fig:type_abbreviations}.
 
 
 Note the following:
 \begin{itemize}
 \item The built-in functions in Figure~\ref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty: []. 
+are all monomorphic, and hence the type arguments are all empty: [].
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}
@@ -935,7 +905,7 @@ at some time in the future.
   arguments.
 
   \begin{itemize}
-  
+
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
     standard mathematical integer division operations (at least when
     the divisor is positive): \texttt{divideInteger} rounds
@@ -968,7 +938,7 @@ at some time in the future.
 %    41  5 |  8   1  |   8   1  |  8   1
 %   -41  5 | -9   4  |  -8  -1  | -9   4
 %    41 -5 | -9  -4  |  -8   1  | -8   1
-%   -41 -5 |  8  -1  |   8  -1  |  9   4 
+%   -41 -5 |  8  -1  |   8  -1  |  9   4
 %
 
   \item We use fixed Scott encodings for certain types and values,
@@ -1004,7 +974,7 @@ The following program subtracts 11 from 55, returning 44.
 integer.
 \begin{verbatim}
   (lam n (con integer)
-    [ 
+    [
       { [(builtin lessThanInteger) n (con 0)] (con integer) }
         [(builtin subtractInteger) (con 0) n]
         n

@@ -26,28 +26,28 @@
     \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine takes one step from state $\sigma$ to state $\sigma'$}
 
 %% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
-\hspace{-1cm}\begin{minipage}{\linewidth}  
+\hspace{-1cm}\begin{minipage}{\linewidth}
 % To stop "bn computes to ...'' going over the edge of the page
 \begin{alignat*}{2}
         \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
-        \cksteps{\ckforward{s&}{\abs{\alpha}{K}{V}}&} {&\ckbackward{s}{\abs{\alpha}{K}{V}}}\\
+        \cksteps{\ckforward{s&}{\abs{\alpha}{K}{M}}&} {&\ckbackward{s}{\abs{\alpha}{K}{M}}}\\
         \cksteps{\ckforward{s&}{\inst{M}{A}}&} {&\ckforward{s, \inInstLeftFrame{A}}{M}}\\
         \cksteps{\ckforward{s&}{\wrap{A}{B}{M}}&} {&\ckforward{s, \inWrapRightFrame{A}{B}}{M}}\\
         \cksteps{\ckforward{s&}{\unwrap{M}}&} {&\ckforward{s, \inUnwrapFrame{}}{M}}\\
         \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
         \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}} 
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}}
               \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}})\\
         \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
         \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
         \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
         \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
-        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{V}}&} {&\ckbackward{s}{V}}\\
+        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{M}}&} {&\ckforward{s}{M}}\\
         \cksteps{\ckbackward{s, \inWrapRightFrame{A}{B}&}{V}&} {&\ckbackward{s}{\wrap{A}{B}{V}}}\\
         \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{A}{B}{V}}&} {&\ckbackward{s}{V}}\\
         \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
         \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
-        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}} 
+        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}}
           \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
         \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
     \end{alignat*}

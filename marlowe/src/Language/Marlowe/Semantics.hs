@@ -378,9 +378,9 @@ data MarloweData = MarloweData {
 -- | Empty State for a given minimal 'Slot'
 emptyState :: Slot -> State
 emptyState sn = State
-    { accounts = Map.empty ()
-    , choices  = Map.empty ()
-    , boundValues = Map.empty ()
+    { accounts = Map.empty
+    , choices  = Map.empty
+    , boundValues = Map.empty
     , minSlot = sn }
 
 
@@ -664,7 +664,7 @@ applyAllInputs env state contract inputs = let
 
 -- | Extract necessary signatures from transaction inputs
 getSignatures :: [Input] -> TransactionSignatures
-getSignatures = foldl addSig (Map.empty())
+getSignatures = foldl addSig Map.empty
   where
     addSig acc (IDeposit _ p _ _)         = Map.insert p True acc
     addSig acc (IChoice (ChoiceId _ p) _) = Map.insert p True acc

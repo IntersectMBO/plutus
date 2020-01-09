@@ -2119,23 +2119,16 @@
                                                                                                                       (lam
                                                                                                                         thunk
                                                                                                                         Unit
-                                                                                                                        [
-                                                                                                                          {
-                                                                                                                            (abs
+                                                                                                                        {
+                                                                                                                          (abs
+                                                                                                                            e
+                                                                                                                            (type)
+                                                                                                                            (error
                                                                                                                               e
-                                                                                                                              (type)
-                                                                                                                              (lam
-                                                                                                                                thunk
-                                                                                                                                Unit
-                                                                                                                                (error
-                                                                                                                                  e
-                                                                                                                                )
-                                                                                                                              )
                                                                                                                             )
-                                                                                                                            Bool
-                                                                                                                          }
-                                                                                                                          Unit
-                                                                                                                        ]
+                                                                                                                          )
+                                                                                                                          Bool
+                                                                                                                        }
                                                                                                                       )
                                                                                                                     ]
                                                                                                                     (lam
@@ -2152,23 +2145,16 @@
                                                                                                           (lam
                                                                                                             thunk
                                                                                                             Unit
-                                                                                                            [
-                                                                                                              {
-                                                                                                                (abs
+                                                                                                            {
+                                                                                                              (abs
+                                                                                                                e
+                                                                                                                (type)
+                                                                                                                (error
                                                                                                                   e
-                                                                                                                  (type)
-                                                                                                                  (lam
-                                                                                                                    thunk
-                                                                                                                    Unit
-                                                                                                                    (error
-                                                                                                                      e
-                                                                                                                    )
-                                                                                                                  )
                                                                                                                 )
-                                                                                                                Bool
-                                                                                                              }
-                                                                                                              Unit
-                                                                                                            ]
+                                                                                                              )
+                                                                                                              Bool
+                                                                                                            }
                                                                                                           )
                                                                                                         ]
                                                                                                         (lam
@@ -2201,23 +2187,16 @@
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      (abs
+                                                                                                                  {
+                                                                                                                    (abs
+                                                                                                                      e
+                                                                                                                      (type)
+                                                                                                                      (error
                                                                                                                         e
-                                                                                                                        (type)
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          (error
-                                                                                                                            e
-                                                                                                                          )
-                                                                                                                        )
                                                                                                                       )
-                                                                                                                      Bool
-                                                                                                                    }
-                                                                                                                    Unit
-                                                                                                                  ]
+                                                                                                                    )
+                                                                                                                    Bool
+                                                                                                                  }
                                                                                                                 )
                                                                                                               ]
                                                                                                               (lam
@@ -2379,23 +2358,16 @@
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      (abs
+                                                                                                                  {
+                                                                                                                    (abs
+                                                                                                                      e
+                                                                                                                      (type)
+                                                                                                                      (error
                                                                                                                         e
-                                                                                                                        (type)
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          (error
-                                                                                                                            e
-                                                                                                                          )
-                                                                                                                        )
                                                                                                                       )
-                                                                                                                      Bool
-                                                                                                                    }
-                                                                                                                    Unit
-                                                                                                                  ]
+                                                                                                                    )
+                                                                                                                    Bool
+                                                                                                                  }
                                                                                                                 )
                                                                                                               ]
                                                                                                               (lam
@@ -2412,23 +2384,16 @@
                                                                                                     (lam
                                                                                                       thunk
                                                                                                       Unit
-                                                                                                      [
-                                                                                                        {
-                                                                                                          (abs
+                                                                                                      {
+                                                                                                        (abs
+                                                                                                          e
+                                                                                                          (type)
+                                                                                                          (error
                                                                                                             e
-                                                                                                            (type)
-                                                                                                            (lam
-                                                                                                              thunk
-                                                                                                              Unit
-                                                                                                              (error
-                                                                                                                e
-                                                                                                              )
-                                                                                                            )
                                                                                                           )
-                                                                                                          Bool
-                                                                                                        }
-                                                                                                        Unit
-                                                                                                      ]
+                                                                                                        )
+                                                                                                        Bool
+                                                                                                      }
                                                                                                     )
                                                                                                   ]
                                                                                                   (lam
@@ -2461,23 +2426,16 @@
                                                                                                           (lam
                                                                                                             thunk
                                                                                                             Unit
-                                                                                                            [
-                                                                                                              {
-                                                                                                                (abs
+                                                                                                            {
+                                                                                                              (abs
+                                                                                                                e
+                                                                                                                (type)
+                                                                                                                (error
                                                                                                                   e
-                                                                                                                  (type)
-                                                                                                                  (lam
-                                                                                                                    thunk
-                                                                                                                    Unit
-                                                                                                                    (error
-                                                                                                                      e
-                                                                                                                    )
-                                                                                                                  )
                                                                                                                 )
-                                                                                                                Bool
-                                                                                                              }
-                                                                                                              Unit
-                                                                                                            ]
+                                                                                                              )
+                                                                                                              Bool
+                                                                                                            }
                                                                                                           )
                                                                                                         ]
                                                                                                         (lam
@@ -2736,23 +2694,16 @@
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      (abs
+                                                                                                                  {
+                                                                                                                    (abs
+                                                                                                                      e
+                                                                                                                      (type)
+                                                                                                                      (error
                                                                                                                         e
-                                                                                                                        (type)
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          (error
-                                                                                                                            e
-                                                                                                                          )
-                                                                                                                        )
                                                                                                                       )
-                                                                                                                      Bool
-                                                                                                                    }
-                                                                                                                    Unit
-                                                                                                                  ]
+                                                                                                                    )
+                                                                                                                    Bool
+                                                                                                                  }
                                                                                                                 )
                                                                                                               ]
                                                                                                               (lam
@@ -2769,23 +2720,16 @@
                                                                                                     (lam
                                                                                                       thunk
                                                                                                       Unit
-                                                                                                      [
-                                                                                                        {
-                                                                                                          (abs
+                                                                                                      {
+                                                                                                        (abs
+                                                                                                          e
+                                                                                                          (type)
+                                                                                                          (error
                                                                                                             e
-                                                                                                            (type)
-                                                                                                            (lam
-                                                                                                              thunk
-                                                                                                              Unit
-                                                                                                              (error
-                                                                                                                e
-                                                                                                              )
-                                                                                                            )
                                                                                                           )
-                                                                                                          Bool
-                                                                                                        }
-                                                                                                        Unit
-                                                                                                      ]
+                                                                                                        )
+                                                                                                        Bool
+                                                                                                      }
                                                                                                     )
                                                                                                   ]
                                                                                                   (lam
@@ -2818,23 +2762,16 @@
                                                                                                           (lam
                                                                                                             thunk
                                                                                                             Unit
-                                                                                                            [
-                                                                                                              {
-                                                                                                                (abs
+                                                                                                            {
+                                                                                                              (abs
+                                                                                                                e
+                                                                                                                (type)
+                                                                                                                (error
                                                                                                                   e
-                                                                                                                  (type)
-                                                                                                                  (lam
-                                                                                                                    thunk
-                                                                                                                    Unit
-                                                                                                                    (error
-                                                                                                                      e
-                                                                                                                    )
-                                                                                                                  )
                                                                                                                 )
-                                                                                                                Bool
-                                                                                                              }
-                                                                                                              Unit
-                                                                                                            ]
+                                                                                                              )
+                                                                                                              Bool
+                                                                                                            }
                                                                                                           )
                                                                                                         ]
                                                                                                         (lam
@@ -2996,23 +2933,16 @@
                                                                                                           (lam
                                                                                                             thunk
                                                                                                             Unit
-                                                                                                            [
-                                                                                                              {
-                                                                                                                (abs
+                                                                                                            {
+                                                                                                              (abs
+                                                                                                                e
+                                                                                                                (type)
+                                                                                                                (error
                                                                                                                   e
-                                                                                                                  (type)
-                                                                                                                  (lam
-                                                                                                                    thunk
-                                                                                                                    Unit
-                                                                                                                    (error
-                                                                                                                      e
-                                                                                                                    )
-                                                                                                                  )
                                                                                                                 )
-                                                                                                                Bool
-                                                                                                              }
-                                                                                                              Unit
-                                                                                                            ]
+                                                                                                              )
+                                                                                                              Bool
+                                                                                                            }
                                                                                                           )
                                                                                                         ]
                                                                                                         (lam
@@ -3029,23 +2959,16 @@
                                                                                               (lam
                                                                                                 thunk
                                                                                                 Unit
-                                                                                                [
-                                                                                                  {
-                                                                                                    (abs
+                                                                                                {
+                                                                                                  (abs
+                                                                                                    e
+                                                                                                    (type)
+                                                                                                    (error
                                                                                                       e
-                                                                                                      (type)
-                                                                                                      (lam
-                                                                                                        thunk
-                                                                                                        Unit
-                                                                                                        (error
-                                                                                                          e
-                                                                                                        )
-                                                                                                      )
                                                                                                     )
-                                                                                                    Bool
-                                                                                                  }
-                                                                                                  Unit
-                                                                                                ]
+                                                                                                  )
+                                                                                                  Bool
+                                                                                                }
                                                                                               )
                                                                                             ]
                                                                                             (lam
@@ -3078,23 +3001,16 @@
                                                                                                     (lam
                                                                                                       thunk
                                                                                                       Unit
-                                                                                                      [
-                                                                                                        {
-                                                                                                          (abs
+                                                                                                      {
+                                                                                                        (abs
+                                                                                                          e
+                                                                                                          (type)
+                                                                                                          (error
                                                                                                             e
-                                                                                                            (type)
-                                                                                                            (lam
-                                                                                                              thunk
-                                                                                                              Unit
-                                                                                                              (error
-                                                                                                                e
-                                                                                                              )
-                                                                                                            )
                                                                                                           )
-                                                                                                          Bool
-                                                                                                        }
-                                                                                                        Unit
-                                                                                                      ]
+                                                                                                        )
+                                                                                                        Bool
+                                                                                                      }
                                                                                                     )
                                                                                                   ]
                                                                                                   (lam
@@ -5548,23 +5464,16 @@
                                                                                                                                                                                                       (lam
                                                                                                                                                                                                         thunk
                                                                                                                                                                                                         Unit
-                                                                                                                                                                                                        [
-                                                                                                                                                                                                          {
-                                                                                                                                                                                                            (abs
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                          (abs
+                                                                                                                                                                                                            e
+                                                                                                                                                                                                            (type)
+                                                                                                                                                                                                            (error
                                                                                                                                                                                                               e
-                                                                                                                                                                                                              (type)
-                                                                                                                                                                                                              (lam
-                                                                                                                                                                                                                thunk
-                                                                                                                                                                                                                Unit
-                                                                                                                                                                                                                (error
-                                                                                                                                                                                                                  e
-                                                                                                                                                                                                                )
-                                                                                                                                                                                                              )
                                                                                                                                                                                                             )
-                                                                                                                                                                                                            [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                                                                                                                                                                                          }
-                                                                                                                                                                                                          Unit
-                                                                                                                                                                                                        ]
+                                                                                                                                                                                                          )
+                                                                                                                                                                                                          [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                                                                                                                                        }
                                                                                                                                                                                                       )
                                                                                                                                                                                                     ]
                                                                                                                                                                                                     Unit
@@ -6257,23 +6166,16 @@
                                                                                                                                                                                                     (lam
                                                                                                                                                                                                       thunk
                                                                                                                                                                                                       Unit
-                                                                                                                                                                                                      [
-                                                                                                                                                                                                        {
-                                                                                                                                                                                                          (abs
+                                                                                                                                                                                                      {
+                                                                                                                                                                                                        (abs
+                                                                                                                                                                                                          e
+                                                                                                                                                                                                          (type)
+                                                                                                                                                                                                          (error
                                                                                                                                                                                                             e
-                                                                                                                                                                                                            (type)
-                                                                                                                                                                                                            (lam
-                                                                                                                                                                                                              thunk
-                                                                                                                                                                                                              Unit
-                                                                                                                                                                                                              (error
-                                                                                                                                                                                                                e
-                                                                                                                                                                                                              )
-                                                                                                                                                                                                            )
                                                                                                                                                                                                           )
-                                                                                                                                                                                                          [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                        Unit
-                                                                                                                                                                                                      ]
+                                                                                                                                                                                                        )
+                                                                                                                                                                                                        [[Tuple2 (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                                                                                                                                                                                      }
                                                                                                                                                                                                     )
                                                                                                                                                                                                   ]
                                                                                                                                                                                                   Unit

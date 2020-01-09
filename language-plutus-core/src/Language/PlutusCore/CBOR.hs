@@ -259,7 +259,6 @@ instance Serialise ann => Serialise (TyDeBruijn ann) where
     decode = TyDeBruijn <$> decode
 
 instance (Serialise ann) => Serialise (ParseError ann)
-instance (Serialise (tyname ann), Serialise ann) => Serialise (ValueRestrictionError tyname ann)
 instance (Serialise (tyname ann), Serialise (name ann), Serialise ann) =>
             Serialise (NormCheckError tyname name ann)
 instance (Serialise ann) => Serialise (UniqueError ann)
