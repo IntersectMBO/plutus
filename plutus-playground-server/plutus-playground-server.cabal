@@ -31,6 +31,9 @@ flag defer-plugin-errors
     manual: True
 
 library
+    if impl(ghcjs)
+        buildable: false
+
     exposed-modules:
         Playground.Server
         Playground.Interpreter
@@ -98,6 +101,9 @@ library
         transformers -any
 
 library plutus-playground-usecases
+    if impl(ghcjs)
+        buildable: false
+
     hs-source-dirs: usecases
     other-modules:
         Crowdfunding
@@ -144,6 +150,9 @@ library plutus-playground-usecases
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 executable plutus-playground-server
+    if impl(ghcjs)
+        buildable: false
+
     main-is: Main.hs
     hs-source-dirs: app
                   , usecases

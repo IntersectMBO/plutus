@@ -15,6 +15,7 @@ module Language.Plutus.Contract.Servant(
     , runUpdate
     , Request(..)
     , Response(..)
+    , ContractAPI
     ) where
 
 import           Control.Lens                       (from, view)

@@ -6,7 +6,8 @@ packages: language-plutus-core
           plutus-tx
           plutus-use-cases
           plutus-ir
-          plutus-playground-server
+-- disable plutus-playground-server, haskell.nix will try to configure it; which can fail with ghcjs.
+--          plutus-playground-server
           plutus-playground-lib
           plutus-tutorial
           plutus-book
@@ -21,8 +22,9 @@ packages: language-plutus-core
 optimization: 2
 max-backjumps: 160000
 write-ghc-environment-files: never
-tests: true
-benchmarks: true
+-- Disable tests and benchmarkes. nix+ghcjs chokes on them.
+-- tests: true
+-- benchmarks: true
 
 allow-boot-library-installs:
     true
