@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Git.TH where
 
 import           Control.Exception.Safe (handleJust)
@@ -14,7 +15,11 @@ gitRevFromGit = TH.LitE . TH.StringL <$> TH.runIO runGitRevParse
         runGitRevParse :: IO String
         runGitRevParse = handleJust missingGit (const $ pure "") $ do
             (exitCode, output, _) <-
+#ifndef __GHCJS__
                 readProcessWithExitCode "git" ["rev-parse", "--verify", "HEAD"] ""
+#else
+                pure $ (ExitSuccess, "0000000", undefined)
+#endif
             pure $ case exitCode of
                 ExitSuccess -> output
                 _           -> ""

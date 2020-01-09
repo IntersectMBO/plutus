@@ -24,11 +24,13 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Schema  (Input, Output)
 import           Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
 import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, TraceError, execTrace)
-import qualified Network.Wai.Handler.Warp         as Warp
 import           System.Environment               (getArgs)
 import           Wallet.Emulator                  (Wallet (..))
 
 import           Language.Plutus.Contract.IOTS    (IotsRow, IotsType, rowSchema)
+
+import qualified Language.Plutus.Contract.Server  as Server
+
 
 -- | A number of constraints to ensure that 's' is the schema
 --   of a contract whose inputs and outputs can be serialised to
@@ -66,9 +68,8 @@ runWithTraces con traces = do
     args <- getArgs
     case args of
         [] -> do
-            let p = 8080
-            putStrLn $ "Starting server on port " ++ show p
-            Warp.run p (contractApp @s con)
+            Server.serveContract (contractApp con)
+
         ["schema"] ->
             -- prints the schema for user-defined endpoints (ie. after
             -- removing the 'BlockchainActions' from the row)

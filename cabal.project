@@ -6,7 +6,8 @@ packages: language-plutus-core
           plutus-tx
           plutus-use-cases
           plutus-ir
-          plutus-playground-server
+-- disable plutus-playground-server, haskell.nix will try to configure it; which can fail with ghcjs.
+--          plutus-playground-server
           plutus-playground-lib
           plutus-tutorial
           plutus-book
@@ -24,8 +25,9 @@ packages: language-plutus-core
 write-ghc-environment-files: never
 
 -- Always build tests and benchmarks.
-tests: true
-benchmarks: true
+-- Disable tests and benchmarkes. nix+ghcjs chokes on them.
+-- tests: true
+-- benchmarks: true
 
 -- stack.yaml is the source of truth for these pins, they are explained there
 -- and need to be kept in sync.

@@ -34,6 +34,8 @@ common lang
 
 library
     import: lang
+    other-modules:
+        ContractServer
     exposed-modules:
         Data.Row.Extras
         Language.Plutus.Contract
@@ -51,6 +53,7 @@ library
         Language.Plutus.Contract.Record
         Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
+        Language.Plutus.Contract.Server
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.StateMachine
         Language.Plutus.Contract.Tx
@@ -77,12 +80,34 @@ library
         profunctors -any,
         transformers -any,
         warp -any,
+        wai -any,
         transformers-base -any,
         monad-control -any,
         mmorph -any,
         row-types -any,
         freer-simple -any,
         prettyprinter >=1.1.0.1
+
+    if os(ghcjs) || impl(ghcjs)
+        other-extensions: JavaScriptFFI
+        js-sources:
+            platform/web/jsbits/requestHandler.js
+            platform/web/jsbits/crypto-cbits.js
+            platform/web/jsbits/crypto-wrappers.js
+
+        hs-source-dirs: platform/web/src
+        build-depends:
+            bytestring -any,
+            case-insensitive -any,
+            ghc-prim -any,
+            ghcjs-base -any,
+            ghcjs-prim -any,
+            vault -any,
+            http-types -any,
+            wai -any,
+            network -any,
+    else
+        hs-source-dirs: platform/network/src
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0

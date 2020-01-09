@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
@@ -309,11 +310,17 @@ createSessionCookie signer token now =
         , setCookieExpires = Just expiryDate
         , setCookieMaxAge = Just . fromRational . toRational $ expiryDuration
         , setCookieSecure = True
+#ifndef __GHCJS__
         , setCookieHttpOnly = True -- Not accessible from JavaScript
+#endif
         }
   where
     expiryDate = addUTCTime expiryDuration now
+#ifdef __GHCJS__
+    cookieValue = undefined
+#else
     cookieValue = JWT.encodeSigned signer jwtClaims
+#endif
     jwtClaims =
         mempty
             { JWT.exp = JWT.numericDate $ utcTimeToPOSIXSeconds expiryDate
