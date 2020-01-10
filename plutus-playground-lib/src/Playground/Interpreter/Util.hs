@@ -23,12 +23,14 @@ import           Data.Row                        (Forall)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import qualified Data.Text.Encoding              as Text
-import           Language.Haskell.Interpreter    (InterpreterResult (InterpreterResult), result, warnings)
+import           Data.Text.Prettyprint.Doc       (Pretty)
 import           Language.Plutus.Contract        (Contract, ContractRow, HasBlockchainActions)
-import           Language.Plutus.Contract.Schema (Event, Input)
-import           Language.Plutus.Contract.Trace  (ContractTrace, TraceError (ContractError), addBlocks, addBlocksUntil,
-                                                  addEvent, handleBlockchainEvents, notifyInterestingAddresses,
-                                                  notifySlot, payToWallet, runTraceWithDistribution)
+import           Language.Plutus.Contract.Schema (Event, Input, Output)
+import           Language.Plutus.Contract.Test   (renderTraceContext)
+import           Language.Plutus.Contract.Trace  (ContractTrace, ContractTraceState, TraceError (ContractError),
+                                                  addBlocks, addBlocksUntil, addEvent, handleBlockchainEvents,
+                                                  notifyInterestingAddresses, notifySlot, payToWallet,
+                                                  runTraceWithDistribution)
 import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), txOutTxOut)
 import           Ledger.AddressMap               (fundsAt)
 import           Ledger.Value                    (Value)
@@ -38,10 +40,10 @@ import           Playground.Types                (ContractCall (AddBlocks, AddBl
                                                   FunctionSchema (FunctionSchema),
                                                   PlaygroundError (JsonDecodingError, OtherError, RollupError),
                                                   SimulatorWallet (SimulatorWallet), amount, argumentValues, arguments,
-                                                  blocks, caller, decodingError, emulatorLog, endpointName, expected,
-                                                  fundsDistribution, input, recipient, resultBlockchain, resultRollup,
-                                                  sender, simulatorWalletBalance, simulatorWalletWallet, slot,
-                                                  walletKeys)
+                                                  blocks, caller, decodingError, emulatorLog, emulatorTrace,
+                                                  endpointName, expected, fundsDistribution, input, recipient,
+                                                  resultBlockchain, resultRollup, sender, simulatorWalletBalance,
+                                                  simulatorWalletWallet, slot, walletKeys)
 import           Wallet.Emulator                 (MonadEmulator)
 import           Wallet.Emulator.Chain           (ChainState (..))
 import           Wallet.Emulator.NodeClient      (NodeClientState (..), clientIndex)
@@ -58,26 +60,35 @@ import           Wallet.Rollup                   (doAnnotateBlockchain)
 -- it's type outside) so we need to wrap the @apply functions up in
 -- something that can throw errors.
 type TraceResult
-     = (Blockchain, [EmulatorEvent], [SimulatorWallet], [(PubKey, Wallet)])
+     = ( Blockchain
+       , [EmulatorEvent]
+       , Text
+       , [SimulatorWallet]
+       , [(PubKey, Wallet)])
 
-analyzeEmulatorState :: EmulatorState -> Either PlaygroundError EvaluationResult
-analyzeEmulatorState EmulatorState { _chainState = ChainState { _chainNewestFirst
-                                                              , _txPool
-                                                              , _index
-                                                              }
-                                   , _walletClientStates
-                                   , _emulatorLog
-                                   } =
-    postProcessEvaluation $
-    InterpreterResult
-        { warnings = []
-        , result =
-              ( _chainNewestFirst
-              , _emulatorLog
-              , fundsDistribution
-              , Map.foldMapWithKey toKeyWalletPair _walletClientStates)
-        }
+analyzeEmulatorState ::
+       forall s a.
+       (ContractRow s, Forall (Input s) Pretty, Forall (Output s) Pretty)
+    => ContractTraceState s (TraceError Text) a
+    -> EmulatorState
+    -> Either PlaygroundError EvaluationResult
+analyzeEmulatorState traceState EmulatorState { _chainState = ChainState { _chainNewestFirst
+                                                                         , _txPool
+                                                                         , _index
+                                                                         }
+                                              , _walletClientStates
+                                              , _emulatorLog
+                                              } =
+    postProcessEvaluation traceResult
   where
+    traceResult :: TraceResult
+    traceResult =
+        ( _chainNewestFirst
+        , _emulatorLog
+        , _emulatorTrace
+        , fundsDistribution
+        , Map.foldMapWithKey toKeyWalletPair _walletClientStates)
+    _emulatorTrace = renderTraceContext mempty traceState
     fundsDistribution :: [SimulatorWallet]
     fundsDistribution =
         filter (not . Value.isZero . simulatorWalletBalance) $
@@ -96,17 +107,17 @@ analyzeEmulatorState EmulatorState { _chainState = ChainState { _chainNewestFirs
     toKeyWalletPair :: Wallet -> NodeClientState -> [(PubKey, Wallet)]
     toKeyWalletPair k _ = [(walletPubKey k, k)]
 
-postProcessEvaluation ::
-       InterpreterResult TraceResult -> Either PlaygroundError EvaluationResult
-postProcessEvaluation (InterpreterResult _ (blockchain, emulatorLog, fundsDistribution, walletAddresses)) = do
-    rollup <- first RollupError $ doAnnotateBlockchain blockchain
+postProcessEvaluation :: TraceResult -> Either PlaygroundError EvaluationResult
+postProcessEvaluation (resultBlockchain, emulatorLog, emulatorTrace, fundsDistribution, walletKeys) = do
+    rollup <- first RollupError $ doAnnotateBlockchain resultBlockchain
     pure $
         EvaluationResult
-            { resultBlockchain = blockchain
+            { resultBlockchain
             , resultRollup = rollup
-            , emulatorLog = emulatorLog
-            , fundsDistribution = fundsDistribution
-            , walletKeys = walletAddresses
+            , emulatorLog
+            , emulatorTrace
+            , fundsDistribution
+            , walletKeys
             }
 
 playgroundDecode ::
@@ -121,7 +132,12 @@ playgroundDecode expected input =
 -- | Evaluate a JSON payload from the Playground frontend against a given contract schema.
 stage ::
        forall s a.
-       (ContractRow s, HasBlockchainActions s, Forall (Input s) FromJSON)
+       ( ContractRow s
+       , HasBlockchainActions s
+       , Forall (Input s) FromJSON
+       , Forall (Input s) Pretty
+       , Forall (Output s) Pretty
+       )
     => Contract s Text a
     -> BSL.ByteString
     -> BSL.ByteString
@@ -139,8 +155,8 @@ stage endpoints programJson simulatorWalletsJson = do
                 endpoints
                 (buildSimulation allWallets (expressionToTrace <$> simulation))
     case final of
-        Left err -> throwError . OtherError . show $ err
-        Right _  -> analyzeEmulatorState emulatorState
+        Left err              -> throwError . OtherError . show $ err
+        Right (_, traceState) -> analyzeEmulatorState traceState emulatorState
 
 buildSimulation ::
        (MonadEmulator (TraceError e) m, HasBlockchainActions s)

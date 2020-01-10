@@ -25,7 +25,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, div, div_, h2_, slot, text)
+import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
@@ -45,7 +45,7 @@ evaluationPane ::
   State ->
   EvaluationResult ->
   ComponentHTML HAction ChildSlots m
-evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
+evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
     [ chainView
         state
@@ -60,6 +60,8 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
               div
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
+        , h2_ [ text "Trace" ]
+        , code_ [ pre_ [ text emulatorTrace ] ]
         ]
     , br_
     , div_
