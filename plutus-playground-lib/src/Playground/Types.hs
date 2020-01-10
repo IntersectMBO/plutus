@@ -146,10 +146,11 @@ data EvaluationResult =
         { resultBlockchain  :: [[Tx]]
         , resultRollup      :: [[AnnotatedTx]]
         , emulatorLog       :: [EmulatorEvent]
+        , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
         , walletKeys        :: [(PubKey, Wallet)]
         }
-    deriving (Generic, ToJSON, FromJSON)
+    deriving (Show, Generic, ToJSON, FromJSON)
 
 data CompilationResult =
     CompilationResult

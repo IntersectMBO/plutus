@@ -54409,6 +54409,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , playground-common
 , plutus-contract
+, plutus-contract-tasty
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
@@ -54448,6 +54449,7 @@ mtl
 newtype-generics
 playground-common
 plutus-contract
+plutus-contract-tasty
 plutus-emulator
 plutus-tx
 plutus-wallet-api
