@@ -77,6 +77,7 @@ class
   resizeBlockly :: m (Maybe Unit)
   setBlocklyCode :: String -> m Unit
   checkContractForWarnings :: String -> m Unit
+  initializeZ3 :: m Unit
 
 newtype HalogenApp m a
   = HalogenApp (HalogenM FrontendState HAction ChildSlots WorkerRequest m a)
@@ -153,10 +154,8 @@ instance monadAppHalogenApp ::
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
   checkContractForWarnings contractString = wrap $ raise (AnalyseContract contractString)
+  initializeZ3 = wrap $ raise InitializeZ3
 
--- let
--- msgString = unsafeStringify <<< encode $ CheckForWarnings contract
--- wrap $ raise (WebsocketMessage msgString)
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
 -- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run
 -- in the HalogenApp monad and that's all that's required although a type annotation inside the

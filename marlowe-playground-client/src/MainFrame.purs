@@ -218,6 +218,7 @@ handleAction (MarloweMoveToPosition pos) = do
   assign _selectedHole Nothing
 
 handleAction CheckAuthStatus = do
+  initializeZ3
   assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult

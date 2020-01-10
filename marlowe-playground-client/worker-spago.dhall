@@ -10,6 +10,7 @@ You can edit this file as you like.
     , "debug"
     , "effect"
     , "foreign"
+    , "foreign-generic"
     , "generics-rep"
     , "numerics"
     , "ordered-collections"
@@ -28,6 +29,7 @@ You can edit this file as you like.
     , "src/Marlowe/Parser.purs"
     , "src/Marlowe/Holes.purs"
     , "src/Marlowe/Semantics.purs"
+    , "src/Worker/Types.purs"
     , "generated/Examples/**/*.purs"
     ]
 }

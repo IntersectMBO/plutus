@@ -4,6 +4,7 @@
  * TODO: I'm sorry but we need to use a global here to force the WASM to load exactly once
  * This will be in a web worker soon anyway
  */
+// FIXME: this is loaded without the name mangling since we are not in webpack at this point ;(
 const Module = require('z3w.js');
 const WasmModule = require('z3w.wasm');
 var Z3 = Module({
@@ -16,13 +17,6 @@ var Z3 = Module({
         return path;
     }
 });
-
-const Worker = require('output/worker.js');
-const worker = new Worker();
-console.log("post message");
-worker.postMessage({ a: 1 });
-worker.postMessage({ a: 1 });
-console.log("posted message");
 
 exports.onZ3Initialized_ = function (f) {
     Z3.onRuntimeInitialized = () => {

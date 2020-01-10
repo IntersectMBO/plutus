@@ -1,14 +1,24 @@
 module Worker.Types where
 
-import Web.Event.Event (EventType(..))
+import Prelude
+
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 
 data WorkerRequest
   = AnalyseContract String
   | InitializeZ3
 
+derive instance genericWorkerRequest :: Generic WorkerRequest _
+
+instance showWorkerRequest :: Show WorkerRequest where
+  show = genericShow
+
 data WorkerResponse
   = AnalyseContractResult String
   | InitializedZ3
 
-onMessage :: EventType
-onMessage = EventType "message"
+derive instance genericWorkerResponse :: Generic WorkerResponse _
+
+instance showWorkerResponse :: Show WorkerResponse where
+  show = genericShow
