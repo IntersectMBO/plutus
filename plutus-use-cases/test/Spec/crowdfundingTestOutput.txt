@@ -7,7 +7,8 @@ Events by wallet:
     - {slot:
        Slot: 27}
     - {utxo-at:
-       Utxo at 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 = 05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448!1: PayToScript: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
+       Utxo at 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 =
+         05de9f510bf3bc891ab6827933f71cf1211e0a19c32ca1bbcef610fe97cb4448!1: PayToScript: 5d9c528367e3c7656126750fe4e4a1c3c162281a3966cafd56bf102ccccf1f5c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
          e32acb156d0efeddcefd4f0e40691d92f40f36a02fdf6e692baeb8e70e99f654!1: PayToScript: e3d4f317ab5d6e6d6e634d9a7b89e600b1dfb49a74982d66e989a31db5a72d98 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
          f6c961aff58d40ba1ff91270830ad8cadca8eea7a5ac03e497fa9f9c11d72a98!1: PayToScript: c65f3e0419312701a5f8778399344ce2642b44af45b453c0dd9c1e6e4414de88 Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
     - {tx:
@@ -130,8 +131,8 @@ Events by wallet:
            f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863
          validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 1})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}} )}
 Contract result by wallet:
-  Wallet: W1
-    Done
+    Wallet: W1
+      Done
     Wallet: W2
       Running, waiting for input:
         {address: [ 3db9dbec42ff555a4b5aecb0fa0ce1353d582b1a6e68b2df625313823df3de78 ]
