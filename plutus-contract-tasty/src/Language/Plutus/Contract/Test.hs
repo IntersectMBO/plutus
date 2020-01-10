@@ -186,7 +186,7 @@ renderTraceContext testOutputs st =
     in renderStrict $ layoutPretty defaultLayoutOptions $ vsep
         [ hang 2 (vsep ["Test outputs:", testOutputs])
         , hang 2 (vsep ["Events by wallet:", prettyWalletEvents st])
-        , hang 2 (vsep ["Contract result by wallet:", hang 2 $ vsep prettyResults])
+        , hang 2 (vsep ["Contract result by wallet:", indent 2 $ vsep prettyResults])
         ]
 
 prettyWalletEvents :: Forall (Input s) Pretty => ContractTraceState s e a -> Doc ann
