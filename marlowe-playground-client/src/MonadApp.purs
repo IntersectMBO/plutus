@@ -11,8 +11,7 @@ import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
-import Data.Array (drop, filter, fold, fromFoldable, head, take)
-import Data.Array as Array
+import Data.Array (fold, fromFoldable)
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -23,38 +22,31 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.String (trim)
-import Data.Symbolic (checkSat, declareVars, equationModel, getEquations, solveEquation)
 import Data.Tuple (Tuple(..), fst)
-import Debug.Trace (trace)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM, liftAff, liftEffect, query)
+import Halogen (HalogenM, liftAff, liftEffect, query, raise)
 import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
-import Marlowe.Holes as Holes
 import Marlowe.Parser (parseTerm, contract)
-import Marlowe.Parser as Parser
 import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
-import Marlowe.Symbolic (getTransactionOutput, hasWarnings)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
-import Text.Parsing.Parser.Basic (parens)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
-import Z3.Monad (evalString, pop, push, runZ3)
+import Worker.Types (WorkerRequest(..))
 
 class
   Monad m <= MonadApp m where
@@ -84,10 +76,10 @@ class
   postContractHaskell :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
   resizeBlockly :: m (Maybe Unit)
   setBlocklyCode :: String -> m Unit
-  checkContractForWarnings :: String -> m (Maybe (Map String String))
+  checkContractForWarnings :: String -> m Unit
 
 newtype HalogenApp m a
-  = HalogenApp (HalogenM FrontendState HAction ChildSlots WebsocketMessage m a)
+  = HalogenApp (HalogenM FrontendState HAction ChildSlots WorkerRequest m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
@@ -160,47 +152,7 @@ instance monadAppHalogenApp ::
   postContractHaskell source = runAjax $ Server.postContractHaskell source
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
-  checkContractForWarnings contractString = do
-    let
-      contract = case runParser contractString (parens Parser.contract) of
-        Left e -> Close
-        Right c -> fromMaybe Close $ Holes.fromTerm c
-
-      tree = getTransactionOutput contract
-
-      equationsA = take 10000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
-
-      equationsB = drop 10000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
-      _ = trace (head equationsA) \_ -> 1
-    -- FIXME: All this is batched because findM seems to blow the stack. I think we need to look into making the Z3 monad stack safe
-    wrap $ liftEffect do 
-          resA <- runZ3 do
-            r1 <- declareVars equationsA
-            findM equationsA f
-          if isNothing resA then
-              runZ3 do
-                  r1 <- declareVars equationsB
-                  findM equationsB f
-          else
-            pure resA
-    where
-    f a = do
-      push
-      _ <- solveEquation a
-      isSat <- (evalString $ show checkSat)
-      res <- if trim isSat == "sat" then Just <$> equationModel a else pure Nothing
-      pop
-      pure res
-
--- | Find the first Just occurance of a function applied to an element in an array
-findM :: forall m a b. Monad m => Array a -> (a -> m (Maybe b)) -> m (Maybe b)
-findM array f = case Array.uncons array of
-  Just { head, tail } -> do
-    mRes <- f head
-    case mRes of
-      Just res -> pure $ Just res
-      Nothing -> findM tail f
-  Nothing -> pure Nothing
+  checkContractForWarnings contractString = wrap $ raise (AnalyseContract contractString)
 
 -- let
 -- msgString = unsafeStringify <<< encode $ CheckForWarnings contract
@@ -248,12 +200,12 @@ marloweEditorGetValueImpl = withMarloweEditor $ liftEffect <<< AceEditor.getValu
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
 
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState HAction ChildSlots WebsocketMessage m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState HAction ChildSlots WorkerRequest m a
 runHalogenApp = unwrap
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots WebsocketMessage m) a ->
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots WorkerRequest m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 

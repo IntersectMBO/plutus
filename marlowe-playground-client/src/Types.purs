@@ -35,15 +35,15 @@ import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
-import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
+import Worker.Types (WorkerResponse)
 
 _Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a
 _Head = lens NEL.head (\l new -> let { head, tail } = NEL.uncons l in NEL.cons' new tail)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebsocketMessage String a
+  = ReceiveWorkerMessage WorkerResponse a
 
 data HAction
   -- Haskell Editor
@@ -76,9 +76,6 @@ data HAction
   | SetBlocklyCode
   -- websocket
   | AnalyseContract
-
-data WebsocketMessage
-  = WebsocketMessage String
 
 ------------------------------------------------------------
 type ChildSlots
@@ -121,7 +118,7 @@ newtype FrontendState
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
-  , analysisState :: Maybe (Map String String)
+  , analysisState :: RemoteData String Result
   , selectedHole :: Maybe String
   }
 
@@ -160,7 +157,7 @@ _oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
-_analysisState :: Lens' FrontendState (Maybe (Map String String))
+_analysisState :: Lens' FrontendState (RemoteData String Result)
 _analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
 
 _selectedHole :: Lens' FrontendState (Maybe String)

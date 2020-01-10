@@ -16,17 +16,9 @@ var Z3 = Module({
         return path;
     }
 });
-// Z3.onRuntimeInitialized = () => {
-//     // FIXME: need to somehow wait for this to happen before doing anything else
-//     // really though this should be in a web worker I think
-//     // P.S. needs -s BINARYEN_ASYNC_COMPILATION=1 to work
-//     // If you try sync compilation it fails to load at all
-//     console.log("WASM loaded");
-// };
 
 const Worker = require('output/worker.js');
 const worker = new Worker();
-// const W = new Worker('worker.[hash].js');
 console.log("post message");
 worker.postMessage({ a: 1 });
 worker.postMessage({ a: 1 });

@@ -7,8 +7,10 @@ You can edit this file as you like.
 , dependencies =
     [ "ace"
     , "ace-halogen"
+    , "aff-coroutines"
     , "bigints"
     , "console"
+    , "coroutines"
     , "debug"
     , "effect"
     , "functions"
@@ -22,11 +24,9 @@ You can edit this file as you like.
     , "remotedata"
     , "servant-support"
     , "simple-json"
-    , "web-socket"
-    , "coroutines"
-    , "aff-coroutines"
     , "test-unit"
     , "undefinable"
+    , "web-socket"
     ]
 , packages =
     ./packages.dhall

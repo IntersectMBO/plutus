@@ -75,7 +75,7 @@ mkInitialState editorPreferences =
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
-    , analysisState: Nothing
+    , analysisState: NotAsked
     , selectedHole: Nothing
     }
 
@@ -108,7 +108,7 @@ handleActionWithAnalyticsTracking ::
   forall m.
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  HAction -> HalogenM FrontendState HAction ChildSlots WebsocketMessage m Unit
+  HAction -> HalogenM FrontendState HAction ChildSlots WorkerRequest m Unit
 handleActionWithAnalyticsTracking action = do
   liftEffect $ analyticsTracking action
   runHalogenApp $ handleAction action
@@ -177,17 +177,19 @@ toEvent SetBlocklyCode = Nothing
 toEvent AnalyseContract = Nothing
 
 handleQuery :: forall m a. MonadState FrontendState m => HQuery a -> m (Maybe a)
-handleQuery (ReceiveWebsocketMessage msg next) = do
-  let
-    msgDecoded =
-      unwrap <<< runExceptT
-        $ do
-            f <- parseJSON msg
-            decode f
-  case msgDecoded of
-    Left err -> assign _analysisState Nothing -- <<< Failure $ show $ msg
-    Right (OtherError err) -> assign _analysisState Nothing -- $ Failure err
-    Right (CheckForWarningsResult result) -> assign _analysisState Nothing -- $ Success result
+handleQuery (ReceiveWorkerMessage response next) = do
+  -- FIXME: handle the worker responses
+  trace response \_ -> pure unit
+  -- let
+    -- msgDecoded =
+      -- unwrap <<< runExceptT
+        -- $ do
+            -- f <- parseJSON msg
+            -- decode f
+  -- case msgDecoded of
+    -- Left err -> assign _analysisState <<< Failure $ show $ msg
+    -- Right (OtherError err) -> assign _analysisState $ Failure err
+    -- Right (CheckForWarningsResult result) -> assign _analysisState $ Success result
   pure $ Just next
 
 handleAction ::
@@ -377,9 +379,8 @@ handleAction AnalyseContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      res <- checkContractForWarnings (show contract)
-      trace res \_ -> pure unit
-      assign _analysisState res
+      void $ checkContractForWarnings (show contract)
+      assign _analysisState Loading
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
 handleGistAction PublishGist =

@@ -1,6 +1,7 @@
 module Marlowe.ContractTests where
 
 import Prelude
+
 import Control.Monad.State (class MonadState, StateT, runState)
 import Data.Array (snoc)
 import Data.Either (Either(..))
@@ -69,7 +70,7 @@ instance monadAppState :: MonadApp MockApp where
   postContractHaskell _ = pure Loading
   resizeBlockly = pure Nothing
   setBlocklyCode _ = pure unit
-  checkContractForWarnings _ = pure Nothing
+  checkContractForWarnings _ = pure unit
 
 updateContractInStateImpl :: String -> MockApp Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
@@ -87,7 +88,7 @@ initialState =
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
-    , analysisState: Nothing
+    , analysisState: NotAsked
     , selectedHole: Nothing
     }
 
