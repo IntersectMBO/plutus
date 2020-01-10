@@ -42,7 +42,7 @@ evenAndOdd = runQuote $ do
     evenF <- FunctionDef () evenn (FunctionType () nat bool) <$> eoFunc true oddd
     oddF  <- FunctionDef () oddd  (FunctionType () nat bool) <$> eoFunc false evenn
 
-    getMutualFixOf () [evenF, oddF]
+    getMutualFixOf () (fst $ fixN 2) [evenF, oddF]
 
 even :: Term TyName Name ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
@@ -82,7 +82,7 @@ evenAndOddList = runQuote $ do
             LamAbs () t listNat $
             Apply () (Var () evenn) (Var () t)
 
-    getMutualFixOf () [evenF, oddF]
+    getMutualFixOf () (fst $ fixN 2) [evenF, oddF]
 
 evenList :: Term TyName Name ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
