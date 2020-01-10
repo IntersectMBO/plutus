@@ -86,7 +86,7 @@ final column of the table shows what happens when these unit
 annotations are not included in the serialised form (it's safe to do
 this because we know where they will occur so can insert them
 automatically when deserialising, although maybe on-chain ASTs
-shouldn't have annotations at all).
+shouldn't have annotations at all).  
 
 The are a large number of possible combinations of the transformations
 mentioned above and the table only contains a limited number of these
@@ -144,6 +144,15 @@ can use left and right arrow keys to scroll horizontally.
 | |
 | Vesting |  Uncompressed | 119514 | 76615 | 30089 | 17252 | 14784 (12.4%) | 10976 (9.2%) |  6967 (5.8%) | 
 |     | Compressed | 23348 | 19473 | 7866 | 5671 | 5582 (4.7%) | 1783 (1.5%) |  1614 (1.4%) | 
+
+Note also that the only column where unit annotations are not
+serialised is the final one; we can get substantial savings on the
+other columns by doing the same there, but this is not shown in the
+table.
+
+See [FixpointSharing.md](./FixpointSharing.md) for a version of this
+table where the compiler optimises the code by sharing the (sizeable)
+fixpoint combinator instead of generating multiple instances.
 
 
 ### Conclusions
