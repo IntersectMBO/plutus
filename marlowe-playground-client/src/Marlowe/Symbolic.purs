@@ -2,7 +2,7 @@ module Marlowe.Symbolic where
 
 import Prelude
 
-import Data.Array (foldM, foldl, mapMaybe, reverse, (:))
+import Data.Array (filter, foldM, foldl, mapMaybe, reverse, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either(..))
@@ -19,6 +19,7 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
 import Data.Tuple (Tuple(..), snd)
+import Debug.Trace (trace)
 import Examples.Marlowe.Contracts as ME
 import Marlowe.Holes as Holes
 import Marlowe.Parser as Parser
@@ -50,7 +51,7 @@ validInterval :: SSlotInterval -> BooleanConstraint
 validInterval (SlotInterval (Slot from) (Slot to)) = from .<= to
 
 above :: SSlot -> SSlotInterval -> BooleanConstraint
-above (Slot v) (SlotInterval _ (Slot to)) = v .>= to
+above (Slot v) (SlotInterval _ (Slot to)) = v .> to
 
 fixInterval :: SSlotInterval -> SState -> Tree SIntervalResult
 fixInterval interval@(SlotInterval from to) state =
@@ -802,6 +803,9 @@ getTransactionOutput contract = do
 
     depth = maxDepth contract
 
+    notEmpty TxE = false
+    notEmpty _ = true
+
     mkTx :: (Tuple Int (Array STransactionInput)) -> TxI -> Tree (Tuple Int (Array STransactionInput))
     mkTx (Tuple idx acc) txi = do
       let
@@ -814,7 +818,8 @@ getTransactionOutput contract = do
           i <- mkInput $ show idx
           pure [ i ]
       pure $ Tuple (idx + 1) $ TransactionInput { interval: slotInterval', inputs: inputs } : acc
-  inputs <- mkTxs depth
+  -- FIXME: just trying to get rid of empty txs as an experiment
+  inputs <- filter notEmpty <$> mkTxs depth
   txs <- foldM mkTx (Tuple 1 []) inputs
   let
     startOutput =
@@ -825,6 +830,10 @@ getTransactionOutput contract = do
         , txOutContract: contract
         }
   computeTransactions startOutput (snd txs)
+
+hasWarnings :: TransactionOutput -> Boolean
+hasWarnings (Error _) = false
+hasWarnings (TransactionOutput vs) = not $ Array.null vs.txOutWarnings
 
 test :: Tree TransactionOutput
 test =

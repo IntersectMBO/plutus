@@ -16,13 +16,13 @@ var Z3 = Module({
         return path;
     }
 });
-Z3.onRuntimeInitialized = () => {
-    // FIXME: need to somehow wait for this to happen before doing anything else
-    // really though this should be in a web worker I think
-    // P.S. needs -s BINARYEN_ASYNC_COMPILATION=1 to work
-    // If you try sync compilation it fails to load at all
-    console.log("WASM loaded");
-};
+// Z3.onRuntimeInitialized = () => {
+//     // FIXME: need to somehow wait for this to happen before doing anything else
+//     // really though this should be in a web worker I think
+//     // P.S. needs -s BINARYEN_ASYNC_COMPILATION=1 to work
+//     // If you try sync compilation it fails to load at all
+//     console.log("WASM loaded");
+// };
 
 const Worker = require('output/worker.js');
 const worker = new Worker();
@@ -31,6 +31,12 @@ console.log("post message");
 worker.postMessage({ a: 1 });
 worker.postMessage({ a: 1 });
 console.log("posted message");
+
+exports.onZ3Initialized_ = function (f) {
+    Z3.onRuntimeInitialized = () => {
+        f();
+    };
+}
 
 exports.createInstance = function () {
     return Z3;
@@ -186,6 +192,10 @@ exports.solver_push = function (z3, ctx, solver) {
 
 exports.solver_pop = function (z3, ctx, solver) {
     return z3.ccall('Z3_solver_pop', null, ['number', 'number', 'number'], [ctx, solver, 1]);
+}
+
+exports.solver_reset = function (z3, ctx, solver) {
+    return z3.ccall('Z3_solver_reset', null, ['number', 'number', 'number'], [ctx, solver, 1]);
 }
 
 exports.solver_inc_ref = function (z3, ctx, solver) {

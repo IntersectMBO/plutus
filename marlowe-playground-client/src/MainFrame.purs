@@ -75,7 +75,7 @@ mkInitialState editorPreferences =
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
-    , analysisState: NotAsked
+    , analysisState: Nothing
     , selectedHole: Nothing
     }
 
@@ -185,9 +185,9 @@ handleQuery (ReceiveWebsocketMessage msg next) = do
             f <- parseJSON msg
             decode f
   case msgDecoded of
-    Left err -> assign _analysisState <<< Failure $ show $ msg
-    Right (OtherError err) -> assign _analysisState $ Failure err
-    Right (CheckForWarningsResult result) -> assign _analysisState $ Success result
+    Left err -> assign _analysisState Nothing -- <<< Failure $ show $ msg
+    Right (OtherError err) -> assign _analysisState Nothing -- $ Failure err
+    Right (CheckForWarningsResult result) -> assign _analysisState Nothing -- $ Success result
   pure $ Just next
 
 handleAction ::
@@ -377,8 +377,9 @@ handleAction AnalyseContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (show contract)
-      assign _analysisState Loading
+      res <- checkContractForWarnings (show contract)
+      trace res \_ -> pure unit
+      assign _analysisState res
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
 handleGistAction PublishGist =

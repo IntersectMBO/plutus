@@ -1,5 +1,12 @@
 # Marlowe Playground Client
 
+## TODO:
+
+* build Z3 in nix (partially done)
+* move symbolic execution to Worker
+* deal with initial async loading of WASM
+* rebase and fix for multi-currency
+
 ## Getting started
 
 You must build the Z3 WASM and JS components first and copy them to `./z3w.wasm` and `./z3w.js`. TODO: get nix building this.

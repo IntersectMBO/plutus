@@ -28,7 +28,6 @@
 module Z3.Monad where
 
 import Prelude
-
 import Data.Function.Uncurried (runFn1, runFn2, runFn3, runFn4)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
@@ -85,6 +84,9 @@ push = Z3 \state -> runFn3 Z3.solver_push state.z3 state.ctx state.solver
 
 pop :: Z3 Unit
 pop = Z3 \state -> runFn3 Z3.solver_pop state.z3 state.ctx state.solver
+
+reset :: Z3 Unit
+reset = Z3 \state -> runFn3 Z3.solver_reset state.z3 state.ctx state.solver
 
 mkIntVar :: String -> Z3 { decl :: Z3FuncDecl, ast :: Z3Ast }
 mkIntVar name =

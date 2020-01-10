@@ -121,7 +121,7 @@ newtype FrontendState
   , marloweState :: NonEmptyList MarloweState
   , oldContract :: Maybe String
   , blocklyState :: Maybe BlocklyState
-  , analysisState :: RemoteData String Result
+  , analysisState :: Maybe (Map String String)
   , selectedHole :: Maybe String
   }
 
@@ -160,7 +160,7 @@ _oldContract = _Newtype <<< prop (SProxy :: SProxy "oldContract")
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
-_analysisState :: Lens' FrontendState (RemoteData String Result)
+_analysisState :: Lens' FrontendState (Maybe (Map String String))
 _analysisState = _Newtype <<< prop (SProxy :: SProxy "analysisState")
 
 _selectedHole :: Lens' FrontendState (Maybe String)

@@ -1,15 +1,25 @@
 module Data.Symbolic where
 
 import Prelude
-import Data.Array (fold, foldMap, (:))
+import Data.Array (fold, foldMap, foldr, fromFoldable, many, (:))
 import Data.BigInteger (BigInteger)
+import Data.Either (Either, hush)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (joinWith)
+import Data.String.CodeUnits (fromCharArray)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Text.Parsing.Parser (ParseError, Parser, runParser)
+import Text.Parsing.Parser.Basic (parens)
+import Text.Parsing.Parser.Combinators (choice)
+import Text.Parsing.Parser.String (string)
+import Text.Parsing.Parser.Token (alphaNum, space)
 import Z3.Monad (Z3, evalString)
 
 data Tree a
@@ -127,7 +137,14 @@ derive instance genericIntConstraint :: Generic IntConstraint _
 instance showIntConstraint :: Show IntConstraint where
   show c = genericShow c
 
-derive instance eqIntConstraint :: Eq IntConstraint
+instance eqIntConstraint :: Eq IntConstraint where
+  eq (IntVar a) (IntVar b) = a == b
+  eq (IntConst a) (IntConst b) = a == b
+  -- commutativity
+  eq (IntAdd a b) (IntAdd c d) = (a == c && b == d) || (a == d && b == c)
+  eq (IntMul a b) (IntMul c d) = (a == c && b == d) || (a == d && b == c)
+  eq (IntSub a b) (IntSub c d) = (a == c && b == d) || (a == d && b == c)
+  eq a b = false
 
 derive instance ordIntConstraint :: Ord IntConstraint
 
@@ -173,6 +190,9 @@ derive instance ordBooleanConstraint :: Ord BooleanConstraint
 
 instance semigroupBooleanConstraint :: Semigroup BooleanConstraint where
   append a b = And a b
+
+instance monoidBooleanConstraint :: Monoid BooleanConstraint where
+  mempty = True
 
 instance sexpBooleanConstraint :: ToSExp BooleanConstraint where
   toSexp True = Atom "true"
@@ -237,12 +257,21 @@ infixr 5 or as .||
 smin :: IntConstraint -> IntConstraint -> Tree IntConstraint
 smin a b = ite (a .< b) (pure a) (pure b)
 
+removeDups :: forall a. Array (Equation a) -> Array (Equation a)
+removeDups a = a
+
 -- | A node contains the constraint to go in either branch.
 --   We traverse the tree collecting the constraints as we go until we get to a leaf
 --   For every leaf we will return a value and all the constraints required to get there
 --   TODO: The constraints are probably a mess that can be simplified
 getEquations :: forall a. Tree a -> Array (Equation a)
-getEquations t = go mempty mempty t
+getEquations t =
+  let
+    res = go mempty mempty t
+
+    singleConst = map (\{ constraints, value } -> { constraint: fold constraints, value }) res
+  in
+    res
   where
   go equations constraints (Leaf a) = { constraints: constraints, value: a } : equations
 
@@ -321,23 +350,47 @@ getModel = Exp "get-model" []
 getValue :: Var -> SExp
 getValue (Var v _) = Exp "get-value" $ [ Exp v [] ]
 
-equationModel :: forall a. Equation a -> Z3 (Array (Tuple String String))
-equationModel e = traverse f $ Set.toUnfoldable $ variables e
+equationModel :: forall a. Equation a -> Z3 (Map String String)
+equationModel e = Map.fromFoldable <$> tuples
   where
+  tuples :: Z3 (Array (Tuple String String))
+  tuples = traverse f $ Set.toUnfoldable $ variables e
+
   f :: Var -> Z3 (Tuple String String)
   f v@(Var name _) = do
     let
       exp = getValue v
     res <- evalString $ show exp
-    pure (Tuple name res)
+    let
+      -- TODO: for now we are throwing away parse errors
+      val = fromMaybe "" $ hush $ parseModelValue name res
+    pure (Tuple name val)
+
+parseModelValue :: String -> String -> Either ParseError String
+parseModelValue name s = runParser s f
+  where
+  f :: Parser String String
+  f =
+    parens $ parens
+      $ do
+          void $ string name
+          void space
+          text
+
+  text = fromCharArray <<< fromFoldable <$> many (choice [ alphaNum, space ])
+
+declareVars :: forall a. Array (Equation a) -> Z3 String
+declareVars es =
+  evalString
+    $ joinWith "\n"
+    $ Set.toUnfoldable
+    $ Set.map (show <<< declareConst)
+    $ foldr Set.union mempty
+    $ map variables es
 
 solveEquation :: forall a. Equation a -> Z3 String
 solveEquation e =
   let
-    vs = joinWith "\n" $ Set.toUnfoldable $ Set.map (show <<< declareConst) $ variables e
-
     as = joinWith "\n" $ map show $ Set.toUnfoldable $ assertions e
-
-    s = vs <> "\n" <> as
   in
-    evalString s
+    evalString as

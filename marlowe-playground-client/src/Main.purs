@@ -8,6 +8,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (forkAff, Aff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console as Console
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Foreign.Generic (defaultOptions)
@@ -24,6 +25,7 @@ import Web.HTML.Location as WL
 import Web.HTML.Window as WW
 import Web.Socket.WebSocket as WS
 import Websockets (wsConsumer, wsProducer, wsSender)
+import Z3.Internal as Z3
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -45,6 +47,7 @@ main = do
   protocol <- WL.protocol location
   hostname <- WL.hostname location
   port <- WL.port location
+  _ <- Z3.onZ3Initialized (Console.log("hello from main"))
   let
     wsProtocol = case protocol of
       "https:" -> "wss"

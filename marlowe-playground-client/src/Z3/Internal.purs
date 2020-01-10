@@ -5,6 +5,7 @@ import Prelude
 
 import Data.Function.Uncurried (Fn1, Fn2, Fn3, Fn4)
 import Effect (Effect)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
 
 foreign import data Z3Instance :: Type
 
@@ -59,6 +60,11 @@ foreign import data Z3Solver :: Type
 foreign import data Z3Stats :: Type
 
 foreign import createInstance :: Effect Z3Instance
+
+foreign import onZ3Initialized_ :: EffectFn1 (Effect Unit) Unit
+
+onZ3Initialized :: Effect Unit -> Effect Unit
+onZ3Initialized = runEffectFn1 onZ3Initialized_
 
 foreign import mk_config :: Fn1 Z3Instance Z3Config
 
@@ -135,6 +141,8 @@ foreign import mk_app :: Fn3 Z3Instance Z3Context Z3FuncDecl Z3Ast
 foreign import solver_push :: Fn3 Z3Instance Z3Context Z3Solver Unit
 
 foreign import solver_pop :: Fn3 Z3Instance Z3Context Z3Solver Unit
+
+foreign import solver_reset :: Fn3 Z3Instance Z3Context Z3Solver Unit
 
 foreign import solver_inc_ref :: Fn3 Z3Instance Z3Context Z3Solver Unit
 

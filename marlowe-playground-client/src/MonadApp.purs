@@ -11,7 +11,7 @@ import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
-import Data.Array (fold, fromFoldable)
+import Data.Array (drop, filter, fold, fromFoldable, head, take)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
@@ -23,9 +23,10 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Symbolic (checkSat, equationModel, getEquations, getModel, solveEquation)
+import Data.String (trim)
+import Data.Symbolic (checkSat, declareVars, equationModel, getEquations, solveEquation)
 import Data.Tuple (Tuple(..), fst)
 import Debug.Trace (trace)
 import Editor as Editor
@@ -43,17 +44,17 @@ import Marlowe.Holes as Holes
 import Marlowe.Parser (parseTerm, contract)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
-import Marlowe.Symbolic (getTransactionOutput)
+import Marlowe.Symbolic (getTransactionOutput, hasWarnings)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.Parser (ParseError(..), runParser)
+import Text.Parsing.Parser.Basic (parens)
 import Text.Parsing.Parser.Pos (Position(..))
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
-import Z3.Monad (evalString, mkInt, mkIntVar, modelToString, runZ3)
-import Z3.Monad as Z3
+import Z3.Monad (evalString, pop, push, runZ3)
 
 class
   Monad m <= MonadApp m where
@@ -83,7 +84,7 @@ class
   postContractHaskell :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
   resizeBlockly :: m (Maybe Unit)
   setBlocklyCode :: String -> m Unit
-  checkContractForWarnings :: String -> m Unit
+  checkContractForWarnings :: String -> m (Maybe (Map String String))
 
 newtype HalogenApp m a
   = HalogenApp (HalogenM FrontendState HAction ChildSlots WebsocketMessage m a)
@@ -161,26 +162,49 @@ instance monadAppHalogenApp ::
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
   checkContractForWarnings contractString = do
     let
-      contract = case runParser contractString Parser.contract of
-        Left _ -> Close
+      contract = case runParser contractString (parens Parser.contract) of
+        Left e -> Close
         Right c -> fromMaybe Close $ Holes.fromTerm c
-      tree = getTransactionOutput contract
-      equations = getEquations tree
-    case Array.uncons equations of
-        Just { head, tail } -> do
-          let solver = solveEquation head
-          res <- wrap $ liftEffect $ runZ3 do
-            s <- solver
-            _ <- evalString $ show checkSat
-            equationModel head
-          trace res \_ -> pure unit
-          pure unit
-        Nothing -> pure unit
-    pure unit
-    -- let
-      -- msgString = unsafeStringify <<< encode $ CheckForWarnings contract
-    -- wrap $ raise (WebsocketMessage msgString)
 
+      tree = getTransactionOutput contract
+
+      equationsA = take 10000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
+
+      equationsB = drop 10000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
+      _ = trace (head equationsA) \_ -> 1
+    -- FIXME: All this is batched because findM seems to blow the stack. I think we need to look into making the Z3 monad stack safe
+    wrap $ liftEffect do 
+          resA <- runZ3 do
+            r1 <- declareVars equationsA
+            findM equationsA f
+          if isNothing resA then
+              runZ3 do
+                  r1 <- declareVars equationsB
+                  findM equationsB f
+          else
+            pure resA
+    where
+    f a = do
+      push
+      _ <- solveEquation a
+      isSat <- (evalString $ show checkSat)
+      res <- if trim isSat == "sat" then Just <$> equationModel a else pure Nothing
+      pop
+      pure res
+
+-- | Find the first Just occurance of a function applied to an element in an array
+findM :: forall m a b. Monad m => Array a -> (a -> m (Maybe b)) -> m (Maybe b)
+findM array f = case Array.uncons array of
+  Just { head, tail } -> do
+    mRes <- f head
+    case mRes of
+      Just res -> pure $ Just res
+      Nothing -> findM tail f
+  Nothing -> pure Nothing
+
+-- let
+-- msgString = unsafeStringify <<< encode $ CheckForWarnings contract
+-- wrap $ raise (WebsocketMessage msgString)
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you
 -- blow the stack so we have 3 methods pulled out here. I think this just ensures they are run
 -- in the HalogenApp monad and that's all that's required although a type annotation inside the
