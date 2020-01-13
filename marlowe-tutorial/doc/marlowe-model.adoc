@@ -51,7 +51,7 @@ newtype Value = Value
     {getValue :: Map CurrencySymbol (Map TokenName Integer)}
 ----
 
-Types `CurrencySymbol` and `TokenName` are both simple wrappers around
+The types `CurrencySymbol` and `TokenName` are both simple wrappers around
 `ByteString`.
 
 This notion of _value_ encompasses Ada, fungible tokens (think currencies),
@@ -60,8 +60,8 @@ more exotic mixed cases:
 
 * Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
 * A _fungible_ token is represented by a `CurrencySymbol` for which there is
-  exactly one `TokenSymbol` which can have an arbitrary non-negative quantity (of which Ada is a
-  special case).
+  exactly one `TokenSymbol` which can have an arbitrary non-negative integer quantity
+  (of which Ada is a special case).
 * A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
   each of which has a quantity of one. Each of these names corresponds to one
   unique non-fungible token.

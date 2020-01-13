@@ -41,7 +41,7 @@ type Timeout = Slot
 ----
 
 A Marlowe Account holds amounts of multiple currencies and/or fungible and non-fungible tokens.
-Concrete amount is indexed by a `Token`, which is a pair of `CurrencySymbol` and `TokenName`.
+A concrete amount is indexed by a `Token`, which is a pair of `CurrencySymbol` and `TokenName`.
 You can think of an Account as a `Map Token Integer`, where
 
 [source,haskell]
@@ -52,9 +52,10 @@ data Token = Token CurrencySymbol TokenName
 Cardano's Ada token is `Token adaSymbol adaToken`. But you are free to create your own currencies
 and tokens.
 
-A currency tokens can represent roles in a contract, e.g "buyer" and "seller".
-Think of a legal contract's part "hereafter referred to as the Performer/Vendor/Artist/Consultant".
-This way we can decouple notion of ownership of a contract role, and make it tradable.
+Tokens of a currency can represent roles in a contract, e.g "buyer" and "seller".
+Think of a legal contract in the sense of
+"hereafter referred to as the Performer/Vendor/Artist/Consultant".
+This way we can decouple the notion of ownership of a contract role, and make it tradable.
 So you can sell your loan or buy a share of a role in some contract.
 
 
