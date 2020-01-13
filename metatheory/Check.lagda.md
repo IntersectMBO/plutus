@@ -124,8 +124,8 @@ open import Function hiding (_∋_)
 open import Type.BetaNormal.Equality
 inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) 
   → (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A) ⊎ Error
-inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Data.Sum.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x reflNf}) id (inferVarType Γ x)
-inferVarType (Γ , A)  Z              = inj₁ (A ,, Z reflNf)
+inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Data.Sum.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x refl}) id (inferVarType Γ x)
+inferVarType (Γ , A)  Z              = inj₁ (A ,, Z refl)
 inferVarType (Γ , A)  (S x)          =
   Data.Sum.map (λ {(A ,, x) → A ,, S x}) id (inferVarType Γ x)
 
@@ -154,8 +154,8 @@ meqTyCon bytestring bytestring = return refl
 meqTyCon string     string     = return refl
 meqTyCon _          _          = inj₂ tyConError
 
-meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → (A ≡Nf A') ⊎ Error
-meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → (A ≡Ne A') ⊎ Error
+meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → (A ≡ A') ⊎ Error
+meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → (A ≡ A') ⊎ Error
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
  p ← meqNfTy A A'
