@@ -82,6 +82,52 @@
     }
 }
 
+.full-width-card-4 {
+    table {
+        width: 100%;
+    }
+    col {
+        width: 25%;
+    }
+    th {
+        text-align: center;
+        border-bottom: 1px solid grey;
+    }
+    td {
+        text-align: center;
+    }
+    .left-border-column {
+        border-left: 1px solid grey;
+    }
+    .middle-column {
+        border-right: 1px solid grey;
+        border-left: 1px solid grey;
+    }
+}
+
+.full-width-card-5 {
+    table {
+        width: 100%;
+    }
+    col {
+        width: 20%;
+    }
+    th {
+        text-align: center;
+        border-bottom: 1px solid grey;
+    }
+    td {
+        text-align: center;
+    }
+    .left-border-column {
+        border-left: 1px solid grey;
+    }
+    .middle-column {
+        border-right: 1px solid grey;
+        border-left: 1px solid grey;
+    }
+}
+
 @media (max-width:990px) {
     .input-composer.col.col-sm-6,  .transaction-composer.col.col-sm-6 {
        width:100%;

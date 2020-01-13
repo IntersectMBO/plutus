@@ -27,6 +27,7 @@ runBasicSpec = describe "Basic Contract" $
   (Case
      (Deposit
         (AccountId 0 "alice") "alice"
+        (Token "" "")
         (Constant 450))
      (When [
            (Case
@@ -55,6 +56,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
+                             (Token "" "")
                              (Constant 450) Close) Close)
                        (When [
                              (Case
@@ -69,6 +71,7 @@ runBasicSpec = describe "Basic Contract" $
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
+                                   (Token "" "")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
@@ -83,6 +86,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
+                             (Token "" "")
                              (Constant 450) Close))] 100 Close)))
            ,
            (Case
@@ -111,6 +115,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
+                             (Token "" "")
                              (Constant 450) Close) Close)
                        (When [
                              (Case
@@ -125,6 +130,7 @@ runBasicSpec = describe "Basic Contract" $
                                 (Pay
                                    (AccountId 0 "alice")
                                    (Party "bob")
+                                   (Token "" "")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
                        (Case
@@ -139,6 +145,7 @@ runBasicSpec = describe "Basic Contract" $
                           (Pay
                              (AccountId 0 "alice")
                              (Party "bob")
+                             (Token "" "")
                              (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close
 |]
 

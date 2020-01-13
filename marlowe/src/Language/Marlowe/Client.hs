@@ -24,13 +24,15 @@ import qualified Data.Set                   as Set
 import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
+import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (DataValue (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
+
                                              mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
-import           Ledger.Ada                 (Ada)
-import qualified Ledger.Ada                 as Ada
+import           Ledger.Ada                 (adaValueOf)
 import           Ledger.Scripts             (RedeemerValue (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
+import qualified Ledger.Value               as Val
 import           Wallet                     (WalletAPI (..), WalletAPIError, createPaymentWithChange, createTxAndSubmit,
                                              throwOtherError)
 
@@ -53,7 +55,7 @@ createContract contract = do
             marloweState = emptyState slot }
         ds = DataValue $ PlutusTx.toData marloweData
 
-        deposit = Ada.adaValueOf 1
+        deposit = adaValueOf 1
 
     (payment, change) <- createPaymentWithChange deposit
     let o = scriptTxOut deposit validator ds
@@ -64,7 +66,7 @@ createContract contract = do
     return (marloweData, tx)
 
 
-{-| Deposit 'amount' of money to 'accountId' to a Marlowe contract
+{-| Deposit 'amount' of 'token' to 'accountId' to a Marlowe contract
     from 'tx' with 'MarloweData' data script.
  -}
 deposit :: (
@@ -73,11 +75,12 @@ deposit :: (
     => Tx
     -> MarloweData
     -> AccountId
-    -> Ada
+    -> Token
+    -> Integer
     -> m (MarloweData, Tx)
-deposit tx marloweData accountId amount = do
+deposit tx marloweData accountId token amount = do
     pubKey <- ownPubKey
-    applyInputs tx marloweData [IDeposit accountId pubKey amount]
+    applyInputs tx marloweData [IDeposit accountId pubKey token amount]
 
 
 {-| Notify a contract -}
@@ -135,7 +138,7 @@ applyInputs :: (
     -> [Input]
     -> m (MarloweData, Tx)
 applyInputs tx marloweData@MarloweData{..} inputs = do
-    let depositAmount = Ada.adaOf 1
+    let depositAmount = adaValueOf 1
         depositPayment = Payment marloweCreator depositAmount
         redeemer = mkRedeemer inputs
         validator = validatorScript marloweCreator
@@ -172,19 +175,18 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
                     Close -> txPaymentOuts (depositPayment : txOutPayments)
                     _ -> let
                         payouts = txPaymentOuts txOutPayments
-                        totalPayouts = foldMap (Ada.fromValue . txOutValue) payouts
-                        finalBalance = totalIncome - totalPayouts + depositAmount
+                        totalPayouts = foldMap txOutValue payouts
+                        finalBalance = totalIncome P.- totalPayouts P.+ depositAmount
                         dataValue = DataValue (PlutusTx.toData marloweData)
-                        scriptOutValue = Ada.toValue finalBalance
-                        scriptOut = scriptTxOut scriptOutValue validator dataValue
+                        scriptOut = scriptTxOut finalBalance validator dataValue
                         in scriptOut : payouts
 
             return (deducedTxOutputs, marloweData)
         Error txError -> throwOtherError (Text.pack $ show txError)
 
 
-    (payment, change) <- if totalIncome > mempty
-        then createPaymentWithChange (Ada.toValue totalIncome)
+    (payment, change) <- if totalIncome `Val.gt` P.zero
+        then createPaymentWithChange totalIncome
         else return (Set.empty, Nothing)
 
     tx <- createTxAndSubmit
@@ -195,8 +197,8 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
 
     return (marloweData, tx)
   where
-    collectDeposits (IDeposit _ _ money) = money
-    collectDeposits _                    = mempty
+    collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
+    collectDeposits _                    = P.zero
 
     totalIncome = foldMap collectDeposits inputs
 
@@ -205,13 +207,13 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
     txPaymentOuts :: [Payment] -> [TxOut]
     txPaymentOuts payments = let
         ps = foldr collectPayments Map.empty payments
-        txOuts = [pubKeyTxOut (Ada.toValue value) pk | (pk, value) <- Map.toList ps]
+        txOuts = [pubKeyTxOut value pk | (pk, value) <- Map.toList ps]
         in txOuts
 
-    collectPayments :: Payment -> Map Party Ada -> Map Party Ada
+    collectPayments :: Payment -> Map Party Money -> Map Party Money
     collectPayments (Payment party money) payments = let
         newValue = case Map.lookup party payments of
-            Just value -> value + money
+            Just value -> value P.+ money
             Nothing    -> money
         in Map.insert party newValue payments
 

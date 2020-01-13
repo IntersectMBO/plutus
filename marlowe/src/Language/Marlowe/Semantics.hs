@@ -44,11 +44,11 @@ import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Ledger                     (PubKey (..), Slot (..))
-import           Ledger.Ada                 (Ada)
-import qualified Ledger.Ada                 as Ada
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (DataValue (..))
 import           Ledger.Validation
+import           Ledger.Value               (CurrencySymbol, TokenName)
+import qualified Ledger.Value               as Val
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
@@ -85,10 +85,11 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 type Party = PubKey
 type NumAccount = Integer
 type Timeout = Slot
-type Money = Ada
+type Money = Val.Value
 type ChoiceName = ByteString
 type ChosenNum = Integer
 type SlotInterval = (Slot, Slot)
+type Accounts = Map (AccountId, Token) Integer
 type TransactionSignatures = Map Party Bool
 
 -- * Data Types
@@ -103,7 +104,7 @@ type TransactionSignatures = Map Party Bool
     Note that alicePK is the owner here in the sense that she will be
     refunded any money in the account when the contract terminates.
 -}
-data AccountId = AccountId Integer Party
+data AccountId = AccountId NumAccount Party
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -115,6 +116,12 @@ data ChoiceId = ChoiceId ByteString Party
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
+{-| Token - represents a currency or token, it groups
+    a pair of a currency symbol and token name.
+-}
+data Token = Token CurrencySymbol TokenName
+  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving anyclass (Pretty)
 
 {-| Values, as defined using Let are identified by name,
     and can be used by 'UseValue' construct.
@@ -128,7 +135,7 @@ newtype ValueId = ValueId ByteString
 
     Values can also be combined using addition, subtraction and negation.
 -}
-data Value = AvailableMoney AccountId
+data Value = AvailableMoney AccountId Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
@@ -177,7 +184,7 @@ data Bound = Bound Integer Integer
       Typically this would be done by one of the parties,
       or one of their wallets acting automatically.
 -}
-data Action = Deposit AccountId Party Value
+data Action = Deposit AccountId Party Token Value
             | Choice ChoiceId [Bound]
             | Notify Observation
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
@@ -209,7 +216,7 @@ data Case a = Case Action a
     it is possible that effects – payments – and warnings can be generated too.
 -}
 data Contract = Close
-              | Pay AccountId Payee Value Contract
+              | Pay AccountId Payee Token Value Contract
               | If Observation Contract Contract
               | When [Case Contract] Timeout Contract
               | Let ValueId Value Contract
@@ -219,7 +226,7 @@ data Contract = Close
 
 {-| Marlowe contract internal state. Stored in a /Data Script/ of a transaction output.
 -}
-data State = State { accounts    :: Map AccountId Ada
+data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
@@ -234,10 +241,10 @@ newtype Environment = Environment { slotInterval :: SlotInterval }
 
 {-| Input for a Marlowe contract. Correspond to expected 'Action's.
 -}
-data Input = IDeposit AccountId Party Money
+data Input = IDeposit AccountId Party Token Integer
            | IChoice ChoiceId ChosenNum
            | INotify
-  deriving stock (Show,P.Eq,P.Ord,Generic)
+  deriving stock (Show,P.Eq,Generic)
   deriving anyclass (Pretty)
 
 
@@ -273,9 +280,9 @@ data ReduceEffect = ReduceWithPayment Payment
 
 -- | Warning during 'reduceContractStep'
 data ReduceWarning = ReduceNoWarning
-                   | ReduceNonPositivePay AccountId Payee Integer
-                   | ReducePartialPay AccountId Payee Money Money
-                                   -- ^ src    ^ dest ^ paid ^ expected
+                   | ReduceNonPositivePay AccountId Payee Token Integer
+                   | ReducePartialPay AccountId Payee Token Integer Integer
+                                     -- ^ src    ^ dest                           ^ paid ^ expected
                    | ReduceShadowing ValueId Integer Integer
                                     -- oldVal ^  newVal ^
   deriving stock (Show)
@@ -296,7 +303,7 @@ data ReduceResult = ContractQuiescent [ReduceWarning] [Payment] State Contract
 
 -- | Warning of 'applyCases'
 data ApplyWarning = ApplyNoWarning
-                  | ApplyNonPositiveDeposit Party AccountId Integer
+                  | ApplyNonPositiveDeposit Party AccountId Token Integer
   deriving stock (Show)
 
 
@@ -314,10 +321,10 @@ data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contr
 
 
 -- | Warnings during transaction computation
-data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Integer
-                        | TransactionNonPositivePay AccountId Payee Integer
-                        | TransactionPartialPay AccountId Payee Money Money
-                                               -- ^ src    ^ dest ^ paid ^ expected
+data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token Integer
+                        | TransactionNonPositivePay AccountId Payee Token Integer
+                        | TransactionPartialPay AccountId Payee Token Integer Integer
+                                                -- ^ src    ^ dest    ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
   deriving stock (Show, Generic)
@@ -344,8 +351,6 @@ instance Pretty TransactionInput where
         where
             txIntLine = hang 2 $ text "txInterval = " <> prettyFragment (txInterval tInp) <> comma
             txInpLine = hang 2 $ text "txInputs = " <> prettyFragment (txInputs tInp) <> rbrace
-
-
 
 
 {-| Marlowe transaction output.
@@ -417,10 +422,7 @@ evalValue :: Environment -> State -> Value -> Integer
 evalValue env state value = let
     eval = evalValue env state
     in case value of
-        AvailableMoney accId ->
-            case Map.lookup accId (accounts state) of
-                Just x  -> Ada.getLovelace x
-                Nothing -> 0
+        AvailableMoney accId token -> moneyInAccount accId token (accounts state)
         Constant integer     -> integer
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
@@ -457,46 +459,46 @@ evalObservation env state obs = let
 
 
 -- | Pick the first account with money in it
-refundOne :: Map AccountId Money -> Maybe ((Party, Money), Map AccountId Money)
+refundOne :: Accounts -> Maybe ((Party, Money), Accounts)
 refundOne accounts = case Map.toList accounts of
     [] -> Nothing
-    (accId, balance) : rest ->
+    ((accId, Token cur tok), balance) : rest ->
         if balance > 0
-        then Just ((accountOwner accId, balance), Map.fromList rest)
+        then Just ((accountOwner accId, Val.singleton cur tok balance), Map.fromList rest)
         else refundOne (Map.fromList rest)
 
 
 -- | Obtains the amount of money available an account
-moneyInAccount :: AccountId -> Map AccountId Money -> Money
-moneyInAccount accId accounts = case Map.lookup accId accounts of
+moneyInAccount :: AccountId -> Token -> Accounts -> Integer
+moneyInAccount accId token accounts = case Map.lookup (accId, token) accounts of
     Just x  -> x
     Nothing -> 0
 
 
 -- | Sets the amount of money available in an account
-updateMoneyInAccount :: AccountId -> Money -> Map AccountId Money -> Map AccountId Money
-updateMoneyInAccount accId money =
-    if money <= 0 then Map.delete accId else Map.insert accId money
+updateMoneyInAccount :: AccountId -> Token -> Integer -> Accounts -> Accounts
+updateMoneyInAccount accId token amount =
+    if amount <= 0 then Map.delete (accId, token) else Map.insert (accId, token) amount
 
 
 -- Add the given amount of money to an accoun (only if it is positive)
 -- Return the updated Map
-addMoneyToAccount :: AccountId -> Money -> Map AccountId Money -> Map AccountId Money
-addMoneyToAccount accId money accounts = let
-    balance = moneyInAccount accId accounts
-    newBalance = balance + money
-    in if money <= 0 then accounts
-    else updateMoneyInAccount accId newBalance accounts
+addMoneyToAccount :: AccountId -> Token -> Integer -> Accounts -> Accounts
+addMoneyToAccount accId token amount accounts = let
+    balance = moneyInAccount accId token accounts
+    newBalance = balance + amount
+    in if amount <= 0 then accounts
+    else updateMoneyInAccount accId token newBalance accounts
 
 
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: Payee -> Money -> Map AccountId Money -> (ReduceEffect, Map AccountId Money)
-giveMoney payee money accounts = case payee of
-    Party party   -> (ReduceWithPayment (Payment party money), accounts)
+giveMoney :: Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
+giveMoney payee (Token cur tok) amount accounts = case payee of
+    Party party   -> (ReduceWithPayment (Payment party (Val.singleton cur tok amount)), accounts)
     Account accId -> let
-        newAccs = addMoneyToAccount accId money accounts
+        newAccs = addMoneyToAccount accId (Token cur tok) amount accounts
         in (ReduceNoPayment, newAccs)
 
 
@@ -510,21 +512,23 @@ reduceContractStep env state contract = case contract of
             in Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
         Nothing -> NotReduced
 
-    Pay accId payee val cont -> let
+    Pay accId payee tok val cont -> let
         amountToPay = evalValue env state val
         in  if amountToPay <= 0
-            then Reduced (ReduceNonPositivePay accId payee amountToPay) ReduceNoPayment state cont
+            then let
+                warning = ReduceNonPositivePay accId payee tok amountToPay
+                in Reduced warning ReduceNoPayment state cont
             else let
-                balance    = moneyInAccount accId (accounts state)
-                moneyToPay = Ada.lovelaceOf amountToPay -- always positive
-                paidMoney  = min balance moneyToPay
-                newBalance = balance - paidMoney
-                newAccs    = updateMoneyInAccount accId newBalance (accounts state)
-                warning = if paidMoney < moneyToPay
-                          then ReducePartialPay accId payee paidMoney moneyToPay
+                balance    = moneyInAccount accId tok (accounts state)
+                paidAmount = min balance amountToPay
+                newBalance = balance - paidAmount
+                newAccs = updateMoneyInAccount accId tok newBalance (accounts state)
+                warning = if paidAmount < amountToPay
+                          then ReducePartialPay accId payee tok paidAmount amountToPay
                           else ReduceNoWarning
-                (payment, finalAccs) = giveMoney payee paidMoney newAccs
-                in Reduced warning payment (state { accounts = finalAccs }) cont
+                (payment, finalAccs) = giveMoney payee tok paidAmount newAccs
+                newState = state { accounts = finalAccs }
+                in Reduced warning payment newState cont
 
     If obs cont1 cont2 -> let
         cont = if evalObservation env state obs then cont1 else cont2
@@ -574,19 +578,22 @@ reduceContractUntilQuiescent env state contract = let
 -- | Apply a single Input to the contract (assumes the contract is reduced)
 applyCases :: Environment -> State -> Input -> [Case Contract] -> ApplyResult
 applyCases env state input cases = case (input, cases) of
-    (IDeposit accId1 party1 money, Case (Deposit accId2 party2 val) cont : rest) -> let
-        amount = evalValue env state val
-        warning = if amount > 0
-            then ApplyNoWarning
-            else ApplyNonPositiveDeposit party1 accId2 amount
-        newState = state { accounts = addMoneyToAccount accId1 money (accounts state) }
-        in if accId1 == accId2 && party1 == party2 && Ada.getLovelace money == amount
-        then Applied warning newState cont
+    (IDeposit accId1 party1 tok1 amount,
+        Case (Deposit accId2 party2 tok2 val) cont : rest) ->
+        if accId1 == accId2 && party1 == party2 && tok1 == tok2
+                && amount == evalValue env state val
+        then let
+            warning = if amount > 0 then ApplyNoWarning
+                      else ApplyNonPositiveDeposit party2 accId2 tok2 amount
+            newAccounts = addMoneyToAccount accId1 tok1 amount (accounts state)
+            newState = state { accounts = newAccounts }
+            in Applied warning newState cont
         else applyCases env state input rest
-    (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) -> let
-        newState = state { choices = Map.insert choId1 choice (choices state) }
-        in if choId1 == choId2 && inBounds choice bounds
-        then Applied ApplyNoWarning newState cont
+    (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) ->
+        if choId1 == choId2 && inBounds choice bounds
+        then let
+            newState = state { choices = Map.insert choId1 choice (choices state) }
+            in Applied ApplyNoWarning newState cont
         else applyCases env state input rest
     (INotify, Case (Notify obs) cont : _)
         | evalObservation env state obs -> Applied ApplyNoWarning state cont
@@ -604,10 +611,10 @@ applyInput _ _ _ _                          = ApplyNoMatchError
 convertReduceWarnings :: [ReduceWarning] -> [TransactionWarning]
 convertReduceWarnings = foldr (\warn acc -> case warn of
     ReduceNoWarning -> acc
-    ReduceNonPositivePay accId payee amount ->
-        TransactionNonPositivePay accId payee amount : acc
-    ReducePartialPay accId payee paid expected ->
-        TransactionPartialPay accId payee paid expected : acc
+    ReduceNonPositivePay accId payee tok amount ->
+        TransactionNonPositivePay accId payee tok amount : acc
+    ReducePartialPay accId payee tok paid expected ->
+        TransactionPartialPay accId payee tok paid expected : acc
     ReduceShadowing valId oldVal newVal ->
         TransactionShadowing valId oldVal newVal : acc
     ) []
@@ -651,15 +658,15 @@ applyAllInputs env state contract inputs = let
     convertApplyWarning warn =
         case warn of
             ApplyNoWarning -> []
-            ApplyNonPositiveDeposit party accId amount ->
-                [TransactionNonPositiveDeposit party accId amount]
+            ApplyNonPositiveDeposit party accId tok amount ->
+                [TransactionNonPositiveDeposit party accId tok amount]
 
 
 -- | Extract necessary signatures from transaction inputs
 getSignatures :: [Input] -> TransactionSignatures
 getSignatures = foldl addSig (Map.empty())
   where
-    addSig acc (IDeposit _ p _)           = Map.insert p True acc
+    addSig acc (IDeposit _ p _ _)         = Map.insert p True acc
     addSig acc (IChoice (ChoiceId _ p) _) = Map.insert p True acc
     addSig acc INotify                    = acc
 
@@ -692,7 +699,7 @@ computeTransaction tx state contract = let
 contractLifespanUpperBound :: Contract -> Integer
 contractLifespanUpperBound contract = case contract of
     Close -> 0
-    Pay _ _ _ cont -> contractLifespanUpperBound cont
+    Pay _ _ _ _ cont -> contractLifespanUpperBound cont
     If _ contract1 contract2 ->
         max (contractLifespanUpperBound contract1) (contractLifespanUpperBound contract2)
     When cases timeout subContract -> let
@@ -701,8 +708,10 @@ contractLifespanUpperBound contract = case contract of
     Let _ _ cont -> contractLifespanUpperBound cont
 
 
-totalBalance :: Map AccountId Ada -> Ada
-totalBalance accounts = foldMap snd (Map.toList accounts)
+totalBalance :: Accounts -> Money
+totalBalance accounts = foldMap
+    (\((_, Token cur tok), balance) -> Val.singleton cur tok balance)
+    (Map.toList accounts)
 
 
 validatePayments :: PendingTx -> [Payment] -> Bool
@@ -710,10 +719,9 @@ validatePayments pendingTx txOutPayments = let
 
     collect outputs PendingTxOut{pendingTxOutValue,
         pendingTxOutType=PubKeyTxOut pubKey} = let
-        txOutInAda = Ada.fromValue pendingTxOutValue
         newValue = case Map.lookup pubKey outputs of
-            Just value -> value + txOutInAda
-            Nothing    -> txOutInAda
+            Just value -> value + pendingTxOutValue
+            Nothing    -> pendingTxOutValue
         in Map.insert pubKey newValue outputs
     collect outputs _ = outputs
 
@@ -723,16 +731,16 @@ validatePayments pendingTx txOutPayments = let
             Nothing    -> money
         in Map.insert party newValue payments
 
-    outputs = foldl collect (Map.empty ()) (pendingTxOutputs pendingTx)
+    outputs = foldl collect mempty (pendingTxOutputs pendingTx)
 
-    payments = foldl collectPayments (Map.empty ()) txOutPayments
+    payments = foldl collectPayments mempty txOutPayments
 
     listOfPayments :: [(Party, Money)]
     listOfPayments = Map.toList payments
 
     checkValidPayment (party, expectedPayment) =
         case Map.lookup party outputs of
-            Just value -> value >= expectedPayment
+            Just value -> value `Val.geq` expectedPayment
             Nothing    -> False
 
     in all checkValidPayment listOfPayments
@@ -746,7 +754,7 @@ validateBalances State{..} = all (\(_, balance) -> balance > 0) (Map.toList acco
 
 
 {-| Ensure that 'pendingTx' contains expected payments.   -}
-validateTxOutputs :: PendingTx -> Party -> Ada -> TransactionOutput -> Bool
+validateTxOutputs :: PendingTx -> Party -> Money -> TransactionOutput -> Bool
 validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxOutputs of
     TransactionOutput {txOutPayments, txOutState, txOutContract} ->
         case txOutContract of
@@ -762,7 +770,7 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
                         , pendingTxOutValue
                         }] | Just (DataValue ds) <- findData dsh pendingTx -> case PlutusTx.fromData ds of
                             Just (MarloweData expectedCreator expectedState expectedContract) -> let
-                                scriptOutputValue = Ada.fromValue pendingTxOutValue
+                                scriptOutputValue = pendingTxOutValue
                                 validContract = expectedCreator == creator
                                     && txOutState == expectedState
                                     && txOutContract == expectedContract
@@ -809,19 +817,17 @@ marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
         requiredSignatures = getSignatures inputs
         in checkSignatures pendingTx requiredSignatures
 
-    scriptInAmount = let
-        PendingTxIn _ _ scriptInValue = pendingTxIn
-        in Ada.fromValue scriptInValue
+    PendingTxIn _ _ scriptInValue = pendingTxIn
 
     -- total balance of all accounts in State
     -- accounts must be positive, and we checked it above
     inputBalance = totalBalance (accounts marloweState)
 
     -- ensure that a contract TxOut has at least what it suppose to have
-    balancesOk = inputBalance <= scriptInAmount
+    balancesOk = inputBalance `Val.leq` scriptInValue
 
     -- calculate contract creation deposit
-    deposit = scriptInAmount - inputBalance
+    deposit = scriptInValue - inputBalance
 
     preconditionsOk = checkCreator
         && positiveBalances
@@ -848,6 +854,9 @@ instance Eq ChoiceId where
     {-# INLINABLE (==) #-}
     (ChoiceId n1 p1) == (ChoiceId n2 p2) = n1 == n2 && p1 == p2
 
+instance Eq Token where
+    {-# INLINABLE (==) #-}
+    (Token n1 p1) == (Token n2 p2) = n1 == n2 && p1 == p2
 
 instance Eq ValueId where
     {-# INLINABLE (==) #-}
@@ -860,7 +869,6 @@ instance Read ValueId where
 
 instance Pretty ValueId where
     prettyFragment (ValueId n) = prettyFragment n
-
 
 instance Eq Payee where
     {-# INLINABLE (==) #-}
@@ -877,10 +885,10 @@ instance Eq Payment where
 instance Eq ReduceWarning where
     {-# INLINABLE (==) #-}
     ReduceNoWarning == ReduceNoWarning = True
-    (ReduceNonPositivePay acc1 p1 a1) == (ReduceNonPositivePay acc2 p2 a2) =
-        acc1 == acc2 && p1 == p2 && a1 == a2
-    (ReducePartialPay acc1 p1 a1 e1) == (ReducePartialPay acc2 p2 a2 e2) =
-        acc1 == acc2 && p1 == p2 && a1 == a2 && e1 == e2
+    (ReduceNonPositivePay acc1 p1 tn1 a1) == (ReduceNonPositivePay acc2 p2 tn2 a2) =
+        acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2
+    (ReducePartialPay acc1 p1 tn1 a1 e1) == (ReducePartialPay acc2 p2 tn2 a2 e2) =
+        acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2 && e1 == e2
     (ReduceShadowing v1 old1 new1) == (ReduceShadowing v2 old2 new2) =
         v1 == v2 && old1 == old2 && new1 == new2
     _ == _ = False
@@ -895,7 +903,8 @@ instance Eq ReduceEffect where
 
 instance Eq Value where
     {-# INLINABLE (==) #-}
-    AvailableMoney acc1 == AvailableMoney acc2 = acc1 == acc2
+    AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
+        acc1 == acc2 && tok1 == tok2
     Constant i1 == Constant i2 = i1 == i2
     NegValue val1 == NegValue val2 = val1 == val2
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
@@ -925,8 +934,8 @@ instance Eq Observation where
 
 instance Eq Action where
     {-# INLINABLE (==) #-}
-    Deposit acc1 party1 val1 == Deposit acc2 party2 val2 =
-        acc1 == acc2 && party1 == party2 && val1 == val2
+    Deposit acc1 party1 tok1 val1 == Deposit acc2 party2 tok2 val2 =
+        acc1 == acc2 && party1 == party2 && tok1 == tok2 && val1 == val2
     Choice cid1 bounds1 == Choice cid2 bounds2 =
         cid1 == cid2 && let
             bounds = zip bounds1 bounds2
@@ -939,8 +948,8 @@ instance Eq Action where
 instance Eq Contract where
     {-# INLINABLE (==) #-}
     Close == Close = True
-    Pay acc1 payee1 value1 cont1 == Pay acc2 payee2 value2 cont2 =
-        acc1 == acc2 && payee1 == payee2 && value1 == value2 && cont1 == cont2
+    Pay acc1 payee1 tok1 value1 cont1 == Pay acc2 payee2 tok2 value2 cont2 =
+        acc1 == acc2 && payee1 == payee2 && tok1 == tok2 && value1 == value2 && cont1 == cont2
     If obs1 cont1 cont2 == If obs2 cont3 cont4 =
         obs1 == obs2 && cont1 == cont3 && cont2 == cont4
     When cases1 timeout1 cont1 == When cases2 timeout2 cont2 =
@@ -967,6 +976,8 @@ makeLift ''AccountId
 makeIsData ''AccountId
 makeLift ''ChoiceId
 makeIsData ''ChoiceId
+makeLift ''Token
+makeIsData ''Token
 makeLift ''ValueId
 makeIsData ''ValueId
 makeLift ''Value

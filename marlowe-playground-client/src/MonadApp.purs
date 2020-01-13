@@ -278,7 +278,7 @@ updatePossibleActions oldState =
   addButPreserveActionInputs oldInputs actionInputIdx m actionInput = appendValue m oldInputs (actionPerson actionInput) actionInputIdx actionInput
 
   actionPerson :: ActionInput -> (Maybe PubKey)
-  actionPerson (DepositInput _ party _) = Just party
+  actionPerson (DepositInput _ party _ _) = Just party
 
   actionPerson (ChoiceInput choiceId _ _) = Just (choiceOwner choiceId)
 

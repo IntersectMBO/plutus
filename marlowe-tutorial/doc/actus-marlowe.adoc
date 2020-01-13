@@ -33,7 +33,7 @@ A zero-coupon bond is a debt security that does not pay interest (a
 coupon) but is issued at a discount, rendering profit at maturity
 when the bond is redeemed for its full face value.
 
-For example, an `investor` can buy a bond that costs 1000 Lovelace with 15% discount. She pays 850 Ada to the bond issuer before _start time_, here `10`.
+For example, an `investor` can buy a bond that costs 1000 Lovelace with 15% discount. She pays 850 Lovelace to the bond issuer before _start time_, here `10`.
 
 Later, after _maturity date_, time `20` here, the investor can exchange the bond for its full notional, i.e. 1000 Lovelace.
 
@@ -42,36 +42,36 @@ Later, after _maturity date_, time `20` here, the investor can exchange the bond
 When [
   (Case
      (Deposit
-        (AccountId 0 "investor") 
-        "investor"
+        (AccountId 0 "investor")
+        "investor" ada
         (Constant 850))
      (Pay
         (AccountId 0 "investor")
-        (Party "issuer")
+        (Party "issuer") ada
         (Constant 850)
         (When [
            (Case
               (Deposit
-                 (AccountId 0 "investor") 
-                 "issuer"
+                 (AccountId 0 "investor")
+                 "issuer" ada
                  (Constant 1000))
               (Pay
                  (AccountId 0 "investor")
-                 (Party "investor")
-                 (Constant 1000) 
+                 (Party "investor") ada
+                 (Constant 1000)
                  Close))
-            ] 
-            20 
+            ]
+            20
             Close)))
-     ] 
-     10 
+     ]
+     10
      Close
 ----
 
 This contract has a significant drawback. Once the `investor` has deposited the 850 Lovelace, it will be immediately paid to the `issuer` (if the `investor` does not invest in time, the contract ends). After that, two outcomes are possible
 
 * the `issuer` deposits 1000 Lovelace in the `investor`{empty}'s account, and that is then immediately paid to the `investor` in full;
-* if the `investor` doesn't make the deposit, then the contract is closed and all the money in the contract is refunded, but there is _no_ money in the contract at this point, so the `investor` loses her money. 
+* if the `investor` doesn't make the deposit, then the contract is closed and all the money in the contract is refunded, but there is _no_ money in the contract at this point, so the `investor` loses her money.
 
 How can we avoid this problem of the `issuer` defaulting?
 
@@ -81,7 +81,7 @@ to be a guarantor of the deal.
 ____
 *Exercise*
 
-Give a variant of the `+zeroCouponBond+` contract in which it is 
+Give a variant of the `+zeroCouponBond+` contract in which it is
 necessary for the `issuer` to put the full value of the up before the
 bond is issued.
 ____
@@ -98,26 +98,26 @@ ____
 
 === Guaranteed Coupon Bond Example
 
-This more complex bond involves an `investor` who deposits 1000 Ada, which is immediately paid to the `issuer`. The `issuer` then has to pay as interest 10 Ada every 10 slots. On maturity the investor should  receive back the interest plus the full value of the bond.
+This more complex bond involves an `investor` who deposits 1000 Lovelace, which is immediately paid to the `issuer`. The `issuer` then has to pay as interest 10 Lovelace every 10 slots. On maturity the investor should  receive back the interest plus the full value of the bond.
 
 [source,haskell]
 ----
 couponBondFor3Month12Percent =
-    -- investor deposits 1000 Ada
-    When [ Case (Deposit "investor" "investor" (Constant 1000))
+    -- investor deposits 1000 Lovelace
+    When [ Case (Deposit "investor" "investor" ada (Constant 1000))
         -- and pays it to the issuer
-        (Pay "investor" (Party "issuer") (Constant 1000)
-            -- after 10 slots expect to receive 10 Ada interest
-            (When [ Case (Deposit "investor" "issuer" (Constant 10))
+        (Pay "investor" (Party "issuer") ada (Constant 1000)
+            -- after 10 slots expect to receive 10 Lovelace interest
+            (When [ Case (Deposit "investor" "issuer" ada (Constant 10))
                 -- and pay it to the investor
-                (Pay "investor" (Party "investor" ) (Constant 10)
-                    -- same for 2nd 10 slots 
-                    (When [ Case (Deposit "investor" "issuer" (Constant 10))
-                        (Pay "investor" (Party "investor" ) (Constant 10)
+                (Pay "investor" (Party "investor" ) ada (Constant 10)
+                    -- same for 2nd 10 slots
+                    (When [ Case (Deposit "investor" "issuer" ada (Constant 10))
+                        (Pay "investor" (Party "investor" ) ada (Constant 10)
                             -- after maturity date investor
                             -- expects to receive notional + interest payment
-                            (When [ Case (Deposit "investor" "issuer" (Constant 1010))
-                                (Pay "investor" (Party "investor" ) (Constant 1010) Close)]
+                            (When [ Case (Deposit "investor" "issuer" ada (Constant 1010))
+                                (Pay "investor" (Party "investor" ) ada (Constant 1010) Close)]
                             (Slot 40)
                             Close))]
                     (Slot 30)

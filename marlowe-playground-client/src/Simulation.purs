@@ -6,7 +6,7 @@ import Ace.Types as Ace
 import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
 import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
 import Control.Alternative (map)
-import Data.Array (catMaybes, fromFoldable, head, sortBy)
+import Data.Array (catMaybes, concatMap, fromFoldable, head, sortBy)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
@@ -21,7 +21,6 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
-import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
 import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -31,14 +30,14 @@ import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, 
 import Halogen.HTML.Properties.ARIA (role)
 import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Ada(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
+import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, CurrencySymbol, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), Token(..), TokenName, TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _moneyInContract, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
 paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
@@ -296,7 +295,7 @@ inputComposerPerson isEnabled maybePerson actionInputs isLast =
       ]
   where
   inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
-  inputForAction index (DepositInput accountId party value) = Just $ inputDeposit isEnabled maybePerson index accountId party value
+  inputForAction index (DepositInput accountId party token value) = Just $ inputDeposit isEnabled maybePerson index accountId party token value
 
   inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled maybePerson index choiceId chosenNum bounds
 
@@ -309,29 +308,29 @@ inputDeposit ::
   Int ->
   AccountId ->
   Party ->
+  Token ->
   BigInteger ->
   HTML p HAction
-inputDeposit isEnabled person index accountId party value =
-  let
-    money = wrap value
-  in
-    flexRow_
-      $ [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ const $ Just
-                $ AddInput person (IDeposit accountId party money) []
-            ]
-            [ text "+"
-            ]
-        ]
-      <> (renderDeposit accountId party value)
+inputDeposit isEnabled person index accountId party token value =
+  flexRow_
+    $ [ button
+          [ class_ $ ClassName "composer-add-button"
+          , enabled isEnabled
+          , onClick $ const $ Just
+              $ AddInput person (IDeposit accountId party token value) []
+          ]
+          [ text "+"
+          ]
+      ]
+    <> (renderDeposit accountId party token value)
 
-renderDeposit :: forall p. AccountId -> Party -> BigInteger -> Array (HTML p HAction)
-renderDeposit (AccountId accountNumber accountOwner) party money =
+renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p HAction)
+renderDeposit (AccountId accountNumber accountOwner) party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
-  , spanText " ADA into Account "
+  , spanText " units of "
+  , b_ [ spanText (show tok) ]
+  , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
   , b_ [ spanText party ]
@@ -551,7 +550,7 @@ inputRow isEnabled idx (Tuple INotify person) =
         ]
     ]
 
-inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
+inputRow isEnabled idx (Tuple input@(IDeposit accountId party token money) person) =
   row_
     [ col_
         $ [ button
@@ -562,7 +561,7 @@ inputRow isEnabled idx (Tuple input@(IDeposit accountId party money) person) =
               [ text $ "- " <> show idx <> ":"
               ]
           ]
-        <> (renderDeposit accountId party (unwrap money))
+        <> (renderDeposit accountId party token money)
     ]
 
 inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
@@ -629,15 +628,6 @@ stateTitle state =
             ]
             [ view (_marloweState <<< _Head <<< _slot <<< to show <<< to text) state
             ]
-        , strong_
-            [ text "Money in contract:"
-            ]
-        , span
-            [ class_ $ ClassName "money-in-contract"
-            ]
-            [ view (_marloweState <<< _Head <<< _moneyInContract <<< to show <<< to text) state
-            ]
-        , strong_ [ text "ADA" ]
         ]
     ]
   where
@@ -655,16 +645,14 @@ statePane state =
 
 stateTable :: forall p. FrontendState -> HTML p HAction
 stateTable state =
-  div
-    [ class_ $ ClassName "full-width-card"
-    ]
+  div_
     [ card_
         [ cardBody_
             [ h3_
                 [ text "Accounts"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card-5" ] ]
                 [ if (Map.size accounts == 0) then
                     text "There are no accounts in the state"
                   else
@@ -674,7 +662,7 @@ stateTable state =
                 [ text "Choices"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card" ] ]
                 [ if (Map.size choices == 0) then
                     text "No choices have been recorded"
                   else
@@ -684,7 +672,7 @@ stateTable state =
                 [ text "Payments"
                 ]
             , div
-                [ class_ $ ClassName "state-row" ]
+                [ classes [ ClassName "state-row", ClassName "full-width-card-4" ] ]
                 [ if (Array.length payments == 0) then
                     text "No payments have been recorded"
                   else
@@ -694,7 +682,7 @@ stateTable state =
                 [ text "Let bindings"
                 ]
             , div
-                [ class_ $ ClassName "state-last-row" ]
+                [ classes [ ClassName "state-last-row", ClassName "full-width-card" ] ]
                 [ if (Map.size bindings == 0) then
                     text "No values have been bound"
                   else
@@ -712,7 +700,7 @@ stateTable state =
 
   bindings = state ^. _marloweState <<< _Head <<< _state <<< _boundValues
 
-renderAccounts :: forall p. Map AccountId Ada -> HTML p HAction
+renderAccounts :: forall p. Map (Tuple AccountId Token) BigInteger -> HTML p HAction
 renderAccounts accounts =
   table_
     [ colgroup []
@@ -730,6 +718,16 @@ renderAccounts accounts =
                 ]
                 [ text "Participant"
                 ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Currency symbol"
+                ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Token name"
+                ]
             , th_
                 [ text "Money"
                 ]
@@ -738,10 +736,10 @@ renderAccounts accounts =
     , tbody_ (map renderAccount accountList)
     ]
   where
-  accountList = Map.toUnfoldable accounts :: Array (Tuple AccountId Ada)
+  accountList = Map.toUnfoldable accounts :: Array (Tuple (Tuple AccountId Token) BigInteger)
 
-renderAccount :: forall p. Tuple AccountId Ada -> HTML p HAction
-renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
+renderAccount :: forall p. Tuple (Tuple AccountId Token) BigInteger -> HTML p HAction
+renderAccount (Tuple (Tuple (AccountId accountNumber accountOwner) (Token currSym tokName)) value) =
   tr []
     [ td_
         [ text (show accountNumber)
@@ -750,6 +748,16 @@ renderAccount (Tuple (AccountId accountNumber accountOwner) value) =
         [ class_ $ ClassName "middle-column"
         ]
         [ text (show accountOwner)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show currSym)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show tokName)
         ]
     , td_
         [ text (show value)
@@ -814,20 +822,56 @@ renderPayments payments =
                 [ text "Party"
                 ]
             , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Currency symbol"
+                ]
+            , th
+                [ class_ $ ClassName "middle-column"
+                ]
+                [ text "Token name"
+                ]
+            , th
                 [ class_ $ ClassName "left-border-column"
                 ]
                 [ text "Money"
                 ]
             ]
         ]
-    , tbody_ (map renderPayment payments)
+    , tbody_ (flattenPayments payments)
     ]
 
-renderPayment :: forall p. Payment -> HTML p HAction
-renderPayment (Payment party money) =
+flattenPayments :: forall p. Array Payment -> Array (HTML p HAction)
+flattenPayments payments =
+  concatMap
+    ( \(Payment party (Assets mon)) ->
+        concatMap
+          ( \(Tuple curr toks) ->
+              map
+                ( \(Tuple tok val) ->
+                    renderPayment party curr tok val
+                )
+                $ Map.toUnfoldable toks
+          )
+          $ Map.toUnfoldable mon
+    )
+    payments
+
+renderPayment :: forall p. Party -> CurrencySymbol -> TokenName -> BigInteger -> HTML p HAction
+renderPayment party currSym tokName money =
   tr []
     [ td_
         [ text party
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show currSym)
+        ]
+    , td
+        [ class_ $ ClassName "middle-column"
+        ]
+        [ text (show tokName)
         ]
     , td
         [ class_ $ ClassName "left-border-column"
@@ -1009,12 +1053,14 @@ displayInputList inputList =
     )
 
 displayInput :: forall p. Input -> Array (HTML p HAction)
-displayInput (IDeposit (AccountId accNum owner) party (Lovelace money)) =
+displayInput (IDeposit (AccountId accNum owner) party tok money) =
   [ b_ [ text "IDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " deposits "
-  , b_ [ text ((show money) <> " Lovelace") ]
+  , b_ [ text $ show money ]
+  , text " units of "
+  , b_ [ text $ show tok ]
   , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
@@ -1064,21 +1110,25 @@ displayWarnings warnings =
     ]
 
 displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
-displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) (Lovelace amount)) =
+displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
   [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "
   , b_ [ text $ show party ]
   , text " is asked to deposit "
-  , b_ [ text ((show amount) <> " Lovelace") ]
+  , b_ [ text $ show amount ]
+  , text " units of "
+  , b_ [ text $ show tok ]
   , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
   ]
 
-displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovelace amount)) =
+displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
   [ b_ [ text "TransactionNonPositivePay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show amount) <> " Lovelace") ]
+  , b_ [ text $ show amount ]
+  , text " units of "
+  , b_ [ text $ show tok ]
   , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
@@ -1090,10 +1140,12 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee (Lovela
   , text "."
   ]
 
-displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace amount) (Lovelace expected)) =
+displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
   [ b_ [ text "TransactionPartialPay" ]
   , text " - The contract is suppoused to make a payment of "
-  , b_ [ text ((show expected) <> " Lovelace") ]
+  , b_ [ text $ show expected ]
+  , text " units of "
+  , b_ [ text $ show tok ]
   , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
@@ -1103,7 +1155,7 @@ displayWarning (TransactionPartialPay (AccountId accNum owner) payee (Lovelace a
           (Party dest) -> ("party " <> (show dest))
       ]
   , text " but there is only "
-  , b_ [ text ((show amount) <> " Lovelace") ]
+  , b_ [ text $ show amount ]
   , text "."
   ]
 

@@ -8,13 +8,12 @@ particular shows how to exercise a contract using the semantics given earlier.
 
 === Marlowe in Haskell
 
-This tutorial works in version 3.0 of Marlowe which can be found under
-semantics-3.0 in the `+master+` branch of the repository:
+This tutorial works in version 3.0 of Marlowe which can be found in the `+master+` branch of the repository:
 
 [source,bash]
 ----
 git clone https://github.com/input-output-hk/marlowe.git
-cd semantics-3.0
+cd marlowe
 ----
 
 === Stepping through contracts
@@ -71,12 +70,12 @@ to make local bindings:
 [,haskell]
 ----
 Prelude> :set -XOverloadedStrings
-Prelude> :l Language/Marlowe/Examples/EscrowSimpleV2.hs 
+Prelude> :l Language/Marlowe/Examples/EscrowSimpleV2.hs
  ...
-*Lang...V2> let (TransactionOutput txWarn1 txPay1 state1 con1) = computeTransaction (TransactionInput (SlotInterval 0 0) [IDeposit "alice" "alice" 450]) (emptyState 0) contract
+*Lang...V2> let (TransactionOutput txWarn1 txPay1 state1 con1) = computeTransaction (TransactionInput (0, 0) [IDeposit "alice" "alice" ada 450]) (emptyState 0) contract
 ----
 
-In doing this we have pattern matched the output of an application of `computeTransaction`, which takes three inputs: the second is an initial state (at slot number 0) and the third is the initial escrow contract. The first is a `TransactionInput` which contains a `SlotInterval` – here `SlotInterval 0 0` – and a deposit of 450 Lovelace from `"alice"` into her account `"alice"` namely `IDeposit "alice" "alice" 450`.
+In doing this we have pattern matched the output of an application of `computeTransaction`, which takes three inputs: the second is an initial state (at slot number 0) and the third is the initial escrow contract. The first is a `TransactionInput` which contains a `SlotInterval` – here `SlotInterval 0 0` – and a deposit of 450 Lovelace from `"alice"` into her account `"alice"` namely `IDeposit "alice" "alice" ada 450`.
 
 NOTE: If you want to try this for yourself in ghci, you can copy and paste from the code examples: they are in horizontally scrolling windows.
 
@@ -89,9 +88,9 @@ The output is matched with `TransactionOutput txWarn1 txPay1 state1 con1` so tha
 *Lang...V2> txPay1
 []
 *Lang...V2> state1
-State {accounts = fromList [(AccountId 0 "alice",450)], choices = fromList [], boundValues = fromList [], minSlot = 0}
+State {accounts = fromList [((AccountId 0 "alice", ada), 450)], choices = fromList [], boundValues = fromList [], minSlot = 0}
 *Lang...V2> con1
-When [Case (Choice (ChoiceId "choice" "alice") [Bound 0 1]) 
+When [Case (Choice (ChoiceId "choice" "alice") [Bound 0 1])
  ...
 ----
 This shows that the transaction generates no warnings or payments, but updates the state to show the balance in the account `"alice"`, and updates the contract, ready to receive a choice from Alice or Bob.
@@ -102,7 +101,7 @@ In the next state the contract is waiting for input, and if both Alice and Bob a
 ----
 *Lang...V2> let (TransactionOutput txWarn2 txPay2 state2 con2) = computeTransaction (TransactionInput (SlotInterval 0 0) [IChoice (ChoiceId "choice" "alice") 0, IChoice (ChoiceId "choice" "bob") 0]) state1 con1
 *Lang...V2> txPay2
-[Payment "bob" 450]
+[Payment "bob" ada 450]
 *Lang...V2> con2
 Close
 *Lang...V2> state2
@@ -128,9 +127,9 @@ An alternative execution of the contract is given by
 ----
 *Lang...V2> let (TransactionOutput txWarn2 txPay2 state2 con2) = computeTransaction (TransactionInput (SlotInterval 0 0) [IChoice (ChoiceId "choice" "alice") 0, IChoice (ChoiceId "choice" "bob") 1]) state1 con1
 *Lang...V2> con2
-When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Close,Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay (AccountId 0 "alice") (Party "bob") (Constant 450) Close)] 100 Close
+When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Close, Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay (AccountId 0 "alice") (Party "bob") ada (Constant 450) Close)] 100 Close
 *Lang...V2> state2
-State {accounts = fromList [(AccountId 0 "alice",450)], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",1)], boundValues = fromList [] , minSlot = 0}
+State {accounts = fromList [((AccountId 0 "alice", ada), 450)], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",1)], boundValues = fromList [] , minSlot = 0}
 ----
 
 This shows that we're now in a contract where the choice is up to Carol, and that there is still the 450 Lovelace in the `"alice"` account.
@@ -141,7 +140,7 @@ This shows that we're now in a contract where the choice is up to Carol, and tha
 ----
 *Lang...V2> let (TransactionOutput txWarn3 txPay3 state3 con3) = computeTransaction  (TransactionInput (SlotInterval 0 0) [IChoice (ChoiceId "choice" "carol") 1]) state2 con2
 *Lang...V2> txPay3
-[Payment "alice" 450]
+[Payment "alice" ada 450]
 *Lang...V2> con3
 Close
 *Lang...V2> state3
