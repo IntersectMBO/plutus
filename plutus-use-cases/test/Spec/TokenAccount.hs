@@ -1,7 +1,8 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE ExplicitForAll    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module Spec.TokenAccount(tests) where
+module Spec.TokenAccount(tests, assertAccountBalance) where
 
 import           Test.Tasty
 
@@ -63,8 +64,16 @@ tokenName = "test token"
 
 account :: Account
 account =
-    let currencySymbol = "5c3fc9c923c688c6521d911c2996fe7616044e57fc8eaacb5776ef13e396d016"
+    let currencySymbol = "b66fb1a5ce1f188099d40edfc5bc4bacb79e478fc1d3a8c204efd524eaa21e5f"
     in Account (currencySymbol, tokenName)
 
 theToken :: Value
 theToken = Accounts.accountToken account
+
+-- | Check that the balance of the given account satisfies a predicate.
+assertAccountBalance
+    :: forall s e a.
+       Account
+    -> (Value -> Bool)
+    -> TracePredicate s e a
+assertAccountBalance acc = fundsAtAddress (Accounts.address acc)

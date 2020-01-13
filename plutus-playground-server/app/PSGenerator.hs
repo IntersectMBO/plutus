@@ -188,7 +188,7 @@ headersBridge :: BridgePart
 headersBridge = do
     typeModule ^== "Servant.API.ResponseHeaders"
     typeName ^== "Headers"
-  -- | Headers should have two parameters, the list of headers and the return type.
+    -- Headers should have two parameters, the list of headers and the return type.
     psTypeParameters >>= \case
         [_, returnType] -> pure returnType
         _ -> empty

@@ -25,7 +25,6 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
-import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import FileEvents as FileEvents
@@ -35,7 +34,6 @@ import Global.Unsafe (unsafeStringify)
 import Halogen (HalogenM, liftAff, liftEffect, query, raise)
 import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
-import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
@@ -55,10 +53,11 @@ class
   Monad m <= MonadApp m where
   haskellEditorSetValue :: String -> Maybe Int -> m Unit
   haskellEditorGetValue :: m (Maybe String)
+  haskellEditorHandleAction :: Editor.Action -> m Unit
   haskellEditorSetAnnotations :: Array Annotation -> m Unit
-  haskellEditorGotoLine :: Int -> Maybe Int -> m Unit
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
+  marloweEditorHandleAction :: Editor.Action -> m Unit
   marloweEditorSetAnnotations :: Array Annotation -> m Unit
   marloweEditorMoveCursorToPosition :: Ace.Position -> m Unit
   preventDefault :: DragEvent -> m Unit
@@ -107,24 +106,27 @@ instance monadAppHalogenApp ::
   , MonadAff m
   ) =>
   MonadApp (HalogenApp m) where
-  haskellEditorSetValue contents i = void $ withHaskellEditor $ AceEditor.setValue contents i
-  haskellEditorGetValue = withHaskellEditor AceEditor.getValue
+  haskellEditorSetValue contents i = void $ withHaskellEditor $ liftEffect <<< AceEditor.setValue contents i
+  haskellEditorGetValue = withHaskellEditor $ liftEffect <<< AceEditor.getValue
+  haskellEditorHandleAction action = void $ withHaskellEditor $ Editor.handleAction bufferLocalStorageKey action
   haskellEditorSetAnnotations annotations =
     void
-      $ withHaskellEditor \editor -> do
-          session <- AceEditor.getSession editor
-          Session.setAnnotations annotations session
-  haskellEditorGotoLine row column = void $ withHaskellEditor $ AceEditor.gotoLine row column (Just true)
-  marloweEditorSetValue contents i = void $ withMarloweEditor $ AceEditor.setValue contents i
-  marloweEditorGetValue = withMarloweEditor AceEditor.getValue
+      $ withHaskellEditor \editor ->
+          liftEffect do
+            session <- AceEditor.getSession editor
+            Session.setAnnotations annotations session
+  marloweEditorSetValue contents i = void $ withMarloweEditor $ liftEffect <<< AceEditor.setValue contents i
+  marloweEditorGetValue = withMarloweEditor $ liftEffect <<< AceEditor.getValue
+  marloweEditorHandleAction action = void $ withMarloweEditor (Editor.handleAction marloweBufferLocalStorageKey action)
   marloweEditorSetAnnotations annotations =
     void
-      $ withMarloweEditor \editor -> do
-          session <- AceEditor.getSession editor
-          Session.setAnnotations annotations session
+      $ withMarloweEditor \editor ->
+          liftEffect do
+            session <- AceEditor.getSession editor
+            Session.setAnnotations annotations session
   marloweEditorMoveCursorToPosition (Ace.Position { column, row }) = do
-    void $ withMarloweEditor $ AceEditor.focus
-    void $ withMarloweEditor $ AceEditor.navigateTo (row - 1) (column - 1)
+    void $ withMarloweEditor $ liftEffect <<< AceEditor.focus
+    void $ withMarloweEditor $ liftEffect <<< AceEditor.navigateTo (row - 1) (column - 1)
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = do
@@ -142,8 +144,8 @@ instance monadAppHalogenApp ::
     wrap $ assign _marloweState $ NEL.singleton (emptyMarloweState zero)
     wrap $ assign _oldContract Nothing
     updateContractInStateImpl $ fromMaybe "" newContract
-  saveBuffer text = wrap $ liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
-  saveMarloweBuffer text = wrap $ liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
+  saveBuffer text = wrap $ Editor.saveBuffer bufferLocalStorageKey text
+  saveMarloweBuffer text = wrap $ Editor.saveBuffer marloweBufferLocalStorageKey text
   getOauthStatus = runAjax Server.getOauthStatus
   getGistByGistId gistId = runAjax $ Server.getGistsByGistId gistId
   postGist newGist = runAjax $ Server.postGists newGist
@@ -175,7 +177,7 @@ saveInitialState' = do
     )
 
 marloweEditorGetValue' :: forall m. MonadEffect m => HalogenApp m (Maybe String)
-marloweEditorGetValue' = withMarloweEditor AceEditor.getValue
+marloweEditorGetValue' = withMarloweEditor $ liftEffect <<< AceEditor.getValue
 
 updateContractInState' :: forall m. String -> HalogenApp m Unit
 updateContractInState' contract = modifying _currentMarloweState (updateStateP <<< updateContractInStateP contract)
@@ -194,7 +196,7 @@ saveInitialStateImpl = do
     )
 
 marloweEditorGetValueImpl :: forall m. MonadEffect m => HalogenApp m (Maybe String)
-marloweEditorGetValueImpl = withMarloweEditor AceEditor.getValue
+marloweEditorGetValueImpl = withMarloweEditor $ liftEffect <<< AceEditor.getValue
 
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
@@ -211,14 +213,14 @@ runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 withHaskellEditor ::
   forall m a.
   MonadEffect m =>
-  (Editor -> Effect a) ->
+  (Editor -> m a) ->
   HalogenApp m (Maybe a)
 withHaskellEditor = HalogenApp <<< Editor.withEditor _haskellEditorSlot unit
 
 withMarloweEditor ::
   forall m a.
   MonadEffect m =>
-  (Editor -> Effect a) ->
+  (Editor -> m a) ->
   HalogenApp m (Maybe a)
 withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 

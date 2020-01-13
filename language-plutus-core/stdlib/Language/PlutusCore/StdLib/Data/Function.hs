@@ -210,7 +210,7 @@ fixBy = runQuote $ do
         lamAbs () fr frTy $
         apply () (tyInst () inner (TyVar () r)) (var () fr)
 
--- | Make a @n@-ary fixpoint combinator.
+-- | Make a @n@-ary fixpoint combinator, along with its type.
 --
 -- > FixN n :
 -- >     forall A1 B1 ... An Bn :: * .
@@ -221,18 +221,30 @@ fixBy = runQuote $ do
 -- >         (An -> Bn) ->
 -- >         Q) ->
 -- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
-fixN :: TermLike term TyName Name => Int -> term ()
+fixN :: TermLike term TyName Name => Integer -> (term (), Type TyName ())
 fixN n = runQuote $ do
     -- the list of pairs of A and B types
-    asbs <- replicateM n $ do
+    asbs <- replicateM (fromIntegral n) $ do
         a <- freshTyName () "a"
         b <- freshTyName () "b"
         pure (a, b)
 
     let abFuns = fmap (\(a, b) -> TyFun () (TyVar () a) (TyVar () b)) asbs
+    let abTyVars = concatMap (\(a, b) -> [ TyVarDecl () a (Type ()), TyVarDecl () b (Type ())]) asbs
 
     -- funTysTo X = (A1 -> B1) -> ... -> (An -> Bn) -> X
     let funTysTo = mkIterTyFun () abFuns
+
+    -- the type of fixN, as in the header comment
+    fixNType <- do
+        q <- freshTyName () "Q"
+        let qvar = TyVar () q
+        let argTy = TyForall () q (Type ()) (TyFun () (funTysTo qvar) (funTysTo qvar))
+        r <- freshTyName () "R"
+        let rvar = TyVar () r
+        let resTy = TyForall () r (Type ()) (TyFun () (funTysTo rvar) rvar)
+        let fullTy = mkIterTyForall abTyVars $ TyFun () argTy resTy
+        pure fullTy
 
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
@@ -278,32 +290,33 @@ fixN n = runQuote $ do
 
     -- [A1, B1, ..., An, Bn]
     let allAsBs = foldMap (\(a, b) -> [a, b]) asbs
-    pure $
-        -- abstract out all the As and Bs
-        mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
-        lamAbs () f fTy $
-        mkIterApp () instantiatedFix
-            [ lamAbs () k kTy $
-              tyAbs () s (Type ()) $
-              lamAbs () h hTy $
-              mkIterApp () (var () h) branches
-            , var () f
-            ]
+    let fixNTerm =
+          -- abstract out all the As and Bs
+          mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
+          lamAbs () f fTy $
+          mkIterApp () instantiatedFix
+              [ lamAbs () k kTy $
+                tyAbs () s (Type ()) $
+                lamAbs () h hTy $
+                mkIterApp () (var () h) branches
+              , var () f
+              ]
+    pure (fixNTerm, fixNType)
 
 -- | Get the fixed-point of a list of mutually recursive functions.
 --
--- > MutualFixOf _ [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
--- >                         , ...
--- >                         , FunctionDef _ fNn (FunctionType _ an bn) fn
--- >                         ] =
+-- > MutualFixOf _ fixN [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
+-- >                    , ...
+-- >                    , FunctionDef _ fNn (FunctionType _ an bn) fn
+-- >                    ] =
 -- >     Tuple [(a1 -> b1) ... (an -> bn)] $
 -- >         fixN {a1} {b1} ... {an} {bn}
 -- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
 -- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
 getMutualFixOf
-    :: (TermLike term TyName Name, Functor term)
-    => ann -> [FunctionDef term TyName Name ann] -> Quote (Tuple term ann)
-getMutualFixOf ann funs = do
+    :: (TermLike term TyName Name)
+    => ann -> term ann -> [FunctionDef term TyName Name ann] -> Quote (Tuple term ann)
+getMutualFixOf ann fixn funs = do
     let funTys = map functionDefToType funs
 
     q <- liftQuote $ freshTyName ann "Q"
@@ -322,7 +335,7 @@ getMutualFixOf ann funs = do
     -- fixN {A1} {B1} ... {An} {Bn}
     instantiatedFix <- do
         let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
-        pure $ mkIterInst ann (ann <$ fixN (length funs)) domCods
+        pure $ mkIterInst ann fixn domCods
 
     let term = apply ann instantiatedFix cLam
 

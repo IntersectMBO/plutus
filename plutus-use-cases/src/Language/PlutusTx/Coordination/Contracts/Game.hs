@@ -51,12 +51,12 @@ import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx as PlutusTx
 import Language.PlutusTx.Prelude
 import Ledger
-    ( Ada
-    , Address
+    ( Address
     , DataValue
     , PendingTx
     , RedeemerValue
     , Validator
+    , Value
     )
 import Ledger.Typed.Scripts (wrapValidator)
 import Schema (ToSchema, ToArgument)
@@ -80,7 +80,7 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
--- | The validator (datavalue -> redeemer -> PendingTx -> Bool)
+-- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
@@ -108,44 +108,43 @@ gameAddress = Ledger.scriptAddress gameValidator
 -- | Parameters for the "lock" endpoint
 data LockParams = LockParams
     { secretWord :: String
-    , amount     :: Ada
+    , amount     :: Value
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
-    deriving stock (Prelude.Eq, Prelude.Ord, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
-
-guess :: AsContractError e => Contract GameSchema e ()
-guess = do
-    GuessParams theGuess <- endpoint @"guess" @GuessParams
-    mp <- utxoAt gameAddress
-    let redeemer = gameRedeemerValue theGuess
-        tx       = collectFromScript mp gameValidator redeemer
-    void (submitTx tx)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
+    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
 
 lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let
-        vl         = Ada.toValue amt
-        dataValue = gameDataScript secret
-        tx         = payToScript vl (Ledger.scriptAddress gameValidator) dataValue
+        dataValue  = gameDataScript secret
+        tx         = payToScript amt gameAddress dataValue
+    void (submitTx tx)
+
+guess :: AsContractError e => Contract GameSchema e ()
+guess = do
+    GuessParams theGuess <- endpoint @"guess" @GuessParams
+    unspentOutputs <- utxoAt gameAddress
+    let redeemer = gameRedeemerValue theGuess
+        tx       = collectFromScript unspentOutputs gameValidator redeemer
     void (submitTx tx)
 
 game :: AsContractError e => Contract GameSchema e ()
-game = guess <|> lock
+game = lock <|> guess
 
 lockTrace
     :: ( MonadEmulator (TraceError e) m )
     => ContractTrace GameSchema e m () ()
 lockTrace =
     let w1 = Trace.Wallet 1 in
-    Trace.callEndpoint @"lock" w1 (LockParams "secret" 10)
+    Trace.callEndpoint @"lock" w1 (LockParams "secret" (Ada.lovelaceValueOf 10))
         >> Trace.handleBlockchainEvents w1
 
 guessTrace

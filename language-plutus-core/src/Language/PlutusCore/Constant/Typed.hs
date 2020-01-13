@@ -257,12 +257,6 @@ newtype ReflectT m a = ReflectT
         )
       deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
 
--- Uses the 'Alternative' instance of 'EvaluationResult'.
-instance Monad m => Alternative (ReflectT m) where
-    empty = ReflectT . lift $ yield empty
-    ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
-        ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
-
 -- | Run a 'ReflectT' computation.
 runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
 runReflectT = unInnerT . runExceptT . unReflectT

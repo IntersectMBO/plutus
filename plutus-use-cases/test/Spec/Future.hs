@@ -1,32 +1,34 @@
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-module Spec.Future(tests) where
+module Spec.Future(tests, theFuture, accounts) where
 
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
+import qualified Test.Tasty.HUnit                                      as HUnit
 
-import qualified Spec.Lib                                        as Lib
+import qualified Spec.Lib                                              as Lib
+import           Spec.TokenAccount                                     (assertAccountBalance)
 
+import           Ledger                                                (OracleValue (..))
 import qualified Ledger
-import           Ledger                                          (OracleValue(..))
-import qualified Ledger.Ada                                      as Ada
-import           Ledger.Crypto                                   (PubKey (..))
-import           Ledger.Value                                    (CurrencySymbol, Value, scale)
+import qualified Ledger.Ada                                            as Ada
+import           Ledger.Crypto                                         (PubKey (..))
+import           Ledger.Value                                          (CurrencySymbol, Value, scale)
 
 import           Language.Plutus.Contract.Test
-import qualified Language.PlutusTx                               as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureSchema, FutureSetup(..), FutureAccounts(..), Role(..), FutureError)
-import qualified Language.PlutusTx.Coordination.Contracts.Future as F
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (assertAccountBalance, Account(..))
+import qualified Language.PlutusTx                                     as PlutusTx
+import           Language.PlutusTx.Coordination.Contracts.Future       (Future (..), FutureAccounts (..), FutureError,
+                                                                        FutureSchema, FutureSetup (..), Role (..))
+import qualified Language.PlutusTx.Coordination.Contracts.Future       as F
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import           Language.PlutusTx.Lattice
 
 tests :: TestTree
@@ -101,7 +103,7 @@ theFuture = Future {
 
 -- | This is the address of contract 'theFuture', initialised by wallet 1
 tokenCurrency :: CurrencySymbol
-tokenCurrency = "b7a5934310d0aeb07cb3fb6c728e43cf736a3c6e42410f50461d28b822405272"
+tokenCurrency = "16e2b431d9907e229c7a27387a15ba667363e230084132292ff9e646e45f1d51"
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.

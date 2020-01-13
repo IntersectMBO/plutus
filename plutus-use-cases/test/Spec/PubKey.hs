@@ -1,8 +1,6 @@
 module Spec.PubKey(tests) where
 
-import           Control.Lens
 import           Control.Monad                                   (void)
-import qualified Data.Set                                        as Set
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
@@ -20,7 +18,7 @@ w1 = Wallet 1
 theContract :: Contract BlockchainActions ContractError ()
 theContract = do
   txin <- pubKeyContract (walletPubKey w1) (Ada.lovelaceValueOf 10)
-  void $ submitTx $ mempty & inputs .~ Set.singleton txin
+  void $ submitTx $ mustSpendInput txin
 
 tests :: TestTree
 tests = testGroup "pubkey"

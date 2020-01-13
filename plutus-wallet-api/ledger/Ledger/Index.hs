@@ -101,6 +101,8 @@ data ValidationError =
     -- ^ The amount spent by the transaction differs from the amount consumed by it.
     | NegativeValue Tx
     -- ^ The transaction produces an output with a negative value.
+    | NonAdaFees Tx
+    -- ^ The fee is not denominated entirely in Ada.
     | ScriptFailure ScriptError
     -- ^ For pay-to-script outputs: evaluation of the validator script failed.
     | CurrentSlotOutOfRange Slot.Slot
@@ -110,7 +112,7 @@ data ValidationError =
     | ForgeWithoutScript Scripts.ValidatorHash
     -- ^ The transaction attempts to forge value of a currency without spending
     --   a script output from the address of the currency's monetary policy.
-    | TransactionFeeTooLow Ada.Ada Ada.Ada
+    | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
     deriving (Eq, Show, Generic)
 
@@ -145,6 +147,7 @@ validateTransaction h t = do
     _ <- checkSlotRange h t
     _ <- checkValuePreserved t
     _ <- checkPositiveValues t
+    _ <- checkFeeIsAda t
 
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
@@ -264,7 +267,7 @@ checkMatch pendingTx = \case
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
     inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
-    let outVal = Ada.toValue (txFee t) P.+ foldMap txOutValue (txOutputs t)
+    let outVal = txFee t P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
     else throwError $ ValueNotPreserved inVal outVal
@@ -276,15 +279,22 @@ checkPositiveValues t =
     then pure ()
     else throwError $ NegativeValue t
 
+-- | Check if the fees are paid exclusively in Ada.
+checkFeeIsAda :: ValidationMonad m => Tx -> m ()
+checkFeeIsAda t =
+    if (Ada.toValue $ Ada.fromValue $ txFee t) == txFee t
+    then pure ()
+    else throwError $ NonAdaFees t
+
 -- | Minimum transaction fee.
-minFee :: Tx -> Ada.Ada
-minFee = const (Ada.lovelaceOf 0)
+minFee :: Tx -> V.Value
+minFee = const mempty
 
 -- | Check that transaction fee is bigger than the minimum fee.
 --   Skip the check on the first transaction (no inputs).
 checkTransactionFee :: ValidationMonad m => Tx -> m ()
 checkTransactionFee tx =
-    if minFee tx <= txFee tx
+    if minFee tx `V.leq` txFee tx
     then pure ()
     else throwError $ TransactionFeeTooLow (txFee tx) (minFee tx)
 

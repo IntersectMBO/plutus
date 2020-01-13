@@ -23,7 +23,7 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Editor (EditorAction)
+import Editor as Editor
 import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
@@ -51,13 +51,15 @@ data HAction
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
   | MarloweMoveToPosition Ace.Position
-  | HaskellEditorAction EditorAction
+  | HaskellEditorAction Editor.Action
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
   -- haskell actions
+  | CompileHaskellProgram
   | ChangeView View
   | SendResult
+  | LoadHaskellScript String
   | LoadMarloweScript String
   -- marlowe actions
   | ApplyTransaction
@@ -110,6 +112,7 @@ instance showView :: Show View where
 newtype FrontendState
   = FrontendState
   { view :: View
+  , editorPreferences :: Editor.Preferences
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult RunResult))
   , marloweCompileResult :: Either (Array MarloweError) Unit
   , authStatus :: WebData AuthStatus
@@ -129,6 +132,9 @@ data MarloweError
 
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
+
+_editorPreferences :: Lens' FrontendState Editor.Preferences
+_editorPreferences = _Newtype <<< prop (SProxy :: SProxy "editorPreferences")
 
 _compilationResult :: Lens' FrontendState (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")

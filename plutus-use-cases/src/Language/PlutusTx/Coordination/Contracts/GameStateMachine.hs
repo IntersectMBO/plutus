@@ -46,7 +46,6 @@ import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Tx as Tx
-import qualified Prelude as Haskell
 
 newtype HashedString = HashedString ByteString
     deriving newtype PlutusTx.IsData
@@ -183,23 +182,23 @@ machineInstance :: SM.StateMachineInstance GameState GameInput
 machineInstance = SM.StateMachineInstance machine scriptInstance
 
 -- | Allocate the funds for each transition.
-allocate :: GameState -> GameInput -> Value -> ValueAllocation
-allocate (Initialised _) (ForgeToken _) currentVal =
-    ValueAllocation
+allocate :: GameState -> GameInput -> Value -> Maybe ValueAllocation
+allocate (Initialised _) (ForgeToken _) currentVal = 
+    Just $ ValueAllocation
         { vaOwnAddress    = currentVal
         -- use 'Tx.forgeValue' to ensure that the transaction forges
         -- the token.
         , vaOtherPayments = Tx.forgeValue gameTokenVal
         }
 allocate (Locked _ _) (Guess _ _ takenOut) currentVal =
-    ValueAllocation
+    Just $ ValueAllocation
         { vaOwnAddress = currentVal - takenOut
         -- use 'Tx.moveValue' to ensure that the transaction includes
         -- the token. When the transaction is submitted the wallet will
         -- add the token as an input and as an output.
         , vaOtherPayments = Tx.moveValue gameTokenVal
         }
-allocate _ _ _ = Haskell.mempty
+allocate _ _ _ = Nothing
 
 client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient machineInstance allocate

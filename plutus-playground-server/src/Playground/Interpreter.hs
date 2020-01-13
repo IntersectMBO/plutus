@@ -170,7 +170,7 @@ evaluateSimulation timeout evaluation = do
                 Left err ->
                     throwError
                         JsonDecodingError
-                            { expected = "TraceResult"
+                            { expected = "EvaluationResult"
                             , decodingError = err
                             , input = result
                             }

@@ -91,7 +91,7 @@ data StateMachineClient s i = StateMachineClient
     { scInstance :: SM.StateMachineInstance s i
     -- ^ The instance of the state machine, defining the machine's transitions,
     --   its final states and its check function.
-    , scPayments :: s -> i -> Value -> ValueAllocation
+    , scPayments :: s -> i -> Value -> Maybe ValueAllocation
     -- ^ A function that determines the 'ValueAllocation' of each transition,
     --   given the value currently locked by the contract.
     , scChooser  :: [SM.OnChainState s i] -> Either (SMContractError s i) (SM.OnChainState s i)
@@ -114,7 +114,7 @@ defaultChooser xs  =
 mkStateMachineClient ::
     forall state input
     . SM.StateMachineInstance state input
-    -> (state -> input -> Value -> ValueAllocation)
+    -> (state -> input -> Value -> Maybe ValueAllocation)
     -> StateMachineClient state input
 mkStateMachineClient inst payments =
     StateMachineClient
@@ -194,8 +194,11 @@ mkStep client@StateMachineClient{scInstance, scPayments} input = do
         Nothing -> throwing _InvalidTransition (currentState, input)
 
     let typedTxIn = Typed.makeTypedScriptTxIn @(SM.StateMachine state input) validatorInstance input txOutRef
-        valueAllocation = scPayments currentState input (Typed.txInValue typedTxIn)
         tx = Typed.TypedTxSomeOuts (Typed.addTypedTxIn typedTxIn Typed.baseTx)
+
+    valueAllocation <-
+        maybe (throwing _InvalidTransition (currentState, input)) pure
+            $ scPayments currentState input (Typed.txInValue typedTxIn)
 
     finalTx <- if smFinal newState
                then do

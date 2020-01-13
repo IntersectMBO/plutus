@@ -47,7 +47,6 @@ library
         Language.Plutus.Contract.Effects.WriteTx
         Language.Plutus.Contract.Request
         Language.Plutus.Contract.Schema
-        Language.Plutus.Contract.Test
         Language.Plutus.Contract.Trace
         Language.Plutus.Contract.Record
         Language.Plutus.Contract.IOTS
@@ -81,8 +80,6 @@ library
         transformers-base -any,
         monad-control -any,
         mmorph -any,
-        tasty -any,
-        tasty-hunit -any,
         row-types -any,
         freer-simple -any,
         prettyprinter >=1.1.0.1
@@ -112,7 +109,6 @@ test-suite plutus-contract-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Spec.Contract
         Spec.Rows
         Spec.State
     build-depends:

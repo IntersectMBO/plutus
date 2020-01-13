@@ -1,9 +1,11 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- | Functions for compiling PIR recursive let-bound functions into PLC.
 module Language.PlutusIR.Compiler.Recursion where
 
 import           Language.PlutusIR
+import           Language.PlutusIR.Compiler.Definitions
 import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
@@ -11,8 +13,10 @@ import qualified Language.PlutusIR.MkPir                    as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
+import           Control.Monad.Trans
 
 import qualified Language.PlutusCore                        as PLC
+import qualified Language.PlutusCore.MkPlc                  as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function   as Function
 import qualified Language.PlutusCore.StdLib.Meta.Data.Tuple as Tuple
@@ -57,23 +61,43 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 
  -- See note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
-compileRecTerms :: Compiling m e a => PIRTerm a -> [TermDef TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecTerms
+    :: Compiling m e a
+    => PIRTerm a
+    -> [TermDef TyName Name (Provenance a)]
+    -> DefT SharedName (Provenance a) m (PIRTerm a)
 compileRecTerms body bs = do
-    p <- getEnclosing
+    p <- lift getEnclosing
     fixpoint <- mkFixpoint bs
     Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> bs) fixpoint body
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint
-    :: Compiling m e a
+    :: forall m e a . Compiling m e a
     => [TermDef TyName Name (Provenance a)]
-    -> m (Tuple.Tuple (Term TyName Name) (Provenance a))
+    -> DefT SharedName (Provenance a) m (Tuple.Tuple (Term TyName Name) (Provenance a))
 mkFixpoint bs = do
-    p0 <- getEnclosing
+    p0 <- lift getEnclosing
 
     funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
         case PIR.mkFunctionDef p name ty term of
             Just fun -> pure fun
-            Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type"
+            Nothing  -> lift $ throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type"
 
-    liftQuote $ Function.getMutualFixOf p0 funs
+    -- See Note [Extra definitions while compiling let-bindings]
+    let arity = fromIntegral $ length funs
+        key = FixpointCombinator arity
+    fixN <- do
+        maybeFix <- lookupTerm p0 key
+        case maybeFix of
+            Just f -> pure f
+            Nothing -> do
+                name <- liftQuote $ toProgramName key
+                let (fixNTerm, fixNType) = Function.fixN arity
+                    var :: PLC.VarDecl TyName Name (Provenance a)
+                    var = PLC.VarDecl NoProvenance (NoProvenance <$ name) (NoProvenance <$ fixNType)
+                defineTerm key (PLC.Def var (NoProvenance <$ fixNTerm, Strict)) mempty
+
+                pure $ PIR.mkVar p0 var
+
+    liftQuote $ Function.getMutualFixOf p0 fixN funs

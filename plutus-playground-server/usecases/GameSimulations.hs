@@ -44,7 +44,7 @@ lock caller secretWord balance =
     callEndpoint
         caller
         "lock"
-        LockParams {secretWord, amount = Ada.lovelaceOf balance}
+        LockParams {secretWord, amount = Ada.lovelaceValueOf balance}
 
 guess :: Wallet -> String -> SimulatorAction
 guess caller guessWord = callEndpoint caller "guess" (GuessParams {guessWord})

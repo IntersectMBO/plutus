@@ -10,7 +10,6 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Ada (Ada)
 import Ledger.Crypto (PubKey, Signature)
 import Ledger.Interval (Interval)
 import Ledger.Slot (Slot)
@@ -19,8 +18,6 @@ import Ledger.TxId (TxId)
 import Ledger.Value (Value)
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
 
---type TxId
--- = TxId String
 data ChainFocus
   = FocusTx TxId
 
@@ -80,7 +77,7 @@ _balances = _Newtype <<< prop (SProxy :: SProxy "balances")
 _tx :: Lens' AnnotatedTx Tx
 _tx = _Newtype <<< prop (SProxy :: SProxy "tx")
 
-_txFee :: Lens' Tx Ada
+_txFee :: Lens' Tx Value
 _txFee = _Newtype <<< prop (SProxy :: SProxy "txFee")
 
 _txForge :: Lens' Tx Value
@@ -101,10 +98,10 @@ _txOutputs = _Newtype <<< prop (SProxy :: SProxy "txOutputs")
 _txId :: Lens' TxId String
 _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 
-_txInRef :: forall a. Lens' TxIn TxOutRef
+_txInRef :: Lens' TxIn TxOutRef
 _txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")
 
-_txOutRefId :: forall a. Lens' TxOutRef TxId
+_txOutRefId :: Lens' TxOutRef TxId
 _txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
 
 toBeneficialOwner :: TxOut -> BeneficialOwner

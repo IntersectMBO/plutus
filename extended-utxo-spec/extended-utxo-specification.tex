@@ -149,7 +149,6 @@
 \newcommand{\currency}{\ensuremath{\s{CurrencyId}}}
 \newcommand{\nativeCur}{\ensuremath{\mathrm{nativeC}}}
 \newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
-\newcommand{\injectNative}{\ensuremath{\mathrm{inject}}}
 
 \newcommand{\qtymap}{\ensuremath{\s{Quantities}}}
 
@@ -736,16 +735,11 @@ of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \label{sec:eutxo-2}
 We now extend the EUTXO-1 model further by introducing features which
 allow, among other things, the implementation of new currencies and
-\textit{non-fungible tokens} (NFTs).  We assume that the underlying
-blockchain has a unique \textit{native currency} which is the
-fundamental currency used for paying fees, for example.  The native
-currency of the Cardano blockchain is Ada.
+\textit{non-fungible tokens} (NFTs).
 
-\paragraph{Custom currencies.} In addition to the native currency, the
-EUTXO-2 model allows an unlimited number of other \textit{custom
-  currencies}, possibly user-defined.  Each custom currency has a
-unique identifier; the native currency is handled separately and has
-no identifier.
+\paragraph{Multiple currencies.} The EUTXO-2 model allows an unlimited
+number of \textit{currencies}.  Each custom currency has a
+unique identifier.
 
 \todokwxm{We may wish to implement a DEX to enable exchange of custom
   currencies.  This is a little problematic in Ethereum because the
@@ -783,9 +777,7 @@ currency, as in EUTXO-1.
     \begin{array}{rll}
     \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
     \currency  && \mbox{an identifier for a custom currency}\\
-    \nativeCur && \mbox{a distinguished \currency{} representing the native currency of the ledger}\\
     \token     && \mbox{a type consisting of identifiers for individual tokens}\\
-    \nativeTok && \mbox{a distinguished \token{} representing the currency token of the native currency}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
@@ -805,7 +797,7 @@ currency, as in EUTXO-1.
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
                & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
-               & &\ \fee: \qty,\\
+               & &\ \fee: \qtymap,\\
                & &\ \forge: \qtymap)\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
@@ -819,12 +811,16 @@ currency, as in EUTXO-1.
 \paragraph{ETUXO-2 on Cardano.}
 The Cardano implementation of EUTXO-2 uses the primitives given in
 \cref{fig:eutxo-2-types-cardano}.
+
+Cardano also defines an \emph{native currency} and \emph{native currency token}.
+This allows defining a native currency that behaves as a simple \qty{}. This
+is used in Fig~\ref{fig:cardano-fee-validity}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
     \begin{array}{rll}
       \currency  &=& \H\\
-      \nativeCur &=& \emptyBs\\
       \token     &=& \H\\
+      \nativeCur &=& \emptyBs\\
       \nativeTok &=& \emptyBs\\
     \end{array}
   \end{displaymath}
@@ -838,16 +834,6 @@ number of currencies and their subcurrencies.
 
 \qtymap{} is a finitely-supported function \emph{to} another finitely-supported
 function. This is well-defined, since finitely-supported functions form a monoid.
-
-\paragraph{Native currency. }
-Quantities of the native currency are represented just like any other currency,
-using \qtymap{}s with the \nativeCur{} identifier. The one exception is the
-\fee{} field, which continues to be a simple \qty{}. This represents a quantity
-in the native currency, as fees can only be paid in that.
-
-It may be desirable to choose \nativeCur{} outside the range
-of \scriptAddr{}, since this will prevent forging of the native currency
-except in the initial transaction (see \cref{rule:forging-2}).
 
 \subsection{The \ptx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
@@ -873,7 +859,7 @@ the details are given in \cref{fig:ptx-2-types}.
                  & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
                  & &\ \i{validityInterval}: \Interval{\extended{\slotnum}},\\
                  & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
-                 & &\ \fee: \qty,\\
+                 & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap)\\
     \\
     \tau_2: \eutxotx_2 \times \N \rightarrow \ptx_2 &=& \mbox{summarises a transaction in the context of an input}\\
@@ -891,25 +877,6 @@ the details are given in \cref{fig:ptx-2-types}.
 \noindent The validity conditions from
 \cref{fig:eutxo-1-validity} must also be updated to take account
 of multiple currencies.
-
-We use the definitions of \unspent{}  and
-\getSpent{} from \cref{fig:validation-functions-1} unchanged,
-but we also require a function to inject a \qty{} of the native currency
-into \qtymap{}. We define it in \cref{fig:validation-functions-2}.
-\begin{displaymath}
-\end{displaymath}
-\begin{ruledfigure}{H}
-  \begin{displaymath}
-    \injectNative(q)(c)(t) = \left\{
-    \begin{array}{ll}
-      q & \mbox{if $c = \nativeCur$ and $t = \nativeTok$ }\\
-      0 & \mbox{otherwise}
-    \end{array}
-    \right\}
-  \end{displaymath}
-  \caption{Auxiliary functions for EUTXO-2 validation}
-  \label{fig:validation-functions-2}
-\end{ruledfigure}
 
 We can now adapt the definition of validity for EUTXO-1
 (\cref{fig:eutxo-1-validity}) to obtain a definition of validity for
@@ -950,7 +917,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \label{rule:value-is-preserved-2}
   \textbf{Values are preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = \injectNative(t.\fee) + \sum_{o \in t.\outputs} o.\val
+    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = t.\fee + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -998,6 +965,20 @@ currency to be destroyed as well as created. The
 \cref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
+
+\paragraph{Validation on Cardano.}
+Cardano adds an additional rule in Fig~\ref{fig:cardano-fee-validity}, which
+asserts that fees are paid exclusively in the native currency.
+
+\begin{ruledfigure}{H}
+  \textbf{Fees are paid in the native currency}
+  \begin{displaymath}
+    \support(t.\fee) = \{ \nativeCur \} \textrm{ and }
+    \support(t.\fee(\nativeCur)) = \{ \nativeTok \}
+  \end{displaymath}
+  \caption{Validity of a transaction $t$ in the EUTXO-2 model}
+  \label{fig:cardano-fee-validity}
+\end{ruledfigure}
 
 \subsection{The EUTXO-2 model in practice.}
 See~\cite{Plutus-book} for examples of contracts which make use of the
@@ -1293,8 +1274,8 @@ states'':
 \label{note:eutxo-2-performance}
 The EUTXO-2 model will lose some efficiency in comparison to the EUTXO-1
 model, simply because the data structures are more complicated.  This
-would even apply to transactions which only involve to native
-currency, since it would be necessary to check whether the \qtymap{}
+would even apply to transactions which only involve the native
+currency (if there is one), since it would be necessary to check whether the \qtymap{}
 contains anything that needs to be processed.  If this is a concern
 then one could implement a model with two types of transaction,
 essentially just the disjoint union of the EUTXO-1 and EUTXO-2

@@ -27,9 +27,8 @@ import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Ada (Ada(..))
 import Ledger.Crypto (PubKey(..))
-import Ledger.Extra (humaniseInterval, adaToValue)
+import Ledger.Extra (humaniseInterval)
 import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
@@ -161,14 +160,14 @@ entryClass = ClassName "entry"
 triangleRight :: forall p i. HTML p i
 triangleRight = div [ class_ $ ClassName "triangle-right" ] []
 
-feeView :: forall p i. Ada -> HTML p i
-feeView (Lovelace { getLovelace: 0 }) = empty
+feeView :: forall p i. Value -> HTML p i
+feeView (Value { getValue: (AssocMap.Map []) }) = empty
 
 feeView txFee =
   div [ classes [ card, entryClass, feeClass ] ]
     [ cardHeader_ [ text "Fee" ]
     , cardBody_
-        [ valueView $ adaToValue txFee
+        [ valueView txFee
         ]
     ]
 

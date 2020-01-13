@@ -15,6 +15,7 @@ packages:
 - plutus-tutorial
 - plutus-book
 - plutus-contract
+- plutus-contract-tasty
 - plutus-emulator
 - deployment-server
 - iots-export
@@ -31,6 +32,7 @@ extra-deps:
 - STMonadTrans-0.4.3
 - geniplate-mirror-0.7.6
 # Other missing packages
+- aeson-1.4.6.0
 - composition-prelude-2.0.2.1
 - resolv-0.1.1.2
 - monad-stm-0.1.0.2

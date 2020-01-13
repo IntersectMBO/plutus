@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.Escrow where
 
@@ -8,6 +7,7 @@ import           Control.Monad                                   (void)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger.Ada                                      as Ada
+import qualified Ledger.Typed.Scripts                            as Scripts
 import qualified Spec.Lib                                        as Lib
 
 import           Wallet.Emulator                                 (walletPubKey)
@@ -90,7 +90,7 @@ tests = testGroup "escrow"
         >> callEndpoint @"refund-escrow" w1 ()
         >> handleBlockchainEvents w1)
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (escrowScript escrowParams) 35000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 35000)
     ]
 
 w1, w2, w3 :: Wallet

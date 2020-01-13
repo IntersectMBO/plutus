@@ -11,7 +11,6 @@ import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toC
 import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
-import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
@@ -26,7 +25,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, div, div_, h2_, slot, text)
+import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
@@ -34,11 +33,11 @@ import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
-import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
-import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
+import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
+import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
 evaluationPane ::
   forall m.
@@ -46,7 +45,7 @@ evaluationPane ::
   State ->
   EvaluationResult ->
   ComponentHTML HAction ChildSlots m
-evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
+evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
     [ chainView
         state
@@ -61,6 +60,8 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
               div
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
+        , h2_ [ text "Trace" ]
+        , code_ [ pre_ [ text emulatorTrace ] ]
         ]
     , br_
     , div_

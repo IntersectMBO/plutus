@@ -23,7 +23,7 @@ import           Game                         (GuessParams (GuessParams), LockPa
                                                secretWord)
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult, result),
                                                SourceCode (SourceCode))
-import           Ledger.Ada                   (adaOf, adaValueOf, lovelaceValueOf)
+import           Ledger.Ada                   (adaValueOf, lovelaceValueOf)
 import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
 import           Ledger.Value                 (TokenName (TokenName), Value)
 import qualified Playground.Interpreter       as PI
@@ -204,7 +204,7 @@ gameTest =
                        ] :: [Expression])
             }
     nineAda = adaValueOf 9
-    twoAda = adaOf 2
+    twoAda = adaValueOf 2
 
 hasFundsDistribution ::
        [SimulatorWallet]

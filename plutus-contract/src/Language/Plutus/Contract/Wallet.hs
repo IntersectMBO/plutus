@@ -30,7 +30,6 @@ import qualified Language.Plutus.Contract.Tx as T
 import qualified Language.PlutusTx.Numeric   as N
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
-import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
 import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
@@ -62,7 +61,7 @@ balanceWallet utx = do
 --   unknown to the wallet.
 computeBalance :: WAPI.MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
-    right = Ada.toValue (L.txFee tx) P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
+    right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
         inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
         pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
@@ -89,7 +88,7 @@ balanceTx
     -> m Tx
 balanceTx utxo pk utx = do
     let tx0 = T.toLedgerTx utx
-        tx = addMissingValueMoved pk (view T.valueMoved utx) tx0
+        tx = addMissingValueMoved pk (T.valueMoved utx) tx0
     (neg, pos) <- Value.split <$> computeBalance tx
 
     tx' <- if Value.isZero pos
@@ -146,7 +145,7 @@ addMissingValueMoved pk vl tx =
 --   it to the chain in the context of a wallet.
 handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
-    balanceWallet utx >>= addSignatures p (view T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
+    balanceWallet utx >>= addSignatures p (T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
 
 -- | The signing process gets a finished transaction and a list of public keys,
 --   and signs the transaction with the corresponding private keys.

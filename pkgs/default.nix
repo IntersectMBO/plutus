@@ -1299,6 +1299,8 @@ mkDerivation {
 pname = "HStringTemplate";
 version = "0.8.7";
 sha256 = "4f4ea4aa2e45e7c45821b87b0105c201fbadebc2f2d00c211e728403a0af6b0e";
+revision = "1";
+editedCabalFile = "0s7y606q2q0vnbg9c51kypawyvapva60i2lw1dg1bij50aiv5d3i";
 libraryHaskellDepends = [
 array
 base
@@ -1889,8 +1891,8 @@ mkDerivation {
 pname = "JuicyPixels";
 version = "3.3.3";
 sha256 = "2c04b5b6504a780e9363dc8894837976e18ce0623182e38aab6bc5e76c40b3c4";
-revision = "2";
-editedCabalFile = "1vvbvvkpm4vlh0v8d8irzipd5yg1rrd5xdfcm2yibn1h0iqpzdi4";
+revision = "4";
+editedCabalFile = "1g5rnm670gvshf0l5a2fxpgw9f07mhpkxgzqrq2zahqbz810sbjs";
 libraryHaskellDepends = [
 base
 binary
@@ -3093,8 +3095,8 @@ mkDerivation {
 pname = "Strafunski-StrategyLib";
 version = "5.0.1.0";
 sha256 = "a018c7420289a381d2b491a753f685b9d691be07cea99855cc5c8e05d5a9a295";
-revision = "1";
-editedCabalFile = "1hngxq1f7fybg6ixkdhmvgsw608mhnxkwbw04ql5zspcfl78v6l2";
+revision = "2";
+editedCabalFile = "1g9ksfgcz8fjasn78zq7w1yw9wk87i4gd5i0pf31gnf4l3963yz8";
 libraryHaskellDepends = [
 base
 directory
@@ -3750,7 +3752,7 @@ license = stdenv.lib.licenses.bsd3;
 , text
 , th-abstraction
 , time
-, time-locale-compat
+, time-compat
 , unordered-containers
 , uuid-types
 , vector
@@ -3758,10 +3760,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "aeson";
-version = "1.4.2.0";
-sha256 = "75ce71814a33d5e5568208e6806a8847e7ba47fea74d30f6a8b1b56ecb318bd0";
-revision = "1";
-editedCabalFile = "067y82gq86740j2zj4y6v7z9b5860ncg2g9lfnrpsnb9jqm7arl1";
+version = "1.4.6.0";
+sha256 = "923fb2c6e224c4c0d1848174b1010592f31cd149f538923efd87f8a6b4b3488b";
 libraryHaskellDepends = [
 attoparsec
 base
@@ -3779,7 +3779,7 @@ template-haskell
 text
 th-abstraction
 time
-time-locale-compat
+time-compat
 unordered-containers
 uuid-types
 vector
@@ -4736,6 +4736,8 @@ mkDerivation {
 pname = "amazonka";
 version = "1.6.1";
 sha256 = "edb794b7ed0db3f5955ec08ded68b5eca753f62978312c881f3cb0c6eb769180";
+revision = "1";
+editedCabalFile = "0xn4wy5gb1h4f4wd2h5ic17nb6ilikmsp1qip6xxc3img5rmaqyq";
 libraryHaskellDepends = [
 amazonka-core
 base
@@ -5359,6 +5361,8 @@ mkDerivation {
 pname = "amazonka-core";
 version = "1.6.1";
 sha256 = "4198f52da9d20338bd6a3a18748d4312d3ff2c06bc84503cb18406251b28a243";
+revision = "1";
+editedCabalFile = "1656dyw6fk3gvph6v3xzvdp3p8xny3ji0gxg7qxvmvn60gj9ricv";
 libraryHaskellDepends = [
 aeson
 attoparsec
@@ -7704,6 +7708,8 @@ mkDerivation {
 pname = "approximate";
 version = "0.3.1";
 sha256 = "d837f716d9e73d68a53a17321f0433dd9ffe71df24d550aed6a34ec1c2ad2ea2";
+revision = "1";
+editedCabalFile = "1sd3s1ibn5dmgwzlqwshj7im4lmgpfzcv43ax6lpp9bdmxa6lmz9";
 setupHaskellDepends = [
 base
 Cabal
@@ -8948,8 +8954,8 @@ mkDerivation {
 pname = "avers";
 version = "0.0.17.1";
 sha256 = "1b45d8aa036b3c2ec7ea180327ff3cdce28dc1e1ef319c062be79f0ffa7626f5";
-revision = "32";
-editedCabalFile = "0p4jhc8rxvm82cp3zaibazb5jnjs33vl4f71pvgvzf31xd7immyy";
+revision = "34";
+editedCabalFile = "0mj6881npk0xdkf4nkcy52sn6y4414wdpysbw03kkb5vx6cgjws9";
 libraryHaskellDepends = [
 aeson
 attoparsec
@@ -10397,8 +10403,8 @@ mkDerivation {
 pname = "binary-orphans";
 version = "1.0.1";
 sha256 = "431ad40b8d812bada186c68935c0a69aa2904ca3bc57d957e1b0fb7d73b1753d";
-revision = "1";
-editedCabalFile = "0sww1904gn3sxvj94ac8l1g50v0j3fgpfiynbpvg0yhqsbfazi3n";
+revision = "2";
+editedCabalFile = "0b4fafgwhrp4i7vxcynzk5678kn6jvraanmbmf14mxlkipl2fff3";
 libraryHaskellDepends = [
 base
 binary
@@ -11766,8 +11772,8 @@ mkDerivation {
 pname = "bsb-http-chunked";
 version = "0.0.0.4";
 sha256 = "148309e23eb8b261c1de374712372d62d8c8dc8ee504c392809c7ec33c0a0e7c";
-revision = "1";
-editedCabalFile = "07k9422yaw7rz66awmc20ni17xw2bd1pn48ja79c66d5va89f6wz";
+revision = "2";
+editedCabalFile = "0bz62lxdbnwkfr1d4ngm8xi4y1ndpdflbv71s6h43vp5lbd546hr";
 libraryHaskellDepends = [
 base
 bytestring
@@ -13828,8 +13834,8 @@ mkDerivation {
 pname = "cgi";
 version = "3001.3.0.3";
 sha256 = "eb8144d7d0b74643c43b73c63e4d9fa88a110c4be719b9436917ca7d0d32b4e6";
-revision = "3";
-editedCabalFile = "06gyp3mxx9jkkbz9sbn389wjsz33s231vk53pbsm37a1z9ply14a";
+revision = "4";
+editedCabalFile = "05b10dq22lzr19yi9mns8asvdhc3kplv5jl84mj20rjakv86hdsg";
 libraryHaskellDepends = [
 base
 bytestring
@@ -14118,6 +14124,8 @@ mkDerivation {
 pname = "checkers";
 version = "0.4.14";
 sha256 = "7fc50d394490541e21fba90f0e9f744e144ec00a9f910691e09960055b3fcb5e";
+revision = "1";
+editedCabalFile = "0grdkhnwml893688bpsdd0lvdln0zjgay9bn51dqfbnkflhnmla9";
 libraryHaskellDepends = [
 array
 base
@@ -14438,8 +14446,8 @@ mkDerivation {
 pname = "circle-packing";
 version = "0.1.0.6";
 sha256 = "64ee44a90da3e5fe20d5b78bfe6eba93102a6b52c65f8a7b99af7799798ee81b";
-revision = "2";
-editedCabalFile = "1ag213lv6yfzxdc4ghbywy165qblnqx5b3j9d23kc6fcyf19nfyk";
+revision = "3";
+editedCabalFile = "0rcv84a6bp6dll8df4pfmjl03cm87hrlrf6mbig26ifp9ql4542m";
 libraryHaskellDepends = [
 base
 ];
@@ -15526,6 +15534,8 @@ mkDerivation {
 pname = "compensated";
 version = "0.7.2";
 sha256 = "c7f9bf47a586720deda33b82ddc633d3507c8bc199eb5555c80931f6c323cae2";
+revision = "2";
+editedCabalFile = "1f5hfmzi2bk7xldxgmcd85gyi4dqm7q18cgmwmzpyz7f67p7awhz";
 setupHaskellDepends = [
 base
 Cabal
@@ -15887,6 +15897,8 @@ mkDerivation {
 pname = "concurrent-supply";
 version = "0.1.8";
 sha256 = "ccf827dcd221298ae93fad6021c63a06707456de0671706b44f1f2fed867f21f";
+revision = "1";
+editedCabalFile = "1yzrr68k81w3jmrarx3y6z7ymzaaxwab509pp6kkd2fjia3g8wwk";
 libraryHaskellDepends = [
 base
 ghc-prim
@@ -17724,6 +17736,8 @@ mkDerivation {
 pname = "crypto-enigma";
 version = "0.1.1.5";
 sha256 = "829a349dc7945cb257300ba97f9701863b3ca12ed3b7b3093199bb6709a23300";
+revision = "1";
+editedCabalFile = "0ld72k1zq13vg1xh75qj1zrrrc4w5fzj0jv7idrynybjwmhvq92n";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -18566,6 +18580,8 @@ mkDerivation {
 pname = "cue-sheet";
 version = "2.0.1";
 sha256 = "71e42497329b9ebf74e94920ed2bd7a2ffe15e385906a37cbd5160d607a5575d";
+revision = "1";
+editedCabalFile = "0md9051a0jp4vkss15dyyf1w7ylpqmvzfdj9xb1rgj95s1x7cx2g";
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 base
@@ -19588,6 +19604,8 @@ mkDerivation {
 pname = "data-tree-print";
 version = "0.1.0.2";
 sha256 = "c3ef24d803946a3caf0ff0e51f0c0b9f49055d7dc790518ad518d568d5195002";
+revision = "1";
+editedCabalFile = "1r6dnvc7d50q5p9fdqqwfvi7kwn7r89319plj7v284sjai9b6ld4";
 libraryHaskellDepends = [
 base
 pretty
@@ -20123,6 +20141,8 @@ mkDerivation {
 pname = "dependent-map";
 version = "0.2.4.0";
 sha256 = "5db396bdb5d156434af920c074316c3b84b4d39ba8e1cd349c7bb6679cb28246";
+revision = "1";
+editedCabalFile = "0a5f35d1sgfq1cl1r5bgb5pwfjniiycxiif4ycxglaizp8g5rlr1";
 libraryHaskellDepends = [
 base
 containers
@@ -20861,8 +20881,8 @@ mkDerivation {
 pname = "diagrams-lib";
 version = "1.4.2.3";
 sha256 = "25a7adccbe3175cdb081a3824413ba431e561026c6ddd9a647cd133e4bfcbe9c";
-revision = "2";
-editedCabalFile = "0gn1lpsq1v9qpyhpizyknn3sfixg1b64s0dsl1jf25lz4kcrpbs7";
+revision = "3";
+editedCabalFile = "157y2qdsh0aczs81vzlm377mks976mpv6y3aqnchwsnr7apzp8ai";
 libraryHaskellDepends = [
 active
 adjunctions
@@ -21013,8 +21033,8 @@ mkDerivation {
 pname = "diagrams-solve";
 version = "0.1.1";
 sha256 = "a41f5f410b10f162b1e5c07bd4ca3305544870ff1314ae4f5824c83a31644f9d";
-revision = "4";
-editedCabalFile = "1yjacw17ga4rh6iw70vclk03qm5xjw4y17c7m43gjw8h3cfaq15d";
+revision = "5";
+editedCabalFile = "1yl8cs05fzqcz49p601am1ij66m9pa70yamhfxgcvya2pf8nimlf";
 libraryHaskellDepends = [
 base
 ];
@@ -24714,8 +24734,8 @@ mkDerivation {
 pname = "fclabels";
 version = "2.0.3.3";
 sha256 = "9a9472a46dc23b5acc0545d345ecd708f7b003f72ab212e2d12125b902b9c2e0";
-revision = "3";
-editedCabalFile = "1wncfnvh4mv87gh0ddhiqf839d63rqs1qzi3y386y6r8hfnvra0l";
+revision = "4";
+editedCabalFile = "09pn1q4gjlhw956asmhzva1rhrafmn69xmd1sc80fh3c8vjd3icz";
 libraryHaskellDepends = [
 base
 mtl
@@ -25666,6 +25686,8 @@ mkDerivation {
 pname = "flexible-defaults";
 version = "0.0.2";
 sha256 = "f3d5d41a6dd69dbb585dd10fe6b7fe9023bc4308bac1320a55b62758acc18a64";
+revision = "1";
+editedCabalFile = "1bmqmxv5nijb837xwxnb46w3bglmakfj1qs3xwkcnfh5ab0zazwr";
 libraryHaskellDepends = [
 base
 containers
@@ -26106,8 +26128,8 @@ mkDerivation {
 pname = "force-layout";
 version = "0.4.0.6";
 sha256 = "f7729855b1b14e0b255325faaca9f4834004e02bd21def6a865d2c55c734259d";
-revision = "4";
-editedCabalFile = "0hpr1z68lflgcdl9gbmva0i52wbgfhh4qj3iwdvzipsp8mwav7s7";
+revision = "5";
+editedCabalFile = "14d494pa7hcxmq9cvy039y5x7da6j4p5jp8kw0kmrlb9q8h6rh18";
 libraryHaskellDepends = [
 base
 containers
@@ -26309,6 +26331,8 @@ mkDerivation {
 pname = "free";
 version = "5.1";
 sha256 = "70424d5c82dea36a0a29c4f5f6bc047597a947ad46f3d66312e47bbee2eeea84";
+revision = "1";
+editedCabalFile = "0j0klr5qr489y75z55vkmgh4qalffn5vzqc4l0ysnxbsv08a7p68";
 libraryHaskellDepends = [
 base
 comonad
@@ -26769,6 +26793,8 @@ mkDerivation {
 pname = "fused-effects";
 version = "0.1.2.1";
 sha256 = "d6274dba440c69c2d0d5aaee05f99d00754094581c3d1cc1176586e8be289902";
+revision = "1";
+editedCabalFile = "16qlqgxj2y54kkyhpfv3jjca9hzis9vvbz3mcx9cgg8iy2ffx65n";
 libraryHaskellDepends = [
 base
 deepseq
@@ -29719,6 +29745,8 @@ mkDerivation {
 pname = "gnuplot";
 version = "0.5.6";
 sha256 = "f7658e15f6d3b8051a753393bef26e46e86d053d98e66077dcea0438a97dddbc";
+revision = "1";
+editedCabalFile = "15ydlmw9a6dfiy0ffxqxy7iiszbysqn2jlhxrh4lfi21ck9n15kq";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
@@ -30724,6 +30752,8 @@ mkDerivation {
 pname = "hackage-db";
 version = "2.0.1";
 sha256 = "f0aac1af6d8d29b7fc2ffd43efaf5a7a5b00f2ead8dacff180bc3714c591ef8d";
+revision = "2";
+editedCabalFile = "0qscq4d3xwvjhqi1fiky7g12iwbkwn9qrypwzg9lx4p3c5xlwlvn";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -32092,6 +32122,8 @@ mkDerivation {
 pname = "hasty-hamiltonian";
 version = "1.3.2";
 sha256 = "e6299d72e145cfabea798e2088284580fc65f01638e3562e1f01cf9df018cc9e";
+revision = "1";
+editedCabalFile = "1k883ziy63p3zmpyfzck5jw2143b6ijcsvwi704rp94pvh0vk02z";
 libraryHaskellDepends = [
 base
 kan-extensions
@@ -35597,6 +35629,8 @@ mkDerivation {
 pname = "hspec-core";
 version = "2.6.1";
 sha256 = "7b2b421bc407c149e480c8028bee02781916a3671c1f814a84cadc63d51ce475";
+revision = "1";
+editedCabalFile = "1cpsfxag9h4xa68p3ymidrrh80kv5fff469rx5qvz4r2pjsxlh0c";
 libraryHaskellDepends = [
 ansi-terminal
 array
@@ -37086,8 +37120,8 @@ mkDerivation {
 pname = "hw-bits";
 version = "0.7.0.6";
 sha256 = "75c350b867fa851ad94e8829b1cd48d89edfddeaa4d8e8c7dddb89d249766b30";
-revision = "1";
-editedCabalFile = "0yl5b2qcrb2bjncwv2k9j006582cwxmpfgsggcyk5vw7i6iwhmhb";
+revision = "2";
+editedCabalFile = "1lp2kbmdc5lq7xqi2ix7jccw1gmjxl1q01bflj8fzr2f713m9yrr";
 libraryHaskellDepends = [
 base
 bytestring
@@ -37646,8 +37680,8 @@ mkDerivation {
 pname = "hw-rankselect-base";
 version = "0.3.2.1";
 sha256 = "d20a6cab42189cf71a85b355d0ed52167bc2991210c3af76139a2e6229f79360";
-revision = "2";
-editedCabalFile = "0djyix1fp00s8j0qjja4557wdflgixpz4fvrmwiw7x294zr9f9fw";
+revision = "3";
+editedCabalFile = "1hbbxxzmar0djj4r43nr3ar9nsl659wnq20rw6cp6q974ivlglx2";
 libraryHaskellDepends = [
 base
 bits-extra
@@ -38621,6 +38655,8 @@ mkDerivation {
 pname = "indexed-list-literals";
 version = "0.2.1.2";
 sha256 = "d896ae5b3919a7a9fecdd9336e8f330d055fbdae4821be04b7c1266ccaa07d10";
+revision = "1";
+editedCabalFile = "198hmw2m3539vmh3s58d33h6vl5d0fqpdms8rp8cwj196diipjlc";
 libraryHaskellDepends = [
 base
 Only
@@ -39524,6 +39560,8 @@ mkDerivation {
 pname = "io-streams";
 version = "1.5.1.0";
 sha256 = "8aa2f0afb83ee2e43c472509ecd45475b9ed4409dfaec16eb781f44152f6ebb0";
+revision = "1";
+editedCabalFile = "0n0qs5lgryh3zxy73j3qbpnxand43yd2bj6pclvyii8apqqp901a";
 configureFlags = [
 "-fNoInteractiveTests"
 ];
@@ -39563,6 +39601,8 @@ mkDerivation {
 pname = "io-streams-haproxy";
 version = "1.0.1.0";
 sha256 = "b74eca9290fe838a0e3be857a38b62cf6fb7478acee400eac19e47471a2c96b5";
+revision = "2";
+editedCabalFile = "1pvw39f0vrzb5hdx6nqpdg4ccsxa59vwjspfjkh6vvw1zwmidgja";
 libraryHaskellDepends = [
 attoparsec
 base
@@ -40088,6 +40128,8 @@ mkDerivation {
 pname = "ixset-typed";
 version = "0.4.0.1";
 sha256 = "a8d3655f4cebf66013363a4456287052391faad76f00f5b4001ba7d11073ac8c";
+revision = "1";
+editedCabalFile = "0kfklsbjn4gmx76vl7vm1s149f13h2p537930yaq8s2671lzc79p";
 libraryHaskellDepends = [
 base
 containers
@@ -40716,8 +40758,8 @@ mkDerivation {
 pname = "json-rpc-server";
 version = "0.2.6.0";
 sha256 = "169e9997734bd1d7d07a13b5ae0223d5363c43de93b0d5fbb845a598f9eaccf5";
-revision = "6";
-editedCabalFile = "1rfabr679pk605v141gm0ynbp3l6x87s3ip3wa49lwnpab495mxs";
+revision = "7";
+editedCabalFile = "1fjkl0p5glkk01jny6ar62356pmp2a2vf9v1jq67ly3y14dcvywq";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -41099,8 +41141,8 @@ mkDerivation {
 pname = "keycode";
 version = "0.2.2";
 sha256 = "56f9407cf182b01e5f0fda80f569ff629f37d894f75ef28b6b8af3024343d310";
-revision = "4";
-editedCabalFile = "081spzhywygv90i7jwhbcm7p1aqz6qqph02ddxvqncghar5kjc7n";
+revision = "5";
+editedCabalFile = "17fhzhlbqgd5pqp357n3z0k176q79c2jxvpwqryl3gbad3s8qsfw";
 libraryHaskellDepends = [
 base
 containers
@@ -42632,6 +42674,8 @@ mkDerivation {
 pname = "lens-family-th";
 version = "0.5.0.2";
 sha256 = "9c275afad37a5064b9a13c6207ee2307f6ccccc3a5517c0fae84524bad65b0e6";
+revision = "1";
+editedCabalFile = "06sbynlrbqb51rn392w1q82qww1f6k8mmw1npgla2wc6s39k4977";
 libraryHaskellDepends = [
 base
 template-haskell
@@ -45509,8 +45553,8 @@ mkDerivation {
 pname = "mercury-api";
 version = "0.1.0.2";
 sha256 = "0f4ed76a96029413aef856a00defaa5d75be196a12a0dc1e75b9a0a866607779";
-revision = "3";
-editedCabalFile = "0v0fag8y821nr825cn9bqpmrr55zr6dqiqg5q1rfvifflmq73d37";
+revision = "4";
+editedCabalFile = "1bx3xrafmf82b9wlvhggv87fwqgpgqxjdgkk9r5b323m9ci2gign";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -46727,8 +46771,8 @@ mkDerivation {
 pname = "mmark-cli";
 version = "0.0.5.0";
 sha256 = "7ec1e69f4ce0ed638f8a979f0da2e3173d2c034ffd23b9b166a95317b0b81997";
-revision = "1";
-editedCabalFile = "11yrsr4hpl5vxrfav1nfg3gidcr1qy0rjv5mkh5hqsxdpxy6c7aj";
+revision = "2";
+editedCabalFile = "1kpxrf3gwcl0l8jqq3dic49705p338rcvach95vp1g1jjpwd8kbj";
 isLibrary = false;
 isExecutable = true;
 executableHaskellDepends = [
@@ -46903,8 +46947,8 @@ mkDerivation {
 pname = "modern-uri";
 version = "0.3.0.1";
 sha256 = "e8e845837ddc327c027128faf36a76c69e8514a9f8b5a4666282ae89b6954505";
-revision = "1";
-editedCabalFile = "13q0lapxk1v3ci3bqv21942jf2fw87frbbam53apd3i2iv69bqyr";
+revision = "2";
+editedCabalFile = "08g9z55kamyp2rzj0dzz04nf9k57rsgvlwsf2592db28vm667qs1";
 libraryHaskellDepends = [
 base
 bytestring
@@ -47125,6 +47169,8 @@ mkDerivation {
 pname = "monad-logger";
 version = "0.3.30";
 sha256 = "e7ce990978b7395c615441775b64b487ad6cd6f2e4f9787dae732f58ce065480";
+revision = "1";
+editedCabalFile = "0gm3gqbxkj8447js4a672snz0ir78syk890nqdmjb18hsjqy5p6a";
 libraryHaskellDepends = [
 base
 bytestring
@@ -47836,8 +47882,8 @@ mkDerivation {
 pname = "monoid-extras";
 version = "0.5";
 sha256 = "c6571ab25a24e4300d507beeb8e534c20b3e530c6bd19c82694f1d6d5d0d4d9c";
-revision = "3";
-editedCabalFile = "1f6yd2lzvcr983xh68wgvxibx2a8ldgkcvac48pqqcxl1ywx1iny";
+revision = "4";
+editedCabalFile = "0f2lww0qjk3sspj199b88j1zg9nn0cmm0mmsf6j7dd30cdqam76p";
 libraryHaskellDepends = [
 base
 groups
@@ -48095,6 +48141,8 @@ mkDerivation {
 pname = "multipart";
 version = "0.1.3";
 sha256 = "9f60512e7b04c78442bd7c9de621597f6f2c4288b3bc1bb2834d08b5bd2796f4";
+revision = "1";
+editedCabalFile = "037ngpayaisc1jgcxyixy7lx42p2mz950k6wb0pl6dkc951hl88c";
 libraryHaskellDepends = [
 base
 bytestring
@@ -50799,6 +50847,8 @@ mkDerivation {
 pname = "openssl-streams";
 version = "1.2.2.0";
 sha256 = "b966b06f579bc9d1f4698408deff77ff6f7047a083d7d44fbeb379af4cf5f466";
+revision = "1";
+editedCabalFile = "125bxb2axgpcq7rrpamfq0yz017i0ks9zsykh6hn0ifw3lxj1k29";
 libraryHaskellDepends = [
 base
 bytestring
@@ -51932,8 +51982,8 @@ mkDerivation {
 pname = "path";
 version = "0.6.1";
 sha256 = "4b8bd85a13395b4240c639b9cf804371854d5dac69158f661068bd3089a25e59";
-revision = "1";
-editedCabalFile = "05b1zwx2a893h4h5wvgpc5g5pyx71hfmx409rqisd8s1bq1hn463";
+revision = "2";
+editedCabalFile = "05pgmg0w1mfwcmx9ad4p09xqxld8njhgwmgq38v7pr58czvmd6ks";
 libraryHaskellDepends = [
 aeson
 base
@@ -51997,6 +52047,8 @@ mkDerivation {
 pname = "path-io";
 version = "1.4.2";
 sha256 = "23c7f203347bc20e5649476e9b5df662a09ffbb8c1a2f3e658935845621d1d4b";
+revision = "1";
+editedCabalFile = "02irjcw5rdcx9wvsb7mcanylp2bwaiacpfjjbcvqq1lhvqcyw73i";
 libraryHaskellDepends = [
 base
 containers
@@ -52739,6 +52791,8 @@ mkDerivation {
 pname = "persistent-iproute";
 version = "0.2.3";
 sha256 = "f595a11ceaa1c19e11d6f4fc58ec2834eb100791ae82626912115f1d79edbfaa";
+revision = "1";
+editedCabalFile = "1jly9db968q5j5ly75f77hwxrhky3s6xx8ydgsjn5cdr9rc4iz8k";
 libraryHaskellDepends = [
 aeson
 aeson-iproute
@@ -54075,8 +54129,6 @@ row-types
 semigroupoids
 servant
 servant-server
-tasty
-tasty-hunit
 text
 transformers
 transformers-base
@@ -54111,6 +54163,83 @@ homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"plutus-contract-tasty" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, extensible-effects
+, iots-export
+, lens
+, mmorph
+, monad-control
+, mtl
+, plutus-contract
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, prettyprinter
+, profunctors
+, row-types
+, semigroupoids
+, stdenv
+, tasty
+, tasty-hunit
+, text
+, transformers
+, transformers-base
+}:
+mkDerivation {
+
+pname = "plutus-contract-tasty";
+version = "0.1.0.0";
+src = .././plutus-contract-tasty;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+iots-export
+lens
+mmorph
+monad-control
+mtl
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+prettyprinter
+profunctors
+row-types
+semigroupoids
+tasty
+tasty-hunit
+text
+transformers-base
+];
+testHaskellDepends = [
+aeson
+base
+containers
+extensible-effects
+lens
+mtl
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+tasty
+tasty-hunit
+text
+transformers
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plutus-emulator" = callPackage
 ({
   mkDerivation
@@ -54136,7 +54265,6 @@ license = stdenv.lib.licenses.asl20;
 , natural-transformation
 , newtype-generics
 , operational
-, playground-common
 , plutus-tx
 , plutus-wallet-api
 , prettyprinter
@@ -54183,7 +54311,6 @@ mtl
 natural-transformation
 newtype-generics
 operational
-playground-common
 plutus-tx
 plutus-wallet-api
 prettyprinter
@@ -54336,6 +54463,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , playground-common
 , plutus-contract
+, plutus-contract-tasty
 , plutus-emulator
 , plutus-tx
 , plutus-wallet-api
@@ -54375,6 +54503,7 @@ mtl
 newtype-generics
 playground-common
 plutus-contract
+plutus-contract-tasty
 plutus-emulator
 plutus-tx
 plutus-wallet-api
@@ -54718,8 +54847,8 @@ license = stdenv.lib.licenses.asl20;
 , lens
 , memory
 , mtl
-, playground-common
 , plutus-contract
+, plutus-contract-tasty
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
@@ -54748,7 +54877,6 @@ containers
 iots-export
 lens
 mtl
-playground-common
 plutus-contract
 plutus-emulator
 plutus-playground-lib
@@ -54771,6 +54899,7 @@ hedgehog
 lens
 mtl
 plutus-contract
+plutus-contract-tasty
 plutus-emulator
 plutus-tx
 plutus-wallet-api
@@ -54789,6 +54918,7 @@ cryptonite
 language-plutus-core
 lens
 memory
+plutus-emulator
 plutus-tx
 plutus-wallet-api
 ];
@@ -59142,8 +59272,8 @@ mkDerivation {
 pname = "recursion-schemes";
 version = "5.1.3";
 sha256 = "b21736e54b1d5fb0149624e95f2d8d8fd3413bb0972eda6a70e5753d3c9f1528";
-revision = "1";
-editedCabalFile = "0zxcmga4fy42arbyv1kzbyfnsghnll3prkpva58x654x4cg4diwk";
+revision = "2";
+editedCabalFile = "01q18gplv5k328qf74innnx2z2p15pg5nc6sikxq6fkkw4v3rkyb";
 libraryHaskellDepends = [
 base
 base-orphans
@@ -59318,6 +59448,8 @@ mkDerivation {
 pname = "regex";
 version = "1.0.2.0";
 sha256 = "aacd9b91e0598931745db5a3eea1cdfd6edf3b1e18ceb288c82eb8088b005fb8";
+revision = "1";
+editedCabalFile = "1476dxzj482j6zkvbvyszsjw1bm7jn2nwk40rq99ylvzm2sj0asn";
 libraryHaskellDepends = [
 array
 base
@@ -59411,8 +59543,8 @@ mkDerivation {
 pname = "regex-base";
 version = "0.93.2";
 sha256 = "20dc5713a16f3d5e2e6d056b4beb9cfdc4368cd09fd56f47414c847705243278";
-revision = "1";
-editedCabalFile = "1ijzh7yz7i6hvn8xlgyrc75l7zzn0z3kd4ks2yjfih4iir63y4ns";
+revision = "2";
+editedCabalFile = "0dks3m5xwcjqqlyyg7abh12ci3ap5qn6wz3bz80kr6rcfgk0fhvd";
 libraryHaskellDepends = [
 array
 base
@@ -59441,6 +59573,8 @@ mkDerivation {
 pname = "regex-compat";
 version = "0.95.1";
 sha256 = "d57cb1a5a4d66753b18eaa37a1621246f660472243b001894f970037548d953b";
+revision = "1";
+editedCabalFile = "0yg34p0rkql07y6rs6l70zlk8x51lra9vabkin921l581k6br498";
 libraryHaskellDepends = [
 array
 base
@@ -59497,6 +59631,8 @@ mkDerivation {
 pname = "regex-pcre";
 version = "0.94.4";
 sha256 = "8eaa7d4ac6c0a4ba35aa59fc3f6b8f8e252bb25a47e136791446a74752e226c0";
+revision = "1";
+editedCabalFile = "0jk29n0may65ghixlx1wwfmfcabsm730y8ppry1qy4naywhi1vs7";
 libraryHaskellDepends = [
 array
 base
@@ -59529,6 +59665,8 @@ mkDerivation {
 pname = "regex-pcre-builtin";
 version = "0.94.4.8.8.35";
 sha256 = "0bd1b695de953ba4b6e6e0de007021c346cb2a6c8e09356fbcd34f8a79d2ea78";
+revision = "1";
+editedCabalFile = "0r29q3fwlji0vxypk0pywrqgrqz84ryd0n5zmk44bgy2k534mk6c";
 libraryHaskellDepends = [
 array
 base
@@ -59591,6 +59729,8 @@ mkDerivation {
 pname = "regex-posix";
 version = "0.95.2";
 sha256 = "56019921cd4a4c9682b81ec614236fea816ba8ed8785a1640cd66d8b24fc703e";
+revision = "2";
+editedCabalFile = "1zrlwmmrb3x3r3af1r42xwhwspzfgnzh4dw1158523sndsg8qn08";
 libraryHaskellDepends = [
 array
 base
@@ -59623,6 +59763,8 @@ mkDerivation {
 pname = "regex-tdfa";
 version = "1.2.3.1";
 sha256 = "8aaaeeecf050807c7c514d4dd1763ac63bd121782de5a0847bef5d48a095ea50";
+revision = "1";
+editedCabalFile = "120083w1shqbs5czdwswpbr1h7200ckzcspdjqxdrm054z8zccyc";
 libraryHaskellDepends = [
 array
 base
@@ -59655,6 +59797,8 @@ mkDerivation {
 pname = "regex-tdfa-text";
 version = "1.0.0.3";
 sha256 = "38d77a0d225c306c52c6d4eed12d11d05a4bc4194d547cb9a7a9b6f5a8792001";
+revision = "1";
+editedCabalFile = "00swglzmdw30g4bn47z6j71all0djjb2hjm7bkfl7pza4wv14wpv";
 libraryHaskellDepends = [
 array
 base
@@ -60047,8 +60191,8 @@ mkDerivation {
 pname = "repa";
 version = "3.4.1.4";
 sha256 = "43607a5de4b89b8e58bfcbc261445d89fa40b685d43952797704b80d09e5a39e";
-revision = "2";
-editedCabalFile = "16kyy7ck3yki0mlcap0bbiadcn18yn6x90m4s2prkasi9ip0pcs8";
+revision = "3";
+editedCabalFile = "17hxj42cm82sac42by78jgbjjn5r3qv7n4919llaq17a2k1np0sw";
 libraryHaskellDepends = [
 base
 bytestring
@@ -60077,6 +60221,8 @@ mkDerivation {
 pname = "repa-algorithms";
 version = "3.4.1.3";
 sha256 = "de586fe7e14e0e000da50022e2129cabfd47773ba7844753c535c982f20e0fae";
+revision = "1";
+editedCabalFile = "0lvb1sn95qca9m1b8cy0a2j9gjzqm8g5v68ykglffjskv78d0jfm";
 libraryHaskellDepends = [
 base
 repa
@@ -60106,8 +60252,8 @@ mkDerivation {
 pname = "repa-io";
 version = "3.4.1.1";
 sha256 = "b5dbca96a988fb8bd918288ea1cfcf215fe46062e45001b209603b63a39ba9da";
-revision = "3";
-editedCabalFile = "027vn7an0hm3ysnzk19y0dbjpah0wpg96dgb55149x1310vwybxl";
+revision = "4";
+editedCabalFile = "1lswfxmfn31gm2ayqwns9q9kpbad69scxpq6ybyzxkb9jd0jx4bl";
 libraryHaskellDepends = [
 base
 binary
@@ -60232,8 +60378,8 @@ mkDerivation {
 pname = "req-conduit";
 version = "1.0.0";
 sha256 = "1da764e4bdc5454aef3d79cff2d72c9fa393a8d049ab14c3ba2be77325d96ba4";
-revision = "5";
-editedCabalFile = "1vbki857d5xj54s83r7kqirrg9a738xr55d40xqcaxxm7ki4s63i";
+revision = "6";
+editedCabalFile = "0wmzf62r5jawlccbndvsrr6cj4r0bdl4mqqwcnxz412cdq71w8hz";
 libraryHaskellDepends = [
 base
 bytestring
@@ -60462,8 +60608,8 @@ mkDerivation {
 pname = "rethinkdb-client-driver";
 version = "0.0.25";
 sha256 = "0f9dc156cd61b866b847b1b1a60a2345b4b5556b8b75a9e8499b0514e7f98996";
-revision = "3";
-editedCabalFile = "1g4shgl944fd3qbqkd68jv6vh65plaivci4vjzfs4py7a2p62db1";
+revision = "4";
+editedCabalFile = "1fjavc5gmz15za1yzj4b23gd50b2jj83l0d5pc2kmz8f6bs5nx9f";
 libraryHaskellDepends = [
 aeson
 base
@@ -61036,6 +61182,8 @@ mkDerivation {
 pname = "rvar";
 version = "0.2.0.3";
 sha256 = "d78aaf2ffdba182dda95d1692fec7abc5d77fa371120618a397b5675438c6bc0";
+revision = "1";
+editedCabalFile = "1ifwwjlhc3l8ycjmmarw6v1nm7jxpgqw2ly0q35idlj0jc0nbxn6";
 libraryHaskellDepends = [
 base
 MonadPrompt
@@ -61209,6 +61357,8 @@ mkDerivation {
 pname = "safecopy";
 version = "0.9.4.3";
 sha256 = "787db1a56b7024ab5619b4f25af5379133f5f2a5e1a0657e66c8dfac1a131f08";
+revision = "1";
+editedCabalFile = "060yxbk2fy5gddnpf6kxppc9fwkhiyldm39bj7873wggnpdc2xds";
 libraryHaskellDepends = [
 array
 base
@@ -61748,6 +61898,8 @@ mkDerivation {
 pname = "scanner";
 version = "0.3";
 sha256 = "a7f85147b59e443dbd986c1f880a0c3ab0190ba7b27c2ce6238da07397fd507b";
+revision = "1";
+editedCabalFile = "1v64k5jn70ipv2yi81b0s8lkpdd8hx08gdix0ixnpfqdpkj7pzx2";
 libraryHaskellDepends = [
 base
 bytestring
@@ -62721,8 +62873,8 @@ mkDerivation {
 pname = "servant-auth";
 version = "0.3.2.0";
 sha256 = "7bb4d5118c072cb3845aaba4287b2d5e34e5ccca96916895456a828bf7a9418b";
-revision = "1";
-editedCabalFile = "10ss4v45lclf5n0k6rch22zzs59v7p5ppd04dbc97pqxiygpbnd9";
+revision = "2";
+editedCabalFile = "06jpxqz5444k19p1n4i4yf2pvql37w9ngssp1grxl42dxk2bcg94";
 libraryHaskellDepends = [
 base
 ];
@@ -62786,8 +62938,8 @@ mkDerivation {
 pname = "servant-auth-docs";
 version = "0.2.10.0";
 sha256 = "adf3c33ce4134a78ae7a5c06092ea5812c99d4b942ff2dd685995eb3b2b53e48";
-revision = "3";
-editedCabalFile = "0in6rhgwn5idc2rsl4zbh6kkhxq471iczjd3i6ap60xg46ciymga";
+revision = "4";
+editedCabalFile = "1dvwkaihrm7dc2zdrqqvc0j7zmij487klrmsggsdiid7y68nyrqh";
 setupHaskellDepends = [
 base
 Cabal
@@ -62892,8 +63044,8 @@ mkDerivation {
 pname = "servant-auth-swagger";
 version = "0.2.10.0";
 sha256 = "50a783639eb882fd5047d69245f7770817658814d8c409b547ebdddae05acd12";
-revision = "2";
-editedCabalFile = "1vr0qss87gi6r9z876v9vnmfhr4m58n5x44fgzpmjkn7wlh1i6m7";
+revision = "3";
+editedCabalFile = "087faa5bg2hlxyhg7jzy2jj4fzs3dkp0znsbabrharcvdlkpqj1r";
 libraryHaskellDepends = [
 base
 lens
@@ -62956,8 +63108,8 @@ mkDerivation {
 pname = "servant-cassava";
 version = "0.10";
 sha256 = "9b2c5d906f3a4bb2767b2ce91f12a74e24adceadd296220b5d7216c5e1f3560e";
-revision = "5";
-editedCabalFile = "1hidradrcdcchbr0hn9y7y1bc0i0gxzfbganyy7p2z8ip2czddvj";
+revision = "6";
+editedCabalFile = "17d6phknxh5cqslwcj3a4gfhsgm8bw4bf7mlpmfrrc6izwnm1q8v";
 libraryHaskellDepends = [
 base
 base-compat
@@ -63213,8 +63365,8 @@ mkDerivation {
 pname = "servant-conduit";
 version = "0.15";
 sha256 = "dfd115301f29fd517cab6805211b8d10d4bdcf1cc5eb399aebb9124d199ef656";
-revision = "1";
-editedCabalFile = "0l6pv8bqca88k8wjx7qczagka6l99zd7xyz1ma95004665gc56x6";
+revision = "2";
+editedCabalFile = "1m5h5kwc9bjpc7ppdsxx8rr4906bl08np1kawzfvpr7qqy4s8j4q";
 libraryHaskellDepends = [
 base
 bytestring
@@ -63226,7 +63378,7 @@ unliftio-core
 ];
 doHaddock = false;
 doCheck = false;
-homepage = "http://haskell-servant.readthedocs.org/";
+homepage = "http://docs.servant.dev/";
 description = "Servant Stream support for conduit";
 license = stdenv.lib.licenses.bsd3;
 
@@ -63393,8 +63545,8 @@ mkDerivation {
 pname = "servant-foreign";
 version = "0.15";
 sha256 = "f1197f1319a735b37c5fdd991556bf34b780a9b87d0e57d936a42ae6734bbd73";
-revision = "1";
-editedCabalFile = "1amvhixa0zwjipmv6iv97pfzlr83p0b0kvxif2d2l7akcdgd2ddz";
+revision = "2";
+editedCabalFile = "0axz78g0vhasq5cvqg1lq0b2qanmb768f1bvzbfx58rn6arwflnj";
 libraryHaskellDepends = [
 base
 base-compat
@@ -63405,7 +63557,7 @@ text
 ];
 doHaddock = false;
 doCheck = false;
-homepage = "http://haskell-servant.readthedocs.org/";
+homepage = "http://docs.servant.dev/";
 description = "Helpers for generating clients for servant APIs in any programming language";
 license = stdenv.lib.licenses.bsd3;
 
@@ -63478,8 +63630,8 @@ mkDerivation {
 pname = "servant-js";
 version = "0.9.4";
 sha256 = "f86ba73d38644a74ccec50c378df66ab4863664e83359b8866cf17fbf08b3c10";
-revision = "1";
-editedCabalFile = "09nd1wlpaj20pyp6jzp2hsnyl02lvbi5vvvymhfhqf3rjxxpnyyr";
+revision = "2";
+editedCabalFile = "1x7f0dbqgzlwzmr20l6hln4s86kblak4j9h0p9igcqibmplc70zn";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -63589,8 +63741,8 @@ mkDerivation {
 pname = "servant-mock";
 version = "0.8.5";
 sha256 = "ae547026ddc5d15bec0af9ea9324954f88dd605cae0775c81c45b1723dc77b81";
-revision = "2";
-editedCabalFile = "0269d0yr8sa043wc2ymg3fv60c9pr4jxfy9sar2qqccvngpa1vf5";
+revision = "3";
+editedCabalFile = "1137vz9xm8iwj6x8h1q1yify6c1lahy0dxj6hpbhgi4s3mqkhm2g";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -64388,8 +64540,8 @@ mkDerivation {
 pname = "servant-yaml";
 version = "0.1.0.1";
 sha256 = "01547419509cd0424885146734c08acede329a660022f534ac9b19cc685bf601";
-revision = "2";
-editedCabalFile = "0scpm5dshnb7izn1xx8q3xm1m5f52y1s7nzgp7sa7zcv3pp6n7lw";
+revision = "3";
+editedCabalFile = "1qq4sg2kmdh45f4cjf36ldkdmhzryd5npy5yp558snbks0358wgs";
 libraryHaskellDepends = [
 base
 bytestring
@@ -65159,6 +65311,8 @@ mkDerivation {
 pname = "show-combinators";
 version = "0.1.1.0";
 sha256 = "d53abf2b289a3075555f1ede76f5beba0fadce352cd94efbad610bc1eb76020a";
+revision = "1";
+editedCabalFile = "1zr6xw4fvgx187yiqy7n0r9mnasyv1hxg2q9xzw3lmsf4z3xz6y7";
 libraryHaskellDepends = [
 base
 ];
@@ -65613,6 +65767,8 @@ mkDerivation {
 pname = "size-based";
 version = "0.1.2.0";
 sha256 = "779ff6c45476d20ffd2ad7327b44cefaaf0436ed89f43b2967761c0b58a4151a";
+revision = "1";
+editedCabalFile = "0kax1ypjyglkn6iff1x4yz12y7f2n249m95xvdhrc63hsa4xlcqv";
 libraryHaskellDepends = [
 base
 dictionary-sharing
@@ -66078,6 +66234,8 @@ mkDerivation {
 pname = "snap-core";
 version = "1.0.4.0";
 sha256 = "b902602f8422b22a1986bdcf2c2bf72148efc84365b048d832cb42bcf2eb7436";
+revision = "2";
+editedCabalFile = "032aijdfc2b26m9fk48xa8xp61xlpxjj07rkzz34izzivqjixl1q";
 libraryHaskellDepends = [
 attoparsec
 base
@@ -66975,8 +67133,8 @@ mkDerivation {
 pname = "stache";
 version = "2.0.1";
 sha256 = "739ff0d0a882f46bbcd391a2b1ee271906e9c049c463fb8846c1d32d3f829e2b";
-revision = "2";
-editedCabalFile = "17da7jih43nl3zqgpmlk3n2kpwjmb2np4w8ldpq2vyi9ab8p6vjm";
+revision = "3";
+editedCabalFile = "1y1wff5mdcin3wc9pbj3agsircrf1pxjjm8j90n8g40l7acnf63c";
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
@@ -69037,8 +69195,8 @@ mkDerivation {
 pname = "svg-builder";
 version = "0.1.1";
 sha256 = "4fd0e3f2cbc5601fc69e7eab41588cbfa1150dc508d9d86bf5f3d393880382cc";
-revision = "1";
-editedCabalFile = "1bhp9gvid2iis411k1vvyj5krzc4ahxcqcd9cwx9h37jxg180xw1";
+revision = "2";
+editedCabalFile = "100nmkgcm1ncv4mkr1xcsa7bb3z6zx0lfayk8innd4hm62xsvhj3";
 libraryHaskellDepends = [
 base
 blaze-builder
@@ -69543,8 +69701,8 @@ mkDerivation {
 pname = "tagged";
 version = "0.8.6";
 sha256 = "ad16def0884cf6f05ae1ae8e90192cf9d8d9673fa264b249499bd9e4fac791dd";
-revision = "1";
-editedCabalFile = "070xwfw7y81hd63il76dmwbdl9ca1rd07c54zynfx6vpr4wyx4vh";
+revision = "2";
+editedCabalFile = "1y8z8hmm846z7h3wqncpi0d4zhsnkwf08q0wchivkjw8di7ahz0z";
 libraryHaskellDepends = [
 base
 deepseq
@@ -70157,8 +70315,8 @@ mkDerivation {
 pname = "tasty-hspec";
 version = "1.1.5.1";
 sha256 = "fe889ec0f7b3991c46a07d9ff9cf09608a73a18f434a7480d2a09c79e56f3345";
-revision = "3";
-editedCabalFile = "1wgz3z5bnq5qml8d0i18gvz30dmmax3686lmqz3vf4hxd3vqfkpj";
+revision = "4";
+editedCabalFile = "1yppwhs2r2rlwrzli9ccv5ldgl95h5p7pqhsr898r3das6daf6sk";
 libraryHaskellDepends = [
 base
 hspec
@@ -70967,8 +71125,8 @@ mkDerivation {
 pname = "test-framework";
 version = "0.8.2.0";
 sha256 = "f5aec7a15dbcb39e951bcf6502606fd99d751197b5510f41706899aa7e660ac2";
-revision = "4";
-editedCabalFile = "1g1z9h55ii55b44gzgrjgi1lpk85yfi4yhrynvfy0199ywpckpd5";
+revision = "5";
+editedCabalFile = "18g92ajx3ghznd6k3ihj22ln29n676ailzwx3k0f1kj3bmpilnh6";
 libraryHaskellDepends = [
 ansi-terminal
 ansi-wl-pprint
@@ -73305,8 +73463,8 @@ mkDerivation {
 pname = "token-bucket";
 version = "0.1.0.1";
 sha256 = "312609c0037271b1091f23c2edf467e9449edca5bbed0cfb45c2c93c1bee6ad0";
-revision = "4";
-editedCabalFile = "19kxi77aqyra00m02751sdfm6qy6mx4mlh7bhqv4wyaggwga707g";
+revision = "5";
+editedCabalFile = "049d9bk5f8qa6d7gjgg4nqd56xz1mrxr1rxcwxsrk4vkqcpmzs6q";
 libraryHaskellDepends = [
 base
 ];
@@ -78806,6 +78964,8 @@ mkDerivation {
 pname = "windns";
 version = "0.1.0.1";
 sha256 = "087fa65c99021f4233102430d554aebe114af68f6b1647ff821bcb501c0bcd04";
+revision = "1";
+editedCabalFile = "17d44pzi4q5yvrygimdrwdrabz62s1ylw918w28sxgcvj64ir22g";
 libraryHaskellDepends = [
 base
 bytestring
@@ -80565,6 +80725,8 @@ mkDerivation {
 pname = "xmonad-contrib";
 version = "0.15";
 sha256 = "ba7686007037fc081de09fc05914fbb84cad8123e1f4eedb8895c863fcfb3e65";
+revision = "1";
+editedCabalFile = "15r1mlqs1axh1dp4fqqb54xj3zns47nrvlf2xp5jg5jq51z03xpf";
 libraryHaskellDepends = [
 base
 bytestring
@@ -80834,6 +80996,8 @@ mkDerivation {
 pname = "yaml";
 version = "0.11.0.0";
 sha256 = "e66466cd29a4d256c3dd4dd4ab366033dbc5fa1fb67fdc6f7ac7aa3f161527bf";
+revision = "1";
+editedCabalFile = "0cavwb94bq6cfzd7dk6ccpxxjbdc5dwjgmw2zcpwjl2hrmnlms0r";
 configureFlags = [
 "-fsystem-libyaml"
 ];
@@ -82543,8 +82707,8 @@ mkDerivation {
 pname = "zip";
 version = "1.2.0";
 sha256 = "b61de150884e376923e247f8f7386966d6d5d1804238c42fd874b61fe3b27dc9";
-revision = "1";
-editedCabalFile = "084dfylc1h45r4v2zyld1vvrxs6x1ljq8hzinqrkv2ii748cmzdb";
+revision = "2";
+editedCabalFile = "09ak8h11hm1jnpkvljradbj3a741s31k8cvyvwypr927khi5y9mp";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [

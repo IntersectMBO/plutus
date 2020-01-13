@@ -83,6 +83,7 @@ import           Ledger.Orphans                           ()
 --
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
+  deriving stock Generic
   deriving newtype (Serialise)
 
 instance IotsType Script where
@@ -129,6 +130,8 @@ instance Ord Script where
 
 instance Haskell.Ord Script where
     a `compare` b = serialise a `compare` serialise b
+
+instance NFData Script
 
 data Checking = Typecheck | DontCheck
 
@@ -199,7 +202,7 @@ unValidatorScript = getValidator
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
   deriving Pretty via (PrettyShow Validator)
 
 instance Show Validator where
