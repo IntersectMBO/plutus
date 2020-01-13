@@ -189,8 +189,8 @@ version), but performing post-erasure optimisations would break the
 clean correspondence between typed off-chain code and untyped on-chain
 code.
 
-I'm not sure how easy it would be to evaluate code which uses De
-Bruijn indices, but this is arguably irrelevant: one could use the De
+I'm not sure how easy it would be to evaluate code which uses de
+Bruijn indices, but this is arguably irrelevant: one could use the de
 Bruijn version of a program as a transporation format and convert back
 to the original identifier scheme on the chain (although this would
 obviously incur an extra cost, as would compression and
@@ -198,6 +198,8 @@ decompression).  Another problem with these transformations is that
 they will change the hash of scripts, and hashes are generally
 used as unique addresses for scripts.
 
+**Update**: see [Compressibility.md](./Compressibility.md) for an
+  investigation of why serialised ASTs are so compressible.
 
 Clearly, removing types and name strings helps a lot with sizes.  The
 CBOR representation is very small (six tags for AST nodes types and

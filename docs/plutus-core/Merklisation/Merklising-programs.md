@@ -74,7 +74,7 @@ validators, by which I mean applying the transformations in the
 second-last column of the table in the [type erasure document](./Erasure.md): 
 removing all kinds, types, and type-related
 information from the AST; removing all textual names; and replacing
-unique identifiers in names with De Bruijn indices.  The serialised
+unique identifiers in names with de Bruijn indices.  The serialised
 versions still included unit annotations, so could be made slightly
 smaller.
 
@@ -267,7 +267,7 @@ table still contains data for different type-Merklisation strategies,
 but it's probably best to look at the last two columns: "No types
 Merklised", where the variations are purely due to term Merklisation
 and "Merklised, minimised", where terms are Merklised but types are
-discarded and names are replaced with De Bruijn indices with no
+discarded and names are replaced with de Bruijn indices with no
 extraneous data.
 
 Recall that the validator contained 10539 term nodes, of which only
