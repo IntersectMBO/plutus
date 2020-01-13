@@ -11,7 +11,7 @@ data Name ann = Name
     , nameUnique    :: Unique
     }
 ```
-Here `nameString` is a textual name, obtained from program source for example.  This is only included for readability in error messages and textual representations of ASTs .  Names are disambiguated early in the compilation process, each being given a unique `Unique` identifier, essentially an `Integer`. The rest of the information in a name can be discarded without any semantic loss. We could also use De Bruijn indices here.
+Here `nameString` is a textual name, obtained from program source for example.  This is only included for readability in error messages and textual representations of ASTs .  Names are disambiguated early in the compilation process, each being given a unique `Unique` identifier, essentially an `Integer`. The rest of the information in a name can be discarded without any semantic loss. We could also use de Bruijn indices here.
 
 The main AST types are given below.  These are taken from `Language.PlutusCore.Core.Type` and are slightly simplified (derived instances are omitted for example). The definitions should be fairly self-explanatory.
 

@@ -12,6 +12,10 @@ and Merklisation for Plutus Core abstract syntax trees.
   * [Merklisation-notes.md](./Merklisation-notes.md): a proposal for Merklised ASTs for Plutus Core, together with
     some analysis of Merklisation of types.
 
-  * [Merklising-programs.md](./Merklising-programs.md): experiments on Merklising unrequired nodes in the ASTs for our sample contracts.
-  
+  * [Merklising-programs.md](./Merklising-programs.md): an investigataion of what happens when we Merklise the validators in our sample contracts
+
+
+  * [Compressibility.md](./Compressibility.md): an analysis of
+    serialised ASTs, showing that the CBOR data is very sparse.  This
+    probably explains why the CBOR is so compressible.
 
