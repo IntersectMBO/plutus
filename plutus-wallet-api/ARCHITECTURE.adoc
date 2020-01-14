@@ -1,0 +1,14 @@
+
+=== `plutus-wallet-api`
+
+This package should probably be split in two!
+
+The `ledger` sublibrary defines our model of an Extended UTXO ledger, including:
+
+- The types that describe transactions, pending transactions, keys, currencies, etc.
+- Functions that implement the ledger validation rules.
+
+The rest of the package defines the "wallet API", which was our attempt at
+defining the interface that contracts would use to the wallet. As it turns out,
+we need to do things somewhat differently, and so `plutus-contract` is the
+future, but the functions in here are still used fairly widely.

@@ -1,0 +1,7 @@
+
+=== `plutus-contract`
+
+This package has a new API for defining "contracts": bundled applications that
+interact with a wallet smart contract backend. This is in many ways the
+"successor" to much of `plutus-wallet-api`, and should eventually
+replace much of it.

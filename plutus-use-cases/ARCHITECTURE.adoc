@@ -1,0 +1,8 @@
+=== `plutus-use-cases`
+
+This package contains worked examples of a number of contracts, along with
+tests using the emulator. This should always be our "most real" project: this is
+where we try and do the things that we think people will really try and do.
+
+It has a few other miscellaneous tests and benchmarks that use the use-cases as
+a source of large/real validators.

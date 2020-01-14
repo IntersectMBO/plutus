@@ -1,0 +1,7 @@
+=== `plutus-playground-server`
+
+This packages contains the server that backs the Plutus Playground by
+compiling user code and evaluating their simulations.
+
+It also defines an executable that generate Purescript bindings for the types that
+the Purescript code needs.
