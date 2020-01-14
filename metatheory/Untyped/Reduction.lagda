@@ -41,7 +41,7 @@ data Error {n} : n ⊢ → Set where
 
 
 data Value {n} : n ⊢ → Set where
-  V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
+  V-ƛ : ∀(t : suc n ⊢) → Value (ƛ t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
 VTel : ∀ n → Tel n → Set
@@ -61,7 +61,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
 
   E-· : {L : n ⊢}{M : n ⊢} → Error L → L · M —→ error
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
-  β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
+  β-ƛ : ∀{L : suc n ⊢}{M : n ⊢} → ƛ L · M —→ L [ M ]
 
   ξ-builtin : (b : Builtin)
               (ts : Tel n)
@@ -179,7 +179,7 @@ progressList (t ∷ ts) | error e = error [] _ e ts
 progressList (t ∷ ts) | step p = step [] _ p ts
 
 progress (` ())
-progress (ƛ x t)      = done (V-ƛ t)
+progress (ƛ t)        = done (V-ƛ t)
 progress (t · u)      = progress-· (progress t) u
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ts) with progressList ts
