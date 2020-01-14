@@ -1,0 +1,3 @@
+=== `plutus-playground-client`
+
+The Plutus Playground client code, written in Purescript.

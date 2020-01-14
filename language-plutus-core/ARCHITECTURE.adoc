@@ -1,0 +1,13 @@
+=== `language-plutus-core`
+
+This package implements the Plutus Core language.
+
+This includes:
+
+- AST types
+- Parser
+- Various checkers including a typechecker
+- Prettyprinter
+- Evaluator
+- Support for some standard constructs e.g. the encodings of recursive types
+- A number of example programs

@@ -8,7 +8,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
--- | An general-purpose escrow contract in Plutus
+-- | A general-purpose escrow contract in Plutus
 module Language.PlutusTx.Coordination.Contracts.Escrow(
     -- $escrow
     Escrow

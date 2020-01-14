@@ -1,0 +1,4 @@
+=== `plutus-emulator`
+
+This package defines the chain emulator, which is used for tests, and to back
+the simulations in the Plutus Playground.

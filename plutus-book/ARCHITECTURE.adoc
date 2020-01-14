@@ -1,0 +1,3 @@
+=== `plutus-book`
+
+This package contains the Plutus Book. It is a literate Haskell project.
