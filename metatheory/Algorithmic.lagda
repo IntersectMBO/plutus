@@ -191,6 +191,7 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → A ≡ A'
  → Γ ⊢ A
  → Γ' ⊢ A'
+conv⊢ refl refl t = t
 
 convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → Γ ≡ Γ'
@@ -199,6 +200,4 @@ convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
 convTel p σ []       tt        = tt
 convTel p σ (A ∷ As) (t ,, ts) = conv⊢ p refl t ,, convTel p σ As ts
-
-conv⊢ refl refl t = t
 \end{code}
