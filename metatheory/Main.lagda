@@ -52,24 +52,26 @@ postulate
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
   mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
   mbind : ∀{A B : Set} → (A → Maybe B) → Maybe A → Maybe B
-  Program : Set
+  ProgramN Program : Set
   convP : Program → RawTm
   readFile : String → IO ByteString
-  parse : ByteString → Maybe Program -- this should deBruijnify too
+  parse : ByteString → Maybe ProgramN -- this should deBruijnify too
   showTerm : RawTm → String
   getContents : IO ByteString
   exitFailure : IO ⊤
   exitSuccess : IO ⊤
+  deBruijnify : ProgramN → Maybe Program
   
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 {-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
+{-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import System.Exit #-}
 {-# COMPILE GHC exitSuccess = exitSuccess #-}
 {-# COMPILE GHC exitFailure = exitFailure #-}
-
+{-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 
 
 {-# FOREIGN GHC import Raw #-}
@@ -80,8 +82,10 @@ postulate
 {-# COMPILE GHC mmap = \_ _ -> fmap #-}
 {-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
 {-# FOREIGN GHC import Data.Either #-}
-{-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse #-}
+{-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse  #-}
+{-# COMPILE GHC deBruijnify = either (\_ -> Nothing) Just . runExcept . deBruijnProgram #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
+{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
@@ -124,22 +128,26 @@ data EvalMode : Set where
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
 evalPLC m plc with parse plc
-evalPLC m plc | just t with scopeCheckTm {0}{Z} (convP t)
-evalPLC L plc | just t | just t' with S.run (saturate t') 1000000
-evalPLC L plc | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
+evalPLC m plc | nothing = inj₂ "parse error"
+evalPLC m plc | just nt with deBruijnify nt
+evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
+evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (convP t)
+evalPLC m plc | just nt | just t | nothing = inj₂ "(Agda) Scope Error"
+evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
+evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
-evalPLC L plc | just t | just t' | t'' ,, p ,, inj₁ nothing =
+evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
-evalPLC L plc | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
+evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
   ("runtime error" Data.String.++
   prettyPrintTm (extricateScope (unsaturate t'')))
-evalPLC CK plc | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
-evalPLC CK plc | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
+evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
-evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
-evalPLC CK plc | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
-evalPLC TCK plc | just t | just t' with inferType _ t'
+evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
+evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
 ... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
@@ -147,9 +155,6 @@ evalPLC TCK plc | just t | just t' with inferType _ t'
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
 
--- prettyPrintTy (deDeBruijnify⋆ [] (extricateNf⋆ A))
-evalPLC m plc | just t | nothing = inj₂ "scope error"
-evalPLC m plc | nothing = inj₂ "parse error"
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
@@ -157,9 +162,11 @@ junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
 tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
-... | nothing = inj₂ "parse error"
+... | nothing = inj₂ "Parse Error"
+... | just nt with deBruijnify nt
+... | nothing = inj₂ "(Haskell) Scope Error"
 ... | just t with scopeCheckTm {0}{Z} (convP t)
-... | nothing = inj₂ "scope error"
+... | nothing = inj₂ "(Agda) scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
   inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))

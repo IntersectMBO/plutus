@@ -19,7 +19,7 @@ data RKind = RKiStar
            | RKiFun RKind RKind
            deriving Show
 
-data RType = RTyVar Natural
+data RType = RTyVar Integer
            | RTyFun RType RType
            | RTyPi RKind RType
            | RTyLambda RKind RType
@@ -33,7 +33,7 @@ data RConstant = RConInt Integer
                | RConStr T.Text
                deriving Show
 
-data RTerm = RVar Natural
+data RTerm = RVar Integer
            | RTLambda RKind RTerm
            | RTApp RTerm RType
            | RLambda RType RTerm
@@ -45,8 +45,8 @@ data RTerm = RVar Natural
            | RUnWrap RTerm
   deriving Show
 
-unIndex :: Index -> Natural
-unIndex (Index n) = n
+unIndex :: Index -> Integer
+unIndex (Index n) = naturalToInteger n
 
 convP :: Program TyDeBruijn DeBruijn a -> RTerm
 convP (Program _ _ t) = conv t
@@ -58,10 +58,8 @@ convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
 convT :: Type TyDeBruijn a -> RType
 convT (TyVar _ (TyDeBruijn x)) = RTyVar (unIndex (dbnIndex x))
 convT (TyFun _ _A _B)      = RTyFun (convT _A) (convT _B)
-convT (TyForall _ _ _K _A) =
-  RTyPi (convK _K) (convT _A)
-convT (TyLam _ _ _K _A)    =
-  RTyLambda (convK _K) (convT _A)
+convT (TyForall _ _ _K _A) = RTyPi (convK _K) (convT _A)
+convT (TyLam _ _ _K _A)    = RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)      = RTyCon b
 convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
@@ -72,7 +70,8 @@ convC (BuiltinBS _ b)  = RConBS b
 convC (BuiltinStr _ s) = RConStr (T.pack s)
 
 conv :: Term TyDeBruijn DeBruijn a -> RTerm
-conv (Var _ x)                        = RVar (unIndex (dbnIndex x))
+conv (Var _ x)                        =
+  RVar (unIndex (dbnIndex x))
 conv (TyAbs _ _ _K t)                 = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)                  = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)                = RLambda (convT _A) (conv t)
@@ -89,13 +88,13 @@ unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
 dZero :: DeBruijn ()
-dZero = DeBruijn () (T.pack "") (Index 0)
+dZero = DeBruijn () (T.pack "") (Index (naturalFromInteger 0))
 
 
 -- this should take a level and render levels as names
 unconvT :: RType -> Type TyDeBruijn ()
 unconvT (RTyVar x)        =
-  TyVar () (TyDeBruijn (DeBruijn () (T.pack "") (Index x)))
+  TyVar () (TyDeBruijn (DeBruijn () (T.pack "") (Index (naturalFromInteger x))))
 unconvT (RTyFun t u)      = TyFun () (unconvT t) (unconvT u)
 unconvT (RTyPi k t)       =
   TyForall () (TyDeBruijn dZero) (unconvK k) (unconvT t)
@@ -110,7 +109,8 @@ unconvC (RConBS b)   = BuiltinBS () b
 unconvC  (RConStr s) = BuiltinStr () (T.unpack s)
 
 unconv :: RTerm -> Term TyDeBruijn DeBruijn ()
-unconv (RVar x)          = Var () (DeBruijn () (T.pack "") (Index x))
+unconv (RVar x)          =
+  Var () (DeBruijn () (T.pack "") (Index (naturalFromInteger x)))
 unconv (RTLambda k tm)   = TyAbs () (TyDeBruijn dZero) (unconvK k) (unconv tm)
 unconv (RTApp t ty)      = TyInst () (unconv t) (unconvT ty)
 unconv (RLambda ty tm)   = LamAbs () dZero (unconvT ty) (unconv tm)
