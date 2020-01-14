@@ -12,6 +12,9 @@ import           Ledger                     (PubKeyHash (..))
 import           Ledger.Ada                 (adaSymbol, adaToken)
 import qualified Ledger.Value               as Val
 
+instance IsString Party where
+    fromString s = Role (fromString s)
+
 instance IsString AccountId where
     fromString s = AccountId 0 (fromString s)
 
@@ -28,37 +31,6 @@ instance IsString PubKeyHash where
 
 ada :: Token
 ada = Token adaSymbol adaToken
-
-alicePubKey :: Party
-alicePubKey = "Alice"
-
-aliceAcc :: AccountId
-aliceAcc = AccountId 0 alicePubKey
-
-bobPubKey :: Party
-bobPubKey = "Bob"
-
-bobAcc :: AccountId
-bobAcc = AccountId 0 bobPubKey
-
-carolPubKey :: Party
-carolPubKey = "Carol"
-
-carolAcc :: AccountId
-carolAcc = AccountId 0 carolPubKey
-
-charliePubKey :: Party
-charliePubKey = "Charlie"
-
-charlieAcc :: AccountId
-charlieAcc = AccountId 0 charliePubKey
-
-evePubKey :: Party
-evePubKey = "Eve"
-
-eveAcc :: AccountId
-eveAcc = AccountId 0 evePubKey
-
 
 type AccountsDiff = Map Party Money
 

@@ -1,6 +1,7 @@
 module MonadApp where
 
 import Prelude
+
 import API (RunResult)
 import Ace (Annotation, Editor)
 import Ace as Ace
@@ -38,7 +39,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
 import Marlowe.Parser (parseTerm, contract)
-import Marlowe.Semantics (Contract(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Semantics (Contract(..), Party(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
@@ -278,7 +279,8 @@ updatePossibleActions oldState =
   addButPreserveActionInputs oldInputs actionInputIdx m actionInput = appendValue m oldInputs (actionPerson actionInput) actionInputIdx actionInput
 
   actionPerson :: ActionInput -> (Maybe PubKey)
-  actionPerson (DepositInput _ party _ _) = Just party
+  actionPerson (DepositInput _ (PK party) _ _) = Just party
+  actionPerson (DepositInput _ (Role party) _ _) = Just party
 
   actionPerson (ChoiceInput choiceId _ _) = Just (choiceOwner choiceId)
 
