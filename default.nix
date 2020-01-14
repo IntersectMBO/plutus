@@ -463,6 +463,9 @@ let
                                 pkgs.haskellPackages.hlint
                                 pkgs.haskellPackages.stylish-haskell
                                 pkgs.yarn
+                                pkgs.zlib
+                                pkgs.sqlite-analyzer
+                                pkgs.sqlite-interactive
                                 easyPS.purs
                                 easyPS.spago
                                 easyPS.purty

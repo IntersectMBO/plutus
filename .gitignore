@@ -62,3 +62,5 @@ gh-pages
 marlowe-playground-server/playground.yaml
 .envrc
 *.org
+/plutus-scb.yaml
+/scb-core.db*

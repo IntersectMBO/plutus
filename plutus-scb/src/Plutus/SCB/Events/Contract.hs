@@ -1,9 +1,9 @@
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 module Plutus.SCB.Events.Contract(
   -- $contract-events
   EventId(..)
-  , Event(..)
   , RequestEvent(..)
   , ResponseEvent(..)
   , ContractRequest(..)
@@ -12,8 +12,9 @@ module Plutus.SCB.Events.Contract(
   , ContractResponseEvent
   ) where
 
-import           Data.Aeson                               (Value)
+import           Data.Aeson                               (FromJSON, ToJSON, Value)
 import           Data.Text                                (Text)
+import           Data.UUID                                (UUID)
 import           GHC.Generics                             (Generic)
 
 import qualified Language.Plutus.Contract.Effects.WriteTx as W
@@ -30,7 +31,6 @@ import           Language.Plutus.Contract.Effects.UtxoAt  (UtxoAtAddress)
 -- The events that compiled Plutus contracts are concerned with. For each type
 -- of event there is a request constructor in 'ContractRequest' and a response
 -- constructor in 'ContractResponse'.
-
 {- Note [Contract Events]
 
 Each contract instance has two event queues in the SCB: One for the requests
@@ -47,20 +47,23 @@ endpoints that have disappeared.
 -}
 
 -- | Generic event ID
-newtype EventId = EventId { unEventId :: Int } -- stand-in for whatever we end up using
-  deriving stock (Eq, Ord, Show, Generic)
-
--- | Event with a unique identifier.
-data Event p = Event { eventId :: EventId, eventPayload :: p }
-  deriving stock (Eq, Ord, Show, Generic)
+newtype EventId = EventId { unEventId :: UUID} -- stand-in for whatever we end up using
+  deriving  (Eq, Ord, Show, Generic)
+  deriving newtype (FromJSON, ToJSON)
 
 data RequestEvent e =
-  IssueRequest e
+  IssueRequest EventId e
   | CancelRequest EventId
-  deriving stock (Eq, Ord, Show, Generic)
+  deriving  (Eq, Ord, Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
-data ResponseEvent e = ResponseEvent { respRequestId :: EventId, respPayload :: e }
-  deriving stock (Eq, Ord, Show, Generic)
+data ResponseEvent e =
+  ResponseEvent
+      { respRequestId :: EventId
+      , respPayload   :: e
+      }
+  deriving  (Eq, Ord, Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 data ContractRequest =
   AwaitSlotRequest Slot -- ^ Wait until a slot number is reached
@@ -70,7 +73,8 @@ data ContractRequest =
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
   | NextTxAtRequest Address -- ^ Wait for the next transaction that modifies the UTXO at the address and return it. TODO: confirmation levels
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the SCB.
-  deriving stock (Eq, Show, Generic)
+  deriving  (Eq, Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 type ContractRequestEvent = RequestEvent ContractRequest
 
@@ -82,6 +86,7 @@ data ContractResponse =
   | UtxoAtResponse UtxoAtAddress
   | NextTxAtResponse Tx
   | WriteTxResponse W.WriteTxResponse
-  deriving stock (Eq, Show, Generic)
+  deriving  (Eq, Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 type ContractResponseEvent = ResponseEvent ContractResponse

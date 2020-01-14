@@ -54764,35 +54764,107 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , aeson
+, async
 , base
 , bytestring
 , containers
+, ekg
+, eventful-core
+, eventful-memory
+, eventful-sql-common
+, eventful-sqlite
+, generic-arbitrary
 , iots-export
+, lens
+, monad-logger
+, mtl
+, optparse-applicative
+, persistent-sqlite
+, playground-common
 , plutus-contract
 , plutus-emulator
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , prettyprinter
+, QuickCheck
+, quickcheck-instances
+, random
 , stdenv
+, stm
+, tasty
+, tasty-quickcheck
 , text
+, transformers
+, unliftio-core
+, unordered-containers
+, uuid
+, vector
+, yaml
 }:
 mkDerivation {
 
 pname = "plutus-scb";
 version = "0.1.0.0";
 src = .././plutus-scb;
+isLibrary = true;
+isExecutable = true;
 libraryHaskellDepends = [
 aeson
+async
 base
 bytestring
 containers
+eventful-core
+eventful-memory
+eventful-sql-common
+eventful-sqlite
+generic-arbitrary
 iots-export
+lens
+monad-logger
+mtl
+optparse-applicative
+persistent-sqlite
 plutus-contract
 plutus-emulator
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
+QuickCheck
+quickcheck-instances
+random
+stm
 text
+transformers
+unliftio-core
+unordered-containers
+uuid
+vector
+yaml
+];
+executableHaskellDepends = [
+base
+ekg
+monad-logger
+mtl
+optparse-applicative
+playground-common
+text
+unliftio-core
+yaml
+];
+testHaskellDepends = [
+base
+eventful-core
+eventful-memory
+plutus-wallet-api
+QuickCheck
+quickcheck-instances
+tasty
+tasty-quickcheck
+transformers
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
