@@ -63,10 +63,10 @@ ren-eraseList ρ⋆ ρ (t ∷ ts) =
 
 ren-erase ρ⋆ ρ (` x)              =
   cong (` ∘ eraseVar ∘ ρ) (backVar-eraseVar x) 
-ren-erase ρ⋆ ρ (Λ x K t)          = ren-erase (S.lift⋆ ρ⋆) (S.⋆lift ρ) t
+ren-erase ρ⋆ ρ (Λ K t)            = ren-erase (S.lift⋆ ρ⋆) (S.⋆lift ρ) t
 ren-erase ρ⋆ ρ (t ·⋆ A)           = ren-erase ρ⋆ ρ t
-ren-erase ρ⋆ ρ (ƛ x A t)          = cong
-  (ƛ x)
+ren-erase ρ⋆ ρ (ƛ A t)            = cong
+  ƛ
   (trans (U.ren-cong (lift-erase ρ) (eraseTm t)) (ren-erase ρ⋆ (S.lift ρ) t))
 ren-erase ρ⋆ ρ (t · u)            =
   cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
@@ -118,12 +118,12 @@ subList-erase σ⋆ σ (t ∷ ts) =
   cong₂ _∷_ (sub-erase σ⋆ σ t) (subList-erase σ⋆ σ ts)
 
 sub-erase σ⋆ σ (` x) = cong (eraseTm ∘ σ) (backVar-eraseVar x)
-sub-erase σ⋆ σ (Λ x K t)          = trans
+sub-erase σ⋆ σ (Λ K t)            = trans
   (U.sub-cong (⋆slift-erase σ) (eraseTm t))
   (sub-erase (S.slift⋆ σ⋆) (S.⋆slift σ) t)
 sub-erase σ⋆ σ (t ·⋆ A)           = sub-erase σ⋆ σ t
-sub-erase σ⋆ σ (ƛ x A t)          = cong
-  (ƛ x)
+sub-erase σ⋆ σ (ƛ A t)            = cong
+  ƛ
   (trans (U.sub-cong (slift-erase σ) (eraseTm t))
          (sub-erase σ⋆ (S.slift σ) t))
 sub-erase σ⋆ σ (t · u)            =
