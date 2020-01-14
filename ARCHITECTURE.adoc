@@ -57,6 +57,8 @@ up examples to ensure that we have adequate functionality.
 
 include::plutus-contract/ARCHITECTURE.adoc[]
 
+include::plutus-contract-tasty/ARCHITECTURE.adoc[]
+
 include::plutus-use-cases/ARCHITECTURE.adoc[]
 
 include::iots-export/ARCHITECTURE.adoc[]
