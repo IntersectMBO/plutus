@@ -7,9 +7,9 @@ license-files:
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
 author: Michael Peyton Jones
-synopsis: The PlutusTx compiler frontend
+synopsis: Libraries for Plutus Tx and its prelude
 description:
-    The PlutusTx compiler frontend
+    Libraries for Plutus Tx and its prelude
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -59,103 +59,29 @@ library
         Language.PlutusTx.Monoid
         Language.PlutusTx.AssocMap
         Language.PlutusTx.These
+        Language.PlutusTx.Code
+        Language.PlutusTx.Data
+        Language.PlutusTx.Lift
+        Language.PlutusTx.Lift.Class
+        Language.PlutusTx.Builtins
+        Language.PlutusTx.Plugin.Utils
+        Language.PlutusTx.Utils
     other-modules:
         Language.PlutusTx.IsData.Instances
         Language.PlutusTx.IsData.TH
-    reexported-modules:
-        Language.PlutusTx.Code,
-        Language.PlutusTx.Lift,
-        Language.PlutusTx.Lift.Class,
-        Language.PlutusTx.Builtins,
-        Language.PlutusTx.Plugin
+        Language.PlutusTx.Lift.THUtils
+        Language.PlutusTx.Lift.Instances
     build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
         th-abstraction -any,
-        language-plutus-core -any,
-        plutus-tx-compiler -any
-
-library plutus-tx-compiler
-    import: lang
-    hs-source-dirs: compiler
-    exposed-modules:
-        Language.PlutusTx.Plugin
-        Language.PlutusTx.Builtins
-        Language.PlutusTx.Data
-        Language.PlutusTx.PLCTypes
-        Language.PlutusTx.PIRTypes
-        Language.PlutusTx.Utils
-        Language.PlutusTx.Lift
-        Language.PlutusTx.Lift.Class
-        Language.PlutusTx.Lift.THUtils
-        Language.PlutusTx.Lift.Instances
-        Language.PlutusTx.Code
-        Language.PlutusTx.Compiler.Error
-        Language.PlutusTx.Compiler.Binders
-        Language.PlutusTx.Compiler.Builtins
-        Language.PlutusTx.Compiler.Laziness
-        Language.PlutusTx.Compiler.Expr
-        Language.PlutusTx.Compiler.Names
-        Language.PlutusTx.Compiler.Kind
-        Language.PlutusTx.Compiler.Primitives
-        Language.PlutusTx.Compiler.Type
-        Language.PlutusTx.Compiler.Types
-        Language.PlutusTx.Compiler.Utils
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cborg -any,
-        containers -any,
-        extra -any,
-        ghc >=8.6 && <8.7,
-        language-plutus-core -any,
-        lens -any,
-        mtl -any,
-        plutus-ir -any,
         prettyprinter -any,
-        serialise -any,
-        template-haskell -any,
-        th-abstraction <0.3.0.0,
         text -any,
-        transformers -any
-
-test-suite plutus-tx-tests
-    type: exitcode-stdio-1.0
-    hs-source-dirs: test
-    main-is: Spec.hs
-    other-modules:
-        Lift.Spec
-        Plugin.Spec
-        Plugin.Basic.Spec
-        Plugin.Data.Spec
-        Plugin.Errors.Spec
-        Plugin.Functions.Spec
-        Plugin.Laziness.Spec
-        Plugin.Primitives.Spec
-        Plugin.ReadValue.Spec
-        Plugin.Typeclasses.Spec
-        Plugin.Typeclasses.Lib
-        Plugin.Lib
-        StdLib.Spec
-        TH.Spec
-        TH.TestTH
-    default-language: Haskell2010
-    build-depends:
-        base >=4.9 && <5,
-        integer-gmp -any,
-        language-plutus-core -any,
-        plutus-tx -any,
-        plutus-tx-compiler -any,
-        plutus-ir -any,
-        prettyprinter -any,
         mtl -any,
-        bytestring -any,
-        template-haskell -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-hedgehog -any,
-        hedgehog -any,
-    -- this makes the plugin give better errors
-    ghc-options: -g
+        containers -any,
+        plutus-ir -any,
+        cborg -any,
+        serialise -any,
+        language-plutus-core -any

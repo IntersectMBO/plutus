@@ -28,6 +28,8 @@ include::plutus-ir/ARCHITECTURE.adoc[]
 
 include::plutus-tx/ARCHITECTURE.adoc[]
 
+include::plutus-tx-plugin/ARCHITECTURE.adoc[]
+
 == Ledger
 
 To write actual Plutus contracts we need a model of the ledger that we're

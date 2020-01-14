@@ -4,6 +4,7 @@ packages: language-plutus-core
           plutus-exe
           plutus-wallet-api
           plutus-tx
+          plutus-tx-plugin
           plutus-use-cases
           plutus-ir
           plutus-playground-server

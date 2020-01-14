@@ -101,10 +101,6 @@ let
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
-      # Filter down to local packages, except those named in the given list
-      localButNot = nope:
-        let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
-        in name: builtins.elem name okay;
       # We can pass an evaluated version of our packages into
       # iohk-nix, and then we can also get out the compiler
       # so we make sure it uses the same one.
@@ -119,22 +115,6 @@ let
       enableSplitCheck = false;
 
       filter = localLib.isPlutus;
-      filterOverrides = {
-        splitCheck = localButNot [
-            # Broken for things with test tool dependencies
-            "plutus-wallet-api"
-            "plutus-tx"
-            "plutus-tutorial"
-            # Broken for things which pick up other files at test runtime
-            "plutus-playground-server"
-            "marlowe-playground-server"
-          ];
-        haddock = localButNot [
-            # Haddock is broken for things with internal libraries
-            "plutus-tx"
-
-        ];
-      };
       requiredOverlay = ./nix/overlays/haskell-overrides.nix;
     };
 
@@ -304,6 +284,7 @@ let
                   haskellPackages.plutus-emulator
                   haskellPackages.plutus-wallet-api
                   haskellPackages.plutus-tx
+                  haskellPackages.plutus-tx-plugin
                   haskellPackages.plutus-use-cases
                   haskellPackages.plutus-ir
                   haskellPackages.plutus-contract

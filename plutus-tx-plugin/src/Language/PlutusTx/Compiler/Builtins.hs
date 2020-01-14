@@ -26,7 +26,6 @@ import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
-import           Language.PlutusTx.Utils
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
@@ -120,6 +119,12 @@ For an example of how the "abstract module" approach would look:
 {<builtin int>}
 (\ x,y : <builtin int> . <builtin addInteger> x y) -- No type error any more, abstraction is gone
 -}
+
+mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name ()
+mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
+
+mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name ()
+mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
 
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]

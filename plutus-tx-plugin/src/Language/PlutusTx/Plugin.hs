@@ -9,7 +9,6 @@
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
 import           Language.PlutusTx.Code
@@ -20,7 +19,7 @@ import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.PLCTypes
-import           Language.PlutusTx.Utils
+import           Language.PlutusTx.Plugin.Utils
 
 import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
@@ -49,15 +48,7 @@ import qualified Data.ByteString.Unsafe                 as BSUnsafe
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 
-import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
-
--- if we inline this then we won't be able to find it later!
-{-# NOINLINE plc #-}
--- | Marks the given expression for compilation to PLC.
-plc :: forall (loc::Symbol) a . a -> CompiledCode a
--- this constructor is only really there to get rid of the unused warning
-plc _ = SerializedCode (mustBeReplaced "pir") (mustBeReplaced "plc")
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
