@@ -20,7 +20,11 @@
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekMachineException(..)
     , CekUserError(..)
+    , CekState(..)
+    , ExTally(..)
+    , ExBudget(..)
     , unwrapMachineException
+    , semiUnsafeEvaluateCek
     , EvaluationResult(..)
     , EvaluationResultDef
     , evaluateCek
@@ -35,6 +39,10 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , cekStateWriter
     , exBudgetCPU
     , exBudgetMemory
+    , exTallyMemory
+    , exTallyCPU
+    , Plain
+    , WithMemory
     )
 where
 
@@ -101,19 +109,20 @@ data CekState w s = CekState
     , _cekStateState :: s  -- ^ for making sure we don't spend too much
     }
 
-$(join <$> traverse makeLenses [''CekEnv, ''CekState, ''ExBudget])
+data ExTally = ExTally
+    { _exTallyCPU :: MonoidalHashMap (Plain Term) [ExCPU]
+    , _exTallyMemory :: MonoidalHashMap (Plain Term) [ExMemory]
+    }
+    deriving stock (Eq, Generic, Show)
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
+
+$(join <$> traverse makeLenses [''CekEnv, ''CekState, ''ExBudget, ''ExTally])
 
 -- | The monad the CEK machine runs in.
 type CekM w s
     = ReaderT CekEnv (ExceptT CekMachineException (State (CekState w s)))
 type SpendExUnits w s = (SpendExUnitsState s, SpendExUnitsWriter w)
 
-data ExTally = ExTally
-    { _exTallyCPU :: MonoidalHashMap (Plain Term) [ExCPU]
-    , _exTallyMemory :: MonoidalHashMap (Plain Term) [ExMemory]
-    }
-    deriving stock (Eq, Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
 
 spendBoth
     :: SpendExUnits w s => WithMemory Term -> ExCPU -> ExMemory -> CekM w s ()
@@ -177,7 +186,7 @@ data Frame
 type Context = [Frame]
 
 runCekM
-    :: CekEnv
+    :: forall w s a. CekEnv
     -> CekState w s
     -> CekM w s a
     -> (Either CekMachineException a, CekState w s)
@@ -425,6 +434,11 @@ unsafeEvaluateCek
 unsafeEvaluateCek dyn term =
     either throw id $ (view _1 $ evaluateCek @() dyn () term)
 
+semiUnsafeEvaluateCek 
+    :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
+semiUnsafeEvaluateCek dyn term =
+    either throw id $ (unwrapMachineException $ view _1 $ evaluateCek @() dyn () term)
+
 -- The implementation is a bit of a hack.
 -- And used in tests only. Not doing costing for now.
 readKnownCek
@@ -434,7 +448,7 @@ readKnownCek
     -> Either CekMachineException a
 readKnownCek means term = do
     res <- runReflectT $ readKnown
-        (\m -> fmap EvaluationSuccess . view _1 . evaluateCek @() @() (mappend means m) ())
+        (\m t -> either (Left . CekInternalError) Right $ unwrapMachineException $ view _1 $ evaluateCek @() @() (mappend means m) () t)
         term
     case res of
         EvaluationFailure            -> throw $ CekUserError CekEvaluationFailure
@@ -447,7 +461,7 @@ readKnownCek means term = do
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
 runCek
-    :: SpendExUnits w s
+    :: forall w s. SpendExUnits w s
     => DynamicBuiltinNameMeanings
     -> s
     -> Program TyName Name ()
@@ -461,5 +475,5 @@ runCek means s (Program _ _ term) = evaluateCek means s term
 unsafeRunCek
     :: DynamicBuiltinNameMeanings
     -> Program TyName Name ()
-    -> (Plain Term)
+    -> Plain Term
 unsafeRunCek means (Program _ _ term) = unsafeEvaluateCek means term

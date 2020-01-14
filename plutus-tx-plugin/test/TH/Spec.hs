@@ -11,6 +11,7 @@ module TH.Spec (tests) where
 
 import           Common
 import           PlcTestUtils
+import           PlutusPrelude (view)
 
 import           TH.TestTH
 
@@ -30,6 +31,7 @@ import           Language.PlutusCore
 
 import           Control.Monad.Except
 import           Control.Exception
+import           Control.Lens.Combinators       ( _1 )
 
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
@@ -40,25 +42,25 @@ instance GetProgram (CompiledCode a) where
 goldenPir :: String -> CompiledCode a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
-runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
+runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO (Plain Term)
 runPlcCek values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResultDef)
+runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], ExTally, (Plain Term))
 runPlcCekTrace values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
-     let (logOut, result) = evaluateCekTrace p
+     let (logOut, tally, result) = evaluateCekTrace p
      res <- either (throwError . SomeException) Haskell.pure result
-     Haskell.pure (logOut, res)
+     Haskell.pure (logOut, tally, res)
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: GetProgram a => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) Haskell.<$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
 tests = testNested "TH" [
