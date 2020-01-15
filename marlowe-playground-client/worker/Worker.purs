@@ -3,15 +3,14 @@ module Worker where
 import Prelude
 
 import Control.Monad.Except (runExcept)
-import Data.Array (drop, filter, head, take)
-import Data.Array as Array
+import Data.Array (filter, head)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn0, runFn0)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (trim)
-import Data.Symbolic (checkSat, declareVars, equationModel, getEquations, solveEquation)
-import Debug.Trace (trace)
+import Data.Symbolic (Equation, checkSat, declareVars, equationModel, getEquations, solveEquation)
+import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -26,7 +25,7 @@ import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
 import Worker.Types (WorkerRequest(..), WorkerResponse(..))
 import Z3.Internal (onZ3Initialized)
-import Z3.Monad (evalString, pop, push, runZ3)
+import Z3.Monad (Z3, evalString, pop, push, runZ3)
 
 foreign import data Context :: Type
 
@@ -54,9 +53,8 @@ postMessage :: Context -> WorkerResponse -> Effect Unit
 postMessage ctx req = let msg = genericEncode defaultOptions req in runEffectFn2 postMessage_ ctx msg
 
 handleRequest :: Context -> WorkerRequest -> Effect Unit
-handleRequest ctx (AnalyseContract contractString) = do
+handleRequest ctx (AnalyseContractRequest contractString) = do
   res <- checkContractForWarnings contractString
-  trace res \_ -> pure unit
   postMessage ctx (AnalyseContractResult (show res))
 
 handleRequest ctx InitializeZ3 = onZ3Initialized do
@@ -73,41 +71,27 @@ checkContractForWarnings contractString = do
 
     tree = getTransactionOutput contract
 
-    equationsA = take 5000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
+    equations = filter (\a -> hasWarnings a.value) $ getEquations tree
 
-    equationsB = drop 5000 $ filter (\a -> hasWarnings a.value) $ getEquations tree
-
-    _ = trace (head equationsA) \_ -> 1
-  -- FIXME: All this is batched because findM seems to blow the stack. I think we need to look into making the Z3 monad stack safe
   liftEffect do
     resA <-
       runZ3 do
-        r1 <- declareVars equationsA
-        findM equationsA f
-    if isNothing resA then
-      runZ3 do
-        r1 <- declareVars equationsB
-        findM equationsB f
-    else
-      pure resA
+        r1 <- declareVars equations
+        traverse f equations
+    case head resA of
+        Nothing -> pure Nothing
+        (Just Nothing) -> pure Nothing
+        (Just (Just m)) -> pure $ Just m
   where
+  f :: forall a. Equation a -> Z3 (Maybe (Map String String))
   f a = do
     push
     _ <- solveEquation a
+    -- isSat <- (evalString "(assert true)(check-sat)")
     isSat <- (evalString $ show checkSat)
     res <- if trim isSat == "sat" then Just <$> equationModel a else pure Nothing
     pop
     pure res
-
--- | Find the first Just occurance of a function applied to an element in an array
-findM :: forall m a b. Monad m => Array a -> (a -> m (Maybe b)) -> m (Maybe b)
-findM array f = case Array.uncons array of
-  Just { head, tail } -> do
-    mRes <- f head
-    case mRes of
-      Just res -> pure $ Just res
-      Nothing -> findM tail f
-  Nothing -> pure Nothing
 
 -- handler needs to recieve messages that are a map of type and body (string) and pattern match on the type
 -- need to coerce to {messageType: "AnalyseContract|InitializeZ3", body: contractString|null }

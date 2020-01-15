@@ -153,7 +153,7 @@ instance monadAppHalogenApp ::
   postContractHaskell source = runAjax $ Server.postContractHaskell source
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
-  checkContractForWarnings contractString = wrap $ raise (AnalyseContract contractString)
+  checkContractForWarnings contractString = wrap $ raise (AnalyseContractRequest contractString)
   initializeZ3 = wrap $ raise InitializeZ3
 
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you

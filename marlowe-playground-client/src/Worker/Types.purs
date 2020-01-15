@@ -6,7 +6,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 
 data WorkerRequest
-  = AnalyseContract String
+  = AnalyseContractRequest String
   | InitializeZ3
 
 derive instance genericWorkerRequest :: Generic WorkerRequest _

@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Control.Monad.Reader.Trans (runReaderT)
 import Data.Maybe (Maybe(..))
@@ -19,8 +18,9 @@ import LocalStorage as LocalStorage
 import MainFrame (mkMainFrame)
 import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Worker.Client (wsConsumer, wsProducer, wsSender)
+import Worker.Client (postMessage, wsConsumer, wsProducer, wsSender)
 import Worker.Client as Worker
+import Worker.Types (WorkerRequest(..))
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -41,7 +41,8 @@ main = do
     body <- awaitBody
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
     driver.subscribe $ wsSender worker
-    runProcess (wsProducer worker $$ wsConsumer driver.query)
+    void $ forkAff $ runProcess ((wsProducer worker) $$ (wsConsumer driver.query))
+    liftEffect $ postMessage worker InitializeZ3
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit

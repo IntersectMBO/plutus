@@ -834,12 +834,3 @@ getTransactionOutput contract = do
 hasWarnings :: TransactionOutput -> Boolean
 hasWarnings (Error _) = false
 hasWarnings (TransactionOutput vs) = not $ Array.null vs.txOutWarnings
-
-test :: Tree TransactionOutput
-test =
-  let
-    contract = case runParser ME.escrow Parser.contract of
-      Left _ -> Close
-      Right c -> fromMaybe Close $ Holes.fromTerm c
-  in
-    getTransactionOutput contract

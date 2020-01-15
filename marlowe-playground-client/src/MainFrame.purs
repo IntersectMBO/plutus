@@ -22,7 +22,7 @@ import Data.Lens (_Just, assign, modifying, over, preview, use, view)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
-import Data.Newtype (unwrap)
+import Data.Newtype (unwrap, wrap)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
@@ -36,7 +36,7 @@ import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
 import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..), gistControls, parseGistUrl)
-import Halogen (Component, ComponentHTML)
+import Halogen (Component, ComponentHTML, raise)
 import Halogen as H
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, slot, strong_, text)
@@ -75,7 +75,7 @@ mkInitialState editorPreferences =
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
-    , analysisState: NotAsked
+    , analysisState: Loading
     , selectedHole: Nothing
     }
 
@@ -177,9 +177,11 @@ toEvent SetBlocklyCode = Nothing
 toEvent AnalyseContract = Nothing
 
 handleQuery :: forall m a. MonadState FrontendState m => HQuery a -> m (Maybe a)
-handleQuery (ReceiveWorkerMessage response next) = do
-  -- FIXME: handle the worker responses
-  trace response \_ -> pure unit
+handleQuery (ReceiveWorkerMessage InitializedZ3 next) = do
+  assign _analysisState NotAsked
+  pure $ Just next
+handleQuery (ReceiveWorkerMessage (AnalyseContractResult result) next) = do
+  trace result \_ -> pure unit
   -- let
     -- msgDecoded =
       -- unwrap <<< runExceptT
@@ -190,6 +192,7 @@ handleQuery (ReceiveWorkerMessage response next) = do
     -- Left err -> assign _analysisState <<< Failure $ show $ msg
     -- Right (OtherError err) -> assign _analysisState $ Failure err
     -- Right (CheckForWarningsResult result) -> assign _analysisState $ Success result
+  assign _analysisState NotAsked
   pure $ Just next
 
 handleAction ::
@@ -218,10 +221,10 @@ handleAction (MarloweMoveToPosition pos) = do
   assign _selectedHole Nothing
 
 handleAction CheckAuthStatus = do
-  initializeZ3
   assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult
+  initializeZ3
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 

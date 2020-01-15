@@ -10,7 +10,6 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console as Console
 import Effect.Uncurried (EffectFn2, runEffectFn2)
 import Foreign (Foreign)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
@@ -57,6 +56,5 @@ wsSender :: Worker -> Consumer WorkerRequest Aff Unit
 wsSender worker =
   CR.consumer
     $ \msg -> do
-        liftEffect $ Console.log "send something"
         void $ liftEffect $ postMessage worker msg
         pure Nothing

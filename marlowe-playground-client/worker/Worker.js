@@ -1,8 +1,8 @@
 /*eslint-env node*/
 'use strict';
 
-exports.postMessage_ = function (worker, msg) {
-    worker.postMessage(msg);
+exports.postMessage_ = function (ctx, msg) {
+    ctx.postMessage(msg);
 }
 
 exports.registerOnMessage_ = function (ctx, f) {

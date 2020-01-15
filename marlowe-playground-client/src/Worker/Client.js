@@ -8,14 +8,11 @@ exports.spawn = function () {
 }
 
 exports.postMessage_ = function (worker, msg) {
-    console.log("post msg");
-    console.log(worker);
-    console.log(msg);
     worker.postMessage(msg);
 }
 
 exports.registerOnMessage_ = function (worker, f) {
     worker.onmessage = function (e) {
-        f(e.data);
+        f(e.data)();
     };
 };
