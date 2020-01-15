@@ -754,15 +754,13 @@ validateBalances State{..} = all (\(_, balance) -> balance > 0) (Map.toList acco
 
 
 {-| Ensure that 'pendingTx' contains expected payments.   -}
-validateTxOutputs :: PendingTx -> Party -> Money -> TransactionOutput -> Bool
-validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxOutputs of
+validateTxOutputs :: PendingTx -> Party -> TransactionOutput -> Bool
+validateTxOutputs pendingTx creator expectedTxOutputs = case expectedTxOutputs of
     TransactionOutput {txOutPayments, txOutState, txOutContract} ->
         case txOutContract of
-            Close -> let
-                -- if it's a last transaction, don't expect any continuation,
-                -- everything is payed out, including initial deposit.
-                payments = Payment creator deposit : txOutPayments
-                in validatePayments pendingTx payments
+            -- if it's a last transaction, don't expect any continuation,
+            -- everything is payed out.
+            Close -> validatePayments pendingTx txOutPayments
             -- otherwise check the continuation
             _ -> case getContinuingOutputs pendingTx of
                     [PendingTxOut
@@ -775,7 +773,7 @@ validateTxOutputs pendingTx creator deposit expectedTxOutputs = case expectedTxO
                                     && txOutState == expectedState
                                     && txOutContract == expectedContract
                                 outputBalance = totalBalance (accounts txOutState)
-                                outputBalanceOk = scriptOutputValue == (outputBalance + deposit)
+                                outputBalanceOk = scriptOutputValue == outputBalance
                                 in  outputBalanceOk
                                     && validContract
                                     && validatePayments pendingTx txOutPayments
@@ -823,11 +821,8 @@ marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
     -- accounts must be positive, and we checked it above
     inputBalance = totalBalance (accounts marloweState)
 
-    -- ensure that a contract TxOut has at least what it suppose to have
-    balancesOk = inputBalance `Val.leq` scriptInValue
-
-    -- calculate contract creation deposit
-    deposit = scriptInValue - inputBalance
+    -- ensure that a contract TxOut has what it suppose to have
+    balancesOk = inputBalance == scriptInValue
 
     preconditionsOk = checkCreator
         && positiveBalances
@@ -838,7 +833,7 @@ marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
     txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
     expectedTxOutputs = computeTransaction txInput marloweState marloweContract
 
-    outputOk = validateTxOutputs pendingTx creator deposit expectedTxOutputs
+    outputOk = validateTxOutputs pendingTx creator expectedTxOutputs
 
     in preconditionsOk && outputOk
 

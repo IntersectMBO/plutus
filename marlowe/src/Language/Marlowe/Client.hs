@@ -55,12 +55,11 @@ createContract contract = do
             marloweState = emptyState slot }
         ds = DataValue $ PlutusTx.toData marloweData
 
-        deposit = adaValueOf 1
-
-    (payment, change) <- createPaymentWithChange deposit
-    let o = scriptTxOut deposit validator ds
+    let payValue = adaValueOf 1
+    (payment, change) <- createPaymentWithChange payValue
+    let o = scriptTxOut P.zero validator ds
         slotRange = interval slot (slot + 10)
-        outputs = o : maybeToList change
+        outputs = o : (pubKeyTxOut payValue creator) : maybeToList change
 
     tx <- createTxAndSubmit slotRange payment outputs [ds]
     return (marloweData, tx)
@@ -138,9 +137,7 @@ applyInputs :: (
     -> [Input]
     -> m (MarloweData, Tx)
 applyInputs tx marloweData@MarloweData{..} inputs = do
-    let depositAmount = adaValueOf 1
-        depositPayment = Payment marloweCreator depositAmount
-        redeemer = mkRedeemer inputs
+    let redeemer = mkRedeemer inputs
         validator = validatorScript marloweCreator
         dataValue = DataValue (PlutusTx.toData marloweData)
         address = scriptAddress validator
@@ -172,11 +169,11 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
                     marloweState = txOutState }
 
             let deducedTxOutputs = case txOutContract of
-                    Close -> txPaymentOuts (depositPayment : txOutPayments)
+                    Close -> txPaymentOuts txOutPayments
                     _ -> let
                         payouts = txPaymentOuts txOutPayments
                         totalPayouts = foldMap txOutValue payouts
-                        finalBalance = totalIncome P.- totalPayouts P.+ depositAmount
+                        finalBalance = totalIncome P.- totalPayouts
                         dataValue = DataValue (PlutusTx.toData marloweData)
                         scriptOut = scriptTxOut finalBalance validator dataValue
                         in scriptOut : payouts
