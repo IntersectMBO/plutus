@@ -3,7 +3,7 @@ module Raw where
 \end{code}
 
 \begin{code}
-open import Agda.Builtin.String
+open import Data.String
 open import Data.Nat
 
 open import Builtin.Constant.Type
@@ -52,4 +52,23 @@ data RawTm : Set where
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
+
+-- We have to different approaches to de Bruijn terms.
+-- one counts type and term binders separately the other counts them together
+
+rawTyPrinter : RawTy → String
+rawTyPrinter (` x)   = Data.Integer.show (ℤ.pos x)
+rawTyPrinter _       = "ty"
+
+rawPrinter : RawTm → String
+rawPrinter (` x) = Data.Integer.show (ℤ.pos x)
+rawPrinter (Λ K t) = "(" ++ "Λ" ++ "?" ++ rawPrinter t ++ ")"
+rawPrinter (t ·⋆ A) = "(" ++ rawPrinter t ++ "·⋆" ++ rawTyPrinter A ++ ")"
+rawPrinter (ƛ A t) = "(" ++ "ƛ" ++ rawTyPrinter A ++ rawPrinter t ++ ")"
+rawPrinter (t · u) = "(" ++ rawPrinter t ++ "·" ++ rawPrinter u ++ ")"
+rawPrinter (con c) = "(con)" 
+rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
+rawPrinter (builtin b) = "(builtin)"
+rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
+rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}

@@ -4,11 +4,19 @@ module Scoped where
 
 \begin{code}
 open import Data.Nat hiding (_*_)
-open import Data.Fin hiding (_-_)
+open import Data.Fin hiding (_-_;_+_;_<_)
 open import Data.List hiding (map; _++_)
-open import Data.Integer hiding (_*_; suc)
-open import Data.String
+open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
+open import Data.String hiding (_<_)
 open import Data.Unit
+
+open import Data.Vec hiding (_>>=_; map; _++_; [_])
+open import Utils
+open import Relation.Nullary
+open import Category.Monad
+import Level
+open RawMonad {f = Level.zero} (record { return = just ; _>>=_ = λ { (just x) f → f x ; nothing x → nothing} })
+
 
 open import Builtin.Constant.Type
 open import Builtin
@@ -65,6 +73,50 @@ wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
 
+-- extract number of term binders we are under
+wtoℕ' : ∀{n} → Weirdℕ n → ℕ
+wtoℕ' Z = zero
+wtoℕ' (S x) = suc (wtoℕ' x)
+wtoℕ' (T x) = wtoℕ x
+
+lookupWTm : ∀(m : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
+lookupWTm zero Z = nothing
+lookupWTm zero (S w) = just 0
+lookupWTm zero (T w) = nothing
+lookupWTm (suc m) Z = nothing
+lookupWTm (suc m) (S w) = map suc (lookupWTm m w)
+lookupWTm (suc m) (T w) = lookupWTm m w
+
+lookupWTy : ∀(m : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
+lookupWTy zero Z = nothing
+lookupWTy zero (S w) = nothing
+lookupWTy zero (T w) = just 0
+lookupWTy (suc m) Z = nothing
+lookupWTy (suc m) (S w) = lookupWTy m w
+lookupWTy (suc m) (T w) = map suc (lookupWTy m w)
+
+shifterTy : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTy → RawTy
+shifterTy m w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
+shifterTy m w (A ⇒ B) = shifterTy m w B ⇒ shifterTy m w B
+shifterTy m w (Π K A) = Π K (shifterTy (suc m) (T w) A)
+shifterTy m w (ƛ K A) = ƛ K (shifterTy (suc m) (T w) A)
+shifterTy m w (A · B) = shifterTy m w B · shifterTy m w B
+shifterTy m w (con c) = con c
+shifterTy m w (μ K A) = μ K (shifterTy (suc m) (T w) A)
+
+shifter : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTm → RawTm
+shifter m w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
+shifter m w (Λ K t) = Λ K (shifter (suc m) (T w) t)
+shifter m w (t ·⋆ A) = shifter m w t ·⋆ shifterTy m w A
+shifter m w (ƛ A t) = ƛ (shifterTy (suc m) (S w) A) (shifter (suc m) (S w) t) 
+shifter m w (t · u) = shifter m w t · shifter m w u
+shifter m w (con c) = con c
+shifter m w (error A) = error (shifterTy m w A)
+shifter m w (builtin b) = builtin b
+shifter m w (wrap pat arg t) =
+  wrap (shifterTy m w pat) (shifterTy m w pat) (shifter m w t)
+shifter m w (unwrap t) = unwrap (shifter m w t)
+
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon
   bytestring : (b : ByteString) → TermCon
@@ -101,14 +153,6 @@ false = Λ * (ƛ (` zero) (ƛ (` zero) (` Z)))
 deBruijnifyK : RawKind → Kind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
-
-open import Data.Vec hiding (_>>=_; map; _++_; [_])
-open import Utils
-open import Data.String
-open import Relation.Nullary
-open import Category.Monad
-import Level
-open RawMonad {f = Level.zero} (record { return = just ; _>>=_ = λ { (just x) f → f x ; nothing x → nothing} })
 
 velemIndex : String → ∀{n} → Vec String n → Maybe (Fin n)
 velemIndex x [] = nothing
@@ -211,7 +255,7 @@ deBruijnifyTm g (unwrap t) =  do
 ℕtoWeirdFin {_} {T w} n | nothing = nothing
 
 scopeCheckTy : ∀{n} → RawTy → Maybe (ScopedTy n)
-scopeCheckTy (` x)    = map ` (ℕtoFin x)
+scopeCheckTy (` x) = map ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -229,15 +273,15 @@ scopeCheckTy (μ A B) = do
   return (μ A B)
 
 scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Maybe (ScopedTm w)
-scopeCheckTm (` x)    = map ` (ℕtoWeirdFin x)
-scopeCheckTm (Λ K t) = map (Λ (deBruijnifyK K)) (scopeCheckTm t)
+scopeCheckTm (` x) = map ` (ℕtoWeirdFin x)
+scopeCheckTm {n}{w}(Λ K t) = map (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
-  t ← scopeCheckTm t
   A ← scopeCheckTy A
+  t ← scopeCheckTm t
   return (t ·⋆ A)
 scopeCheckTm (ƛ A t) = do
-  t ← scopeCheckTm t
   A ← scopeCheckTy A
+  t ← scopeCheckTm t
   return (ƛ A t)
 scopeCheckTm (t · u) = do
   t ← scopeCheckTm t

@@ -52,10 +52,11 @@ postulate
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
   mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
   mbind : ∀{A B : Set} → (A → Maybe B) → Maybe A → Maybe B
-  ProgramN Program : Set
+  ProgramN : Set
+  Program : Set
   convP : Program → RawTm
   readFile : String → IO ByteString
-  parse : ByteString → Maybe ProgramN -- this should deBruijnify too
+  parse : ByteString → Maybe ProgramN
   showTerm : RawTm → String
   getContents : IO ByteString
   exitFailure : IO ⊤
@@ -117,7 +118,7 @@ postulate
 {-# COMPILE GHC prettyPrintTm = prettyText . unconv #-}
 {-# COMPILE GHC prettyPrintTy = prettyText . unconvT #-}
 
-open import Data.Vec hiding (_>>=_)
+open import Data.Vec hiding (_>>=_;_++_)
 
 open import Scoped.CK
 open import Algorithmic.CK
@@ -131,8 +132,9 @@ evalPLC m plc with parse plc
 evalPLC m plc | nothing = inj₂ "parse error"
 evalPLC m plc | just nt with deBruijnify nt
 evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
-evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (convP t)
-evalPLC m plc | just nt | just t | nothing = inj₂ "(Agda) Scope Error"
+evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
+evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
+  ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
 evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
@@ -165,7 +167,7 @@ tcPLC plc with parse plc
 ... | nothing = inj₂ "Parse Error"
 ... | just nt with deBruijnify nt
 ... | nothing = inj₂ "(Haskell) Scope Error"
-... | just t with scopeCheckTm {0}{Z} (convP t)
+... | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
 ... | nothing = inj₂ "(Agda) scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
