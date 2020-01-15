@@ -66,6 +66,7 @@ data UnbalancedTx = UnbalancedTx
         { _inputs             :: Set L.TxIn
         , _outputs            :: [L.TxOut]
         , _forge              :: V.Value
+        , _forgeScripts       :: Set L.MonetaryPolicy
         , _requiredSignatures :: [PubKey]
         , _dataValues         :: [DataValue]
         , _validityRange      :: SlotRange
@@ -85,6 +86,7 @@ instance Semigroup UnbalancedTx where
         _inputs = _inputs tx1 <> _inputs tx2,
         _outputs = _outputs tx1 <> _outputs tx2,
         _forge = _forge tx1 <> _forge tx2,
+        _forgeScripts = _forgeScripts tx1 <> _forgeScripts tx2,
         _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
         _dataValues = _dataValues tx1 <> _dataValues tx2,
         _validityRange = _validityRange tx1 /\ _validityRange tx2,
@@ -92,7 +94,7 @@ instance Semigroup UnbalancedTx where
         }
 
 instance Monoid UnbalancedTx where
-    mempty = UnbalancedTx mempty mempty mempty mempty mempty top mempty
+    mempty = UnbalancedTx mempty mempty mempty mempty mempty mempty top mempty
 
 instance Pretty UnbalancedTx where
     pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange, _valueMoved} =
@@ -163,6 +165,7 @@ fromLedgerTx tx = UnbalancedTx
             , _requiredSignatures = Map.keys $ L.txSignatures tx
             , _dataValues = toList $ L.txData tx
             , _validityRange = L.txValidRange tx
+            , _forgeScripts = L.txForgeScripts tx
             , _valueMoved = mempty
             }
 
@@ -177,6 +180,7 @@ toLedgerTx utx =
             , L.txForge = _forge utx
             , L.txFee = mempty
             , L.txValidRange = _validityRange utx
+            , L.txForgeScripts = _forgeScripts utx
             , L.txSignatures = Map.empty
             , L.txData = Map.fromList $ fmap (\ds -> (L.dataValueHash ds, ds)) (_dataValues utx)
             }
@@ -186,7 +190,7 @@ toLedgerTx utx =
 --   will be ignored.
 --   Note: this doesn't populate the data scripts, so is not exported. Prefer using 'payToScript' etc.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always mempty
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty mempty I.always mempty
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataValue -> UnbalancedTx
@@ -221,9 +225,9 @@ collectFromScriptFilter flt am vls red =
 
 -- This just sets the '_forge' field, but it's exported for convenient
 -- use with '<>'.
--- | An 'UnbalancedTx' that forges the specified value.
-forgeValue :: Value -> UnbalancedTx
-forgeValue vl = mempty { _forge = vl }
+-- | An 'UnbalancedTx' that forges the specified value, using the given monetary policies as authorization.
+forgeValue :: Value -> Set.Set L.MonetaryPolicy -> UnbalancedTx
+forgeValue vl fs = mempty { _forge = vl, _forgeScripts = fs }
 
 -- | An 'UnbalancedTx' that moves the specified value
 moveValue :: Value -> UnbalancedTx

@@ -815,7 +815,7 @@ marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
         requiredSignatures = getSignatures inputs
         in checkSignatures pendingTx requiredSignatures
 
-    PendingTxIn _ _ scriptInValue = pendingTxIn
+    PendingTxIn _ _ scriptInValue = pendingTxItem
 
     -- total balance of all accounts in State
     -- accounts must be positive, and we checked it above

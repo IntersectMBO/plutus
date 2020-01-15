@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE ScopedTypeVariables     #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -35,7 +36,6 @@ import           Control.Monad.Reader             (MonadReader (..), ReaderT (..
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (fold, foldl', traverse_)
 import qualified Data.Map                         as Map
-import           Data.Maybe (mapMaybe)
 import           Data.Semigroup                   (Semigroup)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc        (Pretty)
@@ -109,9 +109,9 @@ data ValidationError =
     -- ^ The current slot is not covered by the transaction's validity slot range.
     | SignatureMissing PubKey
     -- ^ The transaction is missing a signature
-    | ForgeWithoutScript Scripts.ValidatorHash
-    -- ^ The transaction attempts to forge value of a currency without spending
-    --   a script output from the address of the currency's monetary policy.
+    | ForgeWithoutScript Scripts.MonetaryPolicyHash
+    -- ^ The transaction attempts to forge value of a currency without running
+    --   the currency's monetary policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
     deriving (Eq, Show, Generic)
@@ -151,6 +151,7 @@ validateTransaction h t = do
 
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
+    unless emptyUtxoSet (checkForgingScripts t)
     unless emptyUtxoSet (checkForgingAuthorised t)
     unless emptyUtxoSet (checkTransactionFee t)
 
@@ -198,13 +199,25 @@ checkForgingAuthorised tx =
     let
         forgedCurrencies = V.symbols (txForge tx)
 
-        mpsScriptHashes = Scripts.ValidatorHash . V.unCurrencySymbol <$> forgedCurrencies
+        mpsScriptHashes = Scripts.MonetaryPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
 
-        lockingScripts = (\(v,_,_) -> validatorHash v) <$> (mapMaybe inScripts $ Set.toList (txInputs tx))
+        lockingScripts = monetaryPolicyHash <$> Set.toList (txForgeScripts tx)
 
         forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
         traverse_ (throwError . ForgeWithoutScript) forgedWithoutScript
+
+checkForgingScripts :: forall m . ValidationMonad m => Tx -> m ()
+checkForgingScripts tx = do
+    ptx <- validationData tx
+    let mpss = Set.toList (txForgeScripts tx)
+        mkVd :: Integer -> Validation.PendingTxMPS
+        mkVd i = ptx { pendingTxItem = monetaryPolicyHash $ mpss !! fromIntegral i }
+    forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
+        let vd = ValidationData $ toData ptx'
+        in case runExcept $ runMonetaryPolicyScript Typecheck vd vl of
+            Left e  -> throwError $ ScriptFailure e
+            Right _ -> pure ()
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -253,7 +266,7 @@ checkMatch pendingTx = \case
         | otherwise -> do
             pTxIn <- pendingTxInScript (txInRef txin) vl r d
             let
-                ptx' = pendingTx { pendingTxIn = pTxIn }
+                ptx' = pendingTx { pendingTxItem = pTxIn }
                 vd = ValidationData (toData ptx')
             case runExcept $ runScript Typecheck vd vl d r of
                 Left e  -> throwError $ ScriptFailure e
@@ -298,7 +311,7 @@ checkTransactionFee tx =
     then pure ()
     else throwError $ TransactionFeeTooLow (txFee tx) (minFee tx)
 
--- | A 'PendingTx' without a current transaction input in 'pendingTxIn'
+-- | A 'PendingTx' without a current transaction input in 'pendingTxItem'
 type PendingTxNoIn = Validation.PendingTx' ()
 
 -- | Create the data about the transaction which will be passed to a validator script.
@@ -310,8 +323,9 @@ validationData tx = do
             , pendingTxOutputs = mkOut <$> txOutputs tx
             , pendingTxForge = txForge tx
             , pendingTxFee = txFee tx
-            , pendingTxIn = () -- this is changed accordingly in `checkMatch` during validation
+            , pendingTxItem = () -- this is changed accordingly in `checkMatch` during validation
             , pendingTxValidRange = txValidRange tx
+            , pendingTxForgeScripts = monetaryPolicyHash <$> Set.toList (tx ^. forgeScripts)
             , pendingTxSignatures = Map.toList (tx ^. signatures)
             , pendingTxData = Map.toList (tx ^. dataWitnesses)
             , pendingTxId = txId tx

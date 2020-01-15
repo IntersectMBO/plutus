@@ -166,6 +166,7 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             , txForge = foldMap snd $ Map.toList mp
             , txFee = mempty
             , txValidRange = WAPI.defaultSlotRange
+            , txForgeScripts = mempty
             , txSignatures = mempty
             , txData = mempty
             }

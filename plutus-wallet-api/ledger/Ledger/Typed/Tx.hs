@@ -108,7 +108,8 @@ data TypedTx (ins :: [Type]) (outs :: [Type]) = TypedTx {
     tyTxTypedTxOuts  :: HListF TypedScriptTxOut outs,
     tyTxPubKeyTxOuts :: [PubKeyTxOut],
     tyTxForge        :: !Value.Value,
-    tyTxValidRange   :: !SlotRange
+    tyTxValidRange   :: !SlotRange,
+    tyTxForgeScripts :: Set.Set MonetaryPolicy
     }
 
 baseTx :: TypedTx '[] '[]
@@ -118,7 +119,8 @@ baseTx = TypedTx {
     tyTxTypedTxOuts = HNilF,
     tyTxPubKeyTxOuts = [],
     tyTxForge = mempty,
-    tyTxValidRange = Interval.always
+    tyTxValidRange = Interval.always,
+    tyTxForgeScripts = mempty
     }
 
 -- | Adds a 'TypedScriptTxOut' to a 'TypedTx'.
@@ -138,13 +140,15 @@ addTypedTxOut out TypedTx {
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = TypedTx {
+    tyTxValidRange,
+    tyTxForgeScripts } = TypedTx {
       tyTxTypedTxOuts=HConsF out tyTxTypedTxOuts,
       tyTxPubKeyTxOuts,
       tyTxTypedTxIns,
       tyTxPubKeyTxIns,
       tyTxForge,
-      tyTxValidRange }
+      tyTxValidRange,
+      tyTxForgeScripts }
 
 -- | Adds a 'TypedScriptTxIn' to a 'TypedTx'.
 addTypedTxIn
@@ -159,13 +163,15 @@ addTypedTxIn inn TypedTx {
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = TypedTx {
+    tyTxValidRange,
+    tyTxForgeScripts } = TypedTx {
       tyTxTypedTxOuts,
       tyTxPubKeyTxOuts,
       tyTxTypedTxIns=HConsF inn tyTxTypedTxIns,
       tyTxPubKeyTxIns,
       tyTxForge,
-      tyTxValidRange }
+      tyTxValidRange,
+      tyTxForgeScripts }
 
 -- | A wrapper around a 'TypedTx' that hides the input list type as an existential parameter.
 -- This allows us to perform some operations more easily by not caring about the input connection
@@ -212,13 +218,15 @@ toUntypedTx TypedTx{
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = Tx {
+    tyTxValidRange,
+    tyTxForgeScripts } = Tx {
     txOutputs = hfOut tyTxOutTxOut tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
     txInputs = Set.fromList (hfOut tyTxInTxIn tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
     txForge = tyTxForge,
     txFee = zero,
     txValidRange = tyTxValidRange,
     txSignatures = mempty,
+    txForgeScripts = tyTxForgeScripts,
     txData = Map.fromList $ hfOut dsEntry tyTxTypedTxOuts}
     where
         dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataValue $ toData d in (dataValueHash ds, ds)

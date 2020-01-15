@@ -321,13 +321,10 @@ createTxAndSubmit ::
     -> [DataValue]
     -> m Tx
 createTxAndSubmit range ins outs datas = do
-    let tx = Tx
+    let tx = mempty
             { txInputs = ins
             , txOutputs = outs
-            , txForge = mempty
-            , txFee = mempty
             , txValidRange = range
-            , txSignatures = Map.empty
             , txData = Map.fromList $ fmap (\ds -> (dataValueHash ds, ds)) datas
             }
     signTxAndSubmit $ tx { txFee = minFee tx }

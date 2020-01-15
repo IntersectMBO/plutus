@@ -18,6 +18,7 @@ module Ledger.Tx(
     spentOutputs,
     updateUtxo,
     validValuesTx,
+    forgeScripts,
     signatures,
     dataWitnesses,
     lookupSignature,
@@ -109,25 +110,27 @@ especially because we only need one direction (to binary).
 
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {
-    txInputs     :: Set.Set TxIn,
+    txInputs       :: Set.Set TxIn,
     -- ^ The inputs to this transaction.
-    txOutputs    :: [TxOut],
+    txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
-    txForge      :: !Value,
+    txForge        :: !Value,
     -- ^ The 'Value' forged by this transaction.
-    txFee        :: !Value,
+    txFee          :: !Value,
     -- ^ The fee for this transaction.
-    txValidRange :: !SlotRange,
+    txValidRange   :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    txSignatures :: Map PubKey Signature,
+    txForgeScripts :: Set.Set MonetaryPolicy,
+    -- ^ The scripts that must be run to check forging conditions.
+    txSignatures   :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
-    txData       :: Map DataValueHash DataValue
+    txData         :: Map DataValueHash DataValue
     -- ^ Data values recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where
-    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures} =
+    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txForgeScripts, txSignatures} =
         let renderOutput TxOut{txOutType, txOutValue} =
                 hang 2 $ vsep ["-" <+> pretty txOutValue <+> "locked by", pretty txOutType]
             renderInput TxIn{txInRef,txInType} =
@@ -143,6 +146,7 @@ instance Pretty Tx where
                 , hang 2 (vsep ("outputs:" : fmap renderOutput txOutputs))
                 , "forge:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
+                , hang 2 (vsep ("mps:": fmap pretty (Set.toList txForgeScripts)))
                 , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
                 , "validity range:" <+> viaShow txValidRange
                 ]
@@ -156,12 +160,13 @@ instance Semigroup Tx where
         txForge = txForge tx1 <> txForge tx2,
         txFee = txFee tx1 <> txFee tx2,
         txValidRange = txValidRange tx1 /\ txValidRange tx2,
+        txForgeScripts = txForgeScripts tx1 <> txForgeScripts tx2,
         txSignatures = txSignatures tx1 <> txSignatures tx2,
         txData = txData tx1 <> txData tx2
         }
 
 instance Monoid Tx where
-    mempty = Tx mempty mempty mempty mempty top mempty mempty
+    mempty = Tx mempty mempty mempty mempty top mempty mempty mempty
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
@@ -189,6 +194,11 @@ signatures :: Lens' Tx (Map PubKey Signature)
 signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
+
+forgeScripts :: Lens' Tx (Set.Set MonetaryPolicy)
+forgeScripts = lens g s where
+    g = txForgeScripts
+    s tx fs = tx { txForgeScripts = fs }
 
 dataWitnesses :: Lens' Tx (Map DataValueHash DataValue)
 dataWitnesses = lens g s where

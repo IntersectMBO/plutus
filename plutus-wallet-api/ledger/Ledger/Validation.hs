@@ -19,6 +19,7 @@ module Ledger.Validation
     -- * Pending transactions and related types
       PendingTx'(..)
     , PendingTx
+    , PendingTxMPS
     , PendingTxOut(..)
     , PendingTxOutRef(..)
     , toLedgerTxIn
@@ -116,27 +117,30 @@ toLedgerTxIn = fmap Just
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data PendingTx' i = PendingTx
-    { pendingTxInputs     :: [PendingTxIn] -- ^ Transaction inputs
-    , pendingTxOutputs    :: [PendingTxOut] -- ^ Transaction outputs
-    , pendingTxFee        :: Value -- ^ The fee paid by this transaction.
-    , pendingTxForge      :: Value -- ^ The 'Value' forged by this transaction.
-    , pendingTxIn         :: i -- ^ The 'PendingTxIn' being validated against currently.
-    , pendingTxValidRange :: SlotRange -- ^ The valid range for the transaction.
-    , pendingTxSignatures :: [(PubKey, Signature)]
+    { pendingTxInputs       :: [PendingTxIn] -- ^ Transaction inputs
+    , pendingTxOutputs      :: [PendingTxOut] -- ^ Transaction outputs
+    , pendingTxFee          :: Value -- ^ The fee paid by this transaction.
+    , pendingTxForge        :: Value -- ^ The 'Value' forged by this transaction.
+    , pendingTxItem         :: i -- ^ The item being validated against currently.
+    , pendingTxValidRange   :: SlotRange -- ^ The valid range for the transaction.
+    , pendingTxForgeScripts :: [MonetaryPolicyHash]
+    , pendingTxSignatures   :: [(PubKey, Signature)]
     -- ^ Signatures provided with the transaction
-    , pendingTxData       :: [(DataValueHash, DataValue)]
-    , pendingTxId         :: TxId
+    , pendingTxData         :: [(DataValueHash, DataValue)]
+    , pendingTxId           :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic, Haskell.Functor)
 
 instance Functor PendingTx' where
-    fmap f p = p { pendingTxIn = f (pendingTxIn p) }
+    fmap f p = p { pendingTxItem = f (pendingTxItem p) }
 
 type PendingTx = PendingTx' PendingTxInScript
 
+type PendingTxMPS = PendingTx' MonetaryPolicyHash
+
 {-# INLINABLE findData #-}
 -- | Find the data corresponding to a data hash, if there is one
-findData :: DataValueHash -> PendingTx -> Maybe DataValue
+findData :: DataValueHash -> PendingTx' a -> Maybe DataValue
 findData dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
     where
         f (dsh', _) = dsh' == dsh
@@ -144,14 +148,14 @@ findData dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: PendingTx -> [Integer]
-findContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = findIndices f outs
+findContinuingOutputs PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = findIndices f outs
     where
         f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _                                                     = False
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: PendingTx -> [PendingTxOut]
-getContinuingOutputs PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = filter f outs
+getContinuingOutputs PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=(inpHsh, _, _)}, pendingTxOutputs=outs} = filter f outs
     where
         f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _                                                     = False
@@ -211,13 +215,13 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 
 {-# INLINABLE scriptCurrencySymbol #-}
--- | The 'CurrencySymbol' of an 'Validator'
-scriptCurrencySymbol :: Validator -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (ValidatorHash hsh) = validatorHash scrpt in Value.currencySymbol hsh
+-- | The 'CurrencySymbol' of a 'MonetaryPolicy'
+scriptCurrencySymbol :: MonetaryPolicy -> CurrencySymbol
+scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
-txSignedBy :: PendingTx -> PubKey -> Bool
+txSignedBy :: PendingTx' a -> PubKey -> Bool
 txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxId=txId} k =
     let
         signedBy' :: Signature -> Bool
@@ -249,7 +253,7 @@ pubKeyOutput o = case pendingTxOutType o of
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DataValueHash)
-ownHashes PendingTx{pendingTxIn=PendingTxIn{pendingTxInWitness=h}} = h
+ownHashes PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=h}} = h
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
@@ -264,7 +268,7 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'PendingTxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> PendingTx -> [(DataValueHash, Value)]
+scriptOutputsAt :: ValidatorHash -> PendingTx' a -> [(DataValueHash, Value)]
 scriptOutputsAt h p =
     let flt ptxo =
             case pendingTxOutType ptxo of
@@ -274,14 +278,14 @@ scriptOutputsAt h p =
 
 {-# INLINABLE valueLockedBy #-}
 -- | Get the total value locked by the given validator in this transaction.
-valueLockedBy :: PendingTx -> ValidatorHash -> Value
+valueLockedBy :: PendingTx' a -> ValidatorHash -> Value
 valueLockedBy ptx h =
     let outputs = map snd (scriptOutputsAt h ptx)
     in mconcat outputs
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
-pubKeyOutputsAt :: PubKey -> PendingTx -> [Value]
+pubKeyOutputsAt :: PubKey -> PendingTx' a-> [Value]
 pubKeyOutputsAt pk p =
     let flt ptxo =
             case pendingTxOutType ptxo of
@@ -291,40 +295,40 @@ pubKeyOutputsAt pk p =
 
 {-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
-valuePaidTo :: PendingTx -> PubKey -> Value
+valuePaidTo :: PendingTx' a-> PubKey -> Value
 valuePaidTo ptx pk = mconcat (pubKeyOutputsAt pk ptx)
 
 {-# INLINABLE adaLockedBy #-}
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
-adaLockedBy :: PendingTx -> ValidatorHash -> Ada
+adaLockedBy :: PendingTx' a -> ValidatorHash -> Ada
 adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 
 {-# INLINABLE signsTransaction #-}
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
-signsTransaction :: Signature -> PubKey -> PendingTx -> Bool
+signsTransaction :: Signature -> PubKey -> PendingTx' a -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) p =
     verifySignature pk (let TxId h = pendingTxId p in h) sig
 
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
-valueSpent :: PendingTx -> Value
+valueSpent :: PendingTx' a -> Value
 valueSpent p =
     let inputs' = map pendingTxInValue (pendingTxInputs p)
     in mconcat inputs'
 
 {-# INLINABLE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
-ownCurrencySymbol :: PendingTx -> CurrencySymbol
+ownCurrencySymbol :: PendingTxMPS -> CurrencySymbol
 ownCurrencySymbol p =
-    let (ValidatorHash h, _, _) = ownHashes p
+    let MonetaryPolicyHash h = pendingTxItem p
     in  Value.currencySymbol h
 
 {-# INLINABLE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
-spendsOutput :: PendingTx -> TxId -> Integer -> Bool
+spendsOutput :: PendingTx' a -> TxId -> Integer -> Bool
 spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = pendingTxInRef inp

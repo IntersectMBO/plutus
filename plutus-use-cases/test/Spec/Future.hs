@@ -128,7 +128,7 @@ payOut = do
     callEndpoint @"settle-future" (Wallet 2) ov
     handleUtxoQueries (Wallet 2)
     handleBlockchainEvents (Wallet 2)
-    addBlocks 1
+    addBlocks 2
     handleBlockchainEvents (Wallet 2)
 
 -- | Margin penalty
@@ -147,7 +147,7 @@ oracle :: PubKey
 oracle = walletPubKey (Wallet 10)
 
 accounts :: FutureAccounts
-accounts = 
+accounts =
     either error id $ evalTrace @FutureSchema @FutureError F.setupTokens (handleBlockchainEvents w1) w1
 
 increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()

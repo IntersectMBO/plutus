@@ -14,8 +14,10 @@ module Ledger.Typed.Scripts(
     , scriptAddress
     , validatorScript
     , wrapValidator
+    , wrapMonetaryPolicy
     , ValidatorType
     , WrappedValidatorType
+    , WrappedMonetaryPolicyType
     ) where
 
 import           Language.PlutusTx
@@ -45,6 +47,7 @@ class ScriptType (a :: Type) where
 type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.PendingTx -> Bool
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
+type WrappedMonetaryPolicyType = Data -> ()
 
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
 data ScriptInstance (a :: Type) =
@@ -95,3 +98,10 @@ wrapValidator
     -> WrappedValidatorType
 wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
 wrapValidator _ _ _ _                                                          = check False
+
+{-# INLINABLE wrapMonetaryPolicy #-}
+wrapMonetaryPolicy
+    :: (Validation.PendingTxMPS -> Bool)
+    -> WrappedMonetaryPolicyType
+wrapMonetaryPolicy f (fromData -> Just p) = check $ f p
+wrapMonetaryPolicy _ _                    = check False
