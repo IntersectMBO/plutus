@@ -114,7 +114,7 @@ compileTyCon tc
     | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
     -- See Note [Addr#]
     | tc == GHC.addrPrimTyCon = compileType GHC.stringTy
-    -- this is Void#, see Note [Value restriction]
+    -- this is Void#
     | tc == GHC.voidPrimTyCon = errorTy
     | otherwise = do
 

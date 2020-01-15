@@ -6,25 +6,27 @@
 module StdLib.Spec where
 
 import           Common
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.Ratio               ((%))
-import           GHC.Real                 (reduce)
-import           Hedgehog                 (Gen, MonadGen, Property)
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Ratio                ((%))
+import           GHC.Real                  (reduce)
+import           Hedgehog                  (Gen, MonadGen, Property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen             as Gen
-import qualified Hedgehog.Range           as Range
+import qualified Hedgehog.Gen              as Gen
+import qualified Hedgehog.Range            as Range
 import           PlcTestUtils
-import           Test.Tasty               (TestName)
-import           Test.Tasty.Hedgehog      (testProperty)
+import           Plugin.Lib
+import           Test.Tasty                (TestName)
+import           Test.Tasty.Hedgehog       (testProperty)
 
-import           Language.PlutusTx.Data   (Data (..))
-import qualified Language.PlutusTx.Data   as Data
-import qualified Language.PlutusTx.Eq     as PlutusTx
-import qualified Language.PlutusTx.Ord    as PlutusTx
-import qualified Language.PlutusTx.Ratio  as Ratio
+import           Language.PlutusTx.Data    (Data (..))
+import qualified Language.PlutusTx.Data    as Data
+import qualified Language.PlutusTx.Eq      as PlutusTx
+import qualified Language.PlutusTx.Ord     as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
+import qualified Language.PlutusTx.Ratio   as Ratio
 
 import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift   as Lift
+import qualified Language.PlutusTx.Lift    as Lift
 import           Language.PlutusTx.Plugin
 
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -43,6 +45,7 @@ tests =
     , pure $ testProperty "quotRem" testQuotRem
     , pure $ testProperty "reduce" testReduce
     , pure $ testProperty "Eq @Data" eqData
+    , goldenPir "errorTrace" errorTrace
     ]
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
@@ -107,3 +110,6 @@ genData =
             , Map <$> genList ((,) <$> genData <*> genData)
             , List <$> genList genData
             ]
+
+errorTrace :: CompiledCode (Integer)
+errorTrace = plc @"errorTrace" (PlutusTx.traceErrorH "")

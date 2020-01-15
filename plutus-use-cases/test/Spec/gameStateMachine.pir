@@ -174,13 +174,10 @@
                                   (nonrec)
                                   (termbind
                                     (strict)
-                                    (vardecl
-                                      fail
-                                      (fun (all a (type) (fun Unit a)) Bool)
-                                    )
+                                    (vardecl fail (fun (all a (type) a) Bool))
                                     (lam
                                       ds
-                                      (all a (type) (fun Unit a))
+                                      (all a (type) a)
                                       [
                                         [
                                           {
@@ -373,14 +370,7 @@
                                             (lam
                                               ipv
                                               (con bytestring)
-                                              [
-                                                fail
-                                                (abs
-                                                  e
-                                                  (type)
-                                                  (lam thunk Unit (error e))
-                                                )
-                                              ]
+                                              [ fail (abs e (type) (error e)) ]
                                             )
                                           )
                                         ]
@@ -398,14 +388,7 @@
                                             (lam
                                               ipv
                                               (con bytestring)
-                                              [
-                                                fail
-                                                (abs
-                                                  e
-                                                  (type)
-                                                  (lam thunk Unit (error e))
-                                                )
-                                              ]
+                                              [ fail (abs e (type) (error e)) ]
                                             )
                                           ]
                                           (lam
@@ -4033,11 +4016,11 @@
                                                                                                                                             )
                                                                                                                                             (vardecl
                                                                                                                                               fail
-                                                                                                                                              (fun (all a (type) (fun Unit a)) Bool)
+                                                                                                                                              (fun (all a (type) a) Bool)
                                                                                                                                             )
                                                                                                                                             (lam
                                                                                                                                               ds
-                                                                                                                                              (all a (type) (fun Unit a))
+                                                                                                                                              (all a (type) a)
                                                                                                                                               [
                                                                                                                                                 [
                                                                                                                                                   {
@@ -5410,12 +5393,8 @@
                                                                                                                                                     (abs
                                                                                                                                                       e
                                                                                                                                                       (type)
-                                                                                                                                                      (lam
-                                                                                                                                                        thunk
-                                                                                                                                                        Unit
-                                                                                                                                                        (error
-                                                                                                                                                          e
-                                                                                                                                                        )
+                                                                                                                                                      (error
+                                                                                                                                                        e
                                                                                                                                                       )
                                                                                                                                                     )
                                                                                                                                                   ]
@@ -5438,11 +5417,11 @@
                                                                                                                                                         )
                                                                                                                                                         (vardecl
                                                                                                                                                           fail
-                                                                                                                                                          (fun (all a (type) (fun Unit a)) Bool)
+                                                                                                                                                          (fun (all a (type) a) Bool)
                                                                                                                                                         )
                                                                                                                                                         (lam
                                                                                                                                                           ds
-                                                                                                                                                          (all a (type) (fun Unit a))
+                                                                                                                                                          (all a (type) a)
                                                                                                                                                           [
                                                                                                                                                             [
                                                                                                                                                               [
@@ -5798,12 +5777,8 @@
                                                                                                                                                                       (abs
                                                                                                                                                                         e
                                                                                                                                                                         (type)
-                                                                                                                                                                        (lam
-                                                                                                                                                                          thunk
-                                                                                                                                                                          Unit
-                                                                                                                                                                          (error
-                                                                                                                                                                            e
-                                                                                                                                                                          )
+                                                                                                                                                                        (error
+                                                                                                                                                                          e
                                                                                                                                                                         )
                                                                                                                                                                       )
                                                                                                                                                                     ]
@@ -5846,12 +5821,8 @@
                                                                                                                                                                     (abs
                                                                                                                                                                       e
                                                                                                                                                                       (type)
-                                                                                                                                                                      (lam
-                                                                                                                                                                        thunk
-                                                                                                                                                                        Unit
-                                                                                                                                                                        (error
-                                                                                                                                                                          e
-                                                                                                                                                                        )
+                                                                                                                                                                      (error
+                                                                                                                                                                        e
                                                                                                                                                                       )
                                                                                                                                                                     )
                                                                                                                                                                   ]
@@ -6691,12 +6662,8 @@
                                                                                                                                                                                             (abs
                                                                                                                                                                                               e
                                                                                                                                                                                               (type)
-                                                                                                                                                                                              (lam
-                                                                                                                                                                                                thunk
-                                                                                                                                                                                                Unit
-                                                                                                                                                                                                (error
-                                                                                                                                                                                                  e
-                                                                                                                                                                                                )
+                                                                                                                                                                                              (error
+                                                                                                                                                                                                e
                                                                                                                                                                                               )
                                                                                                                                                                                             )
                                                                                                                                                                                           ]
@@ -6715,12 +6682,8 @@
                                                                                                                                                                                   (abs
                                                                                                                                                                                     e
                                                                                                                                                                                     (type)
-                                                                                                                                                                                    (lam
-                                                                                                                                                                                      thunk
-                                                                                                                                                                                      Unit
-                                                                                                                                                                                      (error
-                                                                                                                                                                                        e
-                                                                                                                                                                                      )
+                                                                                                                                                                                    (error
+                                                                                                                                                                                      e
                                                                                                                                                                                     )
                                                                                                                                                                                   )
                                                                                                                                                                                 ]
@@ -6744,12 +6707,8 @@
                                                                                                                                                                               (abs
                                                                                                                                                                                 e
                                                                                                                                                                                 (type)
-                                                                                                                                                                                (lam
-                                                                                                                                                                                  thunk
-                                                                                                                                                                                  Unit
-                                                                                                                                                                                  (error
-                                                                                                                                                                                    e
-                                                                                                                                                                                  )
+                                                                                                                                                                                (error
+                                                                                                                                                                                  e
                                                                                                                                                                                 )
                                                                                                                                                                               )
                                                                                                                                                                             ]

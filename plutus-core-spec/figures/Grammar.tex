@@ -7,7 +7,7 @@
     \[\begin{array}{lrclr}
         \textrm{Term}             & L,M,N  & ::= & x                          & \textrm{variable}\\
                                   &        &     & \con{cn}                   & \textrm{constant}\\
-                                  &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
+                                  &        &     & \abs{\alpha}{K}{M}         & \textrm{type abstraction}\\
                                   &        &     & \inst{M}{A}                & \textrm{type instantiation}\\
                                   &        &     & \iwrap{A}{B}{M}            & \textrm{fix type's wrap}\\
                                   &        &     & \unwrap{M}                 & \textrm{fix type's unwrap}\\
@@ -16,7 +16,7 @@
                                   &        &     & \builtin{bn}{A^*}{M^*}     & \textrm{builtin}\\
                                   &        &     & \error{A}                  & \textrm{error}\\
         \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{constant}\\
-                                  &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
+                                  &        &     & \abs{\alpha}{K}{M}         & \textrm{type abstraction}\\
                                   &        &     & \iwrap{\alpha}{A}{V}       & \textrm{fix type's wrap}\\
                                   &        &     & \lam{x}{A}{M}              & \textrm{$\lambda$ abstraction}\\
         \textrm{Type}             & A,B,C  & ::= & \alpha                     & \textrm{type variable}\\

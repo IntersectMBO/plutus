@@ -17,40 +17,40 @@ module Language.PlutusTx.Compiler.Builtins (
     , errorTy
     , errorFunc) where
 
-import qualified Language.PlutusTx.Builtins                  as Builtins
+import qualified Language.PlutusTx.Builtins             as Builtins
 import           Language.PlutusTx.Compiler.Error
 import {-# SOURCE #-} Language.PlutusTx.Compiler.Expr
+import           Language.PlutusTx.Compiler.Laziness
 import           Language.PlutusTx.Compiler.Names
 import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.Compiler.ValueRestriction
 import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.Utils
 
-import qualified Language.PlutusIR                           as PIR
-import qualified Language.PlutusIR.Compiler.Definitions      as PIR
+import qualified Language.PlutusIR                      as PIR
+import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.PlutusIR.Compiler.Names
-import qualified Language.PlutusIR.MkPir                     as PIR
+import qualified Language.PlutusIR.MkPir                as PIR
 
-import qualified Language.PlutusCore                         as PLC
-import qualified Language.PlutusCore.Constant                as PLC
-import qualified Language.PlutusCore.Constant.Dynamic        as PLC
+import qualified Language.PlutusCore                    as PLC
+import qualified Language.PlutusCore.Constant           as PLC
+import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Bool        as Bool
-import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
+import qualified Language.PlutusCore.StdLib.Data.Bool   as Bool
+import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
 
-import qualified GhcPlugins                                  as GHC
+import qualified GhcPlugins                             as GHC
 
-import qualified Language.Haskell.TH.Syntax                  as TH
+import qualified Language.Haskell.TH.Syntax             as TH
 
 import           Control.Monad
 import           Control.Monad.Reader
 
-import qualified Data.ByteString.Lazy                        as BSL
-import qualified Data.Map                                    as Map
+import qualified Data.ByteString.Lazy                   as BSL
+import qualified Data.Map                               as Map
 import           Data.Proxy
-import qualified Data.Set                                    as Set
+import qualified Data.Set                               as Set
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -266,7 +266,8 @@ defineBuiltinTerms = do
 
     -- Error
     do
-        term <- errorFunc
+        -- See Note [Delaying error]
+        term <- delayedErrorFunc
         defineBuiltinTerm 'Builtins.error term [unit]
 
     -- Strings and chars
@@ -319,18 +320,24 @@ lookupBuiltinType name = do
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
--- | The function 'error :: forall a . () -> a'.
+-- | The function 'error :: forall a . a'.
 errorFunc :: Compiling m => m PIRTerm
 errorFunc = do
     n <- safeFreshTyName () "e"
-    -- see Note [Value restriction]
-    mangleTyAbs $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
+    pure $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
--- | The type 'forall a. () -> a'.
+-- | The delayed error function 'error :: forall a . () -> a'.
+delayedErrorFunc :: Compiling m => m PIRTerm
+delayedErrorFunc = do
+    n <- safeFreshTyName () "e"
+    let body = PIR.Error () (PIR.TyVar () n)
+    PIR.TyAbs () n (PIR.Type ()) <$> delay body
+
+-- | The type 'forall a. a'.
 errorTy :: Compiling m => m PIRType
 errorTy = do
     tyname <- safeFreshTyName () "a"
-    mangleTyForall $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
+    pure $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
 
 -- TODO: bind the converter to a name too. Need an appropriate GHC.Name for
 -- it, since that's what our definitions are hung off. Also the type wouldn't

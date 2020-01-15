@@ -103,7 +103,6 @@ library plutus-tx-compiler
         Language.PlutusTx.Compiler.Type
         Language.PlutusTx.Compiler.Types
         Language.PlutusTx.Compiler.Utils
-        Language.PlutusTx.Compiler.ValueRestriction
     build-depends:
         base >=4.9 && <5,
         bytestring -any,

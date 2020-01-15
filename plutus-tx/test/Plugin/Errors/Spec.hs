@@ -31,7 +31,6 @@ errors = testNested "Errors" [
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     --, goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "caseInt" caseInt
-    , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
     , goldenPlcCatch "literalCaseInt" literalCaseInt
@@ -47,11 +46,6 @@ negativeInt = plc @"negativeInt" (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
 caseInt = plc @"caseInt" (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
-
--- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
--- at different types to prevent the obvious specialization.
-valueRestriction :: CompiledCode (Bool, Integer)
-valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Integer))
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 

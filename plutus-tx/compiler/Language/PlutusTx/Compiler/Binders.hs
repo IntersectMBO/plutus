@@ -6,12 +6,11 @@ module Language.PlutusTx.Compiler.Binders where
 
 import           Language.PlutusTx.Compiler.Names
 import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.ValueRestriction
 import           Language.PlutusTx.PIRTypes
 
-import qualified GhcPlugins                                  as GHC
+import qualified GhcPlugins                       as GHC
 
-import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR                as PIR
 
 import           Control.Monad.Reader
 
@@ -68,10 +67,7 @@ mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.
 mkTyAbsScoped :: Compiling m => GHC.Var -> m PIRTerm -> m PIRTerm
-mkTyAbsScoped v body = withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> do
-    body' <- body
-    checkTyAbsBody body'
-    pure $ PIR.TyAbs () t k body'
+mkTyAbsScoped v body = withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyAbs () t k <$> body
 
 mkIterTyAbsScoped :: Compiling m => [GHC.Var] -> m PIRTerm -> m PIRTerm
 mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars

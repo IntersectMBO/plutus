@@ -177,11 +177,11 @@ instance Semigroup Value where
     (<>) = unionWith (+)
 
 instance Haskell.Monoid Value where
-    mempty = Value (Map.empty ())
+    mempty = Value Map.empty
 
 instance Monoid Value where
     {-# INLINABLE mempty #-}
-    mempty = Value (Map.empty ())
+    mempty = Value Map.empty
 
 instance Group Value where
     {-# INLINABLE inv #-}
