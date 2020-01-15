@@ -172,10 +172,6 @@ isProbablyBytestringEq _ = False
 GHC has a number of runtime errors for things like pattern matching failures and so on.
 
 We just translate these directly into calls to error, throwing away any other information.
-
-Annoyingly, unlike void, we can't mangle the type uniformly to make sure we are safe
-with respect to the value restriction (see note [Value restriction]), so we just have to force
-our error call and hope that it doesn't end up somewhere it shouldn't.
 -}
 
 {- Note [Uses of Eq]
@@ -339,10 +335,10 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
+            PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
-            force =<< PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
+            PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- See Note [Uses of Eq]
         GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
         GHC.Var n | GHC.getName n == GHC.eqIntegerPrimName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"

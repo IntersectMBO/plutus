@@ -92,6 +92,11 @@ smallNatList = metaListToList nat nats where
     nats = map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
+polyError :: Term TyName Name ()
+polyError = runQuote $ do
+    a <- freshTyName () "a"
+    pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
+
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
@@ -104,4 +109,6 @@ test_golden = testGroup "golden"
     , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
     , goldenVsPretty "evenList" . pure . evaluateCk $
           Apply () natSum $ Apply () evenList smallNatList
+    , goldenVsPretty "polyError" . pure . evaluateCk $ polyError
+    , goldenVsPretty "polyErrorInst" . pure . evaluateCk $ TyInst () polyError (TyBuiltin () TyInteger)
     ]

@@ -17,7 +17,6 @@ import qualified Language.PlutusIR.Compiler        as PIR
 
 import qualified Language.PlutusCore               as PLC
 import qualified Language.PlutusCore.Check.Uniques as PLC
-import qualified Language.PlutusCore.Check.Value   as PLC
 import qualified Language.PlutusCore.Pretty        as PLC
 
 import           Control.Lens
@@ -65,7 +64,6 @@ data Error a = PLCError (PLC.Error a)
              | CompilationError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
-             | ValueRestrictionError
              deriving Typeable
 makeClassyPrisms ''Error
 
@@ -77,9 +75,6 @@ instance PLC.AsTypeError CompileError () where
 
 instance PLC.AsNormCheckError CompileError PLC.TyName PLC.Name () where
     _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError
-
-instance PLC.AsValueRestrictionError CompileError PLC.TyName () where
-    _ValueRestrictionError = _NoContext . _PLCError . PLC._ValueRestrictionError
 
 instance PLC.AsUniqueError CompileError () where
     _UniqueError = _NoContext . _PLCError . PLC._UniqueError
@@ -94,4 +89,3 @@ instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
         CompilationError e -> "Unexpected error during compilation, please report this to the Plutus team:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported feature:" PP.<+> PP.pretty e
         FreeVariableError e -> "Reference to a name which is not a local, a builtin, or an external INLINABLE function:" PP.<+> PP.pretty e
-        ValueRestrictionError -> "Attempt to polymorphically generalize something which is not a value (often a let-binding)"

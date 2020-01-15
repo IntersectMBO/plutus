@@ -102,7 +102,6 @@ import           PlutusPrelude
 import           Language.PlutusCore.CBOR                  ()
 import qualified Language.PlutusCore.Check.Normal          as Normal
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
-import qualified Language.PlutusCore.Check.Value           as VR
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
@@ -180,7 +179,6 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 -- | Parse a program and typecheck it.
 parseTypecheck
     :: (AsParseError e AlexPosn,
-        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsNormCheckError e TyName Name AlexPosn,
         AsTypeError e AlexPosn,
@@ -191,8 +189,7 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsValueRestrictionError e TyName a,
-        AsNormCheckError e TyName Name a,
+    :: (AsNormCheckError e TyName Name a,
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
@@ -202,7 +199,6 @@ typecheckPipeline
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
-    <=< through VR.checkProgram
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format

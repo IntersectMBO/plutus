@@ -46,8 +46,8 @@
               (nonrec)
               (termbind
                 (strict)
-                (vardecl fail (fun (all a (type) (fun Unit a)) Bool))
-                (lam ds (all a (type) (fun Unit a)) False)
+                (vardecl fail (fun (all a (type) a) Bool))
+                (lam ds (all a (type) a) False)
               )
               [
                 [
@@ -67,21 +67,13 @@
                             }
                             (lam thunk Unit True)
                           ]
-                          (lam
-                            thunk
-                            Unit
-                            [ fail (abs e (type) (lam thunk Unit (error e))) ]
-                          )
+                          (lam thunk Unit [ fail (abs e (type) (error e)) ])
                         ]
                         Unit
                       ]
                     )
                   ]
-                  (lam
-                    thunk
-                    Unit
-                    [ fail (abs e (type) (lam thunk Unit (error e))) ]
-                  )
+                  (lam thunk Unit [ fail (abs e (type) (error e)) ])
                 ]
                 Unit
               ]

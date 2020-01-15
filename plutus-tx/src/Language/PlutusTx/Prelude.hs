@@ -1,6 +1,7 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
 module Language.PlutusTx.Prelude (
     -- $prelude
     -- * Classes

@@ -17,7 +17,7 @@ main = print . pretty $ contract
 
 contract :: Contract
 
-contract = When [Case (Deposit "alice" "alice" price) inner]
+contract = When [Case (Deposit "alice" "alice" ada price) inner]
                 10
                 Close
 
@@ -48,7 +48,7 @@ agreement :: Contract
 agreement =
   If
     (aliceChosen `ValueEQ` Constant 0)
-    (Pay "alice" (Party "bob") price Close)
+    (Pay "alice" (Party "bob") ada price Close)
     Close
 
 -- The contract to follow when Alice and Bob disagree, or if
@@ -58,7 +58,7 @@ arbitrate :: Contract
 
 arbitrate =
   When  [ Case carolRefund Close,
-          Case carolPay (Pay "alice" (Party "bob") price Close) ]
+          Case carolPay (Pay "alice" (Party "bob") ada price Close) ]
         100
         Close
 

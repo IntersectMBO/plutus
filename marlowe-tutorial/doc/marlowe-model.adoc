@@ -1,13 +1,13 @@
 ﻿[#marlowe-model]
 == The Marlowe model
 
-Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract. 
+Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract.
 
 Before we describe those constructs, we need to look at our general approach to modelling contracts in Marlowe, and the context in which Marlowe contracts are executed, the Cardano blockchain. In doing this we also introduce some of the terminology that we will use, indicating definitions by _italics_.
 
 === Contracts
 
-Contracts in Marlowe run on a blockchain, but need to interact with the off-chain world. The _parties_ to the contract, whom we also call the _participants_, can engage in various _actions_: they can be asked to _deposit money_, or to _make a choice_ between various alternatives. A _notification_ of an external value (also called an _oracle_ value), such as the current price of a particular commodity, is the other possible form of input.footnote:[We can think of oracles as another kind of party to the contract; under this view notifications become the choices made by that party.] 
+Contracts in Marlowe run on a blockchain, but need to interact with the off-chain world. The _parties_ to the contract, whom we also call the _participants_, can engage in various _actions_: they can be asked to _deposit money_, or to _make a choice_ between various alternatives. A _notification_ of an external value (also called an _oracle_ value), such as the current price of a particular commodity, is the other possible form of input.footnote:[We can think of oracles as another kind of party to the contract; under this view notifications become the choices made by that party.]
 
 Running a contract will also produce external _effects_, by making payments to parties in the contract.
 
@@ -17,7 +17,7 @@ The Marlowe model allows for a contract to control money in a number of disjoint
 
 ==== Steps and states
 
-Marlowe contracts describe a series of _steps_, typically by describing the first step, together with another (sub-) contract that describes what to do next. For example, the contract  `Pay a p v cont` says “make a payment of `v` Lovelace to the party `p` from the account `a`, and then follow the contract `cont`”. We call `cont` the _continuation_ of the contract.
+Marlowe contracts describe a series of _steps_, typically by describing the first step, together with another (sub-) contract that describes what to do next. For example, the contract  `Pay a p t v cont` says “make a payment of value `v` of token `t` to the party `p` from the account `a`, and then follow the contract `cont`”. We call `cont` the _continuation_ of the contract.
 
 In executing a contract we need to keep track of the _current contract_: after making a step in the example above, the current contract is the continuation, `cont`. We also have to keep track of some other information, such as how much is held in each account: we call this information the state: this potentially changes at each step too. A step can also see an action taking place, such as money being deposited, or an _effect_ being produced, e.g. a payment.
 
@@ -25,15 +25,52 @@ In executing a contract we need to keep track of the _current contract_: after m
 
 While Marlowe is designed to work with blockchains in general,footnote:[Indeed, Marlowe could be modified to run off blockchain, or to work on a permissioned blockchain, too.] some details of how it interacts with the blockchain are relevant when describing the semantics and implementation of Marlowe.
 
-A UTxO-based blockchain is a chain of _blocks_, each of which contains a collection of transactions. Each _transaction_ has a set of inputs and outputs, and the blockchain is built by linking _unspent transaction outputs_ (UTxO) to the inputs of a new transaction. At most one block can be generated in each _slot_, which are 20 seconds long. 
+A UTxO-based blockchain is a chain of _blocks_, each of which contains a collection of transactions. Each _transaction_ has a set of inputs and outputs, and the blockchain is built by linking _unspent transaction outputs_ (UTxO) to the inputs of a new transaction. At most one block can be generated in each _slot_, which are 20 seconds long.
 
 The mechanisms by which these blocks are generated, and by whom, are not relevant here, but contracts will be expressed in terms of _slot numbers_, counting from the starting (“genesis”) block of the blockchain.
 
 ==== UTxO and wallets
 
-Value on the blockchain resides in the UTxO, which are protected cryptographically by a private key held by the owner. These keys can be used to _redeem_ the output, and so to use them as inputs to new transactions, which can be seen as spending the value in the inputs. Users typically keep track of their private keys, and the values attached to them, in a cryptographically-secure _wallet_. 
+Value on the blockchain resides in the UTxO, which are protected cryptographically by a private key held by the owner. These keys can be used to _redeem_ the output, and so to use them as inputs to new transactions, which can be seen as spending the value in the inputs. Users typically keep track of their private keys, and the values attached to them, in a cryptographically-secure _wallet_.
 
 It is through their wallets that users are able to interact with smart contracts - including Marlowe contracts – running on the blockchain. Deposits are made from users’ wallets, and payments received by them. Note, however, that these are definitely _off chain_ actions that need to be controlled by code running in the user’s wallet: they cannot be made to happen by the Marlowe contract itself.
+
+==== Value
+
+In previous examples, whenever a `Value` was required, we have exclusively used Ada.
+This makes a lot of sense, seeing as Ada is the fundamental currency supported by Cardano.
+
+Plutus offers a more general concept of _value_, though,
+supporting custom fungible, non-fungible, and mixed tokens
+
+What is a `Value` in Plutus?
+
+[source,haskell]
+----
+newtype Value = Value
+    {getValue :: Map CurrencySymbol (Map TokenName Integer)}
+----
+
+The types `CurrencySymbol` and `TokenName` are both simple wrappers around
+`ByteString`.
+
+This notion of _value_ encompasses Ada, fungible tokens (think currencies),
+non-fungible tokens (a custom token that is not interchangeable with other tokens), and
+more exotic mixed cases:
+
+* Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
+* A _fungible_ token is represented by a `CurrencySymbol` for which there is
+  exactly one `TokenSymbol` which can have an arbitrary non-negative integer quantity
+  (of which Ada is a special case).
+* A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
+  each of which has a quantity of one. Each of these names corresponds to one
+  unique non-fungible token.
+* Mixed tokens are those with several ``TokenName``s _and_ quantities greater
+  than one.
+
+Cardano and Plutus provide a simple way to introduce a new currency by _forging_ it using
+_monetary policy scripts_.
+This effectively embedds Ethereum ERC-20/ERC-721 standards as primitive values in Cardano.
 
 === Executing a Marlowe contract
 

@@ -60,7 +60,7 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
     (<>) = unionWith (<>)
 
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
-    mempty = empty ()
+    mempty = empty
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v
@@ -165,11 +165,10 @@ mapThese f mps = (Map mpl, Map mpr)  where
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
--- This has to take unit otherwise it falls foul of the value restriction.
 {-# INLINABLE empty #-}
 -- | An empty 'Map'.
-empty :: () -> Map k v
-empty _ = Map ([] :: [(k, v)])
+empty :: Map k v
+empty = Map ([] :: [(k, v)])
 
 {-# INLINABLE null #-}
 -- | Is the map empty?

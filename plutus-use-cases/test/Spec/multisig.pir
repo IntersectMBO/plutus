@@ -312,34 +312,24 @@
                                             (abs
                                               a
                                               (type)
-                                              (lam
-                                                as
-                                                [List a]
+                                              [
                                                 [
-                                                  [
-                                                    [
-                                                      {
-                                                        { foldr a }
-                                                        (con integer)
-                                                      }
-                                                      (lam
-                                                        ds
-                                                        a
-                                                        (lam
-                                                          acc
-                                                          (con integer)
-                                                          [
-                                                            [ addInteger acc ]
-                                                            (con 1)
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                    (con 0)
-                                                  ]
-                                                  as
+                                                  { { foldr a } (con integer) }
+                                                  (lam
+                                                    ds
+                                                    a
+                                                    (lam
+                                                      acc
+                                                      (con integer)
+                                                      [
+                                                        [ addInteger acc ]
+                                                        (con 1)
+                                                      ]
+                                                    )
+                                                  )
                                                 ]
-                                              )
+                                                (con 0)
+                                              ]
                                             )
                                           )
                                           (let

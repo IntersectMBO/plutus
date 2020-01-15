@@ -8,7 +8,7 @@ import           Language.PlutusIR
 isTermValue :: Term tyname name a -> Bool
 isTermValue = \case
     LamAbs {} -> True
+    TyAbs {} -> True
     Constant {} -> True
-    TyAbs _ _ _ t -> isTermValue t
     IWrap _ _ _ t -> isTermValue t
     _ -> False

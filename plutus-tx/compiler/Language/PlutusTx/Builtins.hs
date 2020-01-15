@@ -160,6 +160,25 @@ lessThanEqInteger = (<=)
 equalsInteger :: Integer -> Integer -> Bool
 equalsInteger = (==)
 
+{- Note [Delaying error]
+The Plutus Core 'error' builtin is of type 'forall a . a', but the
+one we expose here is of type 'forall a . () -> a'.
+
+This is because it's hard to get the evaluation order right with
+the non-delayed version - it's easy to end up with it getting thrown
+unconditionally, or before some other effect (e.g. tracing). On the other
+hand, it's much easier to work with the delayed version.
+
+But why not just define that in the library? i.e.
+
+    error = \_ -> Builtins.error
+
+The answer is that GHC is eager to inline and reduce this function, which
+does the Wrong Thing. We can't stop GHC doing this (at the moment), but
+for most of our functions it's not a *semantic* problem. Here, however,
+it is a problem. So we just expose the delayed version as the builtin.
+-}
+
 {-# NOINLINE error #-}
 -- | Aborts evaluation with an error.
 error :: () -> a

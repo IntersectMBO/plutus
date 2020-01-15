@@ -19,7 +19,14 @@ exports.getFieldValue_ = function (left, right, block, key) {
          */
         return right(result.toString());
     } else {
-        return left("couldn't find field: " + key);
+        // we used to return an error if the field returned null/undefined however
+        // this happens if the value is empty. We need to sometimes use empty values
+        // and they represent an empty string so now we just return an empty string
+        // This is slightly dangerous as it can lead to a bug if you use this function
+        // with a key that doesn't exist, instead of getting a run time error you
+        // will just get an empty string and may not notice.
+        // return left("couldn't find field: " + key);
+        return right("");
     }
 }
 
