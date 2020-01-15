@@ -88,13 +88,13 @@ unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
 dZero :: DeBruijn ()
-dZero = DeBruijn () (T.pack "") (Index (naturalFromInteger 0))
+dZero = DeBruijn () (T.pack "_") (Index (naturalFromInteger 0))
 
 
 -- this should take a level and render levels as names
 unconvT :: RType -> Type TyDeBruijn ()
 unconvT (RTyVar x)        =
-  TyVar () (TyDeBruijn (DeBruijn () (T.pack "") (Index (naturalFromInteger x))))
+  TyVar () (TyDeBruijn (DeBruijn () (T.pack (show x)) (Index (naturalFromInteger x))))
 unconvT (RTyFun t u)      = TyFun () (unconvT t) (unconvT u)
 unconvT (RTyPi k t)       =
   TyForall () (TyDeBruijn dZero) (unconvK k) (unconvT t)
@@ -110,7 +110,7 @@ unconvC  (RConStr s) = BuiltinStr () (T.unpack s)
 
 unconv :: RTerm -> Term TyDeBruijn DeBruijn ()
 unconv (RVar x)          =
-  Var () (DeBruijn () (T.pack "") (Index (naturalFromInteger x)))
+  Var () (DeBruijn () (T.pack (show x)) (Index (naturalFromInteger x)))
 unconv (RTLambda k tm)   = TyAbs () (TyDeBruijn dZero) (unconvK k) (unconv tm)
 unconv (RTApp t ty)      = TyInst () (unconv t) (unconvT ty)
 unconv (RLambda ty tm)   = LamAbs () dZero (unconvT ty) (unconv tm)

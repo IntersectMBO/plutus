@@ -79,27 +79,46 @@ WeirdFintoℕ (S i) = suc (WeirdFintoℕ i)
 WeirdFintoℕ (T i) = WeirdFintoℕ i
 
 -- extract number of term binders we are under
-wtoℕ' : ∀{n} → Weirdℕ n → ℕ
-wtoℕ' Z = zero
-wtoℕ' (S x) = suc (wtoℕ' x)
-wtoℕ' (T x) = wtoℕ x
+wtoℕTm : ∀{n} → Weirdℕ n → ℕ
+wtoℕTm Z = zero
+wtoℕTm (S x) = suc (wtoℕTm x)
+wtoℕTm (T x) = wtoℕTm x
 
-lookupWTm : ∀(m : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
+wtoℕTy : ∀{n} → Weirdℕ n → ℕ
+wtoℕTy Z     = zero
+wtoℕTy (S x) = wtoℕTm x
+wtoℕTy (T x) = suc (wtoℕTm x)
+
+
+-- extract the number of type binders
+
+lookupWTm : ∀(x : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
 lookupWTm zero Z = nothing
 lookupWTm zero (S w) = just 0
 lookupWTm zero (T w) = nothing
-lookupWTm (suc m) Z = nothing
-lookupWTm (suc m) (S w) = map suc (lookupWTm m w)
-lookupWTm (suc m) (T w) = lookupWTm m w
+lookupWTm (suc x) Z = nothing
+lookupWTm (suc x) (S w) = map suc (lookupWTm x w)
+lookupWTm (suc x) (T w) = lookupWTm x w
 
-lookupWTy : ∀(m : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
+lookupWTy : ∀(x : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
 lookupWTy zero Z = nothing
 lookupWTy zero (S w) = nothing
 lookupWTy zero (T w) = just 0
-lookupWTy (suc m) Z = nothing
-lookupWTy (suc m) (S w) = lookupWTy m w
-lookupWTy (suc m) (T w) = map suc (lookupWTy m w)
+lookupWTy (suc x) Z = nothing
+lookupWTy (suc x) (S w) = lookupWTy x w
+lookupWTy (suc x) (T w) = map suc (lookupWTy x w)
 
+lookupWTm' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTm' x (S m) = lookupWTm' x m
+lookupWTm' x (T m) = lookupWTm' (suc x) m
+lookupWTm' x Z     = x
+
+lookupWTy' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTy' x (S m) = lookupWTy' (suc x) m
+lookupWTy' x (T m) = lookupWTy' x m
+lookupWTy' x Z     = x
+
+-- these are renamings
 shifterTy : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTy → RawTy
 shifterTy m w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
 shifterTy m w (A ⇒ B) = shifterTy m w B ⇒ shifterTy m w B
@@ -121,6 +140,29 @@ shifter m w (builtin b) = builtin b
 shifter m w (wrap pat arg t) =
   wrap (shifterTy m w pat) (shifterTy m w pat) (shifter m w t)
 shifter m w (unwrap t) = unwrap (shifter m w t)
+
+unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
+unshifterTy w (` x) = ` (suc (lookupWTy' x w))
+unshifterTy w (A ⇒ B) = unshifterTy w A ⇒ unshifterTy w B
+unshifterTy w (Π K A) = Π K (unshifterTy (T w) A)
+unshifterTy w (ƛ K A) = ƛ K (unshifterTy (T w) A)
+unshifterTy w (A · B) = unshifterTy w A · unshifterTy w B
+unshifterTy w (con c) = con c
+unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
+
+
+unshifter : ∀{n} → Weirdℕ n → RawTm → RawTm
+unshifter w (` x) = ` (suc (lookupWTm' x w))
+unshifter w (Λ K t) = Λ K (unshifter (T w) t)
+unshifter w (t ·⋆ A) = unshifter w t ·⋆ unshifterTy w A
+unshifter w (ƛ A t) = ƛ (unshifterTy (S w) A) (unshifter (S w) t)
+unshifter w (t · u) = unshifter w t · unshifter w u
+unshifter w (con c) = con c
+unshifter w (error A) = error (unshifterTy w A)
+unshifter w (builtin b) = builtin b
+unshifter w (wrap pat arg t) =
+  wrap (unshifterTy w pat) (unshifterTy w arg) (unshifter w t)
+unshifter w (unwrap t) = unwrap (unshifter w t)
 
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon

@@ -137,15 +137,15 @@ evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
 evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+  inj₁ (prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
   ("runtime error" Data.String.++
-  prettyPrintTm (extricateScope (unsaturate t'')))
+  prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+  inj₁ (prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
@@ -153,7 +153,7 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
 ... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
-  inj₁ (prettyPrintTm (extricateScope (extricate t''')))
+  inj₁ (prettyPrintTm (unshifter Z (extricateScope (extricate t'''))))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
 
@@ -171,7 +171,7 @@ tcPLC plc with parse plc
 ... | nothing = inj₂ "(Agda) scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
-  inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
+  inj₁ (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 ... | inj₂ typeError = inj₂ "typeError"
 ... | inj₂ kindEqError = inj₂ "kindEqError"
 ... | inj₂ notTypeError = inj₂ "notTypeError"
@@ -180,11 +180,11 @@ tcPLC plc with parse plc
 ... | inj₂ notPat = inj₂ "notPat"
 ... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
 ... | inj₂ (typeEqError n n') = inj₂ (
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
+  prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n)))
   Data.String.++
   "\n != \n"
   Data.String.++
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
+  prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n'))))
   
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"
