@@ -73,6 +73,11 @@ wtoℕ Z = zero
 wtoℕ (S x) = suc (wtoℕ x)
 wtoℕ (T x) = suc (wtoℕ x)
 
+WeirdFintoℕ : ∀{n}{w : Weirdℕ n} → WeirdFin w → ℕ
+WeirdFintoℕ Z     = 0
+WeirdFintoℕ (S i) = suc (WeirdFintoℕ i)
+WeirdFintoℕ (T i) = WeirdFintoℕ i
+
 -- extract number of term binders we are under
 wtoℕ' : ∀{n} → Weirdℕ n → ℕ
 wtoℕ' Z = zero
@@ -102,7 +107,7 @@ shifterTy m w (Π K A) = Π K (shifterTy (suc m) (T w) A)
 shifterTy m w (ƛ K A) = ƛ K (shifterTy (suc m) (T w) A)
 shifterTy m w (A · B) = shifterTy m w B · shifterTy m w B
 shifterTy m w (con c) = con c
-shifterTy m w (μ K A) = μ K (shifterTy (suc m) (T w) A)
+shifterTy m w (μ A B) = μ (shifterTy m w A) (shifterTy m w B)
 
 shifter : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTm → RawTm
 shifter m w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
@@ -481,8 +486,27 @@ unDeBruijnify i⋆ i (unwrap t) = unwrap (unDeBruijnify i⋆ i t)
 \end{code}
 
 \begin{code}
-postulate extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-postulate extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
+extricateScopeTy : ∀{n} → ScopedTy n → RawTy
+extricateScopeTy (` x) = ` (toℕ x)
+extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
+extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A) 
+extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A) 
+extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
+extricateScopeTy (con c) = con c
+extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
+
+extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
+extricateScope (` x) = ` (WeirdFintoℕ x)
+extricateScope (Λ K t) = Λ (unDeBruijnifyK K) (extricateScope t)
+extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
+extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
+extricateScope (t · u) = extricateScope t · extricateScope u
+extricateScope (con c) = con (unDeBruijnifyC c)
+extricateScope (error A) = error (extricateScopeTy A)
+extricateScope (builtin bn _ _) = builtin bn
+extricateScope (wrap pat arg t) =
+  wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
+extricateScope (unwrap t) = unwrap (extricateScope t)
 \end{code}
 
 
