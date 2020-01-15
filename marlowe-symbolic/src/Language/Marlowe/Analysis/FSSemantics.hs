@@ -669,7 +669,7 @@ applyAll :: SymVal a => Bounds
          -> SEnvironment -> SState -> Contract -> SList NInput
          -> (SApplyAllResult -> DetApplyAllResult -> SBV a) -> SBV a
 applyAll bnds env state c l =
-  applyAllAux (numActions bnds) bnds 0 0 env state c l [] []
+  applyAllAux 1 bnds 0 0 env state c l [] []
 
 -- PROCESS
 
