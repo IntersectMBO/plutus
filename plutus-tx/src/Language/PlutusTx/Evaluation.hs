@@ -8,8 +8,8 @@ module Language.PlutusTx.Evaluation
     , Plain
     , ExBudget(..)
     , ExTally(..)
-    , cekStateState
-    , cekStateWriter
+    , exBudgetStateBudget
+    , exBudgetStateTally
     , exBudgetCPU
     , exBudgetMemory
     , exTallyMemory
@@ -39,7 +39,7 @@ stringBuiltins =
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek :: Program TyName Name () -> Either CekMachineException (Plain Term)
-evaluateCek = view _1 . runCek @() @() stringBuiltins () -- TODO debug output?
+evaluateCek = view _1 . runCek stringBuiltins Counting mempty -- TODO debug output?
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek :: Program TyName Name () -> Term TyName Name ()
@@ -51,16 +51,13 @@ unsafeEvaluateCek = unsafeRunCek stringBuiltins
 -- returning the trace output.
 evaluateCekTrace
     :: Program TyName Name ()
-    -> ( [String]
-       , ExTally
-       , Either CekMachineException (Plain Term)
-       )
+    -> ([String], ExTally, Either CekMachineException (Plain Term))
 evaluateCekTrace p =
-    let (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit ->
-            do
+    let
+        (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do
             let logName = dynamicTraceName
                 logDefinition = dynamicCallAssign logName emit
-                env = insertDynamicBuiltinNameDefinition logDefinition stringBuiltins
-            evaluate $ runCek @ExTally @() env mempty p
-    in
-        (lg, view cekStateWriter state, res)
+                env = insertDynamicBuiltinNameDefinition logDefinition
+                                                         stringBuiltins
+            evaluate $ runCek env Counting mempty p
+    in  (lg, view exBudgetStateTally state, res)

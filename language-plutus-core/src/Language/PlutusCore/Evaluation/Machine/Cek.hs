@@ -20,9 +20,10 @@
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekMachineException(..)
     , CekUserError(..)
-    , CekState(..)
+    , ExBudgetState(..)
     , ExTally(..)
     , ExBudget(..)
+    , CekBudgetMode(..)
     , unwrapMachineException
     , semiUnsafeEvaluateCek
     , EvaluationResult(..)
@@ -33,10 +34,9 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , runCek
     , unsafeRunCek
     , cekEnvMeans
-    , cekEnvProtocolParameters
     , cekEnvVarEnv
-    , cekStateState
-    , cekStateWriter
+    , exBudgetStateTally
+    , exBudgetStateBudget
     , exBudgetCPU
     , exBudgetMemory
     , exTallyMemory
@@ -62,21 +62,26 @@ import qualified Data.Map                      as Map
 import           Control.Monad.State.Strict
 import           Control.Monad.Reader
 import           Data.HashMap.Monoidal
-import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
-
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 
 
--- | The CEK machine-specific 'MachineException'.
 data CekMachineException
-    = CekInternalError (MachineException UnknownDynamicBuiltinNameError)
-    | CekUserError CekUserError
+    = CekInternalError (MachineException UnknownDynamicBuiltinNameError) -- ^ Indicates bugs
+    | CekUserError CekUserError -- ^ Indicates user errors
     deriving (Show, Eq)
 instance Exception CekMachineException
 
-unwrapMachineException :: Either CekMachineException a -> (Either (MachineException UnknownDynamicBuiltinNameError) (EvaluationResult a))
+-- | The usual 'EvaluationResult' can fail with 'EvaluationFailure', which indicates the user made a mistake.
+-- The second layer exposed here is a 'MachineException', which indicates a bug.
+unwrapMachineException
+    :: Either CekMachineException a
+    -> ( Either
+             (MachineException UnknownDynamicBuiltinNameError)
+             (EvaluationResult a)
+       )
 unwrapMachineException (Left (CekInternalError ex)) = Left ex
-unwrapMachineException (Left (CekUserError _)) = Right EvaluationFailure 
+unwrapMachineException (Left (CekUserError _)) = Right EvaluationFailure
 unwrapMachineException (Right a) = Right $ EvaluationSuccess a
 
 data CekUserError
@@ -98,83 +103,41 @@ type VarEnv = UniqueMap TermUnique Closure
 data CekEnv = CekEnv
     { _cekEnvMeans  :: DynamicBuiltinNameMeanings
     , _cekEnvVarEnv :: VarEnv
-    , _cekEnvProtocolParameters :: ()
+    , _cekEnvBudgetMode :: CekBudgetMode
     }
 
-data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
-  deriving (Eq, Show)
-
-data CekState w s = CekState
-    { _cekStateWriter :: w -- ^ for counting what cost how much
-    , _cekStateState :: s  -- ^ for making sure we don't spend too much
-    }
-
-data ExTally = ExTally
-    { _exTallyCPU :: MonoidalHashMap (Plain Term) [ExCPU]
-    , _exTallyMemory :: MonoidalHashMap (Plain Term) [ExMemory]
-    }
-    deriving stock (Eq, Generic, Show)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
-
-$(join <$> traverse makeLenses [''CekEnv, ''CekState, ''ExBudget, ''ExTally])
+makeLenses ''CekEnv
 
 -- | The monad the CEK machine runs in.
-type CekM w s
-    = ReaderT CekEnv (ExceptT CekMachineException (State (CekState w s)))
-type SpendExUnits w s = (SpendExUnitsState s, SpendExUnitsWriter w)
+type CekM = ReaderT CekEnv (ExceptT CekMachineException (State ExBudgetState))
 
-
-spendBoth
-    :: SpendExUnits w s => WithMemory Term -> ExCPU -> ExMemory -> CekM w s ()
+spendBoth :: WithMemory Term -> ExCPU -> ExMemory -> CekM ()
 spendBoth term cpu mem = spendCPU term cpu >> spendMemory term mem
 
-spendMemory :: SpendExUnits w s => WithMemory Term -> ExMemory -> CekM w s ()
-spendMemory term mem = do
-    spendSMemory term mem
-    spendWMemory term mem
-
-spendCPU :: SpendExUnits w s => WithMemory Term -> ExCPU -> CekM w s ()
-spendCPU term mem = do
-    spendSCPU term mem
-    spendWCPU term mem
-
-class Monoid w => SpendExUnitsWriter w where
-    spendWMemory :: forall s. WithMemory Term -> ExMemory -> CekM w s ()
-    spendWCPU :: forall s. WithMemory Term -> ExCPU -> CekM w s ()
-
-instance SpendExUnitsWriter () where
-    spendWMemory _ _ = pure ()
-    spendWCPU _ _ = pure ()
-
-instance SpendExUnitsWriter ExTally where
-    spendWMemory term ex = modifying
-        cekStateWriter
-        (<> (ExTally mempty (singleton (void term) [ex])))
-    spendWCPU term ex = modifying
-        cekStateWriter
-        (<> (ExTally (singleton (void term) [ex]) mempty))
-
-class SpendExUnitsState s where
-    spendSMemory :: forall w. Monoid w => (WithMemory Term) -> ExMemory -> CekM w s ()
-    spendSCPU :: forall w. Monoid w => (WithMemory Term) -> ExCPU -> CekM w s ()
-
-instance SpendExUnitsState () where
-    spendSCPU _ _ = pure ()
-    spendSMemory _ _ = pure ()
-
-spendSBudget
-    :: (Ord a, Num a)
-    => Lens' (CekState w ExBudget) a
-    -> WithMemory Term
+spendBudget
+    :: (MonadState s m, Num a, MonadError CekMachineException m, Ord a)
+    => CekBudgetMode
+    -> Lens' s a
     -> a
-    -> CekM w ExBudget ()
-spendSBudget l _ ex = do
+    -> m ()
+spendBudget Counting    l ex = l += ex
+spendBudget Restricting l ex = do
     newEx <- l <-= ex
     when (newEx < 0) $ throwError $ CekUserError CekOutOfExError
 
-instance SpendExUnitsState ExBudget where
-    spendSCPU    = spendSBudget (cekStateState . exBudgetCPU)
-    spendSMemory = spendSBudget (cekStateState . exBudgetMemory)
+spendMemory :: WithMemory Term -> ExMemory -> CekM ()
+spendMemory term mem = do
+    modifying exBudgetStateTally
+              (<> (ExTally mempty (singleton (void term) [mem])))
+    mode <- view cekEnvBudgetMode
+    spendBudget mode (exBudgetStateBudget . exBudgetMemory) mem
+
+spendCPU :: WithMemory Term -> ExCPU -> CekM ()
+spendCPU term cpu = do
+    modifying exBudgetStateTally
+              (<> (ExTally (singleton (void term) [cpu]) mempty))
+    mode <- view cekEnvBudgetMode
+    spendBudget mode (exBudgetStateBudget . exBudgetCPU) cpu
 
 data Frame
     = FrameApplyFun VarEnv (WithMemory Value)               -- ^ @[V _]@
@@ -186,18 +149,19 @@ data Frame
 type Context = [Frame]
 
 runCekM
-    :: forall w s a. CekEnv
-    -> CekState w s
-    -> CekM w s a
-    -> (Either CekMachineException a, CekState w s)
+    :: forall a
+     . CekEnv
+    -> ExBudgetState
+    -> CekM a
+    -> (Either CekMachineException a, ExBudgetState)
 runCekM env s cekm = runState (runExceptT (runReaderT cekm env)) s
 
 -- | Get the current 'VarEnv'.
-getVarEnv :: CekM w s VarEnv
+getVarEnv :: CekM VarEnv
 getVarEnv = asks _cekEnvVarEnv
 
 -- | Set a new 'VarEnv' and proceed.
-withVarEnv :: VarEnv -> CekM w s a -> CekM w s a
+withVarEnv :: VarEnv -> CekM a -> CekM a
 withVarEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
@@ -207,7 +171,7 @@ extendVarEnv argName arg argVarEnv =
     insertByName argName $ Closure argVarEnv arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name ExMemory -> CekM w s Closure
+lookupVarName :: Name ExMemory -> CekM Closure
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
@@ -217,15 +181,14 @@ lookupVarName varName = do
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
-lookupDynamicBuiltinName
-    :: DynamicBuiltinName -> CekM w s DynamicBuiltinNameMeaning
+lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing -> throwError $ CekInternalError $ MachineException err term
-            where
-                err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-                term = Builtin () $ DynBuiltinName () dynName
+          where
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+            term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
@@ -234,11 +197,7 @@ lookupDynamicBuiltinName dynName = do
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
-computeCek
-    :: SpendExUnits w s
-    => Context
-    -> WithMemory Term
-    -> CekM w s (Plain Term)
+computeCek :: Context -> WithMemory Term -> CekM (Plain Term)
 computeCek con t@(TyInst _ body ty) = do
     spendBoth t 1 1 -- TODO
     computeCek (FrameTyInstArg ty : con) body
@@ -256,7 +215,7 @@ computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
 computeCek con constant@Constant{} = returnCek con constant
 computeCek con bi@Builtin{}        = returnCek con bi
-computeCek _   Error{}             = throwError $ CekUserError CekEvaluationFailure
+computeCek _ Error{} = throwError $ CekUserError CekEvaluationFailure
 computeCek con t@(Var _ varName)   = do
     spendBoth t 1 1 -- TODO
     Closure newVarEnv term <- lookupVarName varName
@@ -269,49 +228,36 @@ computeCek con t@(Var _ varName)   = do
 -- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
-returnCek
-    :: SpendExUnits w s
-    => Context
-    -> WithMemory Value
-    -> CekM w s (Plain Term)
-returnCek []                        res = pure $ (void res)
-returnCek (FrameTyInstArg ty : con) fun = do
-    spendBoth fun 1 1 -- TODO
-    instantiateEvaluate con ty fun
+returnCek :: Context -> WithMemory Value -> CekM (Plain Term)
+returnCek [] res = pure $ (void res)
+returnCek (FrameTyInstArg ty : con) fun = instantiateEvaluate con ty fun
 returnCek (FrameApplyArg argVarEnv arg : con) fun = do
-    spendBoth fun 1 1 -- TODO
     funVarEnv <- getVarEnv
     withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : con) arg
 returnCek (FrameApplyFun funVarEnv fun : con) arg = do
-    spendBoth arg 1 1 -- TODO maybe builtin to the applying anyway?
     argVarEnv <- getVarEnv
     applyEvaluate funVarEnv argVarEnv con fun arg
-returnCek (FrameIWrap ann pat arg : con) val = do
-    spendBoth val 1 1 -- TODO
+returnCek (FrameIWrap ann pat arg : con) val =
     returnCek con $ IWrap ann pat arg val
-returnCek (FrameUnwrap : con) dat = do
-    spendBoth dat 1 1 -- TODO
-    case dat of
-        IWrap _ _ _ term -> returnCek con term
-        term             -> throwError
-            $ CekInternalError $ MachineException NonWrapUnwrappedMachineError (void term)
+returnCek (FrameUnwrap : con) dat = case dat of
+    IWrap _ _ _ term -> returnCek con term
+    term             -> throwError $ CekInternalError $ MachineException
+        NonWrapUnwrappedMachineError
+        (void term)
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
-    :: SpendExUnits w s
-    => Context
-    -> Type TyName ExMemory
-    -> WithMemory Term
-    -> CekM w s (Plain Term)
+    :: Context -> Type TyName ExMemory -> WithMemory Term -> CekM (Plain Term)
 instantiateEvaluate con _ (TyAbs _ _ _ body) = computeCek con body
 instantiateEvaluate con ty fun
     | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst 1 fun ty
     | -- TODO
-      otherwise = throwError
-    $ CekInternalError $ MachineException NonPrimitiveInstantiationMachineError (void fun)
+      otherwise = throwError $ CekInternalError $ MachineException
+        NonPrimitiveInstantiationMachineError
+        (void fun)
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -320,13 +266,12 @@ instantiateEvaluate con ty fun
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
-    :: SpendExUnits w s
-    => VarEnv
+    :: VarEnv
     -> VarEnv
     -> Context
     -> WithMemory Value
     -> WithMemory Value
-    -> CekM w s (Plain Term)
+    -> CekM (Plain Term)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
 applyEvaluate funVarEnv _ con fun arg =
@@ -340,54 +285,28 @@ applyEvaluate funVarEnv _ con fun arg =
                 constAppResult <- applyStagedBuiltinName arg headName spine
                 withVarEnv funVarEnv $ case constAppResult of
                     ConstAppSuccess res -> computeCek con res
-                    ConstAppFailure     -> throwError $ CekUserError $ CekEvaluationFailure
-                    ConstAppStuck       -> returnCek con term
-                    ConstAppError err   -> throwError $ CekInternalError $ MachineException
-                        (ConstAppMachineError err)
-                        (void term)
+                    ConstAppFailure ->
+                        throwError $ CekUserError $ CekEvaluationFailure
+                    ConstAppStuck -> returnCek con term
+                    ConstAppError err ->
+                        throwError $ CekInternalError $ MachineException
+                            (ConstAppMachineError err)
+                            (void term)
 
-evaluateInCekM
-    :: SpendExUnits w s
-    => EvaluateConstApp (CekM w s) a
-    -> CekM w s (ConstAppResult a)
+evaluateInCekM :: EvaluateConstApp CekM a -> CekM (ConstAppResult a)
 evaluateInCekM a = do
-    let eval means' term = local (over cekEnvMeans (<> means'))
-            $ fmap EvaluationSuccess $ computeCek [] (withMemory term) -- TODO 'withMemory' has a cost, should be avoided
+    let eval means' term =
+            local (over cekEnvMeans (<> means'))
+                $ fmap EvaluationSuccess
+                $ computeCek [] (withMemory term) -- TODO 'withMemory' has a cost, should be avoided
     runEvaluateConstApp eval a
-
--- TODO invalid number of args
-estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value] -> (ExCPU, ExMemory)
--- estimateStaticStagedCost AddInteger           [x, y] = (1, 1)
--- estimateStaticStagedCost SubtractInteger      [x, y] = (1, 1)
--- estimateStaticStagedCost MultiplyInteger      [x, y] = (1, 1)
--- estimateStaticStagedCost DivideInteger        [x, y] = (1, 1)
--- estimateStaticStagedCost QuotientInteger      [x, y] = (1, 1)
--- estimateStaticStagedCost RemainderInteger     [x, y] = (1, 1)
--- estimateStaticStagedCost ModInteger           [x, y] = (1, 1)
--- estimateStaticStagedCost LessThanInteger      [x, y] = (1, 1)
--- estimateStaticStagedCost LessThanEqInteger    [x, y] = (1, 1)
--- estimateStaticStagedCost GreaterThanInteger   [x, y] = (1, 1)
--- estimateStaticStagedCost GreaterThanEqInteger [x, y] = (1, 1)
--- estimateStaticStagedCost EqInteger            [x, y] = (1, 1)
--- estimateStaticStagedCost Concatenate          [x, y] = (1, 1)
--- estimateStaticStagedCost TakeByteString       [x, y] = (1, 1)
--- estimateStaticStagedCost DropByteString       [x, y] = (1, 1)
--- estimateStaticStagedCost SHA2                 x      = (1, 1)
--- estimateStaticStagedCost SHA3                 x      = (1, 1)
--- estimateStaticStagedCost VerifySignature      [x, y] = (1, 1)
--- estimateStaticStagedCost EqByteString         [x, y] = (1, 1)
--- estimateStaticStagedCost LtByteString         [x, y] = (1, 1)
--- estimateStaticStagedCost GtByteString         [x, y] = (1, 1)
-estimateStaticStagedCost _                    _      = (1, 1) -- TODO
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
-    :: SpendExUnits w s
-    => WithMemory Value
+    :: WithMemory Value
     -> StagedBuiltinName
     -> [WithMemory Value]
-    -> CekM w s (ConstAppResult (WithMemory Term))
+    -> CekM (ConstAppResult (WithMemory Term))
 applyStagedBuiltinName arg (DynamicStagedBuiltinName name) args = do
     -- TODO estimate costing here
     spendBoth arg 1 1
@@ -405,39 +324,40 @@ applyStagedBuiltinName arg (StaticStagedBuiltinName name) args = do
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekIn
-    :: SpendExUnits w s
-    => CekEnv
-    -> (CekState w s)
+    :: CekEnv
+    -> ExBudgetState
     -> WithMemory Term
-    -> ( Either CekMachineException (Plain Term)
-       , CekState w s
-       )
+    -> (Either CekMachineException (Plain Term), ExBudgetState)
 evaluateCekIn env s term = runCekM env s $ computeCek [] term
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
-    :: forall w s
-     . SpendExUnits w s
-    => DynamicBuiltinNameMeanings
-    -> s
+    :: DynamicBuiltinNameMeanings
+    -> CekBudgetMode
+    -> ExBudget
     -> Plain Term
-    -> ( Either CekMachineException (Plain Term)
-       , CekState w s
-       )
-evaluateCek means s term =
-    evaluateCekIn (CekEnv means mempty mempty) (CekState mempty s)
+    -> (Either CekMachineException (Plain Term), ExBudgetState)
+evaluateCek means mode budget term =
+    evaluateCekIn (CekEnv means mempty mode)
+                  (ExBudgetState mempty budget)
         $ withMemory term
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: DynamicBuiltinNameMeanings -> Term TyName Name () -> (Plain Term)
 unsafeEvaluateCek dyn term =
-    either throw id $ (view _1 $ evaluateCek @() dyn () term)
+    either throw id $ (view _1 $ evaluateCek dyn Counting mempty term)
 
-semiUnsafeEvaluateCek 
+semiUnsafeEvaluateCek
     :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
 semiUnsafeEvaluateCek dyn term =
-    either throw id $ (unwrapMachineException $ view _1 $ evaluateCek @() dyn () term)
+    either throw id
+        $ (unwrapMachineException $ view _1 $ evaluateCek
+              dyn
+              Counting
+              mempty
+              term
+          )
 
 -- The implementation is a bit of a hack.
 -- And used in tests only. Not doing costing for now.
@@ -448,32 +368,35 @@ readKnownCek
     -> Either CekMachineException a
 readKnownCek means term = do
     res <- runReflectT $ readKnown
-        (\m t -> either (Left . CekInternalError) Right $ unwrapMachineException $ view _1 $ evaluateCek @() @() (mappend means m) () t)
+        (\m t ->
+            either (Left . CekInternalError) Right
+                $ unwrapMachineException
+                $ view _1
+                $ evaluateCek (mappend means m) Counting mempty t
+        )
         term
     case res of
-        EvaluationFailure            -> throw $ CekUserError CekEvaluationFailure
-        EvaluationSuccess (Left err) -> throw $ CekInternalError $ MachineException appErr term
-            where
-                appErr =
-                    ConstAppMachineError $ UnreadableBuiltinConstAppError term err
+        EvaluationFailure -> throw $ CekUserError CekEvaluationFailure
+        EvaluationSuccess (Left err) ->
+            throw $ CekInternalError $ MachineException appErr term
+          where
+            appErr =
+                ConstAppMachineError $ UnreadableBuiltinConstAppError term err
         EvaluationSuccess (Right x) -> pure x
 
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
 runCek
-    :: forall w s. SpendExUnits w s
-    => DynamicBuiltinNameMeanings
-    -> s
+    :: DynamicBuiltinNameMeanings
+    -> CekBudgetMode
+    -> ExBudget
     -> Program TyName Name ()
-    -> ( Either CekMachineException (Plain Term)
-       , CekState w s
-       )
-runCek means s (Program _ _ term) = evaluateCek means s term
+    -> (Either CekMachineException (Plain Term), ExBudgetState)
+runCek means mode budget (Program _ _ term) =
+    evaluateCek means mode budget term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
 unsafeRunCek
-    :: DynamicBuiltinNameMeanings
-    -> Program TyName Name ()
-    -> Plain Term
+    :: DynamicBuiltinNameMeanings -> Program TyName Name () -> Plain Term
 unsafeRunCek means (Program _ _ term) = unsafeEvaluateCek means term

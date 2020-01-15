@@ -18,7 +18,6 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name

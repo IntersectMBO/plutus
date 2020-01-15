@@ -17,16 +17,6 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 , withMemory
 ) where
 
-{- Note [Memory accounting]
-Each operation costs a certain amount of memory. Plutus counts this usage via
-ExMemory units, which correspond to machine words (64bit). First, the cost of
-the initial AST is added to the budget. Then each operation requires a certain
-amount of memory. Builtins may require different amounts of memory depending on
-the input size. Memory cost is only counted on creation of a value, so passing
-it around won't increase the cost, because sharing is assumed. If a computation
-runs out of Memory, it is aborted.
--}
-
 import           Language.PlutusCore
 import           PlutusPrelude
 
@@ -47,6 +37,7 @@ newtype ExMemory = ExMemory Integer -- Counts size in machine words (64bit for t
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
   deriving newtype Num
+  deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

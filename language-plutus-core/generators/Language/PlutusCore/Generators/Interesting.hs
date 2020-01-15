@@ -6,6 +6,7 @@
 
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
+    , TermOf(..)
     , genOverapplication
     , factorial
     , genFactorial
