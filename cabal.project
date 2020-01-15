@@ -40,28 +40,99 @@ source-repository-package
   type: git
   location: https://github.com/shmish111/purescript-bridge.git
   tag: 28c37771ef30b0d751960c061ef95627f05d290e
+  --sha256: 0n6q7g2w1xafngd3dwbbmfxfn018fmq61db7mymplbrww8ld1cp3
 
 source-repository-package
   type: git
   location: https://github.com/shmish111/servant-purescript.git
   tag: ece5d1dad16a5731ac22040075615803796c7c21
+  --sha256: 1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
   tag: 3c5db489c71a4d70ee43f5f9b979fcde3c797f2a
+  --sha256: 0lss4x41m0ylhximqjc56ps0y3pag3x58wm480pzfa48lpk4gqpk
 
 source-repository-package
   type: git
   location: https://github.com/bitnomial/prometheus.git
   tag: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
+  --sha256: 0h836qp0ic587gfyfkj9a53p8rczja50sfy2y8ymx8wwkmq9zdgc
 
 source-repository-package
   type: git
   location: https://github.com/michaelpj/unlit.git
   tag: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+  --sha256: 145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff
 
 source-repository-package
   type: git
   location: https://github.com/shmish111/github.git
   tag: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
+  --sha256: 0jx65x4c8s561nbxa0hv7mp8fvndfhs8i8gzxng7ym808n4n538i
+
+-- needed for Cabal-3 compat.
+constraints: happy==1.19.12
+
+-- https://github.com/input-output-hk/cardano-crypto/pull/62
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/cardano-crypto
+  tag: 614c89c92d16d2d4a41792c40b988129b40cd085
+  --sha256: 1xm8552qqyl9azzk23898pdkdf4kp2fik0xn20w9fjq4l6syihp6
+
+-- https://github.com/haskell-foundation/foundation/pull/531
+source-repository-package
+  type: git
+  location: https://github.com/hamishmack/foundation
+  tag: 2ab63bcfbeee90ea4e3cc46f6feb184affdd2db2
+  --sha256: 0krcn1brm0vgq8s3w4rnyh36d7bq26jh27p2iaf8zay118ardgp9
+  subdir: basement
+source-repository-package
+  type: git
+  location: https://github.com/hamishmack/foundation
+  tag: 2ab63bcfbeee90ea4e3cc46f6feb184affdd2db2
+  --sha256: 0krcn1brm0vgq8s3w4rnyh36d7bq26jh27p2iaf8zay118ardgp9
+  subdir: foundation
+
+-- https://github.com/biegunka/terminal-size/pull/12
+source-repository-package
+  type: git
+  location: https://github.com/angerman/terminal-size
+  tag: 0f805a63492e94718753aacf425d4a63641d8d14
+  --sha256: 08brqsv3d3kwmgnblz82q18gbazm446pafd4c2gcqcvfckgqcp76
+
+-- https://github.com/haskell/zlib/pull/25
+source-repository-package
+  type: git
+  location: https://github.com/angerman/zlib
+  tag: 3662b3608fc39930d2fcafcc2c873c9b116ad2b5
+  --sha256: 0mlsfgbw196aclk6bk08bf1jcglwrgyim2fgarnjikk9ws19wn5n
+
+-- https://github.com/TomMD/entropy/pull/54
+source-repository-package
+  type: git
+  location: https://github.com/TomMD/entropy
+  tag: 3be0b7733b1cef3d0e7ed0e2967155a1b63b6a62
+  --sha256: 1a5jaz3641kqnya58n81jbxg9siy46ryziby3r99457v72z5v6fm
+
+-- https://github.com/luite/network at b77e7c10e29ccf3512be67defbe0fb66ac2bc4c8
+-- this makes it compile, not necessarily "work".
+source-repository-package
+  type: git
+  location: https://github.com/luite/network
+  tag: b77e7c10e29ccf3512be67defbe0fb66ac2bc4c8
+  --sha256: 1birwn2lc6gzc06zajiv9xq41sr624l5c4i8dlwcsasypail1zys
+
+-- this is essential to build warp.
+-- https://github.com/kazu-yamamoto/simple-sendfile/pull/34
+source-repository-package
+  type: git
+  location: https://github.com/angerman/simple-sendfile
+  tag: 9077aa7439f0d52c1a2d10d228f6666a1bf91099
+  --sha256: 1jplcsp3gir116c263rc36i5mm7ag6kj77w9c4pwx0hvxw681qpx
+
+-- need these because for reasons I don't fully undertand yet, we fail to respect the freeze file.
+-- FIXME: Maybe the cabalProject doesn't copy over the freeze file.
+constraints: servant-server == 0.15, servant-websockets == 1.1.0
