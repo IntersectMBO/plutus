@@ -827,8 +827,7 @@ getTransactionOutput contract = do
           i <- mkInput $ show idx
           pure [ i ]
       pure $ Tuple (idx + 1) $ TransactionInput { interval: slotInterval', inputs: inputs } : acc
-  -- FIXME: just trying to get rid of empty txs as an experiment
-  inputs <- filter notEmpty <$> mkTxs depth
+  inputs <- mkTxs depth
   txs <- foldM mkTx (Tuple 1 []) inputs
   let
     startOutput =
@@ -842,4 +841,4 @@ getTransactionOutput contract = do
 
 hasWarnings :: TransactionOutput -> Boolean
 hasWarnings (Error _) = false
-hasWarnings (TransactionOutput vs) = true --not $ Array.null vs.txOutWarnings
+hasWarnings (TransactionOutput vs) = not $ Array.null vs.txOutWarnings

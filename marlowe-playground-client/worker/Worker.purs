@@ -7,7 +7,7 @@ import Data.Array (filter, head)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn0, runFn0)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (trim)
 import Data.Symbolic (Equation, checkSat, declareVars, equationModel, getEquations, solveEquation)
 import Data.Traversable (traverse)
@@ -25,7 +25,7 @@ import Text.Parsing.Parser (runParser)
 import Text.Parsing.Parser.Basic (parens)
 import Worker.Types (WorkerRequest(..), WorkerResponse(..))
 import Z3.Internal (onZ3Initialized)
-import Z3.Monad (Z3, evalString, pop, push, runZ3)
+import Z3.Monad (Z3, evalString, runZ3)
 
 foreign import data Context :: Type
 
@@ -78,19 +78,18 @@ checkContractForWarnings contractString = do
       runZ3 do
         r1 <- declareVars equations
         traverse f equations
-    case head resA of
+    case head (filter isJust resA) of
         Nothing -> pure Nothing
         (Just Nothing) -> pure Nothing
         (Just (Just m)) -> pure $ Just m
   where
   f :: forall a. Equation a -> Z3 (Maybe (Map String String))
   f a = do
-    push
-    _ <- solveEquation a
-    -- isSat <- (evalString "(assert true)(check-sat)")
+    void $ evalString "(push)"
+    void $ solveEquation a
     isSat <- (evalString $ show checkSat)
-    res <- if trim isSat == "sat" then Just <$> equationModel a else pure Nothing
-    pop
+    res <- if (trim isSat) == "sat" then Just <$> equationModel a else pure Nothing
+    void $ evalString "(pop)"
     pure res
 
 -- handler needs to recieve messages that are a map of type and body (string) and pattern match on the type
