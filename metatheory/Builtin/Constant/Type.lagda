@@ -91,6 +91,7 @@ postulate
 
 \begin{code}
 -- cut-off exponentiation
+{-
 _^_ : ℕ → ℕ → ℕ
 x ^ ℕ.zero  = 1
 x ^ ℕ.suc n = x * (x ^ n)
@@ -98,14 +99,14 @@ x ^ ℕ.suc n = x * (x ^ n)
 -≤0 : forall x -> - pos x ≤ pos 0
 -≤0 ℕ.zero = +≤+ z≤n
 -≤0 (ℕ.suc n) = -≤+
-
+-}
 _>?_ : Decidable _>_
 i >? j = j <? i
 
 _≥?_ : Decidable _≥_
 i ≥? j = j ≤? i
 
-
+{-
 trans≤Nat : ∀{i j k} → i Data.Nat.≤ j → j Data.Nat.≤ k → i Data.Nat.≤ k
 trans≤Nat z≤n q = z≤n
 trans≤Nat (s≤s p) (s≤s q) = s≤s (trans≤Nat p q)
@@ -115,11 +116,13 @@ trans≤Int -≤+ (+≤+ q) = -≤+
 trans≤Int (-≤- p) -≤+ = -≤+
 trans≤Int (-≤- p) (-≤- q) = -≤- (trans≤Nat q p)
 trans≤Int (+≤+ p) (+≤+ q) = +≤+ (trans≤Nat p q)
+-}
 \end{code}
 
 # Bounded integers and bytestrings
 
 \begin{code}
+{-
 open import Data.Unit hiding (_≤_;_≤?_)
 BoundedI : (s : ℕ)(i : Int)  → Set
 BoundedI s i = ⊤ -- - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i ≤ pos (2 ^ (8 ** (s ∸ 1)))
@@ -174,6 +177,7 @@ boundedN? s i | no ¬p | _     = no (¬p ∘ proj₁)
 bN2I : ∀ s i → BoundedN s i → BoundedI s i
 bN2I = λ s i x → tt
 --bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
+-}
 \end{code}
 
 ## Type constants
