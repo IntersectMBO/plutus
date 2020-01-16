@@ -18,6 +18,8 @@ mkDerivation {
     transformers
   ];
   testToolDepends = [ plutus-exe ];
+  enableLibraryProfiling = false;
+  enableExecutableProfiling = false;
   homepage = "https://github.com/input-output-hk/plutus";
   description = "Command line tool for running plutus core programs";
   license = stdenv.lib.licenses.asl20;
