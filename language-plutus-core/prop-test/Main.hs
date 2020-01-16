@@ -27,9 +27,8 @@ nameStream strs = evalState (traverse newName strs) emptyIdentifierState
 
 main :: IO ()
 main = do
-  let kindG = TypeG
-
-  tyGs <- search 10 (checkClosedTypeG kindG)
+  let kG = TypeG
+  tyGs <- search 10 (checkClosedTypeG kG)
   forM_ tyGs $ \tyG -> do
-    let ty = toClosedType exes kindG tyG
+    let ty = toClosedType exes kG tyG
     putStrLn (prettyPlcDefString ty)

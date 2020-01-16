@@ -167,11 +167,11 @@ checkTypeG kcs k (TyVarG i)
   where
     varKindOk = toCool $ k == kindOf kcs i
 
-checkTypeG kcs k (TyFunG ty1 ty2)
+checkTypeG kcs TypeG (TyFunG ty1 ty2)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1KindOk = checkTypeG kcs k ty1
-    ty2KindOk = checkTypeG kcs k ty2
+    ty1KindOk = checkTypeG kcs TypeG ty1
+    ty2KindOk = checkTypeG kcs TypeG ty2
 
 checkTypeG kcs TypeG (TyIFixG ty1 k ty2)
   = ty1KindOk &&& ty2KindOk

@@ -247,10 +247,11 @@ test-suite language-plutus-core-prop-test
     build-depends:
         base -any,
         language-plutus-core -any,
-        lazy-search == 0.1.2.0,
-        size-based == 0.1.2.0,
-        testing-feat == 1.1.0.0
-
+        lazy-search -any,
+        mtl -any,
+        size-based -any,
+        testing-feat -any,
+        text -any
 
     if flag(eventlog)
         ghc-options: -eventlog
