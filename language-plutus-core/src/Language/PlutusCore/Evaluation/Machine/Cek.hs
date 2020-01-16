@@ -11,11 +11,11 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekMachineException(..)
@@ -53,17 +53,17 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Control.Lens.TH                ( makeLenses )
-import           Control.Lens.Setter
+import           Control.Lens.Combinators                           (_1)
 import           Control.Lens.Operators
-import           Control.Lens.Combinators       ( _1 )
+import           Control.Lens.Setter
+import           Control.Lens.TH                                    (makeLenses)
 import           Control.Monad.Except
-import qualified Data.Map                      as Map
-import           Control.Monad.State.Strict
 import           Control.Monad.Reader
+import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import qualified Data.Map                                           as Map
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 
 data CekMachineException
@@ -81,8 +81,8 @@ unwrapMachineException
              (EvaluationResult a)
        )
 unwrapMachineException (Left (CekInternalError ex)) = Left ex
-unwrapMachineException (Left (CekUserError _)) = Right EvaluationFailure
-unwrapMachineException (Right a) = Right $ EvaluationSuccess a
+unwrapMachineException (Left (CekUserError _))      = Right EvaluationFailure
+unwrapMachineException (Right a)                    = Right $ EvaluationSuccess a
 
 data CekUserError
     = CekOutOfExError
@@ -101,8 +101,8 @@ type VarEnv = UniqueMap TermUnique Closure
 
 -- | The environment the CEK machine runs in.
 data CekEnv = CekEnv
-    { _cekEnvMeans  :: DynamicBuiltinNameMeanings
-    , _cekEnvVarEnv :: VarEnv
+    { _cekEnvMeans      :: DynamicBuiltinNameMeanings
+    , _cekEnvVarEnv     :: VarEnv
     , _cekEnvBudgetMode :: CekBudgetMode
     }
 

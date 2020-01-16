@@ -35,16 +35,16 @@ module Language.PlutusCore.MkPlc
     , mkIterKindArrow
     ) where
 
-import           Prelude                               hiding (error)
+import           Prelude                  hiding (error)
 
 import           Language.PlutusCore.Core
 
-import           Data.List                             (foldl')
-import           GHC.Generics                          (Generic)
+import           Data.List                (foldl')
+import           GHC.Generics             (Generic)
 
 --- TODO: add @con@.
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
-class TermLike term tyname name | term -> tyname, term -> name, term -> where
+class TermLike term tyname name | term -> tyname, term -> name where
     var      :: ann -> name ann -> term ann
     tyAbs    :: ann -> tyname ann -> Kind ann -> term ann -> term ann
     lamAbs   :: ann -> name ann -> Type tyname ann -> term ann -> term ann

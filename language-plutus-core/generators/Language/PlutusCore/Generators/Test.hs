@@ -24,11 +24,11 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Data.Functor                                            ((<&>))
-import qualified Data.Text.IO                                            as Text
-import           Hedgehog                                                hiding (Size, Var, eval)
-import qualified Hedgehog.Gen                                            as Gen
-import           System.FilePath                                         ((</>))
+import           Data.Functor                                          ((<&>))
+import qualified Data.Text.IO                                          as Text
+import           Hedgehog                                              hiding (Size, Var, eval)
+import qualified Hedgehog.Gen                                          as Gen
+import           System.FilePath                                       ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue :: KnownType a => TermGen a -> IO (TermOf EvaluationResultDef)

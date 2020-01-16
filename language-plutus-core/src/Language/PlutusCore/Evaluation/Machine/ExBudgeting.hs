@@ -1,8 +1,8 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 {- Note [Budgeting]
 
@@ -37,10 +37,10 @@ where
 import           Language.PlutusCore
 import           PlutusPrelude
 
-import           Control.Lens.TH                ( makeLenses )
+import           Control.Lens.TH                                         (makeLenses)
 import           Data.HashMap.Monoidal
-import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 
 data CekBudgetMode =
       Counting -- ^ Counts up
@@ -52,13 +52,13 @@ data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
 
 data ExBudgetState = ExBudgetState
-    { _exBudgetStateTally :: ExTally -- ^ for counting what cost how much
+    { _exBudgetStateTally  :: ExTally -- ^ for counting what cost how much
     , _exBudgetStateBudget :: ExBudget  -- ^ for making sure we don't spend too much
     }
     deriving stock (Eq, Generic, Show)
 
 data ExTally = ExTally
-    { _exTallyCPU :: MonoidalHashMap (Plain Term) [ExCPU]
+    { _exTallyCPU    :: MonoidalHashMap (Plain Term) [ExCPU]
     , _exTallyMemory :: MonoidalHashMap (Plain Term) [ExMemory]
     }
     deriving stock (Eq, Generic, Show)

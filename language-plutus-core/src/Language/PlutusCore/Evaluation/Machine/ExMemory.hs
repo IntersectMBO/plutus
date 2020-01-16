@@ -1,11 +1,11 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE DataKinds #-}
 
 module Language.PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
@@ -21,9 +21,9 @@ import           Language.PlutusCore
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
+import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.Text                as T
 import           Foreign.Storable
-import qualified Data.Text                     as T
-import qualified Data.ByteString.Lazy          as BSL
 
 import           GHC.Generics
 

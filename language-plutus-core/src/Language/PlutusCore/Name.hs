@@ -34,11 +34,11 @@ import           PlutusPrelude
 import           Language.PlutusCore.Pretty.ConfigName
 
 import           Control.Lens
+import           Data.Hashable
 import qualified Data.IntMap                           as IM
 import qualified Data.Text                             as T
 import           Instances.TH.Lift                     ()
 import           Language.Haskell.TH.Syntax            (Lift)
-import Data.Hashable
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name ann = Name

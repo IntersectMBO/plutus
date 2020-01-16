@@ -1,14 +1,14 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Evaluation.Machine.GenericSemigroup where
 
-import Data.Monoid (Monoid(..))
-import Data.Semigroup (Semigroup(..))
-import GHC.Generics
+import           Data.Monoid            (Monoid (..))
+import           Data.Semigroup         (Semigroup (..))
+import           GHC.Generics
 -- TODO when this import conflicts, delete this file.
-import Data.Semigroup.Generic
+import           Data.Semigroup.Generic
 
 newtype GenericSemigroupMonoid a =
   GenericSemigroupMonoid { getGenericSemigroupMonoid :: a }

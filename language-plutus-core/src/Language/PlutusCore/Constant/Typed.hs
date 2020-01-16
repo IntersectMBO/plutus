@@ -2,13 +2,13 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DefaultSignatures         #-}
-{-# LANGUAGE DerivingVia               #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE KindSignatures            #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
@@ -35,19 +35,19 @@ module Language.PlutusCore.Constant.Typed
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.Core
 
 import           Control.Monad.Except
-import           Control.Monad.Morph                         as Morph
+import           Control.Monad.Morph                   as Morph
 import           Control.Monad.Reader
+import           Control.Monad.Trans.Compose           (ComposeT (..))
 import           Control.Monad.Trans.Inner
-import           Data.Map                                    (Map)
+import           Data.Map                              (Map)
 import           Data.Proxy
-import           Data.Text                                   (Text)
-import           Control.Monad.Trans.Compose                 (ComposeT (..))
+import           Data.Text                             (Text)
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`

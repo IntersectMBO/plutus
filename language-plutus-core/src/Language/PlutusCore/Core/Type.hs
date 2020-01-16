@@ -1,9 +1,9 @@
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Core.Type
     ( Gas(..)
@@ -34,12 +34,12 @@ import           PlutusPrelude
 import           Language.PlutusCore.Name
 
 import           Control.Lens
-import qualified Data.ByteString.Lazy          as BSL
-import           Data.Text                      ( Text )
-import           GHC.Exts                       ( Constraint )
-import           Instances.TH.Lift              ( )
-import           Language.Haskell.TH.Syntax     (Lift)
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Hashable
+import           Data.Text                  (Text)
+import           GHC.Exts                   (Constraint)
+import           Instances.TH.Lift          ()
+import           Language.Haskell.TH.Syntax (Lift)
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
