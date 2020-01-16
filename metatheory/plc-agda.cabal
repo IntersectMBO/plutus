@@ -699,7 +699,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
-        MAlonzo.Code.Algorithmic.Equality
   autogen-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
@@ -722,7 +721,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Algebra.Structures
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
-        MAlonzo.Code.Algorithmic.Equality
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
         MAlonzo.Code.Builtin
