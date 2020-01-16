@@ -20,10 +20,10 @@ where
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.Cek      hiding (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
 
 import           Control.Exception
-import           Control.Lens.Combinators                        (_1)
+import           Control.Lens.Combinators                   (_1)
 import           PlutusPrelude
 
 import           System.IO.Unsafe
