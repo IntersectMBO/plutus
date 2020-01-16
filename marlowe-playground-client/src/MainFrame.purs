@@ -8,7 +8,6 @@ import Ace.Types (Editor, Annotation)
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped, map, void, when)
-import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -22,21 +21,20 @@ import Data.Lens (_Just, assign, modifying, over, preview, use, view)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
-import Data.Newtype (unwrap, wrap)
+import Data.Newtype (unwrap)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import Editor (compileButton, editorView, editorFeedback)
+import Debug.Trace (trace)
 import Editor (Action(..), Preferences, loadPreferences) as Editor
+import Editor (compileButton, editorView, editorFeedback)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Foreign.Class (decode)
-import Foreign.JSON (parseJSON)
 import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..), gistControls, parseGistUrl)
-import Halogen (Component, ComponentHTML, raise)
+import Halogen (Component, ComponentHTML)
 import Halogen as H
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, code_, div, div_, h1, pre, slot, strong_, text)
@@ -52,15 +50,15 @@ import Marlowe.Holes (MarloweHole(..), replaceInPositions)
 import Marlowe.Parser (contract, hole)
 import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
-import MonadApp (haskellEditorHandleAction, class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorSetAnnotations, haskellEditorSetValue, initializeZ3, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
 import Prelude (Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
 import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
-import WebSocket (WebSocketResponseMessage(..))
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
+import Worker.Types (WorkerRequest, WorkerResponse(..))
 
 mkInitialState :: Editor.Preferences -> FrontendState
 mkInitialState editorPreferences =
@@ -85,7 +83,7 @@ mkMainFrame ::
   MonadAff m =>
   MonadEffect n =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  n (Component HTML HQuery Unit WebsocketMessage m)
+  n (Component HTML HQuery Unit WorkerRequest m)
 mkMainFrame = do
   editorPreferences <- Editor.loadPreferences
   let
@@ -224,7 +222,6 @@ handleAction CheckAuthStatus = do
   assign _authStatus Loading
   authResult <- getOauthStatus
   assign _authStatus authResult
-  initializeZ3
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 
@@ -381,7 +378,7 @@ handleAction SetBlocklyCode =
 handleAction AnalyseContract = do
   currContract <- use _currentContract
   case currContract of
-    Nothing -> pure unit
+    Nothing -> trace "no contract" \_ -> pure unit
     Just contract -> do
       void $ checkContractForWarnings (show contract)
       assign _analysisState Loading

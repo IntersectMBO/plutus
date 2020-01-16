@@ -983,7 +983,7 @@ class HasMaxDepth a where
 
 instance hasMaxDepthContract :: HasMaxDepth Contract where
   maxDepth Close = zero
-  maxDepth (Pay _ _ _ contract) = maxDepth contract
+  maxDepth (Pay _ _ _ _ contract) = maxDepth contract
   maxDepth (If _ contractTrue contractFalse) = maxOf [ maxDepth contractTrue, maxDepth contractFalse ]
   maxDepth (When cases timeout contract) = 1 + (maxOf [ maxDepth cases, maxDepth contract ])
   maxDepth (Let _ _ contract) = maxDepth contract

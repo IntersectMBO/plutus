@@ -5,7 +5,6 @@ import Prelude
 import Data.Array (filter, foldM, foldl, mapMaybe, reverse, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
-import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum, Cardinality(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -19,13 +18,8 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
 import Data.Tuple (Tuple(..), snd)
-import Debug.Trace (trace)
-import Examples.Marlowe.Contracts as ME
-import Marlowe.Holes as Holes
-import Marlowe.Parser as Parser
-import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Value(..), ValueId, maxDepth)
+import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Token(..), Value(..), ValueId, maxDepth)
 import Marlowe.Semantics as MS
-import Text.Parsing.Parser (runParser)
 
 overM :: forall m s t a b. Monad m => Lens s t a b -> (a -> m b) -> s -> m t
 overM l f s = do
@@ -46,6 +40,14 @@ instance toSymbolicString :: ToSymbolic String StringConstraint where
 
 instance toSymbolicInt :: ToSymbolic BigInteger IntConstraint where
   toSym = IntConst
+
+newtype SAssets
+  = Assets (Map String (Map String IntConstraint))
+
+derive instance genericSAssets :: Generic SAssets _
+
+instance showSAssets :: Show SAssets where
+  show t = genericShow t
 
 validInterval :: SSlotInterval -> BooleanConstraint
 validInterval (SlotInterval (Slot from) (Slot to)) = from .<= to
@@ -82,7 +84,7 @@ inBounds num bounds = do
 
 newtype SState
   = State
-  { accounts :: Map SAccountId SAda
+  { accounts :: Map (Tuple SAccountId Token) IntConstraint
   , choices :: Map SChoiceId IntConstraint
   , boundValues :: Map ValueId IntConstraint
   , minSlot :: SSlot
@@ -95,7 +97,7 @@ derive newtype instance showSState :: Show SState
 _minSlot :: Lens' SState SSlot
 _minSlot = _Newtype <<< prop (SProxy :: SProxy "minSlot")
 
-_accounts :: Lens' SState (Map SAccountId SAda)
+_accounts :: Lens' SState (Map (Tuple SAccountId Token) IntConstraint)
 _accounts = _Newtype <<< prop (SProxy :: SProxy "accounts")
 
 _choices :: Lens' SState (Map SChoiceId IntConstraint)
@@ -210,7 +212,7 @@ instance boundedEnumSSInput :: BoundedEnum SSInput where
   fromEnum SINotify = 2
 
 data SInput
-  = IDeposit SAccountId StringConstraint SAda
+  = IDeposit SAccountId StringConstraint Token IntConstraint
   | IChoice SChoiceId IntConstraint
   | INotify
 
@@ -265,11 +267,11 @@ evalValue env state value =
     eval = evalValue env state
   in
     case value of
-      AvailableMoney accId ->
+      AvailableMoney accId token ->
         let
-          balance = fromMaybe zero $ Map.lookup (toSym accId) (unwrap state).accounts
+          balance = fromMaybe zero $ Map.lookup (Tuple (toSym accId) token) (unwrap state).accounts
         in
-          pure $ unwrap balance
+          pure balance
       Constant integer -> pure $ IntConst integer
       NegValue val -> do
         v <- eval val
@@ -331,21 +333,21 @@ accountOwner :: SAccountId -> StringConstraint
 accountOwner (AccountId _ owner) = owner
 
 -- | Pick the first account with money in it
-refundOne :: Map SAccountId SAda -> Tree (Maybe (Tuple (Tuple StringConstraint SAda) (Map SAccountId SAda)))
+refundOne :: Map (Tuple SAccountId Token) IntConstraint -> Tree (Maybe (Tuple (Tuple StringConstraint SAssets) (Map (Tuple SAccountId Token) IntConstraint)))
 refundOne accounts = case Array.uncons (Map.toUnfoldable accounts) of
   Nothing -> pure Nothing
   Just { head, tail } ->
     let
-      (Tuple key value) = head
+      Tuple (Tuple accId (Token cur tok)) balance = head
 
       rest = Map.fromFoldable tail
     in
-      ite ((unwrap value) .> zero)
-        (pure (pure (Tuple (Tuple (accountOwner key) value) rest)))
+      ite (balance .> zero)
+        (pure (pure (Tuple (Tuple (accountOwner accId) (asset cur tok balance)) rest)))
         (refundOne rest)
 
 data Payment
-  = Payment StringConstraint SAda
+  = Payment StringConstraint SAssets
 
 derive instance genericPayment :: Generic Payment _
 
@@ -362,37 +364,40 @@ instance showReduceEffect :: Show ReduceEffect where
   show t = genericShow t
 
 -- | Obtains the amount of money available an account
-moneyInAccount :: SAccountId -> Map SAccountId SAda -> SAda
-moneyInAccount accId accounts = fromMaybe zero (Map.lookup accId accounts)
+moneyInAccount :: SAccountId -> Token -> Map (Tuple SAccountId Token) IntConstraint -> IntConstraint
+moneyInAccount accId token accounts = fromMaybe zero (Map.lookup (Tuple accId token) accounts)
 
 {-| Add the given amount of money to an account (only if it is positive).
     Return the updated Map
 -}
-addMoneyToAccount :: SAccountId -> SAda -> Map SAccountId SAda -> Tree (Map SAccountId SAda)
-addMoneyToAccount accId money accounts =
+addMoneyToAccount :: SAccountId -> Token -> IntConstraint -> Map (Tuple SAccountId Token) IntConstraint -> Tree (Map (Tuple SAccountId Token) IntConstraint)
+addMoneyToAccount accId token money accounts =
   let
-    balance = moneyInAccount accId accounts
+    balance = moneyInAccount accId token accounts
 
-    newBalance = balance + money
+    newBalance = (IntAdd balance money)
   in
-    ite (unwrap money .<= zero)
+    ite (money .<= zero)
       (pure accounts)
-      (pure (Map.insert accId newBalance accounts))
+      (pure (Map.insert (Tuple accId token) newBalance accounts))
 
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: SPayee -> SAda -> Map SAccountId SAda -> Tree (Tuple ReduceEffect (Map SAccountId SAda))
-giveMoney payee money accounts = case payee of
-  Party party -> pure $ Tuple (ReduceWithPayment (Payment (toSym party) money)) accounts
+giveMoney :: SPayee -> Token -> IntConstraint -> Map (Tuple SAccountId Token) IntConstraint -> Tree (Tuple ReduceEffect (Map (Tuple SAccountId Token) IntConstraint))
+giveMoney payee token@(Token cur tok) amount accounts = case payee of
+  Party party -> pure $ Tuple (ReduceWithPayment (Payment (toSym party) (asset cur tok amount))) accounts
   Account accId -> do
-    newAccs <- addMoneyToAccount accId money accounts
+    newAccs <- addMoneyToAccount accId token amount accounts
     pure $ Tuple ReduceNoPayment newAccs
+
+asset :: String -> String -> IntConstraint -> SAssets
+asset cur tok balance = Assets (Map.singleton cur (Map.singleton tok balance))
 
 data ReduceWarning
   = ReduceNoWarning
-  | ReduceNonPositivePay AccountId SPayee SAda
-  | ReducePartialPay AccountId Payee SAda SAda
+  | ReduceNonPositivePay AccountId SPayee Token IntConstraint
+  | ReducePartialPay AccountId Payee Token IntConstraint IntConstraint
   | ReduceShadowing ValueId IntConstraint IntConstraint
 
 derive instance genericReduceWarning :: Generic ReduceWarning _
@@ -426,23 +431,23 @@ reduceContractStep env state contract = case contract of
         in
           pure $ Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
       Nothing -> pure NotReduced
-  Pay accId payee val nextContract -> do
-    moneyToPay <- Lovelace <$> evalValue env state val
-    ite (unwrap moneyToPay .<= zero)
-      (pure $ Reduced (ReduceNonPositivePay accId (toSym payee) moneyToPay) ReduceNoPayment state nextContract)
+  Pay accId payee tok val nextContract -> do
+    moneyToPay <- evalValue env state val
+    ite (moneyToPay .<= zero)
+      (pure $ Reduced (ReduceNonPositivePay accId (toSym payee) tok moneyToPay) ReduceNoPayment state nextContract)
       ( do
           let
-            balance = moneyInAccount (toSym accId) (unwrap state).accounts -- always positive
-          paidMoney <- Lovelace <$> smin (unwrap balance) (unwrap moneyToPay) -- always positive
+            balance = moneyInAccount (toSym accId) tok (unwrap state).accounts -- always positive
+          paidMoney <- smin balance moneyToPay -- always positive
           let
             newBalance = balance - paidMoney -- always positive
 
-            newAccounts = Map.insert (toSym accId) newBalance (unwrap state).accounts
+            newAccounts = Map.insert (Tuple (toSym accId) tok) newBalance (unwrap state).accounts
           warning <-
-            ite ((unwrap paidMoney) .< (unwrap moneyToPay))
-              (pure $ ReducePartialPay accId payee paidMoney moneyToPay)
+            ite (paidMoney .< moneyToPay)
+              (pure $ ReducePartialPay accId payee tok paidMoney moneyToPay)
               (pure ReduceNoWarning)
-          (Tuple payment finalAccounts) <- giveMoney (toSym payee) paidMoney newAccounts
+          (Tuple payment finalAccounts) <- giveMoney (toSym payee) tok paidMoney newAccounts
           let
             newState = set _accounts finalAccounts state
           pure $ Reduced warning payment newState nextContract
@@ -519,7 +524,7 @@ instance showApplyResult :: Show ApplyResult where
 
 data ApplyWarning
   = ApplyNoWarning
-  | ApplyNonPositiveDeposit StringConstraint SAccountId SAda
+  | ApplyNonPositiveDeposit StringConstraint SAccountId Token IntConstraint
 
 derive instance genericApplyWarning :: Generic ApplyWarning _
 
@@ -528,20 +533,22 @@ instance showApplyWarning :: Show ApplyWarning where
 
 applyCases :: SEnvironment -> SState -> SInput -> Array Case -> Tree ApplyResult
 applyCases env state input cases = case input of
-  IDeposit accId1 party1 money -> case Array.uncons cases of
-    Just { head: (Case (Deposit accId2 party2 val) cont), tail } -> do
+  IDeposit accId1 party1 tok1 money -> case Array.uncons cases of
+    Just { head: (Case (Deposit accId2 party2 tok2 val) cont), tail } -> do
       amount <- evalValue env state val
       warning <-
         ite (amount .> zero)
           (pure ApplyNoWarning)
-          (pure (ApplyNonPositiveDeposit party1 (toSym accId2) (Lovelace amount)))
-      newState <- overM _accounts (addMoneyToAccount accId1 money) state
+          (pure (ApplyNonPositiveDeposit party1 (toSym accId2) tok2 amount))
+      newState <- overM _accounts (addMoneyToAccount accId1 tok1 money) state
       ite
         ( toSym (accId1 == (toSym accId2))
             `And`
               toSym (party1 == (toSym party2))
             `And`
-              (unwrap money `IntEQ` amount)
+              (money `IntEQ` amount)
+            `And`
+              (toSym (tok1 == tok2))
         )
         (pure $ Applied warning newState cont)
         (applyCases env state input tail)
@@ -576,9 +583,9 @@ applyInput env state input (When cases _ _) = applyCases env state input cases
 applyInput _ _ _ _ = pure ApplyNoMatchError
 
 data TransactionWarning
-  = TransactionNonPositiveDeposit StringConstraint SAccountId SAda
-  | TransactionNonPositivePay AccountId SPayee SAda
-  | TransactionPartialPay AccountId Payee SAda SAda
+  = TransactionNonPositiveDeposit StringConstraint SAccountId Token IntConstraint
+  | TransactionNonPositivePay AccountId SPayee Token IntConstraint
+  | TransactionPartialPay AccountId Payee Token IntConstraint IntConstraint
   -- ^ src    ^ dest ^ paid ^ expected
   | TransactionShadowing ValueId IntConstraint IntConstraint
 
@@ -593,15 +600,15 @@ convertReduceWarnings =
   mapMaybe
     ( \first -> case first of
         ReduceNoWarning -> Nothing
-        ReduceNonPositivePay accId payee amount -> Just (TransactionNonPositivePay accId payee amount)
-        ReducePartialPay accId payee paid expected -> Just (TransactionPartialPay accId payee paid expected)
+        ReduceNonPositivePay accId payee tok amount -> Just (TransactionNonPositivePay accId payee tok amount)
+        ReducePartialPay accId payee tok paid expected -> Just (TransactionPartialPay accId payee tok paid expected)
         ReduceShadowing valId oldVal newVal -> Just (TransactionShadowing valId oldVal newVal)
     )
 
 convertApplyWarning :: ApplyWarning -> Array TransactionWarning
 convertApplyWarning ApplyNoWarning = mempty
 
-convertApplyWarning (ApplyNonPositiveDeposit party accId amount) = [ TransactionNonPositiveDeposit party accId amount ]
+convertApplyWarning (ApplyNonPositiveDeposit party accId tok amount) = [ TransactionNonPositiveDeposit party accId tok amount ]
 
 data ApplyAllResult
   = ApplyAllSuccess (Array TransactionWarning) (Array Payment) SState Contract
@@ -679,8 +686,8 @@ instance showTransactionOutput :: Show TransactionOutput where
   show = genericShow
 
 -- | Try to compute outputs of a transaction give its input
-computeTransaction :: STransactionInput -> SState -> Contract -> Tree TransactionOutput
-computeTransaction tx state contract = do
+computeTransaction :: STransactionInput -> Array TransactionWarning -> SState -> Contract -> Tree TransactionOutput
+computeTransaction tx currentWarnings state contract = do
   let
     inputs = (unwrap tx).inputs
   interval <- fixInterval (unwrap tx).interval state
@@ -689,12 +696,12 @@ computeTransaction tx state contract = do
       applied <- applyAllInputs env fixState contract inputs
       case applied of
         ApplyAllSuccess warnings payments newState cont ->
-          if contract == cont then
+          if (contract == cont) && ((contract /= Close) || (Map.isEmpty (unwrap state).accounts)) then
             pure $ Error TEUselessTransaction
           else
             pure
               $ TransactionOutput
-                  { txOutWarnings: warnings
+                  { txOutWarnings: warnings <> currentWarnings
                   , txOutPayments: payments
                   , txOutState: newState
                   , txOutContract: cont
@@ -712,7 +719,7 @@ computeTransactions tout@(TransactionOutput { txOutWarnings, txOutPayments, txOu
   case Array.uncons inputs of
     Nothing -> pure tout
     Just { head, tail } -> do
-      res <- computeTransaction head txOutState txOutContract
+      res <- computeTransaction head txOutWarnings txOutState txOutContract
       computeTransactions res tail
 
 mkInput :: String -> Tree SInput
@@ -730,7 +737,9 @@ mkInput suffix = do
         $ IDeposit
             (AccountId (intVar $ "accNumber" <> suffix) (stringVar $ "accName" <> suffix))
             (stringVar $ "party" <> suffix)
-            (Lovelace (intVar $ "money" <> suffix))
+            -- FIXME: symbolic token I think
+            (Token "" "")
+            (intVar $ "money" <> suffix)
     )
     ( ite (mkEq caseChoice)
         ( pure
@@ -833,4 +842,4 @@ getTransactionOutput contract = do
 
 hasWarnings :: TransactionOutput -> Boolean
 hasWarnings (Error _) = false
-hasWarnings (TransactionOutput vs) = not $ Array.null vs.txOutWarnings
+hasWarnings (TransactionOutput vs) = true --not $ Array.null vs.txOutWarnings

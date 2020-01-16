@@ -39,6 +39,7 @@ main = do
   worker <- Worker.spawn
   runHalogenAff do
     body <- awaitBody
+    mainFrame <- mkMainFrame
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
     driver.subscribe $ wsSender worker
     void $ forkAff $ runProcess ((wsProducer worker) $$ (wsConsumer driver.query))
