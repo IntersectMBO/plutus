@@ -58,6 +58,9 @@ library
     -Wredundant-constraints -Widentities
     -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
 
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
+
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
   build-tool-depends: unlit:unlit -any

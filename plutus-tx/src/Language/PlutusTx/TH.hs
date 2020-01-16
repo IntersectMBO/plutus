@@ -6,10 +6,10 @@ module Language.PlutusTx.TH (
     compileUntyped) where
 
 import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
+import           Language.PlutusTx.Plugin.Utils
 
-import qualified Language.Haskell.TH        as TH
-import qualified Language.Haskell.TH.Syntax as TH
+import qualified Language.Haskell.TH            as TH
+import qualified Language.Haskell.TH.Syntax     as TH
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp (CompiledCode a))

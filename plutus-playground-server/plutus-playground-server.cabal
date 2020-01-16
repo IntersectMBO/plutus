@@ -97,6 +97,9 @@ library
         time-units -any,
         transformers -any
 
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
 library plutus-playground-usecases
     hs-source-dirs: usecases
     other-modules:
@@ -139,6 +142,9 @@ library plutus-playground-usecases
         text -any,
         time-units -any,
         transformers -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -209,6 +215,9 @@ executable plutus-playground-server
         warp -any,
         yaml -any
 
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
@@ -246,3 +255,6 @@ test-suite plutus-playground-server-test
         time-units -any,
         transformers -any,
         plutus-wallet-api -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any

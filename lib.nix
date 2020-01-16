@@ -22,6 +22,7 @@ let
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
+    "plutus-tx-plugin"
     "plutus-wallet-api"
     "plutus-emulator"
     "iots-export"

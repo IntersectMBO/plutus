@@ -3,7 +3,11 @@
 This provides support for writing Plutus Tx programs in Haskell.
 
 This package just provides support for Plutus Tx, if you are looking for support for
-writing smart contracts using Plutus Tx, please look in `plutus-wallet-api`.
+writing smart contracts using Plutus Tx, please look in `plutus-contract`.
+
+NOTE: You will also need `plutus-tx-plugin` as a build dependency so that the
+compiler plugin works. If you want to support cross-compilation, see the `plutus-tx-plugin`
+`README` for instructions.
 
 ## Using `plutus-tx`
 
