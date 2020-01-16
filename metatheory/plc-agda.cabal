@@ -654,6 +654,21 @@ test-suite test2-plc-agda
         MAlonzo.Code.Induction
         MAlonzo.Code.Induction.WellFounded
         MAlonzo.Code.Level
+        MAlonzo.Code.Algebra.Bundles
+        MAlonzo.Code.Data.Nat.Divisibility.Core
+        MAlonzo.Code.Data.Sign.Base
+        MAlonzo.Code.Data.These.Base
+        MAlonzo.Code.Data.Vec.Base
+        MAlonzo.Code.Data.Vec.Bounded.Base
+        MAlonzo.Code.Relation.Binary.Bundles
+        MAlonzo.Code.Relation.Binary.Definitions
+        MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles
+        MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
+        MAlonzo.Code.Relation.Binary.Reasoning.Base.Partial
+        MAlonzo.Code.Relation.Binary.Reasoning.PartialSetoid
+        MAlonzo.Code.Relation.Binary.Structures
+        MAlonzo.Code.Relation.Nullary.Decidable.Core
+        MAlonzo.Code.Relation.Nullary.Reflects
         MAlonzo.Code.Raw
         MAlonzo.Code.Relation.Binary
         MAlonzo.Code.Relation.Binary.Consequences
@@ -772,6 +787,21 @@ test-suite test2-plc-agda
         MAlonzo.Code.Induction
         MAlonzo.Code.Induction.WellFounded
         MAlonzo.Code.Level
+        MAlonzo.Code.Algebra.Bundles
+        MAlonzo.Code.Data.Nat.Divisibility.Core
+        MAlonzo.Code.Data.Sign.Base
+        MAlonzo.Code.Data.These.Base
+        MAlonzo.Code.Data.Vec.Base
+        MAlonzo.Code.Data.Vec.Bounded.Base
+        MAlonzo.Code.Relation.Binary.Bundles
+        MAlonzo.Code.Relation.Binary.Definitions
+        MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles
+        MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
+        MAlonzo.Code.Relation.Binary.Reasoning.Base.Partial
+        MAlonzo.Code.Relation.Binary.Reasoning.PartialSetoid
+        MAlonzo.Code.Relation.Binary.Structures
+        MAlonzo.Code.Relation.Nullary.Decidable.Core
+        MAlonzo.Code.Relation.Nullary.Reflects
         MAlonzo.Code.Main
         MAlonzo.Code.Raw
         MAlonzo.Code.Relation.Binary
