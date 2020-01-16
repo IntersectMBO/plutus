@@ -10,7 +10,7 @@ Each operation costs a certain amount of memory and CPU.
 For memory Plutus counts this usage via ExMemory units, which correspond to machine words (64bit).
 For CPU, it's ExCPU, which does not have a base as just yet.
 
-First, the memory cost of the initial AST is added to the budget. See Note [Memory Usage for Plutus].
+First, the memory cost of the initial AST is added to the budget. See Note [Memory Usage for Plutus]. This operation currently does not cost any CPU.
 Then each machine requires a certain amount of memory and CPU.
 The builtin operations may require different amounts of budget, depending on the input size.
 
