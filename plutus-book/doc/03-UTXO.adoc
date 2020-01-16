@@ -1,8 +1,7 @@
 [#03-UTXO]
 = UTxO Style Accounting
 
-In order to become proficient with all things Plutus, it is
-inevitable that you must first acquire a solid understanding of how
+To become proficient with all things Plutus, you first need to acquire a solid understanding of how
 accounting is done on the Cardano platform.
 
 We traditionally think of money transfers as being between two bank accounts,
@@ -25,8 +24,8 @@ to subsequent transactions. The vertical unlabelled box represents a single
 transaction having several inputs and several outputs. The blue certificates
 denote remaining unspent outputs in our illustration.
 Note that here, at the start of the data flow graph, Alice has 100 Ada in
-unspent outputs from before the start time of this graph -
-this money comes from one or more transactions outside the scope of this picture.
+unspent outputs from before the start time of this graph.
+This money comes from one or more transactions outside the scope of this picture.
 We abstract this with a single box (labelled with her name and the 100 Ada).
 This box has two black (output) lines coming out of it, with the total value
 of these outputs adding up to 100 Ada):
@@ -39,8 +38,8 @@ Now, Bob has 10 Ada from previous unspent outputs. He spends them as follows:
 
 * all 10 Ada goes to the new transaction
 
-This new transaction we illustrate here has two inputs, 42 from Alice, and 10
-from Bob. This transaction has two outputs, 2 Ada to Bob, and 50 to Charlie.
+This new transaction we illustrate here has two inputs, 42 from Alice and 10
+from Bob, and two outputs, 2 Ada to Bob and 50 to Charlie.
 We also see that Charlie has 52 Ada from a previously unspent output, for
 a total of 102 Ada he can spend in future transactions. Bob is left with
 only one output of 2 Ada, and Alice, a total of 58 Ada in unspent outputs
@@ -55,7 +54,7 @@ participants. In this simplified version, the transactions illustrated are not
 paying fees, etc.
 Even in this somewhat simplified model, we see that an output must always be spent
 in full. That is, a record of an unspent output cannot be modified (this would
-be account-based bookkeeping), only used entirely. In order to maintain
+be account-based bookkeeping).  It must be used entirely. To maintain
 the ledger bookkeeping integrity, the new transaction must have all the unspent outputs (totaling
 the correct amount of all the unspent outputs) that are being used up by it. In the
 example above, our new transaction removes (i.e. uses as inputs) unspent outputs of value
@@ -80,9 +79,9 @@ model we discuss here, refer to <<utxo-definitions>>.
 .Basic UTxO definitions
 image::UTXO.png[]
 
-Before we examine the structure of transactions, let us look at how book keeping
+Before we examine the structure of transactions, let us look at how bookkeeping
 is done on the ledger. The record on the ledger that
-contains this information is called a UTxO, short of Unspent Transaction Outputs
+contains this information is called a UTxO, short for Unspent Transaction Outputs
 and denoted `UTxO` in the figure.
 This record is a finite map, where the key is a pair of transaction ID and
 an index, `TxIn = TxId * Ix`. The transaction ID `TxId`
@@ -93,7 +92,7 @@ and each must have a unique identifier within the set of outputs
 of a given transaction.
 The values in the UTxO finite map are pairs of a coin value and an
 address, whose type is `TxOut = Addr * Coin`.
-Note that users' addresses are always public keys, and the funds at them
+Note that user addresses are always public keys, and the funds at them
 belong to the entity who is able to prove that they possess the corresponding
 private key. Script (or smart contract) addresses are slightly different, as we will see later.
 
@@ -114,7 +113,7 @@ The elements of this set contain neither
 a coin value to be spent, nor the address which the money is coming from.
 This is the main distinction between traditional accounting and UTxO accounting:
 the money being spent is only referred to by the unspent outputs of
-previously processed transactions on the ledger that reside currently on the blockchain.
+previously processed transactions on the ledger.
 Each element of the input sets is a pair of a transaction ID and an index,
 which, as explained above, uniquely identifies the unspent output in the UTxO
 that is to be spent.
@@ -126,8 +125,8 @@ all the entries corresponding to the inputs of the processed transaction are
 removed from the ledger UTxO.
 
 Additionally, all the `TxOut` values in
-the finite map of the outputs of the transaction are added to the UTxO,
-with the key of the finite map consisting of the ID of the transaction being processed,
+the finite map of the transaction outputs are added to the UTxO,
+with the key of the finite map consisting of the ID of the transaction being processed
 and the index value the same as in the finite map of outputs of this transaction.
 That is, if `tx` contains a pair of a set of inputs and a finite map
 of outputs `(ins, outs)` with ID `id`, and
@@ -169,10 +168,10 @@ in a transaction without
 corresponding inputs - these are due to collecting rewards from reward
 addresses.
 
-Now, in order to validate a transaction, there are a number of
+Now, to validate a transaction, there are a number of
 calculations performed involving the Ada in the transaction and the Ada
-in other accounts on the ledger to make sure Ada is neither created nor destroyed,
-so to say. This is known as the _generalized accounting property_.
+in other accounts on the ledger to make sure Ada is neither created nor destroyed.
+This is known as the _generalized accounting property_.
 The UTxO accounting scheme provides built-in protection against double spending
 of a given output.
 This inherent protection, together with the enforcement of the generalized
@@ -181,14 +180,13 @@ ensures that no dishonest spending is allowed to occur. This is a crucial proper
 of the Cardano ledger bookkeeping system, in particular because there is a
 set amount of Ada in existence, which can never change. Note that _not all_
 Ada in existence is in circulation at all times. Much of it is stored as
-_reserves_, and slowly enters circulation through the process of awarding
-monetary rewards to stake holders over time.
+_reserves_ and slowly enters circulation through the process of awarding
+monetary rewards to stakeholders over time.
 The interested reader can look up the details of this process in <<endmatter#deleg>>.
 
 Note also that a transaction includes a host of other data, such as
 witnesses, certificates, and scripts along with their hashes.
-Here we have not gone into the details of the specific types and calculations
+Here we have not gone into the specific types and calculations
 used in the Cardano ledger implementation, but you should now have a
-sufficient understanding of the structure of a transaction and how it is
-processed to be able to understand what goes on behind the
-scenes when Plutus code is used to generate a transaction.
+sufficient understanding of transaction structure and process to get behind the
+scenes when we cover Plutus code and how it generates a transaction.

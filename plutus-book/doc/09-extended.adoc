@@ -296,7 +296,7 @@ the three types of scripts.
 
 == Paying to and Spending from a Script
 
-We just saw the the extension to the UTXO and transaction data necessary
+We just saw the extension to the UTXO and transaction data necessary
 to accommodate Plutus, and the different types of scripts used.
 Now we would like to recap the process of paying and spending to and from
 a script to solidify the reader's understand of the process:
