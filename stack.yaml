@@ -24,7 +24,7 @@ packages:
 extra-deps:
 # Agda and deps
 - aws-lambda-haskell-runtime-2.0.1
-- Agda-2.6.0
+- Agda-2.6.0.1
 - data-hash-0.2.0.1
 - EdisonCore-1.3.2.1
 - EdisonAPI-1.3.1
