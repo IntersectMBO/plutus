@@ -1,7 +1,6 @@
 module Worker where
 
 import Prelude
-
 import Control.Monad.Except (runExcept)
 import Data.Array (filter, head)
 import Data.Either (Either(..))
@@ -57,9 +56,10 @@ handleRequest ctx (AnalyseContractRequest contractString) = do
   res <- checkContractForWarnings contractString
   postMessage ctx (AnalyseContractResult (show res))
 
-handleRequest ctx InitializeZ3 = onZ3Initialized do
-  Console.log "Z3 loaded"
-  postMessage ctx InitializedZ3
+handleRequest ctx InitializeZ3 =
+  onZ3Initialized do
+    Console.log "Z3 loaded"
+    postMessage ctx InitializedZ3
 
 checkContractForWarnings :: String -> Effect (Maybe (Map String String))
 checkContractForWarnings contractString = do
@@ -72,16 +72,15 @@ checkContractForWarnings contractString = do
     tree = getTransactionOutput contract
 
     equations = filter (\a -> hasWarnings a.value) $ getEquations tree
-
   liftEffect do
     resA <-
       runZ3 do
         r1 <- declareVars equations
         traverse f equations
     case head (filter isJust resA) of
-        Nothing -> pure Nothing
-        (Just Nothing) -> pure Nothing
-        (Just (Just m)) -> pure $ Just m
+      Nothing -> pure Nothing
+      (Just Nothing) -> pure Nothing
+      (Just (Just m)) -> pure $ Just m
   where
   f :: forall a. Equation a -> Z3 (Maybe (Map String String))
   f a = do
@@ -92,8 +91,6 @@ checkContractForWarnings contractString = do
     void $ evalString "(pop)"
     pure res
 
--- handler needs to recieve messages that are a map of type and body (string) and pattern match on the type
--- need to coerce to {messageType: "AnalyseContract|InitializeZ3", body: contractString|null }
 main ::
   Effect Unit
 main = do

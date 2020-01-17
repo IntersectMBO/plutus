@@ -18,6 +18,7 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
 import Data.Tuple (Tuple(..), snd)
+import Debug.Trace (trace)
 import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Token(..), Value(..), ValueId, maxDepth)
 import Marlowe.Semantics as MS
 
@@ -711,7 +712,7 @@ computeTransaction tx currentWarnings state contract = do
     IntervalError error -> pure $ Error (TEIntervalError error)
 
 computeTransactions :: TransactionOutput -> Array STransactionInput -> Tree TransactionOutput
-computeTransactions tout [] = pure tout
+-- computeTransactions tout [] = pure tout
 
 computeTransactions tout@(Error _) _ = pure tout
 
@@ -799,8 +800,8 @@ getTransactionOutput contract = do
 
     mkSlotInterval suffix (SlotInterval (Slot a) (Slot b)) =
       SlotInterval
-        (Slot $ (IntAdd a (intVar ("slot-start" <> suffix))))
-        (Slot $ (IntAdd a (intVar ("slot-end" <> suffix))))
+        (Slot $ (IntAdd b (intVar ("slot-start" <> suffix))))
+        (Slot $ (IntAdd b (intVar ("slot-end" <> suffix))))
 
     state =
       State
@@ -827,6 +828,8 @@ getTransactionOutput contract = do
           i <- mkInput $ show idx
           pure [ i ]
       pure $ Tuple (idx + 1) $ TransactionInput { interval: slotInterval', inputs: inputs } : acc
+  -- FIXME: just trying to get rid of empty txs as an experiment
+  -- inputs <- filter notEmpty <$> mkTxs depth
   inputs <- mkTxs depth
   txs <- foldM mkTx (Tuple 1 []) inputs
   let
@@ -841,4 +844,4 @@ getTransactionOutput contract = do
 
 hasWarnings :: TransactionOutput -> Boolean
 hasWarnings (Error _) = false
-hasWarnings (TransactionOutput vs) = not $ Array.null vs.txOutWarnings
+hasWarnings (TransactionOutput {txOutWarnings}) = not $ Array.null txOutWarnings
