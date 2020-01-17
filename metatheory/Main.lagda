@@ -115,8 +115,8 @@ postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
 
-{-# COMPILE GHC prettyPrintTm = prettyText . unconv #-}
-{-# COMPILE GHC prettyPrintTy = prettyText . unconvT #-}
+{-# COMPILE GHC prettyPrintTm = prettyText . unconv (-1) (-1) #-}
+{-# COMPILE GHC prettyPrintTy = prettyText . unconvT (-1) #-}
 
 open import Data.Vec hiding (_>>=_;_++_)
 
@@ -137,7 +137,7 @@ evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
 evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
 evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  inj₁ (prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
+  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
@@ -145,7 +145,7 @@ evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
   prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  inj₁ (prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
+  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
@@ -153,7 +153,7 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
 ... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
-  inj₁ (prettyPrintTm (unshifter Z (extricateScope (extricate t'''))))
+  inj₁ (prettyPrintTm (extricateScope (extricate t''')))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
 
