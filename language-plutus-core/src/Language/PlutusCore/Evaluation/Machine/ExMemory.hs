@@ -30,16 +30,20 @@ import           GHC.Generics
 {- Note [Memory Usage for Plutus]
 
 The base unit is 'ExMemory', which corresponds to machine words. For primities, we use static values for the size, see the corresponding instances. For composite data types, the Generic instance is used, + 1 for the constructor tag. For ADTs, the currently selected branch is counted, not the maximum value.
+Memory usage of the annotation is not counted, because this should be abstractily specifiable. It's an implementation detail.
 
 -}
 
 type Plain f = f TyName Name ()
+-- | Caches Memory usage for builtin costing
 type WithMemory f = f TyName Name ExMemory
 
-newtype ExMemory = ExMemory Integer -- Counts size in machine words (64bit for the near future)
+-- | Counts size in machine words (64bit for the near future)
+newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
   deriving newtype Num
   deriving (Semigroup, Monoid) via (Sum Integer)
+-- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
   deriving newtype Num
@@ -68,7 +72,6 @@ instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :*: g) where
   gmemoryUsage' (x1 :*: x2) = gmemoryUsage' x1 + gmemoryUsage' x2
 
 instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :+: g) where
-  -- TODO I think this is supposed to count the max instead (?)
   gmemoryUsage' (L1 x) = gmemoryUsage' x
   gmemoryUsage' (R1 x) = gmemoryUsage' x
 
