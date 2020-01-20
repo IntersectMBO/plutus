@@ -31,7 +31,7 @@ import           Language.Plutus.Contract.Effects.UtxoAt  (UtxoAtAddress)
 -- of event there is a request constructor in 'ContractRequest' and a response
 -- constructor in 'ContractResponse'.
 
-{- note [Contract Events ]
+{- Note [Contract Events]
 
 Each contract instance has two event queues in the SCB: One for the requests
 it makes, typed 'ContractRequestEvent', and one for the responses it receives,
@@ -57,8 +57,10 @@ data Event p = Event { eventId :: EventId, eventPayload :: p }
 data RequestEvent e =
   IssueRequest e
   | CancelRequest EventId
+  deriving stock (Eq, Ord, Show, Generic)
 
 data ResponseEvent e = ResponseEvent { respRequestId :: EventId, respPayload :: e }
+  deriving stock (Eq, Ord, Show, Generic)
 
 data ContractRequest =
   AwaitSlotRequest Slot -- ^ Wait until a slot number is reached
