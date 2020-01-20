@@ -624,7 +624,7 @@ allWallets :: [EM.Wallet]
 allWallets = EM.Wallet <$> [1 .. 10]
 
 defaultDist :: InitialDistribution
-defaultDist = Map.fromList $ zip allWallets (repeat (Ada.lovelaceValueOf 10000))
+defaultDist = Map.fromList $ zip allWallets (repeat (Ada.adaValueOf 10000))
 
 makeClassyPrisms ''TraceError
 
