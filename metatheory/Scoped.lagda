@@ -121,10 +121,10 @@ lookupWTy' x Z     = x
 -- these are renamings
 shifterTy : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTy → RawTy
 shifterTy m w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
-shifterTy m w (A ⇒ B) = shifterTy m w B ⇒ shifterTy m w B
+shifterTy m w (A ⇒ B) = shifterTy m w A ⇒ shifterTy m w B
 shifterTy m w (Π K A) = Π K (shifterTy (suc m) (T w) A)
 shifterTy m w (ƛ K A) = ƛ K (shifterTy (suc m) (T w) A)
-shifterTy m w (A · B) = shifterTy m w B · shifterTy m w B
+shifterTy m w (A · B) = shifterTy m w A · shifterTy m w B
 shifterTy m w (con c) = con c
 shifterTy m w (μ A B) = μ (shifterTy m w A) (shifterTy m w B)
 

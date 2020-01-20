@@ -96,6 +96,7 @@ varTy i = DeBruijn () (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
 -- this should take a level and render levels as names
 unconvT :: Int -> RType -> Type TyDeBruijn ()
 unconvT i (RTyVar x)        =
+  --TyVar () (TyDeBruijn (DeBruijn () (T.pack (show (i,x))) (Index (naturalFromInteger x))))
   TyVar () (TyDeBruijn (DeBruijn () (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =

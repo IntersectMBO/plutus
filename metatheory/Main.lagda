@@ -136,13 +136,13 @@ evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t)
 evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
 evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
-evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) =
-  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) = inj₁ $
+  prettyPrintTm (extricateScope (unsaturate t''))  
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
   ("runtime error" Data.String.++
-  prettyPrintTm (unshifter Z (extricateScope (unsaturate t''))))
+  prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))

@@ -58,11 +58,16 @@ data RawTm : Set where
 
 rawTyPrinter : RawTy → String
 rawTyPrinter (` x)   = Data.Integer.show (ℤ.pos x)
-rawTyPrinter _       = "ty"
+rawTyPrinter (A ⇒ B) = "(" ++ rawTyPrinter A ++ "⇒" ++ rawTyPrinter B ++ ")"
+rawTyPrinter (Π K A) = "(Π" ++ "kind" ++ rawTyPrinter A ++ ")"
+rawTyPrinter (ƛ K A) = "(ƛ" ++ "kind" ++ rawTyPrinter A ++ ")"
+rawTyPrinter (A · B) = "(" ++ rawTyPrinter A ++ "·" ++ rawTyPrinter B ++ ")"
+rawTyPrinter (con c) = "(con)"
+rawTyPrinter (μ A B) = "(μ" ++ rawTyPrinter A ++ rawTyPrinter B ++ ")"
 
 rawPrinter : RawTm → String
 rawPrinter (` x) = Data.Integer.show (ℤ.pos x)
-rawPrinter (Λ K t) = "(" ++ "Λ" ++ "?" ++ rawPrinter t ++ ")"
+rawPrinter (Λ K t) = "(" ++ "Λ" ++ "kind" ++ rawPrinter t ++ ")"
 rawPrinter (t ·⋆ A) = "(" ++ rawPrinter t ++ "·⋆" ++ rawTyPrinter A ++ ")"
 rawPrinter (ƛ A t) = "(" ++ "ƛ" ++ rawTyPrinter A ++ rawPrinter t ++ ")"
 rawPrinter (t · u) = "(" ++ rawPrinter t ++ "·" ++ rawPrinter u ++ ")"
