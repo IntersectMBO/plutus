@@ -64,8 +64,8 @@ tokenName = "test token"
 
 account :: Account
 account =
-    let currencySymbol = "b66fb1a5ce1f188099d40edfc5bc4bacb79e478fc1d3a8c204efd524eaa21e5f"
-    in Account (currencySymbol, tokenName)
+    let con = Accounts.newAccount tokenName (walletPubKey w1) in
+    either error id $ evalTrace @TokenAccountSchema @ContractError con (handleBlockchainEvents w1) w1
 
 theToken :: Value
 theToken = Accounts.accountToken account

@@ -37,6 +37,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , tokenFor
     , initialState
     , scriptInstance
+    , setupTokens
     ) where
 
 import           Control.Lens                   (prism', review, makeClassyPrisms)

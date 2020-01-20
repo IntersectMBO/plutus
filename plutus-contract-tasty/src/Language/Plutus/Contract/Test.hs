@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
@@ -38,7 +39,7 @@ module Language.Plutus.Contract.Test(
     , renderTraceContext
     ) where
 
-import           Control.Lens                                    (at, from, view, (^.))
+import           Control.Lens                                    (at, view, (^.))
 import           Control.Monad                                   (unless)
 import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
 import           Data.Foldable                                   (fold, toList)
@@ -115,7 +116,7 @@ hooks
     -> Handlers s
 hooks w rs =
     let (evts, con) = contractEventsWallet rs w
-    in either (const mempty) snd (State.runResumable evts (unContract con))
+    in either (const mempty) State.wcsHandlers (State.runResumable evts (unContract con))
 
 record
     :: forall s e a.
@@ -128,7 +129,7 @@ record
     -> Either (ResumableError e) (Record (Event s))
 record w rs =
     let (evts, con) = contractEventsWallet rs w
-    in fmap (view (from Rec.record) . fmap fst . fst) (State.runResumable evts (unContract con))
+    in fmap State.wcsRecord (State.runResumable evts (unContract con))
 
 not :: TracePredicate s e a -> TracePredicate s e a
 not = PredF . fmap (fmap Prelude.not) . unPredF
@@ -180,9 +181,9 @@ renderTraceContext testOutputs st =
         prettyResult result = case result of
             Left err ->
                 hang 2 $ vsep ["Error:", viaShow err]
-            Right (Left _, handlers) ->
-                hang 2 $ vsep ["Running, waiting for input:", pretty handlers]
-            Right (Right _, _) -> "Done"
+            Right (State.ResumableResult{State.wcsFinalState=Nothing, State.wcsHandlers}) ->
+                hang 2 $ vsep ["Running, waiting for input:", pretty wcsHandlers]
+            Right _ -> "Done"
     in renderStrict $ layoutPretty defaultLayoutOptions $ vsep
         [ hang 2 (vsep ["Test outputs:", testOutputs])
         , hang 2 (vsep ["Events by wallet:", prettyWalletEvents st])
@@ -503,7 +504,7 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
     let (evts, con) = contractEventsWallet rs w
         result = State.runResumable evts (unContract con)
     in
-        case fmap fst result of
+        case result of
             Left err
                 | p (Error err) -> pure True
                 | otherwise -> do
@@ -513,7 +514,7 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
                         , "in" <+> squotes (fromString nm)
                         ]
                     pure False
-            Right (Left openRec)
+            Right (State.ResumableResult{State.wcsRecord=Rec.OpenRec openRec})
                 | p NotDone -> pure True
                 | otherwise -> do
                     tell $ vsep
@@ -523,16 +524,17 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
                         , "in" <+> squotes (fromString nm)
                         ]
                     pure False
-            Right (Right closedRec)
-                | p (Done (snd closedRec)) -> pure True
+            Right (State.ResumableResult{State.wcsRecord=Rec.ClosedRec closedRec, State.wcsFinalState=Just a})
+                | p (Done a) -> pure True
                 | otherwise -> do
                     tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Closed record"
-                        , pretty (fst closedRec)
+                        , pretty closedRec
                         , "failed with" <+> squotes (fromString nm)
                         ]
                     pure False
+            _ -> pure False
 
 contractEventsWallet
     :: ContractTraceResult s e a
