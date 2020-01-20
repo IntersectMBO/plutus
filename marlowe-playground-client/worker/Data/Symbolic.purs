@@ -1,14 +1,16 @@
 module Data.Symbolic where
 
 import Prelude
+
 import Data.Array (fold, foldMap, foldr, fromFoldable, many, (:))
+import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either, hush)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (joinWith)
@@ -106,7 +108,6 @@ instance toSexpVar :: ToSExp Var where
 data StringConstraint
   = StringVar Var
   | StringConst String
-  | StringEQ StringConstraint StringConstraint
 
 derive instance genericStringConstraint :: Generic StringConstraint _
 
@@ -119,8 +120,7 @@ derive instance ordStringConstraint :: Ord StringConstraint
 
 instance sexpStringConstraint :: ToSExp StringConstraint where
   toSexp (StringVar v) = toSexp v
-  toSexp (StringConst x) = Atom x
-  toSexp (StringEQ a b) = Exp "=" $ map toSexp [ a, b ]
+  toSexp (StringConst x) = Atom $ "\"" <> x <> "\""
 
 stringVar :: String -> StringConstraint
 stringVar name = StringVar $ Var name StringSort
@@ -173,6 +173,7 @@ data BooleanConstraint
   | And BooleanConstraint BooleanConstraint
   | Or BooleanConstraint BooleanConstraint
   | BooleanEQ BooleanConstraint BooleanConstraint
+  | StringEQ StringConstraint StringConstraint
   | IntEQ IntConstraint IntConstraint
   | IntLT IntConstraint IntConstraint
   | IntLTE IntConstraint IntConstraint
@@ -200,6 +201,7 @@ instance sexpBooleanConstraint :: ToSExp BooleanConstraint where
   toSexp (And a b) = Exp "and" $ map toSexp [ a, b ]
   toSexp (Or a b) = Exp "or" $ map toSexp [ a, b ]
   toSexp (BooleanEQ a b) = Exp "=" $ map toSexp [ a, b ]
+  toSexp (StringEQ a b) = Exp "=" $ map toSexp [ a, b ]
   toSexp (IntEQ a b) = Exp "=" $ map toSexp [ a, b ]
   toSexp (IntLT a b) = Exp "<" $ map toSexp [ a, b ]
   toSexp (IntLTE a b) = Exp "<=" $ map toSexp [ a, b ]
@@ -260,6 +262,22 @@ smin a b = ite (a .< b) (pure a) (pure b)
 removeDups :: forall a. Array (Equation a) -> Array (Equation a)
 removeDups a = a
 
+getFromMap :: forall k v. Map k v -> (k -> BooleanConstraint) -> Tree (Maybe v)
+getFromMap m check = go $ Map.toUnfoldable m
+  where
+    go :: Array (Tuple k v) -> Tree (Maybe v)
+    go kvs = case Array.uncons kvs of
+      Nothing -> pure Nothing
+      Just { head: (Tuple k v), tail } -> ite (check k) (pure (Just v)) (go tail)
+
+memberOfMap :: forall k v. Map k v -> (k -> BooleanConstraint) -> Tree Boolean
+memberOfMap m check = go $ Map.toUnfoldable m
+  where
+    go :: Array (Tuple k v) -> Tree Boolean
+    go kvs = case Array.uncons kvs of
+      Nothing -> pure false
+      Just { head: (Tuple k v), tail } -> ite (check k) (pure true) (go tail)
+
 -- | A node contains the constraint to go in either branch.
 --   We traverse the tree collecting the constraints as we go until we get to a leaf
 --   For every leaf we will return a value and all the constraints required to get there
@@ -310,6 +328,8 @@ booleanVariable (And a b) = booleanVariable a <> booleanVariable b
 booleanVariable (Or a b) = booleanVariable a <> booleanVariable b
 
 booleanVariable (BooleanEQ a b) = booleanVariable a <> booleanVariable b
+
+booleanVariable (StringEQ a b) = stringVariable a <> stringVariable b
 
 booleanVariable (IntEQ a b) = intVariable a <> intVariable b
 

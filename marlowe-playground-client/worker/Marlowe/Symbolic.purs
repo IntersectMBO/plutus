@@ -7,6 +7,7 @@ import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Enum (class BoundedEnum, class Enum, Cardinality(..))
 import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', Lens, over, set, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -16,7 +17,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
-import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), intVar, is, ite, smin, stringVar, (.<), (.<=), (.>), (.>=))
+import Data.Symbolic (BooleanConstraint(..), IntConstraint(..), Sort(..), StringConstraint(..), Tree, Var(..), getFromMap, intVar, is, ite, memberOfMap, smin, stringVar, stringVariable, (.<), (.<=), (.>), (.>=))
 import Data.Tuple (Tuple(..), snd)
 import Debug.Trace (trace)
 import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId, Contract(..), Observation(..), Party, Payee, Token(..), Value(..), ValueId, maxDepth)
@@ -62,7 +63,7 @@ fixInterval interval@(SlotInterval from to) state =
     ( ite ((state ^. _minSlot) `above` interval)
         (pure (IntervalError $ IntervalInPastError (state ^. _minSlot) interval))
         ( let
-            newLow = max to (state ^. _minSlot)
+            newLow = max from (state ^. _minSlot)
 
             currentInterval = SlotInterval newLow to
 
@@ -77,7 +78,7 @@ fixInterval interval@(SlotInterval from to) state =
 
 inBounds :: IntConstraint -> Array Bound -> BooleanConstraint
 inBounds num bounds = do
-  foldl Or True $ inBound <$> bounds
+  foldl Or (Not True) $ inBound <$> bounds
   where
   inBound :: Bound -> BooleanConstraint
   inBound (Bound l u) = do
@@ -122,6 +123,9 @@ instance showSAccountId :: Show SAccountId where
 instance toSymbolicAccountId :: ToSymbolic AccountId SAccountId where
   toSym (MS.AccountId i s) = AccountId (toSym i) (toSym s)
 
+accEQ :: SAccountId -> SAccountId -> BooleanConstraint
+accEQ (AccountId accNoA accNameA) (AccountId accNoB accNameB) = (accNoA `IntEQ` accNoB) `And` (accNameA `StringEQ` accNameB)
+
 data SChoiceId
   = ChoiceId StringConstraint StringConstraint
 
@@ -136,6 +140,9 @@ derive instance ordSChoiceId :: Ord SChoiceId
 
 instance toSymbolicChoiceId :: ToSymbolic ChoiceId SChoiceId where
   toSym (MS.ChoiceId i s) = ChoiceId (toSym i) (toSym s)
+
+choiceEQ :: SChoiceId -> SChoiceId -> BooleanConstraint
+choiceEQ (ChoiceId a1 b1) (ChoiceId a2 b2) = (a1 `StringEQ` a2) `And` (b1 `StringEQ` b2)
 
 sChoiceId :: ChoiceId -> SChoiceId
 sChoiceId (MS.ChoiceId a b) = ChoiceId (StringConst a) (StringConst b)
@@ -306,7 +313,7 @@ evalObservation env state obs =
         b <- evalObs rhs
         pure $ a || b
       NotObs subObs -> not <$> evalObs subObs
-      ChoseSomething choiceId -> pure $ (sChoiceId choiceId) `Map.member` (unwrap state).choices
+      ChoseSomething choiceId -> memberOfMap (unwrap state).choices (choiceEQ (sChoiceId choiceId))
       ValueGE lhs rhs -> do
         l <- evalVal lhs
         r <- evalVal rhs
@@ -365,22 +372,22 @@ instance showReduceEffect :: Show ReduceEffect where
   show t = genericShow t
 
 -- | Obtains the amount of money available an account
-moneyInAccount :: SAccountId -> Token -> Map (Tuple SAccountId Token) IntConstraint -> IntConstraint
-moneyInAccount accId token accounts = fromMaybe zero (Map.lookup (Tuple accId token) accounts)
+moneyInAccount :: SAccountId -> Token -> Map (Tuple SAccountId Token) IntConstraint -> Tree IntConstraint
+moneyInAccount accId token accounts = do
+  v <- getFromMap accounts (\(Tuple acc tok) -> (accEQ accId acc) `And` (if (tok == token) then True else (Not True)))
+  pure $ fromMaybe zero v
 
 {-| Add the given amount of money to an account (only if it is positive).
     Return the updated Map
 -}
 addMoneyToAccount :: SAccountId -> Token -> IntConstraint -> Map (Tuple SAccountId Token) IntConstraint -> Tree (Map (Tuple SAccountId Token) IntConstraint)
-addMoneyToAccount accId token money accounts =
+addMoneyToAccount accId token money accounts = do
+  balance <- moneyInAccount accId token accounts
   let
-    balance = moneyInAccount accId token accounts
-
     newBalance = (IntAdd balance money)
-  in
-    ite (money .<= zero)
-      (pure accounts)
-      (pure (Map.insert (Tuple accId token) newBalance accounts))
+  ite (money .<= zero)
+    (pure accounts)
+    (pure (Map.insert (Tuple accId token) newBalance accounts))
 
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
@@ -437,8 +444,7 @@ reduceContractStep env state contract = case contract of
     ite (moneyToPay .<= zero)
       (pure $ Reduced (ReduceNonPositivePay accId (toSym payee) tok moneyToPay) ReduceNoPayment state nextContract)
       ( do
-          let
-            balance = moneyInAccount (toSym accId) tok (unwrap state).accounts -- always positive
+          balance <- moneyInAccount (toSym accId) tok (unwrap state).accounts -- always positive
           paidMoney <- smin balance moneyToPay -- always positive
           let
             newBalance = balance - paidMoney -- always positive
@@ -543,9 +549,9 @@ applyCases env state input cases = case input of
           (pure (ApplyNonPositiveDeposit party1 (toSym accId2) tok2 amount))
       newState <- overM _accounts (addMoneyToAccount accId1 tok1 money) state
       ite
-        ( toSym (accId1 == (toSym accId2))
+        ( (accId1 `accEQ` (toSym accId2))
             `And`
-              toSym (party1 == (toSym party2))
+              (party1 `StringEQ` (toSym party2))
             `And`
               (money `IntEQ` amount)
             `And`
@@ -562,7 +568,7 @@ applyCases env state input cases = case input of
 
         isValidChoice = inBounds choice bounds
 
-        isEqualChoice = toSym $ choId1 == toSym choId2
+        isEqualChoice = choId1 `choiceEQ` toSym choId2
       ite (isEqualChoice `And` isValidChoice)
         (pure $ Applied ApplyNoWarning newState cont)
         (applyCases env state input tail)
@@ -595,6 +601,9 @@ derive instance genericTransactionWarning :: Generic TransactionWarning _
 
 instance showTransactionWarning :: Show TransactionWarning where
   show = genericShow
+
+instance eqTransactionWarning :: Eq TransactionWarning where
+  eq = genericEq
 
 convertReduceWarnings :: Array ReduceWarning -> Array TransactionWarning
 convertReduceWarnings =
@@ -713,7 +722,6 @@ computeTransaction tx currentWarnings state contract = do
 
 computeTransactions :: TransactionOutput -> Array STransactionInput -> Tree TransactionOutput
 -- computeTransactions tout [] = pure tout
-
 computeTransactions tout@(Error _) _ = pure tout
 
 computeTransactions tout@(TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) inputs = do
@@ -814,6 +822,7 @@ getTransactionOutput contract = do
     depth = maxDepth contract
 
     notEmpty TxE = false
+
     notEmpty _ = true
 
     mkTx :: (Tuple Int (Array STransactionInput)) -> TxI -> Tree (Tuple Int (Array STransactionInput))
@@ -844,4 +853,5 @@ getTransactionOutput contract = do
 
 hasWarnings :: TransactionOutput -> Boolean
 hasWarnings (Error _) = false
-hasWarnings (TransactionOutput {txOutWarnings}) = not $ Array.null txOutWarnings
+
+hasWarnings (TransactionOutput { txOutWarnings }) = not $ Array.null txOutWarnings

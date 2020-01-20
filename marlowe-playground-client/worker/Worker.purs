@@ -1,15 +1,17 @@
 module Worker where
 
 import Prelude
+
 import Control.Monad.Except (runExcept)
-import Data.Array (filter, head)
+import Data.Array (filter, fold, head)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn0, runFn0)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (trim)
-import Data.Symbolic (Equation, checkSat, declareVars, equationModel, getEquations, solveEquation)
+import Data.Symbolic (Equation, checkSat, declareVars, equationModel, getEquations, solveEquation, toSexp)
 import Data.Traversable (traverse)
+import Debug.Trace (trace)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)

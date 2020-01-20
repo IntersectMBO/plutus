@@ -37,11 +37,12 @@ pkgs.buildEmscriptenPackage rec {
     -s DISABLE_EXCEPTION_CATCHING=0 \
     -s ABORTING_MALLOC=0 \
     -s ALLOW_MEMORY_GROWTH=1 \
-    -s EXPORTED_FUNCTIONS=["_main"] \
-    -s EXTRA_EXPORTED_RUNTIME_METHODS=["FS"] \
+    -s EXPORTED_FUNCTIONS=["_Z3_eval_smtlib2_string", "_Z3_mk_config", "_Z3_mk_context", "_Z3_del_config", "_Z3_del_context", "_Z3_mk_solver", "_Z3_solver_push", "_Z3_solver_pop", "_Z3_solver_reset", "_Z3_solver_inc_ref", "_Z3_solver_dec_ref", "_Z3_model_inc_ref", "_Z3_model_dec_ref", "_Z3_mk_string_symbol", "_Z3_mk_const", "_Z3_mk_int_sort", "_Z3_solver_assert", "_Z3_solver_get_model", "_Z3_mk_const", "_Z3_solver_check", "_Z3_model_to_string", "_Z3_model_get_const_interp", "_Z3_ast_to_string", "_Z3_func_decl_to_string", "_Z3_mk_func_decl", "_Z3_mk_app", "_Z3_mk_int", "_Z3_mk_string", "_Z3_mk_string_sort", "_Z3_mk_true", "_Z3_mk_false", "_Z3_mk_bool_sort", "_Z3_mk_lt", "_Z3_mk_le", "_Z3_mk_gt", "_Z3_mk_ge", "_Z3_mk_eq", "_Z3_mk_add", "_Z3_mk_mul", "_Z3_mk_sub", "_Z3_mk_not", "_Z3_mk_and", "_Z3_mk_or", "_Z3_mk_ite"] \
+    -s EXTRA_EXPORTED_RUNTIME_METHODS=["ccall", "cwrap", "allocateUTF8", "writeAsciiToMemory"] \
     -l nodefs.js \
     -s WASM=1 \
-    -s BINARYEN_ASYNC_COMPILATION=0 \
+    -s BINARYEN_ASYNC_COMPILATION=1 \
+    -s ENVIRONMENT=web,worker \
     ./build/z3.bc -o z3w.js
   '';
 
