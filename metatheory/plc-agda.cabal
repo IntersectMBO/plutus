@@ -1,6 +1,4 @@
 cabal-version:       2.4
--- Note that this is *not* in cabal.project, since it requires rather special
--- setup to build.
 name:                plc-agda
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs

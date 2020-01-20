@@ -16,6 +16,9 @@ open import Relation.Nullary
 open import Function
 
 open import Utils
+--open import Data.Char using (Char)
+--open import Data.List using (List)
+open import Data.String using (String)
 \end{code}
 
 ## Abstract semantics of builtins

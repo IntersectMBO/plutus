@@ -52,16 +52,26 @@ postulate
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
   mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
   mbind : ∀{A B : Set} → (A → Maybe B) → Maybe A → Maybe B
+  TermN : Set
+  Term : Set
+  TypeN : Set
+  Type : Set
   ProgramN : Set
   Program : Set
+  convTm : Term → RawTm
+  convTy : Type → RawTy
   convP : Program → RawTm
   readFile : String → IO ByteString
   parse : ByteString → Maybe ProgramN
+  parseTm : ByteString → Maybe TermN
+  parseTy : ByteString → Maybe TypeN
   showTerm : RawTm → String
   getContents : IO ByteString
   exitFailure : IO ⊤
   exitSuccess : IO ⊤
   deBruijnify : ProgramN → Maybe Program
+  deBruijnifyTm : TermN → Maybe Term
+  deBruijnifyTy : TypeN → Maybe Type
   
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
@@ -77,6 +87,9 @@ postulate
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
+{-# COMPILE GHC convTm = conv #-}
+{-# COMPILE GHC convTy = convT #-}
+
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
 {-# COMPILE GHC getContents = BSL.getContents #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
@@ -84,10 +97,19 @@ postulate
 {-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse  #-}
+{-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
+{-# COMPILE GHC parseTy = either (\_ -> Nothing) Just . parseTy  #-}
+
 {-# COMPILE GHC deBruijnify = either (\_ -> Nothing) Just . runExcept . deBruijnProgram #-}
+{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
+{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
@@ -191,6 +213,33 @@ tcPLC plc with parse plc
 ... | inj₂ builtinError   = inj₂ "builtinError"
 ... | inj₂ unwrapError    = inj₂ "unwrapError"
 
+alphaTm : ByteString → ByteString → Bool
+alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
+alphaTm plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
+alphaTm plc1 plc2 | just plc1' | just plc2' | just plc1'' | just plc2'' = decRTm (convTm plc1'') (convTm plc2'')
+alphaTm plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
+alphaTm plc1 plc2 | _ | _ = Bool.false
+
+
+{-# COMPILE GHC alphaTm as alphaTm #-}
+printTy : ByteString → String
+printTy b with parseTy b
+... | nothing = "parseTy error"
+... | just A  with deBruijnifyTy A
+... | nothing = "deBruinjifyTy error"
+... | just A' = rawTyPrinter (convTy A')
+
+{-# COMPILE GHC printTy as printTy #-}
+
+
+alphaTy : ByteString → ByteString → Bool
+alphaTy plc1 plc2 with parseTy plc1 | parseTy plc2
+alphaTy plc1 plc2 | just plc1' | just plc2' with deBruijnifyTy plc1' | deBruijnifyTy plc2'
+alphaTy plc1 plc2 | just plc1' | just plc2' | just plc1'' | just plc2'' = decRTy (convTy plc1'') (convTy plc2'')
+alphaTy plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
+alphaTy plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaTy as alphaTy #-}
 
 
 {-# FOREIGN GHC import System.Environment #-}

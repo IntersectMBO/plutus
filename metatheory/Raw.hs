@@ -112,7 +112,9 @@ unconvC (RConBS b)   = BuiltinBS () b
 unconvC  (RConStr s) = BuiltinStr () (T.unpack s)
 
 tmnames = ['a' .. 'z']
-tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
+--tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
+tynames = ['A' .. 'Z']
+
 
 unconv :: Int -> Int -> RTerm -> Term TyDeBruijn DeBruijn ()
 unconv tyi tmi (RVar x)          =
