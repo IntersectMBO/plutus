@@ -53,13 +53,7 @@ instance KnownType a => KnownType (EvaluationResult a) where
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
     makeKnown (EvaluationSuccess x) = makeKnown x
 
-    -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
-    -- instance has to deal with) and an internal one (specific to this particular instance).
-    -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
-    -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
-    -- This allows *not* to short-circuit when 'readKnown' fails to read a Haskell value.
-    -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
-    readKnown eval = mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . readKnown eval
+    readKnown = Prelude.error "Not implemented"
 
     prettyKnown = pretty . fmap (PrettyConfigIgnore . KnownTypeValue)
 
@@ -72,7 +66,7 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
 
     makeKnown = unOpaqueTerm
 
-    readKnown eval = fmap OpaqueTerm . makeRightReflectT . eval mempty
+    readKnown eval = fmap OpaqueTerm . eval mempty
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin () TyInteger
@@ -82,7 +76,7 @@ instance KnownType Integer where
     readKnown eval term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () i) -> pure i
             _                             -> throwError "Not a builtin Integer"
@@ -93,7 +87,7 @@ instance KnownType Int where
     makeKnown = Constant () . makeBuiltinInt . fromIntegral
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             -- TODO: check that 'i' is in bounds.
             Constant () (BuiltinInt () i) -> pure $ fromIntegral i
@@ -105,7 +99,7 @@ instance KnownType BSL.ByteString where
     makeKnown = Constant () . makeBuiltinBS
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinBS () i) -> pure i
             _                            -> throwError "Not a builtin ByteString"
@@ -118,7 +112,7 @@ instance KnownType [Char] where
     makeKnown = Constant () . makeBuiltinStr
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinStr () s) -> pure s
             _                             -> throwError "Not a builtin String"
@@ -133,7 +127,7 @@ instance KnownType Bool where
             asInt = Constant () . BuiltinInt ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b int) [asInt 1, asInt 0]
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () 1) -> pure True
             Constant () (BuiltinInt () 0) -> pure False
@@ -146,7 +140,7 @@ instance KnownType Char where
     makeKnown = Constant () . makeBuiltinInt . fromIntegral . ord
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
             _                               -> throwError "Not an integer-encoded Char"
