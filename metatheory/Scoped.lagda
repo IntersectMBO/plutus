@@ -138,7 +138,7 @@ shifter m w (con c) = con c
 shifter m w (error A) = error (shifterTy m w A)
 shifter m w (builtin b) = builtin b
 shifter m w (wrap pat arg t) =
-  wrap (shifterTy m w pat) (shifterTy m w pat) (shifter m w t)
+  wrap (shifterTy m w pat) (shifterTy m w arg) (shifter m w t)
 shifter m w (unwrap t) = unwrap (shifter m w t)
 
 unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
