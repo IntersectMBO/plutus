@@ -171,7 +171,7 @@ tcPLC plc with parse plc
 ... | nothing = inj₂ "(Agda) scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
-  inj₁ (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
+  inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
 ... | inj₂ typeError = inj₂ "typeError"
 ... | inj₂ kindEqError = inj₂ "kindEqError"
 ... | inj₂ notTypeError = inj₂ "notTypeError"
@@ -180,11 +180,11 @@ tcPLC plc with parse plc
 ... | inj₂ notPat = inj₂ "notPat"
 ... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
 ... | inj₂ (typeEqError n n') = inj₂ (
-  prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n)))
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
   Data.String.++
   "\n != \n"
   Data.String.++
-  prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n'))))
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
   
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"
