@@ -25,6 +25,7 @@ let
     "plutus-tx-plugin"
     "plutus-wallet-api"
     "plutus-emulator"
+    "plutus-scb"
     "iots-export"
   ];
 
