@@ -54727,6 +54727,45 @@ homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"plutus-scb" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, iots-export
+, plutus-contract
+, plutus-emulator
+, plutus-tx
+, plutus-wallet-api
+, prettyprinter
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "plutus-scb";
+version = "0.1.0.0";
+src = .././plutus-scb;
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+iots-export
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-wallet-api
+prettyprinter
+text
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "plutus-tutorial" = callPackage
 ({
   mkDerivation
