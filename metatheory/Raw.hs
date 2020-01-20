@@ -6,8 +6,8 @@ module Raw where
 
 import           GHC.Natural
 
-import           Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
+import           Data.ByteString.Lazy         as BSL
+import qualified Data.Text                    as T
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Parser
@@ -57,12 +57,12 @@ convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
 
 convT :: Type TyDeBruijn a -> RType
 convT (TyVar _ (TyDeBruijn x)) = RTyVar (unIndex (dbnIndex x))
-convT (TyFun _ _A _B)      = RTyFun (convT _A) (convT _B)
-convT (TyForall _ _ _K _A) = RTyPi (convK _K) (convT _A)
-convT (TyLam _ _ _K _A)    = RTyLambda (convK _K) (convT _A)
-convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin _ b)      = RTyCon b
-convT (TyIFix _ a b)       = RTyMu (convT a) (convT b)
+convT (TyFun _ _A _B)          = RTyFun (convT _A) (convT _B)
+convT (TyForall _ _ _K _A)     = RTyPi (convK _K) (convT _A)
+convT (TyLam _ _ _K _A)        = RTyLambda (convK _K) (convT _A)
+convT (TyApp _ _A _B)          = RTyApp (convT _A) (convT _B)
+convT (TyBuiltin _ b)          = RTyCon b
+convT (TyIFix _ a b)           = RTyMu (convT a) (convT b)
 
 convC :: Constant a -> RConstant
 convC (BuiltinInt _ i) = RConInt i
