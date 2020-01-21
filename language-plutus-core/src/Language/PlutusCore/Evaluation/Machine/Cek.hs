@@ -122,7 +122,7 @@ computeCek con tyAbs@TyAbs{}            = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
 computeCek con constant@Constant{}      = returnCek con constant
 computeCek con bi@Builtin{}             = returnCek con bi
-computeCek _   Error{}                  = pure EvaluationFailure
+computeCek con err@Error{}              = returnCek con err
 computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term
@@ -135,16 +135,18 @@ computeCek con (Var _ varName)          = do
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
 returnCek :: Context -> Plain Value -> CekM EvaluationResultDef
-returnCek []                                  res = pure $ EvaluationSuccess res
-returnCek (FrameTyInstArg ty           : con) fun = instantiateEvaluate con ty fun
-returnCek (FrameApplyArg argVarEnv arg : con) fun = do
-    funVarEnv <- getVarEnv
-    withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : con) arg
-returnCek (FrameApplyFun funVarEnv fun : con) arg = do
+returnCek []                                  Error{}     = pure EvaluationFailure
+returnCek []                                  res         = pure $ EvaluationSuccess res
+returnCek (FrameApplyFun funVarEnv fun : con) arg         = do
     argVarEnv <- getVarEnv
     applyEvaluate funVarEnv argVarEnv con fun arg
-returnCek (FrameIWrap ann pat arg      : con) val = returnCek con $ IWrap ann pat arg val
-returnCek (FrameUnwrap                 : con) dat = case dat of
+returnCek (_ : con)                           err@Error{} = returnCek con err
+returnCek (FrameTyInstArg ty           : con) fun         = instantiateEvaluate con ty fun
+returnCek (FrameApplyArg argVarEnv arg : con) fun         = do
+    funVarEnv <- getVarEnv
+    withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : con) arg
+returnCek (FrameIWrap ann pat arg      : con) val         = returnCek con $ IWrap ann pat arg val
+returnCek (FrameUnwrap                 : con) dat         = case dat of
     IWrap _ _ _ term -> returnCek con term
     term             -> throwError $ MachineException NonWrapUnwrappedMachineError term
 

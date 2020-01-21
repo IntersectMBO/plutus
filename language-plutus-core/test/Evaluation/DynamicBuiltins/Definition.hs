@@ -111,7 +111,7 @@ dynamicReverse = dynamicBuiltinNameAsTerm dynamicReverseName
 test_dynamicReverse :: TestTree
 test_dynamicReverse =
     testProperty "dynamicReverse" . property $ do
-        is <- forAll . Gen.list (Range.linear 0 20) $ Gen.int (Range.linear 0 1000)
+        is <- forAll . Gen.list (Range.linear 0 10) $ Gen.int (Range.linear 0 1000)
         let tIs = makeKnown $ PlcList is
             int = toTypeAst @Int Proxy
             runReverse rev = Apply () (TyInst () rev int) tIs
@@ -121,10 +121,52 @@ test_dynamicReverse =
         lhs === Right (Right (EvaluationSuccess . PlcList $ Prelude.reverse is))
         lhs === rhs
 
+dynamicCatchFailureName :: DynamicBuiltinName
+dynamicCatchFailureName = DynamicBuiltinName "catchFailure"
+
+dynamicCatchFailureMeaning :: DynamicBuiltinNameMeaning
+dynamicCatchFailureMeaning = DynamicBuiltinNameMeaning sch mean where
+    sch =
+        TypeSchemeAllType @"a" @0 Proxy $ \(a :: Proxy a) ->
+            Proxy @(EvaluationResult a) `TypeSchemeArrow` a `TypeSchemeArrow` TypeSchemeResult a
+
+    mean (EvaluationSuccess a) _ = a
+    mean EvaluationFailure     b = b
+
+dynamicCatchFailureDefinition :: DynamicBuiltinNameDefinition
+dynamicCatchFailureDefinition =
+    DynamicBuiltinNameDefinition dynamicCatchFailureName dynamicCatchFailureMeaning
+
+dynamicCatchFailure :: Term tyname name ()
+dynamicCatchFailure = dynamicBuiltinNameAsTerm dynamicCatchFailureName
+
+-- | Check that it's possible to catch failures on the Plutus side using a builtin.
+test_dynamicCatchFailure :: TestTree
+test_dynamicCatchFailure =
+    testProperty "dynamicCatchFailure" . property $ do
+        i <- forAll . Gen.integral $ Range.linear 0 100
+        j <- forAll . Gen.integral $ Range.linear 0 100
+        let
+            integer = toTypeAst @Integer Proxy
+            env = insertDynamicBuiltinNameDefinition dynamicCatchFailureDefinition mempty
+            lhs =
+                typecheckReadKnownCek env $
+                    -- catchFailure (divideInteger i j) i
+                    mkIterApp () (TyInst () dynamicCatchFailure integer)
+                        [ mkIterApp () (builtinNameAsTerm DivideInteger)
+                            [ makeKnown i
+                            , makeKnown j
+                            ]
+                        , makeKnown i
+                        ]
+            res = if j /= 0 then i `div` j else i :: Integer
+        lhs === Right (Right (EvaluationSuccess res))
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_dynamicFactorial
         , test_dynamicConst
         , test_dynamicReverse
+        , test_dynamicCatchFailure
         ]
