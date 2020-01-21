@@ -5,6 +5,7 @@ import           Control.Monad                                   (void)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
+import qualified Ledger
 import qualified Ledger.Ada                                      as Ada
 import           Wallet.Emulator                                 (walletPubKey)
 
@@ -17,7 +18,7 @@ w1 = Wallet 1
 
 theContract :: Contract BlockchainActions ContractError ()
 theContract = do
-  txin <- pubKeyContract (walletPubKey w1) (Ada.lovelaceValueOf 10)
+  txin <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
   void $ submitTx $ mustSpendInput txin
 
 tests :: TestTree

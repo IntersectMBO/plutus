@@ -29,7 +29,7 @@ import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, DataValue(..), RedeemerValue(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
+import           Ledger                    (Address, DataValue(..), PubKeyHash, RedeemerValue(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
@@ -39,7 +39,7 @@ import qualified Ledger.Validation         as V
 import           Ledger.Value              (Value)
 import qualified Ledger.Value              as Value
 
-import           Wallet                    (MonadWallet, PubKey)
+import           Wallet                    (MonadWallet)
 import qualified Wallet                    as W
 import qualified Wallet.API                as WAPI
 
@@ -81,7 +81,7 @@ data Vesting = Vesting {
     -- ^ First tranche
     vestingTranche2 :: VestingTranche,
     -- ^ Second tranche
-    vestingOwner    :: PubKey
+    vestingOwner    :: PubKeyHash
     -- ^ The recipient of the scheme (who is authorised to take out money once
     --   it has been released)
     } deriving (Generic)

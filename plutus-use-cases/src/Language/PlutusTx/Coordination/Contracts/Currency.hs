@@ -29,7 +29,7 @@ import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     (CurrencySymbol, TxId, PubKey, TxOutRef(..), scriptCurrencySymbol, txInRef)
+import           Ledger                     (CurrencySymbol, TxId, PubKeyHash, TxOutRef(..), scriptCurrencySymbol, txInRef)
 import           Ledger.Value               (TokenName, Value)
 
 import qualified Data.Set   as Set
@@ -118,7 +118,7 @@ forgeContract
     ( HasWatchAddress s
     , HasWriteTx s
     , AsContractError e)
-    => PubKey
+    => PubKeyHash
     -> [(TokenName, Integer)]
     -> Contract s e Currency
 forgeContract pk amounts = do

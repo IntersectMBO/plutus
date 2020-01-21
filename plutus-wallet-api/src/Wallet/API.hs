@@ -92,8 +92,8 @@ import           Prelude                   hiding (Ordering (..))
 data WalletAPIError =
     InsufficientFunds Text
     -- ^ There were insufficient funds to perform the desired operation.
-    | PrivateKeyNotFound PubKey
-    -- ^ The private key of this public key is not known to the wallet.
+    | PrivateKeyNotFound PubKeyHash
+    -- ^ The private key of this public key hahs is not known to the wallet.
     | OtherError Text
     -- ^ Some other error occurred.
     deriving (Show, Eq, Ord, Generic, IotsType)
@@ -165,17 +165,17 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
 
-throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKey -> m a
+throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKeyHash -> m a
 throwPrivateKeyNotFoundError = throwError . PrivateKeyNotFound
 
 -- | Sign the transaction with the private key of the given public
 --   key. Fails if the wallet doesn't have the private key.
-signTxnWithKey :: (WalletAPI m, MonadError WalletAPIError m) => Tx -> PubKey -> m Tx
+signTxnWithKey :: (WalletAPI m, MonadError WalletAPIError m) => Tx -> PubKeyHash -> m Tx
 signTxnWithKey tx pubK = do
     -- at the moment we only know a single private key: the one
     -- belonging to 'ownPubKey'.
     ownPubK <- ownPubKey
-    if ownPubK == pubK
+    if pubKeyHash ownPubK == pubK
     then signTxn tx
     else throwPrivateKeyNotFoundError pubK
 

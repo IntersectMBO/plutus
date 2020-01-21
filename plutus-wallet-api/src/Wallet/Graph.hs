@@ -24,6 +24,7 @@ import qualified Data.Text         as Text
 import           GHC.Generics      (Generic)
 
 import qualified Ledger.Ada        as Ada
+import           Ledger.Address
 import           Ledger.Blockchain
 import           Ledger.Crypto
 import           Ledger.Tx
@@ -42,10 +43,11 @@ data UtxOwner
 -- | Given a set of known public keys, compute the owner of a given transaction output.
 owner :: Set.Set PubKey -> TxOut -> UtxOwner
 owner keys TxOut {..} =
-  case txOutType of
-    PayToScript _ -> ScriptOwner
-    PayToPubKey pk
-      | pk `Set.member` keys -> PubKeyOwner pk
+  let hashMap = foldMap (\pk -> Map.singleton (pubKeyHash pk) pk) keys
+  in case (txOutType, txOutAddress) of
+    (PayToScript _, ScriptAddress _) -> ScriptOwner
+    (PayToPubKey, PubKeyAddress pkh)
+      | Just pk <- Map.lookup pkh hashMap -> PubKeyOwner pk
     _ -> OtherOwner
 
 -- | A wrapper around the first 8 digits of a 'TxId'.
