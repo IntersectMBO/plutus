@@ -201,90 +201,10 @@ deBruijnifyK : RawKind → Kind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 
-velemIndex : String → ∀{n} → Vec String n → Maybe (Fin n)
-velemIndex x [] = nothing
-velemIndex x (x' ∷ xs) with x Data.String.≟ x'
-velemIndex x (x' ∷ xs) | yes p = just zero
-velemIndex x (x' ∷ xs) | no ¬p = map Fin.suc (velemIndex x xs)
-
-{-
-deBruijnifyTy : ∀{n} → Vec String n → RawTy → Maybe (ScopedTy n)
-deBruijnifyTy g (` α) = map ` (velemIndex α g)
-deBruijnifyTy g (A ⇒ B) = do
-  A ← deBruijnifyTy g A
-  B ← deBruijnifyTy g B
-  return (A ⇒ B)
-deBruijnifyTy g (Π x K B) =
-  map (Π x (deBruijnifyK K)) (deBruijnifyTy (x ∷ g) B)
-deBruijnifyTy g (ƛ x K B) =
-  map (ƛ x (deBruijnifyK K)) (deBruijnifyTy (x ∷ g) B)
-deBruijnifyTy g (A · B) = do
-  A ← deBruijnifyTy g A
-  B ← deBruijnifyTy g B
-  return (A · B)
-deBruijnifyTy g (con b)     = just (con b)
-deBruijnifyTy g (μ A B)     = do
-  A ← deBruijnifyTy g A
-  B ← deBruijnifyTy g B
-  return (μ A B)
--}
-
-data WeirdVec (X : Set) : ∀{n} → Weirdℕ n → Set where
-  nil : WeirdVec X Z
-  consS : ∀{n}{w : Weirdℕ n} → X → WeirdVec X w → WeirdVec X (S w)
-  consT : ∀{n}{w : Weirdℕ n} → X → WeirdVec X w → WeirdVec X (T w)
-
-∥_∥Vec : ∀{X}{n}{w : Weirdℕ n} → WeirdVec X w → Vec X n
-∥ nil        ∥Vec = []
-∥ consS x xs ∥Vec = ∥ xs ∥Vec
-∥ consT x xs ∥Vec = x ∷ ∥ xs ∥Vec
-
-velemIndexWeird : String → ∀{n}{w : Weirdℕ n} → WeirdVec String w → Maybe (WeirdFin w)
-velemIndexWeird x nil = nothing
-velemIndexWeird x (consS x' xs) with x Data.String.≟ x'
-velemIndexWeird x (consS x' xs) | yes p = just Z
-velemIndexWeird x (consS _  xs) | no ¬p = map S (velemIndexWeird x xs)
-velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
-
-lookupWeird  : ∀{X}{n}{w : Weirdℕ n} → WeirdVec X w → WeirdFin w → X
-lookupWeird (consS x xs) Z = x
-lookupWeird (consS x xs) (S i) = lookupWeird xs i
-lookupWeird (consT x xs) (T i) = lookupWeird xs i
-
 deBruijnifyC : RawTermCon → TermCon
 deBruijnifyC (integer i) = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string x) = string x
-
-{-
-deBruijnifyTm : ∀{n}{w : Weirdℕ n} → WeirdVec String w → RawTm → Maybe (ScopedTm w)
-deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
-deBruijnifyTm g (ƛ x A L) = do
-  A ← deBruijnifyTy ∥ g ∥Vec A
-  L ← deBruijnifyTm (consS x g) L
-  return (ƛ x A L)
-deBruijnifyTm g (L · M) = do
-  L ← deBruijnifyTm g L
-  M ← deBruijnifyTm g M
-  return (L · M)
-deBruijnifyTm g (Λ x K L) =
-  map (Λ x (deBruijnifyK K)) (deBruijnifyTm (consT x g) L)
-deBruijnifyTm g (L ·⋆ A) = do
-  L ← deBruijnifyTm g L
-  A ← deBruijnifyTy ∥ g ∥Vec A
-  return (L ·⋆ A)
-deBruijnifyTm g (con t) = just (con (deBruijnifyC t))
-deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)
-deBruijnifyTm g (builtin b) = just (builtin b [] [])
-deBruijnifyTm g (wrap A B t) = do
-  A ← deBruijnifyTy ∥ g ∥Vec A
-  B ← deBruijnifyTy ∥ g ∥Vec B
-  t ← deBruijnifyTm g t
-  return (wrap A B t)
-deBruijnifyTm g (unwrap t) =  do
-  t ← deBruijnifyTm g t
-  return (unwrap t)
--}
 
 ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
 ℕtoFin {zero}  _       = nothing
@@ -343,13 +263,9 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
-
---{-# COMPILE GHC scopeCheckTm as scopeCheckTm #-}
-
 \end{code}
 
 -- SATURATION OF BUILTINS
-
 
 \begin{code}
 open import Data.Product
@@ -381,7 +297,6 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 
--- is this currently redundant due to the removal of sizes?
 arity⋆ : Builtin → ℕ
 arity⋆ _ = 0
 {-
@@ -482,49 +397,6 @@ unDeBruijnifyC : TermCon → RawTermCon
 unDeBruijnifyC (integer i) = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string x) = string x
-  \end{code}
-
-\begin{code}
-{-
-unDeBruijnify⋆ : ∀{n} → ℕ → ScopedTy n → RawTy
-unDeBruijnify⋆ i (` x) = ` ("tvar" ++ Data.Integer.show (ℤ.pos i - ℤ.pos (ℕ.suc (toℕ x))))
-unDeBruijnify⋆ i (A ⇒ B) = unDeBruijnify⋆ i A ⇒ unDeBruijnify⋆ i B
-unDeBruijnify⋆ i (Π x K A) = Π
-  ("tvar" ++ Data.Integer.show (ℤ.pos i))
-  (unDeBruijnifyK K)
-  (unDeBruijnify⋆ (ℕ.suc i) A)
-unDeBruijnify⋆ i (ƛ x K A) = ƛ
-  ("tvar" ++ Data.Integer.show (ℤ.pos i))
-  (unDeBruijnifyK K)
-  (unDeBruijnify⋆ (ℕ.suc i) A)
-unDeBruijnify⋆ i (A · B) = unDeBruijnify⋆ i A · unDeBruijnify⋆ i B
-unDeBruijnify⋆ i (con c) = con c
-unDeBruijnify⋆ i (μ A B) = μ (unDeBruijnify⋆ i A) (unDeBruijnify⋆ i B)
--}
-\end{code}
-
-This should be run on unsaturated terms
-\begin{code}
-{-
-unDeBruijnify : ∀{n}{w : Weirdℕ n} →  ∀ n' → Weirdℕ n' → ScopedTm w → RawTm
-unDeBruijnify i⋆ i (` x) = ` ("var" ++ Data.Integer.show (ℤ.pos (wtoℕ i) - ℤ.pos (ℕ.suc (wftoℕ x))))
-unDeBruijnify i⋆ i (Λ x K t) = Λ
-  ("tvar" ++ Data.Integer.show (ℤ.pos (wtoℕ i)))
-  (unDeBruijnifyK K)
-  (unDeBruijnify (ℕ.suc i⋆) (T i) t)
-unDeBruijnify i⋆ i (t ·⋆ A) = unDeBruijnify i⋆ i t ·⋆ unDeBruijnify⋆ i⋆ A
-unDeBruijnify i⋆ i (ƛ x A t) = ƛ
-  ("var" ++ Data.Integer.show (ℤ.pos (wtoℕ i)))
-  (unDeBruijnify⋆ i⋆ A)
-  (unDeBruijnify i⋆ (S i) t)
-unDeBruijnify i⋆ i (t · u) = unDeBruijnify i⋆ i t · unDeBruijnify i⋆ i u
-unDeBruijnify i⋆ i (con c) = con (unDeBruijnifyC c)
-unDeBruijnify i⋆ i (error A) = error (unDeBruijnify⋆ i⋆ A)
-unDeBruijnify i⋆ i (builtin b _ _) = builtin b
-unDeBruijnify i⋆ i (wrap A B t) =
-  wrap (unDeBruijnify⋆ i⋆ A) (unDeBruijnify⋆ i⋆ B) (unDeBruijnify i⋆ i t)
-unDeBruijnify i⋆ i (unwrap t) = unwrap (unDeBruijnify i⋆ i t)
--}
 \end{code}
 
 \begin{code}
@@ -550,33 +422,6 @@ extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
 \end{code}
-
-
-\begin{code}
-{-
-deDeBruijnify⋆ : ∀{n} → Vec String n → ScopedTy n → RawTy
-deDeBruijnify⋆ xs (` x) = ` (Data.Vec.lookup xs x)
-deDeBruijnify⋆ xs (t ⇒ u) = deDeBruijnify⋆ xs t ⇒ deDeBruijnify⋆ xs u
-deDeBruijnify⋆ xs (Π x K t) = Π x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
-deDeBruijnify⋆ xs (ƛ x K t) = ƛ x (unDeBruijnifyK K) (deDeBruijnify⋆ (x ∷ xs) t)
-deDeBruijnify⋆ xs (t · u) = deDeBruijnify⋆ xs t · deDeBruijnify⋆ xs u
-deDeBruijnify⋆ xs (con x) = con x
-deDeBruijnify⋆ xs (μ t u) = μ (deDeBruijnify⋆ xs t) (deDeBruijnify⋆ xs u)
-
-deDeBruijnify : ∀{n}{w : Weirdℕ n} → Vec String n → WeirdVec String w → ScopedTm w → RawTm
-deDeBruijnify xs⋆ xs (` x) = ` (lookupWeird xs x)
-deDeBruijnify xs⋆ xs (Λ x K t) = Λ x (unDeBruijnifyK K) (deDeBruijnify (x ∷ xs⋆) (consT x xs) t) -- surprised x goes on both
-deDeBruijnify xs⋆ xs (t ·⋆ A) = deDeBruijnify xs⋆ xs t ·⋆ deDeBruijnify⋆ xs⋆ A
-deDeBruijnify xs⋆ xs (ƛ x A t) = ƛ x (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify xs⋆ (consS x xs) t)
-deDeBruijnify xs⋆ xs (t · u) = deDeBruijnify xs⋆ xs t · deDeBruijnify xs⋆ xs u
-deDeBruijnify xs⋆ xs (con x) = con (unDeBruijnifyC x)
-deDeBruijnify xs⋆ xs (error x) = error (deDeBruijnify⋆ xs⋆ x)
-deDeBruijnify xs⋆ xs (builtin x _ _) = builtin x
-deDeBruijnify xs⋆ xs (wrap A B t) = wrap (deDeBruijnify⋆ xs⋆ A) (deDeBruijnify⋆ xs⋆ B) (deDeBruijnify xs⋆ xs t)
-deDeBruijnify xs⋆ xs (unwrap t) = unwrap (deDeBruijnify xs⋆ xs t)
--}
-\end{code}
-
 
 -- UGLY PRINTING
 
