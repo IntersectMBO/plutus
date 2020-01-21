@@ -21,14 +21,13 @@ import           Ledger                                                (OracleVa
 import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Crypto                                         (PubKey (..))
-import           Ledger.Value                                          (CurrencySymbol, Value, scale)
+import           Ledger.Value                                          (Value, scale)
 
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                                     as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.Future       (Future (..), FutureAccounts (..), FutureError,
                                                                         FutureSchema, FutureSetup (..), Role (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future       as F
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import           Language.PlutusTx.Lattice
 
 tests :: TestTree
@@ -101,10 +100,6 @@ theFuture = Future {
     ftMarginPenalty = penalty
     }
 
--- | This is the address of contract 'theFuture', initialised by wallet 1
-tokenCurrency :: CurrencySymbol
-tokenCurrency = "16e2b431d9907e229c7a27387a15ba667363e230084132292ff9e646e45f1d51"
-
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
 initContract :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
@@ -152,9 +147,8 @@ oracle :: PubKey
 oracle = walletPubKey (Wallet 10)
 
 accounts :: FutureAccounts
-accounts = F.mkAccounts
-            (Account (tokenCurrency, "long"))
-            (Account (tokenCurrency, "short"))
+accounts = 
+    either error id $ evalTrace @FutureSchema @FutureError F.setupTokens (handleBlockchainEvents w1) w1
 
 increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 increaseMargin = do
