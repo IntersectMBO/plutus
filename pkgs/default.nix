@@ -137,8 +137,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "Agda";
-version = "2.6.0";
-sha256 = "bf71bc634a9fe40d717aae76b5b160dfd13a06365615e7822043e5d476c06fb8";
+version = "2.6.0.1";
+sha256 = "7bb88a9cd4a556259907ccc71d54e2acc9d3e9ce05486ffdc83f721c7c06c0e8";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;

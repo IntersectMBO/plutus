@@ -338,7 +338,7 @@ let
       }).overrideAttrs (oldAttrs: rec {
         # Need to override the source this way
         name = "agda-stdlib-${version}";
-        version = "1.0.1";
+        version = "1.2";
         src = sources.agda-stdlib;
       });
     };
