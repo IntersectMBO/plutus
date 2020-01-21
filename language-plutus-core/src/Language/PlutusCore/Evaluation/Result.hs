@@ -8,7 +8,6 @@
 
 module Language.PlutusCore.Evaluation.Result
     ( EvaluationResult (..)
-    , EvaluationResultDef
     , isEvaluationSuccess
     , isEvaluationFailure
     ) where
@@ -27,9 +26,6 @@ data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
-
--- | The default type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess

@@ -15,7 +15,6 @@ import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
@@ -47,7 +46,7 @@ newtype EmitHandler r = EmitHandler
 feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
 feedEmitHandler term (EmitHandler handler) = handler mempty term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
+withEmitHandler :: Evaluator Term m -> (EmitHandler (m (Term TyName Name ())) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
@@ -67,6 +66,6 @@ withEmitEvaluateBy
     :: KnownType a
     => Evaluator Term m
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m EvaluationResultDef)
+    -> IO ([a], m (Term TyName Name ()))
 withEmitEvaluateBy eval toTerm =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm

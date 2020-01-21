@@ -18,19 +18,19 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
+import           Language.PlutusCore.Constant.Dynamic.Instances   ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Error
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Crypto
-import qualified Data.ByteString.Lazy                           as BSL
-import qualified Data.ByteString.Lazy.Hash                      as Hash
+import qualified Data.ByteString.Lazy                             as BSL
+import qualified Data.ByteString.Lazy.Hash                        as Hash
 import           Data.Proxy
 
 -- | Default constant application computation that in case of 'ConstAppSuccess' returns

@@ -29,14 +29,14 @@ module Language.PlutusCore.Constant.Typed
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Error
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                             (Map)
+import           Data.Map                                         (Map)
 import           Data.Proxy
 import           GHC.TypeLits
 
