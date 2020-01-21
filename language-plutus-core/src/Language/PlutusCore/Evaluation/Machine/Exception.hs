@@ -54,8 +54,13 @@ instance ( PrettyBy config (Term TyName Name ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
+instance (PrettyBy config (Term TyName Name ()), Pretty err) => PrettyBy config (MachineException err) where
+  prettyBy config (MachineException err cause) =
+        "An abstract machine failed:" <+> prettyBy config err <> hardline <>
+        "Caused by:" <+> indent 2 (prettyBy config cause)
+
 instance Pretty err => Show (MachineException err) where
-    show (MachineException err cause) = fold
+    show (MachineException err cause) = fold -- TODO use prettyBy
         [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
         ]

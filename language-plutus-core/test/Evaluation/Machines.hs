@@ -21,6 +21,7 @@ import           Language.PlutusCore.Evaluation.Machine.L
 import           Language.PlutusCore.FsTree                       (foldPlcFolderContents)
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
+import           Language.PlutusCore.Pretty
 
 import           Language.PlutusCore.Examples.Everything          (examples)
 import           Language.PlutusCore.StdLib.Everything            (stdLib)
@@ -64,10 +65,9 @@ test_memory =
 
 testBudget :: TestName -> (Plain Term) -> TestNested
 testBudget name term =
-    -- TODO use pretty here
                        nestedGoldenVsText
     name
-    (T.pack $ show $ evaluateCek mempty Restricting (ExBudget 10 10) term)
+    (prettyPlcDefText $ evaluateCek mempty Restricting (ExBudget 10 10) term)
 
 test_budget :: TestTree
 test_budget =

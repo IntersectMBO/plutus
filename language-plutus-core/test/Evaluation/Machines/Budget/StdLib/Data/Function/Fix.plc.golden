@@ -1,1 +1,65 @@
-(Right (TyAbs () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}}) (Type ()) (TyAbs () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}}) (Type ()) (LamAbs () (Name {nameAttribute = (), nameString = "f", nameUnique = Unique {unUnique = 2}}) (TyFun () (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}}))) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}})))) (Apply () (TyInst () (TyAbs () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}}) (Type ()) (LamAbs () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}) (TyApp () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyIFix () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}}) (KindArrow () (Type ()) (Type ())) (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyFun () (TyApp () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}})))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}}))) (Apply () (Unwrap () (Var () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}))) (Var () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}))))) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}})))) (IWrap () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}}) (KindArrow () (Type ()) (Type ())) (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyFun () (TyApp () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))))) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}}))) (LamAbs () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 3}}) (TyApp () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyIFix () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}}) (KindArrow () (Type ()) (Type ())) (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyFun () (TyApp () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}})))) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}})))) (LamAbs () (Name {nameAttribute = (), nameString = "x", nameUnique = Unique {unUnique = 4}}) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (Apply () (Apply () (Var () (Name {nameAttribute = (), nameString = "f", nameUnique = Unique {unUnique = 2}})) (Apply () (TyInst () (TyAbs () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}}) (Type ()) (LamAbs () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}) (TyApp () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyIFix () (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}}) (KindArrow () (Type ()) (Type ())) (TyLam () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}) (Type ()) (TyFun () (TyApp () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "self", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}}))))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 1}}})))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}}))) (Apply () (Unwrap () (Var () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}))) (Var () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 1}}))))) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "a", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "b", nameUnique = Unique {unUnique = 1}}})))) (Var () (Name {nameAttribute = (), nameString = "s", nameUnique = Unique {unUnique = 3}})))) (Var () (Name {nameAttribute = (), nameString = "x", nameUnique = Unique {unUnique = 4}})))))))))),ExBudgetState {_exBudgetStateTally = ExTally {_exTallyCPU = MonoidalHashMap {getMonoidalHashMap = fromList []}, _exTallyMemory = MonoidalHashMap {getMonoidalHashMap = fromList []}}, _exBudgetStateBudget = ExBudget {_exBudgetCPU = ExCPU 10, _exBudgetMemory = ExMemory 10}})
+((Right (abs
+  a
+  (type)
+  (abs
+    b
+    (type)
+    (lam
+      f
+      (fun (fun a b) (fun a b))
+      [
+        {
+          (abs
+            a
+            (type)
+            (lam
+              s
+              [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) a]
+              [ (unwrap s) s ]
+            )
+          )
+          (fun a b)
+        }
+        (iwrap
+          (lam self (fun (type) (type)) (lam a (type) (fun [self a] a)))
+          (fun a b)
+          (lam
+            s
+            [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) (fun a b)]
+            (lam
+              x
+              a
+              [
+                [
+                  f
+                  [
+                    {
+                      (abs
+                        a
+                        (type)
+                        (lam
+                          s
+                          [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) a]
+                          [ (unwrap s) s ]
+                        )
+                      )
+                      (fun a b)
+                    }
+                    s
+                  ]
+                ]
+                x
+              ]
+            )
+          )
+        )
+      ]
+    )
+  )
+)) , ({ ({ ({ })
+| ({ })
+})
+| ({ (cpu 10)
+| (mem 10)
+})
+}))

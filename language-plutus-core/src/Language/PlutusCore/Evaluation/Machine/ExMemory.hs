@@ -1,11 +1,13 @@
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
@@ -43,11 +45,16 @@ newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
   deriving newtype Num
   deriving (Semigroup, Monoid) via (Sum Integer)
+
+instance PrettyBy config ExMemory where
+  prettyBy _ (ExMemory mem) = parens ("mem" <+> pretty mem)
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
   deriving newtype Num
   deriving (Semigroup, Monoid) via (Sum Integer)
+instance PrettyBy config ExCPU where
+  prettyBy _ (ExCPU mem) = parens ("cpu" <+> pretty mem)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

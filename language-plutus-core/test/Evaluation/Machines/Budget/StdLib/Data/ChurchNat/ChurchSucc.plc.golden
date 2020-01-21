@@ -1,1 +1,11 @@
-(Right (LamAbs () (Name {nameAttribute = (), nameString = "n", nameUnique = Unique {unUnique = 0}}) (TyForall () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 0}}}) (Type ()) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 0}}})) (TyFun () (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 0}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 0}}}))) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 0}}}))))) (TyAbs () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 1}}}) (Type ()) (LamAbs () (Name {nameAttribute = (), nameString = "z", nameUnique = Unique {unUnique = 2}}) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 1}}})) (LamAbs () (Name {nameAttribute = (), nameString = "f", nameUnique = Unique {unUnique = 3}}) (TyFun () (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 1}}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 1}}}))) (Apply () (Var () (Name {nameAttribute = (), nameString = "f", nameUnique = Unique {unUnique = 3}})) (Apply () (Apply () (TyInst () (Var () (Name {nameAttribute = (), nameString = "n", nameUnique = Unique {unUnique = 0}})) (TyVar () (TyName {unTyName = Name {nameAttribute = (), nameString = "r", nameUnique = Unique {unUnique = 1}}}))) (Var () (Name {nameAttribute = (), nameString = "z", nameUnique = Unique {unUnique = 2}}))) (Var () (Name {nameAttribute = (), nameString = "f", nameUnique = Unique {unUnique = 3}})))))))),ExBudgetState {_exBudgetStateTally = ExTally {_exTallyCPU = MonoidalHashMap {getMonoidalHashMap = fromList []}, _exTallyMemory = MonoidalHashMap {getMonoidalHashMap = fromList []}}, _exBudgetStateBudget = ExBudget {_exBudgetCPU = ExCPU 10, _exBudgetMemory = ExMemory 10}})
+((Right (lam
+  n
+  (all r (type) (fun r (fun (fun r r) r)))
+  (abs r (type) (lam z r (lam f (fun r r) [ f [ [ { n r } z ] f ] ])))
+)) , ({ ({ ({ })
+| ({ })
+})
+| ({ (cpu 10)
+| (mem 10)
+})
+}))

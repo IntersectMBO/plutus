@@ -11,11 +11,14 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekMachineException(..)
@@ -65,12 +68,14 @@ import qualified Data.Map                                           as Map
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
-
 data CekMachineException
     = CekInternalError (MachineException UnknownDynamicBuiltinNameError) -- ^ Indicates bugs
     | CekUserError CekUserError -- ^ Indicates user errors
     deriving (Show, Eq)
 instance Exception CekMachineException
+instance PrettyBy config (Term TyName Name ()) => PrettyBy config CekMachineException where
+    prettyBy config (CekInternalError ex) = prettyBy config ex
+    prettyBy config (CekUserError ex)     = prettyBy config ex
 
 -- | The usual 'EvaluationResult' can fail with 'EvaluationFailure', which indicates the user made a mistake.
 -- The second layer exposed here is a 'MachineException', which indicates a bug.
@@ -88,6 +93,9 @@ data CekUserError
     = CekOutOfExError
     | CekEvaluationFailure -- ^ same as the other EvaluationFailure
     deriving (Show, Eq)
+instance PrettyBy config CekUserError where
+    prettyBy _ CekOutOfExError      = "The evaluation ran out of memory or CPU."
+    prettyBy _ CekEvaluationFailure = "The provided plutus code was faulty."
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -128,14 +136,14 @@ spendBudget Restricting l ex = do
 spendMemory :: WithMemory Term -> ExMemory -> CekM ()
 spendMemory term mem = do
     modifying exBudgetStateTally
-              (<> (ExTally mempty (singleton (void term) [mem])))
+              (<> (ExTally mempty (ExTallyCounter (singleton (void term) [mem]))))
     mode <- view cekEnvBudgetMode
     spendBudget mode (exBudgetStateBudget . exBudgetMemory) mem
 
 spendCPU :: WithMemory Term -> ExCPU -> CekM ()
 spendCPU term cpu = do
     modifying exBudgetStateTally
-              (<> (ExTally (singleton (void term) [cpu]) mempty))
+              (<> (ExTally (ExTallyCounter (singleton (void term) [cpu])) mempty))
     mode <- view cekEnvBudgetMode
     spendBudget mode (exBudgetStateBudget . exBudgetCPU) cpu
 
