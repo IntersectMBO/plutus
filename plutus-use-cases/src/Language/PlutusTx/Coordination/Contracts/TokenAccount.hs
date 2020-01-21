@@ -126,8 +126,8 @@ validatorHash :: Account -> ValidatorHash
 validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance
 
 -- | A transaction that pays the given value to the account
-payTx 
-    :: 
+payTx
+    ::
     Scripts.ScriptInstance TokenAccount
     -> Value
     -> UnbalancedTx
@@ -194,7 +194,7 @@ newAccount
     -> Contract s e Account
 newAccount tokenName pk = do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
-    let sym = Ledger.scriptCurrencySymbol (Currency.curValidator cur)
+    let sym = Currency.currencySymbol cur
     pure $ Account (sym, tokenName)
 
 PlutusTx.makeLift ''Account

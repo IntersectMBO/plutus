@@ -46,7 +46,6 @@ import qualified Hedgehog.Range            as Range
 import qualified Language.PlutusTx.Prelude as P
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
-import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 
 import           Ledger
@@ -125,14 +124,10 @@ genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
         t = fold gmInitialBalance
-    in (Tx {
-        txInputs = Set.empty,
+    in (mempty {
         txOutputs = o,
         txForge = t,
-        txFee = mempty,
-        txValidRange = W.intervalFrom 0,
-        txSignatures = Map.empty,
-        txData = Map.empty
+        txValidRange = W.intervalFrom 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -184,14 +179,10 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap Ada.toValue <$> splitVal numOut sz
-            let tx = Tx
+            let tx = mempty
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txForge = mempty
                         , txFee = Ada.toValue fee
-                        , txValidRange = Interval.always
-                        , txSignatures = Map.empty
-                        , txData = Map.empty
                         }
 
                 -- sign the transaction with all three known wallets

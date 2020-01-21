@@ -277,7 +277,7 @@ mockPendingTx = PendingTx
     , pendingTxOutputs = []
     , pendingTxFee = PlutusTx.zero
     , pendingTxForge = PlutusTx.zero
-    , pendingTxIn = PendingTxIn
+    , pendingTxItem = PendingTxIn
         { pendingTxInRef = PendingTxOutRef
             { pendingTxOutRefId = TxId P.emptyByteString
             , pendingTxOutRefIdx = 0
@@ -286,6 +286,7 @@ mockPendingTx = PendingTx
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
+    , pendingTxForgeScripts = []
     , pendingTxSignatures = []
     , pendingTxId = TxId P.emptyByteString
     , pendingTxData = []
@@ -313,7 +314,7 @@ theFuture = FT.Future {
     }
 
 accounts :: FT.FutureAccounts
-accounts = 
+accounts =
     let cur = "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" in
     FT.mkAccounts
             (TA.Account (cur, "long"))

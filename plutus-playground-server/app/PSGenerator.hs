@@ -55,9 +55,9 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, DataValue, PubKey, RedeemerValue, Signature, Tx,
-                                                             TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutType,
-                                                             Validator)
+import           Ledger                                     (Address, DataValue, MonetaryPolicy, PubKey, RedeemerValue,
+                                                             Signature, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef,
+                                                             TxOutType, Validator)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
 import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
@@ -178,6 +178,12 @@ validatorHashBridge = do
     typeModule ^== "Ledger.Scripts"
     pure psString
 
+mpsHashBridge :: BridgePart
+mpsHashBridge = do
+    typeName ^== "MonetaryPolicyHash"
+    typeModule ^== "Ledger.Scripts"
+    pure psString
+
 dataHashBridge :: BridgePart
 dataHashBridge = do
     typeName ^== "DataValueHash"
@@ -233,6 +239,7 @@ myBridge =
     headerBridge <|>
     nonEmptyBridge <|>
     validatorHashBridge <|>
+    mpsHashBridge <|>
     dataHashBridge <|>
     byteStringBridge <|>
     mapBridge <|>
@@ -262,6 +269,7 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DataValue)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @MonetaryPolicy)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerValue)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)

@@ -10,7 +10,7 @@
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
-    , curValidator
+    , curPolicy
     -- * Actions etc
     , forgeContract
     , forgedValue
@@ -23,18 +23,16 @@ import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 import           Language.Plutus.Contract     as Contract
 
 import qualified Ledger.Ada                 as Ada
-import qualified Ledger.AddressMap          as AM
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.AssocMap as AssocMap
-import           Ledger.Scripts             (Validator, mkValidatorScript)
 import qualified Ledger.Validation          as V
 import qualified Ledger.Value               as Value
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts       as Scripts
 import           Ledger                     (CurrencySymbol, TxId, PubKey, TxOutRef(..), scriptCurrencySymbol, txInRef)
-import qualified Ledger                     as Ledger
 import           Ledger.Value               (TokenName, Value)
 
+import qualified Data.Set   as Set
 import           Prelude (Semigroup(..))
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
@@ -63,8 +61,8 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: Currency -> () -> () -> V.PendingTx -> Bool
-validate c@(Currency (refHash, refIdx) _) _ _ p =
+validate :: Currency -> V.PendingTxMPS -> Bool
+validate c@(Currency (refHash, refIdx) _) p =
     let
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol p
@@ -86,9 +84,9 @@ validate c@(Currency (refHash, refIdx) _) _ _ p =
 
     in forgeOK && txOutputSpent
 
-curValidator :: Currency -> Validator
-curValidator cur = mkValidatorScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
+curPolicy :: Currency -> MonetaryPolicy
+curPolicy cur = mkMonetaryPolicyScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validate c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode cur
 
@@ -105,12 +103,12 @@ is why we use 'V.ownCurrencySymbol', which obtains the hash from the
 
 -}
 
--- | The 'Value' forged by the 'curValidator' contract
+-- | The 'Value' forged by the 'curPolicy' contract
 forgedValue :: Currency -> Value
-forgedValue cur = currencyValue (currencySymbol cur) cur        
+forgedValue cur = currencyValue (currencySymbol cur) cur
 
 currencySymbol :: Currency -> CurrencySymbol
-currencySymbol = scriptCurrencySymbol . curValidator
+currencySymbol = scriptCurrencySymbol . curPolicy
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
@@ -126,16 +124,9 @@ forgeContract
 forgeContract pk amounts = do
     refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
     let theCurrency = mkCurrency (txInRef refTxIn) amounts
-        curAddr     = Ledger.scriptAddress curVali
         forgedVal   = forgedValue theCurrency
-        curRedeemer = unitRedeemer
-        curVali     = curValidator theCurrency
+        curVali     = curPolicy theCurrency
 
-        -- the transaction that creates the script output
-        scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr unitData
-    scriptTxOuts <- AM.fromTxOutputs <$> (submitTx scriptTx >>= awaitTransactionConfirmed curAddr)
-    let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
-                    <> mustSpendInput refTxIn
-                    <> forgeValue forgedVal
+    let forgeTx = mustSpendInput refTxIn <> forgeValue forgedVal (Set.singleton curVali)
     _ <- submitTx forgeTx
     pure theCurrency

@@ -185,7 +185,7 @@
                                       PendingTx_match
                                       (vardecl
                                         PendingTx
-                                        (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List PendingTxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i])))))))))
+                                        (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List PendingTxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i]))))))))))
                                       )
                                     )
                                   )
@@ -535,189 +535,175 @@
                                                             (strict)
                                                             (vardecl
                                                               txSignedBy
-                                                              (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] (fun (con bytestring) Bool))
+                                                              (all a (type) (fun [PendingTx a] (fun (con bytestring) Bool)))
                                                             )
-                                                            (lam
-                                                              ds
-                                                              [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]
+                                                            (abs
+                                                              a
+                                                              (type)
                                                               (lam
-                                                                k
-                                                                (con bytestring)
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        PendingTx_match
-                                                                        [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    Bool
-                                                                  }
-                                                                  (lam
-                                                                    ds
-                                                                    [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]]
+                                                                ds
+                                                                [PendingTx a]
+                                                                (lam
+                                                                  k
+                                                                  (con bytestring)
+                                                                  [
+                                                                    {
+                                                                      [
+                                                                        {
+                                                                          PendingTx_match
+                                                                          a
+                                                                        }
+                                                                        ds
+                                                                      ]
+                                                                      Bool
+                                                                    }
                                                                     (lam
                                                                       ds
-                                                                      [List PendingTxOut]
+                                                                      [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]]
                                                                       (lam
                                                                         ds
-                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                        [List PendingTxOut]
                                                                         (lam
                                                                           ds
                                                                           [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                           (lam
                                                                             ds
-                                                                            [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
+                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                             (lam
                                                                               ds
-                                                                              [Interval (con integer)]
+                                                                              a
                                                                               (lam
                                                                                 ds
-                                                                                [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                [Interval (con integer)]
                                                                                 (lam
                                                                                   ds
-                                                                                  [List [[Tuple2 (con bytestring)] Data]]
+                                                                                  [List (con bytestring)]
                                                                                   (lam
                                                                                     ds
-                                                                                    (con bytestring)
-                                                                                    (let
-                                                                                      (rec
-                                                                                      )
-                                                                                      (termbind
-                                                                                        (strict
-                                                                                        )
-                                                                                        (vardecl
-                                                                                          go
-                                                                                          (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] Bool)
-                                                                                        )
-                                                                                        (lam
-                                                                                          l
-                                                                                          [List [[Tuple2 (con bytestring)] (con bytestring)]]
-                                                                                          [
-                                                                                            [
+                                                                                    [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                    (lam
+                                                                                      ds
+                                                                                      [List [[Tuple2 (con bytestring)] Data]]
+                                                                                      (lam
+                                                                                        ds
+                                                                                        (con bytestring)
+                                                                                        (let
+                                                                                          (rec
+                                                                                          )
+                                                                                          (termbind
+                                                                                            (strict
+                                                                                            )
+                                                                                            (vardecl
+                                                                                              go
+                                                                                              (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] Bool)
+                                                                                            )
+                                                                                            (lam
+                                                                                              l
+                                                                                              [List [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                               [
-                                                                                                {
+                                                                                                [
                                                                                                   [
                                                                                                     {
-                                                                                                      Nil_match
-                                                                                                      [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                      [
+                                                                                                        {
+                                                                                                          Nil_match
+                                                                                                          [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                        }
+                                                                                                        l
+                                                                                                      ]
+                                                                                                      (fun Unit Bool)
                                                                                                     }
-                                                                                                    l
+                                                                                                    (lam
+                                                                                                      thunk
+                                                                                                      Unit
+                                                                                                      False
+                                                                                                    )
                                                                                                   ]
-                                                                                                  (fun Unit Bool)
-                                                                                                }
-                                                                                                (lam
-                                                                                                  thunk
-                                                                                                  Unit
-                                                                                                  False
-                                                                                                )
-                                                                                              ]
-                                                                                              (lam
-                                                                                                ds
-                                                                                                [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                                                (lam
-                                                                                                  r
-                                                                                                  [List [[Tuple2 (con bytestring)] (con bytestring)]]
                                                                                                   (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    [
-                                                                                                      {
+                                                                                                    ds
+                                                                                                    [[Tuple2 (con bytestring)] (con bytestring)]
+                                                                                                    (lam
+                                                                                                      r
+                                                                                                      [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                      (lam
+                                                                                                        thunk
+                                                                                                        Unit
                                                                                                         [
                                                                                                           {
-                                                                                                            {
-                                                                                                              Tuple2_match
-                                                                                                              (con bytestring)
-                                                                                                            }
-                                                                                                            (con bytestring)
-                                                                                                          }
-                                                                                                          ds
-                                                                                                        ]
-                                                                                                        Bool
-                                                                                                      }
-                                                                                                      (lam
-                                                                                                        pk
-                                                                                                        (con bytestring)
-                                                                                                        (lam
-                                                                                                          sig
-                                                                                                          (con bytestring)
-                                                                                                          [
                                                                                                             [
-                                                                                                              [
+                                                                                                              {
                                                                                                                 {
-                                                                                                                  [
-                                                                                                                    Bool_match
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        equalsByteString
-                                                                                                                        k
-                                                                                                                      ]
-                                                                                                                      pk
-                                                                                                                    ]
-                                                                                                                  ]
-                                                                                                                  (fun Unit Bool)
+                                                                                                                  Tuple2_match
+                                                                                                                  (con bytestring)
                                                                                                                 }
-                                                                                                                (lam
-                                                                                                                  thunk
-                                                                                                                  Unit
+                                                                                                                (con bytestring)
+                                                                                                              }
+                                                                                                              ds
+                                                                                                            ]
+                                                                                                            Bool
+                                                                                                          }
+                                                                                                          (lam
+                                                                                                            pk
+                                                                                                            (con bytestring)
+                                                                                                            (lam
+                                                                                                              sig
+                                                                                                              (con bytestring)
+                                                                                                              [
+                                                                                                                [
                                                                                                                   [
-                                                                                                                    [
+                                                                                                                    {
                                                                                                                       [
-                                                                                                                        {
+                                                                                                                        Bool_match
+                                                                                                                        [
                                                                                                                           [
-                                                                                                                            Bool_match
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                [
-                                                                                                                                  verifySignature
-                                                                                                                                  k
-                                                                                                                                ]
-                                                                                                                                ds
-                                                                                                                              ]
-                                                                                                                              sig
-                                                                                                                            ]
+                                                                                                                            equalsByteString
+                                                                                                                            k
                                                                                                                           ]
-                                                                                                                          (fun Unit Bool)
-                                                                                                                        }
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          True
-                                                                                                                        )
+                                                                                                                          pk
+                                                                                                                        ]
                                                                                                                       ]
-                                                                                                                      (lam
-                                                                                                                        thunk
-                                                                                                                        Unit
+                                                                                                                      (fun Unit Bool)
+                                                                                                                    }
+                                                                                                                    (lam
+                                                                                                                      thunk
+                                                                                                                      Unit
+                                                                                                                      [
                                                                                                                         [
                                                                                                                           [
                                                                                                                             {
                                                                                                                               [
-                                                                                                                                Unit_match
+                                                                                                                                Bool_match
                                                                                                                                 [
-                                                                                                                                  trace
                                                                                                                                   [
-                                                                                                                                    toPlutusString
                                                                                                                                     [
+                                                                                                                                      verifySignature
+                                                                                                                                      k
+                                                                                                                                    ]
+                                                                                                                                    ds
+                                                                                                                                  ]
+                                                                                                                                  sig
+                                                                                                                                ]
+                                                                                                                              ]
+                                                                                                                              (fun Unit Bool)
+                                                                                                                            }
+                                                                                                                            (lam
+                                                                                                                              thunk
+                                                                                                                              Unit
+                                                                                                                              True
+                                                                                                                            )
+                                                                                                                          ]
+                                                                                                                          (lam
+                                                                                                                            thunk
+                                                                                                                            Unit
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                {
+                                                                                                                                  [
+                                                                                                                                    Unit_match
+                                                                                                                                    [
+                                                                                                                                      trace
                                                                                                                                       [
-                                                                                                                                        {
-                                                                                                                                          Cons
-                                                                                                                                          (con integer)
-                                                                                                                                        }
-                                                                                                                                        (con
-                                                                                                                                          109
-                                                                                                                                        )
-                                                                                                                                      ]
-                                                                                                                                      [
-                                                                                                                                        [
-                                                                                                                                          {
-                                                                                                                                            Cons
-                                                                                                                                            (con integer)
-                                                                                                                                          }
-                                                                                                                                          (con
-                                                                                                                                            97
-                                                                                                                                          )
-                                                                                                                                        ]
+                                                                                                                                        toPlutusString
                                                                                                                                         [
                                                                                                                                           [
                                                                                                                                             {
@@ -725,7 +711,7 @@
                                                                                                                                               (con integer)
                                                                                                                                             }
                                                                                                                                             (con
-                                                                                                                                              116
+                                                                                                                                              109
                                                                                                                                             )
                                                                                                                                           ]
                                                                                                                                           [
@@ -735,7 +721,7 @@
                                                                                                                                                 (con integer)
                                                                                                                                               }
                                                                                                                                               (con
-                                                                                                                                                99
+                                                                                                                                                97
                                                                                                                                               )
                                                                                                                                             ]
                                                                                                                                             [
@@ -745,7 +731,7 @@
                                                                                                                                                   (con integer)
                                                                                                                                                 }
                                                                                                                                                 (con
-                                                                                                                                                  104
+                                                                                                                                                  116
                                                                                                                                                 )
                                                                                                                                               ]
                                                                                                                                               [
@@ -755,7 +741,7 @@
                                                                                                                                                     (con integer)
                                                                                                                                                   }
                                                                                                                                                   (con
-                                                                                                                                                    105
+                                                                                                                                                    99
                                                                                                                                                   )
                                                                                                                                                 ]
                                                                                                                                                 [
@@ -765,7 +751,7 @@
                                                                                                                                                       (con integer)
                                                                                                                                                     }
                                                                                                                                                     (con
-                                                                                                                                                      110
+                                                                                                                                                      104
                                                                                                                                                     )
                                                                                                                                                   ]
                                                                                                                                                   [
@@ -775,7 +761,7 @@
                                                                                                                                                         (con integer)
                                                                                                                                                       }
                                                                                                                                                       (con
-                                                                                                                                                        103
+                                                                                                                                                        105
                                                                                                                                                       )
                                                                                                                                                     ]
                                                                                                                                                     [
@@ -785,7 +771,7 @@
                                                                                                                                                           (con integer)
                                                                                                                                                         }
                                                                                                                                                         (con
-                                                                                                                                                          32
+                                                                                                                                                          110
                                                                                                                                                         )
                                                                                                                                                       ]
                                                                                                                                                       [
@@ -795,7 +781,7 @@
                                                                                                                                                             (con integer)
                                                                                                                                                           }
                                                                                                                                                           (con
-                                                                                                                                                            112
+                                                                                                                                                            103
                                                                                                                                                           )
                                                                                                                                                         ]
                                                                                                                                                         [
@@ -805,7 +791,7 @@
                                                                                                                                                               (con integer)
                                                                                                                                                             }
                                                                                                                                                             (con
-                                                                                                                                                              117
+                                                                                                                                                              32
                                                                                                                                                             )
                                                                                                                                                           ]
                                                                                                                                                           [
@@ -815,7 +801,7 @@
                                                                                                                                                                 (con integer)
                                                                                                                                                               }
                                                                                                                                                               (con
-                                                                                                                                                                98
+                                                                                                                                                                112
                                                                                                                                                               )
                                                                                                                                                             ]
                                                                                                                                                             [
@@ -825,7 +811,7 @@
                                                                                                                                                                   (con integer)
                                                                                                                                                                 }
                                                                                                                                                                 (con
-                                                                                                                                                                  32
+                                                                                                                                                                  117
                                                                                                                                                                 )
                                                                                                                                                               ]
                                                                                                                                                               [
@@ -835,7 +821,7 @@
                                                                                                                                                                     (con integer)
                                                                                                                                                                   }
                                                                                                                                                                   (con
-                                                                                                                                                                    107
+                                                                                                                                                                    98
                                                                                                                                                                   )
                                                                                                                                                                 ]
                                                                                                                                                                 [
@@ -845,7 +831,7 @@
                                                                                                                                                                       (con integer)
                                                                                                                                                                     }
                                                                                                                                                                     (con
-                                                                                                                                                                      101
+                                                                                                                                                                      32
                                                                                                                                                                     )
                                                                                                                                                                   ]
                                                                                                                                                                   [
@@ -855,7 +841,7 @@
                                                                                                                                                                         (con integer)
                                                                                                                                                                       }
                                                                                                                                                                       (con
-                                                                                                                                                                        121
+                                                                                                                                                                        107
                                                                                                                                                                       )
                                                                                                                                                                     ]
                                                                                                                                                                     [
@@ -865,7 +851,7 @@
                                                                                                                                                                           (con integer)
                                                                                                                                                                         }
                                                                                                                                                                         (con
-                                                                                                                                                                          32
+                                                                                                                                                                          101
                                                                                                                                                                         )
                                                                                                                                                                       ]
                                                                                                                                                                       [
@@ -875,7 +861,7 @@
                                                                                                                                                                             (con integer)
                                                                                                                                                                           }
                                                                                                                                                                           (con
-                                                                                                                                                                            119
+                                                                                                                                                                            121
                                                                                                                                                                           )
                                                                                                                                                                         ]
                                                                                                                                                                         [
@@ -885,7 +871,7 @@
                                                                                                                                                                               (con integer)
                                                                                                                                                                             }
                                                                                                                                                                             (con
-                                                                                                                                                                              105
+                                                                                                                                                                              32
                                                                                                                                                                             )
                                                                                                                                                                           ]
                                                                                                                                                                           [
@@ -895,7 +881,7 @@
                                                                                                                                                                                 (con integer)
                                                                                                                                                                               }
                                                                                                                                                                               (con
-                                                                                                                                                                                116
+                                                                                                                                                                                119
                                                                                                                                                                               )
                                                                                                                                                                             ]
                                                                                                                                                                             [
@@ -905,7 +891,7 @@
                                                                                                                                                                                   (con integer)
                                                                                                                                                                                 }
                                                                                                                                                                                 (con
-                                                                                                                                                                                  104
+                                                                                                                                                                                  105
                                                                                                                                                                                 )
                                                                                                                                                                               ]
                                                                                                                                                                               [
@@ -915,7 +901,7 @@
                                                                                                                                                                                     (con integer)
                                                                                                                                                                                   }
                                                                                                                                                                                   (con
-                                                                                                                                                                                    32
+                                                                                                                                                                                    116
                                                                                                                                                                                   )
                                                                                                                                                                                 ]
                                                                                                                                                                                 [
@@ -925,7 +911,7 @@
                                                                                                                                                                                       (con integer)
                                                                                                                                                                                     }
                                                                                                                                                                                     (con
-                                                                                                                                                                                      105
+                                                                                                                                                                                      104
                                                                                                                                                                                     )
                                                                                                                                                                                   ]
                                                                                                                                                                                   [
@@ -935,7 +921,7 @@
                                                                                                                                                                                         (con integer)
                                                                                                                                                                                       }
                                                                                                                                                                                       (con
-                                                                                                                                                                                        110
+                                                                                                                                                                                        32
                                                                                                                                                                                       )
                                                                                                                                                                                     ]
                                                                                                                                                                                     [
@@ -945,7 +931,7 @@
                                                                                                                                                                                           (con integer)
                                                                                                                                                                                         }
                                                                                                                                                                                         (con
-                                                                                                                                                                                          118
+                                                                                                                                                                                          105
                                                                                                                                                                                         )
                                                                                                                                                                                       ]
                                                                                                                                                                                       [
@@ -955,7 +941,7 @@
                                                                                                                                                                                             (con integer)
                                                                                                                                                                                           }
                                                                                                                                                                                           (con
-                                                                                                                                                                                            97
+                                                                                                                                                                                            110
                                                                                                                                                                                           )
                                                                                                                                                                                         ]
                                                                                                                                                                                         [
@@ -965,7 +951,7 @@
                                                                                                                                                                                               (con integer)
                                                                                                                                                                                             }
                                                                                                                                                                                             (con
-                                                                                                                                                                                              108
+                                                                                                                                                                                              118
                                                                                                                                                                                             )
                                                                                                                                                                                           ]
                                                                                                                                                                                           [
@@ -975,7 +961,7 @@
                                                                                                                                                                                                 (con integer)
                                                                                                                                                                                               }
                                                                                                                                                                                               (con
-                                                                                                                                                                                                105
+                                                                                                                                                                                                97
                                                                                                                                                                                               )
                                                                                                                                                                                             ]
                                                                                                                                                                                             [
@@ -985,7 +971,7 @@
                                                                                                                                                                                                   (con integer)
                                                                                                                                                                                                 }
                                                                                                                                                                                                 (con
-                                                                                                                                                                                                  100
+                                                                                                                                                                                                  108
                                                                                                                                                                                                 )
                                                                                                                                                                                               ]
                                                                                                                                                                                               [
@@ -995,7 +981,7 @@
                                                                                                                                                                                                     (con integer)
                                                                                                                                                                                                   }
                                                                                                                                                                                                   (con
-                                                                                                                                                                                                    32
+                                                                                                                                                                                                    105
                                                                                                                                                                                                   )
                                                                                                                                                                                                 ]
                                                                                                                                                                                                 [
@@ -1005,7 +991,7 @@
                                                                                                                                                                                                       (con integer)
                                                                                                                                                                                                     }
                                                                                                                                                                                                     (con
-                                                                                                                                                                                                      115
+                                                                                                                                                                                                      100
                                                                                                                                                                                                     )
                                                                                                                                                                                                   ]
                                                                                                                                                                                                   [
@@ -1015,7 +1001,7 @@
                                                                                                                                                                                                         (con integer)
                                                                                                                                                                                                       }
                                                                                                                                                                                                       (con
-                                                                                                                                                                                                        105
+                                                                                                                                                                                                        32
                                                                                                                                                                                                       )
                                                                                                                                                                                                     ]
                                                                                                                                                                                                     [
@@ -1025,7 +1011,7 @@
                                                                                                                                                                                                           (con integer)
                                                                                                                                                                                                         }
                                                                                                                                                                                                         (con
-                                                                                                                                                                                                          103
+                                                                                                                                                                                                          115
                                                                                                                                                                                                         )
                                                                                                                                                                                                       ]
                                                                                                                                                                                                       [
@@ -1035,7 +1021,7 @@
                                                                                                                                                                                                             (con integer)
                                                                                                                                                                                                           }
                                                                                                                                                                                                           (con
-                                                                                                                                                                                                            110
+                                                                                                                                                                                                            105
                                                                                                                                                                                                           )
                                                                                                                                                                                                         ]
                                                                                                                                                                                                         [
@@ -1045,7 +1031,7 @@
                                                                                                                                                                                                               (con integer)
                                                                                                                                                                                                             }
                                                                                                                                                                                                             (con
-                                                                                                                                                                                                              97
+                                                                                                                                                                                                              103
                                                                                                                                                                                                             )
                                                                                                                                                                                                           ]
                                                                                                                                                                                                           [
@@ -1055,7 +1041,7 @@
                                                                                                                                                                                                                 (con integer)
                                                                                                                                                                                                               }
                                                                                                                                                                                                               (con
-                                                                                                                                                                                                                116
+                                                                                                                                                                                                                110
                                                                                                                                                                                                               )
                                                                                                                                                                                                             ]
                                                                                                                                                                                                             [
@@ -1065,7 +1051,7 @@
                                                                                                                                                                                                                   (con integer)
                                                                                                                                                                                                                 }
                                                                                                                                                                                                                 (con
-                                                                                                                                                                                                                  117
+                                                                                                                                                                                                                  97
                                                                                                                                                                                                                 )
                                                                                                                                                                                                               ]
                                                                                                                                                                                                               [
@@ -1075,7 +1061,7 @@
                                                                                                                                                                                                                     (con integer)
                                                                                                                                                                                                                   }
                                                                                                                                                                                                                   (con
-                                                                                                                                                                                                                    114
+                                                                                                                                                                                                                    116
                                                                                                                                                                                                                   )
                                                                                                                                                                                                                 ]
                                                                                                                                                                                                                 [
@@ -1085,13 +1071,35 @@
                                                                                                                                                                                                                       (con integer)
                                                                                                                                                                                                                     }
                                                                                                                                                                                                                     (con
-                                                                                                                                                                                                                      101
+                                                                                                                                                                                                                      117
                                                                                                                                                                                                                     )
                                                                                                                                                                                                                   ]
-                                                                                                                                                                                                                  {
-                                                                                                                                                                                                                    Nil
-                                                                                                                                                                                                                    (con integer)
-                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                  [
+                                                                                                                                                                                                                    [
+                                                                                                                                                                                                                      {
+                                                                                                                                                                                                                        Cons
+                                                                                                                                                                                                                        (con integer)
+                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                      (con
+                                                                                                                                                                                                                        114
+                                                                                                                                                                                                                      )
+                                                                                                                                                                                                                    ]
+                                                                                                                                                                                                                    [
+                                                                                                                                                                                                                      [
+                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                          Cons
+                                                                                                                                                                                                                          (con integer)
+                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                        (con
+                                                                                                                                                                                                                          101
+                                                                                                                                                                                                                        )
+                                                                                                                                                                                                                      ]
+                                                                                                                                                                                                                      {
+                                                                                                                                                                                                                        Nil
+                                                                                                                                                                                                                        (con integer)
+                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                    ]
+                                                                                                                                                                                                                  ]
                                                                                                                                                                                                                 ]
                                                                                                                                                                                                               ]
                                                                                                                                                                                                             ]
@@ -1132,53 +1140,53 @@
                                                                                                                                       ]
                                                                                                                                     ]
                                                                                                                                   ]
-                                                                                                                                ]
+                                                                                                                                  (fun Unit Bool)
+                                                                                                                                }
+                                                                                                                                (lam
+                                                                                                                                  thunk
+                                                                                                                                  Unit
+                                                                                                                                  [
+                                                                                                                                    go
+                                                                                                                                    r
+                                                                                                                                  ]
+                                                                                                                                )
                                                                                                                               ]
-                                                                                                                              (fun Unit Bool)
-                                                                                                                            }
-                                                                                                                            (lam
-                                                                                                                              thunk
                                                                                                                               Unit
-                                                                                                                              [
-                                                                                                                                go
-                                                                                                                                r
-                                                                                                                              ]
-                                                                                                                            )
-                                                                                                                          ]
-                                                                                                                          Unit
+                                                                                                                            ]
+                                                                                                                          )
                                                                                                                         ]
-                                                                                                                      )
-                                                                                                                    ]
-                                                                                                                    Unit
+                                                                                                                        Unit
+                                                                                                                      ]
+                                                                                                                    )
                                                                                                                   ]
-                                                                                                                )
-                                                                                                              ]
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                [
-                                                                                                                  go
-                                                                                                                  r
+                                                                                                                  (lam
+                                                                                                                    thunk
+                                                                                                                    Unit
+                                                                                                                    [
+                                                                                                                      go
+                                                                                                                      r
+                                                                                                                    ]
+                                                                                                                  )
                                                                                                                 ]
-                                                                                                              )
-                                                                                                            ]
-                                                                                                            Unit
-                                                                                                          ]
-                                                                                                        )
+                                                                                                                Unit
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
+                                                                                                        ]
                                                                                                       )
-                                                                                                    ]
+                                                                                                    )
                                                                                                   )
-                                                                                                )
-                                                                                              )
-                                                                                            ]
-                                                                                            Unit
+                                                                                                ]
+                                                                                                Unit
+                                                                                              ]
+                                                                                            )
+                                                                                          )
+                                                                                          [
+                                                                                            go
+                                                                                            ds
                                                                                           ]
                                                                                         )
                                                                                       )
-                                                                                      [
-                                                                                        go
-                                                                                        ds
-                                                                                      ]
                                                                                     )
                                                                                   )
                                                                                 )
@@ -1188,8 +1196,8 @@
                                                                         )
                                                                       )
                                                                     )
-                                                                  )
-                                                                ]
+                                                                  ]
+                                                                )
                                                               )
                                                             )
                                                           )
@@ -1510,7 +1518,10 @@
                                                                                                               Bool_match
                                                                                                               [
                                                                                                                 [
-                                                                                                                  txSignedBy
+                                                                                                                  {
+                                                                                                                    txSignedBy
+                                                                                                                    [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
+                                                                                                                  }
                                                                                                                   w
                                                                                                                 ]
                                                                                                                 e
