@@ -17,7 +17,9 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
     , Evaluator
-    , EvaluateT
+    , EvaluateT (..)
+    , runEvaluateT
+    , withEvaluator
     , KnownType (..)
     , KnownTypeValue (..)
     , OpaqueTerm (..)
@@ -27,19 +29,18 @@ module Language.PlutusCore.Constant.Typed
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
 
+import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Map                             (Map)
 import           Data.Proxy
-import           Data.Text                            (Text)
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
-
-
 
 -- | Type schemes of primitive operations.
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
@@ -113,7 +114,21 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
 type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m (Term TyName Name ())
 
 -- | A computation that runs in @m@ and has access to an 'Evaluator' that runs in @m@.
-type EvaluateT m = ReaderT (Evaluator Term m) m
+newtype EvaluateT m a = EvaluateT
+    { unEvaluateT :: ReaderT (Evaluator Term m) m a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadReader (Evaluator Term m)
+        , MonadError e
+        )
+
+-- | Run an 'EvaluateT' computation using the given 'Evaluator'.
+runEvaluateT :: Evaluator Term m -> EvaluateT m a -> m a
+runEvaluateT eval (EvaluateT a) = runReaderT a eval
+
+-- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
+withEvaluator :: (Evaluator Term m -> m a) -> EvaluateT m a
+withEvaluator = EvaluateT . ReaderT
 
 {- Note [Semantics of dynamic built-in types]
 We only allow dynamic built-in types that
@@ -145,7 +160,7 @@ can silently stab you in the back.
 An @KnownType a@ instance provides
 
 1. a way to encode @a@ as a PLC type ('toTypeAst')
-2. a function that encodes values of type @dyn@ as PLC terms ('makeKnown')
+2. a function that encodes values of type @a@ as PLC terms ('makeKnown')
 3. a function that decodes PLC terms back to Haskell values ('readKnown')
 
 The last two are ought to constitute an isomorphism.
@@ -216,7 +231,9 @@ class KnownType a where
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
-    readKnown :: MonadError Text m => Evaluator Term m -> Term TyName Name () -> m a
+    readKnown
+        :: (MonadError e m, AsUnliftingError e)
+        => Evaluator Term m -> Term TyName Name () -> m a
 
     -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
     -- (see e.g. the @ByteString@ instance).
@@ -227,9 +244,9 @@ class KnownType a where
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
 readKnownM
-    :: (MonadError Text m, KnownType a)
+    :: (MonadError e m, AsUnliftingError e, KnownType a)
     => Term TyName Name () -> EvaluateT m a
-readKnownM term = ReaderT $ \eval -> readKnown eval term
+readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
 -- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
 -- for any 'KnownType' via 'prettyKnown', which allows e.g. to pretty-print a list of 'KnownType'
@@ -297,4 +314,4 @@ instance KnownType () where
         res <- eval mempty . Apply () (TyInst () term int) $ asInt 1
         case res of
             Constant () (BuiltinInt () 1) -> pure ()
-            _                             -> throwError "Not a builtin ()"
+            _                             -> throwing _UnliftingError "Not a builtin ()"

@@ -24,6 +24,7 @@ library
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
+        Language.PlutusCore.Evaluation.Error
         Language.PlutusCore.Evaluation.Machine.Ck
         Language.PlutusCore.Evaluation.Machine.Cek
         Language.PlutusCore.Evaluation.Machine.L
