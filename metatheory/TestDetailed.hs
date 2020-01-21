@@ -1,17 +1,17 @@
 module TestDetailed where
 import           Control.Exception
+import qualified Data.Text                  as T
 import           GHC.IO.Handle
 import           System.Directory
 import           System.Environment
 import           System.Exit
 import           System.IO
 import           System.Process
-import qualified Data.Text as T
 
 import           Distribution.TestSuite
 
-import qualified MAlonzo.Code.Main      as M
-import qualified MAlonzo.Code.Raw       as R
+import qualified MAlonzo.Code.Main          as M
+import qualified MAlonzo.Code.Raw           as R
 
 import qualified Data.ByteString.Lazy.Char8 as C
 
@@ -86,7 +86,7 @@ mkTest eq mode test = TestInstance
         }
 tests :: IO [Test]
 tests = do --return [ Test succeeds ] -- , Test fails ]
-  return $ map Test 
+  return $ map Test
     (map (mkTest M.alphaTm "evaluate") evalTestNames
      ++
      map (mkTest M.alphaTy "typecheck") tcTestNames)
