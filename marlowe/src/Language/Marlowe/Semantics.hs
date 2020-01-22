@@ -327,7 +327,7 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token In
                                                 -- ^ src    ^ dest    ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
-  deriving stock (Show, Generic)
+  deriving stock (Show, Generic, P.Eq)
   deriving anyclass (Pretty)
 
 
@@ -344,7 +344,7 @@ data TransactionError = TEAmbiguousSlotIntervalError
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving stock (Show)
+  deriving stock (Show, P.Eq)
 
 instance Pretty TransactionInput where
     prettyFragment tInp = text "TransactionInput" <> space <> lbrace <> line <> txIntLine <> line <> txInpLine

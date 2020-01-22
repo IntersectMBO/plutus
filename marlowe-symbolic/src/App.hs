@@ -6,6 +6,7 @@ import           Control.Concurrent                    (forkOS, killThread, thre
 import           Control.Concurrent.MVar               (MVar, newEmptyMVar, putMVar, readMVar)
 import           Control.Exception                     (try)
 import           Data.Aeson                            (encode)
+import           Data.Bifunctor                        (first)
 import           Data.ByteString.UTF8                  as BSU
 import           Data.Proxy                            (Proxy (Proxy))
 import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
@@ -58,10 +59,6 @@ makeResponse u (Right res) =
                        }
      }
 
-showIfLeft :: Show a => Either a b -> Either String b
-showIfLeft (Left a)  = Left (show a)
-showIfLeft (Right x) = Right x
-
 handler :: Request -> Context -> IO (Either Response Response)
 handler Request {Req.uuid = u, callbackUrl = cu, contract = c} context =
   do system "killallz3"
@@ -71,7 +68,7 @@ handler Request {Req.uuid = u, callbackUrl = cu, contract = c} context =
                   forkOS (do threadDelay 1000000 -- Timeout to send HTTP request (1 sec)
                              putMVar semaphore
                                (makeResponse u (Left "Response HTTP request timed out")))
-                  let resp = makeResponse u (showIfLeft evRes)
+                  let resp = makeResponse u (first show evRes)
                   sendRequest cu resp
                   putMVar semaphore resp)
      timerThread <-

@@ -44708,6 +44708,39 @@ description = "Marlowe: financial contracts on Cardano Computation Layer";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"marlowe-hspec" = callPackage
+({
+  mkDerivation
+, base
+, hspec
+, hspec-expectations
+, HUnit
+, marlowe
+, marlowe-symbolic
+, stdenv
+}:
+mkDerivation {
+
+pname = "marlowe-hspec";
+version = "0.1.0.0";
+src = .././marlowe-hspec;
+libraryHaskellDepends = [
+base
+hspec-expectations
+HUnit
+marlowe
+marlowe-symbolic
+];
+testHaskellDepends = [
+base
+hspec
+HUnit
+marlowe
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "marlowe-playground-server" = callPackage
 ({
   mkDerivation
