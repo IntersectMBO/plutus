@@ -16,7 +16,6 @@ open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic as A
-open import Algorithmic.Equality
 import Algorithmic.RenamingSubstitution as A
 open import Algorithmic.Erasure
 open import Untyped
@@ -34,54 +33,47 @@ backVar⋆ (Γ , A) zero    = A
 backVar⋆ (Γ , A) (suc x) = backVar⋆ Γ x
 
 backVar : ∀{Φ}(Γ : Ctx Φ)(i : Fin (len Γ)) → Γ ∋ (backVar⋆ Γ i)
-backVar (Γ ,⋆ J) x      = T (backVar Γ x) reflNf
-backVar (Γ , A) zero    = Z reflNf
+backVar (Γ ,⋆ J) x      = T (backVar Γ x)
+backVar (Γ , A) zero    = Z
 backVar (Γ , A) (suc x) = S (backVar Γ x)
 
 backVar⋆-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(x : Γ ∋ A) →
-  backVar⋆ Γ (eraseVar x) ≡Nf A
-backVar⋆-eraseVar (Z p) = p
+  backVar⋆ Γ (eraseVar x) ≡ A
+backVar⋆-eraseVar (Z) = refl
 backVar⋆-eraseVar (S x) = backVar⋆-eraseVar x
-backVar⋆-eraseVar (T x p) =
-  transNf (renNf-cong (λ _ → refl) (backVar⋆-eraseVar x)) p
+backVar⋆-eraseVar (T x) = cong weakenNf (backVar⋆-eraseVar x)
 
-{-
+
 subst-S : ∀{Φ}{Γ : Ctx Φ}{B A A' : Φ ⊢Nf⋆ *}(p : A ≡ A')(x : Γ ∋ A) →
-  conv∋ p (S {B = B} x) ≡ S (conv∋ p x)
+  conv∋ refl p (S {B = B} x) ≡ S (conv∋ refl p x)
 subst-S refl x = refl
 
 subst-T : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K} →
   (p : A ≡ A')(q : weakenNf {K = K} A ≡ weakenNf A') → (x : Γ ∋ A) →
-  conv∋ q (T x) ≡ T (conv∋ p x) -- 
+  conv∋ refl q (T x) ≡ T (conv∋ refl p x) -- 
 subst-T refl refl x = refl
-
 
 subst-T' : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
   → (p : A ≡ A')
   → (q : weakenNf {K = K} A ≡ A'')
   → (r : weakenNf  {K = K} A' ≡ A'')
   → (x : Γ ∋ A) →
-  conv∋ q (T x) ≡ conv∋ r (T (conv∋ p x))
+  conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
 subst-T' refl refl refl x = refl
 
 cong-erase-ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ){A A' : Φ ⊢Nf⋆ *}(p : A' ≡ A)
-  → (x : Γ ∋ A)(x' : Γ ∋ A') → conv∋ p x' ≡ x
+  → (x : Γ ∋ A)(x' : Γ ∋ A') → conv∋ refl p x' ≡ x
   → eraseVar (ρ x) ≡ eraseVar (ρ x')
 cong-erase-ren ρ⋆ ρ refl x .x refl = refl
--}
-backVar-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : A ≡Nf A)(x : Γ ∋ A) →
-  VarEq reflCtx p (conv∋ reflCtx (backVar⋆-eraseVar x) (backVar Γ (eraseVar x)))     x
-backVar-eraseVar q (Z p) = ZEq _ p reflNf reflCtx q
-backVar-eraseVar {Γ = Γ , A} q (S x) = SEq reflCtx reflNf q (backVar-eraseVar q x) {- trans
-  (subst-S (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))
-  (cong S (backVar-eraseVar x)) -}
-backVar-eraseVar q (T x p) = TEq _ p reflCtx (backVar⋆-eraseVar x) q {!(conv∋ reflCtx (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))!} {- trans
-  (subst-T (backVar⋆-eraseVar x)
-           (cong weakenNf (backVar⋆-eraseVar x))
-           (backVar _ (eraseVar x)))
-  (cong T (backVar-eraseVar x)) -}
 
+backVar-eraseVar : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : A ≡ A)(x : Γ ∋ A) →
+  conv∋ refl (backVar⋆-eraseVar x) (backVar Γ (eraseVar x)) ≡ x
+backVar-eraseVar q Z = refl
+backVar-eraseVar q (S x) = trans
+  (subst-S (backVar⋆-eraseVar x) (backVar _ (eraseVar x)))
+  (cong S (backVar-eraseVar q x))
+backVar-eraseVar q (T x) = trans (subst-T (backVar⋆-eraseVar x) (cong weakenNf (backVar⋆-eraseVar x)) (backVar _ (eraseVar x))) (cong T (backVar-eraseVar refl x))
 {-
 eraseVar-backVar : ∀{Φ}(Γ : Ctx Φ)(x : Fin (len Γ)) →
   eraseVar (backVar Γ x) ≡ x

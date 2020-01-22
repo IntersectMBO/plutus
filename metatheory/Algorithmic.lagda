@@ -159,8 +159,8 @@ Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 
 # Term Abbreviations
 \begin{code}
---void : ∀{Γ} → Γ ⊢ unitNf
---void = Λ (ƛ (` Z))
+void : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ unitNf
+void = Λ (ƛ (` Z))
 
 true : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
 true = Λ (ƛ (ƛ (` (S Z))))

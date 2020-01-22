@@ -99,4 +99,7 @@ plc_true = ƛ (ƛ (` (suc zero)))
 
 plc_false : ∀{n} → n ⊢
 plc_false = ƛ (ƛ (` zero))
+
+plc_dummy : ∀{n} → n ⊢
+plc_dummy = ƛ (ƛ (` zero)) -- the erasure of unitval
 \end{code}

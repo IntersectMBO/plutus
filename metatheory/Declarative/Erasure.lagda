@@ -18,13 +18,13 @@ open import Data.List
 
 len : ∀{Φ} → Ctx Φ → ℕ
 len ∅ = 0
-len (Γ ,⋆ K) = len Γ
+len (Γ ,⋆ K) = suc (len Γ)
 len (Γ , A)  = suc (len Γ)
 
 eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero 
 eraseVar (S α) = suc (eraseVar α) 
-eraseVar (T α) = eraseVar α
+eraseVar (T α) = suc (eraseVar α)
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ *} → TyTermCon A → TermCon
 eraseTC (integer i)    = integer i
@@ -41,8 +41,8 @@ erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)             = ` (eraseVar α)
 erase (ƛ t)             = ƛ (erase t) 
 erase (t · u)           = erase t · erase u
-erase (Λ t)             = erase t
-erase (t ·⋆ A)          = erase t
+erase (Λ t)             = ƛ (erase t)
+erase (t ·⋆ A)          = erase t · plc_dummy
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
 erase (conv p t)        = erase t
