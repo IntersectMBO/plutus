@@ -1,11 +1,8 @@
-((Right (lam
-  n
-  (all r (type) (fun r (fun (fun r r) r)))
-  (abs r (type) (lam z r (lam f (fun r r) [ f [ [ { n r } z ] f ] ])))
-)) , ({ ({ ({ })
-| ({ })
+((Right (\(n : all (r :: *). r -> (r -> r) -> r) -> /\(r :: *) -> \(z : r) -> \(f : r -> r) -> f (n {r} z f)))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 915
 })
 }))

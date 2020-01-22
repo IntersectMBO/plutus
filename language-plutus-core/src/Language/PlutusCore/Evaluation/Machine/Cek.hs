@@ -50,6 +50,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
 where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
@@ -128,7 +129,7 @@ spendBudget
     -> Lens' s a
     -> a
     -> m ()
-spendBudget Counting    l ex = l += ex
+spendBudget Counting    l ex =l += ex
 spendBudget Restricting l ex = do
     newEx <- l <-= ex
     when (newEx < 0) $ throwError $ CekUserError CekOutOfExError
@@ -262,8 +263,7 @@ instantiateEvaluate
 instantiateEvaluate con _ (TyAbs _ _ _ body) = computeCek con body
 instantiateEvaluate con ty fun
     | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst 1 fun ty
-    | -- TODO
-      otherwise = throwError $ CekInternalError $ MachineException
+    | otherwise = throwError $ CekInternalError $ MachineException
         NonPrimitiveInstantiationMachineError
         (void fun)
 
@@ -284,8 +284,7 @@ applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
 applyEvaluate funVarEnv _ con fun arg =
     let term = Apply 1 fun arg
-    in -- TODO
-        case termAsPrimIterApp term of
+    in case termAsPrimIterApp term of
             Nothing -> throwError $ CekInternalError $ MachineException
                 NonPrimitiveApplicationMachineError
                 (void term)
@@ -347,8 +346,10 @@ evaluateCek
     -> (Either CekMachineException (Plain Term), ExBudgetState)
 evaluateCek means mode budget term =
     evaluateCekIn (CekEnv means mempty mode)
-                  (ExBudgetState mempty budget)
-        $ withMemory term
+                  (ExBudgetState mempty (budget <> ExBudget 0 (- getAnn memTerm)))
+        $ memTerm
+    where
+        memTerm = withMemory term
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek

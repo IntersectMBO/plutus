@@ -66,8 +66,8 @@ data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
 instance PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
-        [ "{ ", prettyBy config cpu, line
-        , "| ", prettyBy config memory, line
+        [ "{ cpu: ", prettyBy config cpu, line
+        , "| mem: ", prettyBy config memory, line
         , "}"
         ]
 
@@ -79,8 +79,8 @@ data ExBudgetState = ExBudgetState
 instance ( PrettyBy config (Term TyName Name ())
          ) => PrettyBy config ExBudgetState where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
-        [ "{ ", prettyBy config tally, line
-        , "| ", prettyBy config budget, line
+        [ "{ tally: ", prettyBy config tally, line
+        , "| budget: ", prettyBy config budget, line
         , "}"
         ]
 
@@ -93,8 +93,8 @@ data ExTally = ExTally
 instance ( PrettyBy config (Term TyName Name ())
          ) => PrettyBy config ExTally where
     prettyBy config (ExTally cpu memory) = parens $ fold
-        [ "{ ", prettyBy config cpu, line
-        , "| ", prettyBy config memory, line
+        [ "{ cpu: ", prettyBy config cpu, line
+        , "| mem: ", prettyBy config memory, line
         , "}"
         ]
 
@@ -103,7 +103,7 @@ newtype ExTallyCounter unit = ExTallyCounter (MonoidalHashMap (Plain Term) [unit
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTallyCounter unit))
 instance (PrettyBy config (Term TyName Name ()), PrettyBy config unit) => PrettyBy config (ExTallyCounter unit) where
     prettyBy config (ExTallyCounter m) =
-        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ ifoldMap (\k v -> [prettyBy config k <+> ":" <+> prettyBy config v]) m) <> ["}"])
+        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ ifoldMap (\k v -> [prettyBy config v <+> "used by" <+> group (prettyBy config k)]) m) <> ["}"])
 
 $(join <$> traverse makeLenses [''ExBudgetState, ''ExBudget, ''ExTally])
 

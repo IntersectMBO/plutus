@@ -43,18 +43,14 @@ type WithMemory f = f TyName Name ExMemory
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
-  deriving newtype Num
+  deriving newtype (Num, PrettyBy config)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
-instance PrettyBy config ExMemory where
-  prettyBy _ (ExMemory mem) = parens ("mem" <+> pretty mem)
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
-  deriving newtype Num
+  deriving newtype (Num, PrettyBy config)
   deriving (Semigroup, Monoid) via (Sum Integer)
-instance PrettyBy config ExCPU where
-  prettyBy _ (ExCPU mem) = parens ("cpu" <+> pretty mem)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

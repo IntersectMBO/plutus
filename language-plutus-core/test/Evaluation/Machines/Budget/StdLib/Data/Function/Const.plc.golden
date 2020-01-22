@@ -1,7 +1,8 @@
-((Right (abs a (type) (abs b (type) (lam x a (lam y b x))))) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> /\(b :: *) -> \(x : a) -> \(y : b) -> x))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 965
 })
 }))

@@ -1,8 +1,8 @@
-((Right (lam i (con integer) [ [ (builtin addInteger) i ] (con 1) ]
-)) , ({ ({ ({ })
-| ({ })
+((Right (\(i : integer) -> addInteger i 1))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 986
 })
 }))

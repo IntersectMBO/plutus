@@ -1,27 +1,8 @@
-((Right (lam
-  n
-  (ifix (lam rec (fun (fun (type) (type)) (type)) (lam f (fun (type) (type)) [f [rec f]])) (lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))))
-  (iwrap
-    (lam rec (fun (fun (type) (type)) (type)) (lam f (fun (type) (type)) [f [rec f]]))
-    (lam nat (type) (all r (type) (fun r (fun (fun nat r) r))))
-    (abs
-      r
-      (type)
-      (lam
-        z
-        r
-        (lam
-          f
-          (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam f (fun (type) (type)) [f [rec f]])) (lam nat (type) (all r (type) (fun r (fun (fun nat r) r))))) r)
-          [ f n ]
-        )
-      )
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (\(n : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r)) -> iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (/\(r :: *) -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) -> r) -> f n)))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 699
 })
 }))

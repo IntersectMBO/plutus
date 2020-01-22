@@ -180,7 +180,10 @@ instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (Either a b) 
     prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
 
 instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (a, b) where
-    prettyBy config (a, b) = parens (prettyBy config a <+> "," <+> prettyBy config b)
+    prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
+
+instance PrettyBy config Integer where
+    prettyBy _ = pretty
 -- delete until here
 
 instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where

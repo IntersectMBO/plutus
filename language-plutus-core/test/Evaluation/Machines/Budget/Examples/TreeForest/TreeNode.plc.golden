@@ -1,31 +1,8 @@
-((Right (abs
-  a
-  (type)
-  (lam
-    x
-    a
-    (lam
-      fr
-      (ifix (lam rec (fun (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) [spine (lam a (type) (lam tag (fun (type) (fun (type) (type))) (all r (type) [[tag (fun (fun a (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r)] (fun r (fun (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) t))])] (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r))])))])) (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))]))
-      (iwrap
-        (lam rec (fun (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) [spine (lam a (type) (lam tag (fun (type) (fun (type) (type))) (all r (type) [[tag (fun (fun a (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r)] (fun r (fun (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) t))])] (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r))])))]))
-        (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) t))])
-        (abs
-          r
-          (type)
-          (lam
-            f
-            (fun a (fun (ifix (lam rec (fun (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (fun (type) (fun (type) (type))) (type))) (type)) [spine (lam a (type) (lam tag (fun (type) (fun (type) (type))) (all r (type) [[tag (fun (fun a (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r)] (fun r (fun (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) t))])] (fun [rec (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])] r)) r))])))])) (lam dat (fun (type) (fun (fun (type) (fun (type) (type))) (type))) [[dat a] (lam t (type) (lam f (type) f))])) r))
-            [ [ f x ] fr ]
-          )
-        )
-      )
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> \(x : a) -> \(fr : ifix (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *) -> \(spine :: (* -> (* -> * -> *) -> *) -> *) -> spine (\(a :: *) -> \(tag :: * -> * -> *) -> all (r :: *). tag ((a -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r) (r -> (rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> t)) -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r))) (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f))) -> iwrap (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *) -> \(spine :: (* -> (* -> * -> *) -> *) -> *) -> spine (\(a :: *) -> \(tag :: * -> * -> *) -> all (r :: *). tag ((a -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r) (r -> (rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> t)) -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r))) (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> t)) (/\(r :: *) -> \(f : a -> ifix (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *) -> \(spine :: (* -> (* -> * -> *) -> *) -> *) -> spine (\(a :: *) -> \(tag :: * -> * -> *) -> all (r :: *). tag ((a -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r) (r -> (rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> t)) -> rec (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> r))) (\(dat :: * -> (* -> * -> *) -> *) -> dat a (\(t :: *) -> \(f :: *) -> f)) -> r) -> f x fr)))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: -95
 })
 }))

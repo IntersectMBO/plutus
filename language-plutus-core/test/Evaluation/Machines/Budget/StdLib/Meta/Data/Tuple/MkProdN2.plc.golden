@@ -1,23 +1,8 @@
-((Right (abs
-  t_0
-  (type)
-  (abs
-    t_1
-    (type)
-    (lam
-      arg_0
-      t_0
-      (lam
-        arg_1
-        t_1
-        (abs r (type) (lam case (fun t_0 (fun t_1 r)) [ [ case arg_0 ] arg_1 ]))
-      )
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(t_0 :: *) -> /\(t_1 :: *) -> \(arg_0 : t_0) -> \(arg_1 : t_1) -> /\(r :: *) -> \(case : t_0 -> t_1 -> r) -> case arg_0 arg_1))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 794
 })
 }))

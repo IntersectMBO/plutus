@@ -1,43 +1,8 @@
-((Right (abs
-  a
-  (type)
-  (abs
-    b
-    (type)
-    (lam
-      x
-      a
-      (lam
-        y
-        b
-        (lam
-          xs
-          [[(lam a (type) (lam b (type) (ifix (lam rec (fun (fun (fun (type) (fun (type) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (type) (type))) (type)) [spine [(lam interlist (fun (type) (fun (type) (type))) (lam a (type) (lam b (type) (all r (type) (fun r (fun (fun a (fun b (fun [[interlist b] a] r))) r)))))) (lam a (type) (lam b (type) [rec (lam dat (fun (type) (fun (type) (type))) [[dat a] b])]))]])) (lam dat (fun (type) (fun (type) (type))) [[dat a] b])))) b] a]
-          (iwrap
-            (lam rec (fun (fun (fun (type) (fun (type) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (type) (type))) (type)) [spine [(lam interlist (fun (type) (fun (type) (type))) (lam a (type) (lam b (type) (all r (type) (fun r (fun (fun a (fun b (fun [[interlist b] a] r))) r)))))) (lam a (type) (lam b (type) [rec (lam dat (fun (type) (fun (type) (type))) [[dat a] b])]))]]))
-            (lam dat (fun (type) (fun (type) (type))) [[dat a] b])
-            (abs
-              r
-              (type)
-              (lam
-                z
-                r
-                (lam
-                  f
-                  (fun a (fun b (fun [[(lam a (type) (lam b (type) (ifix (lam rec (fun (fun (fun (type) (fun (type) (type))) (type)) (type)) (lam spine (fun (fun (type) (fun (type) (type))) (type)) [spine [(lam interlist (fun (type) (fun (type) (type))) (lam a (type) (lam b (type) (all r (type) (fun r (fun (fun a (fun b (fun [[interlist b] a] r))) r)))))) (lam a (type) (lam b (type) [rec (lam dat (fun (type) (fun (type) (type))) [[dat a] b])]))]])) (lam dat (fun (type) (fun (type) (type))) [[dat a] b])))) b] a] r)))
-                  [ [ [ f x ] y ] xs ]
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> /\(b :: *) -> \(x : a) -> \(y : b) -> \(xs : (\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)) b a) -> iwrap (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b) (/\(r :: *) -> \(z : r) -> \(f : a -> b -> (\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)) b a -> r) -> f x y xs)))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 40
 })
 }))

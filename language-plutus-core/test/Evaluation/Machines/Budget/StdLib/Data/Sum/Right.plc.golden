@@ -1,15 +1,8 @@
-((Right (abs
-  a
-  (type)
-  (abs
-    b
-    (type)
-    (lam y b (abs r (type) (lam f (fun a r) (lam g (fun b r) [ g y ]))))
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> /\(b :: *) -> \(y : b) -> /\(r :: *) -> \(f : a -> r) -> \(g : b -> r) -> g y))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 935
 })
 }))

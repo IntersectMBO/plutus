@@ -1,65 +1,8 @@
-((Right (abs
-  a
-  (type)
-  (abs
-    b
-    (type)
-    (lam
-      f
-      (fun (fun a b) (fun a b))
-      [
-        {
-          (abs
-            a
-            (type)
-            (lam
-              s
-              [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) a]
-              [ (unwrap s) s ]
-            )
-          )
-          (fun a b)
-        }
-        (iwrap
-          (lam self (fun (type) (type)) (lam a (type) (fun [self a] a)))
-          (fun a b)
-          (lam
-            s
-            [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) (fun a b)]
-            (lam
-              x
-              a
-              [
-                [
-                  f
-                  [
-                    {
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          s
-                          [(lam a (type) (ifix (lam self (fun (type) (type)) (lam a (type) (fun [self a] a))) a)) a]
-                          [ (unwrap s) s ]
-                        )
-                      )
-                      (fun a b)
-                    }
-                    s
-                  ]
-                ]
-                x
-              ]
-            )
-          )
-        )
-      ]
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> /\(b :: *) -> \(f : (a -> b) -> a -> b) -> (/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) a) -> unwrap s s) {a -> b} (iwrap (\(self :: * -> *) -> \(a :: *) -> self a -> a) (a -> b) (\(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) (a -> b)) -> \(x : a) -> f ((/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) a) -> unwrap s s) {a -> b} s) x))))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 619
 })
 }))

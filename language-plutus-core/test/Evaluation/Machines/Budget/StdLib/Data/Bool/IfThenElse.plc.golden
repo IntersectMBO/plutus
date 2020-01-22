@@ -1,26 +1,8 @@
-((Right (abs
-  a
-  (type)
-  (lam
-    b
-    (all a (type) (fun a (fun a a)))
-    (lam
-      x
-      (fun (all a (type) (fun a a)) a)
-      (lam
-        y
-        (fun (all a (type) (fun a a)) a)
-        [
-          [ [ { b (fun (all a (type) (fun a a)) a) } x ] y ]
-          (abs a (type) (lam x a x))
-        ]
-      )
-    )
-  )
-)) , ({ ({ ({ })
-| ({ })
+((Right (/\(a :: *) -> \(b : all (a :: *). a -> a -> a) -> \(x : (all (a :: *). a -> a) -> a) -> \(y : (all (a :: *). a -> a) -> a) -> b {(all (a :: *). a -> a) -> a} x y (/\(a :: *) -> \(x : a) -> x)))
+, ({ tally: ({ cpu: ({ })
+| mem: ({ })
 })
-| ({ (cpu 10)
-| (mem 10)
+| budget: ({ cpu: 100
+| mem: 865
 })
 }))

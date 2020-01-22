@@ -21,6 +21,7 @@ module Language.PlutusCore.Core.Type
     , Program(..)
     , Normalized(..)
     , HasUniques
+    , getAnn
     , defaultVersion
     , allBuiltinNames
     -- * Helper functions
@@ -137,6 +138,18 @@ data Term tyname name ann
     | IWrap ann (Type tyname ann) (Type tyname ann) (Term tyname name ann)
     | Error ann (Type tyname ann)
     deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+
+getAnn :: Term tyname name ann -> ann -- put this in a class? Or does such a class already exist?
+getAnn (Var ann _) = ann
+getAnn (TyAbs ann _ _ _) = ann
+getAnn (LamAbs ann _ _ _) = ann
+getAnn (Apply ann _ _) = ann
+getAnn (Constant ann _) = ann
+getAnn (Builtin ann _) = ann
+getAnn (TyInst ann _ _) = ann
+getAnn (Unwrap ann _) = ann
+getAnn (IWrap ann _ _ _) = ann
+getAnn (Error ann _) = ann
 
 type Value = Term
 

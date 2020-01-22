@@ -67,7 +67,7 @@ testBudget :: TestName -> (Plain Term) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (prettyPlcDefText $ evaluateCek mempty Restricting (ExBudget 10 10) term)
+    (docText $ prettyPlcReadableDef $ evaluateCek mempty Restricting (ExBudget 100 1000) term)
 
 test_budget :: TestTree
 test_budget =
