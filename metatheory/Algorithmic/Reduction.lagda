@@ -47,7 +47,6 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
   V-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}
     → {N : Γ ,⋆ K ⊢ B}
-    → Value N
       ----------------
     → Value (Λ N)
 
@@ -336,9 +335,9 @@ progress-· (error e)        u = error (E-·₁ e)
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
-progress-·⋆ (step p)       A = step (ξ-·⋆ p)
-progress-·⋆ (done (V-Λ p)) A = step β-Λ
-progress-·⋆ (error e)      A = error (E-·⋆ e)
+progress-·⋆ (step p)   A = step (ξ-·⋆ p)
+progress-·⋆ (done V-Λ) A = step β-Λ
+progress-·⋆ (error e)  A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
@@ -397,12 +396,6 @@ progressTel p {As = []}     tt         = done tt
 progressTel p {As = A ∷ As} (t ,, tel) =
   progressTelCons p (progress p t) (progressTel p tel)
 
-progress-Λ : ∀{Φ Γ} → NoVar Γ → ∀{K}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
-  → Progress M → Progress (Λ M)
-progress-Λ n (step p)    = step (ξ-Λ p)
-progress-Λ n (done p)    = done (V-Λ p)
-progress-Λ n (error e)   = error (E-Λ e)
-
 progress-wrap :  ∀{Φ Γ} → NoVar Γ  → ∀{K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
    → {arg : Φ ⊢Nf⋆ K}
@@ -415,7 +408,7 @@ progress-wrap n (error e)   = error (E-wrap e)
 progress p (` x)                = ⊥-elim (noVar p x)
 progress p (ƛ M)                = done V-ƛ
 progress p (M · N)              = progress-· (progress p M) N
-progress p (Λ M)                = progress-Λ p (progress p M)
+progress p (Λ M)                = done V-Λ
 progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
 progress p (unwrap1 M)          = progress-unwrap (progress p M)
