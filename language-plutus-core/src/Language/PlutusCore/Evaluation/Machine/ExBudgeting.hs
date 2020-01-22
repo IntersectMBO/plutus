@@ -15,17 +15,17 @@ Additionally, it's helpful to know which parts of the script cost how much. We a
 
 We're tracking execution cost via both memory (via 'ExMemory') and CPU (via 'ExCPU'). Node operators are more interested in space limits than time limits - the memory upper limit will be reached faster than the time limit (which would be until next block). The two resources are then converted to the main currency of the chain based on protocol parameters - that way it's possible to adjust the actual fees without changing the code.
 
-When tracking memory, we ignore garbage collection - only total memory allocation is counted. This decision decouples us from the implementation of the GC itself. Additionally, sharing of references is assumed. If a builtin generates a new value, every reference of that value (e.g. in different CEK environments) is assumed to point to the same value, without any copies. The CEK environment costs are included in the stack frame costs of the CEK machine, they're linear.
+When tracking memory, we ignore garbage collection - only total memory allocation is counted. This decision decouples us from the implementation of the GC itself. Additionally, sharing of references is assumed. If a builtin generates a new value, every reference of that value (e.g. in different CEK environments) is assumed to point to the same value, without any copies. So the total memory of the program is bounded to the original program + anything the builtins produce + the machine space used by the CEK machine itself. The CEK environment costs are included in the stack frame costs of the CEK machine, they're linear.
 
-The tracking of the costs themselves does not cost anything. Currently that's an implementation detail. We may have to readjust this depending on real world experience.
+The tracking of the costs themselves does not cost any CPU or memory. Currently that's an implementation detail. We may have to readjust this depending on real world experience.
 
 The CEK machine does budgeting in these steps:
 - The memory cost of the initial AST is added to the budget. See Note [Memory Usage for Plutus]. This operation currently does not cost any CPU. It currently costs as much memory as the AST itself, before aborting. See https://github.com/input-output-hk/plutus/issues/1799 for more discussion.
 - Then each machine reduction step requires a certain amount of memory and CPU.
 - The builtin operations may require different amounts of memory and CPU, depending on the input size.
-- If a computation runs out of Memory or CPU, it is aborted.
+- If a computation runs out of Memory or CPU, it is aborted, via the same mechanism when 'error' is called.
 
-Tracking CEK machine layers is rather straightforward, albeit these numbers still have to be filled in. For builtins (e.g. +, etc.) the cost tracking can be a bit more complicated, as the required resources may depend on the size of the inputs. These cost estimations will also have factors attached which can be configured at runtime via protocol parameters - so it's possible to adjust them at runtime.
+Tracking CEK machine layers is rather straightforward, albeit these numbers still have to be filled in. For builtins (e.g. +, etc.) the cost tracking can be a bit more complicated, as the required resources may depend on the size of the inputs (E.g. multiplying numbers, where the output will be around 6 words if both inputs are at 3 words each). These cost estimations will also have factors attached which can be configured at runtime via protocol parameters - so it's possible to adjust them at runtime.
 
 -}
 
