@@ -26,7 +26,6 @@ data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H :
   where
   -·_     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *} → Γ ⊢ A → Frame Γ B Γ (A ⇒ B)
   _·-     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Value t → Frame Γ B Γ A
-  Λ-      : ∀{Φ}{Γ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *} → Frame Γ (Π B) (Γ ,⋆ K) B
   -·⋆    : ∀{Φ K Γ}{B : Φ ,⋆ K ⊢Nf⋆ *}(A : Φ ⊢Nf⋆ K)
     → Frame Γ (B [ A ]Nf) Γ (Π B)
   wrap-   : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
@@ -59,7 +58,6 @@ closeFrame : ∀{Φ}{Γ : Ctx Φ}{T : Φ ⊢Nf⋆ *} → ∀{Φ'}{Γ' : Ctx Φ'}
   → Frame Γ T Γ' H → Γ' ⊢ H →  Γ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
-closeFrame Λ-              t = Λ t
 closeFrame (-·⋆ A)         t = _·⋆_ t A
 closeFrame wrap-           t = wrap1 _ _ t
 closeFrame unwrap-         t = unwrap1 t
@@ -99,7 +97,7 @@ step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{H : Φ' ⊢Nf�
 step p (s ▻ ` x)                          = ⊥-elim (noVar p x)
 step p (s ▻ ƛ L)                          = _ ,, _ ,, p ,, _ ,, s ◅ V-ƛ {N = L}
 step p (s ▻ (L · M))                      = _ ,, _ ,, p ,, _ ,, (s , -· M) ▻ L
-step p (s ▻ Λ L)                          = _ ,, _ ,, p ,, _ ,, (s , Λ-) ▻ L
+step p (s ▻ Λ L)                          = _ ,, _ ,, p ,, _ ,, s ◅ V-Λ {N = L}
 step p (s ▻ (_·⋆_ L A))                   = _ ,, _ ,, p ,, _ ,, (s , -·⋆ A) ▻ L
 step p (s ▻ wrap1 pat arg L)              = _ ,, _ ,, p ,, _ ,, (s , wrap-) ▻ L
 step p (s ▻ unwrap1 L)                    = _ ,, _ ,, p ,, _ ,, (s , unwrap-) ▻ L
@@ -110,8 +108,7 @@ step {Γ' = Γ'} p (s ▻ error A)            =  _ ,, Γ' ,, p ,, _ ,, ◆ Γ' A
 step p (ε ◅ V)                            = _ ,, _ ,, p ,, _ ,, □ V
 step p ((s , (-· M)) ◅ V)                 = _ ,, _ ,, p ,, _ ,, ((s , V ·-) ▻ M)
 step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, p ,, _ ,, s ▻ (t [ u ])
-step p ((s , Λ-) ◅ V)                     = _ ,, _ ,, p ,, _ ,, s ◅ V-Λ V
-step p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V)  = _ ,, _ ,, p ,, _ ,, s ▻ (t [ A ]⋆)
+step p ((s , (-·⋆ A)) ◅ V-Λ {N = t})      = _ ,, _ ,, p ,, _ ,, s ▻ (t [ A ]⋆)
 step p ((s , wrap-) ◅ V)                  = _ ,, _ ,, p ,, _ ,, s ◅ (V-wrap V)
 step p ((s , unwrap-) ◅ V-wrap V)         = _ ,, _ ,, p ,, _ ,, s ◅ V
 step p (□ V)                              = _ ,, _ ,, p ,, _ ,, □ V
