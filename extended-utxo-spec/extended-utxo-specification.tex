@@ -1,3 +1,10 @@
+%% TODO
+%%
+%%   * Rename PendingTx to TxInfo, but not until the implementation also does so.
+%%   * 
+%%
+
+
 %% Extended UTXO Specification
 \newcommand\version{-1}
 
@@ -110,6 +117,8 @@
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\scriptAddr}{\msf{scriptAddr}}
 \newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
+\newcommand{\toData}{\ensuremath{\s{toData}}}
+\newcommand{\toPendingTx}{\ensuremath{\s{toPendingTx}}}
 
 % Macros for eutxo things.
 \newcommand{\TxId}{\ensuremath{\s{TxId}}}
@@ -135,7 +144,7 @@
 \newcommand{\outputref}{\mi{outputRef}}
 \newcommand{\txin}{\mi{in}}
 \newcommand{\id}{\mi{id}}
-\newcommand{\lookupTx}[2]{#1\langle#2\rangle}
+\newcommand{\lookupTx}[2]{\msf{lookupTx(#1, #2)}}
 \newcommand{\getSpent}{\msf{getSpentOutput}}
 
 \newcommand{\slotnum}{\ensuremath{\s{SlotNumber}}}
@@ -563,8 +572,8 @@ related types.
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
-     \tau: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction in the context of an input}\\
-     \delta: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{}}
+     \toPendingTx: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction in the context of an input}\\
+     \toData: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{} as \Data}
   \end{array}
   \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-1 model}
@@ -590,21 +599,21 @@ input currently undergoing validation.
 % and redeemer scripts in inputInfo are allowed to be absent
 % when we have pubkey inputs.  We're ignoring that special case here.
 
-\paragraph{Defining $\tau$ and $\delta$.}
+\paragraph{Defining \toPendingTx{} and \toData.}
 Assuming we have an
-appropriate hashing function, it is straightforward to define $\tau$.
-For the implementation of $\delta$, note that the $inputs$ field is a
-\FinSet{} in \eutxotx{}, but a \List{}in \ptx{}. Therefore $\delta$ has to introduce
+appropriate hashing function, it is straightforward to define \toPendingTx.
+For the implementation of \toData, note that the $inputs$ field is a
+\FinSet{} in \eutxotx{}, but a \List{} in \ptx{}. Therefore \toData{} has to introduce
 an ordering of the transaction inputs. Contract authors cannot make
 any assumptions about this ordering and therefore should ensure that
 their scripts pass or fail regardless of what particular permutation
 of transaction inputs they are presented with.
 
-Apart from that, the function $\delta$ is implementation-dependent and
+Apart from that, the function \toData{} is implementation-dependent and
 we will not discuss it further.
 
 \todokwxm{But with the advent of \Data{} we \textit{can}
-  specify $\delta$.  Maybe we should?}
+  specify $\toData$.  Maybe we should?}
 \todokwxm{... or even just do the whole translation in one step.}
 
 \paragraph{Determinism.}
@@ -626,8 +635,6 @@ $t$ to be considered valid with respect to a ledger $l$.
   \begin{array}{lll}
   \multicolumn{3}{l}{\lookupTx{\_}{\_} : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
   \lookupTx{l}{id} &=& \textsf{find}(l, tx \mapsto \txId(tx) = id)\\
-  \\
-  \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
   \\
   \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}}\\
   \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
@@ -651,7 +658,7 @@ of the transaction inputs refer to existing unspent outputs, and hence that
 looking up the input cannot fail.
 
 We can now define what it means for a transaction $t$ of
-type $\eutxotx$ to be valid for a ledger: see
+type $\eutxotx$ to be valid for a ledger $l$ during the slot $\msf{currentSlot}$: see
 \cref{fig:eutxo-1-validity}.  Our definition combines
 Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
 the latter in \cref{rule:all-inputs-validate}.
@@ -659,6 +666,13 @@ the latter in \cref{rule:all-inputs-validate}.
 
 \begin{ruledfigure}{H}
 \begin{enumerate}
+
+\item
+  \label{rule:slot-in-range}
+  \textbf{The current slot is within the validity interval}
+  \begin{displaymath}
+    \msf{currentSlot} \in t.\i{validityInterval}
+  \end{displaymath}
 
 \item
   \label{rule:all-outputs-are-non-negative}
@@ -701,7 +715,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \delta(\tau(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPendingTx(t,i))) = \true.
   \end{displaymath}
 
 \item
@@ -725,7 +739,7 @@ $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
 In practice, validity imposes a limit on the size of the
 $\validator$ \script{}; the $\redeemerVal$ and
-$\dataVal$ \Data{} fields; and the result of $\delta$. The validation of a
+$\dataVal$ \Data{} fields; and the result of \toData. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -862,8 +876,8 @@ the details are given in \cref{fig:ptx-2-types}.
                  & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap)\\
     \\
-    \tau_2: \eutxotx_2 \times \N \rightarrow \ptx_2 &=& \mbox{summarises a transaction in the context of an input}\\
-    \delta_2: \ptx_2 \rightarrow \Data &=& \mbox{encodes a $\ptx_2$}
+    \toPendingTx_2: \eutxotx_2 \times \N \rightarrow \ptx_2 &=& \mbox{summarises a transaction in the context of an input}\\
+    \toData_2: \ptx_2 \rightarrow \Data &=& \mbox{encodes a $\ptx_2$}
   \end{array}
   \end{displaymath}
   \caption{The \ptx{} type for the EUTXO-2 model}
@@ -884,6 +898,13 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \begin{ruledfigure}{H}
 \begin{enumerate}
+
+\item
+  \label{rule:slot-in-range-2}
+  \textbf{The current slot is within the validity interval}
+  \begin{displaymath}
+    \msf{currentSlot} \in t.\i{validityInterval}
+  \end{displaymath}
 
 \item
   \label{rule:all-outputs-are-non-negative-2}
@@ -933,7 +954,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \delta_2(\tau_2(t, i))) = \true
+    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \toData_2(\toPendingTx_2(t, i))) = \true
   \end{displaymath}
 
 \item
@@ -1034,7 +1055,7 @@ output could be spendable by anyone, or by no-one.
 In order to deal with this complexity, an output can be locked by a
 \textit{script}%
 \footnote{In the Cardano setting, scripts are Plutus Core
-  programs~\citep{Plutus-Core-spec}git push.}
+  programs~\citep{Plutus-Core-spec}.}
 which must be supplied with suitable evidence to unlock the output.
 In the basic model, each input to a transaction comes with a
 \i{validator} script which checks that the transaction is allowed to
