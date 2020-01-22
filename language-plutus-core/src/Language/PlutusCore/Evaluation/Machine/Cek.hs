@@ -34,21 +34,16 @@ import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Control.Lens.TH                                  (makeLenses)
-import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.Map                                         as Map
 
 type Plain f = f TyName Name ()
 
--- -- | The CEK machine-specific 'MachineException'.
--- type CekMachineException = MachineException UnknownDynamicBuiltinNameError
+-- | The type of results the CK machine returns.
+type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
-data CekMachineException
-    = CekInternalError (MachineException UnknownDynamicBuiltinNameError) -- ^ Indicates bugs
-    | CekUserError -- ^ Indicates user errors
-    deriving (Show, Eq)
-
-instance Exception CekMachineException
+-- | The CEK machine-specific 'EvaluationException'.
+type CekMachineException = EvaluationException UnknownDynamicBuiltinNameError ()
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -101,7 +96,9 @@ lookupVarName :: Name () -> CekM Closure
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
-        Nothing   -> throwError $ CekInternalError $ MachineException OpenTermEvaluatedMachineError (Var () varName)
+        Nothing   -> throwingWithCause _MachineError
+            OpenTermEvaluatedMachineError
+            (Just $ Var () varName)
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -109,7 +106,7 @@ lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
-        Nothing   -> throwError $ CekInternalError $ MachineException err term where
+        Nothing   -> throwingWithCause _MachineError err $ Just term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
             term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
@@ -131,7 +128,8 @@ computeCek con tyAbs@TyAbs{}            = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
 computeCek con constant@Constant{}      = returnCek con constant
 computeCek con bi@Builtin{}             = returnCek con bi
-computeCek _   Error{}                  = undefined -- pure EvaluationFailure
+computeCek _   Error{}                  =
+    throwingWithCause _EvaluationError (UserEvaluationError ()) Nothing
 computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term
@@ -155,7 +153,7 @@ returnCek (FrameApplyFun funVarEnv fun : con) arg = do
 returnCek (FrameIWrap ann pat arg      : con) val = returnCek con $ IWrap ann pat arg val
 returnCek (FrameUnwrap                 : con) dat = case dat of
     IWrap _ _ _ term -> returnCek con term
-    term             -> throwError $ CekInternalError $ MachineException NonWrapUnwrappedMachineError term
+    term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -166,7 +164,7 @@ instantiateEvaluate con _  (TyAbs _ _ _ body) = computeCek con body
 instantiateEvaluate con ty fun
     | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst () fun ty
     | otherwise                      =
-        throwError $ CekInternalError $ MachineException NonPrimitiveInstantiationMachineError fun
+        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -182,60 +180,59 @@ applyEvaluate funVarEnv _         con fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing                       ->
-                throwError $ CekInternalError $ MachineException NonPrimitiveApplicationMachineError term
+                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    Just res -> computeCek con res
-                    Nothing  -> returnCek con term
+                    ConstAppSuccess res -> computeCek con res
+                    ConstAppStuck       -> returnCek con term
 
-evaluateInCekM :: EvaluateConstAppDef (Either CekMachineException) -> CekM (Maybe (Term TyName Name ()))
+evaluateInCekM :: EvaluateConstApp (Either CekMachineException) -> CekM ConstAppResult
 evaluateInCekM a =
     ReaderT $ \cekEnv ->
         let eval means' term =
                 let cekEnv' = cekEnv & cekEnvMeans %~ mappend means'
                     in runReaderT (computeCek [] term) cekEnv'
-            in runReaderT a eval
+            in runEvaluateT eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM (Maybe (Term TyName Name ())) -- ConstAppResultDef
+applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM ConstAppResult
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
-    undefined -- evaluateInCekM $ applyTypeSchemed sch x args
+    evaluateInCekM $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
-    undefined -- evaluateInCekM $ applyBuiltinName name args
+    evaluateInCekM $ applyBuiltinName name args
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekIn
-    :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResultDef
-evaluateCekIn cekEnv = undefined . computeCek [] -- runCekM cekEnv . computeCek []
+    :: CekEnv -> Plain Term -> Either CekMachineException (Term TyName Name ())
+evaluateCekIn cekEnv = runCekM cekEnv . computeCek []
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
-    :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResultDef
+    :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException (Term TyName Name ())
 evaluateCek means = evaluateCekIn $ CekEnv means mempty
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
-unsafeEvaluateCek = either throw id .* evaluateCek
+unsafeEvaluateCek means = either throwInternal (EvaluationSuccess . id) . evaluateCek means where
+    throwInternal (ErrorWithCause ckErr mayCause) = case ckErr of
+        InternalEvaluationError err -> throw $ ErrorWithCause err mayCause
+        UserEvaluationError ()      -> EvaluationFailure
 
--- The implementation is a bit of a hack.
 readKnownCek
     :: KnownType a
     => DynamicBuiltinNameMeanings
     -> Term TyName Name ()
-    -> Either CekMachineException (EvaluationResult a)
-readKnownCek means term = undefined -- do
-    -- res <- runReflectT $ readKnown (evaluateCek . mappend means) term
-    -- case res of
-    --     EvaluationFailure            -> Right EvaluationFailure
-    --     EvaluationSuccess (Left err) -> Left $ MachineException appErr term where
-    --         appErr = ConstAppMachineError $ UnreadableBuiltinConstAppError term err
-    --     EvaluationSuccess (Right x)  -> Right $ EvaluationSuccess x
+    -> Either CekMachineException a
+readKnownCek means = readKnown $ evaluateCek . mappend means
 
 -- | Run a program using the CEK machine.
 -- Calls 'evaluateCekCatch' under the hood.
-runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> Either CekMachineException EvaluationResultDef
+runCek
+    :: DynamicBuiltinNameMeanings
+    -> Program TyName Name ()
+    -> Either CekMachineException (Term TyName Name ())
 runCek means (Program _ _ term) = evaluateCek means term
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.

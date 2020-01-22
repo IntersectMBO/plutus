@@ -58,7 +58,7 @@ module PlutusPrelude
     -- * Custom functions
     , (<<$>>)
     , (<<*>>)
-    , forBind
+    , mtraverse
     , foldMapM
     , reoption
     , (?)
@@ -213,8 +213,8 @@ f <<*>> a = getCompose $ Compose f <*> Compose a
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
 
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
+mtraverse :: (Monad m, Traversable m, Applicative f) => (a -> f (m b)) -> m a -> f (m b)
+mtraverse f a = join <$> traverse f a
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b

@@ -19,8 +19,12 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , ConstAppError (..)
     , AsConstAppError (..)
     , MachineError (..)
-    , MachineExceptionWith (..)
-    , MachineException
+    , AsMachineError (..)
+    , EvaluationError (..)
+    , AsEvaluationError (..)
+    , ErrorWithCause (..)
+    , EvaluationException
+    , throwingWithCause
     ) where
 
 import           PlutusPrelude
@@ -30,6 +34,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
+import           Control.Monad.Except
 import           Data.String                (IsString)
 import           Data.Text                  (Text)
 
@@ -37,7 +42,6 @@ newtype UnliftingError
     = UnliftingErrorE Text
     deriving (Show, Eq)
     deriving newtype (IsString)
-makeClassyPrisms ''UnliftingError
 
 -- | The type of constant applications errors.
 data ConstAppError
@@ -48,7 +52,6 @@ data ConstAppError
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
     deriving (Show, Eq)
-makeClassyPrisms ''ConstAppError
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError err
@@ -63,33 +66,45 @@ data MachineError err
     | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | OtherMachineError err
-    deriving (Eq)
-makeClassyPrisms ''MachineError
+    deriving (Show, Eq)
 
--- | The generic type of exceptions an abstract machine can throw.
-data MachineExceptionWith term err = MachineException
-    { _machineExceptionError :: MachineError err  -- ^ An error.
-    , _machineExceptionCause :: term              -- ^ A @term@ that caused the error.
-    } deriving (Eq)
-makeLenses ''MachineExceptionWith
+data EvaluationError internal user
+    = InternalEvaluationError (MachineError internal)
+      -- ^ Indicates bugs.
+    | UserEvaluationError user
+      -- ^ Indicates user errors.
+    deriving (Show)
 
--- | The type of exceptions an abstract machine can throw.
-type MachineException = MachineExceptionWith (Term TyName Name ())
+mtraverse makeClassyPrisms
+    [ ''UnliftingError
+    , ''ConstAppError
+    , ''MachineError
+    , ''EvaluationError
+    ]
 
-instance AsUnliftingError ConstAppError where
-    _UnliftingError = _UnliftingConstAppError
-
+instance AsMachineError (EvaluationError internal user) internal where
+    _MachineError = _InternalEvaluationError
 instance AsConstAppError (MachineError err) where
     _ConstAppError = _ConstAppMachineError
+instance AsConstAppError (EvaluationError internal user) where
+    _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
+instance AsUnliftingError ConstAppError where
+    _UnliftingError = _UnliftingConstAppError
+instance AsUnliftingError (EvaluationError internal user) where
+    _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
+instance AsUnliftingError (MachineError err) where
+    _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 
-newtype AppliedMachineException err = AppliedMachineException
-    { unAppliedMachineException :: forall term. term -> MachineExceptionWith term err
-    }
+data ErrorWithCause err
+    = ErrorWithCause err (Maybe (Term TyName Name ()))
+    deriving (Eq, Functor)
 
-instance AsConstAppError (AppliedMachineException err) where
-    _ConstAppError = prism'
-        (\err -> AppliedMachineException $ MachineException (review _ConstAppError err))
-        (\(AppliedMachineException toExc) -> toExc () ^? machineExceptionError . _ConstAppError)
+type EvaluationException internal user = ErrorWithCause (EvaluationError internal user)
+
+throwingWithCause
+    :: MonadError (ErrorWithCause e) m
+    => AReview e t -> t -> Maybe (Term TyName Name ()) -> m x
+throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
@@ -120,10 +135,14 @@ instance ( PrettyBy config (Term TyName Name ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance Pretty err => Show (MachineException err) where
-    show (MachineException err cause) = fold
-        [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
-        , "Caused by: ", docString $ prettyPlcReadableDebug cause
+-- instance
+
+instance PrettyPlc err => Show (ErrorWithCause err) where
+    show (ErrorWithCause err mayCause) = fold
+        [ "An error has occurred: ", docString $ prettyPlcReadableDebug err
+        , case mayCause of
+            Nothing    -> ""
+            Just cause -> "\nCaused by: " ++ docString (prettyPlcReadableDebug cause)
         ]
 
-instance (Pretty err, Typeable err) => Exception (MachineException err)
+instance (PrettyPlc err, Typeable err) => Exception (ErrorWithCause err)

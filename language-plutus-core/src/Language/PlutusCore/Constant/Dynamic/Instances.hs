@@ -28,7 +28,6 @@ import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
-import           Control.Monad.Error.Lens
 import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                             as BSL
 import           Data.Char
@@ -80,7 +79,8 @@ instance KnownType Integer where
         res <- eval mempty term
         case res of
             Constant () (BuiltinInt () i) -> pure i
-            _                             -> throwing _UnliftingError "Not a builtin Integer"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin Integer" $ Just term
 
 instance KnownType Int where
     toTypeAst _ = TyBuiltin () TyInteger
@@ -92,7 +92,8 @@ instance KnownType Int where
         case res of
             -- TODO: check that 'i' is in bounds.
             Constant () (BuiltinInt () i) -> pure $ fromIntegral i
-            _                             -> throwing _UnliftingError "Not a builtin Int"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin Int" $ Just term
 
 instance KnownType BSL.ByteString where
     toTypeAst _ = TyBuiltin () TyByteString
@@ -103,7 +104,8 @@ instance KnownType BSL.ByteString where
         res <- eval mempty term
         case res of
             Constant () (BuiltinBS () i) -> pure i
-            _                            -> throwing _UnliftingError "Not a builtin ByteString"
+            _                            ->
+                throwingWithCause _UnliftingError "Not a builtin ByteString" $ Just term
 
     prettyKnown = prettyBytes
 
@@ -116,7 +118,8 @@ instance KnownType [Char] where
         res <- eval mempty term
         case res of
             Constant () (BuiltinStr () s) -> pure s
-            _                             -> throwing _UnliftingError "Not a builtin String"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin String" $ Just term
 
 instance KnownType Bool where
     toTypeAst _ = bool
@@ -132,7 +135,8 @@ instance KnownType Bool where
         case res of
             Constant () (BuiltinInt () 1) -> pure True
             Constant () (BuiltinInt () 0) -> pure False
-            _                             -> throwing _UnliftingError "Not an integer-encoded Bool"
+            _                             ->
+                throwingWithCause _UnliftingError "Not an integer-encoded Bool" $ Just term
 
 -- Encode 'Char' from Haskell as @integer@ from PLC.
 instance KnownType Char where
@@ -144,7 +148,8 @@ instance KnownType Char where
         res <- eval mempty term
         case res of
             Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
-            _                               -> throwing _UnliftingError "Not an integer-encoded Char"
+            _                               ->
+                throwingWithCause _UnliftingError "Not an integer-encoded Char" $ Just term
 
 instance KnownType a => KnownType (() -> a) where
     toTypeAst _ = TyFun () unit $ toTypeAst @a Proxy

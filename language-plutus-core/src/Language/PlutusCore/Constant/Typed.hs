@@ -33,7 +33,6 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Map                                         (Map)
@@ -232,7 +231,7 @@ class KnownType a where
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
     readKnown
-        :: (MonadError e m, AsUnliftingError e)
+        :: (MonadError (ErrorWithCause err) m, AsUnliftingError err)
         => Evaluator Term m -> Term TyName Name () -> m a
 
     -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
@@ -244,7 +243,7 @@ class KnownType a where
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
 readKnownM
-    :: (MonadError e m, AsUnliftingError e, KnownType a)
+    :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
     => Term TyName Name () -> EvaluateT m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
@@ -314,4 +313,5 @@ instance KnownType () where
         res <- eval mempty . Apply () (TyInst () term int) $ asInt 1
         case res of
             Constant () (BuiltinInt () 1) -> pure ()
-            _                             -> throwing _UnliftingError "Not a builtin ()"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin ()" $ Just term

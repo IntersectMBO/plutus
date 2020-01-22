@@ -1,6 +1,9 @@
 -- | The CK machine.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( CkMachineException
@@ -11,30 +14,27 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     , runCk
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
-import           PlutusPrelude
-
-import           Data.Functor.Identity
 
 infix 4 |>, <|
 
--- | The default type of results various evaluation engines return.
+-- | The type of results the CK machine returns.
 type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
-data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
-
-data CkMachineException
-    = CkInternalError (MachineException NoDynamicBuiltinNamesMachineError)
-      -- ^ Indicates bugs
-    | CkEvaluationFailure
-      -- ^ Indicates user errors
+data NoDynamicBuiltinNamesMachineError
+    = NoDynamicBuiltinNamesMachineError
     deriving (Show)
+
+-- | The CK machine-specific 'EvaluationException'.
+type CkMachineException = EvaluationException NoDynamicBuiltinNamesMachineError ()
 
 type CkM = Either CkMachineException
 
@@ -50,13 +50,6 @@ type Context = [Frame]
 instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
         "The CK machine doesn't support dynamic extensions to the set of built-in names."
-
--- | Throw a 'CkMachineException'. This function is needed, because it constrains 'MachinerError'
--- to be parametrized by a 'NoDynamicBuiltinNamesError' which is required in order to disambiguate
--- @throw .* MachineException@.
-throwCkMachineException
-    :: MachineError NoDynamicBuiltinNamesMachineError -> Term TyName Name () -> a
-throwCkMachineException = throw .* MachineException
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
@@ -95,8 +88,10 @@ stack |> tyAbs@TyAbs{}          = stack <| tyAbs
 stack |> lamAbs@LamAbs{}        = stack <| lamAbs
 stack |> bi@Builtin{}           = stack <| bi
 stack |> constant@Constant{}    = stack <| constant
-_     |> Error{}                = Left CkEvaluationFailure
-_     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachineError var
+_     |> Error{}                =
+    throwingWithCause _EvaluationError (UserEvaluationError ()) Nothing
+_     |> var@Var{}              =
+    throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 
 -- | The returning part of the CK machine. Rules are as follows:
 --
@@ -116,7 +111,7 @@ FrameApplyFun fun      : stack <| arg     = applyEvaluate stack fun arg
 FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
 FrameUnwrap            : stack <| wrapped = case wrapped of
     IWrap _ _ _ term -> stack <| term
-    term             -> throwCkMachineException NonWrapUnwrappedMachineError term
+    term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -127,7 +122,7 @@ instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
     | otherwise                      =
-          throwCkMachineException NonPrimitiveInstantiationMachineError fun
+          throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -139,19 +134,20 @@ applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg 
 applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
-            Nothing                                 ->
-                throwCkMachineException NonPrimitiveApplicationMachineError term
-            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
-                throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
+            Nothing ->
+                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
+            Just (IterApp DynamicStagedBuiltinName{} _) ->
+                throwingWithCause _MachineError
+                    (OtherMachineError NoDynamicBuiltinNamesMachineError)
+                    (Just term)
             Just (IterApp (StaticStagedBuiltinName name) spine) -> do
                 constAppResult <- applyEvaluateCkBuiltinName name spine
                 case constAppResult of
-                    Just res -> stack |> res
-                    Nothing  -> stack <| term
+                    ConstAppSuccess res -> stack |> res
+                    ConstAppStuck       -> stack <| term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM (Maybe (Term TyName Name ()))
-applyEvaluateCkBuiltinName name =
-    runApplyBuiltinName (const ([] |>)) name
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM ConstAppResult
+applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
@@ -162,7 +158,10 @@ applyEvaluateCkBuiltinName name =
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk :: Term TyName Name () -> EvaluationResultDef
-evaluateCk = ([] |>)
+evaluateCk term = either throwInternal (EvaluationSuccess . id) $ [] |> term where
+    throwInternal (ErrorWithCause ckErr mayCause) = case ckErr of
+        InternalEvaluationError err -> throw $ ErrorWithCause err mayCause
+        UserEvaluationError ()      -> EvaluationFailure
 
 -- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
