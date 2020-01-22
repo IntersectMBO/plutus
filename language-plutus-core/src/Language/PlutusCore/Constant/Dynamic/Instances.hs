@@ -2,12 +2,14 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
-    ( PlcList (..)
+    ( RawTerm (..)
+    , PlcList (..)
     ) where
 
 import           Language.PlutusCore.Constant.Make
@@ -73,6 +75,18 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
     makeKnown = unOpaqueTerm
 
     readKnown eval = fmap OpaqueTerm . makeRightReflectT . eval mempty
+
+-- | Very similar to 'OpaqueTerm', except the type is a closed one.
+newtype RawTerm a = RawTerm
+    { unRawTerm :: Term TyName Name ()
+    } deriving newtype (Pretty)
+
+instance KnownType a => KnownType (RawTerm a) where
+    toTypeAst _ = toTypeAst @a Proxy
+
+    makeKnown = unRawTerm
+
+    readKnown eval = fmap RawTerm . makeRightReflectT . eval mempty
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin () TyInteger

@@ -44,8 +44,12 @@ newtype EmitHandler r = EmitHandler
     { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
     }
 
-feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
-feedEmitHandler term (EmitHandler handler) = handler mempty term
+feedEmitHandler
+    :: DynamicBuiltinNameMeanings
+    -> Term TyName Name ()
+    -> EmitHandler r
+    -> IO r
+feedEmitHandler means term (EmitHandler handler) = handler means term
 
 withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
@@ -66,7 +70,8 @@ withEmitTerm cont (EmitHandler handler) =
 withEmitEvaluateBy
     :: KnownType a
     => Evaluator Term m
+    -> DynamicBuiltinNameMeanings
     -> (Term TyName Name () -> Term TyName Name ())
     -> IO ([a], m EvaluationResultDef)
-withEmitEvaluateBy eval toTerm =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm
+withEmitEvaluateBy eval means toTerm =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . toTerm

@@ -90,7 +90,7 @@ test_plcListOfSumsRoundtrip =
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
             chars = map makeKnown str
             in foldr step unitval chars
@@ -117,21 +117,20 @@ test_ignoreEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
             readMake 'a'
 
-test_delayEvaluationFailure :: TestTree
-test_delayEvaluationFailure =
-    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
-        isEvaluationSuccess $ do
-            f <- readMake $ \() -> EvaluationFailure
-            case f () of
-                EvaluationFailure    -> EvaluationSuccess ()
-                EvaluationSuccess () -> EvaluationFailure
+test_noticeFunEvaluationFailure :: TestTree
+test_noticeFunEvaluationFailure =
+    testCase "noticeFunEvaluationFailure" . assertBool "'EvaluationFailure' ignored" $
+        isEvaluationFailure $ do
+            _ <- readMake True
+            _ <- readMakeHetero @(() -> EvaluationResult ()) @(() -> ()) $ \() -> EvaluationFailure
+            readMake 'a'
 
 test_EvaluationFailure :: TestTree
 test_EvaluationFailure =
     testGroup "EvaluationFailure"
         [ test_noticeEvaluationFailure
         , test_ignoreEvaluationFailure
-        , test_delayEvaluationFailure
+        , test_noticeFunEvaluationFailure
         ]
 
 test_dynamicMakeRead :: TestTree
