@@ -33,6 +33,9 @@ ren ρ error          = error
 renList ρ []       = []
 renList ρ (t ∷ ts) = ren ρ t ∷ renList ρ ts
 
+weaken : ∀{n} → n ⊢ → suc n ⊢
+weaken t = ren suc t
+
 lift-cong : ∀{m n}{ρ ρ' : Ren m n}
   → (∀ α → ρ α ≡ ρ' α)
   → (α : Fin (suc m))

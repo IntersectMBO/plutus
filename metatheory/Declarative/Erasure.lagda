@@ -4,7 +4,9 @@ module Declarative.Erasure where
 
 \begin{code}
 open import Declarative
+open import Type.RenamingSubstitution as T
 open import Untyped
+open import Untyped.RenamingSubstitution as U
 \end{code}
 
 \begin{code}
@@ -17,23 +19,21 @@ open import Data.Fin
 open import Data.List
 
 len : ∀{Φ} → Ctx Φ → ℕ
-len ∅ = 0
-len (Γ ,⋆ K) = suc (len Γ)
+len ∅        = 0
+len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = suc (len Γ)
 
 eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero 
 eraseVar (S α) = suc (eraseVar α) 
-eraseVar (T α) = suc (eraseVar α)
+eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ *} → TyTermCon A → TermCon
 eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 
-open import Type.RenamingSubstitution
-
-eraseTel : ∀{Φ Γ Δ}{σ : Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
+eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
   → Declarative.Tel Γ Δ σ As
   → Untyped.Tel (len Γ)
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
@@ -41,7 +41,7 @@ erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)             = ` (eraseVar α)
 erase (ƛ t)             = ƛ (erase t) 
 erase (t · u)           = erase t · erase u
-erase (Λ t)             = ƛ (erase t)
+erase (Λ t)             = ƛ (U.weaken (erase t))
 erase (t ·⋆ A)          = erase t · plc_dummy
 erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
