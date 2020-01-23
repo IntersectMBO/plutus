@@ -95,10 +95,10 @@ ugly error = "error"
 
 \begin{code}
 plc_true : ∀{n} → n ⊢
-plc_true = ƛ (ƛ (` (suc zero)))
+plc_true = ƛ (ƛ (ƛ (` (suc zero))))
 
 plc_false : ∀{n} → n ⊢
-plc_false = ƛ (ƛ (` zero))
+plc_false = ƛ (ƛ (ƛ (` zero)))
 
 plc_dummy : ∀{n} → n ⊢
 plc_dummy = ƛ (ƛ (` zero)) -- the erasure of unitval
