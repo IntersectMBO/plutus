@@ -44,6 +44,7 @@ import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Text.Prettyprint.Doc
 import           Data.Hashable             (Hashable)
+import           Data.String
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
@@ -61,6 +62,7 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving IsString via LedgerBytes
     deriving Pretty via LedgerBytes
 makeLift ''PubKey
 
@@ -69,6 +71,8 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BSL.ByteString }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
+    -- TODO: this should be here, but it upsets marlowe a bit. Should be fixed in the future.
+    --deriving IsString via LedgerBytes
     deriving Pretty via LedgerBytes
 makeLift ''PubKeyHash
 

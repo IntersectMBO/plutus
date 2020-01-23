@@ -70,8 +70,8 @@ carol = Wallet 3
 
 getSignaturesTest :: IO ()
 getSignaturesTest = do
-    let alicePk = walletPubKey alice
-    let bobPk = walletPubKey bob
+    let alicePk = pubKeyHash $ walletPubKey alice
+    let bobPk = pubKeyHash $ walletPubKey bob
     let deposit pk = IDeposit (AccountId 0 alicePk) pk ada 256_000000
     let choice pk = IChoice (ChoiceId "choice" pk) 23
     let sigs = AssocMap.toList . getSignatures
@@ -88,9 +88,9 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = walletPubKey alice
+    let alicePk = pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = walletPubKey bob
+        bobPk = pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -118,9 +118,9 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = walletPubKey alice
+    let alicePk = pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = walletPubKey bob
+        bobPk = pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -154,9 +154,9 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = walletPubKey alice
+    let alicePk = pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = walletPubKey bob
+        bobPk = pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -183,8 +183,8 @@ pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 10)
 
 uniqueContractHash :: IO ()
 uniqueContractHash = do
-    let pk1 = toPublicKey privateKey1
-    let pk2 = toPublicKey privateKey2
+    let pk1 = pubKeyHash $ toPublicKey privateKey1
+    let pk2 = pubKeyHash $ toPublicKey privateKey2
     let hash1 = validatorHash $ validatorScript pk1
     let hash2 = validatorHash $ validatorScript pk2
     assertBool "Hashes must be different" (hash1 /= hash2)
@@ -192,7 +192,7 @@ uniqueContractHash = do
 
 validatorSize :: IO ()
 validatorSize = do
-    let pk1 = toPublicKey privateKey1
+    let pk1 = pubKeyHash $ toPublicKey privateKey1
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode $ validatorScript pk1)
     assertBool "Validator is too large" (vsize < 600000)
 
@@ -221,8 +221,8 @@ performNotify wallets actor action = do
 
 checkEqValue :: Property
 checkEqValue = property $ do
-    pk1 <- forAll pubKeyGen
-    pk2 <- forAll pubKeyGen
+    pk1 <- pubKeyHash <$> forAll pubKeyGen
+    pk2 <- pubKeyHash <$> forAll pubKeyGen
     let value = boundedValue [pk1, pk2] []
     a <- forAll value
     b <- forAll value
@@ -235,8 +235,8 @@ checkEqValue = property $ do
 
 doubleNegation :: Property
 doubleNegation = property $ do
-    pk1 <- forAll pubKeyGen
-    pk2 <- forAll pubKeyGen
+    pk1 <- pubKeyHash <$> forAll pubKeyGen
+    pk2 <- pubKeyHash <$> forAll pubKeyGen
     let value = boundedValue [pk1, pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     a <- forAll value
@@ -245,8 +245,8 @@ doubleNegation = property $ do
 
 valuesFormAbelianGroup :: Property
 valuesFormAbelianGroup = property $ do
-    pk1 <- forAll pubKeyGen
-    pk2 <- forAll pubKeyGen
+    pk1 <- pubKeyHash <$> forAll pubKeyGen
+    pk2 <- pubKeyHash <$> forAll pubKeyGen
     let value = boundedValue [pk1, pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     a <- forAll value
@@ -266,14 +266,19 @@ valuesFormAbelianGroup = property $ do
 
 showReadStuff :: IO ()
 showReadStuff = do
-    assertEqual "alice" (fromString "alice" :: PubKey) (read "\"alice\"")
+    assertEqual "alice" (fromString "alice" :: PubKeyHash) (read "\"alice\"")
     assertEqual "slot" (Slot 123) (read "123")
-    let contract = When [Case
-            (Deposit (AccountId 0 "investor") "investor" ada (Constant 850))
-            (Pay (AccountId 0 "investor") (Party "issuer") ada (Constant 850)
+    let
+        investor :: Party
+        investor = "investor"
+        issuer :: Party
+        issuer = "issuer"
+        contract = When [Case
+            (Deposit (AccountId 0 investor) investor ada (Constant 850))
+            (Pay (AccountId 0 investor) (Party issuer) ada (Constant 850)
                 (When [Case
-                    (Deposit (AccountId 0 "investor") "issuer" ada (Constant 1000))
-                    (Pay (AccountId 0 "investor") (Party "investor") ada
+                    (Deposit (AccountId 0 investor) issuer ada (Constant 1000))
+                    (Pay (AccountId 0 investor) (Party investor) ada
                         (Constant 1000) Close)] 20 Close))] 10 Close
 
     let contract2 :: Contract = Let (ValueId "id") (Constant 12) Close
