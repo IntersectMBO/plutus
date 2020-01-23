@@ -90,7 +90,7 @@ test_plcListOfSumsRoundtrip =
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
             chars = map makeKnown str
             in foldr step unitval chars
