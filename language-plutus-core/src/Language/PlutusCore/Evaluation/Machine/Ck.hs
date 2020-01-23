@@ -7,6 +7,7 @@
 
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( CkMachineException
+    , CkEvaluationException
     , EvaluationResult (..)
     , EvaluationResultDef
     , applyEvaluateCkBuiltinName
@@ -25,18 +26,18 @@ import           Language.PlutusCore.View
 
 infix 4 |>, <|
 
--- | The type of results the CK machine returns.
-type EvaluationResultDef = EvaluationResult (Term TyName Name ())
-
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
 data NoDynamicBuiltinNamesMachineError
     = NoDynamicBuiltinNamesMachineError
-    deriving (Show)
+    deriving (Show, Eq)
+
+-- | The CK machine-specific 'MachineException'.
+type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
 
 -- | The CK machine-specific 'EvaluationException'.
-type CkMachineException = EvaluationException NoDynamicBuiltinNamesMachineError ()
+type CkEvaluationException = EvaluationException NoDynamicBuiltinNamesMachineError ()
 
-type CkM = Either CkMachineException
+type CkM = Either CkEvaluationException
 
 data Frame
     = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
@@ -158,12 +159,9 @@ applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk :: Term TyName Name () -> EvaluationResultDef
-evaluateCk term = either throwInternal (EvaluationSuccess . id) $ [] |> term where
-    throwInternal (ErrorWithCause ckErr mayCause) = case ckErr of
-        InternalEvaluationError err -> throw $ ErrorWithCause err mayCause
-        UserEvaluationError ()      -> EvaluationFailure
+evaluateCk term = either throw id . extractEvaluationResult $ [] |> term
 
--- | Run a program using the CK machine. May throw a 'CkMachineException'.
+-- | Run a program using the CK machine. May throw a 'MachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
 runCk :: Program TyName Name () -> EvaluationResultDef
 runCk (Program _ _ term) = evaluateCk term

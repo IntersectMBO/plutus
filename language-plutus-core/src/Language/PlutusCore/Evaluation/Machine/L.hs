@@ -37,6 +37,7 @@ module Language.PlutusCore.Evaluation.Machine.L
     , EvaluationResultDef
     , LMachineError (..)
     , LMachineException
+    , LEvaluationException
     , evaluateL
     , runL
     ) where
@@ -61,10 +62,11 @@ data LMachineError
     | VariableNotInHeap
     | NoDynamicBuiltinsYet  -- Temporary
 
-type LMachineException = EvaluationException LMachineError ()
+type LMachineException = MachineException LMachineError
+type LEvaluationException = EvaluationException LMachineError ()
 
 -- | The monad the L machine runs in.
-type LM = Either LMachineException
+type LM = Either LEvaluationException
 
 instance Pretty LMachineError where
     pretty (LocationNotInHeap l) = "Location" <+> pretty l <+> "does not exist in the heap"
@@ -292,7 +294,7 @@ internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 translateResult :: LM LMachineResult -> LM (Plain Term)
 translateResult = fmap $ \(Closure t _, _) -> t
 
--- | Evaluate a term using the L machine. May throw an 'MachineException'.
+-- | Evaluate a term using the L machine. May throw a 'MachineException'.
 evaluateL :: Term TyName Name () -> EvaluationResultDef
 evaluateL = either throwInternal (EvaluationSuccess . id) . translateResult . internalEvaluateL where
     throwInternal (ErrorWithCause ckErr mayCause) = case ckErr of

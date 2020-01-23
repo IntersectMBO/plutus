@@ -46,7 +46,7 @@ newtype EmitHandler r = EmitHandler
 feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
 feedEmitHandler term (EmitHandler handler) = handler mempty term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m (Term TyName Name ())) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term m r -> (EmitHandler (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
@@ -64,8 +64,8 @@ withEmitTerm cont (EmitHandler handler) =
 
 withEmitEvaluateBy
     :: KnownType a
-    => Evaluator Term m
+    => AnEvaluator Term m r
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m (Term TyName Name ()))
+    -> IO ([a], m r)
 withEmitEvaluateBy eval toTerm =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm

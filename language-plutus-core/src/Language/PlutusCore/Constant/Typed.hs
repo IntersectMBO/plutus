@@ -16,6 +16,7 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
+    , AnEvaluator
     , Evaluator
     , EvaluateT (..)
     , runEvaluateT
@@ -108,9 +109,13 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
+-- | A thing that evaluates @f@ in monad @m@, returns an @a@ and allows to extend the set of
+-- dynamic built-in names.
+type AnEvaluator f m a = DynamicBuiltinNameMeanings -> f TyName Name () -> m a
+
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
-type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m (Term TyName Name ())
+type Evaluator f m = AnEvaluator f m (Term TyName Name ())
 
 -- | A computation that runs in @m@ and has access to an 'Evaluator' that runs in @m@.
 newtype EvaluateT m a = EvaluateT

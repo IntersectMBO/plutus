@@ -23,20 +23,23 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , EvaluationError (..)
     , AsEvaluationError (..)
     , ErrorWithCause (..)
+    , MachineException
     , EvaluationException
     , throwingWithCause
+    , extractEvaluationResult
     ) where
 
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
 import           Control.Monad.Except
-import           Data.String                (IsString)
-import           Data.Text                  (Text)
+import           Data.String                           (IsString)
+import           Data.Text                             (Text)
 
 newtype UnliftingError
     = UnliftingErrorE Text
@@ -73,7 +76,7 @@ data EvaluationError internal user
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
-    deriving (Show)
+    deriving (Show, Eq)
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
@@ -99,12 +102,21 @@ data ErrorWithCause err
     = ErrorWithCause err (Maybe (Term TyName Name ()))
     deriving (Eq, Functor)
 
+type MachineException internal = ErrorWithCause (MachineError internal)
 type EvaluationException internal user = ErrorWithCause (EvaluationError internal user)
 
 throwingWithCause
     :: MonadError (ErrorWithCause e) m
     => AReview e t -> t -> Maybe (Term TyName Name ()) -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
+
+extractEvaluationResult
+    :: Either (EvaluationException internal user) (Term TyName Name ())
+    -> Either (MachineException internal) EvaluationResultDef
+extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
+extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
+    InternalEvaluationError err -> Left $ ErrorWithCause err cause
+    UserEvaluationError _       -> Right $ EvaluationFailure
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
@@ -119,9 +131,8 @@ instance PrettyBy config (Term TyName Name ()) => PrettyBy config ConstAppError 
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance ( PrettyBy config (Term TyName Name ())
-         , Pretty err
-         ) => PrettyBy config (MachineError err) where
+instance (Pretty err, PrettyBy config (Term TyName Name ())) =>
+            PrettyBy config (MachineError err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -135,7 +146,16 @@ instance ( PrettyBy config (Term TyName Name ())
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
--- instance
+instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name ())) =>
+            PrettyBy config (EvaluationError internal user) where
+    prettyBy config (InternalEvaluationError err) = fold
+        [ "An internal error has occurred:", "\n"
+        , prettyBy config err
+        ]
+    prettyBy _      (UserEvaluationError err) = fold
+        [ "A user error has occurred:", "\n"
+        , pretty err
+        ]
 
 instance PrettyPlc err => Show (ErrorWithCause err) where
     show (ErrorWithCause err mayCause) = fold

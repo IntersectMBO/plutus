@@ -30,6 +30,6 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup "machines"
     [ testMachine "CK"  $ pureTry @CkMachineException . evaluateCk
-    , testMachine "CEK" $ evaluateCek mempty
+    , testMachine "CEK" $ extractEvaluationResult . evaluateCek mempty
     , testMachine "L"   $ pureTry @LMachineException . evaluateL
     ]

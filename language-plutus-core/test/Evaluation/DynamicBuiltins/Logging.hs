@@ -38,7 +38,7 @@ handleDynamicIntToString = handleDynamicByMeaning dynamicIntToStringMeaning
 
 evaluateHandlersCek
     :: MonadError (Error ()) m
-    => (Evaluator (OnChain '[] Term) m -> OnChainEvaluator names Term r)
+    => (AnEvaluator (OnChain '[] Term) m EvaluationResultDef -> OnChainEvaluator names Term r)
     -> OnChain names Term TyName Name ()
     -> r
 evaluateHandlersCek = evaluateHandlersBy typecheckEvaluateCek
