@@ -29,7 +29,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, PubKeyHash, pubKeyHash, Signature, Tx (Tx), TxId,
+import           Ledger                                (Address, PubKey, PubKeyHash, Signature, Tx (Tx), TxId,
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
@@ -49,9 +49,9 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         dereferencedInputs, toBeneficialOwner, tx, txId)
 
 
-showBlockchain :: [(PubKey, Wallet)] -> [[Tx]]  -> Either Text Text
+showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]]  -> Either Text Text
 showBlockchain walletKeys blockchain =
-    flip runReaderT (Map.mapKeys pubKeyHash $ Map.fromList walletKeys) $ do
+    flip runReaderT (Map.fromList walletKeys) $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
         doc <- render $ reverse annotatedBlockchain
         pure . renderStrict . layoutPretty defaultLayoutOptions $ doc

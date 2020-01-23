@@ -8,6 +8,7 @@ import qualified Data.Map                                              as Map
 import qualified Data.Text                                             as T
 import           Data.Text.Encoding                                    (encodeUtf8)
 
+import           Ledger (pubKeyHash)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
 
@@ -48,7 +49,7 @@ render
     -> IO ByteString
 render con trace = do
     let (result, EmulatorState{ _chainState = cs, _walletClientStates = wallets}) = runTrace con trace
-    let walletKeys = flip fmap (Map.keys wallets) $ \w -> (EM.walletPubKey w, w)
+    let walletKeys = flip fmap (Map.keys wallets) $ \w -> (pubKeyHash $ EM.walletPubKey w, w)
     case result of
         Left err -> assertFailure $ show err
         Right _ ->

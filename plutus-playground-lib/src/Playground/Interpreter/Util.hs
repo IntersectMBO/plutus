@@ -31,7 +31,7 @@ import           Language.Plutus.Contract.Trace  (ContractTrace, ContractTraceSt
                                                   addBlocks, addBlocksUntil, addEvent, handleBlockchainEvents,
                                                   notifyInterestingAddresses, notifySlot, payToWallet,
                                                   runTraceWithDistribution)
-import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), txOutTxOut)
+import           Ledger                          (Blockchain, PubKey, pubKeyHash, TxOut (txOutValue), txOutTxOut)
 import           Ledger.AddressMap               (fundsAt)
 import           Ledger.Value                    (Value)
 import qualified Ledger.Value                    as Value
@@ -117,7 +117,7 @@ postProcessEvaluation (resultBlockchain, emulatorLog, emulatorTrace, fundsDistri
             , emulatorLog
             , emulatorTrace
             , fundsDistribution
-            , walletKeys
+            , walletKeys = fmap (\(pk, w) -> (pubKeyHash pk, w)) walletKeys
             }
 
 playgroundDecode ::
