@@ -294,11 +294,11 @@ internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 translateResult :: Functor f => f LMachineResult -> f (Plain Term)
 translateResult = fmap $ \(Closure t _, _) -> t
 
--- | Evaluate a term using the L machine. May throw a 'MachineException'.
+-- | Evaluate a term using the L machine. May throw an 'LMachineException'.
 evaluateL :: Term TyName Name () -> EvaluationResultDef
-evaluateL = either throw translateResult . extractEvaluationResult . internalEvaluateL where
+evaluateL = either throw translateResult . extractEvaluationResult . internalEvaluateL
 
--- | Run a program using the L machine. May throw a 'MachineException'.
+-- | Run a program using the L machine. May throw an 'LMachineException'.
 -- We're not using the dynamic names at the moment, but we'll require them eventually.
 runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
 runL _ (Program _ _ term) = evaluateL term

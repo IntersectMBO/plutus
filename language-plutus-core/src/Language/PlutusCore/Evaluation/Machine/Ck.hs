@@ -161,7 +161,7 @@ applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 evaluateCk :: Term TyName Name () -> EvaluationResultDef
 evaluateCk term = either throw id . extractEvaluationResult $ [] |> term
 
--- | Run a program using the CK machine. May throw a 'MachineException'.
+-- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
 runCk :: Program TyName Name () -> EvaluationResultDef
 runCk (Program _ _ term) = evaluateCk term
