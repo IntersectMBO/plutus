@@ -105,11 +105,13 @@ data ErrorWithCause err
 type MachineException internal = ErrorWithCause (MachineError internal)
 type EvaluationException internal user = ErrorWithCause (EvaluationError internal user)
 
+-- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
     :: MonadError (ErrorWithCause e) m
     => AReview e t -> t -> Maybe (Term TyName Name ()) -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
+-- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
     :: Either (EvaluationException internal user) a
     -> Either (MachineException internal) (EvaluationResult a)

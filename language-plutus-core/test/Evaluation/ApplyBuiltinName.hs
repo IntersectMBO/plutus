@@ -1,6 +1,4 @@
--- | This module contains definitions which allow to test the 'applyBuiltinName' function.
--- See the "Success" and "SuccessFailure" module for actual tests implemented
--- in terms of functions defined here.
+-- | Constant application tests.
 
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
@@ -27,7 +25,7 @@ import           Test.Tasty.Hedgehog
 -- An argument is generated as a Haskell value, then coerced to the corresponding PLC value which
 -- gets appended to the spine of arguments 'applyBuiltinName' expects.
 -- The generated Haskell value is passed to the semantics of the 'TypedBuiltinName'
--- (the second argument), i.e. to the third argument. Thus we collect arguments on the PLC side
+-- (the first argument), i.e. to the second argument. Thus we collect arguments on the PLC side
 -- and supply them to a function on the Haskell side. When all appropriate arguments are generated,
 -- we check that the results of the two computations match. We also check that each
 -- underapplication on the PLC side is a stuck application.

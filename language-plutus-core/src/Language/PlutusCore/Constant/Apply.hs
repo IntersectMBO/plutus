@@ -34,7 +34,9 @@ import           Data.Proxy
 
 data ConstAppResult
     = ConstAppSuccess (Term TyName Name ())
+      -- ^ Successfully computed a value.
     | ConstAppStuck
+      -- ^ Not enough arguments.
     deriving (Show, Eq)
 
 -- | Default constant application computation that in case of 'ConstAppSuccess' returns

@@ -291,15 +291,12 @@ internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 
 
 -- | Convert an L machine result into the standard result type for communication with the outside world.
-translateResult :: LM LMachineResult -> LM (Plain Term)
+translateResult :: Functor f => f LMachineResult -> f (Plain Term)
 translateResult = fmap $ \(Closure t _, _) -> t
 
 -- | Evaluate a term using the L machine. May throw a 'MachineException'.
 evaluateL :: Term TyName Name () -> EvaluationResultDef
-evaluateL = either throwInternal (EvaluationSuccess . id) . translateResult . internalEvaluateL where
-    throwInternal (ErrorWithCause ckErr mayCause) = case ckErr of
-        InternalEvaluationError err -> throw $ ErrorWithCause err mayCause
-        UserEvaluationError ()      -> EvaluationFailure
+evaluateL = either throw translateResult . extractEvaluationResult . internalEvaluateL where
 
 -- | Run a program using the L machine. May throw a 'MachineException'.
 -- We're not using the dynamic names at the moment, but we'll require them eventually.

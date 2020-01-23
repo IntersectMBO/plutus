@@ -64,8 +64,8 @@ withEmitTerm cont (EmitHandler handler) =
 
 withEmitEvaluateBy
     :: KnownType a
-    => AnEvaluator Term m r
+    => AnEvaluator Term m b
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m r)
+    -> IO ([a], m b)
 withEmitEvaluateBy eval toTerm =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm
