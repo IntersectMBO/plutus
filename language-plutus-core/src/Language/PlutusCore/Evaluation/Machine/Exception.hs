@@ -111,8 +111,8 @@ throwingWithCause
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
 extractEvaluationResult
-    :: Either (EvaluationException internal user) (Term TyName Name ())
-    -> Either (MachineException internal) EvaluationResultDef
+    :: Either (EvaluationException internal user) a
+    -> Either (MachineException internal) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left $ ErrorWithCause err cause

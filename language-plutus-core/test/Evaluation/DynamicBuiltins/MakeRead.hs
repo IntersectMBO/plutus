@@ -108,30 +108,10 @@ test_noticeEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
             readMake 'a'
 
-test_ignoreEvaluationFailure :: TestTree
-test_ignoreEvaluationFailure =
-    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" $
-        isEvaluationSuccess $ do
-            _ <- readMake True
-            -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
-            _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
-            readMake 'a'
-
-test_delayEvaluationFailure :: TestTree
-test_delayEvaluationFailure =
-    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
-        isEvaluationSuccess $ do
-            f <- readMake $ \() -> EvaluationFailure
-            case f () of
-                EvaluationFailure    -> EvaluationSuccess ()
-                EvaluationSuccess () -> EvaluationFailure
-
 test_EvaluationFailure :: TestTree
 test_EvaluationFailure =
     testGroup "EvaluationFailure"
         [ test_noticeEvaluationFailure
-        , test_ignoreEvaluationFailure
-        , test_delayEvaluationFailure
         ]
 
 test_dynamicMakeRead :: TestTree

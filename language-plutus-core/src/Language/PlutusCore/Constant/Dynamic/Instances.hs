@@ -53,7 +53,7 @@ instance KnownType a => KnownType (EvaluationResult a) where
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
     makeKnown (EvaluationSuccess x) = makeKnown x
 
-    readKnown = Prelude.error "Not implemented"
+    readKnown _ _ = throwingWithCause _UnliftingError "Catching errors is not supported" Nothing
 
     prettyKnown = pretty . fmap (PrettyConfigIgnore . KnownTypeValue)
 

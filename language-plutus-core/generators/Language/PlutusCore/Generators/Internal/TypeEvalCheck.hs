@@ -101,7 +101,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 unsafeTypeEvalCheck
     :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (extractEvaluationResult . evaluateCek mempty) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCek mempty) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err
