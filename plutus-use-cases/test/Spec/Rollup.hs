@@ -8,9 +8,9 @@ import qualified Data.Map                                              as Map
 import qualified Data.Text                                             as T
 import           Data.Text.Encoding                                    (encodeUtf8)
 
-import           Ledger (pubKeyHash)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
+import           Ledger                                                (pubKeyHash)
 
 import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.Crowdfunding

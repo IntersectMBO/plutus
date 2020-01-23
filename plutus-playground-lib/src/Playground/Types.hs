@@ -28,7 +28,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (PubKeyHash, pubKeyHash, Tx, fromSymbol)
+import           Ledger                       (PubKeyHash, Tx, fromSymbol, pubKeyHash)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Slot                  (Slot)
