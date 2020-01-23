@@ -164,6 +164,7 @@ let
     papers = {
       unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; inherit latex; };
       system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
+      eutxo = pkgs.callPackage ./papers/eutxo { inherit latex; };
     };
 
     plutus-playground = rec {
