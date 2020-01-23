@@ -54,7 +54,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure
---import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.RenamingSubstitution
 --import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form

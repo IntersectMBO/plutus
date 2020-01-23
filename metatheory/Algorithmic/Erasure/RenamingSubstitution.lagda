@@ -153,12 +153,9 @@ ren-erase ρ⋆ ρ (ƛ t)            = cong ƛ
     (U.ren-cong (ext-erase ρ⋆ ρ) (erase t)))
 ren-erase ρ⋆ ρ (t · u)            =
   cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
-ren-erase ρ⋆ ρ (Λ t)            = cong ƛ {!U.ren-comp!} {- trans
-  (ren-erase (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ) t)
-  (U.ren-cong (ext⋆-erase ρ⋆ ρ) (erase t)) -}
-ren-erase ρ⋆ ρ (_·⋆_ {B = B} t A) = {!!} {- trans
-  (conv⊢-erase (sym (ren[]Nf ρ⋆ B A)) (A.ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A))
-  (ren-erase ρ⋆ ρ t) -}
+ren-erase ρ⋆ ρ (Λ t)            = cong ƛ (trans (trans (cong U.weaken (ren-erase (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ) t)) (trans (sym (U.ren-comp (erase-Ren (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ)) suc (erase t))) (U.ren-cong (cong suc ∘ ext⋆-erase ρ⋆ ρ) (erase t)))) (U.ren-comp suc (U.lift (erase-Ren ρ⋆ ρ)) (erase t)))
+ren-erase ρ⋆ ρ (_·⋆_ {B = B} t A) = trans
+  (conv⊢-erase (sym (ren[]Nf ρ⋆ B A)) (A.ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)) (cong (_· plc_dummy) (ren-erase ρ⋆ ρ t))
 ren-erase ρ⋆ ρ (wrap1 pat arg t)  = trans
   (conv⊢-erase (ren-nf-μ1 ρ⋆ pat arg) (A.ren ρ⋆ ρ t))
   (ren-erase ρ⋆ ρ t)
@@ -190,15 +187,15 @@ exts-erase : ∀ {Φ Ψ}{Γ Δ}(σ⋆ : SubNf Φ Ψ)(σ : A.Sub σ⋆ Γ Δ)
   → (α : Fin (suc (len Γ)))
   → erase-Sub σ⋆ (A.exts σ⋆ σ {B}) α ≡ U.lifts (erase-Sub σ⋆ σ) α
 exts-erase σ⋆ σ zero = refl
-exts-erase {Γ = Γ}{Δ} σ⋆ σ {B} (suc α) = {!!} {- trans
+exts-erase {Γ = Γ}{Δ} σ⋆ σ {B} (suc α) = trans
   (conv⊢-erase
     (renNf-id (substNf σ⋆ (backVar⋆ Γ α)))
-    (A.ren id (conv∋ (sym (renNf-id _)) ∘ S) (σ (backVar Γ α))))
-    (trans (ren-erase id (conv∋ (sym (renNf-id _)) ∘ S) (σ (backVar Γ α)))
+    (A.ren id (conv∋ refl (sym (renNf-id _)) ∘ S) (σ (backVar Γ α))))
+    (trans (ren-erase id (conv∋ refl (sym (renNf-id _)) ∘ S) (σ (backVar Γ α)))
            (U.ren-cong (λ β → trans
              (conv∋-erase (sym (renNf-id _)) (S (backVar Δ β)))
              (cong suc (eraseVar-backVar Δ β)))
-             (erase (σ (backVar Γ α))))) -}
+             (erase (σ (backVar Γ α)))))
 
 exts⋆-erase : ∀ {Φ Ψ}{Γ Δ}(σ⋆ : SubNf Φ Ψ)(σ : A.Sub σ⋆ Γ Δ)
   → {B : Φ ⊢Nf⋆ *}
@@ -241,25 +238,25 @@ subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t P., tel) = cong₂ _∷_
     (sub-erase σ⋆ σ t))
   (subTel-erase σ⋆ σ Φ' As σ' tel)
 
-sub-erase σ⋆ σ (` x) = {!!} {-
-  cong-erase-sub
+sub-erase σ⋆ σ (` x) =   cong-erase-sub
     σ⋆
     σ
     (backVar⋆-eraseVar x)
     x
     (backVar _ (eraseVar x))
-    (backVar-eraseVar x) -}
+    (backVar-eraseVar x)
 sub-erase σ⋆ σ (ƛ t) = cong ƛ
   (trans (sub-erase σ⋆ (A.exts σ⋆ σ) t)
          (U.sub-cong (exts-erase σ⋆ σ) (erase t)))
 sub-erase σ⋆ σ (t · u) = cong₂ _·_ (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
-sub-erase σ⋆ σ (Λ {B = B} t) = {!!} {- trans
-  (conv⊢-erase (subst-nf-Π σ⋆ B) (A.subst (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t))
-  (trans (sub-erase (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t)
-         (U.sub-cong (exts⋆-erase σ⋆ σ {B = Π B}) (erase t))) -}
-sub-erase σ⋆ σ (_·⋆_ {B = B} t A) = {!!} {- trans
-  (conv⊢-erase (sym (subst[]Nf' σ⋆ A B)) (A.subst σ⋆ σ t ·⋆ substNf σ⋆ A))
-  (sub-erase σ⋆ σ t) -}
+sub-erase σ⋆ σ (Λ {B = B} t) = cong ƛ (trans
+  (cong U.weaken (conv⊢-erase (subst-nf-Π σ⋆ B) (A.subst (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t)))
+  (trans (cong U.weaken (sub-erase (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t))
+         (trans (trans (sym (U.ren-sub (erase-Sub (extsNf σ⋆) (A.exts⋆ σ⋆ σ)) suc (erase t)))
+                       (U.sub-cong (λ x → cong U.weaken (exts⋆-erase σ⋆ σ {B = Π B} x)) (erase t)))
+                (U.sub-ren suc (U.lifts (erase-Sub σ⋆ σ)) (erase t)))))
+sub-erase σ⋆ σ (_·⋆_ {B = B} t A) = trans
+  (conv⊢-erase (sym (subst[]Nf' σ⋆ A B)) (A.subst σ⋆ σ t ·⋆ substNf σ⋆ A)) (cong (_· plc_dummy) (sub-erase σ⋆ σ t))
 sub-erase σ⋆ σ (wrap1 pat arg t) = trans
   (conv⊢-erase (subst-nf-μ σ⋆ pat arg) (A.subst σ⋆ σ t))
   (sub-erase σ⋆ σ t)
@@ -291,7 +288,7 @@ open import Type.BetaNBE.Stability
 
 lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
   → erase N U.[ erase W ] ≡ erase (N A.[ W ])
-lem[] {Γ = Γ}{A = A}{B} N W = {!!} {- trans
+lem[] {Γ = Γ}{A = A}{B} N W = trans
   (trans
     (U.sub-cong
       (λ{ zero    → sym (conv⊢-erase (sym (substNf-id A)) W)
@@ -299,15 +296,14 @@ lem[] {Γ = Γ}{A = A}{B} N W = {!!} {- trans
                (cong ` (sym (eraseVar-backVar Γ α)))
                (sym (conv⊢-erase (sym (substNf-id (backVar⋆ Γ α))) (` (backVar Γ α))))})
       (erase N))
-    (sym (sub-erase (ne ∘ `) (A.substcons (ne ∘ `) (conv⊢ (sym (substNf-id _)) ∘ `) (conv⊢ (sym (substNf-id A)) W)) N)))
+    (sym (sub-erase (ne ∘ `) (A.substcons (ne ∘ `) (conv⊢ refl (sym (substNf-id _)) ∘ `) (conv⊢ refl (sym (substNf-id A)) W)) N)))
   (sym
     (conv⊢-erase
       (substNf-id B)
       (A.subst (ne ∘ `)
          (A.substcons
            (ne ∘ `)
-           (conv⊢ (sym (substNf-id _)) ∘ `)
-           (conv⊢ (sym (substNf-id A)) W))
-         N))) -}
-
+           (conv⊢ refl (sym (substNf-id _)) ∘ `)
+           (conv⊢ refl (sym (substNf-id A)) W))
+         N)))
 \end{code}
