@@ -50,8 +50,8 @@ module Language.PlutusCore.Evaluation.Machine.Cek
 where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View

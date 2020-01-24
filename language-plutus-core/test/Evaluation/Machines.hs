@@ -19,7 +19,7 @@ import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.L
-import           Language.PlutusCore.FsTree                       
+import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
 import           Language.PlutusCore.Pretty
