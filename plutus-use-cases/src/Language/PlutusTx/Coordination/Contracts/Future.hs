@@ -49,7 +49,7 @@ import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude      hiding (Semigroup(..))
 import qualified Language.PlutusTx.StateMachine as SM
-import           Ledger                         (PubKey, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
+import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Interval                as Interval
 import           Ledger.Tokens
@@ -594,7 +594,7 @@ setupTokens = do
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract pk [("long", 1), ("short", 1)])
+    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)])
     let sym = Currency.currencySymbol cur
     pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
 
@@ -614,8 +614,8 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
             [ Escrow.payToScriptTarget address
                 dataScript
                 (scale 2 (initialMargin future))
-            , Escrow.payToPubKeyTarget longPK (tokenFor Long ftos)
-            , Escrow.payToPubKeyTarget shortPK (tokenFor Short ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash longPK) (tokenFor Long ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash shortPK) (tokenFor Short ftos)
             ]
     in EscrowParams
         { escrowDeadline = contractStart

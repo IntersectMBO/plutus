@@ -43,7 +43,7 @@ import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<>))
-import           Ledger                     (PubKey (..), Slot (..))
+import           Ledger                     (PubKeyHash (..), Slot (..))
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (DataValue (..))
 import           Ledger.Validation
@@ -82,7 +82,7 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 
 -- * Aliaces
 
-type Party = PubKey
+type Party = PubKeyHash
 type NumAccount = Integer
 type Timeout = Slot
 type Money = Val.Value
@@ -786,7 +786,7 @@ validateTxOutputs pendingTx creator expectedTxOutputs = case expectedTxOutputs o
     Marlowe Interpreter Validator generator.
 -}
 marloweValidator
-  :: PubKey -> MarloweData -> [Input] -> PendingTx -> Bool
+  :: PubKeyHash -> MarloweData -> [Input] -> PendingTx -> Bool
 marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
     {-  Embed contract creator public key. This makes validator script unique,
         which makes a particular contract to have a unique script address.

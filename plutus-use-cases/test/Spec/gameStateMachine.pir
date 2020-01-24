@@ -3009,7 +3009,7 @@
                                                                                   PendingTx_match
                                                                                   (vardecl
                                                                                     PendingTx
-                                                                                    (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List PendingTxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con bytestring)]] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i]))))))))))
+                                                                                    (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List PendingTxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i]))))))))))
                                                                                   )
                                                                                 )
                                                                               )
@@ -3137,7 +3137,7 @@
                                                                                                             [List (con bytestring)]
                                                                                                             (lam
                                                                                                               ds
-                                                                                                              [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                              [List (con bytestring)]
                                                                                                               (lam
                                                                                                                 ds
                                                                                                                 [List [[Tuple2 (con bytestring)] Data]]
@@ -3426,7 +3426,7 @@
                                                                                                             [List (con bytestring)]
                                                                                                             (lam
                                                                                                               ds
-                                                                                                              [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                              [List (con bytestring)]
                                                                                                               (lam
                                                                                                                 ds
                                                                                                                 [List [[Tuple2 (con bytestring)] Data]]
@@ -9136,7 +9136,7 @@
                                                                                                                                 [List (con bytestring)]
                                                                                                                                 (lam
                                                                                                                                   ds
-                                                                                                                                  [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                                  [List (con bytestring)]
                                                                                                                                   (lam
                                                                                                                                     ds
                                                                                                                                     [List [[Tuple2 (con bytestring)] Data]]
@@ -9355,7 +9355,7 @@
                                                                                                                                                       [List (con bytestring)]
                                                                                                                                                       (lam
                                                                                                                                                         ds
-                                                                                                                                                        [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                                                        [List (con bytestring)]
                                                                                                                                                         (lam
                                                                                                                                                           ds
                                                                                                                                                           [List [[Tuple2 (con bytestring)] Data]]
@@ -9528,7 +9528,7 @@
                                                                                                                                                                         [List (con bytestring)]
                                                                                                                                                                         (lam
                                                                                                                                                                           ds
-                                                                                                                                                                          [List [[Tuple2 (con bytestring)] (con bytestring)]]
+                                                                                                                                                                          [List (con bytestring)]
                                                                                                                                                                           (lam
                                                                                                                                                                             ds
                                                                                                                                                                             [List [[Tuple2 (con bytestring)] Data]]
