@@ -9,6 +9,7 @@ packages:
 - plutus-use-cases
 - playground-common
 - marlowe
+- marlowe-hspec
 - marlowe-playground-server
 - plutus-wallet-api
 - plutus-playground-server
