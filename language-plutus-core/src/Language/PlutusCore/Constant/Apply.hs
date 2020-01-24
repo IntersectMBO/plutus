@@ -32,6 +32,7 @@ import qualified Data.ByteString.Lazy                             as BSL
 import qualified Data.ByteString.Lazy.Hash                        as Hash
 import           Data.Proxy
 
+-- | The result of evaluation of a builtin applied to some arguments.
 data ConstAppResult
     = ConstAppSuccess (Term TyName Name ())
       -- ^ Successfully computed a value.

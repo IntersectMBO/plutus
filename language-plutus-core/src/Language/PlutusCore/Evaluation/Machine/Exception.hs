@@ -41,12 +41,14 @@ import           Control.Monad.Except
 import           Data.String                           (IsString)
 import           Data.Text                             (Text)
 
+-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
     = UnliftingErrorE Text
     deriving (Show, Eq)
     deriving newtype (IsString)
 
--- | The type of constant applications errors.
+-- | The type of constant applications errors (i.e. errors that may occur during evaluation of
+-- a builtin function applied to some arguments).
 data ConstAppError
     = ExcessArgumentsConstAppError [Value TyName Name ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
@@ -71,6 +73,8 @@ data MachineError err
     | OtherMachineError err
     deriving (Show, Eq)
 
+-- | The type of errors (all of them) which can occur during evaluation
+-- (some are used-caused, some are internal).
 data EvaluationError internal user
     = InternalEvaluationError (MachineError internal)
       -- ^ Indicates bugs.
@@ -98,6 +102,7 @@ instance AsUnliftingError (EvaluationError internal user) where
 instance AsUnliftingError (MachineError err) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 
+-- | An error and (optionally) what caused it.
 data ErrorWithCause err
     = ErrorWithCause err (Maybe (Term TyName Name ()))
     deriving (Eq, Functor)

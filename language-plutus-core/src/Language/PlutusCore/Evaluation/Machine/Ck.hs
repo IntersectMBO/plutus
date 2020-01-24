@@ -89,8 +89,8 @@ stack |> tyAbs@TyAbs{}          = stack <| tyAbs
 stack |> lamAbs@LamAbs{}        = stack <| lamAbs
 stack |> bi@Builtin{}           = stack <| bi
 stack |> constant@Constant{}    = stack <| constant
-_     |> Error{}                =
-    throwingWithCause _EvaluationError (UserEvaluationError ()) Nothing
+_     |> err@Error{}            =
+    throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
 _     |> var@Var{}              =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 

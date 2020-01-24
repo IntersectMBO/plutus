@@ -129,8 +129,8 @@ computeCek con tyAbs@TyAbs{}            = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
 computeCek con constant@Constant{}      = returnCek con constant
 computeCek con bi@Builtin{}             = returnCek con bi
-computeCek _   Error{}                  =
-    throwingWithCause _EvaluationError (UserEvaluationError ()) Nothing
+computeCek _   err@Error{}              =
+    throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
 computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term

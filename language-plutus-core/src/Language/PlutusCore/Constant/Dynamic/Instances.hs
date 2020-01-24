@@ -53,6 +53,12 @@ instance KnownType a => KnownType (EvaluationResult a) where
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
     makeKnown (EvaluationSuccess x) = makeKnown x
 
+    -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
+    -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
+    -- the programmer would be given an explicit 'EvaluationResult' value to handle, which means
+    -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
+    -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
+    -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
     readKnown _ _ = throwingWithCause _UnliftingError "Catching errors is not supported" Nothing
 
     prettyKnown = pretty . fmap (PrettyConfigIgnore . KnownTypeValue)
