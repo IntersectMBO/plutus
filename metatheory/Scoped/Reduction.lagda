@@ -295,7 +295,7 @@ progress p (t · u)           = progress· (progress p t) u
 progress p (con c)           = done (V-con c)
 progress p (error A)         = error (E-error A)
 progress p (builtin b As ts) = progress-builtin b As ts (progressTel p ts)
-progress p (wrap A B t)      with progress p t
+progress p (wrap A B t) with progress p t
 progress p (wrap A B t) | step  q = step (ξ-wrap q)
 progress p (wrap A B t) | done  q = done (V-wrap A B q)
 progress p (wrap A B t) | error q = error (E-wrap q)

@@ -244,7 +244,6 @@ same {Γ = Γ} (D.builtin verifySignature σ ts) = trans (cong (builtin verifySi
 same {Γ = Γ} (D.builtin equalsByteString σ ts) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
-{-
 open import Algorithmic.Soundness
 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
@@ -262,10 +261,10 @@ same'Var {Γ = Γ , _} Z     = lemzero (cong suc (same'Len Γ))
 same'Var {Γ = Γ , _} (S x) = trans
   (cong suc (same'Var x))
   (lemsuc (cong suc (same'Len Γ)) (same'Len Γ) (D.eraseVar (embVar x)))
-same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = {!!} {- trans
-  (trans (cong suc (same'Var x))
-         (lemsuc (cong suc (same'Len Γ)) (same'Len Γ) (D.eraseVar (embVar x))))
-  (cong (subst Fin (cong suc (same'Len Γ))) (lem-Dconv∋ refl (sym (ren-embNf S A)) (D.T (embVar x)))) -}
+same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
+  (same'Var x)
+  (cong (subst Fin (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
+        (D.T (embVar x))))
 
 same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
@@ -290,9 +289,11 @@ same' {Γ = Γ} (ƛ t) = trans
 same' {Γ = Γ} (t · u) = trans
   (cong₂ _·_ (same' t) (same' u))
   (lem· (same'Len Γ) (D.erase (emb t)) (D.erase (emb u)))
-same' {Γ = Γ} (Λ t)      = {!!} {- trans
-  (cong ƛ (same' t))
-  (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t))) -}
+same' {Γ = Γ} (Λ t)      = trans
+  (trans (cong (ƛ ∘ U.weaken) (same' t))
+         (cong ƛ
+               (lem-weaken (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t)))))
+  (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (U.weaken (D.erase (emb t))))
 same' {Γ = Γ} (_·⋆_ t A)   = trans
   (cong₂ _·_ (same' t) (lem-plc_dummy (same'Len Γ)))
   (lem· (same'Len Γ) (D.erase (emb t)) plc_dummy)
@@ -376,5 +377,4 @@ same' {Γ = Γ} (builtin equalsByteString σ ts) = trans
         (same'Tel σ (proj₁ (proj₂ (AS.SIG equalsByteString))) ts))
   (lemTel (same'Len Γ) equalsByteString _)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
--}
 \end{code}

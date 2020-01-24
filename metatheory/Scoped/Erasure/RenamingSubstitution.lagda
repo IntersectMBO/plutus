@@ -67,7 +67,7 @@ ren-erase ρ⋆ ρ (Λ K t)            = cong ƛ (trans
   (sym (U.ren-comp suc (U.lift (erase-Ren ρ)) (eraseTm t)))
   (trans (U.ren-comp (erase-Ren (S.⋆lift ρ)) suc (eraseTm t))
     (cong U.weaken (ren-erase (S.lift⋆ ρ⋆) (S.⋆lift ρ) t))))
-ren-erase ρ⋆ ρ (t ·⋆ A)           = ren-erase ρ⋆ ρ t
+ren-erase ρ⋆ ρ (t ·⋆ A)           = cong (_· plc_dummy) (ren-erase ρ⋆ ρ t)
 ren-erase ρ⋆ ρ (ƛ A t)            = cong
   ƛ
   (trans (U.ren-cong (lift-erase ρ) (eraseTm t)) (ren-erase ρ⋆ (S.lift ρ) t))
@@ -125,7 +125,7 @@ sub-erase σ⋆ σ (Λ K t)            = cong ƛ (trans
   (sym (U.sub-ren suc (U.lifts (erase-Sub σ)) (eraseTm t)))
   (trans (trans (U.sub-cong (cong U.weaken ∘ ⋆slift-erase σ ) (eraseTm t)) (U.ren-sub (erase-Sub (S.⋆slift σ)) suc (eraseTm t)))
          (cong U.weaken (sub-erase (S.slift⋆ σ⋆) (S.⋆slift σ) t))))
-sub-erase σ⋆ σ (t ·⋆ A)           = sub-erase σ⋆ σ t
+sub-erase σ⋆ σ (t ·⋆ A)           = cong (_· plc_dummy) (sub-erase σ⋆ σ t)
 sub-erase σ⋆ σ (ƛ A t)            = cong
   ƛ
   (trans (U.sub-cong (slift-erase σ) (eraseTm t))

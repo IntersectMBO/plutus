@@ -38,7 +38,7 @@ eraseList (t ∷ ts) = eraseTm t ∷ eraseList ts
 
 eraseTm (` x)              = ` (eraseVar x)
 eraseTm (Λ K t)            = ƛ (weaken (eraseTm t))
-eraseTm (t ·⋆ A)           = eraseTm t
+eraseTm (t ·⋆ A)           = eraseTm t · plc_dummy
 eraseTm (ƛ A t)            = ƛ (eraseTm t)
 eraseTm (t · u)            = eraseTm t · eraseTm u
 eraseTm (con c)            = con (eraseTC c)
