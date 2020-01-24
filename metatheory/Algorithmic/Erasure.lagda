@@ -89,7 +89,6 @@ lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 -- string of arguments, both contexts, equality proof above, and
 -- before and after versions of all arguments and all recursive calls
 
-{-
 lemzero : ∀{n n'}(p : suc n ≡ suc n') → zero ≡ subst Fin p zero
 lemzero refl = refl
 
@@ -119,10 +118,10 @@ sameVar {Γ = Γ D., _} D.Z     = lemzero (cong suc (lenLemma Γ))
 sameVar {Γ = Γ D., _} (D.S x) = trans
   (cong suc (sameVar x))
   (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
-sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = {!!} {- trans
-  (trans (cong suc (sameVar x))
-         (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x))))
-  (cong (subst Fin (cong suc (lenLemma Γ))) (lem-conv∋ refl (ren-nf S A) (T (nfTyVar x)))) -}
+sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
+  (sameVar x)
+  (cong (subst Fin (lenLemma Γ)) (lem-conv∋ refl (ren-nf S A) (T (nfTyVar x))))
+
 lemVar : ∀{n n'}(p : n ≡ n')(i : Fin n) →  ` (subst Fin p i) ≡ subst _⊢ p (` i)
 lemVar refl i = refl
 
@@ -132,6 +131,10 @@ lemƛ refl refl t = refl
 
 lem· : ∀{n n'}(p : n ≡ n')(t u : n ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
 lem· refl t u = refl
+
+lem-weaken : ∀{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : n ⊢)
+  → U.weaken (subst _⊢ p t) ≡ subst _⊢ q (U.weaken t)
+lem-weaken refl refl t = refl
 
 lemcon' : ∀{n n'}(p : n ≡ n')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
 lemcon' refl tcn = refl
@@ -156,16 +159,15 @@ lemTel : ∀{n n'}(p : n ≡ n')(bn : Builtin)(ts : List (n ⊢))
   → builtin bn (subst (List ∘ _⊢) p ts) ≡ subst _⊢ p (builtin bn ts)
 lemTel refl bn ts = refl
 
+lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(t : Γ A.⊢ A)
+  → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
+lem-erase refl refl t = refl
+
 lem-convTel : ∀{Φ Γ Γ' Δ}(As : List (Δ ⊢Nf⋆ *))(p : Γ ≡ Γ')
   → (σ : ∀{J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
   → (tel : A.Tel Γ Δ σ As)
   → subst (List ∘ _⊢) (lem≡Ctx p) (eraseTel tel)
     ≡ eraseTel (convTel p σ As tel)
-
-lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(t : Γ A.⊢ A)
-  → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
-lem-erase refl refl t = refl
-
 lem-convTel []       p σ _         = sym (lem[]' (lem≡Ctx p))
 lem-convTel (A ∷ As) p σ (t ,, ts) = trans
   (sym (lem∷ (lem≡Ctx p) (erase t) (eraseTel ts)))
@@ -200,9 +202,7 @@ same {Γ = Γ} (D.ƛ t) = trans
 same {Γ = Γ} (t D.· u) = trans
   (cong₂ _·_ (same t) (same u))
   (lem· (lenLemma Γ) (erase (nfType t)) (erase (nfType u)))
-same {Γ = Γ} (D.Λ {B = B} t) = {!!} {- trans
-  (cong ƛ (trans (same t) (cong (subst _⊢ (cong suc (lenLemma Γ))) (lem-erase' (substNf-lemma' B) (nfType t))))) -}
-  (lemƛ (lenLemma Γ) (cong suc (lenLemma Γ)) (erase (conv⊢ refl (substNf-lemma' B) (nfType t)))) 
+same {Γ = Γ} (D.Λ {B = B} t) = trans (trans (trans (cong (ƛ ∘ U.weaken) (same t)) (cong ƛ (lem-weaken (lenLemma Γ) (cong suc (lenLemma Γ)) (erase (nfType t))))) (lemƛ (lenLemma Γ) (cong suc (lenLemma Γ)) (U.weaken (erase (nfType t))))) (cong (subst _⊢ (lenLemma Γ) ∘ ƛ ∘ U.weaken) (lem-erase' (substNf-lemma' B) (nfType t)))
 same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
   (cong (_· plc_dummy) (same t))
   (trans
@@ -244,7 +244,7 @@ same {Γ = Γ} (D.builtin verifySignature σ ts) = trans (cong (builtin verifySi
 same {Γ = Γ} (D.builtin equalsByteString σ ts) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
-
+{-
 open import Algorithmic.Soundness
 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
