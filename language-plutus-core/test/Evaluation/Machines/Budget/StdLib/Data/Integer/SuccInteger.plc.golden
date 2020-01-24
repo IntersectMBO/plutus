@@ -1,8 +1,0 @@
-((Right (\(i : integer) -> addInteger i 1))
-, ({ tally: ({ cpu: ({ })
-| mem: ({ })
-})
-| budget: ({ cpu: 100
-| mem: 986
-})
-}))

@@ -1,8 +1,0 @@
-((Right (/\(a :: *) -> \(b : all (a :: *). a -> a -> a) -> \(x : (all (a :: *). a -> a) -> a) -> \(y : (all (a :: *). a -> a) -> a) -> b {(all (a :: *). a -> a) -> a} x y (/\(a :: *) -> \(x : a) -> x)))
-, ({ tally: ({ cpu: ({ })
-| mem: ({ })
-})
-| budget: ({ cpu: 100
-| mem: 865
-})
-}))

@@ -1,8 +1,0 @@
-((Right (/\(a :: *) -> iwrap (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a (/\(r :: *) -> \(z : r) -> \(f : a -> (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a -> r) -> z)))
-, ({ tally: ({ cpu: ({ })
-| mem: ({ })
-})
-| budget: ({ cpu: 100
-| mem: 802
-})
-}))

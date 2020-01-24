@@ -1,8 +1,0 @@
-((Right (/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) a) -> unwrap s s))
-, ({ tally: ({ cpu: ({ })
-| mem: ({ })
-})
-| budget: ({ cpu: 100
-| mem: 916
-})
-}))

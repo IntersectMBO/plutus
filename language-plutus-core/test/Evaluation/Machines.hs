@@ -4,6 +4,7 @@ module Evaluation.Machines
     ( test_machines
     , test_memory
     , test_budget
+    , test_counting
     )
 where
 
@@ -18,7 +19,7 @@ import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.L
-import           Language.PlutusCore.FsTree                       (foldPlcFolderContents)
+import           Language.PlutusCore.FsTree                       
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
 import           Language.PlutusCore.Pretty
@@ -27,9 +28,13 @@ import           Language.PlutusCore.Examples.Everything          (examples)
 import           Language.PlutusCore.StdLib.Everything            (stdLib)
 
 import           Control.Lens.Combinators                         (_1)
+import Data.Bitraversable
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Hedgehog                                 hiding (Size, Var)
+import qualified Hedgehog.Gen                             as Gen
+import qualified Hedgehog.Range                           as Range
 
 testMachine
     :: Pretty err
@@ -67,7 +72,14 @@ testBudget :: TestName -> (Plain Term) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (docText $ prettyPlcReadableDef $ evaluateCek mempty Restricting (ExBudget 100 1000) term)
+    (docText $ prettyPlcReadableDef $ evaluateCek mempty Restricting (ExBudget 1000 1000) term)
+
+bunchOfFibs :: PlcFolderContents
+bunchOfFibs =
+    let
+        fibFile i = plcTermFile (show i) (naiveFib i)
+    in
+        FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..10]) ]
 
 test_budget :: TestTree
 test_budget =
@@ -76,5 +88,19 @@ test_budget =
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testCase name (pure ()))
                                  testBudget
-        $  stdLib
-        <> examples
+        $ examples <> bunchOfFibs
+
+testCounting :: TestName -> (Plain Term) -> TestNested
+testCounting name term =
+                       nestedGoldenVsText
+    name
+    (docText $ prettyPlcReadableDef $ evaluateCek mempty Counting mempty term)
+
+test_counting :: TestTree
+test_counting =
+    runTestNestedIn ["test", "Evaluation", "Machines"]
+        .  testNested "Counting"
+        .  foldPlcFolderContents testNested
+                                 (\name _ -> pure $ testCase name (pure ()))
+                                 testCounting
+        $ examples <> bunchOfFibs

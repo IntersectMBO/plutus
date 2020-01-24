@@ -2,7 +2,7 @@
 , ({ tally: ({ cpu: ({ })
 | mem: ({ })
 })
-| budget: ({ cpu: 1000
-| mem: 40
+| budget: ({ cpu: 0
+| mem: -960
 })
 }))

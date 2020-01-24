@@ -1,8 +1,0 @@
-((Right (iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (/\(r :: *) -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) -> r) -> z)))
-, ({ tally: ({ cpu: ({ [ 1 ] used by (iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (/\(r :: *) -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) -> r) -> z))})
-| mem: ({ [ 1 ] used by (iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (/\(r :: *) -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) -> r) -> z))})
-})
-| budget: ({ cpu: 99
-| mem: 795
-})
-}))

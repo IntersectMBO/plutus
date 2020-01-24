@@ -1,8 +1,0 @@
-((Right (\(n : all (r :: *). r -> (r -> r) -> r) -> /\(r :: *) -> \(z : r) -> \(f : r -> r) -> f (n {r} z f)))
-, ({ tally: ({ cpu: ({ })
-| mem: ({ })
-})
-| budget: ({ cpu: 100
-| mem: 915
-})
-}))
