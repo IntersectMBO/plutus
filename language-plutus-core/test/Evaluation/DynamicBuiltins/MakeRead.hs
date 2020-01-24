@@ -47,36 +47,10 @@ dynamicBuiltinRoundtrip genX = property $ do
         EvaluationFailure    -> fail "EvaluationFailure"
         EvaluationSuccess x' -> x === x'
 
-test_eitherRoundtrip :: TestTree
-test_eitherRoundtrip =
-    testProperty "eitherRoundtrip" . dynamicBuiltinRoundtrip $
-        Gen.choice [Left <$> Gen.unicode, Right <$> Gen.bool]
-
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
     testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip $
         Gen.string (Range.linear 0 20) Gen.unicode
-
-test_plcListOfStringsRoundtrip :: TestTree
-test_plcListOfStringsRoundtrip =
-    testProperty "listOfStringsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            Gen.string (Range.linear 0 10) Gen.unicode
-
-test_plcListOfPairsRoundtrip :: TestTree
-test_plcListOfPairsRoundtrip =
-    testProperty "listOfPairsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            (,) . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode <*> Gen.unicode
-
-test_plcListOfSumsRoundtrip :: TestTree
-test_plcListOfSumsRoundtrip =
-    testProperty "listOfSumsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            Gen.choice
-                [ Left . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode
-                , Right <$> Gen.unicode
-                ]
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -117,31 +91,17 @@ test_ignoreEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
             readMake 'a'
 
-test_delayEvaluationFailure :: TestTree
-test_delayEvaluationFailure =
-    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
-        isEvaluationSuccess $ do
-            f <- readMake $ \() -> EvaluationFailure
-            case f () of
-                EvaluationFailure    -> EvaluationSuccess ()
-                EvaluationSuccess () -> EvaluationFailure
-
 test_EvaluationFailure :: TestTree
 test_EvaluationFailure =
     testGroup "EvaluationFailure"
         [ test_noticeEvaluationFailure
         , test_ignoreEvaluationFailure
-        , test_delayEvaluationFailure
         ]
 
 test_dynamicMakeRead :: TestTree
 test_dynamicMakeRead =
     testGroup "dynamicMakeRead"
-        [ test_eitherRoundtrip
-        , test_stringRoundtrip
-        , test_plcListOfStringsRoundtrip
-        , test_plcListOfPairsRoundtrip
-        , test_plcListOfSumsRoundtrip
+        [ test_stringRoundtrip
         , test_collectChars
         , test_EvaluationFailure
         ]
