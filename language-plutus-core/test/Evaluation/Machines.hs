@@ -28,13 +28,9 @@ import           Language.PlutusCore.Examples.Everything          (examples)
 import           Language.PlutusCore.StdLib.Everything            (stdLib)
 
 import           Control.Lens.Combinators                         (_1)
-import Data.Bitraversable
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
-import           Hedgehog                                 hiding (Size, Var)
-import qualified Hedgehog.Gen                             as Gen
-import qualified Hedgehog.Range                           as Range
 
 testMachine
     :: Pretty err
