@@ -43,7 +43,7 @@ compileLets kind t = getEnclosing >>= \p ->
 compileLet :: Compiling m e a => LetKind -> PIRTerm a -> DefT SharedName (Provenance a) m (PIRTerm a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
-            NonRec -> lift $ foldM (compileNonRecBinding kind) body bs
+            NonRec -> lift $ foldM (compileNonRecBinding kind) body (reverse bs) -- this foldM is foldr 
             Rec    -> compileRecBindings kind body bs
     x -> pure x
 
