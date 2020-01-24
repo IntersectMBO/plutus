@@ -79,7 +79,6 @@ import Declarative as D
 import Declarative.Erasure as D
 open import Algorithmic.Completeness
 
-{-
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
@@ -90,6 +89,7 @@ lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 -- string of arguments, both contexts, equality proof above, and
 -- before and after versions of all arguments and all recursive calls
 
+{-
 lemzero : ∀{n n'}(p : suc n ≡ suc n') → zero ≡ subst Fin p zero
 lemzero refl = refl
 
