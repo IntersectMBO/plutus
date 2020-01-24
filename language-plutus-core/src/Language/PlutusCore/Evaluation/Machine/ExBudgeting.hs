@@ -140,7 +140,7 @@ newtype ExTallyCounter unit = ExTallyCounter (MonoidalHashMap (Plain Term) [unit
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTallyCounter unit))
 instance (PrettyBy config (Term TyName Name ()), PrettyBy config unit) => PrettyBy config (ExTallyCounter unit) where
     prettyBy config (ExTallyCounter m) =
-        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ ifoldMap (\k v -> [group $ (encloseSep "[" "]" ", " (prettyBy config <$> v)) <+> "used by" <+> prettyBy config k]) m) <> ["}"])
+        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ ifoldMap (\k v -> [group $ ("["<> fold (intersperse "," (prettyBy config <$> v)) <> "]") <+> "used by" <+> prettyBy config k]) m) <> ["}"])
 
 $(join <$> traverse makeLenses [''ExBudgetState, ''ExBudget, ''ExTally])
 
