@@ -78,7 +78,7 @@ import Scoped.Extrication
 --import Scoped.Extrication.Reduction
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
-import Scoped.Erasure.Reduction
+--import Scoped.Erasure.Reduction
 import Scoped.CK
 
 import Check
