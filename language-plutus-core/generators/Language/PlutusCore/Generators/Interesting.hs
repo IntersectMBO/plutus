@@ -226,16 +226,31 @@ genDivideByZero = do
     let term = mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
     return $ TermOf term EvaluationFailure
 
+-- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
+genDivideByZeroDrop :: TermGen (EvaluationResult Integer)
+genDivideByZeroDrop = do
+    op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf i iv <- genTermLoose typedInt
+    let term =
+            mkIterApp () (mkIterInst () Function.const [int, int])
+                [ mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
+                , makeIntConstant iv
+                ]
+    return $ TermOf term EvaluationFailure
+
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens :: (forall a. KnownType a => String -> TermGen a -> c) -> [c]
 fromInterestingTermGens f =
-    [ f "overapplication" genOverapplication
-    , f "factorial"       genFactorial
-    , f "fibonacci"       genNaiveFib
-    , f "NatRoundTrip"    genNatRoundtrip
-    , f "ListSum"         genListSum
-    , f "IfIntegers"      genIfIntegers
-    , f "ApplyAdd1"       genApplyAdd1
-    , f "ApplyAdd2"       genApplyAdd2
-    , f "DivideByZero"    genDivideByZero
+    [ f "overapplication"  genOverapplication
+    , f "factorial"        genFactorial
+    , f "fibonacci"        genNaiveFib
+    , f "NatRoundTrip"     genNatRoundtrip
+    , f "ListSum"          genListSum
+    , f "IfIntegers"       genIfIntegers
+    , f "ApplyAdd1"        genApplyAdd1
+    , f "ApplyAdd2"        genApplyAdd2
+    , f "DivideByZero"     genDivideByZero
+    , f "DivideByZeroDrop" genDivideByZeroDrop
     ]

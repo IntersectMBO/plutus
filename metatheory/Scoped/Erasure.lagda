@@ -5,6 +5,7 @@ module Scoped.Erasure where
 \begin{code}
 open import Scoped
 open import Untyped
+open import Untyped.RenamingSubstitution
 
 open import Data.Nat
 open import Data.Fin
@@ -36,9 +37,9 @@ eraseList []       = []
 eraseList (t ∷ ts) = eraseTm t ∷ eraseList ts
 
 eraseTm (` x)              = ` (eraseVar x)
-eraseTm (Λ x K t)          = eraseTm t
-eraseTm (t ·⋆ A)           = eraseTm t
-eraseTm (ƛ x A t)          = ƛ x (eraseTm t)
+eraseTm (Λ K t)            = ƛ (weaken (eraseTm t))
+eraseTm (t ·⋆ A)           = eraseTm t · plc_dummy
+eraseTm (ƛ A t)            = ƛ (eraseTm t)
 eraseTm (t · u)            = eraseTm t · eraseTm u
 eraseTm (con c)            = con (eraseTC c)
 eraseTm (error A)          = error

@@ -8,12 +8,11 @@
 module Language.Marlowe.Pretty where
 
 import qualified Data.ByteString.Lazy    as BSL
-import           Data.String             (fromString)
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
-import           Ledger                  (PubKey (..), Slot (..))
+import           Ledger                  (PubKey (..), PubKeyHash (..), Slot (..))
 import           Ledger.Ada              (Ada, getLovelace)
 import           Ledger.Value
 import           LedgerBytes
@@ -125,11 +124,14 @@ instance Pretty Slot where
 instance Pretty PubKey where
     prettyFragment (PubKey (LedgerBytes lb)) = prettyFragment lb
 
-pubKeyFromString :: String -> PubKey
-pubKeyFromString = PubKey . LedgerBytes . fromString
+instance Pretty PubKeyHash where
+    prettyFragment (PubKeyHash bs) = prettyFragment bs
 
 instance Read PubKey where
     readsPrec p x = [(PubKey (LedgerBytes v), s) | (v, s) <- readsPrec p x]
+
+instance Read PubKeyHash where
+    readsPrec p x = [(PubKeyHash bs, s) | (bs, s) <- readsPrec p x]
 
 instance Read Slot where
     readsPrec p x = [(Slot v, s) | (v, s) <- readsPrec p x]
@@ -149,4 +151,3 @@ instance Read TokenName where
 
 deriving instance Pretty CurrencySymbol
 deriving instance Pretty TokenName
-

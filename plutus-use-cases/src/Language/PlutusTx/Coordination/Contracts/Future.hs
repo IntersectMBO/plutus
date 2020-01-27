@@ -37,6 +37,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , tokenFor
     , initialState
     , scriptInstance
+    , setupTokens
     ) where
 
 import           Control.Lens                   (prism', review, makeClassyPrisms)
@@ -48,7 +49,7 @@ import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude      hiding (Semigroup(..))
 import qualified Language.PlutusTx.StateMachine as SM
-import           Ledger                         (PubKey, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
+import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Interval                as Interval
 import           Ledger.Tokens
@@ -106,7 +107,7 @@ data FutureAccounts =
         { ftoLong  :: Account
         -- ^ The owner of the "long" account (represented by a token)
         , ftoLongAccount :: ValidatorHash
-        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We 
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We
         --   store it here so that we can lift it into on-chain code.
         , ftoShort :: Account
         -- ^ The owner of the "short" account (represented by a token).
@@ -126,7 +127,7 @@ instance Eq Margins where
     l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
 
 -- | The state of the future contract.
-data FutureState = 
+data FutureState =
     Running Margins
     -- ^ Ongoing contract, with the current margins.
     | Finished
@@ -146,7 +147,7 @@ data FutureAction =
     -- ^ Close the contract at the delivery date by making the agreed payment
     --   and returning the margin deposits to their owners
     | SettleEarly (OracleValue Value)
-    -- ^ Close the contract early after a margin payment has been missed. 
+    -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
     deriving (Show)
@@ -195,7 +196,7 @@ data FutureSetup =
         , longPK :: PubKey
         -- ^ Initial owner of the long token
         , contractStart :: Slot
-        -- ^ Start of the futures contract itself. By this time the setup code 
+        -- ^ Start of the futures contract itself. By this time the setup code
         --   has to be finished, otherwise the contract is void.
         } deriving (Haskell.Show)
 
@@ -308,7 +309,7 @@ machineClient
     -> Future
     -> FutureAccounts
     -> SM.StateMachineClient FutureState FutureAction
-machineClient inst future ftos = 
+machineClient inst future ftos =
     let machine = futureStateMachine future ftos
         i = SM.StateMachineInstance machine inst
     in SM.mkStateMachineClient i (allocate future ftos)
@@ -334,11 +335,11 @@ data Payouts =
         , payoutsLong  :: Value
         }
 
-payoutsTx 
+payoutsTx
     :: Payouts
     -> FutureAccounts
     -> UnbalancedTx
-payoutsTx 
+payoutsTx
     Payouts{payoutsShort, payoutsLong}
     FutureAccounts{ftoShort, ftoLong} =
         TokenAccount.payTx (TokenAccount.scriptInstance ftoShort) payoutsShort
@@ -392,7 +393,7 @@ futureCheck future owners state action ptx =
         _ -> False
 
 allocate :: Future -> FutureAccounts -> FutureState -> FutureAction -> Value -> Maybe ValueAllocation
-allocate _ _ Running{} (AdjustMargin _ topUp) vl = 
+allocate _ _ Running{} (AdjustMargin _ topUp) vl =
     Just $ ValueAllocation
         { vaOwnAddress = topUp + vl
         , vaOtherPayments=Haskell.mempty
@@ -449,7 +450,7 @@ futureAddress ft fo = Ledger.scriptAddress (validator ft fo)
 -- | The role that violated its margin requirements
 violatingRole :: Future -> Margins -> Value -> Maybe Role
 violatingRole future margins spotPrice =
-    let 
+    let
         minMargin = requiredMargin future spotPrice
         Margins{ftsShortMargin, ftsLongMargin} = margins
     in
@@ -593,28 +594,28 @@ setupTokens = do
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract pk [("long", 1), ("short", 1)])
-    let tokenSym = Currency.currencySymbol cur
-    pure $ mkAccounts (Account (tokenSym, "long")) (Account (tokenSym, "short"))
+    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)])
+    let sym = Currency.currencySymbol cur
+    pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
 
 -- | The escrow contract that initialises the future. Both parties have to pay
 --   their initial margin to this contract in order to unlock their tokens.
-escrowParams 
+escrowParams
     :: SM.StateMachineClient FutureState FutureAction
     -> Future
     -> FutureAccounts
     -> FutureSetup
     -> EscrowParams DataValue
-escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} = 
+escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
         dataScript  = Ledger.DataValue $ PlutusTx.toData $ initialState future
-        targets = 
-            [ Escrow.payToScriptTarget address 
+        targets =
+            [ Escrow.payToScriptTarget address
                 dataScript
                 (scale 2 (initialMargin future))
-            , Escrow.payToPubKeyTarget longPK (tokenFor Long ftos)
-            , Escrow.payToPubKeyTarget shortPK (tokenFor Short ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash longPK) (tokenFor Long ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash shortPK) (tokenFor Short ftos)
             ]
     in EscrowParams
         { escrowDeadline = contractStart

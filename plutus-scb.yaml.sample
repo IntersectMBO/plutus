@@ -1,0 +1,2 @@
+dbConfigFile: scb-core.db
+dbConfigPoolSize: 20

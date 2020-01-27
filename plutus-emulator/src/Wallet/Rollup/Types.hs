@@ -31,16 +31,16 @@ data DereferencedInput =
     deriving anyclass (FromJSON, ToJSON)
 
 data BeneficialOwner
-    = OwnedByPubKey PubKey
-    | OwnedByScript Address
+    = OwnedByPubKey PubKeyHash
+    | OwnedByScript ValidatorHash
     deriving (Eq, Show, Ord, Generic)
     deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
-toBeneficialOwner TxOut {txOutType, txOutAddress} =
-    case txOutType of
-        PayToPubKey pubKey -> OwnedByPubKey pubKey
-        PayToScript _      -> OwnedByScript txOutAddress
+toBeneficialOwner TxOut {txOutAddress} =
+    case txOutAddress of
+        PubKeyAddress pkh -> OwnedByPubKey pkh
+        ScriptAddress vh  -> OwnedByScript vh
 
 data AnnotatedTx =
     AnnotatedTx

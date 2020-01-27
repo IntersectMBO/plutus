@@ -34,11 +34,11 @@ import           Prelude                      (Semigroup(..), foldMap)
 type MultiSigSchema =
     BlockchainActions
         .\/ Endpoint "lock" (MultiSig, Value)
-        .\/ Endpoint "unlock" (MultiSig, [PubKey])
+        .\/ Endpoint "unlock" (MultiSig, [PubKeyHash])
 
-data MultiSig = 
+data MultiSig =
         MultiSig
-                { signatories :: [Ledger.PubKey]
+                { signatories :: [Ledger.PubKeyHash]
                 -- ^ List of public keys of people who may sign the transaction
                 , minNumSignatures :: Integer
                 -- ^ Minimum number of signatures required to unlock

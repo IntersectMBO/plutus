@@ -25,6 +25,7 @@ self: super: {
     # Overides of local packages
     language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
     plutus-book = deferPluginErrors super.plutus-book;
+    plutus-scb = deferPluginErrors super.plutus-scb;
     plutus-tx = doctest doctestOpts super.plutus-tx;
     plutus-tutorial = doctest doctestOpts (deferPluginErrors super.plutus-tutorial);
     plutus-use-cases = deferPluginErrors super.plutus-use-cases;

@@ -66,7 +66,7 @@ dataTxo :: Blockchain -> TxOutRef -> Maybe DataValueHash
 dataTxo bc o = txOutData =<< out bc o
 
 -- | Determine the public key that locks a transaction output, if there is one.
-pubKeyTxo :: Blockchain -> TxOutRef -> Maybe PubKey
+pubKeyTxo :: Blockchain -> TxOutRef -> Maybe PubKeyHash
 pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent transaction outputs of the ledger as a whole.

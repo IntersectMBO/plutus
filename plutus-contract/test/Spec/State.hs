@@ -4,17 +4,14 @@
 module Spec.State where
 
 import           Control.Applicative                             (Alternative (..))
-import           Control.Lens                                    (from, view)
-import           Control.Monad                                   (foldM)
-import           Control.Monad.Except                            (runExcept)
-import           Control.Monad.Writer                            (runWriterT)
-import           Data.Either                                     (fromRight, isRight)
+import           Data.Either                                     (isRight)
 import           Language.Plutus.Contract                        as Con
-import           Language.Plutus.Contract.Record                 (Record (ClosedRec), jsonLeaf, record)
+import           Language.Plutus.Contract.Record                 (Record (ClosedRec), jsonLeaf)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                as HUnit
 
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
+import           Language.Plutus.Contract.Resumable              (ResumableResult (..))
 import qualified Language.Plutus.Contract.Resumable              as S
 
 type Schema =
@@ -27,24 +24,21 @@ tests =
         epCon :: Con.Contract Schema () String
         epCon = Con.endpoint @"endpoint" @String @Schema
         ep = Con.unContract epCon
-        initRecord = view (from record) . fmap fst . fst . fromRight (error "initialise failed") . runExcept . runWriterT . S.initialise
         inp = Endpoint.event @"endpoint" "asd"
-        run con =
-            foldM (fmap (fmap fst) . S.insertAndUpdate con) (initRecord con)
     in
     testGroup "stateful contract"
         [ HUnit.testCase "run a contract without checkpoints" $
-            let res = run ep [inp]
+            let res = S.runResumable [inp] ep
             in HUnit.assertBool "init" (isRight res)
 
         , HUnit.testCase "run a contract with checkpoints, recording the result as JSON" $
             let con = S.checkpoint $ (,) <$> S.checkpoint ep <*> (ep >> ep)
-                res = run con [inp, inp, inp]
+                res = fmap wcsRecord $ S.runResumable [inp, inp, inp] con
             in HUnit.assertBool "checkpoint" (res == Right (ClosedRec (jsonLeaf ("asd", "asd"))))
 
         , HUnit.testCase "run a parallel contract with checkpoints, recording the result as JSON" $
         let con = S.checkpoint $ (ep >> ep) <|> (ep >> ep >> ep)
-            res = run con [inp, inp]
+            res = fmap wcsRecord $ S.runResumable [inp, inp] con
         in HUnit.assertBool "checkpoint" (res == Right (ClosedRec (jsonLeaf "asd")))
 
         ]

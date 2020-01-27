@@ -15,7 +15,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
@@ -102,13 +102,15 @@ goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
+goldenVsEvaluated :: String -> Term TyName Name () -> TestTree
+goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty
+
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree
 test_golden = testGroup "golden"
-    [ goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
-    , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
-    , goldenVsPretty "evenList" . pure . evaluateCk $
-          Apply () natSum $ Apply () evenList smallNatList
-    , goldenVsPretty "polyError" . pure . evaluateCk $ polyError
-    , goldenVsPretty "polyErrorInst" . pure . evaluateCk $ TyInst () polyError (TyBuiltin () TyInteger)
+    [ goldenVsEvaluated "even2" $ Apply () even $ metaIntegerToNat 2
+    , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
+    , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
+    , goldenVsEvaluated "polyError" $ polyError
+    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (TyBuiltin () TyInteger)
     ]

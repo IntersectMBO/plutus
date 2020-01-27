@@ -4,15 +4,18 @@ packages: language-plutus-core
           plutus-exe
           plutus-wallet-api
           plutus-tx
+          plutus-tx-plugin
           plutus-use-cases
           plutus-ir
           plutus-playground-server
           plutus-playground-lib
           plutus-tutorial
           plutus-book
+          plutus-scb
           playground-common
           marlowe-playground-server
           marlowe-symbolic
+          marlowe-hspec
           plutus-contract
           plutus-contract-tasty
           deployment-server

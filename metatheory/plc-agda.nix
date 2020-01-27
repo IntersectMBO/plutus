@@ -1,6 +1,6 @@
 { mkDerivation, base, bytestring, Cabal, cryptonite, directory
 , ieee754, language-plutus-core, memory, optparse-applicative
-, plutus-exe, process, stdenv, text
+, plutus-exe, process, stdenv, text, transformers
 }:
 mkDerivation {
   pname = "plc-agda";
@@ -10,11 +10,12 @@ mkDerivation {
   isExecutable = true;
   executableHaskellDepends = [
     base bytestring cryptonite ieee754 language-plutus-core memory
-    optparse-applicative text
+    optparse-applicative text transformers
   ];
   testHaskellDepends = [
     base bytestring Cabal cryptonite directory ieee754
     language-plutus-core memory optparse-applicative process text
+    transformers
   ];
   testToolDepends = [ plutus-exe ];
   enableLibraryProfiling = false;

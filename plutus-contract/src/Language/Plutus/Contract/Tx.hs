@@ -13,6 +13,7 @@ module Language.Plutus.Contract.Tx(
     -- * Constructing transactions
     , payToScript
     , payToPubKey
+    , payToPubKeyHash
     , collectFromScript
     , collectFromScriptFilter
     , forgeValue
@@ -23,7 +24,7 @@ module Language.Plutus.Contract.Tx(
     , mustProduceOutput
     -- * Inspecting 'UnbalancedTx' values
     , valueMoved
-    , requiredSignatures
+    , requiredSignatories
     , validityRange
     -- * Inspecting 'UnbalancedTx' constraints
     , modifiesUtxoSet
@@ -34,6 +35,7 @@ module Language.Plutus.Contract.Tx(
     , Tx.TxOutRef(..)
     -- * Constructing outputs
     , Tx.pubKeyTxOut
+    , Tx.pubKeyHashTxOut
     , Tx.scriptTxOut
     , Tx.scriptTxOut'
     ) where
@@ -49,7 +51,8 @@ import           GHC.Generics              (Generic)
 import           Language.PlutusTx.Lattice
 
 import           IOTS                      (IotsType)
-import           Ledger                    (Address, DataValue, PubKey, RedeemerValue, TxOutRef, TxOutTx, Validator)
+import           Ledger                    (Address, DataValue, PubKey, PubKeyHash, RedeemerValue, TxOutRef, TxOutTx,
+                                            Validator)
 import qualified Ledger                    as L
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
@@ -63,13 +66,14 @@ import qualified Wallet.API                as WAPI
 -- | An unsigned and potentially unbalanced transaction, as produced by
 --   a contract endpoint. See note [Unbalanced transactions].
 data UnbalancedTx = UnbalancedTx
-        { _inputs             :: Set L.TxIn
-        , _outputs            :: [L.TxOut]
-        , _forge              :: V.Value
-        , _requiredSignatures :: [PubKey]
-        , _dataValues         :: [DataValue]
-        , _validityRange      :: SlotRange
-        , _valueMoved         :: Value
+        { _inputs              :: Set L.TxIn
+        , _outputs             :: [L.TxOut]
+        , _forge               :: V.Value
+        , _forgeScripts        :: Set L.MonetaryPolicy
+        , _requiredSignatories :: [PubKeyHash]
+        , _dataValues          :: [DataValue]
+        , _validityRange       :: SlotRange
+        , _valueMoved          :: Value
         -- ^ The minimum size of the transaction's left and right side. The
         --   purpose of this field is to enable proof of ownership for tokens
         --   (a transaction proves ownership of a token if the value consumed
@@ -85,17 +89,18 @@ instance Semigroup UnbalancedTx where
         _inputs = _inputs tx1 <> _inputs tx2,
         _outputs = _outputs tx1 <> _outputs tx2,
         _forge = _forge tx1 <> _forge tx2,
-        _requiredSignatures = _requiredSignatures tx1 <> _requiredSignatures tx2,
+        _forgeScripts = _forgeScripts tx1 <> _forgeScripts tx2,
+        _requiredSignatories = _requiredSignatories tx1 <> _requiredSignatories tx2,
         _dataValues = _dataValues tx1 <> _dataValues tx2,
         _validityRange = _validityRange tx1 /\ _validityRange tx2,
         _valueMoved = _valueMoved tx1 <> _valueMoved tx2
         }
 
 instance Monoid UnbalancedTx where
-    mempty = UnbalancedTx mempty mempty mempty mempty mempty top mempty
+    mempty = UnbalancedTx mempty mempty mempty mempty mempty mempty top mempty
 
 instance Pretty UnbalancedTx where
-    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatures, _dataValues, _validityRange, _valueMoved} =
+    pretty UnbalancedTx{_inputs, _outputs, _forge, _requiredSignatories, _dataValues, _validityRange, _valueMoved} =
         let renderOutput Tx.TxOut{Tx.txOutType, Tx.txOutValue} =
                 hang 2 $ vsep ["-" <+> pretty txOutValue <+> "locked by", pretty txOutType]
             renderInput Tx.TxIn{Tx.txInRef,Tx.txInType} =
@@ -103,14 +108,13 @@ instance Pretty UnbalancedTx where
                         case txInType of
                             Tx.ConsumeScriptAddress _ redeemer _ ->
                                 [pretty redeemer]
-                            Tx.ConsumePublicKeyAddress pk ->
-                                [pretty pk]
+                            Tx.ConsumePublicKeyAddress -> mempty
                 in hang 2 $ vsep $ "-" <+> pretty txInRef : rest
             lines' =
                 [ hang 2 (vsep ("inputs:" : fmap renderInput (Set.toList _inputs)))
                 , hang 2 (vsep ("outputs:" : fmap renderOutput _outputs))
                 , "forge:" <+> pretty _forge
-                , hang 2 (vsep ("required signatures:": fmap pretty _requiredSignatures))
+                , hang 2 (vsep ("required signatories:": fmap pretty _requiredSignatories))
                 , hang 2 (vsep ("data values:" : fmap pretty _dataValues))
                 , "validity range:" <+> viaShow _validityRange
                 , "value moved:" <+> pretty _valueMoved
@@ -120,8 +124,8 @@ instance Pretty UnbalancedTx where
 valueMoved :: UnbalancedTx -> Value
 valueMoved = _valueMoved
 
-requiredSignatures :: UnbalancedTx -> [PubKey]
-requiredSignatures = _requiredSignatures
+requiredSignatories :: UnbalancedTx -> [PubKeyHash]
+requiredSignatories = _requiredSignatories
 
 validityRange :: UnbalancedTx -> SlotRange
 validityRange = _validityRange
@@ -142,8 +146,8 @@ mustBeValidIn :: SlotRange -> UnbalancedTx
 mustBeValidIn range = mempty { _validityRange = range }
 
 -- | Require the transaction to be signed by the public key.
-mustBeSignedBy :: PubKey -> UnbalancedTx
-mustBeSignedBy pk = mempty { _requiredSignatures = [pk] }
+mustBeSignedBy :: PubKeyHash -> UnbalancedTx
+mustBeSignedBy pk = mempty { _requiredSignatories = [pk] }
 
 -- | Require the transaction to spend the input
 mustSpendInput :: L.TxIn -> UnbalancedTx
@@ -160,9 +164,10 @@ fromLedgerTx tx = UnbalancedTx
             { _inputs = L.txInputs tx
             , _outputs = L.txOutputs tx
             , _forge = L.txForge tx
-            , _requiredSignatures = Map.keys $ L.txSignatures tx
+            , _requiredSignatories = fmap L.pubKeyHash $ Map.keys $ L.txSignatures tx
             , _dataValues = toList $ L.txData tx
             , _validityRange = L.txValidRange tx
+            , _forgeScripts = L.txForgeScripts tx
             , _valueMoved = mempty
             }
 
@@ -177,6 +182,7 @@ toLedgerTx utx =
             , L.txForge = _forge utx
             , L.txFee = mempty
             , L.txValidRange = _validityRange utx
+            , L.txForgeScripts = _forgeScripts utx
             , L.txSignatures = Map.empty
             , L.txData = Map.fromList $ fmap (\ds -> (L.dataValueHash ds, ds)) (_dataValues utx)
             }
@@ -186,7 +192,7 @@ toLedgerTx utx =
 --   will be ignored.
 --   Note: this doesn't populate the data scripts, so is not exported. Prefer using 'payToScript' etc.
 unbalancedTx :: [L.TxIn] -> [L.TxOut] -> UnbalancedTx
-unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty I.always mempty
+unbalancedTx ins outs = UnbalancedTx (Set.fromList ins) outs mempty mempty mempty mempty I.always mempty
 
 -- | Create an `UnbalancedTx` that pays money to a script address.
 payToScript :: Value -> Address -> DataValue -> UnbalancedTx
@@ -197,6 +203,11 @@ payToScript v a ds = (unbalancedTx mempty [outp]) { _dataValues = [ds] } where
 payToPubKey :: Value -> PubKey -> UnbalancedTx
 payToPubKey v pk = unbalancedTx mempty [outp] where
     outp = Tx.pubKeyTxOut v pk
+
+-- | Create an 'UnbalancedTx' that pays money to a public-key address
+payToPubKeyHash :: Value -> PubKeyHash -> UnbalancedTx
+payToPubKeyHash v pk = unbalancedTx mempty [outp] where
+    outp = Tx.pubKeyHashTxOut v pk
 
 -- | Create an `UnbalancedTx` that collects script outputs from the
 --   address of the given validator script, using the same redeemer script
@@ -221,9 +232,9 @@ collectFromScriptFilter flt am vls red =
 
 -- This just sets the '_forge' field, but it's exported for convenient
 -- use with '<>'.
--- | An 'UnbalancedTx' that forges the specified value.
-forgeValue :: Value -> UnbalancedTx
-forgeValue vl = mempty { _forge = vl }
+-- | An 'UnbalancedTx' that forges the specified value, using the given monetary policies as authorization.
+forgeValue :: Value -> Set.Set L.MonetaryPolicy -> UnbalancedTx
+forgeValue vl fs = mempty { _forge = vl, _forgeScripts = fs }
 
 -- | An 'UnbalancedTx' that moves the specified value
 moveValue :: Value -> UnbalancedTx

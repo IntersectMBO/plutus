@@ -68,7 +68,6 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
         PlutusPrelude
-        Control.Monad.Trans.Inner
         Common
         Data.ByteString.Lazy.Hash
         PlcTestUtils
@@ -186,9 +185,7 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Evaluation.Constant.Apply
-        Evaluation.Constant.Success
-        Evaluation.Constant
+        Evaluation.ApplyBuiltinName
         Evaluation.DynamicBuiltins.Common
         Evaluation.DynamicBuiltins.Definition
         Evaluation.DynamicBuiltins.Logging

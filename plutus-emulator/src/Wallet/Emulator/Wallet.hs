@@ -145,7 +145,7 @@ handleWallet = interpret $ \case
           -- select new inputs, after deducting the oldChange from the value.
           (spend, change) <- selectCoin (second (txOutValue . txOutTxOut) <$> Map.toList fnds)
                                         (vl PlutusTx.- oldChange)
-          let ins = Set.fromList (pubKeyTxIn pubK . fst <$> spend)
+          let ins = Set.fromList (pubKeyTxIn . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
     WatchedAddresses -> NC.getClientIndex
     WalletSlot -> NC.getClientSlot

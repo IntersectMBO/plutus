@@ -28,7 +28,7 @@ data EvaluationResult a
     | EvaluationFailure
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
 
--- | The default type of results various evaluation engines return.
+-- | The default exception-free type of results various evaluation engines return.
 type EvaluationResultDef = EvaluationResult (Term TyName Name ())
 
 instance Applicative EvaluationResult where

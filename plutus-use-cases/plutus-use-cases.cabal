@@ -51,9 +51,6 @@ library
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
-        plutus-contract -any,
-        iots-export -any
-    build-depends:
         base -any,
         aeson -any,
         bytestring -any,
@@ -61,6 +58,7 @@ library
         iots-export -any,
         mtl -any,
         plutus-tx -any,
+        plutus-contract -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
         plutus-emulator -any,
@@ -68,6 +66,9 @@ library
         lens -any,
         text -any,
         prettyprinter -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -119,6 +120,9 @@ test-suite plutus-use-cases-test
         lens -any,
         mtl -any
 
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
 benchmark plutus-use-cases-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
@@ -144,6 +148,9 @@ benchmark plutus-use-cases-bench
         plutus-wallet-api -any,
         bytestring -any,
         plutus-emulator -any
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
 
 executable contract-guessing-game
     default-language: Haskell2010

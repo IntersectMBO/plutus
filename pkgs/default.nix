@@ -137,8 +137,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "Agda";
-version = "2.6.0";
-sha256 = "bf71bc634a9fe40d717aae76b5b160dfd13a06365615e7822043e5d476c06fb8";
+version = "2.6.0.1";
+sha256 = "7bb88a9cd4a556259907ccc71d54e2acc9d3e9ce05486ffdc83f721c7c06c0e8";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
@@ -44652,6 +44652,7 @@ license = "GPL";
 , mtl
 , plutus-emulator
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , serialise
 , stdenv
@@ -44674,6 +44675,7 @@ bytestring
 containers
 mtl
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 template-haskell
 text
@@ -44703,6 +44705,39 @@ text
 ];
 doHaddock = false;
 description = "Marlowe: financial contracts on Cardano Computation Layer";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"marlowe-hspec" = callPackage
+({
+  mkDerivation
+, base
+, hspec
+, hspec-expectations
+, HUnit
+, marlowe
+, marlowe-symbolic
+, stdenv
+}:
+mkDerivation {
+
+pname = "marlowe-hspec";
+version = "0.1.0.0";
+src = .././marlowe-hspec;
+libraryHaskellDepends = [
+base
+hspec-expectations
+HUnit
+marlowe
+marlowe-symbolic
+];
+testHaskellDepends = [
+base
+hspec
+HUnit
+marlowe
+];
+doHaddock = false;
 license = stdenv.lib.licenses.asl20;
 
 }) {};
@@ -54179,6 +54214,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-contract
 , plutus-emulator
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , prettyprinter
 , profunctors
@@ -54229,6 +54265,7 @@ mtl
 plutus-contract
 plutus-emulator
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 tasty
 tasty-hunit
@@ -54266,6 +54303,7 @@ license = stdenv.lib.licenses.asl20;
 , newtype-generics
 , operational
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , prettyprinter
 , recursion-schemes
@@ -54334,6 +54372,7 @@ freer-simple
 hedgehog
 lens
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 tasty
 tasty-hedgehog
@@ -54572,6 +54611,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , process
 , prometheus
@@ -54636,6 +54676,7 @@ plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 process
 recursion-schemes
@@ -54675,6 +54716,7 @@ plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 prometheus
 purescript-bridge
@@ -54704,12 +54746,124 @@ playground-common
 plutus-emulator
 plutus-playground-lib
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 tasty
 tasty-golden
 tasty-hunit
 text
 time-units
+transformers
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"plutus-scb" = callPackage
+({
+  mkDerivation
+, aeson
+, async
+, base
+, bytestring
+, containers
+, ekg
+, eventful-core
+, eventful-memory
+, eventful-sql-common
+, eventful-sqlite
+, generic-arbitrary
+, iots-export
+, lens
+, monad-logger
+, mtl
+, optparse-applicative
+, persistent-sqlite
+, playground-common
+, plutus-contract
+, plutus-emulator
+, plutus-tx
+, plutus-tx-plugin
+, plutus-wallet-api
+, prettyprinter
+, QuickCheck
+, quickcheck-instances
+, random
+, stdenv
+, stm
+, tasty
+, tasty-quickcheck
+, text
+, transformers
+, unliftio-core
+, unordered-containers
+, uuid
+, vector
+, yaml
+}:
+mkDerivation {
+
+pname = "plutus-scb";
+version = "0.1.0.0";
+src = .././plutus-scb;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+async
+base
+bytestring
+containers
+eventful-core
+eventful-memory
+eventful-sql-common
+eventful-sqlite
+generic-arbitrary
+iots-export
+lens
+monad-logger
+mtl
+optparse-applicative
+persistent-sqlite
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-tx-plugin
+plutus-wallet-api
+prettyprinter
+QuickCheck
+quickcheck-instances
+random
+stm
+text
+transformers
+unliftio-core
+unordered-containers
+uuid
+vector
+yaml
+];
+executableHaskellDepends = [
+base
+ekg
+monad-logger
+mtl
+optparse-applicative
+playground-common
+text
+unliftio-core
+yaml
+];
+testHaskellDepends = [
+base
+eventful-core
+eventful-memory
+plutus-wallet-api
+QuickCheck
+quickcheck-instances
+tasty
+tasty-quickcheck
 transformers
 ];
 doHaddock = false;
@@ -54727,6 +54881,7 @@ license = stdenv.lib.licenses.asl20;
 , language-plutus-core
 , plutus-emulator
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , prettyprinter
 , stdenv
@@ -54747,6 +54902,7 @@ containers
 language-plutus-core
 plutus-emulator
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
 template-haskell
@@ -54768,24 +54924,15 @@ license = stdenv.lib.licenses.asl20;
 , cborg
 , containers
 , doctest
-, extra
-, ghc
-, hedgehog
-, integer-gmp
 , language-plutus-core
-, lens
 , mtl
 , plutus-ir
 , prettyprinter
 , serialise
 , stdenv
-, tasty
-, tasty-hedgehog
-, tasty-hunit
 , template-haskell
 , text
 , th-abstraction
-, transformers
 }:
 mkDerivation {
 
@@ -54797,10 +54944,7 @@ base
 bytestring
 cborg
 containers
-extra
-ghc
 language-plutus-core
-lens
 mtl
 plutus-ir
 prettyprinter
@@ -54808,10 +54952,61 @@ serialise
 template-haskell
 text
 th-abstraction
-transformers
 ];
 libraryToolDepends = [
 doctest
+];
+doHaddock = false;
+description = "Libraries for Plutus Tx and its prelude";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"plutus-tx-plugin" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, extra
+, ghc
+, hedgehog
+, integer-gmp
+, language-plutus-core
+, lens
+, mtl
+, plutus-ir
+, plutus-tx
+, prettyprinter
+, serialise
+, stdenv
+, tasty
+, tasty-hedgehog
+, tasty-hunit
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-tx-plugin";
+version = "0.1.0.0";
+src = .././plutus-tx-plugin;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+extra
+ghc
+language-plutus-core
+lens
+mtl
+plutus-ir
+plutus-tx
+prettyprinter
+serialise
+template-haskell
+text
+transformers
 ];
 testHaskellDepends = [
 base
@@ -54821,6 +55016,7 @@ integer-gmp
 language-plutus-core
 mtl
 plutus-ir
+plutus-tx
 prettyprinter
 tasty
 tasty-hedgehog
@@ -54828,7 +55024,7 @@ tasty-hunit
 template-haskell
 ];
 doHaddock = false;
-description = "The PlutusTx compiler frontend";
+description = "The Plutus Tx compiler and GHC plugin";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
@@ -54852,6 +55048,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-playground-lib
 , plutus-tx
+, plutus-tx-plugin
 , plutus-wallet-api
 , prettyprinter
 , stdenv
@@ -54881,6 +55078,7 @@ plutus-contract
 plutus-emulator
 plutus-playground-lib
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
 template-haskell
@@ -54902,6 +55100,7 @@ plutus-contract
 plutus-contract-tasty
 plutus-emulator
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
 tasty
@@ -54920,6 +55119,7 @@ lens
 memory
 plutus-emulator
 plutus-tx
+plutus-tx-plugin
 plutus-wallet-api
 ];
 doHaddock = false;

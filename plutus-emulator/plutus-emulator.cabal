@@ -109,3 +109,6 @@ test-suite plutus-emulator-test
         bytestring -any,
         freer-simple -any,
         aeson -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any

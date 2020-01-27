@@ -123,8 +123,8 @@ handleDynamicLog :: OnChainHandler "log" f r (IO ([String], r))
 handleDynamicLog = handleDynamicEmitter
 
 evaluateHandlersBy
-    :: Evaluator f m
-    -> (Evaluator (OnChain '[] f) m -> OnChainEvaluator names f r)
+    :: AnEvaluator f m b
+    -> (AnEvaluator (OnChain '[] f) m b -> OnChainEvaluator names f r)
     -> OnChain names f TyName Name ()
     -> r
 evaluateHandlersBy eval handlers = handlers (\means -> eval means . unOnChain) mempty

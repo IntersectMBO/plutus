@@ -33,7 +33,7 @@ import qualified Ledger.Validation            as Validation
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
-import           Ledger                       (PubKey, Slot)
+import           Ledger                       (PubKeyHash, pubKeyHash, Slot)
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Language.Plutus.Contract
@@ -61,7 +61,7 @@ import qualified Prelude as Haskell
 data Payment = Payment
     { paymentAmount    :: Value
     -- ^ How much to pay out
-    , paymentRecipient :: PubKey
+    , paymentRecipient :: PubKeyHash
     -- ^ Address to pay the value to
     , paymentDeadline  :: Slot
     -- ^ Time until the required amount of signatures has to be collected.
@@ -74,7 +74,7 @@ instance Eq Payment where
 
 
 data Params = Params
-    { mspSignatories  :: [PubKey]
+    { mspSignatories  :: [PubKeyHash]
     -- ^ Public keys that are allowed to authorise payments
     , mspRequiredSigs :: Integer
     -- ^ How many signatures are required for a payment
@@ -86,7 +86,7 @@ data State =
     -- ^ Money is locked, anyone can make a proposal for a payment. If there is
     -- no value here then this is a final state and the machine will terminate.
 
-    | CollectingSignatures Value Payment [PubKey]
+    | CollectingSignatures Value Payment [PubKeyHash]
     -- ^ A payment has been proposed and is awaiting signatures.
     deriving (Show)
 
@@ -102,7 +102,7 @@ data Input =
     -- ^ Propose a payment. The payment can be made as soon as enough
     --   signatures have been collected.
 
-    | AddSignature PubKey
+    | AddSignature PubKeyHash
     -- ^ Add a signature to the sigs. that have been collected for the
     --   current proposal.
 
@@ -135,12 +135,12 @@ type MultiSigSchema =
 
 {-# INLINABLE isSignatory #-}
 -- | Check if a public key is one of the signatories of the multisig contract.
-isSignatory :: PubKey -> Params -> Bool
-isSignatory pk (Params sigs _) = any (\pk' -> pk == pk') sigs
+isSignatory :: PubKeyHash -> Params -> Bool
+isSignatory pkh (Params sigs _) = any (\pkh' -> pkh == pkh') sigs
 
 {-# INLINABLE containsPk #-}
 -- | Check whether a list of public keys contains a given key.
-containsPk :: PubKey -> [PubKey] -> Bool
+containsPk :: PubKeyHash -> [PubKeyHash] -> Bool
 containsPk pk = any (\pk' -> pk' == pk)
 
 {-# INLINABLE isValidProposal #-}
@@ -158,7 +158,7 @@ proposalExpired PendingTx{pendingTxValidRange} Payment{paymentDeadline} =
 {-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.
-proposalAccepted :: Params -> [PubKey] -> Bool
+proposalAccepted :: Params -> [PubKeyHash] -> Bool
 proposalAccepted (Params signatories numReq) pks =
     let numSigned = length (filter (\pk -> containsPk pk pks) signatories)
     in numSigned >= numReq
@@ -202,10 +202,10 @@ check :: Params -> State -> Input -> PendingTx -> Bool
 check p s i ptx = case (s, i) of
     (Holding vl, ProposePayment pmt) ->
         isValidProposal vl pmt && valuePreserved vl ptx
-    (CollectingSignatures vl _ pks, AddSignature pk) ->
-        Validation.txSignedBy ptx pk &&
-            isSignatory pk p &&
-            not (containsPk pk pks) &&
+    (CollectingSignatures vl _ pks, AddSignature pkh) ->
+        Validation.txSignedBy ptx pkh &&
+            isSignatory pkh p &&
+            not (containsPk pkh pks) &&
             valuePreserved vl ptx
     (CollectingSignatures vl pmt _, Cancel) ->
         proposalExpired ptx pmt && valuePreserved vl ptx
@@ -245,9 +245,9 @@ machineInstance params =
     (scriptInstance params)
 
 allocate :: State -> Input -> Value -> Maybe ValueAllocation
-allocate (CollectingSignatures _ (Payment vp pk _) _) Pay vl =
+allocate (CollectingSignatures _ (Payment vp pkh _) _) Pay vl =
     let vl' = vl - vp
-    in Just $ ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKey vp pk}
+    in Just $ ValueAllocation{vaOwnAddress=vl', vaOtherPayments=Tx.payToPubKeyHash vp pkh}
 allocate _ _ vl =
     Just $ ValueAllocation{vaOwnAddress = vl, vaOtherPayments = Haskell.mempty}
 
@@ -266,7 +266,7 @@ contract params = go where
     endpoints = lock <|> propose <|> cancel <|> addSignature <|> pay
     propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel
-    addSignature = endpoint @"add-signature" >> ownPubKey >>= SM.runStep theClient . AddSignature
+    addSignature = endpoint @"add-signature" >> (pubKeyHash <$> ownPubKey) >>= SM.runStep theClient . AddSignature
     lock = do
         value <- endpoint @"lock"
         SM.runInitialise theClient (Holding value) value

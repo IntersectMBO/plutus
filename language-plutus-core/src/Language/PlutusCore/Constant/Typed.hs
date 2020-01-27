@@ -2,13 +2,13 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DefaultSignatures         #-}
-{-# LANGUAGE DerivingVia               #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE KindSignatures            #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
@@ -16,43 +16,31 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
+    , AnEvaluator
     , Evaluator
     , EvaluateT (..)
-    , ReflectT (..)
+    , runEvaluateT
+    , withEvaluator
     , KnownType (..)
     , KnownTypeValue (..)
     , OpaqueTerm (..)
-    , thoist
-    , runEvaluateT
-    , withEvaluator
-    , runReflectT
-    , mapReflectT
-    , mapDeepReflectT
-    , makeReflectT
-    , makeRightReflectT
     , readKnownM
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.Core
 
 import           Control.Monad.Except
-import           Control.Monad.Morph                         as Morph
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Inner
-import           Data.Map                                    (Map)
+import           Data.Map                                         (Map)
 import           Data.Proxy
-import           Data.Text                                   (Text)
-import           Control.Monad.Trans.Compose                 (ComposeT (..))
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
-
-
 
 -- | Type schemes of primitive operations.
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
@@ -121,39 +109,30 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
+-- | A thing that evaluates @f@ in monad @m@, returns an @a@ and allows to extend the set of
+-- dynamic built-in names.
+type AnEvaluator f m a = DynamicBuiltinNameMeanings -> f TyName Name () -> m a
+
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
-type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
+type Evaluator f m = AnEvaluator f m (Term TyName Name ())
 
--- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
--- The idea is that a computation that requires access to an evaluator may introduce new effects
--- even though the underlying evaluator does not have them.
---
--- For example reading of values (see 'readKnownM') runs in 'EvaluateT'
--- (because it needs access to an evaluator) and adds the 'ReflectT' effect on top of that
--- (see the docs of 'ReflectT' for what effects it consists of).
---
--- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
--- into another one.
-newtype EvaluateT t m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
+-- | A computation that runs in @m@ and has access to an 'Evaluator' that runs in @m@.
+newtype EvaluateT m a = EvaluateT
+    { unEvaluateT :: ReaderT (Evaluator Term m) m a
     } deriving
-        ( Functor, Applicative, Monad, Alternative, MonadPlus
+        ( Functor, Applicative, Monad
         , MonadReader (Evaluator Term m)
         , MonadError e
         )
 
 -- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
+runEvaluateT :: Evaluator Term m -> EvaluateT m a -> m a
 runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
 -- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
+withEvaluator :: (Evaluator Term m -> m a) -> EvaluateT m a
 withEvaluator = EvaluateT . ReaderT
-
--- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
-thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
-thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
 
 {- Note [Semantics of dynamic built-in types]
 We only allow dynamic built-in types that
@@ -185,7 +164,7 @@ can silently stab you in the back.
 An @KnownType a@ instance provides
 
 1. a way to encode @a@ as a PLC type ('toTypeAst')
-2. a function that encodes values of type @dyn@ as PLC terms ('makeKnown')
+2. a function that encodes values of type @a@ as PLC terms ('makeKnown')
 3. a function that decodes PLC terms back to Haskell values ('readKnown')
 
 The last two are ought to constitute an isomorphism.
@@ -244,45 +223,6 @@ we just call the received evaluator
 (3) seems best, so it's what is implemented.
 -}
 
--- | The monad in which we convert PLC terms to Haskell values.
--- Conversion can fail with
---
--- 1. 'EvaluationFailure' if evaluation fails with @error@.
--- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
-newtype ReflectT m a = ReflectT
-    { unReflectT :: ExceptT Text (InnerT EvaluationResult m) a
-    } deriving
-        ( Functor, Applicative, Monad
-        , MonadError Text
-        )
-      deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
-
--- | Run a 'ReflectT' computation.
-runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
-runReflectT = unInnerT . runExceptT . unReflectT
-
--- | Map over the underlying representation of 'ReflectT'.
-mapReflectT
-    :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
-    -> ReflectT m a
-    -> ReflectT n b
-mapReflectT f (ReflectT a) = ReflectT (f a)
-
--- | Map over the fully unwrapped underlying representation of a 'ReflectT' computation.
-mapDeepReflectT
-    :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
-    -> ReflectT m a
-    -> ReflectT n b
-mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
-
--- | Fully wrap a computation into 'ReflectT'.
-makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
-makeReflectT = ReflectT . ExceptT . InnerT
-
--- | Wrap a non-throwing computation into 'ReflectT'.
-makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
-makeRightReflectT = ReflectT . lift . InnerT
-
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- | Haskell types known to exist on the PLC side.
@@ -295,7 +235,9 @@ class KnownType a where
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
-    readKnown :: Monad m => Evaluator Term m -> Term TyName Name () -> ReflectT m a
+    readKnown
+        :: (MonadError (ErrorWithCause err) m, AsUnliftingError err)
+        => Evaluator Term m -> Term TyName Name () -> m a
 
     -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
     -- (see e.g. the @ByteString@ instance).
@@ -306,8 +248,8 @@ class KnownType a where
 -- | Convert a PLC value to the corresponding Haskell value using the evaluator
 -- from the current context.
 readKnownM
-    :: (Monad m, KnownType a)
-    => Term TyName Name () -> EvaluateT ReflectT m a
+    :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
+    => Term TyName Name () -> EvaluateT m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
 -- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
@@ -373,7 +315,8 @@ instance KnownType () where
     readKnown eval term = do
         let int = TyBuiltin () TyInteger
             asInt = Constant () . BuiltinInt ()
-        res <- makeRightReflectT . eval mempty . Apply () (TyInst () term int) $ asInt 1
+        res <- eval mempty . Apply () (TyInst () term int) $ asInt 1
         case res of
             Constant () (BuiltinInt () 1) -> pure ()
-            _                             -> throwError "Not a builtin ()"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin ()" $ Just term

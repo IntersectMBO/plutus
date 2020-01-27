@@ -10,6 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Language.PlutusTx.AssocMap as AssocMap
+import Ledger.Address (Address(..))
 import Ledger.Crypto (PubKey, Signature)
 import Ledger.Interval (Interval)
 import Ledger.Slot (Slot)
@@ -105,9 +106,9 @@ _txOutRefId :: Lens' TxOutRef TxId
 _txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
-toBeneficialOwner (TxOut { txOutType, txOutAddress }) = case txOutType of
-  PayToPubKey pubKey -> OwnedByPubKey pubKey
-  PayToScript _ -> OwnedByScript txOutAddress
+toBeneficialOwner (TxOut { txOutAddress }) = case txOutAddress of
+  PubKeyAddress pkh -> OwnedByPubKey pkh
+  ScriptAddress vh -> OwnedByScript vh
 
 _findTx :: forall m. Monoid m => TxId -> Fold' m AnnotatedBlockchain AnnotatedTx
 _findTx focussedTxId = (_AnnotatedBlocks <<< filtered isAnnotationOf)

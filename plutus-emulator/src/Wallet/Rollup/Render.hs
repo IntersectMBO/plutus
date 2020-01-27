@@ -5,10 +5,10 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE DerivingVia   #-}
 
 module Wallet.Rollup.Render where
 
-import           Control.Lens                          (preview, _2, _Just)
 import           Control.Lens.Combinators              (itraverse)
 import           Control.Monad.Except                  (MonadError, throwError)
 import           Control.Monad.Reader
@@ -16,30 +16,29 @@ import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
-import           Data.List                             (find, intersperse)
+import           Data.List                             (intersperse)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
 import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
-import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
+import           Data.Text.Prettyprint.Doc             (Pretty, Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
                                                         parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Builtins            as Builtins
-import           Ledger                                (Address, PubKey, Signature, Tx (Tx), TxId,
+import           Ledger                                (Address, PubKey, PubKeyHash, Signature, Tx (Tx), TxId,
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, getPubKey, txFee, txForge, txOutValue, txOutputs,
+                                                        Value, txFee, txForge, txOutValue, txOutputs,
                                                         txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator, unValidatorScript)
-import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName),
-                                                        getValue)
+import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator, unValidatorScript, ValidatorHash (ValidatorHash))
+import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName))
 import qualified Ledger.Value                          as Value
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
 import           Wallet.Rollup                         (doAnnotateBlockchain)
@@ -50,17 +49,22 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         dereferencedInputs, toBeneficialOwner, tx, txId)
 
 
-showBlockchain :: [(PubKey, Wallet)] -> [[Tx]]  -> Either Text Text
+showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]]  -> Either Text Text
 showBlockchain walletKeys blockchain =
-    flip runReaderT walletKeys $ do
+    flip runReaderT (Map.fromList walletKeys) $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
         doc <- render $ reverse annotatedBlockchain
         pure . renderStrict . layoutPretty defaultLayoutOptions $ doc
 
-type RenderM = ReaderT [(PubKey, Wallet)] (Either Text)
+type RenderM = ReaderT (Map PubKeyHash Wallet) (Either Text)
 
 class Render a where
     render :: a -> RenderM (Doc ann)
+
+newtype RenderPretty a = RenderPretty a
+
+instance Pretty a => Render (RenderPretty a) where
+    render (RenderPretty a) = pure $ pretty a
 
 instance Render [[AnnotatedTx]] where
     render blockchain =
@@ -116,11 +120,9 @@ instance Render TokenName where
 instance Render Builtins.ByteString where
     render = pure . pretty . JSON.encodeByteString . BSL.toStrict
 
-instance Render PlutusTx.Data where
-    render = pure . pretty
+deriving via RenderPretty PlutusTx.Data instance Render PlutusTx.Data
 
-instance Render Value where
-    render value = render (getValue value)
+deriving newtype instance Render Value
 
 instance (Render k, Render v) => Render (AssocMap.Map k v) where
     render m
@@ -160,28 +162,21 @@ instance Render (Map PubKey Signature) where
                     (Map.toList xs)
             pure $ vsep $ intersperse mempty entries
 
-instance Render Text where
-    render = pure . pretty
-
-instance Render String where
-    render = pure . pretty
-
-instance Render Integer where
-    render = pure . pretty
+deriving via RenderPretty Text instance Render Text
+deriving via RenderPretty String instance Render String
+deriving via RenderPretty Integer instance Render Integer
+deriving via RenderPretty Address instance Render Address
 
 instance Render Wallet where
     render (Wallet n) = pure $ "Wallet" <+> viaShow n
 
-instance Render Address where
-    render = pure . pretty
-
 instance Render BeneficialOwner where
     render (OwnedByScript address) = ("Script:" <+>) <$> render address
-    render (OwnedByPubKey pubKey) = do
+    render (OwnedByPubKey pkh) = do
         walletKeys <- ask
-        wallet <- lookupWallet pubKey walletKeys
+        wallet <- lookupWallet pkh walletKeys
         w <- render wallet
-        p <- render pubKey
+        p <- render pkh
         pure $ p <+> parens w
 
 instance Render Ada where
@@ -192,14 +187,19 @@ instance Render Ada where
 instance Render (Digest SHA256) where
     render = render . abbreviate 40 . JSON.encodeSerialise
 
-instance Render TxId where
-    render = pure . pretty
+deriving via RenderPretty TxId instance Render TxId
 
 instance Render PubKey where
     render pubKey =
         pure $
-        let v = Text.pack (show (getPubKey pubKey))
+        let v = Text.pack (show (pretty pubKey))
          in "PubKey:" <+> pretty (abbreviate 40 v)
+
+instance Render PubKeyHash where
+    render pkh =
+        pure $
+        let v = Text.pack (show (pretty pkh))
+         in "PubKeyHash:" <+> pretty (abbreviate 40 v)
 
 instance Render Signature where
     render sig  =
@@ -215,6 +215,8 @@ instance Render Script where
 
 instance Render Validator where
     render = render . unValidatorScript
+
+deriving newtype instance Render ValidatorHash
 
 instance Render DataValue where
     render = render . getDataScript
@@ -234,7 +236,7 @@ instance Render TxIn where
 
 instance Render TxInType where
     render (ConsumeScriptAddress validator _ _) = render validator
-    render (ConsumePublicKeyAddress pubKey)     = render pubKey
+    render ConsumePublicKeyAddress              = pure mempty
 
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =
@@ -274,17 +276,13 @@ numbered separator title xs =
 
 ------------------------------------------------------------
 lookupWallet ::
-       (MonadError Text m, Foldable t)
-    => PubKey
-    -> t (PubKey, Wallet)
+       (MonadError Text m)
+    => PubKeyHash
+    -> Map PubKeyHash Wallet
     -> m Wallet
-lookupWallet pubKey walletKeys = do
-    let mWallet = preview (_Just . _2) (find ((==) pubKey . fst) walletKeys)
-    case mWallet of
-        Nothing ->
-            throwError $
-            Text.pack $ "Could not find referenced PubKey: " <> show pubKey
-        Just wallet -> pure wallet
+lookupWallet pkh walletKeys = case Map.lookup pkh walletKeys of
+    Nothing -> throwError $ Text.pack $ "Could not find referenced PubKeyHash: " <> show pkh
+    Just wallet -> pure wallet
 
 abbreviate :: Int -> Text -> Text
 abbreviate n t =

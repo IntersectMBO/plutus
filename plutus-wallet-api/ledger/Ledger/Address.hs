@@ -1,63 +1,43 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE DerivingVia    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Ledger.Address (
-    -- Note that the constructor is not exported - generally people shouldn't be able
-    -- to look inside addresses
-    Address,
+    Address (..),
     pubKeyAddress,
     scriptAddress,
     scriptHashAddress,
-    unsafeGetAddress
     ) where
 
-import qualified Codec.CBOR.Write          as Write
-import           Codec.Serialise.Class     (Serialise, encode)
-import           Crypto.Hash               (Digest, SHA256, hash)
+import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Lazy      as BSL
-import           Data.String               (IsString(..))
-import           Data.Hashable             (Hashable, hashWithSalt)
+import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
-import           LedgerBytes               (LedgerBytes(..))
 import           Ledger.Crypto
 import           Ledger.Orphans            ()
 import           Ledger.Scripts
 
 -- | A payment address using a hash as the id.
-newtype Address = Address { getAddress :: BSL.ByteString }
+data Address = PubKeyAddress PubKeyHash
+    | ScriptAddress ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType)
-    deriving newtype (Serialise)
-    deriving (IsString) via LedgerBytes
-    deriving Pretty via LedgerBytes
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType, Serialise, Hashable)
 
-instance Hashable Address where
-    hashWithSalt s (Address digest) = hashWithSalt s $ BSL.unpack digest
+instance Pretty Address where
+    pretty (PubKeyAddress pkh) = "PubKeyAddress:" <+> pretty pkh
+    pretty (ScriptAddress vh)  = "ScriptAddress:" <+> pretty vh
 
 -- | The address that should be targeted by a transaction output locked by the given public key.
 pubKeyAddress :: PubKey -> Address
-pubKeyAddress pk = Address $ BSL.fromStrict $ BA.convert h' where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    h' :: Digest SHA256 = hash h
-    e = encode pk
+pubKeyAddress pk = PubKeyAddress $ pubKeyHash pk
 
 -- | The address that should be used by a transaction output locked by the given validator script.
 scriptAddress :: Validator -> Address
-scriptAddress vl = Address hsh where
-    (ValidatorHash hsh) = validatorHash vl
+scriptAddress = ScriptAddress . validatorHash
 
--- | The address that should be used by a transaction output locked by the given validator script.
+-- | The address that should be used by a transaction output locked by the given validator script hash.
 scriptHashAddress :: ValidatorHash -> Address
-scriptHashAddress vh = Address hsh where
-    (ValidatorHash hsh) = vh
-
--- | This function should not exist, and is only here transitionally. We need it to construct
--- 'PendingTx', but this is because 'PendingTx' currently reveals too much information about
--- what is in addresses.
-unsafeGetAddress :: Address -> BSL.ByteString
-unsafeGetAddress (Address h) = h
+scriptHashAddress = ScriptAddress
