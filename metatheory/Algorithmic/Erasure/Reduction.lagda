@@ -194,7 +194,7 @@ erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ (subst
   (erase-BUILTIN bn _ σ tel vtel)
   (U.β-builtin (eraseTel tel) (eraseVTel _ _ σ _ tel vtel)))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q r) with erase—→ p
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t' = t'} p q r) | inj₁ x = inj₁ (subst
+erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₁ x = inj₁ (subst
     (builtin bn (eraseTel tel) U.—→_)
     (cong (builtin bn) (sym (erase-reconstTel Bs Ds σ telB t' q telD)))
     (U.ξ-builtin
@@ -203,7 +203,7 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t' = t'} p q r) | inj�
       (eraseVTel _ _ σ _ _ vtel)
       x
       (eraseTel telD)
-      (eraseTel telB ++ erase t' ∷ eraseTel telD) refl))
+      (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
 \end{code}

@@ -178,10 +178,8 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
               {t t' : ScopedTm w}
             → t —→ t'
             → (telB : List (ScopedTm w))
---          a proof that tel = telA ++ t ++ telB
-            → builtin b As tel
-              —→
-              builtin b As (telA ++ Data.List.[ t' ] ++ telB)
+            → tel ≡ telA ++ Data.List.[ t ] ++ telB
+            → builtin b As tel —→ builtin b As (telA ++ Data.List.[ t' ] ++ telB)
   β-builtin : {b : Builtin}
               {As : List (ScopedTy n)}
               {ts : Tel w}
@@ -212,13 +210,14 @@ data Progress {n}{i : Weirdℕ n}(t : ScopedTm i) : Set where
 data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
   done : (tel : Tel w)(vtel : VTel w tel) → TelProgress tel
   step : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA)
-   → {t t' : ScopedTm w} → t —→ t' → (telB : Tel w) → TelProgress tel
+   → {t t' : ScopedTm w} → t —→ t' → (telB : Tel w) → tel ≡ telA ++ Data.List.[ t ] ++ telB → TelProgress tel
   error : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA){t : ScopedTm w}
     → Error t → (telB : Tel w) → TelProgress tel
 \end{code}
 
 \begin{code}
-progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → (u : ScopedTm i) → Progress (t · u)
+progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → (u : ScopedTm i) → Progress (t · u)
 progress· (step p)                   u = step (ξ-·₁ p)
 progress· (done (V-ƛ A t))         u = step β-ƛ
 progress· (done (V-Λ p))           u = error E-Λ·
@@ -228,9 +227,7 @@ progress· (done (V-builtin b As ts)) u = step sat-builtin
 progress· (error e)                  u = error (E-·₁ e)
 
 progress·⋆ : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
-  → Progress t
-  → (A : ScopedTy n)
-  → Progress (t ·⋆ A)
+  → Progress t → (A : ScopedTy n) → Progress (t ·⋆ A)
 progress·⋆ (step p)                   A = step (ξ-·⋆ p)
 progress·⋆ (done (V-ƛ B t))           A = error E-ƛ·⋆
 progress·⋆ (done (V-Λ p))             A = step β-Λ
@@ -255,18 +252,18 @@ progress-builtin : ∀ {n}{i : Weirdℕ n} bn
 progress-builtin bn As tel p with arity bn N.≟ Data.List.length tel
 progress-builtin bn As tel (done .tel vtel)               | yes p =
   step (β-builtin vtel)
-progress-builtin bn As tel (step .tel telA vtelA x telB)  | yes p =
-  step (ξ-builtin vtelA x telB)
+progress-builtin bn As tel (step .tel telA vtelA x telB q)  | yes p =
+  step (ξ-builtin vtelA x telB q)
 progress-builtin bn As tel (error .tel telA vtelA x telB) | yes p =
   error (E-builtin x)
 progress-builtin bn As tel p | no ¬p = done (V-builtin bn As tel)
 
-progressTelCons : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → {tel : Tel i}
-  → TelProgress tel → TelProgress (t ∷ tel)
-progressTelCons {t = t}(step p){tel}  q = step (t ∷ tel) [] tt p tel
+progressTelCons : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → {tel : Tel i} → TelProgress tel → TelProgress (t ∷ tel)
+progressTelCons {t = t}(step p){tel}  q = step (t ∷ tel) [] tt p tel refl
 progressTelCons (done v) (done tel vtel) = done (_ ∷ tel) (v , vtel)
-progressTelCons (done v) (step tel telA vtelA p telB) =
-  step (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB
+progressTelCons (done v) (step tel telA vtelA p telB q) =
+  step (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB (cong (_ ∷_) q)
 progressTelCons (done v) (error tel telA vtelA p telB) =
   error (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB
 progressTelCons {t = t}(error e){tel} q = error (t ∷ tel) [] tt e tel
