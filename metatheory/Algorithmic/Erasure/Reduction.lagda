@@ -30,6 +30,7 @@ import Utils as Util
 open import Relation.Nullary
 open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_; _*_)
 open import Data.Integer hiding (suc)
+open import Data.Fin using (suc)
 import Data.Bool as B
 \end{code}
 
@@ -37,7 +38,7 @@ import Data.Bool as B
 eraseVal : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
   → A.Value t → U.Value (erase t)
 eraseVal (A.V-ƛ {N = t})      = U.V-ƛ (erase t)
-eraseVal (A.V-Λ v)            = eraseVal v
+eraseVal (A.V-Λ {N = t})      = U.V-ƛ (U.weaken (erase t))
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
 
@@ -93,7 +94,6 @@ erase-VERIFYSIG (Util.just B.false) = refl
 erase-VERIFYSIG (Util.just B.true)  = refl
 erase-VERIFYSIG Util.nothing = refl
 
-
 erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   ∀{Φ}(Γ : Ctx Φ)
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -131,7 +131,7 @@ erase-BUILTIN modInteger Γ σ _
   erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
 erase-BUILTIN lessThanInteger Γ σ _
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
-  erase-decIf (i Builtin.Constant.Type.<? j) _ _
+  erase-decIf (i Data.Integer.<? j) _ _
 erase-BUILTIN lessThanEqualsInteger Γ σ _
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (i ≤? j) _ _
@@ -165,7 +165,6 @@ erase-BUILTIN equalsByteString Γ σ _
 \begin{code}
 erase—→ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t t' : Γ ⊢ A}
   → t A.—→ t' → erase t U.—→ erase t' ⊎ erase t ≡ erase t'
-erase—→ (A.ξ-Λ p)                                       = erase—→ p
 erase—→ (A.ξ-·₁ {M = M} p)                              = map
   U.ξ-·₁
   (cong (_· erase M))
@@ -174,11 +173,19 @@ erase—→ (A.ξ-·₂ {V = V} p q)                            = map
   (U.ξ-·₂ (eraseVal p))
   ((cong (erase V ·_)))
   (erase—→ q)
-erase—→ (A.ξ-·⋆ p)                                      = erase—→ p
-erase—→ (A.β-ƛ {x = x}{N = N}{W = W})                   =
-  inj₁ (subst ((ƛ x (erase N) · erase W) U.—→_) (lem[] N W) U.β-ƛ)
+erase—→ (A.ξ-·⋆ p)                                      =
+  map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
+erase—→ (A.β-ƛ {N = N}{W = W})                   =
+  inj₁ (subst ((ƛ (erase N) · erase W) U.—→_) (lem[] N W) U.β-ƛ)
 erase—→ (A.β-Λ {N = N}{A = A})                          =
-  inj₂ (lem[]⋆ N A)
+  inj₁ (subst (ƛ (U.weaken (erase N)) · plc_dummy U.—→_)
+              (trans (trans (sym (U.sub-ren
+                                   suc
+                                   (U.extend ` plc_dummy)
+                                   (erase N)))
+                            (sym (U.sub-id  (erase N))))
+                     (lem[]⋆ N A))
+              U.β-ƛ)
 erase—→ A.β-wrap1                                       = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
@@ -187,7 +194,7 @@ erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ (subst
   (erase-BUILTIN bn _ σ tel vtel)
   (U.β-builtin (eraseTel tel) (eraseVTel _ _ σ _ tel vtel)))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q r) with erase—→ p
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t' = t'} p q r) | inj₁ x = inj₁ (subst
+erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₁ x = inj₁ (subst
     (builtin bn (eraseTel tel) U.—→_)
     (cong (builtin bn) (sym (erase-reconstTel Bs Ds σ telB t' q telD)))
     (U.ξ-builtin
@@ -196,7 +203,7 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t' = t'} p q r) | inj�
       (eraseVTel _ _ σ _ _ vtel)
       x
       (eraseTel telD)
-      (eraseTel telB ++ erase t' ∷ eraseTel telD) refl))
+      (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
 \end{code}
