@@ -15,7 +15,6 @@ import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
@@ -44,10 +43,14 @@ newtype EmitHandler r = EmitHandler
     { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
     }
 
-feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
-feedEmitHandler term (EmitHandler handler) = handler mempty term
+feedEmitHandler
+    :: DynamicBuiltinNameMeanings
+    -> Term TyName Name ()
+    -> EmitHandler r
+    -> IO r
+feedEmitHandler means term (EmitHandler handler) = handler means term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term m r -> (EmitHandler (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
@@ -65,8 +68,9 @@ withEmitTerm cont (EmitHandler handler) =
 
 withEmitEvaluateBy
     :: KnownType a
-    => Evaluator Term m
+    => AnEvaluator Term m b
+    -> DynamicBuiltinNameMeanings
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m EvaluationResultDef)
-withEmitEvaluateBy eval toTerm =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm
+    -> IO ([a], m b)
+withEmitEvaluateBy eval means toTerm =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . toTerm

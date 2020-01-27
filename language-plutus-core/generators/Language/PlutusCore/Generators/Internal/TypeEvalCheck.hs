@@ -18,15 +18,13 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
 
 import           PlutusPrelude
 
-import           PlcTestUtils
-
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -103,7 +101,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 unsafeTypeEvalCheck
     :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (pureTry @CkMachineException . evaluateCk) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCek mempty) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

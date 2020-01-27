@@ -64,7 +64,7 @@ test_stringRoundtrip =
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
             chars = map makeKnown str
             in foldr step unitval chars
@@ -82,26 +82,10 @@ test_noticeEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
             readMake 'a'
 
-test_ignoreEvaluationFailure :: TestTree
-test_ignoreEvaluationFailure =
-    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" $
-        isEvaluationSuccess $ do
-            _ <- readMake True
-            -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
-            _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
-            readMake 'a'
-
-test_EvaluationFailure :: TestTree
-test_EvaluationFailure =
-    testGroup "EvaluationFailure"
-        [ test_noticeEvaluationFailure
-        , test_ignoreEvaluationFailure
-        ]
-
 test_dynamicMakeRead :: TestTree
 test_dynamicMakeRead =
     testGroup "dynamicMakeRead"
         [ test_stringRoundtrip
         , test_collectChars
-        , test_EvaluationFailure
+        , test_noticeEvaluationFailure
         ]

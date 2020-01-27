@@ -11,17 +11,17 @@ module Language.PlutusCore.Constant.Dynamic.Instances () where
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Bool
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.ByteString.Lazy                             as BSL
 import           Data.Char
 import           Data.Proxy
-import qualified Data.Text                             as Text
+import qualified Data.Text                                        as Text
 import           GHC.TypeLits
 
 {- Note [Sequencing]
@@ -41,13 +41,13 @@ instance KnownType a => KnownType (EvaluationResult a) where
     makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
     makeKnown (EvaluationSuccess x) = makeKnown x
 
-    -- There are two 'EvaluationResult's here: an external one (which any 'KnownType'
-    -- instance has to deal with) and an internal one (specific to this particular instance).
-    -- Our approach is to always return 'EvaluationSuccess' for the external 'EvaluationResult'
-    -- and catch all 'EvaluationFailure's in the internal 'EvaluationResult'.
-    -- This allows *not* to short-circuit when 'readKnown' fails to read a Haskell value.
-    -- Instead the user gets an explicit @EvaluationResult a@ and evaluation proceeds normally.
-    readKnown eval = mapDeepReflectT (fmap $ EvaluationSuccess . sequence) . readKnown eval
+    -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
+    -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
+    -- the programmer would be given an explicit 'EvaluationResult' value to handle, which means
+    -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
+    -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
+    -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
+    readKnown _ _ = throwingWithCause _UnliftingError "Catching errors is not supported" Nothing
 
     prettyKnown = pretty . fmap (PrettyConfigIgnore . KnownTypeValue)
 
@@ -60,7 +60,7 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
 
     makeKnown = unOpaqueTerm
 
-    readKnown eval = fmap OpaqueTerm . makeRightReflectT . eval mempty
+    readKnown eval = fmap OpaqueTerm . eval mempty
 
 instance KnownType Integer where
     toTypeAst _ = TyBuiltin () TyInteger
@@ -70,10 +70,11 @@ instance KnownType Integer where
     readKnown eval term = do
         -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
         -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () i) -> pure i
-            _                             -> throwError "Not a builtin Integer"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin Integer" $ Just term
 
 instance KnownType BSL.ByteString where
     toTypeAst _ = TyBuiltin () TyByteString
@@ -81,10 +82,11 @@ instance KnownType BSL.ByteString where
     makeKnown = Constant () . makeBuiltinBS
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinBS () i) -> pure i
-            _                            -> throwError "Not a builtin ByteString"
+            _                            ->
+                throwingWithCause _UnliftingError "Not a builtin ByteString" $ Just term
 
     prettyKnown = prettyBytes
 
@@ -94,10 +96,11 @@ instance KnownType [Char] where
     makeKnown = Constant () . makeBuiltinStr
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinStr () s) -> pure s
-            _                             -> throwError "Not a builtin String"
+            _                             ->
+                throwingWithCause _UnliftingError "Not a builtin String" $ Just term
 
 instance KnownType Bool where
     toTypeAst _ = bool
@@ -109,11 +112,12 @@ instance KnownType Bool where
             asInt = Constant () . BuiltinInt ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b int) [asInt 1, asInt 0]
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () 1) -> pure True
             Constant () (BuiltinInt () 0) -> pure False
-            _                             -> throwError "Not an integer-encoded Bool"
+            _                             ->
+                throwingWithCause _UnliftingError "Not an integer-encoded Bool" $ Just term
 
 -- Encode 'Char' from Haskell as @integer@ from PLC.
 instance KnownType Char where
@@ -122,7 +126,8 @@ instance KnownType Char where
     makeKnown = Constant () . makeBuiltinInt . fromIntegral . ord
 
     readKnown eval term = do
-        res <- makeRightReflectT $ eval mempty term
+        res <- eval mempty term
         case res of
             Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
-            _                               -> throwError "Not an integer-encoded Char"
+            _                               ->
+                throwingWithCause _UnliftingError "Not an integer-encoded Char" $ Just term
