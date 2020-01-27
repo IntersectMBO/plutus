@@ -17,6 +17,12 @@ source-repository head
     type: git
     location: https://github.com/iohk/plutus
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 common lang
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -31,23 +37,98 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
 library
     import: lang
     exposed-modules:
-        Plutus.SCB.Events.Contract
+        Plutus.SCB.Arbitrary
+        Plutus.SCB.Core
         Plutus.SCB.Events
+        Plutus.SCB.Relation
+        Plutus.SCB.Command
+        Plutus.SCB.Query
+    other-modules:
+        Plutus.SCB.Utils
+        Plutus.SCB.Events.Contract
+        Plutus.SCB.Events.Mock
     hs-source-dirs: src
     build-depends:
         plutus-wallet-api -any,
         plutus-emulator -any,
         plutus-tx -any,
+        plutus-tx-plugin -any,
         plutus-contract -any,
-        iots-export -any,
+        iots-export -any
     build-depends:
+        QuickCheck -any,
         aeson -any,
+        async -any,
         base >=4.7 && <5,
-        containers -any,
-        text -any,
         bytestring -any,
-        prettyprinter >=1.1.0.1
+        containers -any,
+        eventful-core -any,
+        eventful-memory -any,
+        eventful-sql-common -any,
+        eventful-sqlite -any,
+        generic-arbitrary -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        optparse-applicative -any,
+        persistent-sqlite -any,
+        prettyprinter >=1.1.0.1,
+        quickcheck-instances -any,
+        random -any,
+        stm -any,
+        text -any,
+        transformers -any,
+        unliftio-core -any,
+        unordered-containers -any,
+        uuid -any,
+        vector -any,
+        yaml -any
+
+executable plutus-scb
+    main-is: Main.hs
+    hs-source-dirs: app
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        monad-logger -any,
+        mtl -any,
+        ekg -any,
+        optparse-applicative -any,
+        playground-common -any,
+        plutus-scb -any,
+        text -any,
+        unliftio-core -any,
+        yaml -any
+
+test-suite plutus-scb-test
+    default-language: Haskell2010
+    hs-source-dirs: test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    other-modules:
+        Plutus.SCB.CoreSpec
+        Plutus.SCB.RelationSpec
+
+    build-depends:
+        QuickCheck -any,
+        base >=4.9 && <5,
+        eventful-core -any,
+        eventful-memory -any,
+        plutus-scb -any,
+        plutus-wallet-api -any,
+        quickcheck-instances -any,
+        tasty -any,
+        tasty-quickcheck -any,
+        transformers -any
