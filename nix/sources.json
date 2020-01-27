@@ -5,10 +5,10 @@
         "homepage": "http://wiki.portal.chalmers.se/agda/pmwiki.php",
         "owner": "agda",
         "repo": "agda-stdlib",
-        "rev": "v1.0.1",
-        "sha256": "0ia7mgxs5g9849r26yrx07lrx65vhlrxqqh5b6d69gfi1pykb4j2",
+        "rev": "v1.2",
+        "sha256": "01v4dy0ckir9skrn118ca4mzjnwdas70q9a9lncawjblwzikg4hq",
         "type": "tarball",
-        "url": "https://github.com/agda/agda-stdlib/archive/v1.0.1.tar.gz",
+        "url": "https://github.com/agda/agda-stdlib/archive/v1.2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "deployment-nixpkgs": {

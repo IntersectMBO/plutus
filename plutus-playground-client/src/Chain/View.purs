@@ -27,7 +27,7 @@ import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, small
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Crypto (PubKey(..))
+import Ledger.Crypto (PubKey(..), PubKeyHash(..))
 import Ledger.Extra (humaniseInterval)
 import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId)
@@ -37,7 +37,7 @@ import Wallet.Emulator.Wallet (Wallet(..))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
-chainView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p HAction
+chainView :: forall p. State -> Map PubKeyHash Wallet -> AnnotatedBlockchain -> HTML p HAction
 chainView state walletKeys annotatedBlockchain =
   div
     [ classes
@@ -93,14 +93,14 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   where
   isActive = has (_chainFocus <<< _Just <<< _FocusTx <<< filtered (eq txId)) state
 
-detailView :: forall p. State -> Map PubKey Wallet -> AnnotatedBlockchain -> HTML p HAction
+detailView :: forall p. State -> Map PubKeyHash Wallet -> AnnotatedBlockchain -> HTML p HAction
 detailView state@{ chainFocus: Just (FocusTx focussedTxId) } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
   Just annotatedTx -> transactionDetailView walletKeys annotatedBlockchain annotatedTx
   Nothing -> empty
 
 detailView state@{ chainFocus: Nothing } _ _ = empty
 
-transactionDetailView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p HAction
+transactionDetailView :: forall p. Map PubKeyHash Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p HAction
 transactionDetailView walletKeys annotatedBlockchain annotatedTx =
   div_
     [ row_
@@ -182,7 +182,7 @@ forgeView txForge =
         ]
     ]
 
-balancesTable :: forall p i. SequenceId -> Map PubKey Wallet -> Map BeneficialOwner Value -> HTML p i
+balancesTable :: forall p i. SequenceId -> Map PubKeyHash Wallet -> Map BeneficialOwner Value -> HTML p i
 balancesTable sequenceId walletKeys balances =
   div []
     [ h2_
@@ -268,7 +268,7 @@ sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
 formatSequenceId :: SequenceId -> String
 formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
-dereferencedInputView :: forall p. Map PubKey Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p HAction
+dereferencedInputView :: forall p. Map PubKeyHash Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p HAction
 dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
   txOutOfView true walletKeys refersTo
     $ case originatingTx of
@@ -287,7 +287,7 @@ dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { origin
   originatingTx :: Maybe AnnotatedTx
   originatingTx = preview (_findTx txId) annotatedBlockchain
 
-outputView :: forall p. Map PubKey Wallet -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p HAction
+outputView :: forall p. Map PubKeyHash Wallet -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p HAction
 outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   txOutOfView false walletKeys txOut
     $ case consumedInTx of
@@ -304,7 +304,7 @@ outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   consumedInTx :: Maybe AnnotatedTx
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
-txOutOfView :: forall p. Boolean -> Map PubKey Wallet -> TxOut -> Maybe (HTML p HAction) -> HTML p HAction
+txOutOfView :: forall p. Boolean -> Map PubKeyHash Wallet -> TxOut -> Maybe (HTML p HAction) -> HTML p HAction
 txOutOfView showArrow walletKeys txOut@(TxOut { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
@@ -326,12 +326,12 @@ beneficialOwnerClass (OwnedByPubKey _) = ClassName "wallet"
 
 beneficialOwnerClass (OwnedByScript _) = ClassName "script"
 
-beneficialOwnerView :: forall p i. Map PubKey Wallet -> BeneficialOwner -> HTML p i
+beneficialOwnerView :: forall p i. Map PubKeyHash Wallet -> BeneficialOwner -> HTML p i
 beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey walletKeys of
-  Nothing -> showPubKey pubKey
+  Nothing -> showPubKeyHash pubKey
   Just (Wallet { getWallet: n }) ->
     span_
-      [ showPubKey pubKey
+      [ showPubKeyHash pubKey
       , br_
       , small_
           [ text "Wallet"
@@ -352,6 +352,15 @@ showPubKey (PubKey { getPubKey: p }) =
   span
     [ class_ textTruncate ]
     [ text "PubKey"
+    , nbsp
+    , text p
+    ]
+
+showPubKeyHash :: forall p i. PubKeyHash -> HTML p i
+showPubKeyHash (PubKeyHash { getPubKeyHash: p }) =
+  span
+    [ class_ textTruncate ]
+    [ text "PubKeyHash"
     , nbsp
     , text p
     ]

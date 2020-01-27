@@ -27,7 +27,7 @@ import           Language.Plutus.Contract          (payToScript, mustBeValidIn, 
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative(..), Semigroup(..))
-import           Ledger                            (Address, DataValue (DataValue), PendingTx, PubKey,
+import           Ledger                            (Address, DataValue (DataValue), PendingTx, PubKeyHash, pubKeyHash,
                                                     Validator, pendingTxValidRange, valueSpent)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
@@ -51,7 +51,7 @@ data Campaign = Campaign
     -- ^ Target amount of funds
     , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
-    , campaignOwner              :: PubKey
+    , campaignOwner              :: PubKeyHash
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the
     --   funds if the campaign is successful.
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
@@ -86,7 +86,7 @@ mkCampaign ddl target collectionDdl ownerWallet =
         { campaignDeadline = ddl
         , campaignTarget   = target
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = Emulator.walletPubKey ownerWallet
+        , campaignOwner = pubKeyHash $ Emulator.walletPubKey ownerWallet
         }
 
 -- | The 'SlotRange' during which the funds can be collected
@@ -102,17 +102,17 @@ refundRange cmp =
 data Crowdfunding
 instance Scripts.ScriptType Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
-    type instance DataType Crowdfunding = PubKey
+    type instance DataType Crowdfunding = PubKeyHash
 
 scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
 scriptInstance cmp = Scripts.validator @Crowdfunding
     ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @PubKey @CampaignAction
+        wrap = Scripts.wrapValidator @PubKeyHash @CampaignAction
 
 {-# INLINABLE validRefund #-}
-validRefund :: Campaign -> PubKey -> PendingTx -> Bool
+validRefund :: Campaign -> PubKeyHash -> PendingTx -> Bool
 validRefund campaign contributor ptx =
     -- Check that the transaction falls in the refund range of the campaign
     Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
@@ -134,7 +134,7 @@ validCollection campaign p =
 -- provided by the Plutus client, using 'Ledger.applyScript'.
 -- As a result, the 'Campaign' definition is part of the script address,
 -- and different campaigns have different addresses.
-mkValidator :: Campaign -> PubKey -> CampaignAction -> PendingTx -> Bool
+mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> PendingTx -> Bool
 mkValidator c con act p = case act of
     -- the "refund" branch
     Refund -> validRefund c con p
@@ -161,7 +161,7 @@ theCampaign = Campaign
     { campaignDeadline = 40
     , campaignTarget   = Ada.lovelaceValueOf 20
     , campaignCollectionDeadline = 60
-    , campaignOwner = Emulator.walletPubKey (Emulator.Wallet 1)
+    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
@@ -171,7 +171,7 @@ theCampaign = Campaign
 contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
-    contributor <- ownPubKey
+    contributor <- pubKeyHash <$> ownPubKey
     let ds = Ledger.DataValue (PlutusTx.toData contributor)
         tx = payToScript contribValue (campaignAddress cmp) ds
                 <> mustBeValidIn (Ledger.interval 1 (campaignDeadline cmp))

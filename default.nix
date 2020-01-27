@@ -164,6 +164,7 @@ let
     papers = {
       unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; inherit latex; };
       system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
+      eutxo = pkgs.callPackage ./papers/eutxo { inherit latex; };
     };
 
     plutus-playground = rec {
@@ -338,7 +339,7 @@ let
       }).overrideAttrs (oldAttrs: rec {
         # Need to override the source this way
         name = "agda-stdlib-${version}";
-        version = "1.0.1";
+        version = "1.2";
         src = sources.agda-stdlib;
       });
     };
@@ -462,6 +463,9 @@ let
                                 pkgs.haskellPackages.hlint
                                 pkgs.haskellPackages.stylish-haskell
                                 pkgs.yarn
+                                pkgs.zlib
+                                pkgs.sqlite-analyzer
+                                pkgs.sqlite-interactive
                                 easyPS.purs
                                 easyPS.spago
                                 easyPS.purty

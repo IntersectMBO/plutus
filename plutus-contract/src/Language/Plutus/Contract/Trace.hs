@@ -28,6 +28,7 @@ module Language.Plutus.Contract.Trace
     , ctrTraceState
     , runTrace
     , runTraceWithDistribution
+    , evalTrace
     , execTrace
     , setSigningProcess
     -- * Constructing 'MonadEmulator' actions
@@ -66,7 +67,7 @@ import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
 import           Control.Monad.Trans.Class                         (lift)
-import           Data.Bifunctor                                    (first)
+import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
@@ -97,8 +98,7 @@ import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx          (TxSymbol, WriteTxResponse)
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
-import           Language.Plutus.Contract.Record                   (Record, record)
-import           Language.Plutus.Contract.Resumable                (ResumableError)
+import           Language.Plutus.Contract.Resumable                (ResumableError, ResumableResult (..))
 
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
@@ -137,9 +137,9 @@ type InitialDistribution = Map Wallet Value
 
 type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
-data WalletState s e =
+data WalletState s e a =
     WalletState
-        { walletContractState  :: Either (ResumableError e) (Record (Event s), Handlers s)
+        { walletContractState  :: Either (ResumableError e) (ResumableResult (Event s) (Handlers s) a)
         , walletSigningProcess :: SigningProcess
         , walletEvents         :: Seq (Event s)
         }
@@ -149,8 +149,8 @@ walletHandlers
     , Forall (Output s) Semigroup
     , AllUniqueLabels (Output s)
     )
-    => WalletState s (TraceError e) -> Handlers s
-walletHandlers = either mempty snd . walletContractState
+    => WalletState s (TraceError e) a -> Handlers s
+walletHandlers = either mempty wcsHandlers . walletContractState
 
 emptyWalletState
     :: ( Forall (Output s) Monoid
@@ -158,12 +158,10 @@ emptyWalletState
        , AllUniqueLabels (Output s)
        )
     => Contract s e a
-    -> WalletState s e
+    -> WalletState s e a
 emptyWalletState (Contract c) =
     WalletState
-        { walletContractState =
-            fmap (first (view (from record) . fmap fst))
-            $ State.runResumable [] c
+        { walletContractState = State.runResumable [] c
         , walletSigningProcess = Wallet.defaultSigningProcess
         , walletEvents = mempty
         }
@@ -175,19 +173,19 @@ addEventWalletState
        )
     => Contract s e a
     -> Event s
-    -> WalletState s e
-    -> WalletState s e
+    -> WalletState s e a
+    -> WalletState s e a
 addEventWalletState (Contract c) event s@WalletState{walletContractState, walletEvents} =
     case walletContractState of
         Left _ -> s
-        Right (oldRecord, _) ->
-            let state' = State.insertAndUpdate c oldRecord event
+        Right ResumableResult{wcsRecord} ->
+            let state' = State.insertAndUpdate c wcsRecord event
                 events' = walletEvents |> event
             in s { walletContractState = state', walletEvents = events' }
 
 data ContractTraceState s e a =
     ContractTraceState
-        { _ctsWalletStates :: Map Wallet (WalletState s e)
+        { _ctsWalletStates :: Map Wallet (WalletState s e a)
         -- ^ The state of the contract instance (per wallet). To get
         --   the 'Record' of a sequence of events, use
         --   'Language.Plutus.Contract.Resumable.runResumable'.
@@ -309,6 +307,22 @@ runTrace
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTrace = runTraceWithDistribution defaultDist
+
+-- | Run a contract and return the result for the given wallet, if it exists
+evalTrace
+    :: forall s e a. ( AllUniqueLabels (Output s)
+       , Forall (Output s) Monoid
+       , Forall (Output s) Semigroup
+       )
+    => Contract s e a
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> Wallet
+    -> Either String a
+evalTrace contract trace wllt = do
+    (_, state) <- first (const "contract trace failed") $ fst $ runTrace @s @e contract trace
+    wlltState <- maybe (Left "wallet state not found") pure $ view (ctsWalletStates . at wllt) state
+    ResumableResult{wcsFinalState} <- first (const $ "contract failed for wallet " <> show wllt) (walletContractState wlltState)
+    maybe (Left "contract not finished") pure wcsFinalState
 
 -- | Run a trace in the emulator and return the final state alongside the
 --   result

@@ -14,9 +14,9 @@ library
         Marlowe.Symbolic.Types.Request
         Marlowe.Symbolic.Types.Response
         Marlowe.Symbolic.Types.API
+        Language.Marlowe.Analysis.FSSemantics
     other-modules:
         Language.Marlowe.Analysis.FSSet
-        Language.Marlowe.Analysis.FSSemantics
         Language.Marlowe.Analysis.IntegerArray
         Language.Marlowe.Analysis.Numbering
         Language.Marlowe.Analysis.MkSymb

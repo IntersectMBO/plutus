@@ -31,10 +31,11 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
---import Declarative.Erasure
+import Declarative.Erasure
 
 --import Declarative.Examples
 import Declarative.StdLib.Unit
+
 import Declarative.StdLib.Bool
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
@@ -45,7 +46,6 @@ import Main
 -- types
 
 import Algorithmic
-import Algorithmic.Equality
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
@@ -80,4 +80,6 @@ import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
 import Scoped.CK
+
+import Check
 \end{code}

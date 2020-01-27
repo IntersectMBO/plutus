@@ -6,6 +6,8 @@
 {-# LANGUAGE DerivingVia        #-}
 module Ledger.Crypto(
     PubKey(..)
+    , PubKeyHash(..)
+    , pubKeyHash
     , PrivateKey(..)
     , Signature(..)
     , signedBy
@@ -31,6 +33,9 @@ import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
+import           Crypto.Hash               (Digest, SHA256, hash)
+import qualified Codec.CBOR.Write          as Write
+import           Codec.Serialise.Class     (encode)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
@@ -38,6 +43,8 @@ import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Text.Prettyprint.Doc
+import           Data.Hashable             (Hashable)
+import           Data.String
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
@@ -55,8 +62,26 @@ newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving IsString via LedgerBytes
     deriving Pretty via LedgerBytes
 makeLift ''PubKey
+
+-- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
+newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BSL.ByteString }
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
+    -- TODO: this should be here, but it upsets marlowe a bit. Should be fixed in the future.
+    --deriving IsString via LedgerBytes
+    deriving Pretty via LedgerBytes
+makeLift ''PubKeyHash
+
+-- | Compute the hash of a public key.
+pubKeyHash :: PubKey -> PubKeyHash
+pubKeyHash pk = PubKeyHash $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h' :: Digest SHA256 = hash h
+    e = encode pk
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }

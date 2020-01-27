@@ -25,10 +25,10 @@ import           Ledger.Validation            as V
 
 import           Language.Plutus.Contract     as Contract
 
-mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
+mkValidator :: PubKeyHash -> () -> () -> PendingTx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy p pk'
 
-pkValidator :: PubKey -> Validator
+pkValidator :: PubKeyHash -> Validator
 pkValidator pk = mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`
@@ -42,7 +42,7 @@ pubKeyContract
     ( HasWatchAddress s
     , HasWriteTx s
     , AsContractError e)
-    => PubKey
+    => PubKeyHash
     -> Value
     -> Contract s e TxIn
 pubKeyContract pk vl = do

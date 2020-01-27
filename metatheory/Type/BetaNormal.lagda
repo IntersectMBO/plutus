@@ -32,8 +32,6 @@ position cannot be a lambda), or recursive types. Normal forms can be
 pi types, function types, lambdas or neutral terms.
 
 \begin{code}
-open import Data.String
-
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
 data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
@@ -55,7 +53,6 @@ data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
 data _⊢Nf⋆_ where
 
   Π : ∀ {Φ K}
-    → String
     → Φ ,⋆ K ⊢Nf⋆ *
       -----------
     → Φ ⊢Nf⋆ *
@@ -67,7 +64,6 @@ data _⊢Nf⋆_ where
     → Φ ⊢Nf⋆ *
 
   ƛ :  ∀ {Φ K J}
-    → String
     → Φ ,⋆ K ⊢Nf⋆ J
       -----------
     → Φ ⊢Nf⋆ (K ⇒ J)
@@ -97,9 +93,9 @@ renNe : ∀ {Φ Ψ}
     -------------------------------
   → (∀ {J} → Φ ⊢Ne⋆ J → Ψ ⊢Ne⋆ J)
 
-renNf ρ (Π x A)     = Π x (renNf (ext ρ) A)
+renNf ρ (Π A)       = Π (renNf (ext ρ) A)
 renNf ρ (A ⇒ B)     = renNf ρ A ⇒ renNf ρ B
-renNf ρ (ƛ x B)     = ƛ x (renNf (ext ρ) B)
+renNf ρ (ƛ B)       = ƛ (renNf (ext ρ) B)
 renNf ρ (ne A)      = ne (renNe ρ A)
 renNf ρ (con tcn)   = con tcn
 
@@ -122,9 +118,9 @@ Embedding normal forms back into terms
 embNf : ∀{Γ K} → Γ ⊢Nf⋆ K → Γ ⊢⋆ K
 embNe : ∀{Γ K} → Γ ⊢Ne⋆ K → Γ ⊢⋆ K
 
-embNf (Π x B)     = Π x (embNf B)
+embNf (Π B)       = Π (embNf B)
 embNf (A ⇒ B)     = embNf A ⇒ embNf B
-embNf (ƛ x B)     = ƛ x (embNf B)
+embNf (ƛ B)       = ƛ (embNf B)
 embNf (ne B)      = embNe B
 embNf (con tcn)   = con tcn
 
@@ -139,29 +135,29 @@ ren-embNf : ∀ {Φ Ψ}
   → ∀ {J}
   → (n : Φ ⊢Nf⋆ J)
     -----------------------------------------
-  → embNf (renNf ρ n) ≡α ren ρ (embNf n)
+  → embNf (renNf ρ n) ≡ ren ρ (embNf n)
 
 ren-embNe : ∀ {Φ Ψ}
   → (ρ : Ren Φ Ψ)
   → ∀ {J}
   → (n : Φ ⊢Ne⋆ J)
     --------------------------------------------
-  → embNe (renNe ρ n) ≡α ren ρ (embNe n)
+  → embNe (renNe ρ n) ≡ ren ρ (embNe n)
 
-ren-embNf ρ (Π x B)     = Π≡α (ren-embNf (ext ρ) B)
-ren-embNf ρ (A ⇒ B)     = ⇒≡α (ren-embNf ρ A) (ren-embNf ρ B)
-ren-embNf ρ (ƛ x B)     = ƛ≡α (ren-embNf (ext ρ) B)
+ren-embNf ρ (Π B)       = cong Π (ren-embNf (ext ρ) B)
+ren-embNf ρ (A ⇒ B)     = cong₂ _⇒_ (ren-embNf ρ A) (ren-embNf ρ B)
+ren-embNf ρ (ƛ B)       = cong ƛ (ren-embNf (ext ρ) B)
 ren-embNf ρ (ne n)      = ren-embNe ρ n
-ren-embNf ρ (con tcn  ) = con≡α -- refl
+ren-embNf ρ (con tcn  ) = refl
 
-ren-embNe ρ (` x)    = var≡α refl -- refl
-ren-embNe ρ (n · n') = ·≡α (ren-embNe ρ n) (ren-embNf ρ n')
-ren-embNe ρ μ1       = μ≡α -- refl
+ren-embNe ρ (` x)    = refl
+ren-embNe ρ (n · n') = cong₂ _·_ (ren-embNe ρ n) (ren-embNf ρ n')
+ren-embNe ρ μ1       = refl
 \end{code}
 
 # Assemblies
 
 \begin{code}
 booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
-booleanNf = Π "α" (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
+booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
 \end{code}

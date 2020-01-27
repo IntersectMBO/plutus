@@ -26,6 +26,7 @@ module Ledger.Scripts(
     ScriptError (..),
     evaluateScript,
     runScript,
+    runMonetaryPolicyScript,
     applyScript,
     -- * Script wrappers
     mkValidatorScript,
@@ -33,14 +34,19 @@ module Ledger.Scripts(
     unValidatorScript,
     RedeemerValue(..),
     DataValue(..),
+    mkMonetaryPolicyScript,
+    MonetaryPolicy (..),
+    unMonetaryPolicyScript,
     ValidationData(..),
     -- * Hashes
     DataValueHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
+    MonetaryPolicyHash (..),
     dataValueHash,
     redeemerHash,
     validatorHash,
+    monetaryPolicyHash,
     -- * Example scripts
     unitRedeemer,
     unitData
@@ -198,6 +204,12 @@ mkValidatorScript = Validator . fromCompiledCode
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
+
+unMonetaryPolicyScript :: MonetaryPolicy -> Script
+unMonetaryPolicyScript = getMonetaryPolicy
+
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
@@ -242,6 +254,22 @@ instance BA.ByteArrayAccess RedeemerValue where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
+-- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
+newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
+  deriving stock (Generic)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
+  deriving Pretty via (PrettyShow MonetaryPolicy)
+
+instance Show MonetaryPolicy where
+    show = const "MonetaryPolicy { <script> }"
+
+instance BA.ByteArrayAccess MonetaryPolicy where
+    length =
+        BA.length . Write.toStrictByteString . encode
+    withByteArray =
+        BA.withByteArray . Write.toStrictByteString . encode
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
@@ -275,6 +303,17 @@ newtype RedeemerHash =
 instance IotsType RedeemerHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
+-- | Script runtime representation of a @Digest SHA256@.
+newtype MonetaryPolicyHash =
+    MonetaryPolicyHash Builtins.ByteString
+    deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+
+instance IotsType MonetaryPolicyHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+
 dataValueHash :: DataValue -> DataValueHash
 dataValueHash = DataValueHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
@@ -287,13 +326,19 @@ validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
     h' :: Digest SHA256 = hash h
     e = encode vl
 
+monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
+monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h' :: Digest SHA256 = hash h
+    e = encode vl
+
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype ValidationData = ValidationData Data
     deriving stock (Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
 
--- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
+-- | Evaluate a validator script with the given arguments, returning the log.
 runScript
     :: (MonadError ScriptError m)
     => Checking
@@ -304,6 +349,17 @@ runScript
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (Validator validator) (DataValue dataValue) (RedeemerValue redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+    evaluateScript checking appliedValidator
+
+-- | Evaluate a monetary policy script just the validation data, returning the log.
+runMonetaryPolicyScript
+    :: (MonadError ScriptError m)
+    => Checking
+    -> ValidationData
+    -> MonetaryPolicy
+    -> m [Haskell.String]
+runMonetaryPolicyScript checking (ValidationData valData) (MonetaryPolicy validator) = do
+    let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
@@ -317,6 +373,8 @@ unitRedeemer = RedeemerValue $ toData ()
 makeLift ''ValidatorHash
 
 makeLift ''DataValueHash
+
+makeLift ''MonetaryPolicyHash
 
 makeLift ''RedeemerHash
 

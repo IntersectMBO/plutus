@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -32,7 +33,7 @@ import           Servant.Server                     (Application, ServantErr, Se
 import           Language.Plutus.Contract.Record    (Record)
 import qualified Language.Plutus.Contract.Record    as Rec
 import           Language.Plutus.Contract.Request   (Contract (..))
-import           Language.Plutus.Contract.Resumable (ResumableError)
+import           Language.Plutus.Contract.Resumable (ResumableError, ResumableResult (..))
 import qualified Language.Plutus.Contract.Resumable as Resumable
 import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
 
@@ -110,7 +111,7 @@ runUpdate
     -> Request s
     -> Either (ResumableError e) (Response s)
 runUpdate con (Request o e) =
-    (\(r, h) -> Response (State r) h)
+    (\ResumableResult{wcsRecord, wcsHandlers} -> Response (State wcsRecord) wcsHandlers)
     <$> Resumable.insertAndUpdate (unContract con) (record o) e
 
 initialResponse

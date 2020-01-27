@@ -232,9 +232,9 @@ multisig = bgroup "multisig" [
             , unitRedeemer)
     ]
     where
-        msScen1of1 = MS.MultiSig { MS.signatories = [pk1], MS.minNumSignatures = 1 }
-        msScen1of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.minNumSignatures = 1 }
-        msScen2of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.minNumSignatures = 2 }
+        msScen1of1 = MS.MultiSig { MS.signatories = [pubKeyHash pk1], MS.minNumSignatures = 1 }
+        msScen1of2 = MS.MultiSig { MS.signatories = [pubKeyHash pk1, pubKeyHash pk2], MS.minNumSignatures = 1 }
+        msScen2of2 = MS.MultiSig { MS.signatories = [pubKeyHash pk1, pubKeyHash pk2], MS.minNumSignatures = 2 }
 
 -- Test functions and data
 
@@ -269,7 +269,7 @@ validationData1 :: ValidationData
 validationData1 = ValidationData $ PlutusTx.toData $ mockPendingTx
 
 validationData2 :: ValidationData
-validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
+validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatories = [pubKeyHash pk1, pubKeyHash pk2] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
@@ -277,7 +277,7 @@ mockPendingTx = PendingTx
     , pendingTxOutputs = []
     , pendingTxFee = PlutusTx.zero
     , pendingTxForge = PlutusTx.zero
-    , pendingTxIn = PendingTxIn
+    , pendingTxItem = PendingTxIn
         { pendingTxInRef = PendingTxOutRef
             { pendingTxOutRefId = TxId P.emptyByteString
             , pendingTxOutRefIdx = 0
@@ -286,7 +286,8 @@ mockPendingTx = PendingTx
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
-    , pendingTxSignatures = []
+    , pendingTxForgeScripts = []
+    , pendingTxSignatories = []
     , pendingTxId = TxId P.emptyByteString
     , pendingTxData = []
     }
@@ -296,7 +297,7 @@ scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
     let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
     bench "token account" $ nf Scripts.validatorScript si
-    , bench "public key" $ nf PK.pkValidator (walletPubKey $ Wallet 2)
+    , bench "public key" $ nf PK.pkValidator (pubKeyHash $ walletPubKey $ Wallet 2)
     , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
     ]
 
@@ -313,7 +314,7 @@ theFuture = FT.Future {
     }
 
 accounts :: FT.FutureAccounts
-accounts = 
+accounts =
     let cur = "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" in
     FT.mkAccounts
             (TA.Account (cur, "long"))

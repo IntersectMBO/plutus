@@ -10,18 +10,17 @@ open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
 open import Function hiding (_∋_)
-open import Data.Integer renaming (_*_ to _**_)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.List hiding ([_]; take; drop)
 import Data.Bool as Bool
-open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
+open import Data.Nat using (zero)
 
 open import Type
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
-open import Algorithmic.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
@@ -34,7 +33,7 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Utils
 
-open import Data.String hiding (_++_; _≟_)
+open import Data.String using (String)
 \end{code}
 
 ## Values
@@ -42,15 +41,15 @@ open import Data.String hiding (_++_; _≟_)
 \begin{code}
 data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
-  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x : String}{N : Γ , A ⊢ B}
+  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B}
       ---------------------------
-    → Value (ƛ x N)
+    → Value (ƛ N)
 
-  V-Λ : ∀ {Φ Γ K}{x : String}{B : Φ ,⋆ K ⊢Nf⋆ *}
+  V-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}
     → {N : Γ ,⋆ K ⊢ B}
     → Value N
       ----------------
-    → Value (Λ x N)
+    → Value (Λ N)
 
   V-wrap : ∀{Φ Γ K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -73,23 +72,21 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
 
   -- error inside somewhere
-  E-Λ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *} {L : Γ ,⋆ K ⊢ B}
-    → Error L → Error (Λ x L)
+  E-Λ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *} {L : Γ ,⋆ K ⊢ B}
+    → Error L → Error (Λ L)
   E-·₁ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error L → Error (L · M)
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
     → Error M → Error (L · M)
-  E-·⋆ : ∀{Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}
-    {L : Γ ⊢ Π x B}{A : Φ ⊢Nf⋆ K}{C : Φ ⊢Nf⋆ *}{p : (B [ A ]Nf) ≡Nf C} 
-    → Error L → Error (·⋆ L A p)
+  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}
+    {L : Γ ⊢ Π B}{A : Φ ⊢Nf⋆ K}
+    → Error L → Error (L ·⋆ A)
   E-unwrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {L : Γ ⊢ ne (μ1 · pat · arg)}
-    → {X : Φ ⊢Nf⋆ *}
-    → {p : nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf X}
     → Error L
-    → Error (unwrap1 L p)
+    → Error (unwrap1 L)
   E-wrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
@@ -107,9 +104,7 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → Error t
     → (p : Bs ++ (D ∷ Ds) ≡ As)
     → (telD : Tel Γ Δ σ Ds)
-    → {B : Φ ⊢Nf⋆ *}
-    → (p : substNf σ C ≡Nf B)
-    → Error (builtin bn σ tel p)
+    → Error (builtin bn σ tel)
 \end{code}
 
 \begin{code}
@@ -118,12 +113,9 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 VTel Γ Δ σ []       tt         = ⊤
 VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
 
-convVal :  ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡Ctx Γ')(q : A ≡Nf A')
+convVal :  ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')
   → ∀{t : Γ ⊢ A} → Value t → Value (conv⊢ p q t)
-convVal p (⇒≡Nf q q') V-ƛ = V-ƛ
-convVal p (Π≡Nf q) (V-Λ V) = V-Λ (convVal (p ,⋆ _) q V)
-convVal p (ne≡Nf (·≡Ne (·≡Ne μ≡Ne q) q')) (V-wrap V) = V-wrap (convVal p _ V)
-convVal p con≡Nf (V-con cn) = V-con cn
+convVal refl refl v = v
 \end{code}
 
 \begin{code}
@@ -155,7 +147,7 @@ BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
 BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
 BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.<? j) true false
+  decIf (i <? j) true false
 BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
   = decIf (i ≤? j) true false
 BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
@@ -200,10 +192,10 @@ infix 2 _—→_
 
 data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
 
-  ξ-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{x}{L L' : Γ ,⋆ K ⊢ B}
+  ξ-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L' : Γ ,⋆ K ⊢ B}
     → L —→ L'
       ---------------
-    → Λ x L —→ Λ x L'
+    → Λ L —→ Λ L'
 
   ξ-·₁ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → L —→ L′
@@ -216,45 +208,31 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       --------------
     → V · M —→ V · M′
 
-  ξ-·⋆ : ∀ {Φ Γ K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L' : Γ ⊢ Π x B}{A}
+  ξ-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L' : Γ ⊢ Π B}{A}
     → L —→ L'
-    → {X : Φ ⊢Nf⋆ *}
-    → ∀{p : _ ≡Nf X}
       -----------------
-    → ·⋆ L A p —→ ·⋆ L' A p
+    → L ·⋆ A —→ L' ·⋆ A
 
-  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{x}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
-    → ∀{X : Φ ⊢Nf⋆ *}
-    → {p : B ≡Nf X}
-    → ∀{M : Γ ⊢ X}
-    → Eq reflCtx p (N [ W ]) M
+  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
       -------------------
-    → (ƛ x N) · W —→ M
+    → (ƛ N) · W —→ N [ W ]
 
-  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{x}{N : Γ ,⋆ K ⊢ B}{A}{X : Φ ⊢Nf⋆ *}{p}
-    → {M : Γ ⊢ X}
-    → Eq reflCtx p (N [ A ]⋆) M
+  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A}
       -------------------
-    → ·⋆ (Λ x N) A p —→ M
+    → (Λ N) ·⋆ A —→ N [ A ]⋆
 
   β-wrap1 : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
-    → {X : _}
     → {term : Γ ⊢ _}
-    → {p : _ ≡Nf X}
-    → {term' : Γ ⊢ X}
-    → Eq reflCtx p term term'
-    → unwrap1 (wrap1 pat arg term) p —→ term'
+    → unwrap1 (wrap1 pat arg term) —→ term
 
   ξ-unwrap1 : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
-    → {X : Φ ⊢Nf⋆ *}
-    → (p : nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf X)
     → M —→ M'
-    → unwrap1 M p —→ unwrap1 M' p
+    → unwrap1 M —→ unwrap1 M'
     
   ξ-wrap : ∀{Φ Γ K}
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -269,12 +247,8 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
     → (vtel : VTel Γ Δ σ As tel)
-    → {B : Φ ⊢Nf⋆ *}
-    → (p : substNf σ C ≡Nf B)
-    → {M : Γ ⊢ B}
-    → (q : Eq reflCtx p (BUILTIN bn σ tel vtel) M)
       -----------------------------
-    → builtin bn σ tel p —→ M
+    → builtin bn σ tel —→ BUILTIN bn σ tel vtel
     
   ξ-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -288,10 +262,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → t —→ t'
     → (p : Bs ++ (D ∷ Ds) ≡ As)
     → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-   → {B : Φ ⊢Nf⋆ *}
-    → {r : substNf σ C ≡Nf B}
-
-    → builtin bn σ tel r —→ builtin bn σ (reconstTel Bs Ds σ telB t' p telD) r
+    → builtin bn σ tel —→ builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
 \end{code}
 
 \begin{code}
@@ -360,36 +331,32 @@ data TelProgress
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress t → (u : Γ ⊢ A)
   → Progress (t · u)
 progress-· (step p)         u = step (ξ-·₁ p)
-progress-· (done V-ƛ)       u = step (β-ƛ (coh reflCtx reflNf _))
+progress-· (done V-ƛ)       u = step β-ƛ
 progress-· (error e)        u = error (E-·₁ e)
 
-progress-·⋆ :  ∀{Φ Γ}{K x B}{t : Γ ⊢ Π x B} → Progress t → (A : Φ ⊢Nf⋆ K)
-  → {X : _} → {p : _ ≡Nf X}
-  → Progress (·⋆ t A p)
+progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
+  → Progress (t ·⋆ A)
 progress-·⋆ (step p)       A = step (ξ-·⋆ p)
-progress-·⋆ (done (V-Λ p)) A {p = q}  = step (β-Λ (coh reflCtx q _))
+progress-·⋆ (done (V-Λ p)) A = step β-Λ
 progress-·⋆ (error e)      A = error (E-·⋆ e)
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
-  → {X : Φ ⊢Nf⋆ *}(p : nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf X)
-  → Progress t → Progress (unwrap1 t p)
-progress-unwrap p (step q)           = step (ξ-unwrap1 p q)
-progress-unwrap p (done (V-wrap {term = t} v)) = step (β-wrap1 (coh reflCtx p t))
-progress-unwrap p (error e)          = error (E-unwrap e)
+  → Progress t → Progress (unwrap1 t)
+progress-unwrap (step q)          = step (ξ-unwrap1 q)
+progress-unwrap (done (V-wrap {term = t} v)) = step β-wrap1
+progress-unwrap (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → Φ ⊢Nf⋆ J)
   (tel : Tel Γ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
   → TelProgress tel
-  → {B : Φ ⊢Nf⋆ *}
-  → (q : substNf σ (proj₂ (proj₂ (SIG bn))) ≡Nf B)
-  → Progress (builtin bn σ tel q)
-progress-builtin bn σ tel (done vtel) q                     =
-  step (β-builtin bn σ tel vtel q (coh reflCtx q _))
-progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r) s  =
+  → Progress (builtin bn σ tel)
+progress-builtin bn σ tel (done vtel)                       =
+  step (β-builtin bn σ tel vtel)
+progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r) =
   step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
-progress-builtin bn σ tel (error Bs Ds telB vtel e p telD) q =
-  error (E-builtin bn σ tel Bs Ds telB vtel e p telD q)
+progress-builtin bn σ tel (error Bs Ds telB vtel e p telD)  =
+  error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
 
 NoVar : ∀{Φ} → Ctx Φ → Set 
 NoVar ∅        = ⊤
@@ -397,7 +364,7 @@ NoVar (Γ ,⋆ J) = NoVar Γ
 NoVar (Γ ,  A) = ⊥
 
 noVar : ∀{Φ}{Γ : Ctx Φ} → NoVar Γ → {A : Φ ⊢Nf⋆ *} → Γ ∋ A → ⊥
-noVar p (T x q) = noVar p x
+noVar p (T x) = noVar p x
 
 progress : ∀{Φ Γ} → NoVar Γ → {A : Φ ⊢Nf⋆ *} → (M : Γ ⊢ A) → Progress M
 
@@ -430,8 +397,8 @@ progressTel p {As = []}     tt         = done tt
 progressTel p {As = A ∷ As} (t ,, tel) =
   progressTelCons p (progress p t) (progressTel p tel)
 
-progress-Λ : ∀{Φ Γ} → NoVar Γ → ∀{K x}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
-  → Progress M → Progress (Λ x M)
+progress-Λ : ∀{Φ Γ} → NoVar Γ → ∀{K}{B : Φ ,⋆ K ⊢Nf⋆ *}{M : Γ ,⋆ K ⊢ B}
+  → Progress M → Progress (Λ M)
 progress-Λ n (step p)    = step (ξ-Λ p)
 progress-Λ n (done p)    = done (V-Λ p)
 progress-Λ n (error e)   = error (E-Λ e)
@@ -446,12 +413,12 @@ progress-wrap n (done v)    = done (V-wrap v)
 progress-wrap n (error e)   = error (E-wrap e)
 
 progress p (` x)                = ⊥-elim (noVar p x)
-progress p (ƛ x M)              = done V-ƛ
+progress p (ƛ M)                = done V-ƛ
 progress p (M · N)              = progress-· (progress p M) N
-progress p (Λ _ M)              = progress-Λ p (progress p M)
-progress p (·⋆ M A q)           = progress-·⋆ (progress p M) A
+progress p (Λ M)                = progress-Λ p (progress p M)
+progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
-progress p (unwrap1 M q)        = progress-unwrap q (progress p M)
+progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
-progress p (builtin bn σ X q)   = progress-builtin bn σ X (progressTel p X) q
+progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error

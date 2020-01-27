@@ -12,4 +12,7 @@ main =
     defaultMain $
     testGroup
         "all tests"
-        [SchemaSpec.tests, Playground.THSpec.tests, Playground.TypesSpec.tests]
+        [ SchemaSpec.tests
+        , Playground.THSpec.tests
+        , Playground.TypesSpec.tests
+        ]

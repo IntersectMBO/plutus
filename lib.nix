@@ -27,6 +27,7 @@ let
     "plutus-emulator"
     "plutus-scb"
     "iots-export"
+    "marlowe-hspec"
   ];
 
   isPublicPlutus = name: builtins.elem name plutusPublicPkgList;

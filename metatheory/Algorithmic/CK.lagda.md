@@ -26,16 +26,14 @@ data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H :
   where
   -·_     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *} → Γ ⊢ A → Frame Γ B Γ (A ⇒ B)
   _·-     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Value t → Frame Γ B Γ A
-  Λ-      : ∀{Φ}{Γ}{K}{x}{B : Φ ,⋆ K ⊢Nf⋆ *} → Frame Γ (Π x B) (Γ ,⋆ K) B
-  -·⋆    : ∀{Φ K Γ x}{B : Φ ,⋆ K ⊢Nf⋆ *}(A : Φ ⊢Nf⋆ K){C : Φ ⊢Nf⋆ *} → (B [ A ]Nf) ≡Nf C
-    → Frame Γ C Γ (Π x B)
+  Λ-      : ∀{Φ}{Γ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *} → Frame Γ (Π B) (Γ ,⋆ K) B
+  -·⋆    : ∀{Φ K Γ}{B : Φ ,⋆ K ⊢Nf⋆ *}(A : Φ ⊢Nf⋆ K)
+    → Frame Γ (B [ A ]Nf) Γ (Π B)
   wrap-   : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
     → Frame Γ (ne (μ1 · pat · arg))
             Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
   unwrap- : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
-    → {B : Φ ⊢Nf⋆ *}
-    → nf (embNf pat · (μ1 · embNf pat) · embNf arg) ≡Nf B
-    → Frame Γ B
+    → Frame Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
             Γ (ne (μ1 · pat · arg))
 
 data Stack : ∀{Φ Φ'}(Γ : Ctx Φ)(T : Φ ⊢Nf⋆ *)(Γ' : Ctx Φ')(H : Φ' ⊢Nf⋆ *) → Set
@@ -61,10 +59,10 @@ closeFrame : ∀{Φ}{Γ : Ctx Φ}{T : Φ ⊢Nf⋆ *} → ∀{Φ'}{Γ' : Ctx Φ'}
   → Frame Γ T Γ' H → Γ' ⊢ H →  Γ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
-closeFrame (Λ- {x = x})    t = Λ x t
-closeFrame (-·⋆ A p)       t = ·⋆ t A p
+closeFrame Λ-              t = Λ t
+closeFrame (-·⋆ A)         t = _·⋆_ t A
 closeFrame wrap-           t = wrap1 _ _ t
-closeFrame (unwrap- p)     t = unwrap1 t p
+closeFrame unwrap-         t = unwrap1 t
 
 -- Plugging a term into a stack yields a term again
 
@@ -99,23 +97,23 @@ step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{H : Φ' ⊢Nf�
   → Σ (Ctx Φ'') λ Γ''
   → NoVar Γ'' × Σ (Φ'' ⊢Nf⋆ *) (State Γ A Γ'')
 step p (s ▻ ` x)                          = ⊥-elim (noVar p x)
-step p (s ▻ ƛ x L)                        = _ ,, _ ,, p ,, _ ,, s ◅ V-ƛ {x = x}{N = L}
+step p (s ▻ ƛ L)                          = _ ,, _ ,, p ,, _ ,, s ◅ V-ƛ {N = L}
 step p (s ▻ (L · M))                      = _ ,, _ ,, p ,, _ ,, (s , -· M) ▻ L
-step p (s ▻ Λ x L)                        = _ ,, _ ,, p ,, _ ,, (s , Λ-) ▻ L
-step p (s ▻ (·⋆ L A q))                   = _ ,, _ ,, p ,, _ ,, (s , -·⋆ A q) ▻ L
+step p (s ▻ Λ L)                          = _ ,, _ ,, p ,, _ ,, (s , Λ-) ▻ L
+step p (s ▻ (_·⋆_ L A))                   = _ ,, _ ,, p ,, _ ,, (s , -·⋆ A) ▻ L
 step p (s ▻ wrap1 pat arg L)              = _ ,, _ ,, p ,, _ ,, (s , wrap-) ▻ L
-step p (s ▻ unwrap1 L q)                  = _ ,, _ ,, p ,, _ ,, (s , unwrap- q) ▻ L
+step p (s ▻ unwrap1 L)                    = _ ,, _ ,, p ,, _ ,, (s , unwrap-) ▻ L
 step {Γ' = Γ'} p (s ▻ con cn)             = _ ,, Γ' ,, p ,, _ ,, s ◅ V-con cn
-step {Γ' = Γ'} p (s ▻ builtin bn σ tel q) =
+step {Γ' = Γ'} p (s ▻ builtin bn σ tel)   =
   _ ,, Γ' ,, p ,, _ ,, ◆ Γ' (substNf σ (proj₂ (proj₂ (SIG bn))))
 step {Γ' = Γ'} p (s ▻ error A)            =  _ ,, Γ' ,, p ,, _ ,, ◆ Γ' A
 step p (ε ◅ V)                            = _ ,, _ ,, p ,, _ ,, □ V
 step p ((s , (-· M)) ◅ V)                 = _ ,, _ ,, p ,, _ ,, ((s , V ·-) ▻ M)
 step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, p ,, _ ,, s ▻ (t [ u ])
 step p ((s , Λ-) ◅ V)                     = _ ,, _ ,, p ,, _ ,, s ◅ V-Λ V
-step p ((s , (-·⋆ A q)) ◅ V-Λ {N = t} V)  = _ ,, _ ,, p ,, _ ,, s ▻ conv⊢ reflCtx q (t [ A ]⋆)
+step p ((s , (-·⋆ A)) ◅ V-Λ {N = t} V)  = _ ,, _ ,, p ,, _ ,, s ▻ (t [ A ]⋆)
 step p ((s , wrap-) ◅ V)                  = _ ,, _ ,, p ,, _ ,, s ◅ (V-wrap V)
-step p ((s , unwrap- q) ◅ V-wrap V)       = _ ,, _ ,, p ,, _ ,, s ◅ convVal reflCtx q V
+step p ((s , unwrap-) ◅ V-wrap V)         = _ ,, _ ,, p ,, _ ,, s ◅ V
 step p (□ V)                              = _ ,, _ ,, p ,, _ ,, □ V
 step {Γ = Γ} p (◆ Γ' A)                   = _ ,, _ ,, p ,, _ ,, ◆ Γ' A
 ```
