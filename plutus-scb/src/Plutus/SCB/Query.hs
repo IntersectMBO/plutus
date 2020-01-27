@@ -15,6 +15,8 @@
 -- recalculating the fold from scratch.
 module Plutus.SCB.Query
     ( nullProjection
+    , monoidProjection
+    , setProjection
     , eventCount
     , balances
     , trialBalance
@@ -43,6 +45,29 @@ import           Plutus.SCB.Events               (AccountId, ChainEvent (..), En
 nullProjection :: Projection () event
 nullProjection =
     Projection {projectionSeed = (), projectionEventHandler = const}
+
+-- | A projection that just accumulates any monoid you supply.
+-- This is particulatly useful when combined with function that filters down interesting events using 'projectionMapMaybe':
+--
+-- @
+-- allNames :: Projection [Text] Event
+-- allNames = projectionMapMaybe extractName monoidProjection
+--   where
+--     extractName (CreateUser name dateOfBirth) = Just [name]
+--     extractName (ChristenShip name tonnage)   = Just [name]
+--     extractName _                             = Nothing
+-- @
+monoidProjection :: Monoid m => Projection m m
+monoidProjection =
+    Projection {projectionSeed = mempty, projectionEventHandler = mappend}
+
+-- | Similar to 'monoidProjection', but for accumulating sets instead of monoids.
+setProjection :: Ord a => Projection (Set a) a
+setProjection =
+    Projection
+        { projectionSeed = Set.empty
+        , projectionEventHandler = \state event -> Set.insert event state
+        }
 
 -- | A simple counter of all the events. This is the simplest 'Projection' that does any work.
 eventCount :: Projection Int (VersionedStreamEvent ChainEvent)
@@ -76,7 +101,6 @@ trialBalance = Projection {projectionSeed = mempty, projectionEventHandler}
     projectionEventHandler total _ = total
 
 ------------------------------------------------------------
-
 data RequestStats =
     RequestStats
         { _made      :: Int
@@ -108,10 +132,10 @@ countMessageTypes stats (StreamEvent _ _ event) =
         RecordRequest (CancelRequest _)    -> over cancelled (+ 1) stats
         RecordResponse (ResponseEvent _ _) -> over responded (+ 1) stats
         _                                  -> stats
+  --
 
 -- | When we see a request, track its 'EventId'. When it is canceled
 -- or responded to, remove it.
-  --
 -- We'll be left with a list of unanswered (open) requests.
 trackEventIds :: RequestStats -> VersionedStreamEvent ChainEvent -> RequestStats
 trackEventIds stats (StreamEvent _ _ event) =

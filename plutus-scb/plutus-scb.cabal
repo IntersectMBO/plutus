@@ -45,16 +45,26 @@ common lang
 library
     import: lang
     exposed-modules:
+        Cardano.Node.API
+        Cardano.Node.Client
+        Cardano.Node.MockServer
+        Cardano.Node.Types
+        Cardano.Wallet.API
+        Cardano.Wallet.Client
+        Cardano.Wallet.MockServer
+        Cardano.Wallet.Types
         Plutus.SCB.Arbitrary
+        Plutus.SCB.Command
         Plutus.SCB.Core
         Plutus.SCB.Events
-        Plutus.SCB.Relation
-        Plutus.SCB.Command
         Plutus.SCB.Query
-    other-modules:
+        Plutus.SCB.Relation
         Plutus.SCB.Utils
+    other-modules:
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Mock
+        Plutus.SCB.Events.User
+        Servant.Extra
     hs-source-dirs: src
     build-depends:
         plutus-wallet-api -any,
@@ -70,11 +80,13 @@ library
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
+        directory -any,
         eventful-core -any,
         eventful-memory -any,
         eventful-sql-common -any,
         eventful-sqlite -any,
         generic-arbitrary -any,
+        http-client -any,
         lens -any,
         monad-logger -any,
         mtl -any,
@@ -83,13 +95,18 @@ library
         prettyprinter >=1.1.0.1,
         quickcheck-instances -any,
         random -any,
+        servant -any,
+        servant-client -any,
+        servant-server -any,
         stm -any,
         text -any,
+        time-units -any,
         transformers -any,
         unliftio-core -any,
         unordered-containers -any,
         uuid -any,
         vector -any,
+        warp -any,
         yaml -any
 
 executable plutus-scb

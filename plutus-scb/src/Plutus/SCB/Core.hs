@@ -11,6 +11,10 @@ module Plutus.SCB.Core
     , simulate
     , dbStats
     , DbConfig
+    , installContract
+    , listAvailableContracts
+    , listActiveContracts
+    , SCBError(..)
     ) where
 
 import           Control.Concurrent       (forkIO, myThreadId, threadDelay)
@@ -22,15 +26,20 @@ import           Control.Monad.IO.Unlift  (MonadUnliftIO)
 import           Control.Monad.Logger     (MonadLogger, logDebugN, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader     (MonadReader, ask, runReaderT)
 import           Data.Aeson               (FromJSON, ToJSON)
+import           Data.Foldable            (traverse_)
 import           Data.Map                 (Map)
+import           Data.Set                 (Set)
 import           Data.Text                (Text)
+import qualified Data.Text                as Text
 import qualified Data.UUID                as UUID
 import           Database.Persist.Sqlite  (ConnectionPool, SqlPersistT, createSqlitePoolFromInfo,
                                            mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
-import           Eventful                 (Aggregate, GlobalStreamProjection, UUID, commandStoredAggregate,
-                                           getLatestStreamProjection, globalStreamProjection,
-                                           serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                           serializedVersionedEventStoreReader, streamProjectionState, uuidNextRandom)
+import           Eventful                 (Aggregate (Aggregate), GlobalStreamProjection, Projection,
+                                           StreamEvent (StreamEvent), UUID, aggregateCommandHandler,
+                                           aggregateProjection, commandStoredAggregate, getLatestStreamProjection,
+                                           globalStreamProjection, projectionMapMaybe, serializedEventStoreWriter,
+                                           serializedGlobalEventStoreReader, serializedVersionedEventStoreReader,
+                                           streamProjectionState, uuidNextRandom)
 import           Eventful.Store.Sql       (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
                                            jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
 import           Eventful.Store.Sqlite    (initializeSqliteEventStore, sqliteEventStoreWriter)
@@ -38,13 +47,15 @@ import           GHC.Generics             (Generic)
 import           Ledger.Value             (Value)
 import           Plutus.SCB.Arbitrary     (genResponse)
 import           Plutus.SCB.Command       (saveRequestResponseAggregate, saveTxAggregate)
-import           Plutus.SCB.Events        (AccountId, ChainEvent, EventId (EventId),
+import           Plutus.SCB.Events        (AccountId, ChainEvent (UserEvent), EventId (EventId),
                                            RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
-                                           Tx)
+                                           Tx, UserEvent (InstallContract))
 import qualified Plutus.SCB.Events        as Events
-import           Plutus.SCB.Query         (RequestStats, balances, eventCount, requestStats, trialBalance)
+import           Plutus.SCB.Query         (RequestStats, balances, eventCount, nullProjection, requestStats,
+                                           setProjection, trialBalance)
 import qualified Plutus.SCB.Relation      as Relation
 import           Plutus.SCB.Utils         (logInfoS, render, tshow)
+import           System.Directory         (doesFileExist)
 import           Test.QuickCheck          (arbitrary, frequency, generate)
 
 data ThreadState
@@ -198,6 +209,64 @@ reportClosingBalances = do
     let report = (,) <$> Events.users <*> closingBalances
     logInfoS report
     pure updatedProjection
+
+------------------------------------------------------------
+type Contract = Text
+
+newtype SCBError =
+    FileNotFound FilePath
+    deriving (Show, Eq)
+
+withFile ::
+       (MonadIO m) => (FilePath -> m b) -> FilePath -> m (Either SCBError b)
+withFile action filePath = do
+    exists <- liftIO $ doesFileExist filePath
+    if not exists
+        then pure $ Left $ FileNotFound filePath
+        else Right <$> action filePath
+
+installContract ::
+       (MonadLogger m, MonadUnliftIO m, MonadReader DbConfig m)
+    => FilePath
+    -> m (Either SCBError ())
+installContract =
+    withFile $ \filePath -> do
+        logInfoN "Installing"
+        connection <- dbConnect
+        flip runReaderT connection . void $ -- . retryOnBusy $
+            runCommand installCommand (UUID.fromWords 0 0 0 3) filePath
+  where
+    installCommand :: Aggregate () ChainEvent FilePath
+    installCommand =
+        Aggregate
+            { aggregateProjection = nullProjection
+            , aggregateCommandHandler =
+                  \() path -> [UserEvent $ InstallContract path]
+            }
+
+listAvailableContracts ::
+       (MonadLogger m, MonadUnliftIO m, MonadReader DbConfig m) => m ()
+listAvailableContracts = do
+    logInfoN "Listing"
+    connection <- dbConnect
+    installedContractsProjection <-
+        fmap streamProjectionState <$> flip runReaderT connection $
+        refreshProjection $ globalStreamProjection installedContracts
+    logInfoN "Available Contracts"
+    traverse_ logInfoN installedContractsProjection
+
+installedContracts ::
+       Projection (Set Contract) (StreamEvent key position ChainEvent)
+installedContracts = projectionMapMaybe contractPaths setProjection
+  where
+    contractPaths (StreamEvent _ _ (UserEvent (InstallContract path))) =
+        Just $ Text.pack path
+    contractPaths _ = Nothing
+
+listActiveContracts :: (MonadLogger m) => m ()
+listActiveContracts = do
+    logInfoN "Active Contracts"
+    logInfoN "/bin/echo Hello"
 
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
