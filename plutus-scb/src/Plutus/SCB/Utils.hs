@@ -2,11 +2,12 @@ module Plutus.SCB.Utils
     ( unfoldM
     , logDebugS
     , logInfoS
+    , logErrorS
     , tshow
     , render
     ) where
 
-import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN)
+import           Control.Monad.Logger            (MonadLogger, logDebugN, logErrorN, logInfoN)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import           Options.Applicative.Help.Pretty (Pretty, displayS, pretty, renderPretty)
@@ -27,6 +28,9 @@ logInfoS = logInfoN . tshow
 
 logDebugS :: (MonadLogger m, Show a) => a -> m ()
 logDebugS = logDebugN . tshow
+
+logErrorS :: (MonadLogger m, Show a) => a -> m ()
+logErrorS = logErrorN . tshow
 
 tshow :: Show a => a -> Text
 tshow = Text.pack . show
