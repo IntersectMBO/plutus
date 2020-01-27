@@ -54924,6 +54924,7 @@ license = stdenv.lib.licenses.asl20;
 , eventful-sql-common
 , eventful-sqlite
 , generic-arbitrary
+, http-client
 , iots-export
 , lens
 , monad-logger
@@ -54940,6 +54941,9 @@ license = stdenv.lib.licenses.asl20;
 , QuickCheck
 , quickcheck-instances
 , random
+, servant
+, servant-client
+, servant-server
 , stdenv
 , stm
 , tasty
@@ -54950,6 +54954,7 @@ license = stdenv.lib.licenses.asl20;
 , unordered-containers
 , uuid
 , vector
+, warp
 , yaml
 }:
 mkDerivation {
@@ -54970,6 +54975,7 @@ eventful-memory
 eventful-sql-common
 eventful-sqlite
 generic-arbitrary
+http-client
 iots-export
 lens
 monad-logger
@@ -54985,6 +54991,9 @@ prettyprinter
 QuickCheck
 quickcheck-instances
 random
+servant
+servant-client
+servant-server
 stm
 text
 transformers
@@ -54992,6 +55001,7 @@ unliftio-core
 unordered-containers
 uuid
 vector
+warp
 yaml
 ];
 executableHaskellDepends = [
