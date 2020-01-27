@@ -24,7 +24,7 @@ type U = PLC.Unique
 type Rank = ( Int               -- the depth of the lambda dep
             , U                 --  the name of the lambda dep
             )
-
+          -- TODO: add instance Monoid Rank
 
 topRank :: Rank
 -- | Lets that do not depend on any lambda can be floated at the toplevel using this rank.
@@ -54,28 +54,33 @@ floatPass1' = \case
       traverse_ (\case
                     TermBind _ _ (VarDecl _ n _ty) rhs -> do
                       floatPass1' rhs
-                      let freeVars = free rhs
+                      let freeVars = free rhs -- FIXME: We traverse too much the AST here , in quadratic time.
                       lamRanks <- M.fromList . map (\ l -> (snd l, l)) <$> ask
                       modify (\ letRanks -> M.insert
                                             (n^.PLC.unique.coerced)
 
                                             -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-                                            (let allFreeDeps = M.restrictKeys (letRanks `M.union` lamRanks) freeVars
-                                             in if M.null allFreeDeps
+                                            (let allFreeOccurs = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
+                                             in if M.null allFreeOccurs
                                                 then topRank
-                                                else maximum allFreeDeps)
+                                                else maximum allFreeOccurs)
 
                                             letRanks)
                     TypeBind _ _ _ -> pure () -- FIXME:
                     DatatypeBind _ _ -> pure () -- FIXME:
                 ) bs
       floatPass1' t
-
+    -- FIXME: think about let Rec
+    
     -- TODO: abstract repetition
-    TyAbs _ n _ t -> local (\ ctx ->  ( if null ctx then 1 else 1 + fst (head ctx)
+    TyAbs _ n _ t -> local (\ ctx ->  ( case ctx of
+                                          [] -> 1
+                                          (d,_):_ -> d+1
                                       , n ^. PLC.unique . coerced) : ctx)
                      $ floatPass1' t
-    LamAbs _ n _ t -> local (\ ctx ->  ( if null ctx then 1 else 1 + fst (head ctx)
+    LamAbs _ n _ t -> local (\ ctx ->  ( case ctx of
+                                          [] -> 1
+                                          (d,_):_ -> d+1
                                       , n ^. PLC.unique . coerced) : ctx)
                      $ floatPass1' t
     x -> traverse_ floatPass1' (x ^.. termSubterms)
@@ -89,6 +94,11 @@ free = \case
   Var _ x -> S.singleton $ x ^. PLC.unique . coerced
 
   -- linear scoping on the let non-rec
+
+  -- we don't assume term is renamed, that is why we do this for name shadowing 
+
+  -- TODO: check if termSubterms, termSubtypes can be used and lens + fold
+
   Let _ NonRec bs tIn -> snd $ foldl (\(accLinearScope,accFreeSet) -> \case
                               TermBind _ _ (VarDecl _ n _ty) tRhs -> ( S.insert (n ^. PLC.unique . coerced) accLinearScope
                                                                      , (free tRhs S.\\ accLinearScope) `S.union` accFreeSet
@@ -107,17 +117,17 @@ free = \case
                               TypeBind _ _ _tyRhs -> acc -- FIXME: free(types) as well
                             ) (free tIn) bs
                       S.\\      -- removes all the variable names introduced by this letrec
-                      S.fromList (concatMap (\case
-                              TermBind _ _ (VarDecl _ n _ty) _ -> [n^.PLC.unique.coerced]
-                              DatatypeBind _ _ -> [] -- - FIXME: add data type/constructor names  to let-scope
-                              TypeBind _ (TyVarDecl _ n _) _Rhs -> [n^.PLC.unique.coerced])
+                      (foldMap (\case
+                              TermBind _ _ (VarDecl _ n _ty) _ -> S.singleton (n^.PLC.unique.coerced)
+                              DatatypeBind _ _ -> S.empty -- - FIXME: add data type/constructor names  to let-scope
+                              TypeBind _ (TyVarDecl _ n _) _Rhs -> S.singleton (n^.PLC.unique.coerced))
                        bs)
 
   TyAbs _ n _ t -> S.delete (n ^. PLC.unique . coerced) $ free t
   LamAbs _ n _ t -> S.delete (n ^. PLC.unique . coerced) $ free t
 
-  TyInst _ t _ -> free t
   Apply _ t1 t2 -> free t1 `S.union` free t2
+  TyInst _ t _ -> free t
   IWrap _ _ _ t -> free t
   Unwrap _ t -> free t
   _ -> S.empty
