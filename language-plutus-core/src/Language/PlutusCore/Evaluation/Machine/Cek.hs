@@ -11,11 +11,14 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
@@ -37,6 +40,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCek
     , readKnownCek
     , runCek
+    , runCekCounting
 --     , unsafeRunCek
     , cekEnvMeans
     , cekEnvVarEnv
@@ -55,6 +59,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -82,6 +87,10 @@ type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException = EvaluationException UnknownDynamicBuiltinNameError CekUserError
+
+instance Pretty CekUserError where
+    pretty CekOutOfExError      = "The evaluation ran out of memory or CPU."
+    pretty CekEvaluationFailure = "The provided plutus code was faulty."
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -123,14 +132,14 @@ spendBudget Restricting l ex = do
 spendMemory :: WithMemory Term -> ExMemory -> CekM ()
 spendMemory term mem = do
     modifying exBudgetStateTally
-              (<> (ExTally mempty (singleton (void term) [mem])))
+              (<> (ExTally mempty (ExTallyCounter (singleton (void term) [mem]))))
     mode <- view cekEnvBudgetMode
     spendBudget mode (exBudgetStateBudget . exBudgetMemory) mem
 
 spendCPU :: WithMemory Term -> ExCPU -> CekM ()
 spendCPU term cpu = do
     modifying exBudgetStateTally
-              (<> (ExTally (singleton (void term) [cpu]) mempty))
+              (<> (ExTally (ExTallyCounter (singleton (void term) [cpu])) mempty))
     mode <- view cekEnvBudgetMode
     spendBudget mode (exBudgetStateBudget . exBudgetCPU) cpu
 
@@ -310,7 +319,7 @@ runCek
     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
 runCek means mode budget term =
     runCekM (CekEnv means mempty mode)
-            (ExBudgetState mempty (budget <> ExBudget 0 (- termLoc memTerm)))
+            (ExBudgetState mempty (budget <> ExBudget 0 (- getAnn memTerm)))
         $ computeCek [] memTerm
     where
         memTerm = withMemory term

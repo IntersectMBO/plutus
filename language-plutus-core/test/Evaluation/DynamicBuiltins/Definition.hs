@@ -70,26 +70,26 @@ dynamicConstDefinition =
 dynamicConst :: Term tyname name ()
 dynamicConst = dynamicBuiltinNameAsTerm dynamicConstName
 
--- -- | Check that the dynamic const defined above computes to the same thing as
--- -- a const defined in PLC itself.
--- test_dynamicConst :: TestTree
--- test_dynamicConst =
---     testProperty "dynamicConst" . property $ do
---         c <- forAll Gen.unicode
---         b <- forAll Gen.bool
---         let tC = makeKnown c
---             tB = makeKnown b
---             char = toTypeAst @Char Proxy
---             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
---             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
---             lhs = typecheckReadKnownCek env $ runConst dynamicConst
---             rhs = typecheckReadKnownCek mempty $ runConst Plc.const
---         lhs === Right (Right c)
---         lhs === rhs
+-- | Check that the dynamic const defined above computes to the same thing as
+-- a const defined in PLC itself.
+test_dynamicConst :: TestTree
+test_dynamicConst =
+    testProperty "dynamicConst" . property $ do
+        c <- forAll Gen.unicode
+        b <- forAll Gen.bool
+        let tC = makeKnown c
+            tB = makeKnown b
+            char = toTypeAst @Char Proxy
+            runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
+            env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
+            lhs = typecheckReadKnownCek env $ runConst dynamicConst
+            rhs = typecheckReadKnownCek mempty $ runConst Plc.const
+        lhs === Right (Right c)
+        lhs === rhs
 
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_dynamicFactorial
-        -- , test_dynamicConst
+        , test_dynamicConst
         ]

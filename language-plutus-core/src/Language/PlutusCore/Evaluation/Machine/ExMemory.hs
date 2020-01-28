@@ -1,11 +1,13 @@
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
@@ -29,8 +31,12 @@ import           GHC.Generics
 
 {- Note [Memory Usage for Plutus]
 
-The base unit is 'ExMemory', which corresponds to machine words. For primities, we use static values for the size, see the corresponding instances. For composite data types, the Generic instance is used, + 1 for the constructor tag. For ADTs, the currently selected branch is counted, not the maximum value.
-Memory usage of the annotation is not counted, because this should be abstractily specifiable. It's an implementation detail.
+The base unit is 'ExMemory', which corresponds to machine words. For primities,
+we use static values for the size, see the corresponding instances. For
+composite data types, the Generic instance is used, + 1 for the constructor tag.
+For ADTs, the currently selected branch is counted, not the maximum value.
+Memory usage of the annotation is not counted, because this should be
+abstractily specifiable. It's an implementation detail.
 
 -}
 
@@ -41,12 +47,13 @@ type WithMemory f = f TyName Name ExMemory
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
-  deriving newtype Num
+  deriving newtype (Num, PrettyBy config)
   deriving (Semigroup, Monoid) via (Sum Integer)
+
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
-  deriving newtype Num
+  deriving newtype (Num, PrettyBy config)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs

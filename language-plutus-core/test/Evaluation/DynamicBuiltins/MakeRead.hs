@@ -33,7 +33,7 @@ readMakeHetero x =
     case extractEvaluationResult <$> typecheckReadKnownCek mempty (makeKnown x) of
         Left err          ->
             error $ "Type error" ++ prettyPlcCondensedErrorClassicString err
-        Right (Left err)  -> error $ "Evaluation error" -- ++ show err
+        Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value

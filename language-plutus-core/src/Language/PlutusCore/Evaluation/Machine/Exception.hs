@@ -164,12 +164,15 @@ instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name ())) =
         , pretty err
         ]
 
+instance (PrettyBy config (Term TyName Name ()), PrettyBy config err) =>
+            PrettyBy config (ErrorWithCause err) where
+    prettyBy config (ErrorWithCause err mayCause) =
+        "An error has occurred: " <+> prettyBy config err <>
+            case mayCause of
+                Nothing    -> mempty
+                Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
+
 instance PrettyPlc err => Show (ErrorWithCause err) where
-    show (ErrorWithCause err mayCause) = fold
-        [ "An error has occurred: ", docString $ prettyPlcReadableDebug err
-        , case mayCause of
-            Nothing    -> ""
-            Just cause -> "\nCaused by: " ++ docString (prettyPlcReadableDebug cause)
-        ]
+    show = docString . prettyPlcReadableDebug
 
 instance (PrettyPlc err, Typeable err) => Exception (ErrorWithCause err)
