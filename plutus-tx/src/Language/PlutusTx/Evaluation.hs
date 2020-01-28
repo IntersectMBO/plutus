@@ -18,6 +18,8 @@ module Language.PlutusTx.Evaluation
     )
 where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
@@ -25,8 +27,6 @@ import           Language.PlutusCore.Evaluation.Machine.Cek hiding (evaluateCek)
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC (evaluateCek)
 
 import           Control.Exception
-import           PlutusPrelude
-
 import           System.IO.Unsafe
 
 stringBuiltins :: DynamicBuiltinNameMeanings

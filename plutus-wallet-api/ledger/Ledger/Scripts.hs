@@ -172,8 +172,8 @@ evaluateScript checking s = do
     let (logOut, _tally, result) = evaluateCekTrace (unScript s)
     case result of
         Right _ -> Haskell.pure ()
-        Left (ErrorWithCause err _) -> throwError $ case err of
-            InternalEvaluationError {} -> EvaluationException $ show err
+        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
+            InternalEvaluationError {} -> EvaluationException $ show errWithCause
             UserEvaluationError {} -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 

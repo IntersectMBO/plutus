@@ -83,9 +83,6 @@ newtype UnknownDynamicBuiltinNameError
     deriving (Show, Eq, Generic)
     deriving newtype (NFData)
 makeClassyPrisms ''UnknownDynamicBuiltinNameError
-instance PrettyBy config UnknownDynamicBuiltinNameError where
-    prettyBy _ (UnknownDynamicBuiltinNameErrorE name) =
-        "Unknown dynamic built-in name:" <+> pretty name
 
 -- | An internal error occurred during type checking.
 data InternalTypeError ann

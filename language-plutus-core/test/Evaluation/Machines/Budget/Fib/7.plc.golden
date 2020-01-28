@@ -1,4 +1,4 @@
-((Left An error has occurred:  A user error has occurred:
+((Left An error has occurred:  User error:
 The evaluation ran out of memory or CPU.)
 , ({ tally: ({ cpu: ({ [1,1,1,1,1,1,1,1,1] used by (f)
 | [1,1,1,1,1,1,1,1,1,1] used by (unwrap s s)
