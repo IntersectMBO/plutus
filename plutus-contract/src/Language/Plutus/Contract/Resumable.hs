@@ -1,4 +1,5 @@
-{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -10,6 +11,7 @@
 module Language.Plutus.Contract.Resumable(
     Resumable(..)
     , ResumableError(..)
+    , ResumableResult(..)
     , Step(..)
     , contramapI
     , mapO
@@ -436,28 +438,40 @@ runOpen con opr =
             fmap (\(_, a) -> (jsonLeaf a, a)) <$> runOpen con' opr'
         _ -> throwRecordmismatchError "runOpen"
 
+-- | The result of running a 'Resumable'
+data ResumableResult i o a =
+    ResumableResult
+        { wcsRecord     :: Record i -- The record with the resumable's execution history
+        , wcsHandlers   :: o -- Handlers that the 'Resumable' has registered
+        , wcsFinalState :: Maybe a -- Final state of the 'Resumable'
+        }
+
 insertAndUpdate
     :: Monoid o
     => Resumable e (Step (Maybe i) o) a
     -> Record i
     -> i
-    -> Either (ResumableError e) (Record i, o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 insertAndUpdate con rc e = updateRecord con (insert e rc)
 
 updateRecord
-    :: Monoid o
+    :: forall a e i o. Monoid o
     => Resumable e (Step (Maybe i) o) a
     -> Record i
-    -> Either (ResumableError e) (Record i, o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 updateRecord con rc =
     case rc of
         ClosedRec cl ->
-            fmap (first $ const $ ClosedRec cl)
+            fmap (\(a, _) -> ResumableResult { wcsRecord = ClosedRec cl, wcsHandlers = mempty, wcsFinalState = Just a })
             $ runExcept
-            $ runWriterT
+            $ runWriterT @o
             $ runClosed con cl
         OpenRec cl  ->
-            fmap (first (view (from record) . fmap fst))
+            let mkResult (Left openRec, o) = 
+                    ResumableResult { wcsRecord = OpenRec openRec, wcsHandlers = o, wcsFinalState = Nothing }
+                mkResult (Right (closedrec, a), o) =
+                    ResumableResult { wcsRecord = ClosedRec closedrec, wcsHandlers = o, wcsFinalState = Just a} 
+            in fmap mkResult
             $ runExcept
             $ runWriterT
             $ fmap (first fst) (runOpen con cl)
@@ -467,17 +481,16 @@ execResumable
     => [i]
     -> Resumable e (Step (Maybe i) o) a
     -> Either (ResumableError e) o
-execResumable es = fmap snd . runResumable es
+execResumable es = fmap wcsHandlers . runResumable es
 
 runResumable
     :: Monoid o
     => [i]
     -> Resumable e (Step (Maybe i) o) a
-    -> Either (ResumableError e) (Either (OpenRecord i) (ClosedRecord i, a), o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 runResumable es con = do
     initial <- runExcept $ runWriterT (initialise con)
-    foldM go initial es where
-        go r e =
+    let go r e =
             let r' = over (from record) (insert e) (fst <$> fst r)
                 result = case r' of
                     Left open -> 
@@ -485,8 +498,11 @@ runResumable es con = do
                         $ runWriterT 
                         $ fmap (first fst) (runOpen con open)
                     Right closed -> 
-                        fmap (\(a, h) -> (Right (closed, a), h)) 
+                        fmap (\(a, h) -> (Right (closed, a), h))
                         $ runExcept 
                         $ runWriterT 
                         $ runClosed con closed
             in result
+    foldM go initial es >>= \case
+        (Left openRec, o) -> pure ResumableResult{wcsRecord=OpenRec openRec, wcsHandlers = o, wcsFinalState = Nothing}
+        (Right (cr, a), o) -> pure ResumableResult{wcsRecord=ClosedRec cr, wcsHandlers = o, wcsFinalState = Just a}

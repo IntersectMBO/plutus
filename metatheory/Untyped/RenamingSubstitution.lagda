@@ -24,7 +24,7 @@ ren     : ∀{m n} → Ren m n → m ⊢ → n ⊢
 renList : ∀{m n} → Ren m n → List (m ⊢) → List (n ⊢)
 
 ren ρ (` x)          = ` (ρ x)
-ren ρ (ƛ x t)        = ƛ x (ren (lift ρ) t)
+ren ρ (ƛ t)          = ƛ (ren (lift ρ) t)
 ren ρ (t · u)        = ren ρ t · ren ρ u
 ren ρ (con tcn)      = con tcn
 ren ρ (builtin b ts) = builtin b (renList ρ ts)
@@ -53,7 +53,7 @@ renList-cong p []       = refl
 renList-cong p (t ∷ ts) = cong₂ _∷_ (ren-cong p t) (renList-cong p ts)
 
 ren-cong p (` x)          = cong ` (p x)
-ren-cong p (ƛ x t)        = cong (ƛ x) (ren-cong (lift-cong p) t)
+ren-cong p (ƛ t)          = cong ƛ (ren-cong (lift-cong p) t)
 ren-cong p (t · u)        = cong₂ _·_ (ren-cong p t) (ren-cong p u)
 ren-cong p (con c)        = refl
 ren-cong p (builtin b ts) = cong (builtin b) (renList-cong p ts)
@@ -70,8 +70,8 @@ lift-id zero    = refl
 lift-id (suc α) = refl
 
 ren-id (` x)           = refl
-ren-id (ƛ x t)         = cong
-  (ƛ x)
+ren-id (ƛ t)           = cong
+  ƛ
   (trans
     (ren-id t)
     (ren-cong lift-id t)) 
@@ -93,7 +93,7 @@ sub     : ∀{m n} → Sub m n → m ⊢ → n ⊢
 subList : ∀{m n} → Sub m n → List (m ⊢) → List (n ⊢)
 
 sub σ (` x)          = σ x
-sub σ (ƛ x t)        = ƛ x (sub (lifts σ) t) 
+sub σ (ƛ t)          = ƛ (sub (lifts σ) t) 
 sub σ (t · u)        = sub σ t · sub σ u
 sub σ (con tcn)      = con tcn
 sub σ (builtin b ts) = builtin b (subList σ ts)
@@ -129,7 +129,7 @@ subList-cong p []       = refl
 subList-cong p (t ∷ ts) = cong₂ _∷_ (sub-cong p t) (subList-cong p ts)
 
 sub-cong p (` x)           = p x
-sub-cong p (ƛ x t)         = cong (ƛ x) (sub-cong (lifts-cong p) t)
+sub-cong p (ƛ t)           = cong ƛ (sub-cong (lifts-cong p) t)
 sub-cong p (t · u)         = cong₂ _·_ (sub-cong p t) (sub-cong p u)
 sub-cong p (con c)         = refl
 sub-cong p (builtin bn ts) = cong (builtin bn) (subList-cong p ts)
@@ -146,7 +146,7 @@ subList-id []       = refl
 subList-id (t ∷ ts) = cong₂ _∷_ (sub-id t) (subList-id ts)
 
 sub-id (` x)           = refl
-sub-id (ƛ x t)         = cong (ƛ x) (trans (sub-id t) (sub-cong lifts-id t))
+sub-id (ƛ t)           = cong ƛ (trans (sub-id t) (sub-cong lifts-id t))
 sub-id (t · u)         = cong₂ _·_ (sub-id t) (sub-id u)
 sub-id (con c)         = refl
 sub-id (builtin bn ts) = cong (builtin bn) (subList-id ts)

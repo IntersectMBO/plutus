@@ -43,7 +43,7 @@ import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<>))
-import           Ledger                     (PubKey (..), Slot (..))
+import           Ledger                     (PubKeyHash (..), Slot (..))
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (DataValue (..))
 import           Ledger.Validation
@@ -82,7 +82,7 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 
 -- * Aliaces
 
-type Party = PubKey
+type Party = PubKeyHash
 type NumAccount = Integer
 type Timeout = Slot
 type Money = Val.Value
@@ -327,7 +327,7 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token In
                                                 -- ^ src    ^ dest    ^ paid ^ expected
                         | TransactionShadowing ValueId Integer Integer
                                                 -- oldVal ^  newVal ^
-  deriving stock (Show, Generic)
+  deriving stock (Show, Generic, P.Eq)
   deriving anyclass (Pretty)
 
 
@@ -344,7 +344,7 @@ data TransactionError = TEAmbiguousSlotIntervalError
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving stock (Show)
+  deriving stock (Show, P.Eq)
 
 instance Pretty TransactionInput where
     prettyFragment tInp = text "TransactionInput" <> space <> lbrace <> line <> txIntLine <> line <> txInpLine
@@ -786,7 +786,7 @@ validateTxOutputs pendingTx creator expectedTxOutputs = case expectedTxOutputs o
     Marlowe Interpreter Validator generator.
 -}
 marloweValidator
-  :: PubKey -> MarloweData -> [Input] -> PendingTx -> Bool
+  :: PubKeyHash -> MarloweData -> [Input] -> PendingTx -> Bool
 marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
     {-  Embed contract creator public key. This makes validator script unique,
         which makes a particular contract to have a unique script address.
@@ -815,7 +815,7 @@ marloweValidator creator MarloweData{..} inputs pendingTx@PendingTx{..} = let
         requiredSignatures = getSignatures inputs
         in checkSignatures pendingTx requiredSignatures
 
-    PendingTxIn _ _ scriptInValue = pendingTxIn
+    PendingTxIn _ _ scriptInValue = pendingTxItem
 
     -- total balance of all accounts in State
     -- accounts must be positive, and we checked it above

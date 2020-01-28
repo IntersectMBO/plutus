@@ -70,8 +70,8 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: (Pretty err, KnownType a)
-    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+    :: (Pretty internal, KnownType a)
+    => (Term TyName Name () -> Either (EvaluationException internal user) (Term TyName Name ()))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.
     -> Property

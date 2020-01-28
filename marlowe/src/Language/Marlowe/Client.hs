@@ -25,9 +25,9 @@ import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (DataValue (..), PubKey (..), Slot (..), Tx, TxOut (..), interval,
+import           Ledger                     (DataValue (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval,
 
-                                             mkValidatorScript, pubKeyTxOut, scriptAddress, scriptTxIn, scriptTxOut,
+                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut,
                                              txOutRefs)
 import           Ledger.Ada                 (adaValueOf)
 import           Ledger.Scripts             (RedeemerValue (..), Validator)
@@ -46,7 +46,7 @@ createContract :: (
     -> m (MarloweData, Tx)
 createContract contract = do
     slot <- slot
-    creator <- ownPubKey
+    creator <- pubKeyHash <$> ownPubKey
     let validator = validatorScript creator
 
         marloweData = MarloweData {
@@ -59,7 +59,7 @@ createContract contract = do
     (payment, change) <- createPaymentWithChange payValue
     let o = scriptTxOut P.zero validator ds
         slotRange = interval slot (slot + 10)
-        outputs = o : (pubKeyTxOut payValue creator) : maybeToList change
+        outputs = o : (pubKeyHashTxOut payValue creator) : maybeToList change
 
     tx <- createTxAndSubmit slotRange payment outputs [ds]
     return (marloweData, tx)
@@ -78,8 +78,8 @@ deposit :: (
     -> Integer
     -> m (MarloweData, Tx)
 deposit tx marloweData accountId token amount = do
-    pubKey <- ownPubKey
-    applyInputs tx marloweData [IDeposit accountId pubKey token amount]
+    pubKeyHash <- pubKeyHash <$> ownPubKey
+    applyInputs tx marloweData [IDeposit accountId pubKeyHash token amount]
 
 
 {-| Notify a contract -}
@@ -204,7 +204,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
     txPaymentOuts :: [Payment] -> [TxOut]
     txPaymentOuts payments = let
         ps = foldr collectPayments Map.empty payments
-        txOuts = [pubKeyTxOut value pk | (pk, value) <- Map.toList ps]
+        txOuts = [pubKeyHashTxOut value pk | (pk, value) <- Map.toList ps]
         in txOuts
 
     collectPayments :: Payment -> Map Party Money -> Map Party Money
@@ -216,7 +216,7 @@ applyInputs tx marloweData@MarloweData{..} inputs = do
 
 
 {-| Generate a validator script for 'creator' PubKey -}
-validatorScript :: PubKey -> Validator
+validatorScript :: PubKeyHash -> Validator
 validatorScript creator = mkValidatorScript ($$(PlutusTx.compile [|| validatorParam ||])
     `PlutusTx.applyCode`
         PlutusTx.liftCode creator)

@@ -24,6 +24,7 @@ module Language.PlutusCore.Core.Type
     , defaultVersion
     , allBuiltinNames
     -- * Helper functions
+    , toTerm
     , tyLoc
     , termLoc
     )
@@ -174,6 +175,9 @@ allBuiltinNames :: [BuiltinName]
 allBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
+
+toTerm :: Program tyname name ann -> Term tyname name ann
+toTerm (Program _ _ term) = term
 
 tyLoc :: Type tyname ann -> ann
 tyLoc (TyVar ann _       ) = ann

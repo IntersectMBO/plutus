@@ -28,7 +28,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (PubKey, Tx, fromSymbol)
+import           Ledger                       (PubKeyHash, Tx, fromSymbol, pubKeyHash)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Slot                  (Slot)
@@ -138,8 +138,8 @@ data Evaluation =
         }
     deriving (Generic, ToJSON, FromJSON)
 
-pubKeys :: Evaluation -> [PubKey]
-pubKeys Evaluation {..} = walletPubKey . simulatorWalletWallet <$> wallets
+pubKeys :: Evaluation -> [PubKeyHash]
+pubKeys Evaluation {..} = pubKeyHash . walletPubKey . simulatorWalletWallet <$> wallets
 
 data EvaluationResult =
     EvaluationResult
@@ -148,7 +148,7 @@ data EvaluationResult =
         , emulatorLog       :: [EmulatorEvent]
         , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
-        , walletKeys        :: [(PubKey, Wallet)]
+        , walletKeys        :: [(PubKeyHash, Wallet)]
         }
     deriving (Show, Generic, ToJSON, FromJSON)
 

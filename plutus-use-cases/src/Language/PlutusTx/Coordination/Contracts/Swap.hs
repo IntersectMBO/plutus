@@ -15,7 +15,7 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Slot, PubKey, Validator)
+import           Ledger                    (Slot, PubKey, PubKeyHash, Validator)
 import qualified Ledger                    as Ledger
 import qualified Ledger.Typed.Scripts      as Scripts
 import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
@@ -52,8 +52,8 @@ PlutusTx.makeLift ''Swap
 --   In the future we could also put the `swapMargin` value in here to implement
 --   a variable margin.
 data SwapOwners = SwapOwners {
-    swapOwnersFixedLeg :: PubKey,
-    swapOwnersFloating :: PubKey
+    swapOwnersFixedLeg :: PubKeyHash,
+    swapOwnersFloating :: PubKeyHash
     }
 
 PlutusTx.makeIsData ''SwapOwners
@@ -73,7 +73,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         adaValueIn :: Value -> Integer
         adaValueIn v = Ada.getLovelace (Ada.fromValue v)
 
-        isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
+        isPubKeyOutput :: PendingTxOut -> PubKeyHash -> Bool
         isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute

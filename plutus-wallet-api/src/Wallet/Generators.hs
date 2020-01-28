@@ -36,7 +36,7 @@ import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold, foldl')
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
-import           Data.Maybe                (catMaybes, isNothing)
+import           Data.Maybe                (isNothing)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import           GHC.Stack                 (HasCallStack)
@@ -46,7 +46,6 @@ import qualified Hedgehog.Range            as Range
 import qualified Language.PlutusTx.Prelude as P
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
-import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 
 import           Ledger
@@ -125,14 +124,10 @@ genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
         t = fold gmInitialBalance
-    in (Tx {
-        txInputs = Set.empty,
+    in (mempty {
         txOutputs = o,
         txForge = t,
-        txFee = mempty,
-        txValidRange = W.intervalFrom 0,
-        txSignatures = Map.empty,
-        txData = Map.empty
+        txValidRange = W.intervalFrom 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -151,18 +146,14 @@ genValidTransaction' :: MonadGen m
     -> FeeEstimator
     -> Mockchain
     -> m Tx
-genValidTransaction' g f (Mockchain bc ops) = do
+genValidTransaction' g f (Mockchain _ ops) = do
     -- Take a random number of UTXO from the input
     nUtxo <- if Map.null ops
                 then Gen.discard
                 else Gen.int (Range.linear 1 (Map.size ops))
-    let ins = Set.fromList
-                    $ uncurry (flip pubKeyTxIn)
-                    <$> (catMaybes
-                        $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
+    let ins = Set.fromList $ pubKeyTxIn . fst <$> inUTXO
         inUTXO = take nUtxo $ Map.toList ops
         totalVal = foldl' (+) 0 $ map (Ada.fromValue . txOutValue . snd) inUTXO
-        di a = (a, a)
     genValidTransactionSpending' g f ins totalVal
 
 genValidTransactionSpending :: MonadGen m
@@ -184,14 +175,10 @@ genValidTransactionSpending' g f ins totalVal = do
         then do
             let sz = totalVal - fee
             outVals <- fmap Ada.toValue <$> splitVal numOut sz
-            let tx = Tx
+            let tx = mempty
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txForge = mempty
                         , txFee = Ada.toValue fee
-                        , txValidRange = Interval.always
-                        , txSignatures = Map.empty
-                        , txData = Map.empty
                         }
 
                 -- sign the transaction with all three known wallets

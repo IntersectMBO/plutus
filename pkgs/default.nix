@@ -137,8 +137,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "Agda";
-version = "2.6.0";
-sha256 = "bf71bc634a9fe40d717aae76b5b160dfd13a06365615e7822043e5d476c06fb8";
+version = "2.6.0.1";
+sha256 = "7bb88a9cd4a556259907ccc71d54e2acc9d3e9ce05486ffdc83f721c7c06c0e8";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
@@ -44717,6 +44717,39 @@ description = "Marlowe: financial contracts on Cardano Computation Layer";
 license = stdenv.lib.licenses.asl20;
 
 }) {};
+"marlowe-hspec" = callPackage
+({
+  mkDerivation
+, base
+, hspec
+, hspec-expectations
+, HUnit
+, marlowe
+, marlowe-symbolic
+, stdenv
+}:
+mkDerivation {
+
+pname = "marlowe-hspec";
+version = "0.1.0.0";
+src = .././marlowe-hspec;
+libraryHaskellDepends = [
+base
+hspec-expectations
+HUnit
+marlowe
+marlowe-symbolic
+];
+testHaskellDepends = [
+base
+hspec
+HUnit
+marlowe
+];
+doHaddock = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "marlowe-playground-server" = callPackage
 ({
   mkDerivation
@@ -54729,6 +54762,117 @@ tasty-golden
 tasty-hunit
 text
 time-units
+transformers
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"plutus-scb" = callPackage
+({
+  mkDerivation
+, aeson
+, async
+, base
+, bytestring
+, containers
+, ekg
+, eventful-core
+, eventful-memory
+, eventful-sql-common
+, eventful-sqlite
+, generic-arbitrary
+, iots-export
+, lens
+, monad-logger
+, mtl
+, optparse-applicative
+, persistent-sqlite
+, playground-common
+, plutus-contract
+, plutus-emulator
+, plutus-tx
+, plutus-tx-plugin
+, plutus-wallet-api
+, prettyprinter
+, QuickCheck
+, quickcheck-instances
+, random
+, stdenv
+, stm
+, tasty
+, tasty-quickcheck
+, text
+, transformers
+, unliftio-core
+, unordered-containers
+, uuid
+, vector
+, yaml
+}:
+mkDerivation {
+
+pname = "plutus-scb";
+version = "0.1.0.0";
+src = .././plutus-scb;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+async
+base
+bytestring
+containers
+eventful-core
+eventful-memory
+eventful-sql-common
+eventful-sqlite
+generic-arbitrary
+iots-export
+lens
+monad-logger
+mtl
+optparse-applicative
+persistent-sqlite
+plutus-contract
+plutus-emulator
+plutus-tx
+plutus-tx-plugin
+plutus-wallet-api
+prettyprinter
+QuickCheck
+quickcheck-instances
+random
+stm
+text
+transformers
+unliftio-core
+unordered-containers
+uuid
+vector
+yaml
+];
+executableHaskellDepends = [
+base
+ekg
+monad-logger
+mtl
+optparse-applicative
+playground-common
+text
+unliftio-core
+yaml
+];
+testHaskellDepends = [
+base
+eventful-core
+eventful-memory
+plutus-wallet-api
+QuickCheck
+quickcheck-instances
+tasty
+tasty-quickcheck
 transformers
 ];
 doHaddock = false;

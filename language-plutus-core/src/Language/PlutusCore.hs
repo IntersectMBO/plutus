@@ -34,6 +34,7 @@ module Language.PlutusCore
     , defaultVersion
     , allBuiltinNames
     , allKeywords
+    , toTerm
     , termLoc
     , tyLoc
     -- * Lexer

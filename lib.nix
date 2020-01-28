@@ -25,7 +25,9 @@ let
     "plutus-tx-plugin"
     "plutus-wallet-api"
     "plutus-emulator"
+    "plutus-scb"
     "iots-export"
+    "marlowe-hspec"
   ];
 
   isPublicPlutus = name: builtins.elem name plutusPublicPkgList;

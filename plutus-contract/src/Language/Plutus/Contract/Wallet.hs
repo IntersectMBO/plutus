@@ -118,7 +118,7 @@ addInputs mp pk vl tx = do
     let
 
         addTxIns  =
-            let ins = Set.fromList (Tx.pubKeyTxIn pk . fst <$> spend)
+            let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
             in over Tx.inputs (Set.union ins)
 
         addTxOuts = if Value.isZero change
@@ -145,11 +145,11 @@ addMissingValueMoved pk vl tx =
 --   it to the chain in the context of a wallet.
 handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
-    balanceWallet utx >>= addSignatures p (T.requiredSignatures utx) >>= WAPI.signTxAndSubmit
+    balanceWallet utx >>= addSignatures p (T.requiredSignatories utx) >>= WAPI.signTxAndSubmit
 
 -- | The signing process gets a finished transaction and a list of public keys,
 --   and signs the transaction with the corresponding private keys.
-newtype SigningProcess = SigningProcess { addSignatures :: forall m. MonadWallet m => [PubKey] -> Tx -> m Tx }
+newtype SigningProcess = SigningProcess { addSignatures :: forall m. MonadWallet m => [L.PubKeyHash] -> Tx -> m Tx }
 
 -- | The default signing process is 'signWallet'
 defaultSigningProcess :: SigningProcess

@@ -22,7 +22,7 @@ import           Language.Plutus.Contract          hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Semigroup(..), fold)
-import           Ledger                            (Address, PubKey, Slot (Slot),
+import           Ledger                            (Address, PubKeyHash, pubKeyHash, Slot (Slot),
                                                     Validator, unitData)
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.AddressMap                 as AM
@@ -74,7 +74,7 @@ PlutusTx.makeLift ''VestingTranche
 data VestingParams = VestingParams {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
-    vestingOwner    :: PubKey
+    vestingOwner    :: PubKeyHash
     } deriving Generic
 
 PlutusTx.makeLift ''VestingParams
@@ -204,7 +204,7 @@ retrieveFundsC vesting payment = do
         remainingOutputs = case liveness of
                             Alive -> payIntoContract vesting remainingValue
                             Dead  -> Haskell.mempty
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) () 
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
                 <> remainingOutputs
                 <> mustBeValidIn (Interval.from nextSlot)
                 <> mustBeSignedBy (vestingOwner vesting)
@@ -217,7 +217,7 @@ retrieveFundsC vesting payment = do
 endpoints :: Contract VestingSchema T.Text ()
 endpoints = vestingContract vestingParams
   where
-    vestingOwner = walletPubKey $ Wallet 1
+    vestingOwner = pubKeyHash $ walletPubKey $ Wallet 1
     vestingParams =
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =

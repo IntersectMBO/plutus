@@ -31,10 +31,10 @@ import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 testMachine
-    :: Pretty err
+    :: Pretty internal
     => String
     -> (  Term TyName Name ()
-       -> Either (MachineException err) EvaluationResultDef
+       -> Either (EvaluationException internal user) (Term TyName Name ())
        )
     -> TestTree
 testMachine machine eval' =
@@ -44,11 +44,9 @@ testMachine machine eval' =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" $ pureTry @CkMachineException . evaluateCk
-    , testMachine "CEK"
-        $ (unwrapMachineException . view _1 . evaluateCek mempty Counting mempty
-          )
-    , testMachine "L" $ pureTry @LMachineException . evaluateL
+    [ testMachine "CK" evaluateCk
+    , testMachine "CEK" $ evaluateCek mempty
+    , testMachine "L" evaluateL
     ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -67,7 +65,7 @@ testBudget name term =
     -- TODO use pretty here
                        nestedGoldenVsText
     name
-    (T.pack $ show $ evaluateCek mempty Restricting (ExBudget 10 10) term)
+    (T.pack "ol") -- $ show $ runCek mempty Restricting (ExBudget 10 10) term)
 
 test_budget :: TestTree
 test_budget =
