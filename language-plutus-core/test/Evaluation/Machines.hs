@@ -10,7 +10,6 @@ where
 
 import           Common
 import qualified Data.Text                                        as T
-import           PlcTestUtils
 import           PlutusPrelude
 
 import           Language.PlutusCore
@@ -27,7 +26,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Examples.Everything          (examples)
 import           Language.PlutusCore.StdLib.Everything            (stdLib)
 
-import           Control.Lens.Combinators                         (_1)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -39,9 +37,9 @@ testMachine
        -> Either (EvaluationException internal user) (Term TyName Name ())
        )
     -> TestTree
-testMachine machine eval' =
+testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->
-        testProperty name . propEvaluate eval'
+        testProperty name . propEvaluate eval
 
 test_machines :: TestTree
 test_machines = testGroup

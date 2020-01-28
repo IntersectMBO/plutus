@@ -56,7 +56,6 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -316,7 +315,7 @@ runCek
     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
 runCek means mode budget term =
     runCekM (CekEnv means mempty mode)
-            (ExBudgetState mempty (budget <> ExBudget 0 (- getAnn memTerm)))
+            (ExBudgetState mempty (budget <> ExBudget 0 (- termAnn memTerm)))
         $ computeCek [] memTerm
     where
         memTerm = withMemory term

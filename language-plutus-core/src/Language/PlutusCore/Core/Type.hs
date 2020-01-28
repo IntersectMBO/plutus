@@ -21,13 +21,12 @@ module Language.PlutusCore.Core.Type
     , Program(..)
     , Normalized(..)
     , HasUniques
-    , getAnn
     , defaultVersion
     , allBuiltinNames
     -- * Helper functions
     , toTerm
-    , tyLoc
-    , termLoc
+    , termAnn
+    , typeAnn
     )
 where
 
@@ -140,18 +139,6 @@ data Term tyname name ann
     | Error ann (Type tyname ann)
     deriving (Functor, Show, Generic, NFData, Lift, Hashable)
 
-getAnn :: Term tyname name ann -> ann -- put this in a class? Or does such a class already exist?
-getAnn (Var ann _) = ann
-getAnn (TyAbs ann _ _ _) = ann
-getAnn (LamAbs ann _ _ _) = ann
-getAnn (Apply ann _ _) = ann
-getAnn (Constant ann _) = ann
-getAnn (Builtin ann _) = ann
-getAnn (TyInst ann _ _) = ann
-getAnn (Unwrap ann _) = ann
-getAnn (IWrap ann _ _ _) = ann
-getAnn (Error ann _) = ann
-
 type Value = Term
 
 -- | Version of Plutus Core to be used for the program.
@@ -192,23 +179,23 @@ allBuiltinNames = [minBound .. maxBound]
 toTerm :: Program tyname name ann -> Term tyname name ann
 toTerm (Program _ _ term) = term
 
-tyLoc :: Type tyname ann -> ann
-tyLoc (TyVar ann _       ) = ann
-tyLoc (TyFun ann _ _     ) = ann
-tyLoc (TyIFix ann _ _    ) = ann
-tyLoc (TyForall ann _ _ _) = ann
-tyLoc (TyBuiltin ann _   ) = ann
-tyLoc (TyLam ann _ _ _   ) = ann
-tyLoc (TyApp ann _ _     ) = ann
+typeAnn :: Type tyname ann -> ann
+typeAnn (TyVar ann _       ) = ann
+typeAnn (TyFun ann _ _     ) = ann
+typeAnn (TyIFix ann _ _    ) = ann
+typeAnn (TyForall ann _ _ _) = ann
+typeAnn (TyBuiltin ann _   ) = ann
+typeAnn (TyLam ann _ _ _   ) = ann
+typeAnn (TyApp ann _ _     ) = ann
 
-termLoc :: Term tyname name ann -> ann
-termLoc (Var ann _       ) = ann
-termLoc (TyAbs ann _ _ _ ) = ann
-termLoc (Apply ann _ _   ) = ann
-termLoc (Constant ann _  ) = ann
-termLoc (Builtin  ann _  ) = ann
-termLoc (TyInst ann _ _  ) = ann
-termLoc (Unwrap ann _    ) = ann
-termLoc (IWrap ann _ _ _ ) = ann
-termLoc (Error ann _     ) = ann
-termLoc (LamAbs ann _ _ _) = ann
+termAnn :: Term tyname name ann -> ann
+termAnn (Var ann _       ) = ann
+termAnn (TyAbs ann _ _ _ ) = ann
+termAnn (Apply ann _ _   ) = ann
+termAnn (Constant ann _  ) = ann
+termAnn (Builtin  ann _  ) = ann
+termAnn (TyInst ann _ _  ) = ann
+termAnn (Unwrap ann _    ) = ann
+termAnn (IWrap ann _ _ _ ) = ann
+termAnn (Error ann _     ) = ann
+termAnn (LamAbs ann _ _ _) = ann

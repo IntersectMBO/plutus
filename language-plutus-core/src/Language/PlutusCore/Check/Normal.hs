@@ -67,4 +67,4 @@ neutralType TyVar{}           = pure ()
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
 -- See note [Builtin applications and values]
 neutralType TyBuiltin{}       = pure ()
-neutralType ty                = Left (BadType (tyLoc ty) ty "neutral type")
+neutralType ty                = Left (BadType (typeAnn ty) ty "neutral type")

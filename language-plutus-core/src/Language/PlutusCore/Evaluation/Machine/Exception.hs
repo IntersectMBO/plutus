@@ -156,11 +156,11 @@ instance (Pretty err, PrettyBy config (Term TyName Name ())) =>
 instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name ())) =>
             PrettyBy config (EvaluationError internal user) where
     prettyBy config (InternalEvaluationError err) = fold
-        [ "An internal error has occurred:", hardline
+        [ "Internal error:", hardline
         , prettyBy config err
         ]
     prettyBy _      (UserEvaluationError err) = fold
-        [ "A user error has occurred:", hardline
+        [ "User error:", hardline
         , pretty err
         ]
 

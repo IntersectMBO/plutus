@@ -75,7 +75,7 @@ import           IOTS                                     (IotsType (iotsDefinit
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
-import           Language.PlutusTx.Evaluation             (evaluateCekTrace, CekMachineException(..))
+import           Language.PlutusTx.Evaluation             (evaluateCekTrace, ErrorWithCause(..), EvaluationError(..))
 import           Language.PlutusTx.Lift                   (liftCode)
 import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
 import           Language.PlutusTx.Prelude
@@ -172,8 +172,9 @@ evaluateScript checking s = do
     let (logOut, _tally, result) = evaluateCekTrace (unScript s)
     case result of
         Right _ -> Haskell.pure ()
-        Left e@(CekInternalError {}) -> throwError $ EvaluationException $ show e
-        Left (CekUserError {}) -> throwError $ EvaluationError logOut -- TODO fix this error channel fuckery
+        Left (ErrorWithCause err _) -> throwError $ case err of
+            InternalEvaluationError {} -> EvaluationException $ show err
+            UserEvaluationError {} -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
