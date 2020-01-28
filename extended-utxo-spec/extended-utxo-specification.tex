@@ -143,7 +143,7 @@
 \newcommand{\outputref}{\mi{outputRef}}
 \newcommand{\txin}{\mi{in}}
 \newcommand{\id}{\mi{id}}
-\newcommand{\lookupTx}[2]{\msf{lookupTx(#1, #2)}}
+\newcommand{\lookupTx}{\msf{lookupTx}}
 \newcommand{\getSpent}{\msf{getSpentOutput}}
 
 \newcommand{\slotnum}{\ensuremath{\s{SlotNumber}}}
@@ -303,7 +303,7 @@ conventions used in the remainder of the document.
 \item A cryptographic collision-resistant hash of a value $c$ is denoted $\hash{c}$.
 
 \item For a type $A$ which forms a total order, $\Interval{A}$ is the
-  type of intervals over that type: intervals may be bounded or
+  type of intervals over that type. Intervals may be bounded or
   unbounded, and open or closed at either end. The type $\Interval{A}$
   forms a lattice under inclusion.
 \end{itemize}
@@ -630,8 +630,8 @@ $t$ to be considered valid with respect to a ledger $l$.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{lll}
-  \multicolumn{3}{l}{\lookupTx{\_}{\_} : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
-  \lookupTx{l}{id} &=& \textsf{find}(l, tx \mapsto \txId(tx) = id)\\
+  \multicolumn{3}{l}{\lookupTx : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
+  \lookupTx(l,id) &=& \textsf{find}(l, tx \mapsto \txId(tx) = id)\\
   \\
   \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}}\\
   \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
@@ -648,7 +648,7 @@ $t$ to be considered valid with respect to a ledger $l$.
   \label{fig:validation-functions-1}
 \end{ruledfigure}
 
-\noindent The function $\lookupTx{l}{id}$ looks up the unique transaction
+\noindent The function $\lookupTx(l,id)$ looks up the unique transaction
 $T$ whose $\TxId$ is $id$. This can of course fail, but we will assume it does
 not, since \cref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
 of the transaction inputs refer to existing unspent outputs, and hence that
