@@ -108,18 +108,6 @@ type CekM = ReaderT CekEnv (ExceptT CekEvaluationException (State ExBudgetState)
 spendBoth :: WithMemory Term -> ExCPU -> ExMemory -> CekM ()
 spendBoth term cpu mem = spendCPU term cpu >> spendMemory term mem
 
--- spendBudget
---     :: (MonadState s m, Num a, MonadError CekMachineException m, Ord a)
---     => CekBudgetMode
---     -> Lens' s a
---     -> a
---     -> m ()
--- spendBudget Counting    l ex = l += ex
--- spendBudget Restricting l ex = do
---     newEx <- l <-= ex
---     when (newEx < 0) $
---         throwingWithCause _EvaluationError (UserEvaluationError CekOutOfExError) Nothing
-
 spendBudget
     :: (Ord a, Num a)
     => CekBudgetMode
@@ -313,46 +301,6 @@ applyStagedBuiltinName arg (StaticStagedBuiltinName name) args = do
         name
         (fmap void args)
 
--- -- | Evaluate a term in an environment in the empty context using the CEK machine.
--- evaluateCekIn
---     :: CekEnv
---     -> WithMemory Term
---     -> ExceptT CekEvaluationException (State ExBudgetState) (Plain Term)
--- evaluateCekIn env term = runReaderT (computeCek [] term) env
-
--- toEmptyCekEnv :: DynamicBuiltinNameMeanings -> CekBudgetMode -> CekEnv
--- toEmptyCekEnv means mode = CekEnv means mempty mode
-
--- -- | Initialize an environment and evaluate a term in it using the CEK machine.
--- evaluateCekInit
---     :: DynamicBuiltinNameMeanings
---     -> CekBudgetMode
---     -> ExBudget
---     -> Plain Term
---     -> ExceptT CekEvaluationException (State ExBudgetState) (Plain Term)
--- evaluateCekInit means mode budget =
---     evaluateCekIn (CekEnv means mempty mode) . withMemory
-
--- evaluateCek
---     :: DynamicBuiltinNameMeanings
---     -> CekBudgetMode
---     -> ExBudget
---     -> Plain Term
---     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
--- evaluateCek means mode budget =
---     runCekM (toEmptyCekEnv means mode) (ExBudgetState mempty budget) . withMemory
-
--- evaluateInCekM
---     :: EvaluateConstApp (ExceptT CekEvaluationException (State ExBudgetState)) ann
---     -> CekM (ConstAppResult ann)
--- evaluateInCekM a =
---     ReaderT $ \cekEnv ->
---         let eval means' term =
---                 let cekEnv' = cekEnv & cekEnvMeans %~ mappend means'
---                     -- TODO 'withMemory' has a cost, should be avoided
---                     in evaluateCekIn cekEnv' $ withMemory term
---             in runEvaluateT eval a
-
 -- | Evaluate a term using the CEK machine.
 runCek
     :: DynamicBuiltinNameMeanings
@@ -390,67 +338,3 @@ readKnownCek
     -> Plain Term
     -> Either CekEvaluationException a
 readKnownCek = readKnownBy evaluateCek
-
-{-
-<<<<<<< HEAD
--- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
-unsafeEvaluateCek
-    :: DynamicBuiltinNameMeanings -> Term TyName Name () -> (Plain Term)
-unsafeEvaluateCek dyn term =
-    either throw id $ (view _1 $ evaluateCek dyn Counting mempty term)
-
-semiUnsafeEvaluateCek
-    :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
-semiUnsafeEvaluateCek dyn term =
-    either throw id
-        $ (extractEvaluationResult $ view _1 $ evaluateCek
-              dyn
-              Counting
-              mempty
-              term
-          )
-
--- The implementation is a bit of a hack.
--- And used in tests only. Not doing costing for now.
-readKnownCek
-    :: KnownType a
-    => DynamicBuiltinNameMeanings
-    -> Term TyName Name ()
-    -> Either CekMachineException a
-readKnownCek means term = do
-    res <- runReflectT $ readKnown
-        (\m t ->
-            either (Left . CekInternalError) Right
-                $ extractEvaluationResult
-                $ view _1
-                $ evaluateCek (mappend means m) Counting mempty t
-        )
-        term
-    case res of
-        EvaluationFailure -> throw $ CekUserError CekEvaluationFailure
-        EvaluationSuccess (Left err) ->
-            throw $ CekInternalError $ MachineException appErr term
-          where
-            appErr =
-                ConstAppMachineError $ UnreadableBuiltinConstAppError term err
-        EvaluationSuccess (Right x) -> pure x
--}
-
--- -- | Run a program using the CEK machine.
--- runCek
---     :: DynamicBuiltinNameMeanings
---     -> CekBudgetMode
---     -> ExBudget
---     -> Program TyName Name ()
---     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
--- runCek means mode budget (Program _ _ term) =
---     evaluateCek means mode budget term
-
--- -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
--- -- Calls 'unsafeEvaluateCek' under the hood.
--- unsafeRunCek
---     :: DynamicBuiltinNameMeanings
---     -> Program TyName Name ()
---     -> EvaluationResultDef
--- unsafeRunCek means (Program _ _ term) =
---     unsafeEvaluateCek means term
