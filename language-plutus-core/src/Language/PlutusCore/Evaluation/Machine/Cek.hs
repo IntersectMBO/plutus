@@ -282,6 +282,7 @@ applyEvaluate funVarEnv _ con fun arg =
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 
+-- | Reduce a saturated application of a builtin function in the empty context.
 computeInCekM :: EvaluateConstApp CekM ann -> CekM (ConstAppResult ann)
 computeInCekM = runEvaluateT eval where
     eval means' = local (over cekEnvMeans $ mappend means') . computeCek [] . withMemory
@@ -306,7 +307,7 @@ applyStagedBuiltinName arg (StaticStagedBuiltinName name) args = do
         name
         (fmap void args)
 
--- | Evaluate a term using the CEK machine.
+-- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: DynamicBuiltinNameMeanings
     -> CekBudgetMode
@@ -320,12 +321,14 @@ runCek means mode budget term =
     where
         memTerm = withMemory term
 
+-- | Evaluate a term using the CEK machine in the 'Counting' mode.
 runCekCounting
     :: DynamicBuiltinNameMeanings
     -> Plain Term
     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
 runCekCounting means = runCek means Counting mempty
 
+-- | Evaluate a term using the CEK machine.
 evaluateCek
     :: DynamicBuiltinNameMeanings
     -> Plain Term
