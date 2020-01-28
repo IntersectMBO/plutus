@@ -33,15 +33,9 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ExTally(..)
     , ExBudget(..)
     , CekBudgetMode(..)
---     , semiUnsafeEvaluateCek
+    , Plain
+    , WithMemory
     , extractEvaluationResult
---     , evaluateCek
-    , evaluateCek
-    , unsafeEvaluateCek
-    , readKnownCek
-    , runCek
-    , runCekCounting
---     , unsafeRunCek
     , cekEnvMeans
     , cekEnvVarEnv
     , exBudgetStateTally
@@ -50,8 +44,11 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , exBudgetMemory
     , exTallyMemory
     , exTallyCPU
-    , Plain
-    , WithMemory
+    , runCek
+    , runCekCounting
+    , evaluateCek
+    , unsafeEvaluateCek
+    , readKnownCek
     )
 where
 
