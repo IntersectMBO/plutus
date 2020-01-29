@@ -1,4 +1,6 @@
-= How to contribute to the project
+= How to contribute to Plutus
+:toc: left
+:reproducible:
 
 == How to develop the code
 
@@ -9,17 +11,21 @@ You can get an environment for developing the entire project using
 dependencies present, so is suitable for building the packages with
 e.g. `cabal v2-build`.
 
+NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
+convenient alternative to running `nix-shell` directly.
+
 An environment for developing a particular package in isolation can be
-entered by using `nix-shell default.nix -A localPackages.<package name>.env`. 
-This has all the dependencies, *including* local ones, provided. 
+entered by using `nix-shell default.nix -A localPackages.<package name>.env`.
+This has all the dependencies, *including* local ones, provided.
 This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
 
+[WARNING]
+====
 You can also use `cabal` and `stack` outside a Nix environment to build
 the project. _However_ there are two caveats:
 
-* You may get different
-versions of packages. 
+* You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
 they will use your system GHC and libraries, rather than that ones that
@@ -27,27 +33,55 @@ will be used by Nix.
 ** We sometimes patch the GHC that we use in Nix, so
 this can at least potentially cause problems or cause you to be missing
 bug workarounds.
+====
 
 [[update-generated]]
 === How to update the generated Haskell package set
 
-link:./pkgs/default.nix[`pkgs/default.nix`] contains a generated package set with all the
+There is a generated package set at link:./pkgs/default.nix[`pkgs/default.nix`] with all the
 dependencies for this project, based on the Stackage resolver in link:./stack.yaml[`stack.yaml`].
+Nix uses this to build the project's dependencies correctly.
 
-Regenerate this file if you change any dependencies in cabal files
+IMPORTANT: This file needs to be regenerated if you change any dependencies in cabal files
 or change the Stackage resolver. To regenerate the file, run link:./pkgs/generate.sh[`pkgs/generate.sh`].
 
 [[update-freeze]]
 === How to update `cabal.project.freeze`
 
-The `cabal.project.freeze` file ensures that Cabal users will get the same versions as 
-are picked by Stack. 
+The `cabal.project.freeze` file ensures that Cabal users will get the same versions as
+are picked by Stack. The way we ensure this is by running `cabal v2-freeze` in a Nix environment
+based on the package set generated from the Stack configuration. This ensures that Cabal chooses versions
+that match those in the Stackage resolver.
 
-To regenerate it, run `nix-shell --run "cabal v2-freeze"` in the root.
+IMPORTANT: This file needs to be regenerated if you change any dependencies in cabal files
+or change the Stackage resolver. To regenerate the file, run `nix-shell --run "cabal v2-freeze"` in the root.
 
-NOTE: This will *build* all the dependencies of the project, so if you have just made a substantial change
-(e.g. changing the snapshot), then you may want to push your change to a PR so Hydra will
-build it before doing this step.
+[NOTE]
+====
+The `nix-shell` invocation will *build* all the dependencies of the project, so if you
+have just made a substantial change (e.g. changing the snapshot), then you may want to
+push your change to a PR so Hydra will build it before doing this step.
+====
+
+=== How to update one of our pinned dependencies
+
+==== Haskell pins
+
+We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal)
+and `extra-dep` (Stack) mechanisms.
+
+These can be managed normally, but ensure that:
+
+* The specifications remain in sync between `cabal.project` and `stack.yaml`.
+* You update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
+
+==== Nix pins
+
+We pin versions of some git repositories that are used by Nix, for example `nixpkgs`.
+
+These are specified in link:./nix/sources.json[`sources.json`]. This file is managed by
+https://github.com/nmattia/niv[`niv`]. You can edit it by hand, but I wouldn't recommend it.
+See the `niv` website for usage instructions.
 
 === How to add a new package to the repository
 
@@ -57,40 +91,75 @@ order:
 . Add the cabal file for the new package.
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
-. Update the xref:update-generated[generated package set].
-. Update the xref:update-freeze[freeze file].
+. Update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
 . Add the project to `plutusPkgList` in link:./lib.nix[lib.nix].
 * This will ensure it gets built by CI and so on.
-
-You should at least be able to run
-`nix build -f default.nix localPackages.<package name>` successfully at
-the root. You can use
-`nix log -f default.nix localPackages.<package name>` if you want to
-check the build output.
+. Check that you can run `nix build -f default.nix localPackages.<package name>`
+successfully.
 
 === Code style
 
-We use `stylish-haskell`and enable a large number of GHC
-warnings.
+==== Code comments
 
-* These are run by the CI, so if you don’t use them your PR will not go
-green. To avoid annoyance, set up your editor to run them automatically.
-* The CI builds with `-Werror`, so will fail if there are any compiler
-warnings.
+Extensive code comments are encouraged. If it took you a while to work out how or
+why to do something, then write it down so the next person looking at it (which might
+be future you) gets some help.
 
-== How to submit an issue
+Focus on *why* things are the way they are -- this information is not in the code and
+can easily be lost. People can usually work out the *how*, but
+it can be good to comment on the odd dangerous bend.
 
-We track our issues on the
-https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+If in doubt, write more. It is unusual that people write too much!
+
+==== "Notes"
+
+We adopt a convention (stolen from GHC) of writing fairly substantial notes in our code
+with a particular structure.
+
+The structure is:
+
+* The Note should be in a multiline comment (i.e. `{- -}`)
+* The first line of the Note should be `Note [Name of note]`
+* Refer to a Note from where it is relevant with a comment saying `See Note [Name of note]`
+
+Notes are a great place to put substantial discussion that you need to refer to from
+multiple places. For example, if you used an encoding trick to fit more data into
+an output format, you could write a Note describing the trick (and justifying its usage!), and
+then refer to it from the encoder and the decoder.
+
+==== Formatting
+
+We use `stylish-haskell` for Haskell code formatting. It is checked by the CI, so
+if you don’t apply it them your PR will not go green. To avoid annoyance,
+set up your editor to run it automatically.
+
+NOTE: You can run `stylish-haskell` over your tree and apply changes
+by running `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)`.
+
+==== Compiler warnings
+
+The CI builds with `-Werror`, so will fail if there are any compiler warnings.
 
 == How to make and review changes
 
+=== How to make commits
+
+There are no enforced policies for making commits.
+
+.Guidelines for committing:
+* Set up automatic commit signing.
+* The best places for information are 1) in code comments, 2) in a commit message,
+3) in a pull request description.
+** It doesn't hurt to repeat yourself a little across these media.
+* If the commit is small, very focussed, or very obvious then it doesn't need a big message.
+* Commit often and rebase/squash later.
+
 === How to submit a change
 
-All code changes go through pull requests (PRs).
+All code changes go through pull requests (PRs), it is not possible to push directly to master.
 
-.Advice for submitting PRs:
-* Make your PR from the main repository if possible, this is necessary
+.Guidelines for submitting PRs:
+* Make your PR *from* the main repository if possible, this is necessary
 for the Buildkite CI to trust you.
 ** Making a PR from a fork is acceptable, you will need to do this if
 you don’t have write access to the main repository.
@@ -103,7 +172,7 @@ related tickets etc.
 few logical commits that can be reviewed separately. Keep PRs to a
 single topic.
 ** If you find yourself making unrelated changes, pull those commits out
-into another PR and submit them separately (i.e. do not include them in
+into another PR and submit them separately (i.e. do not include them in
 the original PR)
 ** If you can’t remove unrelated changes from your PR (because you
 depend on them), then add a note that your PR depends on the other one
@@ -111,8 +180,10 @@ and should not be merged before it. You can still put it up for review.
 ** Take especial care to manage changes that are likely to have many
 conflicts (like formatting or refactoring changes) in their own PRs.
 * Submit PRs in a "finished" state. If you want to use a PR to let
-people review a WIP branch, make sure to label it obviously.
-* Use your judgment when requesting review
+people review a WIP branch, submit it using Github's "draft PR" feature.
+* Take a minute to review the diff when opening a PR -- often you'll spot
+a few things that look wrong!
+* Use your judgment when requesting review.
 * Force-pushing PRs is okay, this will mostly do the right thing in
 Github. Do this if you’re applying fixups, or you’ve done a series of
 additional commits that you want to squash down before merging.
@@ -120,8 +191,15 @@ additional commits that you want to squash down before merging.
 changes). Github does not make it easy to signal this state otherwise,
 and people may not be notified if you just push commits.
 
+.Pre-submit checklist:
+* `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)` to fix any formatting issues.
+* `cabal v2-build all` to check that everything builds.
+
+You can build some things with Nix locally if you like, but it's fine to let the CI do that for you.
+
 === How to do code reviews
 
+.Guidelines for reviewing PRs:
 * Try to review PRs where your review is requested within a few days.
 This should be nearly-top-priority work.
 * If you don’t understand something then ask for an explanation.
@@ -147,3 +225,9 @@ This shouldn’t happen frequently, but be aware that it’s possible.
 * You can check on the status of your PR on Hydra _before_ it has finished
 by going to the https://hydra.iohk.io/project/Cardano[Hydra project page] and searching
 for `plutus-pr-<PR number>`.
+
+== Continuous deployment
+
+The Plutus Playground is continuously deployed to an https://alpha.plutus.iohkdev.io/[alpha environment].
+This happens when a PR is merged to master, you can see the status on the
+Github https://github.com/input-output-hk/plutus/deployments[deployments page].
