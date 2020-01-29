@@ -16,8 +16,8 @@ import           Git                      (gitRev)
 import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
 import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                            disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                           option, prefs, short, showDefault, showHelpOnEmpty, str, strOption,
-                                           subparser, value)
+                                           option, prefs, short, showDefault, showHelpOnEmpty, showHelpOnError, str,
+                                           strOption, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -98,7 +98,7 @@ main :: IO ()
 main = do
     options <-
         customExecParser
-            (prefs $ disambiguate <> showHelpOnEmpty)
+            (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     runStderrLoggingT $ do
         logInfoN $ "Running: " <> Text.pack (show options)
