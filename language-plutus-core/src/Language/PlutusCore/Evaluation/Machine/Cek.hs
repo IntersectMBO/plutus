@@ -321,7 +321,7 @@ runCek means mode budget term =
     where
         modeModifier = case mode of
             Restricting -> negate
-            Counting -> id
+            Counting    -> id
         memTerm = withMemory term
 
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.
