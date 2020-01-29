@@ -69,6 +69,6 @@
 | [1] used by (b {(all (a :: *). a -> a) -> a} x)})
 })
 | budget: ({ cpu: 42
-| mem: -615
+| mem: 699
 })
 }))

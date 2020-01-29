@@ -316,9 +316,12 @@ runCek
     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
 runCek means mode budget term =
     runCekM (CekEnv means mempty mode)
-            (ExBudgetState mempty (budget <> ExBudget 0 (- termAnn memTerm)))
+            (ExBudgetState mempty (budget <> ExBudget 0 (modeModifier $ termAnn memTerm)))
         $ computeCek [] memTerm
     where
+        modeModifier = case mode of
+            Restricting -> negate
+            Counting -> id
         memTerm = withMemory term
 
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.

@@ -91,6 +91,6 @@
 | [1,1,1] used by (b {(all (a :: *). a -> a) -> a} x)})
 })
 | budget: ({ cpu: 117
-| mem: -540
+| mem: 774
 })
 }))
