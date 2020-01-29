@@ -43,7 +43,14 @@ compileLets kind t = getEnclosing >>= \p ->
 compileLet :: Compiling m e a => LetKind -> PIRTerm a -> DefT SharedName (Provenance a) m (PIRTerm a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
-            NonRec -> lift $ foldM (compileNonRecBinding kind) body (reverse bs) -- this foldM is foldr
+            -- NOTE: 'foldM' for lists is left associative, but we need right associative for our case (every right let must be wrapped/scoped by its left let), example:
+            -- let b1 = rhs1;
+            --     b2 = rhs2  (b1 is visible in rhs2);
+            -- in ...
+            -- must be same as let b1 = rhs in (let b2 = rhs2 in ... )
+            -- There is no 'foldrM' in the stdlib, so we first reverse the bindings list and then left-associative 'foldM' on them,
+            -- which is the same as doing a right-associative fold.
+            NonRec -> lift $ foldM (compileNonRecBinding kind) body (reverse bs)
             Rec    -> compileRecBindings kind body bs
     x -> pure x
 
