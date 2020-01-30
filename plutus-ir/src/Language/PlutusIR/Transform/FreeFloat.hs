@@ -1,20 +1,27 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE GADTs            #-}
 module Language.PlutusIR.Transform.FreeFloat where
 
 import Language.PlutusIR
+import Language.PlutusIR.Analysis.Dependencies
 
 import           Control.Lens
 import Data.Foldable (traverse_)
 
-import Control.Monad.RWS
+import qualified Algebra.Graph.AdjacencyMap           as AM
 
+import qualified Data.Graph.Typed as AT
+
+import Control.Monad.RWS
+import Control.Monad.State
 
 import qualified Language.PlutusCore                as PLC
 import qualified Language.PlutusCore.Name        as PLC
 
 import qualified Data.Set as S
 import qualified Data.Map as M
+import qualified Data.IntMap as IM
 
 type U = PLC.Unique
 
@@ -36,6 +43,10 @@ topRank = ( 0
 type FloatInfo = M.Map
                  U              -- the let name to float
                  Rank       -- the rank that this let can float to
+
+type DepthInfo = IM.IntMap      -- depth
+                 (M.Map U            -- lambda name
+                      [U])         -- let level (unsorted in terms of dependency graph)
 
 type Ctx = [Rank] -- the enclosing lambdas in scope that surround a let
 
@@ -85,6 +96,53 @@ floatPass1' = \case
                      $ floatPass1' t
     x -> traverse_ floatPass1' (x ^.. termSubterms)
 
+-- floatPass2 :: (DepGraph g, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+--            => FloatInfo -> LetTable tyname name a -> g -> Term tyname name a -> Term tyname name a
+-- floatPass2 = floatPass2' 0
+
+-- floatPass2' depth floatInfo letTable depGraph = undefined
+
+float :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+           => Term tyname name a -> Term tyname name a
+float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
+ where
+  floatInfo = floatPass1 topTerm
+  depthInfo = IM.toAscList $  toDepthInfo floatInfo
+  (topTermClean, letTable) = extractLets topTerm
+  depGraph = runTermDeps topTerm :: AM.AdjacencyMap Node
+  sortedDeps = map (\case Variable u -> u; Root -> PLC.Unique {PLC.unUnique = -2}) $ AT.topSort (AT.fromAdjacencyMap depGraph) -- FIXME: is this really going to work for letrec? Otherwise abstract the scc away
+
+
+  generateLetLvl lets curDepth restDepthTable =  Let
+                                                 undefined -- TODO: fix annotation with monoid?
+                                                 NonRec    -- what about this?
+                                                 (foldr (\ d acc ->
+                                                          if d `elem` lets  -- perhaps this can be done faster
+                                                          then over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! d)) : acc
+                                                          else acc --skip
+                                                        ) [] sortedDeps)
+
+  trdT (_,_,c) = c
+
+  -- TODO: we can transform easily the following processing to a Reader CurDepth
+  -- TODO: using this pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthInfoRemaining instead.
+  processLam _  [] _ lamBody = lamBody
+  processLam curDepth ((searchingForDepth, lams_lets):restDepthTable) u lamBody =
+    (case (curDepth == searchingForDepth, M.lookup u lams_lets) of
+       (True, Just lets) -> generateLetLvl lets curDepth restDepthTable
+       _ -> id) (processTerm curDepth restDepthTable lamBody)
+  processTerm _ [] = id
+  processTerm curDepth remInfo =
+    \case
+      LamAbs a n ty lamBody -> LamAbs a n ty $ processLam  (curDepth+1) remInfo (n ^. PLC.unique . coerced) lamBody
+      TyAbs a n k lamBody  -> TyAbs a n k $ processLam  (curDepth+1)  remInfo (n ^. PLC.unique . coerced) lamBody
+      Apply a t1 t2 -> Apply a (processTerm curDepth depthInfo t1) (processTerm curDepth depthInfo t2)
+      TyInst a t ty -> TyInst a (processTerm curDepth depthInfo t) ty
+      IWrap a ty1 ty2 t -> IWrap a ty1 ty2 $ processTerm curDepth depthInfo t
+      Unwrap a t -> Unwrap a $ processTerm curDepth depthInfo t
+      x -> x
+
+
 -- | Given a term, it returns a set of all the FREE variables inside that term (i.e. not declared/scoped inside the term).
 -- FIXME: track also free occurences in TYPES. Now it only works the same as untype lambda calculus
 free ::
@@ -131,3 +189,46 @@ free = \case
   IWrap _ _ _ t -> free t
   Unwrap _ t -> free t
   _ -> S.empty
+
+
+toDepthInfo :: FloatInfo -> DepthInfo
+toDepthInfo = M.foldrWithKey (\ letName (depth,lamName) acc -> IM.insertWith (M.unionWith (++)) depth (M.singleton lamName [letName]) acc) IM.empty
+
+
+
+
+-- | A table from a let-introduced identifier to its RHS.
+type LetTable tyname name a = M.Map U (a, Recursivity, Binding tyname name a)
+
+-- | This function takes a 'Term' and returns the same 'Term' but with all 'Let'-bindings removed and stored into a separate table.
+extractLets :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+                    => Term tyname name a
+                    -> (Term tyname name a
+                       ,LetTable tyname name a
+                       )
+extractLets = flip runState M.empty . extractLets'
+ where
+    extractLets' :: (Monad m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+                  => Term tyname name a
+                  -> StateT (LetTable tyname name a) m (Term tyname name a)
+    extractLets' = \case
+          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
+          Let a r bs t' -> do
+
+            bs' <- traverse (bindingSubterms extractLets') bs
+
+            let newMap = M.fromList $
+                                fmap (\ b -> (bindingUnique b, (a,r,b))) bs'
+
+            modify (M.union newMap)
+
+            extractLets' t'
+
+          t -> termSubterms extractLets' t
+
+-- | return a single 'Unique' for a particular binding.
+-- TODO: maybe remove this boilerplate by having a lens "name" for a Binding
+bindingUnique :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> PLC.Unique
+bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced
+                      TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
+                      DatatypeBind _ _ -> error "FIXME: not implemented yet"
