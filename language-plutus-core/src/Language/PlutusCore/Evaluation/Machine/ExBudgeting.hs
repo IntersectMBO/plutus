@@ -71,12 +71,11 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExBudget(..)
     , ExBudgetState(..)
     , ExTally(..)
-    , ExTallyCounter(..)
+    , ExTallyKey(..)
+    , ExRestrictingBudget(..)
     , estimateStaticStagedCost
     , exBudgetCPU
     , exBudgetMemory
-    , exTallyMemory
-    , exTallyCPU
     , exBudgetStateBudget
     , exBudgetStateTally
     )
@@ -91,16 +90,26 @@ import           Control.Lens.TH                                         (makeLe
 import           Data.HashMap.Monoidal
 import           Data.List                                               (intersperse)
 import           Data.Text.Prettyprint.Doc
+import           Data.Text (Text)
+import Data.String (IsString)
+import Data.Hashable
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
+import Data.Semiring.Generic
+import Data.Semiring
+
+newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
+    deriving (Semiring) via (GenericSemiring ExBudget)
 
 data CekBudgetMode =
       Counting -- ^ For precalculation
-    | Restricting -- ^ For execution, to avoid overruns
+    | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
+    deriving (Semiring) via (GenericSemiring ExBudget)
 instance PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", prettyBy config cpu, line
@@ -121,28 +130,20 @@ instance ( PrettyBy config (Term TyName Name ())
         , "}"
         ]
 
-data ExTally = ExTally
-    { _exTallyCPU    :: ExTallyCounter ExCPU
-    , _exTallyMemory :: ExTallyCounter ExMemory
-    }
+-- | A human-readable string to determine which kind of operation caused the budget increase.
+newtype ExTallyKey = ExTallyKey Text deriving (Show, IsString, Eq, Generic, Hashable)
+instance PrettyBy config ExTallyKey where
+    prettyBy _ (ExTallyKey key) = unsafeViaShow key
+
+newtype ExTally = ExTally (MonoidalHashMap ExTallyKey [(ExBudget, Plain Term)])
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
-instance ( PrettyBy config (Term TyName Name ())
-         ) => PrettyBy config ExTally where
-    prettyBy config (ExTally cpu memory) = parens $ fold
-        [ "{ cpu: ", prettyBy config cpu, line
-        , "| mem: ", prettyBy config memory, line
-        , "}"
-        ]
+instance (PrettyBy config (Term TyName Name ())) => PrettyBy config ExTally where
+    prettyBy config (ExTally m) =
+        parens $ fold (["{ "] <> (intersperse (line <> "| ") $
+          ifoldMap (\k v -> [group $ ("["<> fold (intersperse "," (prettyBy config <$> v)) <> "]") <+> "causes" <+> prettyBy config k]) m) <> ["}"])
 
-newtype ExTallyCounter unit = ExTallyCounter (MonoidalHashMap (Plain Term) [unit])
-    deriving stock (Eq, Generic, Show)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTallyCounter unit))
-instance (PrettyBy config (Term TyName Name ()), PrettyBy config unit) => PrettyBy config (ExTallyCounter unit) where
-    prettyBy config (ExTallyCounter m) =
-        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ ifoldMap (\k v -> [group $ ("["<> fold (intersperse "," (prettyBy config <$> v)) <> "]") <+> "used by" <+> prettyBy config k]) m) <> ["}"])
-
-$(join <$> traverse makeLenses [''ExBudgetState, ''ExBudget, ''ExTally])
+$(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost

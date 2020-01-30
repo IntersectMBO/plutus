@@ -32,6 +32,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ExBudgetState(..)
     , ExTally(..)
     , ExBudget(..)
+    , ExRestrictingBudget(..)
     , CekBudgetMode(..)
     , Plain
     , WithMemory
@@ -42,8 +43,6 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , exBudgetStateBudget
     , exBudgetCPU
     , exBudgetMemory
-    , exTallyMemory
-    , exTallyCPU
     , runCek
     , runCekCounting
     , evaluateCek
@@ -63,6 +62,8 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
+import Language.PlutusCore.Pretty
+import Data.Text.Prettyprint.Doc
 
 import           Control.Lens.Operators
 import           Control.Lens.Setter
@@ -72,10 +73,12 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
+import Data.Semiring
+import Data.Semiring.Generic
 
 data CekUserError
-    = CekOutOfExError
-    | CekEvaluationFailure -- ^ same as the other EvaluationFailure
+    = CekOutOfExError ExRestrictingBudget ExBudget
+    | CekEvaluationFailure -- ^ Error has been called.
     deriving (Show, Eq)
 
 -- | The CEK machine-specific 'MachineException'.
@@ -85,8 +88,9 @@ type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 type CekEvaluationException = EvaluationException UnknownDynamicBuiltinNameError CekUserError
 
 instance Pretty CekUserError where
-    pretty CekOutOfExError      = "The evaluation ran out of memory or CPU."
-    pretty CekEvaluationFailure = "The provided plutus code was faulty."
+    pretty (CekOutOfExError (ExRestrictingBudget res) b) =
+        group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
+    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -107,37 +111,23 @@ data CekEnv = CekEnv
 
 makeLenses ''CekEnv
 
--- | The monad the CEK machine runs in.
+-- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
+-- get it back in case of error.
 type CekM = ReaderT CekEnv (ExceptT CekEvaluationException (State ExBudgetState))
 
-spendBoth :: WithMemory Term -> ExCPU -> ExMemory -> CekM ()
-spendBoth term cpu mem = spendCPU term cpu >> spendMemory term mem
-
 spendBudget
-    :: (Ord a, Num a)
-    => CekBudgetMode
-    -> Lens' ExBudgetState a
-    -> a
+    :: ExTallyKey -> WithMemory Term -> ExBudget
     -> CekM ()
-spendBudget Counting    l ex = l += ex
-spendBudget Restricting l ex = do
-    newEx <- l <-= ex
-    when (newEx < 0) $
-        throwingWithCause _EvaluationError (UserEvaluationError CekOutOfExError) Nothing
-
-spendMemory :: WithMemory Term -> ExMemory -> CekM ()
-spendMemory term mem = do
+spendBudget key term budget = do
     modifying exBudgetStateTally
-              (<> (ExTally mempty (ExTallyCounter (singleton (void term) [mem]))))
+              (<> (ExTally (singleton key [(budget, (void term))])))
+    newBudget <- exBudgetStateBudget <%= (\b -> b `plus` (gnegate budget))
     mode <- view cekEnvBudgetMode
-    spendBudget mode (exBudgetStateBudget . exBudgetMemory) mem
-
-spendCPU :: WithMemory Term -> ExCPU -> CekM ()
-spendCPU term cpu = do
-    modifying exBudgetStateTally
-              (<> (ExTally (ExTallyCounter (singleton (void term) [cpu])) mempty))
-    mode <- view cekEnvBudgetMode
-    spendBudget mode (exBudgetStateBudget . exBudgetCPU) cpu
+    case mode of
+        Counting -> pure ()
+        Restricting resb@(ExRestrictingBudget b) ->
+            when ((view exBudgetCPU newBudget) > (view exBudgetCPU b) || (view exBudgetMemory newBudget) > (view exBudgetMemory b)) $ do
+                throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb b)) Nothing
 
 data Frame
     = FrameApplyFun VarEnv (WithMemory Value)                            -- ^ @[V _]@
@@ -198,17 +188,17 @@ lookupDynamicBuiltinName dynName = do
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 computeCek :: Context -> WithMemory Term -> CekM (Plain Term)
 computeCek con t@(TyInst _ body ty) = do
-    spendBoth t 1 1 -- TODO
+    spendBudget "key" t (ExBudget 1 1) -- TODO
     computeCek (FrameTyInstArg ty : con) body
 computeCek con t@(Apply _ fun arg) = do
-    spendBoth t 1 1 -- TODO
+    spendBudget "key" t (ExBudget 1 1) -- TODO
     varEnv <- getVarEnv
     computeCek (FrameApplyArg varEnv arg : con) fun
 computeCek con t@(IWrap ann pat arg term) = do
-    spendBoth t 1 1 -- TODO
+    spendBudget "key" t (ExBudget 1 1) -- TODO
     computeCek (FrameIWrap ann pat arg : con) term
 computeCek con t@(Unwrap _ term) = do
-    spendBoth t 1 1 -- TODO
+    spendBudget "key" t (ExBudget 1 1) -- TODO
     computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
@@ -217,7 +207,7 @@ computeCek con bi@Builtin{}        = returnCek con bi
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
 computeCek con t@(Var _ varName)   = do
-    spendBoth t 1 1 -- TODO
+    spendBudget "key" t (ExBudget 1 1) -- TODO
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term
 
@@ -294,7 +284,7 @@ applyStagedBuiltinName
     -> [WithMemory Value]
     -> CekM (ConstAppResult ExMemory)
 applyStagedBuiltinName arg (DynamicStagedBuiltinName name) args = do
-    spendBoth arg 1 1
+    spendBudget "key" arg (ExBudget 1 1)
     DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
     fmap (fmap (const 1)) $ computeInCekM $ applyTypeSchemed
         sch
@@ -302,7 +292,7 @@ applyStagedBuiltinName arg (DynamicStagedBuiltinName name) args = do
         (fmap void args)
 applyStagedBuiltinName arg (StaticStagedBuiltinName name) args = do
     let (cpu, memory) = estimateStaticStagedCost name args
-    spendBoth arg cpu memory
+    spendBudget "key" arg (ExBudget cpu memory)
     fmap (fmap (const memory)) $ computeInCekM $ applyBuiltinName
         name
         (fmap void args)
@@ -316,12 +306,9 @@ runCek
     -> (Either CekEvaluationException (Plain Term), ExBudgetState)
 runCek means mode budget term =
     runCekM (CekEnv means mempty mode)
-            (ExBudgetState mempty (budget <> ExBudget 0 (modeModifier $ termAnn memTerm)))
+            (ExBudgetState mempty (budget <> ExBudget 0 (termAnn memTerm)))
         $ computeCek [] memTerm
     where
-        modeModifier = case mode of
-            Restricting -> negate
-            Counting    -> id
         memTerm = withMemory term
 
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.

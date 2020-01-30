@@ -26,6 +26,7 @@ import           Control.Monad.RWS.Strict
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Text                as T
 import           Foreign.Storable
+import Data.Semiring (Semiring, Ring)
 
 import           GHC.Generics
 
@@ -47,13 +48,13 @@ type WithMemory f = f TyName Name ExMemory
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyBy config)
+  deriving newtype (Num, PrettyBy config, Semiring, Ring)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyBy config)
+  deriving newtype (Num, PrettyBy config, Semiring, Ring)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs

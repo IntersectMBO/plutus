@@ -64,7 +64,7 @@ testBudget :: TestName -> (Plain Term) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (docText $ prettyPlcReadableDef $ runCek mempty Restricting (ExBudget 1000 1000) term)
+    (docText $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) mempty term)
 
 bunchOfFibs :: PlcFolderContents
 bunchOfFibs =

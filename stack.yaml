@@ -35,6 +35,7 @@ extra-deps:
 - STMonadTrans-0.4.3
 - geniplate-mirror-0.7.6
 # Other missing packages
+- semirings-0.4.2
 - aeson-1.4.6.0
 - composition-prelude-2.0.2.1
 - resolv-0.1.1.2
