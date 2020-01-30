@@ -41,6 +41,8 @@ extra-deps:
 - resolv-0.1.1.2
 - monad-stm-0.1.0.2
 - purescript-0.13.2
+# purescript won't build with versions later than this https://github.com/purescript/purescript/issues/3664
+- happy-1.19.9
 - servant-options-0.1.0.0
 - servant-subscriber-0.6.0.2
 - tasty-hedgehog-0.2.0.0
