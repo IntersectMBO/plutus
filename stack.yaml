@@ -1,4 +1,4 @@
-resolver: lts-13.19
+resolver: lts-13.26
 
 packages:
 - language-plutus-core
