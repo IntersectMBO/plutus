@@ -140,38 +140,39 @@ library
                  -Wredundant-constraints -Widentities
                  -Wnoncanonical-monoid-instances
     build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cryptonite -any,
-        containers -any,
-        bimap -any,
         array -any,
-        mtl -any,
-        transformers -any,
-        deepseq -any,
-        recursion-schemes -any,
-        text -any,
-        prettyprinter >=1.1.0.1,
-        lens -any,
+        base >=4.9 && <5,
+        bimap -any,
+        bytestring -any,
+        cardano-crypto,
+        cborg -any,
         composition-prelude >=1.1.0.1,
-        template-haskell -any,
-        th-lift-instances -any,
+        containers -any,
+        cryptonite -any,
+        cryptonite,
+        deepseq -any,
+        dependent-map -any,
+        dependent-sum -any,
+        filepath -any,
+        hashable,
+        hedgehog <1.0,
+        lens -any,
         memory -any,
         mmorph -any,
-        cborg -any,
-        serialise -any,
+        monoidal-containers,
+        mtl -any,
+        prettyprinter >=1.1.0.1,
+        recursion-schemes -any,
         safe-exceptions -any,
-        dependent-sum -any,
-        dependent-map -any,
-        hedgehog <1.0,
-        filepath -any,
+        semigroups -any,
+        semirings -any,
+        serialise -any,
         tasty -any,
         tasty-golden -any,
-        cryptonite,
-        cardano-crypto,
-        monoidal-containers,
-        semigroups,
-        hashable
+        template-haskell -any,
+        text -any,
+        th-lift-instances -any,
+        transformers -any
 
 executable language-plutus-core-generate-evaluation-test
     main-is: Main.hs
@@ -182,9 +183,9 @@ executable language-plutus-core-generate-evaluation-test
                  -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        hedgehog -any,
         language-plutus-core -any,
-        text -any,
-        hedgehog -any
+        text -any
 
 test-suite language-plutus-core-test
     type: exitcode-stdio-1.0
@@ -213,22 +214,22 @@ test-suite language-plutus-core-test
                  -Wredundant-constraints -Widentities
     build-depends:
         base -any,
-        language-plutus-core -any,
-        tasty -any,
-        hedgehog -any,
-        tasty-hunit -any,
-        tasty-hedgehog -any,
-        transformers -any,
         bytestring -any,
-        serialise -any,
-        filepath -any,
-        tasty-golden -any,
-        text -any,
-        prettyprinter -any,
         containers -any,
-        mtl -any,
-        mmorph -any,
+        filepath -any,
+        hedgehog -any,
+        language-plutus-core -any,
         lens -any,
+        mmorph -any,
+        mtl -any,
+        prettyprinter -any,
+        serialise -any,
+        tasty -any,
+        tasty-golden -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any,
+        text -any,
+        transformers -any,
         tuple -any
 
 benchmark language-plutus-core-bench
@@ -241,11 +242,11 @@ benchmark language-plutus-core-bench
                  -rtsopts
     build-depends:
         base -any,
-        language-plutus-core -any,
-        criterion -any,
         bytestring -any,
-        serialise -any,
-        containers
+        containers -any,
+        criterion -any,
+        language-plutus-core -any,
+        serialise -any
 
 benchmark language-plutus-core-weigh
     type: exitcode-stdio-1.0
@@ -257,8 +258,8 @@ benchmark language-plutus-core-weigh
                  -rtsopts
     build-depends:
         base -any,
-        language-plutus-core -any,
-        weigh -any,
         bytestring -any,
+        containers -any,
+        language-plutus-core -any,
         serialise -any,
-        containers
+        weigh -any
