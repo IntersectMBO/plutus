@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -38,6 +40,7 @@ import           Control.Monad.Writer
 import qualified Data.Aeson                      as Aeson
 import qualified Data.Aeson.Types                as Aeson
 import           Data.Bifunctor                  (Bifunctor (..))
+import           GHC.Generics                    (Generic)
 
 import           Language.Plutus.Contract.Record
 
@@ -122,7 +125,8 @@ data ResumableError e =
     | ProgressError
     -- ^ Progress was made unexpectedly.
     | OtherError e
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (Aeson.ToJSON)
 
 throwRecordmismatchError :: MonadError (ResumableError e) m => String -> m a
 throwRecordmismatchError = throwError . RecordMismatch . pure
