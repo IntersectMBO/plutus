@@ -55,6 +55,7 @@ library
         Cardano.Wallet.Types
         Plutus.SCB.Arbitrary
         Plutus.SCB.Command
+        Plutus.SCB.ContractCLI
         Plutus.SCB.Core
         Plutus.SCB.Events
         Plutus.SCB.Query
@@ -76,6 +77,7 @@ library
     build-depends:
         QuickCheck -any,
         aeson -any,
+        aeson-pretty -any,
         async -any,
         base >=4.7 && <5,
         bytestring -any,
@@ -89,9 +91,11 @@ library
         http-client -any,
         lens -any,
         monad-logger -any,
+        row-types -any,
         mtl -any,
         optparse-applicative -any,
         persistent-sqlite -any,
+        playground-common -any,
         prettyprinter >=1.1.0.1,
         quickcheck-instances -any,
         random -any,
@@ -128,6 +132,19 @@ executable plutus-scb
         text -any,
         unliftio-core -any,
         yaml -any
+
+executable plutus-contract
+    main-is: Main.hs
+    hs-source-dirs: contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any,
+        plutus-use-cases -any
 
 test-suite plutus-scb-test
     default-language: Haskell2010
