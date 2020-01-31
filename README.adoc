@@ -6,17 +6,19 @@
 
 The Plutus Platform enables you to:
 
-* Work with Plutus Core, the smart contract language embedded in the Cardano
-ledger.
-* Write Haskell programs that create and use embedded Plutus Core programs.
-* Write smart contract executables which can be distributed for use with a
-Cardano wallet backend.
+* Work with Plutus Core, the smart contract language embedded in the Cardano ledger.
+* Write Haskell programs that create and use embedded Plutus Core programs using Plutus Tx.
+* Write smart contract executables which can be distributed for use with the Plutus
+Smart Contract Backend.
 
 You are free to copy, modify, and distribute the Plutus Platform with
 under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
 and link:./NOTICE[NOTICE] files for details.
 
 == How to use the project
+
+This section contains brief information about how to use this project. For development
+work see <<how-to-develop>> for more information.
 
 [[prerequisites]]
 === Prerequisites
@@ -32,7 +34,7 @@ so we recommend installing it regardless.
 ====
 Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
 ====
-** See the section on xref:nix[Nix] for further advice on using Nix.
+** See <<nix>> for further advice on using Nix.
 * https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
 * https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
 
@@ -49,7 +51,7 @@ for more details.
 Run `nix build -f default.nix localPackages.language-plutus-core`
 from the root to build the Plutus Core library.
 
-See the section on xref:nix-build-attributes[Nix build attributes] to find out
+See <<nix-build-attributes>> to find out
 what other attributes you can build.
 
 ==== How to build Haskell packages with `cabal`
@@ -103,6 +105,11 @@ To build a full HTML version of the tutorial that you can view locally, build th
 
 The changelog is stored in link:./CHANGELOG.md[CHANGELOG].
 
+=== How to submit an issue
+
+We track our issues on the
+https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+
 === How to communicate with us
 
 We’re active on the https://forum.cardano.org/[Cardano
@@ -111,11 +118,12 @@ forum]. Tag your post with the `plutus` tag so we’ll see it.
 Use the Github issue tracker for bugs and feature requests, but keep
 other discussions to the forum.
 
-=== How to contribute to the project
+[[how-to-develop]]
+=== How to develop and contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail;
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more
+detail including development environments;
 and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
-
 
 [[nix]]
 == Nix
@@ -161,14 +169,6 @@ in the same way as in xref:iohk-binary-cache[previous section]:
 sandbox = true
 extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
 ----
-
-=== How to get a development environment
-
-While developing the libraries, you probably will not want to use Nix to
-build all the libraries. If you want to use `cabal v2-build` to build
-the local projects only, then:
-. Run `nix-shell`.
-. Run `cabal v2-build` as normal.
 
 
 [[nix-build-attributes]]
