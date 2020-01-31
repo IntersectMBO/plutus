@@ -5,13 +5,14 @@ self: super: {
       ((if old.NIX_CFLAGS_COMPILE != null then old.NIX_CFLAGS_COMPILE else []) ++ ["-Wno-error=attribute-alias" "-Wno-error=stringop-truncation"])
       else old.NIX_CFLAGS_COMPILE;
   });
-  python36 = super.python36.override {
+  python37 = super.python37.override {
     packageOverrides = self: super: {
       cython = super.cython.overridePythonAttrs (old: {
         # TODO Cython tests for unknown reason hang with musl. Remove when that's fixed.
         # See https://github.com/nh2/static-haskell-nix/issues/6#issuecomment-421852854
         doCheck = false;
       });
+      pyopenssl = super.pyopenssl.overridePythonAttrs (old: { doCheck = false; });
     };
   };
 }
