@@ -71,7 +71,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExBudget(..)
     , ExBudgetState(..)
     , ExTally(..)
-    , ExTallyKey(..)
+    , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
     , estimateStaticStagedCost
     , exBudgetCPU
@@ -91,8 +91,6 @@ import           Control.Lens.TH                                         (makeLe
 import           Data.HashMap.Monoidal
 import           Data.List                                               (intersperse)
 import           Data.Text.Prettyprint.Doc
-import           Data.Text (Text)
-import Data.String (IsString)
 import Data.Hashable
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
@@ -103,6 +101,20 @@ newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
 data CekBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
+
+data ExBudgetCategory
+    = BTyInst
+    | BApply
+    | BIWrap
+    | BUnwrap
+    | BVar
+    | BDynamicBuiltin
+    | BStaticBuiltin
+    | BAST
+    deriving stock (Show, Eq, Generic)
+instance Hashable ExBudgetCategory
+instance (PrettyBy config) ExBudgetCategory where
+    prettyBy _ = viaShow
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Eq, Show, Generic)
@@ -126,18 +138,13 @@ instance PrettyBy config ExBudgetState where
         , "}"
         ]
 
--- | A human-readable string to determine which kind of operation caused the budget increase.
-newtype ExTallyKey = ExTallyKey Text deriving (Show, IsString, Eq, Generic, Hashable)
-instance PrettyBy config ExTallyKey where
-    prettyBy _ (ExTallyKey key) = unsafeViaShow key
-
-newtype ExTally = ExTally (MonoidalHashMap ExTallyKey [(ExBudget, Plain Term)])
+newtype ExTally = ExTally (MonoidalHashMap ExBudgetCategory ExBudget)
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
 instance PrettyBy config ExTally where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
-          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> "[" <> fold (intersperse "," (prettyBy config . fst <$> v)) <> "]")]) m) <> ["}"])
+          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])
 
 $(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 
