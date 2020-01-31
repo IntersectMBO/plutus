@@ -96,12 +96,9 @@ import Data.String (IsString)
 import Data.Hashable
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
-import Data.Semiring.Generic
-import Data.Semiring
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving (Semiring) via (GenericSemiring ExBudget)
 
 data CekBudgetMode =
       Counting -- ^ For precalculation
@@ -110,13 +107,6 @@ data CekBudgetMode =
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
---    deriving (Semiring) via (GenericSemiring ExBudget) -- TODO reenable once upstream is fixed https://github.com/chessai/semirings/pull/55
-instance Semiring ExBudget where
-    plus (ExBudget cpu1 mem1) (ExBudget cpu2 mem2) = ExBudget (cpu1 `plus` cpu2) (mem1 `plus` mem2)
-    times (ExBudget cpu1 mem1) (ExBudget cpu2 mem2) = ExBudget (cpu1 `times` cpu2) (mem1 `times` mem2)
-    zero = ExBudget zero zero
-    one = ExBudget one one
-    fromNatural nat = ExBudget (fromNatural nat) (fromNatural nat)
 instance PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", prettyBy config cpu, line

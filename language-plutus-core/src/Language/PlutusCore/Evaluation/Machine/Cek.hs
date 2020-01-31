@@ -73,7 +73,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
-import Data.Semiring
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
@@ -120,7 +119,7 @@ spendBudget
 spendBudget key term budget = do
     modifying exBudgetStateTally
               (<> (ExTally (singleton key [(budget, (void term))])))
-    newBudget <- exBudgetStateBudget <%= (plus budget)
+    newBudget <- exBudgetStateBudget <%= (<> budget)
     mode <- view cekEnvBudgetMode
     case mode of
         Counting -> pure ()

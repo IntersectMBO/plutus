@@ -165,7 +165,6 @@ library
         recursion-schemes -any,
         safe-exceptions -any,
         semigroups -any,
-        semirings -any,
         serialise -any,
         tasty -any,
         tasty-golden -any,
