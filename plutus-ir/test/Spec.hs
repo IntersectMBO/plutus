@@ -78,6 +78,7 @@ prettyprinting = testNested "prettyprinting"
 lets :: TestNested
 lets = testNested "lets"
     [ goldenPlcFromPir term "letInLet"
+    , goldenPlcFromPir term "letDep"
     ]
 
 datatypes :: TestNested
