@@ -12,7 +12,7 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     , EvaluationResultDef
     , applyEvaluateCkBuiltinName
     , evaluateCk
-    , runCk
+    , unsafeEvaluateCk
     ) where
 
 import           PlutusPrelude
@@ -147,7 +147,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppSuccess res -> stack |> res
                     ConstAppStuck       -> stack <| term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM ConstAppResult
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM (ConstAppResult ())
 applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
@@ -158,10 +158,9 @@ applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 -- The reason for that is that the operational semantics of constant applications is
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
-evaluateCk :: Term TyName Name () -> EvaluationResultDef
-evaluateCk term = either throw id . extractEvaluationResult $ [] |> term
+evaluateCk :: Term TyName Name () -> Either CkEvaluationException (Term TyName Name ())
+evaluateCk term = [] |> term
 
--- | Run a program using the CK machine. May throw a 'CkMachineException'.
--- Calls 'evaluateCk' under the hood, so the same caveats apply.
-runCk :: Program TyName Name () -> EvaluationResultDef
-runCk (Program _ _ term) = evaluateCk term
+-- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
+unsafeEvaluateCk :: Term TyName Name () -> EvaluationResultDef
+unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk

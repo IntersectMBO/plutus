@@ -16,10 +16,11 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
+import           Control.Exception                          (toException)
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
-import           Data.Bifunctor                             (second)
+import           Data.Bifunctor                             (first, second)
 import           Data.Foldable                              (traverse_)
 
 import qualified Data.ByteString.Lazy                       as BSL
@@ -137,14 +138,17 @@ runEval (EvalOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
-            CK  -> PLC.runCk
-            CEK -> PLC.unsafeRunCek mempty
-            L   -> PLC.runL mempty
-    case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
-        Left (e :: PLC.Error PLC.AlexPosn) -> do
-            T.putStrLn $ PLC.prettyPlcDefText e
+            CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty
+            L   -> first toException . PLC.extractEvaluationResult . PLC.evaluateL
+    case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+        Left (errCheck :: PLC.Error PLC.AlexPosn) -> do
+            T.putStrLn $ PLC.prettyPlcDefText errCheck
             exitFailure
-        Right v -> do
+        Right (Left errEval) -> do
+            print errEval
+            exitFailure
+        Right (Right v) -> do
             T.putStrLn $ PLC.prettyPlcDefText v
             exitSuccess
 

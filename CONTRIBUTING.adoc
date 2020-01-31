@@ -20,6 +20,10 @@ This has all the dependencies, *including* local ones, provided.
 This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
 
+=== How to setup HIE
+
+Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
+
 [WARNING]
 ====
 You can also use `cabal` and `stack` outside a Nix environment to build

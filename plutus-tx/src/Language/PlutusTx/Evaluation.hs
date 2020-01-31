@@ -1,29 +1,45 @@
-module Language.PlutusTx.Evaluation (evaluateCek, unsafeEvaluateCek, evaluateCekTrace, CekMachineException) where
+{-# LANGUAGE TypeApplications #-}
+
+module Language.PlutusTx.Evaluation
+    ( evaluateCek
+    , unsafeEvaluateCek
+    , evaluateCekTrace
+    , ErrorWithCause(..)
+    , EvaluationError(..)
+    , CekEvaluationException
+    , Plain
+    , ExBudget(..)
+    , ExTally(..)
+    , exBudgetStateBudget
+    , exBudgetStateTally
+    , exBudgetCPU
+    , exBudgetMemory
+    )
+where
+
+import           PlutusPrelude
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC (evaluateCek, unsafeEvaluateCek)
 
 import           Control.Exception
-
 import           System.IO.Unsafe
 
 stringBuiltins :: DynamicBuiltinNameMeanings
 stringBuiltins =
-    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
+    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
+        $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
-evaluateCek
-    :: Program TyName Name ()
-    -> Either CekMachineException EvaluationResultDef
-evaluateCek = runCek stringBuiltins
+evaluateCek :: Program TyName Name () -> Either CekEvaluationException (Plain Term)
+evaluateCek = PLC.evaluateCek stringBuiltins . toTerm
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
-unsafeEvaluateCek
-    :: Program TyName Name ()
-    -> EvaluationResultDef
-unsafeEvaluateCek = unsafeRunCek stringBuiltins
+unsafeEvaluateCek :: Program TyName Name () -> EvaluationResultDef
+unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins . toTerm
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
 
@@ -31,10 +47,13 @@ unsafeEvaluateCek = unsafeRunCek stringBuiltins
 -- returning the trace output.
 evaluateCekTrace
     :: Program TyName Name ()
-    -> ([String], Either CekMachineException EvaluationResultDef)
+    -> ([String], ExTally, Either CekEvaluationException (Plain Term))
 evaluateCekTrace p =
-    unsafePerformIO $ withEmit $ \emit -> do
-        let logName       = dynamicTraceName
-            logDefinition = dynamicCallAssign logName emit
-            env  = insertDynamicBuiltinNameDefinition logDefinition stringBuiltins
-        evaluate $ runCek env p
+    let
+        (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do
+            let logName = dynamicTraceName
+                logDefinition = dynamicCallAssign logName emit
+                env = insertDynamicBuiltinNameDefinition logDefinition
+                                                         stringBuiltins
+            evaluate $ runCekCounting env $ toTerm p
+    in  (lg, view exBudgetStateTally state, res)

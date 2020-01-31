@@ -64,3 +64,4 @@ marlowe-playground-server/playground.yaml
 *.org
 /plutus-scb.yaml
 /scb-core.db*
+hie.yaml

@@ -72,5 +72,5 @@ withEmitEvaluateBy
     -> DynamicBuiltinNameMeanings
     -> (Term TyName Name () -> Term TyName Name ())
     -> IO ([a], m b)
-withEmitEvaluateBy eval means toTerm =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . toTerm
+withEmitEvaluateBy eval means inst =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst

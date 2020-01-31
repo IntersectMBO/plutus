@@ -39,7 +39,7 @@ module Language.PlutusCore.Evaluation.Machine.L
     , LMachineException
     , LEvaluationException
     , evaluateL
-    , runL
+    , unsafeEvaluateL
     ) where
 
 import           Language.PlutusCore
@@ -248,7 +248,7 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
                 throwingWithCause _MachineError (OtherMachineError NoDynamicBuiltinsYet) $ Just term
 
 
-applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> LM ConstAppResult
+applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> LM (ConstAppResult ())
 applyEvaluateBuiltinName heap env = runApplyBuiltinName (const $ evalL heap env)
 
 evalL :: Heap -> Environment -> Plain Term -> LM (Plain Term)
@@ -294,11 +294,10 @@ internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 translateResult :: Functor f => f LMachineResult -> f (Plain Term)
 translateResult = fmap $ \(Closure t _, _) -> t
 
--- | Evaluate a term using the L machine. May throw an 'LMachineException'.
-evaluateL :: Term TyName Name () -> EvaluationResultDef
-evaluateL = either throw translateResult . extractEvaluationResult . internalEvaluateL
+-- | Evaluate a term using the L machine.
+evaluateL :: Term TyName Name () -> Either LEvaluationException (Term TyName Name ())
+evaluateL = translateResult . internalEvaluateL
 
--- | Run a program using the L machine. May throw an 'LMachineException'.
--- We're not using the dynamic names at the moment, but we'll require them eventually.
-runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
-runL _ (Program _ _ term) = evaluateL term
+-- | Evaluate a term using the L machine. May throw an 'LMachineException'.
+unsafeEvaluateL :: Term TyName Name () -> EvaluationResultDef
+unsafeEvaluateL = either throw id . extractEvaluationResult . evaluateL

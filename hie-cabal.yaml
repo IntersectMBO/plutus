@@ -1,163 +1,63 @@
 cradle:
-  multi:
+  cabal:
   - path: ./language-plutus-core/generators
-    config:
-      cradle:
-        cabal:
-          component: "lib:language-plutus-core"
+    component: "lib:language-plutus-core"
   - path: ./language-plutus-core/prelude
-    config:
-      cradle:
-        cabal:
-          component: "lib:language-plutus-core"
+    component: "lib:language-plutus-core"
   - path: ./language-plutus-core/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:language-plutus-core"
+    component: "lib:language-plutus-core"
   - path: ./language-plutus-core/test
-    config:
-      cradle:
-        cabal:
-          component: "language-plutus-core:language-plutus-core-test"
-
+    component: "language-plutus-core:language-plutus-core-test"
   - path: ./plutus-emulator/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-emulator"
+    component: "lib:plutus-emulator"
   - path: ./plutus-emulator/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-emulator:plutus-emulator-test"
-
+    component: "plutus-emulator:plutus-emulator-test"
   - path: ./plutus-exe/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-exe"
+    component: "lib:plutus-exe"
   - path: ./plutus-exe/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-exe:plutus-exe-test"
-
+    component: "plutus-exe:plutus-exe-test"
   - path: ./plutus-tx/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-tx"
+    component: "lib:plutus-tx"
   - path: ./plutus-tx/compiler
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-tx-compiler"
+    component: "lib:plutus-tx-compiler"
   - path: ./plutus-tx/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-tx:plutus-tx-test"
-
+    component: "plutus-tx:plutus-tx-test"
   - path: ./plutus-ir/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-ir"
+    component: "lib:plutus-ir"
   - path: ./plutus-ir/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-ir:plutus-ir-test"
-
+    component: "plutus-ir:plutus-ir-test"
   - path: ./plutus-playground-lib/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-playground-lib"
+    component: "lib:plutus-playground-lib"
   - path: ./plutus-playground-lib/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-playground-lib:plutus-playground-lib-test"
-
+    component: "plutus-playground-lib:plutus-playground-lib-test"
   - path: ./playground-common/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:playground-common"
+    component: "lib:playground-common"
   - path: ./playground-common/test
-    config:
-      cradle:
-        cabal:
-          component: "playground-common:playground-common-test"
-
+    component: "playground-common:playground-common-test"
   - path: ./marlowe-playground-server/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:marlowe-playground-server"
+    component: "lib:marlowe-playground-server"
   - path: ./marlowe-playground-server/test
-    config:
-      cradle:
-        cabal:
-          component: "marlowe-playground-server:marlowe-playground-server-test"
-
+    component: "marlowe-playground-server:marlowe-playground-server-test"
   - path: ./marlowe-symbolic/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:marlowe-symbolic"
+    component: "lib:marlowe-symbolic"
   - path: ./marlowe-symbolic/test
-    config:
-      cradle:
-        cabal:
-          component: "marlowe-symbolic:marlowe-symbolic-test"
-
+    component: "marlowe-symbolic:marlowe-symbolic-test"
   - path: ./plutus-contract/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:plutus-contract"
+    component: "lib:plutus-contract"
   - path: ./plutus-contract/test
-    config:
-      cradle:
-        cabal:
-          component: "plutus-contract:plutus-contract-test"
-
+    component: "plutus-contract:plutus-contract-test"
   - path: ./deployment-server/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:deployment-server"
+    component: "lib:deployment-server"
   - path: ./deployment-server/test
-    config:
-      cradle:
-        cabal:
-          component: "deployment-server:deployment-server-test"
-
+    component: "deployment-server:deployment-server-test"
   - path: ./iots-export/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:iots-export"
+    component: "lib:iots-export"
   - path: ./iots-export/test
-    config:
-      cradle:
-        cabal:
-          component: "iots-export:iots-export-test"
-
+    component: "iots-export:iots-export-test"
   - path: ./metatheory/src
-    config:
-      cradle:
-        cabal:
-          component: "lib:metatheory"
+    component: "lib:metatheory"
   - path: ./metatheory/test
-    config:
-      cradle:
-        cabal:
-          component: "metatheory:metatheory-test"
-
+    component: "metatheory:metatheory-test"
   # These use the plutus plugin - HIE doesn't support plugins yet
 
   # - path: ./marlowe/src

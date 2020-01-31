@@ -79,8 +79,8 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Pretty err, KnownType a)
-    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+    :: (Pretty internal, KnownType a)
+    => (Term TyName Name () -> Either (EvaluationException internal user) (Plain Term))
        -- ^ An evaluator.
     -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
@@ -89,7 +89,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure
             t         -> EvaluationSuccess t
-    fmap (TypeEvalCheckResult termTy) $ case eval term of
+    fmap (TypeEvalCheckResult termTy) $ case extractEvaluationResult $ eval term of
         Right valActual
             | valExpected == valActual -> return valActual
             | otherwise                ->

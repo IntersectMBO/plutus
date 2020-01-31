@@ -124,8 +124,8 @@ genIterAppValue
     :: forall head r m. Monad m
     => Denotation head r
     -> PlcGenT m (IterAppValue head (Term TyName Name ()) r)
-genIterAppValue (Denotation object toTerm meta scheme) = result where
-    result = go scheme (toTerm object) id meta
+genIterAppValue (Denotation object embed meta scheme) = result where
+    result = go scheme (embed object) id meta
 
     go
         :: TypeScheme c r

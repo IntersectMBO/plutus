@@ -106,5 +106,6 @@ test-suite plutus-tx-tests
         tasty-hunit -any,
         tasty-hedgehog -any,
         hedgehog -any,
+        lens -any,
     -- this makes the plugin give better errors
     ghc-options: -g

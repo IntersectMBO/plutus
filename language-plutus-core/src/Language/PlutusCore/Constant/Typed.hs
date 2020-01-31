@@ -25,6 +25,7 @@ module Language.PlutusCore.Constant.Typed
     , KnownTypeValue (..)
     , OpaqueTerm (..)
     , readKnownM
+    , readKnownBy
     ) where
 
 import           PlutusPrelude
@@ -230,11 +231,11 @@ class KnownType a where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName ()
 
-    -- | Convert a Haskell value to the corresponding PLC value.
+    -- | Convert a Haskell value to the corresponding PLC term.
     makeKnown :: a -> Term TyName Name ()
 
     -- See Note [Evaluators].
-    -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
+    -- | Convert a PLC term to the corresponding Haskell value using an explicit evaluator.
     readKnown
         :: (MonadError (ErrorWithCause err) m, AsUnliftingError err)
         => Evaluator Term m -> Term TyName Name () -> m a
@@ -245,12 +246,19 @@ class KnownType a where
     default prettyKnown :: Pretty a => a -> Doc ann
     prettyKnown = pretty
 
--- | Convert a PLC value to the corresponding Haskell value using the evaluator
+-- | Convert a PLC term to the corresponding Haskell value using the evaluator
 -- from the current context.
 readKnownM
     :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
     => Term TyName Name () -> EvaluateT m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
+
+-- | Convert a PLC term to the corresponding Haskell value using an explicit evaluator
+-- extended with a provided set of built-in name meanings.
+readKnownBy
+    :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
+    => Evaluator Term m -> DynamicBuiltinNameMeanings -> Term TyName Name () -> m a
+readKnownBy eval means = readKnown $ eval . mappend means
 
 -- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
 -- for any 'KnownType' via 'prettyKnown', which allows e.g. to pretty-print a list of 'KnownType'

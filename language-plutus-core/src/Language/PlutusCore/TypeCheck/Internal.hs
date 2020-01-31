@@ -98,7 +98,7 @@ functions that cannot fail looks like this:
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
     { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Dupable (Normalized (Type TyName ())))
-    } deriving (Semigroup, Monoid)
+    } deriving newtype (Semigroup, Monoid)
 
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
 type VarTypes   = UniqueMap TermUnique (Dupable (Normalized (Type TyName ())))

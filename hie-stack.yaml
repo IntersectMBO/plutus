@@ -1,0 +1,89 @@
+cradle:
+  stack:
+  - path: ./language-plutus-core/generators
+    component: "language-plutus-core:lib"
+  - path: ./language-plutus-core/prelude
+    component: "language-plutus-core:lib"
+  - path: ./language-plutus-core/src
+    component: "language-plutus-core:lib"
+  - path: ./language-plutus-core/test
+    component: "language-plutus-core:language-plutus-core-test"
+  - path: ./plutus-emulator/src
+    component: "plutus-emulator:lib"
+  - path: ./plutus-emulator/test
+    component: "plutus-emulator:plutus-emulator-test"
+  - path: ./plutus-exe/src
+    component: "plutus-exe:lib"
+  - path: ./plutus-exe/test
+    component: "plutus-exe:plutus-exe-test"
+  - path: ./plutus-tx/src
+    component: "plutus-tx:lib"
+  - path: ./plutus-tx/compiler
+    component: "plutus-tx-compiler:lib"
+  - path: ./plutus-tx/test
+    component: "plutus-tx:plutus-tx-test"
+  - path: ./plutus-ir/src
+    component: "plutus-ir:lib"
+  - path: ./plutus-ir/test
+    component: "plutus-ir:plutus-ir-test"
+  - path: ./plutus-playground-lib/src
+    component: "plutus-playground-lib:lib"
+  - path: ./plutus-playground-lib/test
+    component: "plutus-playground-lib:plutus-playground-lib-test"
+  - path: ./playground-common/src
+    component: "playground-common:lib"
+  - path: ./playground-common/test
+    component: "playground-common:playground-common-test"
+  - path: ./marlowe-playground-server/src
+    component: "marlowe-playground-server:lib"
+  - path: ./marlowe-playground-server/test
+    component: "marlowe-playground-server:marlowe-playground-server-test"
+  - path: ./marlowe-symbolic/src
+    component: "marlowe-symbolic:lib"
+  - path: ./marlowe-symbolic/test
+    component: "marlowe-symbolic:marlowe-symbolic-test"
+  - path: ./plutus-contract/src
+    component: "plutus-contract:lib"
+  - path: ./plutus-contract/test
+    component: "plutus-contract:plutus-contract-test"
+  - path: ./deployment-server/src
+    component: "deployment-server:lib"
+  - path: ./deployment-server/test
+    component: "deployment-server:deployment-server-test"
+  - path: ./iots-export/src
+    component: "iots-export:lib"
+  - path: ./iots-export/test
+    component: "iots-export:iots-export-test"
+  - path: ./metatheory/src
+    component: "metatheory:lib"
+  - path: ./metatheory/test
+    component: "metatheory:metatheory-test"
+
+  # These use the plutus plugin - HIE doesn't support plugins yet
+
+  # - path: ./marlowe/src
+  #   component: "marlowe:lib"
+  # - path: ./marlowe/test
+  #   component: "marlowe:marlowe-test"
+  # - path: ./plutus-book/src
+  #   component: "plutus-book:lib"
+  # - path: ./plutus-book/test
+  #   component: "plutus-book:plutus-book-test"
+  # - path: ./plutus-playground-server/src
+  #   component: "plutus-playground-server:lib"
+  # - path: ./plutus-playground-server/test
+  #   component: "plutus-playground-server:plutus-playground-server-test"
+  # - path: ./plutus-tutorial/src
+  #   component: "plutus-tutorial:lib"
+  # - path: ./plutus-tutorial/test
+  #   component: "plutus-tutorial:plutus-tutorial-test"
+  # - path: ./plutus-use-cases/src
+  #   component: "plutus-use-cases:lib"
+  # - path: ./plutus-use-cases/test
+  #   component: "plutus-use-cases:plutus-use-cases-test"
+  # - path: ./plutus-wallet-api/src
+  #   component: "plutus-wallet-api:lib"
+  # - path: ./plutus-wallet-api/ledger
+  #   component: "plutus-ledger:lib"
+  # - path: ./plutus-wallet-api/test
+  #   component: "plutus-wallet-api:plutus-wallet-api-test"

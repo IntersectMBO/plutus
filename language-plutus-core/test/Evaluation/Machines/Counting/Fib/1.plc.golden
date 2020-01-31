@@ -1,0 +1,26 @@
+((Right (1))
+, ({ tally: ({ BAST causes ({ cpu: 0
+| mem: 657
+})
+| BTyInst causes ({ cpu: 6
+| mem: 6
+})
+| BApply causes ({ cpu: 17
+| mem: 17
+})
+| BVar causes ({ cpu: 14
+| mem: 14
+})
+| BIWrap causes ({ cpu: 1
+| mem: 1
+})
+| BUnwrap causes ({ cpu: 2
+| mem: 2
+})
+| BStaticBuiltin causes ({ cpu: 2
+| mem: 2
+})})
+| budget: ({ cpu: 42
+| mem: 699
+})
+}))

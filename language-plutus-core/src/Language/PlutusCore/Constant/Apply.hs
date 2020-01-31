@@ -33,16 +33,16 @@ import qualified Data.ByteString.Lazy.Hash                        as Hash
 import           Data.Proxy
 
 -- | The result of evaluation of a builtin applied to some arguments.
-data ConstAppResult
-    = ConstAppSuccess (Term TyName Name ())
+data ConstAppResult ann
+    = ConstAppSuccess (Term TyName Name ann)
       -- ^ Successfully computed a value.
     | ConstAppStuck
       -- ^ Not enough arguments.
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
 -- | Default constant application computation that in case of 'ConstAppSuccess' returns
 -- a 'Value'.
-type EvaluateConstApp m = EvaluateT m ConstAppResult
+type EvaluateConstApp m ann = EvaluateT m (ConstAppResult ann)
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -55,14 +55,14 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: forall e m a r. (MonadError (ErrorWithCause e) m, AsUnliftingError e, AsConstAppError e)
-    => TypeScheme a r -> a -> [Value TyName Name ()] -> EvaluateConstApp m
+    => TypeScheme a r -> a -> [Value TyName Name ()] -> EvaluateConstApp m ()
 applyTypeSchemed = go where
     go
         :: forall b.
            TypeScheme b r
         -> b
         -> [Value TyName Name ()]
-        -> EvaluateConstApp m
+        -> EvaluateConstApp m ()
     go (TypeSchemeResult _)        y args =
         case args of
             [] -> pure . ConstAppSuccess $ makeKnown y    -- Computed the result.
@@ -83,14 +83,14 @@ applyTypeSchemed = go where
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
     :: (MonadError (ErrorWithCause e) m, AsUnliftingError e, AsConstAppError e)
-    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstApp m
+    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstApp m ()
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
     :: (MonadError (ErrorWithCause e) m, AsUnliftingError e, AsConstAppError e)
-    => BuiltinName -> [Value TyName Name ()] -> EvaluateConstApp m
+    => BuiltinName -> [Value TyName Name ()] -> EvaluateConstApp m ()
 applyBuiltinName AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      =
@@ -138,5 +138,5 @@ applyBuiltinName GtByteString         =
 -- given evaluator.
 runApplyBuiltinName
     :: (MonadError (ErrorWithCause e) m, AsUnliftingError e, AsConstAppError e)
-    => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m ConstAppResult
+    => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m (ConstAppResult ())
 runApplyBuiltinName eval name = runEvaluateT eval . applyBuiltinName name

@@ -84,7 +84,7 @@ test_dynamicConst =
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
             lhs = typecheckReadKnownCek env $ runConst dynamicConst
             rhs = typecheckReadKnownCek mempty $ runConst Plc.const
-        lhs === Right (Right (EvaluationSuccess c))
+        lhs === Right (Right c)
         lhs === rhs
 
 test_definition :: TestTree

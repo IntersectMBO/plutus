@@ -41857,14 +41857,17 @@ license = stdenv.lib.licenses.bsd3;
 , dependent-sum
 , filepath
 , happy
+, hashable
 , hedgehog
 , lens
 , memory
 , mmorph
+, monoidal-containers
 , mtl
 , prettyprinter
 , recursion-schemes
 , safe-exceptions
+, semigroups
 , serialise
 , stdenv
 , tasty
@@ -41875,6 +41878,7 @@ license = stdenv.lib.licenses.bsd3;
 , text
 , th-lift-instances
 , transformers
+, tuple
 , weigh
 }:
 mkDerivation {
@@ -41898,14 +41902,17 @@ deepseq
 dependent-map
 dependent-sum
 filepath
+hashable
 hedgehog
 lens
 memory
 mmorph
+monoidal-containers
 mtl
 prettyprinter
 recursion-schemes
 safe-exceptions
+semigroups
 serialise
 tasty
 tasty-golden
@@ -41913,6 +41920,7 @@ template-haskell
 text
 th-lift-instances
 transformers
+tuple
 ];
 libraryToolDepends = [
 alex
@@ -41939,6 +41947,7 @@ tasty-hedgehog
 tasty-hunit
 text
 transformers
+tuple
 ];
 benchmarkHaskellDepends = [
 base

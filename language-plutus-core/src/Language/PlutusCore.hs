@@ -34,8 +34,9 @@ module Language.PlutusCore
     , defaultVersion
     , allBuiltinNames
     , allKeywords
-    , termLoc
-    , tyLoc
+    , toTerm
+    , termAnn
+    , typeAnn
     -- * Lexer
     , AlexPosn (..)
     -- * Views

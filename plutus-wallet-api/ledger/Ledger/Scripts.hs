@@ -57,7 +57,6 @@ import qualified Prelude                                  as Haskell
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (serialise)
 import           Codec.Serialise.Class                    (Serialise, encode)
-import           Control.Monad                            (unless)
 import           Control.Monad.Except                     (MonadError, throwError, runExcept)
 import           Control.DeepSeq                          (NFData)
 import           Crypto.Hash                              (Digest, SHA256, hash)
@@ -76,8 +75,7 @@ import           IOTS                                     (IotsType (iotsDefinit
 import qualified Language.PlutusCore                      as PLC
 import qualified Language.PlutusCore.Pretty               as PLC
 import qualified Language.PlutusCore.Constant.Dynamic     as PLC
-import qualified Language.PlutusCore.Evaluation.Result    as PLC
-import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
+import           Language.PlutusTx.Evaluation             (evaluateCekTrace, ErrorWithCause(..), EvaluationError(..))
 import           Language.PlutusTx.Lift                   (liftCode)
 import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
 import           Language.PlutusTx.Prelude
@@ -158,7 +156,10 @@ fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
-data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String] | EvaluationException Haskell.String
+data ScriptError =
+      TypecheckError Haskell.String -- ^ Incorrect type at runtime
+    | EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
+    | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -168,9 +169,12 @@ evaluateScript checking s = do
     case checking of
       DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
-    let (logOut, result) = evaluateCekTrace (unScript s)
-    res <- either (throwError . EvaluationException . show) Haskell.pure result
-    unless (PLC.isEvaluationSuccess res) $ throwError $ EvaluationError logOut
+    let (logOut, _tally, result) = evaluateCekTrace (unScript s)
+    case result of
+        Right _ -> Haskell.pure ()
+        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
+            InternalEvaluationError {} -> EvaluationException $ show errWithCause
+            UserEvaluationError {} -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())

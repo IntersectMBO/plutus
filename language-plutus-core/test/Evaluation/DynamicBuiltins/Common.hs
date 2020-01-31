@@ -35,5 +35,5 @@ typecheckReadKnownCek
     :: (MonadError (Error ()) m, KnownType a)
     => DynamicBuiltinNameMeanings
     -> Term TyName Name ()
-    -> m (Either CekMachineException (EvaluationResult a))
+    -> m (Either CekEvaluationException a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

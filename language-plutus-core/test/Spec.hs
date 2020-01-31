@@ -15,7 +15,7 @@ import           TypeSynthesis.Spec                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.Machine.Ck  (runCk)
+import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
@@ -158,7 +158,9 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- normalization tests -- under 'Normalization', etc.
 
 evalFile :: BSL.ByteString -> Either (Error AlexPosn) T.Text
-evalFile contents = second prettyPlcDefText (runCk . void <$> (runQuoteT $ parseScoped contents))
+evalFile contents =
+    second prettyPlcDefText $
+        unsafeEvaluateCek mempty . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree
 testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)

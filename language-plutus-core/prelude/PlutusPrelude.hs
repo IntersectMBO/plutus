@@ -1,6 +1,7 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -170,8 +171,20 @@ newtype PrettyConfigIgnore a = PrettyConfigIgnore
 -- for anything that has a 'PrettyBy config' instance.
 data PrettyConfigAttach config a = PrettyConfigAttach config a
 
+-- delete these instances on extraction as library
 instance PrettyBy config a => PrettyBy config [a] where
     prettyBy config = list . fmap (prettyBy config)
+
+instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (Either a b) where
+    prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
+    prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
+
+instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (a, b) where
+    prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
+
+instance PrettyBy config Integer where
+    prettyBy _ = pretty
+-- delete until here
 
 instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
     prettyBy _ (PrettyConfigIgnore x) = pretty x
