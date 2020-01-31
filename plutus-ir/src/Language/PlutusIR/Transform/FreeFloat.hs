@@ -110,11 +110,11 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
   depthInfo = IM.toAscList $  toDepthInfo floatInfo
   (topTermClean, letTable) = extractLets topTerm
   depGraph = runTermDeps topTerm :: AM.AdjacencyMap Node
-  sortedDeps = map (\case Variable u -> u; Root -> PLC.Unique {PLC.unUnique = -2}) $ AT.topSort (AT.fromAdjacencyMap depGraph) -- FIXME: is this really going to work for letrec? Otherwise abstract the scc away
+  sortedDeps = reverse $ map (\case Variable u -> u; Root -> PLC.Unique {PLC.unUnique = -2}) $ AT.topSort (AT.fromAdjacencyMap depGraph) -- FIXME: is this really going to work for letrec? Otherwise abstract the scc away
 
 
   generateLetLvl lets curDepth restDepthTable =  Let
-                                                 undefined -- TODO: fix annotation with monoid?
+                                                 (fstT $ snd $ M.findMin letTable ) -- TODO: fix annotation with monoid?
                                                  NonRec    -- what about this?
                                                  (foldr (\ d acc ->
                                                           if d `elem` lets  -- perhaps this can be done faster
@@ -122,24 +122,28 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
                                                           else acc --skip
                                                         ) [] sortedDeps)
 
+  fstT (a,_,_) = a
   trdT (_,_,c) = c
 
   -- TODO: we can transform easily the following processing to a Reader CurDepth
   -- TODO: using this pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthInfoRemaining instead.
   processLam _  [] _ lamBody = lamBody
-  processLam curDepth ((searchingForDepth, lams_lets):restDepthTable) u lamBody =
-    (case (curDepth == searchingForDepth, M.lookup u lams_lets) of
-       (True, Just lets) -> generateLetLvl lets curDepth restDepthTable
-       _ -> id) (processTerm curDepth restDepthTable lamBody)
+  processLam curDepth depthTable@((searchingForDepth, lams_lets):restDepthTable) u lamBody =
+    if curDepth < searchingForDepth
+    then processTerm curDepth depthTable lamBody
+    else -- assume/assert curDepth == searchingForDepth
+      (case M.lookup u lams_lets of
+        Just lets -> generateLetLvl lets curDepth restDepthTable
+        _ -> id)  (processTerm curDepth restDepthTable lamBody)
   processTerm _ [] = id
   processTerm curDepth remInfo =
     \case
       LamAbs a n ty lamBody -> LamAbs a n ty $ processLam  (curDepth+1) remInfo (n ^. PLC.unique . coerced) lamBody
       TyAbs a n k lamBody  -> TyAbs a n k $ processLam  (curDepth+1)  remInfo (n ^. PLC.unique . coerced) lamBody
-      Apply a t1 t2 -> Apply a (processTerm curDepth depthInfo t1) (processTerm curDepth depthInfo t2)
-      TyInst a t ty -> TyInst a (processTerm curDepth depthInfo t) ty
-      IWrap a ty1 ty2 t -> IWrap a ty1 ty2 $ processTerm curDepth depthInfo t
-      Unwrap a t -> Unwrap a $ processTerm curDepth depthInfo t
+      Apply a t1 t2 -> Apply a (processTerm curDepth remInfo t1) (processTerm curDepth remInfo t2)
+      TyInst a t ty -> TyInst a (processTerm curDepth remInfo t) ty
+      IWrap a ty1 ty2 t -> IWrap a ty1 ty2 $ processTerm curDepth remInfo t
+      Unwrap a t -> Unwrap a $ processTerm curDepth remInfo t
       x -> x
 
 
