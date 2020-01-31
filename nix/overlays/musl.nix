@@ -12,12 +12,16 @@ self: super: {
         # See https://github.com/nh2/static-haskell-nix/issues/6#issuecomment-421852854
         doCheck = false;
       });
+      # The tests just seem to be broken with musl, it's unclear why
       pyopenssl = super.pyopenssl.overridePythonAttrs (old: { doCheck = false; });
     };
   };
   haskell = super.haskell // {
     compiler = super.haskell.compiler // {
       ghc865 = super.haskell.compiler.ghc865.overrideAttrs (old: {
+        # Using ld.gold seems to break mysteriously. This is the neatest way I could think of to
+        # revert that: it trims the '.gold' back off the end of the LD variable, changing it 
+        # back to using ld from binutils.
         preConfigure = old.preConfigure + ''
           export LD=''${LD%.gold}
         '';
