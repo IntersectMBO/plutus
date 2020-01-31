@@ -11,6 +11,8 @@ where
 import           Common
 import qualified Data.Text                                        as T
 import           PlutusPrelude
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Render.Text
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
@@ -64,14 +66,14 @@ testBudget :: TestName -> (Plain Term) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (docText $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) mempty term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
 bunchOfFibs :: PlcFolderContents
 bunchOfFibs =
     let
         fibFile i = plcTermFile (show i) (naiveFib i)
     in
-        FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..10]) ]
+        FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..3]) ]
 
 test_budget :: TestTree
 test_budget =
@@ -86,7 +88,7 @@ testCounting :: TestName -> (Plain Term) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name
-    (docText $ prettyPlcReadableDef $ runCekCounting mempty term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCekCounting mempty term)
 
 test_counting :: TestTree
 test_counting =

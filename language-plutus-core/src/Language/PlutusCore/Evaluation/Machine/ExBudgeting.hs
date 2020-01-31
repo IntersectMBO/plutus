@@ -78,6 +78,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , exBudgetMemory
     , exBudgetStateBudget
     , exBudgetStateTally
+    , exceedsBudget
     )
 where
 
@@ -109,7 +110,13 @@ data CekBudgetMode =
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving (Semiring) via (GenericSemiring ExBudget)
+--    deriving (Semiring) via (GenericSemiring ExBudget) -- TODO reenable once upstream is fixed https://github.com/chessai/semirings/pull/55
+instance Semiring ExBudget where
+    plus (ExBudget cpu1 mem1) (ExBudget cpu2 mem2) = ExBudget (cpu1 `plus` cpu2) (mem1 `plus` mem2)
+    times (ExBudget cpu1 mem1) (ExBudget cpu2 mem2) = ExBudget (cpu1 `times` cpu2) (mem1 `times` mem2)
+    zero = ExBudget zero zero
+    one = ExBudget one one
+    fromNatural nat = ExBudget (fromNatural nat) (fromNatural nat)
 instance PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", prettyBy config cpu, line
@@ -122,8 +129,7 @@ data ExBudgetState = ExBudgetState
     , _exBudgetStateBudget :: ExBudget  -- ^ for making sure we don't spend too much
     }
     deriving stock (Eq, Generic, Show)
-instance ( PrettyBy config (Term TyName Name ())
-         ) => PrettyBy config ExBudgetState where
+instance PrettyBy config ExBudgetState where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
         , "| budget: ", prettyBy config budget, line
@@ -138,10 +144,10 @@ instance PrettyBy config ExTallyKey where
 newtype ExTally = ExTally (MonoidalHashMap ExTallyKey [(ExBudget, Plain Term)])
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
-instance (PrettyBy config (Term TyName Name ())) => PrettyBy config ExTally where
+instance PrettyBy config ExTally where
     prettyBy config (ExTally m) =
-        parens $ fold (["{ "] <> (intersperse (line <> "| ") $
-          ifoldMap (\k v -> [group $ ("["<> fold (intersperse "," (prettyBy config <$> v)) <> "]") <+> "causes" <+> prettyBy config k]) m) <> ["}"])
+        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
+          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> "[" <> fold (intersperse "," (prettyBy config . fst <$> v)) <> "]")]) m) <> ["}"])
 
 $(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 
@@ -149,3 +155,6 @@ $(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 estimateStaticStagedCost
     :: BuiltinName -> [WithMemory Value] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
+
+exceedsBudget :: ExRestrictingBudget -> ExBudget -> Bool
+exceedsBudget (ExRestrictingBudget ex) budget = (view exBudgetCPU budget) > (view exBudgetCPU ex) || (view exBudgetMemory budget) > (view exBudgetMemory ex)

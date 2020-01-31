@@ -14,8 +14,6 @@ module Language.PlutusTx.Evaluation
     , exBudgetStateTally
     , exBudgetCPU
     , exBudgetMemory
-    , exTallyMemory
-    , exTallyCPU
     )
 where
 
