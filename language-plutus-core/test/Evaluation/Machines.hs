@@ -10,9 +10,9 @@ where
 
 import           Common
 import qualified Data.Text                                        as T
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Text
 import           PlutusPrelude
-import Data.Text.Prettyprint.Doc
-import Data.Text.Prettyprint.Doc.Render.Text
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
