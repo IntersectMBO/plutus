@@ -58,6 +58,8 @@ extra-deps:
 - random-strings-0.1.1.0@sha256:935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677,2517
 - extensible-effects-5.0.0.1
 - sbv-8.4
+# to pull in https://github.com/jacobstanley/unix-compat/pull/43 so it works on musl
+- unix-compat-0.5.2
 # Purty deps
 - componentm-0.0.0.2
 - teardown-0.5.0.1
