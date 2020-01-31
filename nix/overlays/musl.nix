@@ -15,4 +15,13 @@ self: super: {
       pyopenssl = super.pyopenssl.overridePythonAttrs (old: { doCheck = false; });
     };
   };
+  haskell = super.haskell // {
+    compiler = super.haskell.compiler // {
+      ghc865 = super.haskell.compiler.ghc865.overrideAttrs (old: {
+        preConfigure = old.preConfigure + ''
+          export LD=''${LD%.gold}
+        '';
+      });
+    };
+  };
 }
