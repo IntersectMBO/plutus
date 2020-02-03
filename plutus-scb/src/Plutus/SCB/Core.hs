@@ -1,104 +1,104 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Plutus.SCB.Core
     ( migrate
     , simulate
     , dbStats
-    , DbConfig
+    , dbConnect
     , installContract
-    , listAvailableContracts
-    , listActiveContracts
-    , SCBError(..)
+    , instantiateContract
+    , availableContracts
+    , availableContractsProjection
+    , activeContracts
+    , activeContractsProjection
+    , Connection
+    , MonadEventStore
+    , refreshProjection
+    , runGlobalQuery
+    , runAggregateCommand
     ) where
 
-import           Control.Concurrent       (forkIO, myThreadId, threadDelay)
-import           Control.Concurrent.Async (concurrently_)
-import           Control.Concurrent.STM   (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
-import           Control.Monad            (void, when)
-import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift  (MonadUnliftIO)
-import           Control.Monad.Logger     (MonadLogger, logDebugN, logInfoN, runStderrLoggingT)
-import           Control.Monad.Reader     (MonadReader, ask, runReaderT)
-import           Data.Aeson               (FromJSON, ToJSON)
-import           Data.Foldable            (traverse_)
-import           Data.Map                 (Map)
-import           Data.Set                 (Set)
-import           Data.Text                (Text)
-import qualified Data.Text                as Text
-import qualified Data.UUID                as UUID
-import           Database.Persist.Sqlite  (ConnectionPool, SqlPersistT, createSqlitePoolFromInfo,
-                                           mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
-import           Eventful                 (Aggregate (Aggregate), GlobalStreamProjection, Projection,
-                                           StreamEvent (StreamEvent), UUID, aggregateCommandHandler,
-                                           aggregateProjection, commandStoredAggregate, getLatestStreamProjection,
-                                           globalStreamProjection, projectionMapMaybe, serializedEventStoreWriter,
-                                           serializedGlobalEventStoreReader, serializedVersionedEventStoreReader,
-                                           streamProjectionState, uuidNextRandom)
-import           Eventful.Store.Sql       (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
-                                           jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite    (initializeSqliteEventStore, sqliteEventStoreWriter)
-import           GHC.Generics             (Generic)
-import           Ledger.Value             (Value)
-import           Plutus.SCB.Arbitrary     (genResponse)
-import           Plutus.SCB.Command       (saveRequestResponseAggregate, saveTxAggregate)
-import           Plutus.SCB.Events        (AccountId, ChainEvent (UserEvent), EventId (EventId),
-                                           RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
-                                           Tx, UserEvent (InstallContract))
-import qualified Plutus.SCB.Events        as Events
-import           Plutus.SCB.Query         (RequestStats, balances, eventCount, nullProjection, requestStats,
-                                           setProjection, trialBalance)
-import qualified Plutus.SCB.Relation      as Relation
-import           Plutus.SCB.Utils         (logInfoS, render, tshow)
-import           System.Directory         (doesFileExist)
-import           Test.QuickCheck          (arbitrary, frequency, generate)
+import           Control.Concurrent         (forkIO, myThreadId, threadDelay)
+import           Control.Concurrent.Async   (concurrently_)
+import           Control.Concurrent.STM     (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
+import           Control.Error.Util         (note)
+import           Control.Monad              (void, when)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift    (MonadUnliftIO)
+import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, logInfoN, runStderrLoggingT)
+import           Control.Monad.Reader       (MonadReader, ReaderT, ask, runReaderT)
+import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
+import qualified Data.ByteString.Lazy.Char8 as BSL8
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
+import qualified Data.UUID                  as UUID
+import           Database.Persist.Sqlite    (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
+                                             retryOnBusy, runSqlPool)
+import           Eventful                   (Aggregate (Aggregate), GlobalStreamProjection, Projection,
+                                             StreamEvent (StreamEvent), UUID, VersionedStreamEvent,
+                                             aggregateCommandHandler, aggregateProjection, commandStoredAggregate,
+                                             getLatestStreamProjection, globalStreamProjection, globalStreamProjection,
+                                             projectionMapMaybe, serializedEventStoreWriter,
+                                             serializedGlobalEventStoreReader, serializedVersionedEventStoreReader,
+                                             streamProjectionState, uuidNextRandom)
+import           Eventful.Store.Sql         (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
+                                             jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite      (initializeSqliteEventStore, sqliteEventStoreWriter)
+import           Plutus.SCB.Arbitrary       (genResponse)
+import           Plutus.SCB.Command         (saveRequestResponseAggregate, saveTxAggregate)
+import           Plutus.SCB.Events          (ChainEvent (UserEvent), EventId (EventId),
+                                             RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
+                                             Tx, UserEvent (ContractStateTransition, InstallContract))
+import qualified Plutus.SCB.Events          as Events
+import           Plutus.SCB.Query           (balances, eventCount, nullProjection, requestStats, setProjection,
+                                             trialBalance)
+import qualified Plutus.SCB.Relation        as Relation
+import           Plutus.SCB.Types           (ActiveContract (ActiveContract), Contract (Contract), DbConfig (DbConfig),
+                                             PartiallyDecodedResponse, SCBError (ContractNotFound, FileNotFound),
+                                             activeContractId, activeContractPath, contractPath, dbConfigFile,
+                                             dbConfigPoolSize)
+import           Plutus.SCB.Utils           (logInfoS, render, tshow)
+import           System.Directory           (doesFileExist)
+import           System.Exit                (ExitCode (ExitSuccess))
+import           System.Process             (readProcessWithExitCode)
+import           Test.QuickCheck            (arbitrary, frequency, generate)
 
 data ThreadState
     = Running
     | Stopped
     deriving (Show, Eq)
 
-data DbConfig =
-    DbConfig
-        { dbConfigFile     :: Text
-        -- ^ The path to the sqlite database file. May be absolute or relative.
-        , dbConfigPoolSize :: Int
-        -- ^ Max number of concurrent sqlite database connections.
-        }
-    deriving (Show, Eq, Generic, FromJSON)
-
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
 
 -- | Initialize/update the database to hold events.
-migrate :: (MonadUnliftIO m, MonadLogger m, MonadReader DbConfig m) => m ()
+migrate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
 migrate = do
     logInfoN "Migrating"
-    Connection (sqlConfig, connectionPool) <- dbConnect
+    Connection (sqlConfig, connectionPool) <- ask
     initializeSqliteEventStore sqlConfig connectionPool
 
 -- | A long-ish running process that fills the database with lots of event data.
-simulate :: (MonadUnliftIO m, MonadLogger m, MonadReader DbConfig m) => m ()
+simulate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
 simulate = do
     logInfoN "Simulating"
-    connection <- dbConnect
+    connection <- ask
     runWriters connection
 
 -- | Dump various statistics and reports from various queries over the event store database.
-dbStats :: (MonadUnliftIO m, MonadLogger m, MonadReader DbConfig m) => m ()
+dbStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
 dbStats = do
     logInfoN "Querying"
-    connection <- dbConnect
-    flip runReaderT connection $ do
-        void reportTrialBalance
-        void reportClosingBalances
-        void reportEventCount
-        void reportRequestStats
+    reportTrialBalance
+    reportClosingBalances
+    reportEventCount
+    reportRequestStats
 
 ------------------------------------------------------------
 -- | Write lots of events into the store. At the moment this code
@@ -113,11 +113,13 @@ runWriters connection = do
         --
     logInfoN "Started writers"
     let writerAction =
-            flip runReaderT connection $
-            runStderrLoggingT $ do
+            runStderrLoggingT . flip runReaderT connection $ do
                 tx :: Tx <- liftIO $ generate arbitrary
-                void . retryOnBusy $
-                    runCommand saveTxAggregate (UUID.fromWords 0 0 0 1) tx
+                void $
+                    runAggregateCommand
+                        saveTxAggregate
+                        (UUID.fromWords 0 0 0 1)
+                        tx
                 --
                 requestId <- liftIO $ EventId <$> uuidNextRandom
                 request <- liftIO $ generate arbitrary
@@ -141,8 +143,8 @@ runWriters connection = do
                         ]
                 me <- liftIO myThreadId
                 logInfoN $ "(" <> tshow me <> ") Write"
-                void . retryOnBusy $
-                    runCommand
+                void $
+                    runAggregateCommand
                         saveRequestResponseAggregate
                         (UUID.fromWords 0 0 0 2)
                         (IssueRequest requestId request, cancellation, response)
@@ -169,54 +171,31 @@ repeatIOAction threadState action = go
             go
 
 ------------------------------------------------------------
-reportTrialBalance ::
-       (MonadLogger m, MonadIO m, MonadReader Connection m)
-    => m (GlobalStreamProjection Value ChainEvent)
+reportTrialBalance :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
 reportTrialBalance = do
-    trialBalanceProjection <-
-        refreshProjection $ globalStreamProjection trialBalance
+    trialBalanceProjection <- runGlobalQuery trialBalance
     logInfoN "Trial Balance"
-    logInfoS $ streamProjectionState trialBalanceProjection
-    pure trialBalanceProjection
+    logInfoS trialBalanceProjection
 
-reportEventCount ::
-       (MonadLogger m, MonadIO m, MonadReader Connection m)
-    => m (GlobalStreamProjection Int ChainEvent)
+reportEventCount :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
 reportEventCount = do
-    eventCountProjection <-
-        refreshProjection $ globalStreamProjection eventCount
-    logInfoN "EventCount"
-    logInfoN $ render eventCountProjection
-    pure eventCountProjection
+    eventCountProjection <- runGlobalQuery eventCount
+    logInfoN $ "EventCount: " <> tshow eventCountProjection
 
-reportRequestStats ::
-       (MonadLogger m, MonadIO m, MonadReader Connection m)
-    => m (GlobalStreamProjection RequestStats ChainEvent)
+reportRequestStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
 reportRequestStats = do
-    requestStatsProjection <-
-        refreshProjection $ globalStreamProjection requestStats
+    requestStatsProjection <- runGlobalQuery requestStats
     logInfoN $ render requestStatsProjection
-    pure requestStatsProjection
 
-reportClosingBalances ::
-       (MonadLogger m, MonadIO m, MonadReader Connection m)
-    => m (GlobalStreamProjection (Map AccountId Value) ChainEvent)
+reportClosingBalances :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
 reportClosingBalances = do
-    updatedProjection <- refreshProjection $ globalStreamProjection balances
+    updatedProjection <- runGlobalQuery balances
     logInfoN "Closing Balances"
-    let closingBalances =
-            Relation.fromMap $ streamProjectionState updatedProjection
+    let closingBalances = Relation.fromMap updatedProjection
     let report = (,) <$> Events.users <*> closingBalances
     logInfoS report
-    pure updatedProjection
 
 ------------------------------------------------------------
-type Contract = Text
-
-newtype SCBError =
-    FileNotFound FilePath
-    deriving (Show, Eq)
-
 withFile ::
        (MonadIO m) => (FilePath -> m b) -> FilePath -> m (Either SCBError b)
 withFile action filePath = do
@@ -226,47 +205,110 @@ withFile action filePath = do
         else Right <$> action filePath
 
 installContract ::
-       (MonadLogger m, MonadUnliftIO m, MonadReader DbConfig m)
+       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m)
     => FilePath
     -> m (Either SCBError ())
 installContract =
     withFile $ \filePath -> do
-        logInfoN "Installing"
-        connection <- dbConnect
-        flip runReaderT connection . void $ -- . retryOnBusy $
-            runCommand installCommand (UUID.fromWords 0 0 0 3) filePath
+        logInfoN $ "Installing: " <> tshow filePath
+        void $
+            runAggregateCommand
+                installCommand
+                (UUID.fromWords 0 0 0 3)
+                (Contract {contractPath = filePath})
+        logInfoN "Installed."
+
+installCommand :: Aggregate () ChainEvent Contract
+installCommand =
+    Aggregate
+        { aggregateProjection = nullProjection
+        , aggregateCommandHandler =
+              \() contract -> [UserEvent $ InstallContract contract]
+        }
+
+instantiateContract ::
+       (MonadLogger m, MonadEventStore ChainEvent m, MonadIO m)
+    => FilePath
+    -> m (Either SCBError ())
+instantiateContract filePath = do
+    logInfoN "Finding Contract"
+    mContract <- lookupContract filePath
+    activeContractId <- liftIO uuidNextRandom
+    case mContract of
+        Left err -> pure $ Left err
+        Right contract -> do
+            logInfoN "Running Contract"
+            response <- initContract contract
+            case response of
+                Left err -> pure $ Left err
+                Right initialState -> do
+                    let activeContract =
+                            ActiveContract
+                                { activeContractId
+                                , activeContractPath = contractPath contract
+                                }
+                    logInfoN "Storing Initial Contract State"
+                    void $
+                        runAggregateCommand
+                            saveContractState
+                            (UUID.fromWords 0 0 0 3)
+                            (activeContract, initialState)
+                    logInfoN $ "Installed: " <> tshow activeContract
+                    logInfoN "Done"
+                    pure $ Right ()
+
+lookupContract ::
+       MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
+lookupContract filePath = do
+    available <- availableContracts
+    let matchingContracts =
+            Set.filter
+                (\Contract {contractPath} -> contractPath == filePath)
+                available
+    pure $ note (ContractNotFound filePath) $ Set.lookupMin matchingContracts
+
+initContract ::
+       MonadIO m => Contract -> m (Either SCBError PartiallyDecodedResponse)
+initContract Contract {contractPath} = do
+    (exitCode, stdout, stderr) <-
+        liftIO $ readProcessWithExitCode contractPath ["init"] ""
+    case exitCode of
+        ExitFailure code ->
+            pure . Left $ ContractCommandError code (Text.pack stderr)
+        ExitSuccess ->
+            case eitherDecode (BSL8.pack stdout) of
+                Right value -> pure $ Right value
+                Left err    -> pure . Left $ ContractCommandError 0 (Text.pack err)
+
+saveContractState ::
+       Aggregate () ChainEvent (ActiveContract, PartiallyDecodedResponse)
+saveContractState =
+    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
   where
-    installCommand :: Aggregate () ChainEvent FilePath
-    installCommand =
-        Aggregate
-            { aggregateProjection = nullProjection
-            , aggregateCommandHandler =
-                  \() path -> [UserEvent $ InstallContract path]
-            }
+    aggregateCommandHandler _ (contract, response) =
+        [UserEvent $ ContractStateTransition contract response]
 
-listAvailableContracts ::
-       (MonadLogger m, MonadUnliftIO m, MonadReader DbConfig m) => m ()
-listAvailableContracts = do
-    logInfoN "Listing"
-    connection <- dbConnect
-    installedContractsProjection <-
-        fmap streamProjectionState <$> flip runReaderT connection $
-        refreshProjection $ globalStreamProjection installedContracts
-    logInfoN "Available Contracts"
-    traverse_ logInfoN installedContractsProjection
+availableContracts :: MonadEventStore ChainEvent m => m (Set Contract)
+availableContracts = runGlobalQuery availableContractsProjection
 
-installedContracts ::
+availableContractsProjection ::
        Projection (Set Contract) (StreamEvent key position ChainEvent)
-installedContracts = projectionMapMaybe contractPaths setProjection
+availableContractsProjection = projectionMapMaybe contractPaths setProjection
   where
-    contractPaths (StreamEvent _ _ (UserEvent (InstallContract path))) =
-        Just $ Text.pack path
+    contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
+        Just contract
     contractPaths _ = Nothing
 
-listActiveContracts :: (MonadLogger m) => m ()
-listActiveContracts = do
-    logInfoN "Active Contracts"
-    logInfoN "/bin/echo Hello"
+activeContracts :: MonadEventStore ChainEvent m => m (Set ActiveContract)
+activeContracts = runGlobalQuery activeContractsProjection
+
+activeContractsProjection ::
+       Projection (Set ActiveContract) (StreamEvent key position ChainEvent)
+activeContractsProjection = projectionMapMaybe contractPaths setProjection
+  where
+    contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition contract _))) =
+        Just contract
+    contractPaths _ = Nothing
 
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
@@ -280,37 +322,42 @@ dbConnect = do
     connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
     pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
 
-runDbTx :: MonadIO m => ConnectionPool -> SqlPersistT IO a -> m a
-runDbTx connectionPool = liftIO . flip runSqlPool connectionPool
+------------------------------------------------------------
+class Monad m =>
+      MonadEventStore event m
+    -- | Update a 'Projection'.
+    where
+    refreshProjection ::
+           GlobalStreamProjection state event
+        -> m (GlobalStreamProjection state event)
+    -- | Update a command through an 'Aggregate'.
+    runAggregateCommand ::
+           Aggregate state event command -> UUID -> command -> m [event]
 
--- | Update a 'Projection'.
-refreshProjection ::
-       (FromJSON event, ToJSON event, MonadIO m, MonadReader Connection m)
-    => GlobalStreamProjection state event
-    -> m (GlobalStreamProjection state event)
-refreshProjection projection = do
-    (Connection (sqlConfig, connectionPool)) <- ask
-    let serializedGlobalReader =
-            serializedGlobalEventStoreReader jsonStringSerializer $
-            sqlGlobalEventStoreReader sqlConfig
-    runDbTx connectionPool $
-        getLatestStreamProjection serializedGlobalReader projection
+instance (FromJSON event, ToJSON event) =>
+         MonadEventStore event (ReaderT Connection (LoggingT IO)) where
+    refreshProjection projection = do
+        (Connection (sqlConfig, connectionPool)) <- ask
+        let reader =
+                serializedGlobalEventStoreReader jsonStringSerializer $
+                sqlGlobalEventStoreReader sqlConfig
+        flip runSqlPool connectionPool $
+            getLatestStreamProjection reader projection
+    runAggregateCommand aggregate identifier input = do
+        (Connection (sqlConfig, connectionPool)) <- ask
+        let writer =
+                serializedEventStoreWriter jsonStringSerializer $
+                sqliteEventStoreWriter sqlConfig
+            reader =
+                serializedVersionedEventStoreReader jsonStringSerializer $
+                sqlEventStoreReader sqlConfig
+        retryOnBusy . flip runSqlPool connectionPool $
+            commandStoredAggregate writer reader aggregate identifier input
 
--- | Update a command through an 'Aggregate'.
-runCommand ::
-       (MonadIO m, ToJSON event, FromJSON event, MonadReader Connection m)
-    => Aggregate state event command
-    -> UUID
-    -> command
-    -> m [event]
-runCommand aggregate identifier input = do
-    (Connection (sqlConfig, connectionPool)) <- ask
-    runDbTx connectionPool $
-        commandStoredAggregate
-            (serializedEventStoreWriter jsonStringSerializer $
-             sqliteEventStoreWriter sqlConfig)
-            (serializedVersionedEventStoreReader jsonStringSerializer $
-             sqlEventStoreReader sqlConfig)
-            aggregate
-            identifier
-            input
+runGlobalQuery ::
+       MonadEventStore event m
+    => Projection a (VersionedStreamEvent event)
+    -> m a
+runGlobalQuery query =
+    fmap streamProjectionState <$> refreshProjection $
+    globalStreamProjection query
