@@ -60,6 +60,9 @@ extra-deps:
 - sbv-8.4
 # to pull in https://github.com/jacobstanley/unix-compat/pull/43 so it works on musl
 - unix-compat-0.5.2
+# to be new enough that https://github.com/jaspervdj/stylish-haskell/issues/236 is fixed
+- haskell-src-exts-1.21.1
+- hlint-2.1.12
 # Purty deps
 - componentm-0.0.0.2
 - teardown-0.5.0.1

@@ -31789,10 +31789,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "haskell-src-exts";
-version = "1.20.3";
-sha256 = "433e68a731fb6a1435e86d3eb3b2878db9c5d51dc1f7499d85bbf5ac3ed1e4a8";
-revision = "1";
-editedCabalFile = "1v42lbm80vnfn5xz12l97dy4wmf1yjxzbq9x0hna81y9pqxm5bl3";
+version = "1.21.1";
+sha256 = "2ec911614325f1e5eef7e5bef15c08b8265931d69da3ce566af109d486453e60";
 libraryHaskellDepends = [
 array
 base
@@ -33697,8 +33695,8 @@ license = stdenv.lib.licenses.mit;
 mkDerivation {
 
 pname = "hlint";
-version = "2.1.11";
-sha256 = "4b590d27ec6da4670deea9de4f52c83048688073b3e6389a74da31d58e30665b";
+version = "2.1.12";
+sha256 = "7de5c4a21cb3d957579398a5fe7c8bc2f56279616309b91cb1e9fda3e55e6fb4";
 isLibrary = true;
 isExecutable = true;
 enableSeparateDataOutput = true;
