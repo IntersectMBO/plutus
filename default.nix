@@ -362,7 +362,7 @@ let
 
     dev = rec {
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" "hlint" ];
       };
 
       scripts = {
@@ -457,15 +457,17 @@ let
       withDevTools = env: env.overrideAttrs (attrs:
         { nativeBuildInputs = attrs.nativeBuildInputs ++
                               [ packages.cabal-install
+                                packages.hlint
+                                packages.stylish-haskell
+
                                 pkgs.ghcid
                                 pkgs.git
                                 pkgs.cacert
-                                pkgs.haskellPackages.hlint
-                                pkgs.haskellPackages.stylish-haskell
                                 pkgs.yarn
                                 pkgs.zlib
                                 pkgs.sqlite-analyzer
                                 pkgs.sqlite-interactive
+
                                 easyPS.purs
                                 easyPS.spago
                                 easyPS.purty
