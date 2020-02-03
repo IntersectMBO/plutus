@@ -88,10 +88,10 @@ import           PlutusPrelude
 
 import           Control.Lens.Indexed
 import           Control.Lens.TH                                         (makeLenses)
+import           Data.Hashable
 import           Data.HashMap.Monoidal
 import           Data.List                                               (intersperse)
 import           Data.Text.Prettyprint.Doc
-import Data.Hashable
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 

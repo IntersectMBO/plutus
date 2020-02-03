@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -5,7 +6,6 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE DerivingVia   #-}
 
 module Wallet.Rollup.Render where
 
@@ -23,8 +23,8 @@ import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
-import           Data.Text.Prettyprint.Doc             (Pretty, Doc, defaultLayoutOptions, fill, indent, layoutPretty, line,
-                                                        parens, pretty, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
+                                                        line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
@@ -33,11 +33,11 @@ import           Ledger                                (Address, PubKey, PubKeyH
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, txFee, txForge, txOutValue, txOutputs,
-                                                        txSignatures)
+                                                        Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator, unValidatorScript, ValidatorHash (ValidatorHash))
+import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator,
+                                                        ValidatorHash (ValidatorHash), unValidatorScript)
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName))
 import qualified Ledger.Value                          as Value
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
@@ -281,7 +281,7 @@ lookupWallet ::
     -> Map PubKeyHash Wallet
     -> m Wallet
 lookupWallet pkh walletKeys = case Map.lookup pkh walletKeys of
-    Nothing -> throwError $ Text.pack $ "Could not find referenced PubKeyHash: " <> show pkh
+    Nothing     -> throwError $ Text.pack $ "Could not find referenced PubKeyHash: " <> show pkh
     Just wallet -> pure wallet
 
 abbreviate :: Int -> Text -> Text

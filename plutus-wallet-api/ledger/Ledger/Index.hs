@@ -1,10 +1,10 @@
-{-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE ScopedTypeVariables     #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -34,7 +34,7 @@ import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Foldable                    (fold, foldl', traverse_, asum)
+import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
 import           Data.Semigroup                   (Semigroup)
 import qualified Data.Set                         as Set
@@ -43,8 +43,8 @@ import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Language.PlutusTx                (toData)
 import qualified Language.PlutusTx.Numeric        as P
-import           Ledger.Address
 import qualified Ledger.Ada                       as Ada
+import           Ledger.Address
 import           Ledger.Blockchain
 import           Ledger.Crypto
 import qualified Ledger.Interval                  as Interval
@@ -253,7 +253,7 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress t
                 then Just (PubKeyMatch txid pk sig)
                 else Nothing
         in case asum sigMatches of
-            Just m -> pure m
+            Just m  -> pure m
             Nothing -> throwError $ SignatureMissing pkh
     _ -> throwError $ InOutTypeMismatch i txo
 
@@ -335,8 +335,8 @@ mkOut :: TxOut -> Validation.PendingTxOut
 mkOut t = Validation.PendingTxOut (txOutValue t) tp where
     tp = case (txOutType t, txOutAddress t) of
         (PayToScript dh, ScriptAddress vh) -> Validation.ScriptTxOut vh dh
-        (PayToPubKey, PubKeyAddress pkh) -> Validation.PubKeyTxOut pkh
-        _ -> error "nope"
+        (PayToPubKey, PubKeyAddress pkh)   -> Validation.PubKeyTxOut pkh
+        _                                  -> error "nope"
 
 pendingTxInScript
     :: ValidationMonad m

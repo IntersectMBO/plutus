@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Ledger.Crypto(
     PubKey(..)
     , PubKeyHash(..)
@@ -29,22 +29,22 @@ module Ledger.Crypto(
     , privateKey10
     ) where
 
+import qualified Codec.CBOR.Write           as Write
 import           Codec.Serialise.Class      (Serialise)
+import           Codec.Serialise.Class      (encode)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
-import           Crypto.Hash               (Digest, SHA256, hash)
-import qualified Codec.CBOR.Write          as Write
-import           Codec.Serialise.Class     (encode)
+import           Crypto.Hash                (Digest, SHA256, hash)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Text.Prettyprint.Doc
-import           Data.Hashable             (Hashable)
+import           Data.Hashable              (Hashable)
 import           Data.String
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
