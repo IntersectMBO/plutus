@@ -21,6 +21,7 @@ module Plutus.SCB.Query
     , balances
     , trialBalance
     , requestStats
+    , latestContractStatus
     , RequestStats
     ) where
 
@@ -31,6 +32,7 @@ import qualified Data.Map.Strict                 as Map
 import           Data.Maybe                      (fromMaybe)
 import           Data.Set                        (Set)
 import qualified Data.Set                        as Set
+import           Data.UUID                       (UUID)
 import           Eventful                        (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
                                                   VersionedStreamEvent, projectionEventHandler, projectionSeed,
                                                   streamProjectionState)
@@ -39,7 +41,9 @@ import           Ledger.Value                    (Value)
 import           Options.Applicative.Help.Pretty (Pretty, indent, int, pretty, vsep, (<+>))
 import           Plutus.SCB.Events               (AccountId, ChainEvent (..), Entry (Entry), EventId,
                                                   RequestEvent (CancelRequest, IssueRequest),
-                                                  ResponseEvent (ResponseEvent), accountId, amount)
+                                                  ResponseEvent (ResponseEvent), UserEvent (ContractStateTransition),
+                                                  accountId, amount)
+import           Plutus.SCB.Types                (ActiveContractState, activeContract, activeContractId)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -99,6 +103,17 @@ trialBalance = Projection {projectionSeed = mempty, projectionEventHandler}
     projectionEventHandler total (StreamEvent _ _ (RecordEntry Entry {amount})) =
         total <> amount
     projectionEventHandler total _ = total
+
+-- | Retain the latest status for a given contract.
+latestContractStatus ::
+       Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+latestContractStatus =
+    Projection {projectionSeed = Map.empty, projectionEventHandler}
+  where
+    projectionEventHandler m (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+        let uuid = activeContractId $ activeContract state
+         in Map.insert uuid state m
+    projectionEventHandler m _ = m
 
 ------------------------------------------------------------
 data RequestStats =

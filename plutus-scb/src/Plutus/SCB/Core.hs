@@ -13,6 +13,7 @@ module Plutus.SCB.Core
     , dbConnect
     , installContract
     , instantiateContract
+    , reportContractStatus
     , availableContracts
     , availableContractsProjection
     , activeContracts
@@ -35,8 +36,10 @@ import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, l
 import           Control.Monad.Reader       (MonadReader, ReaderT, ask, runReaderT)
 import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
+import qualified Data.Map.Strict            as Map
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
+import qualified Data.Text                  as Text
 import qualified Data.UUID                  as UUID
 import           Database.Persist.Sqlite    (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
                                              retryOnBusy, runSqlPool)
@@ -56,16 +59,17 @@ import           Plutus.SCB.Events          (ChainEvent (UserEvent), EventId (Ev
                                              RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
                                              Tx, UserEvent (ContractStateTransition, InstallContract))
 import qualified Plutus.SCB.Events          as Events
-import           Plutus.SCB.Query           (balances, eventCount, nullProjection, requestStats, setProjection,
-                                             trialBalance)
+import           Plutus.SCB.Query           (balances, eventCount, latestContractStatus, nullProjection, requestStats,
+                                             setProjection, trialBalance)
 import qualified Plutus.SCB.Relation        as Relation
-import           Plutus.SCB.Types           (ActiveContract (ActiveContract), Contract (Contract), DbConfig (DbConfig),
-                                             PartiallyDecodedResponse, SCBError (ContractNotFound, FileNotFound),
-                                             activeContractId, activeContractPath, contractPath, dbConfigFile,
-                                             dbConfigPoolSize)
+import           Plutus.SCB.Types           (ActiveContract (ActiveContract), ActiveContractState (ActiveContractState),
+                                             Contract (Contract), DbConfig (DbConfig), PartiallyDecodedResponse,
+                                             SCBError (ContractCommandError, ContractNotFound, FileNotFound),
+                                             activeContract, activeContractId, activeContractPath, contractPath,
+                                             dbConfigFile, dbConfigPoolSize)
 import           Plutus.SCB.Utils           (logInfoS, render, tshow)
 import           System.Directory           (doesFileExist)
-import           System.Exit                (ExitCode (ExitSuccess))
+import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process             (readProcessWithExitCode)
 import           Test.QuickCheck            (arbitrary, frequency, generate)
 
@@ -252,10 +256,17 @@ instantiateContract filePath = do
                         runAggregateCommand
                             saveContractState
                             (UUID.fromWords 0 0 0 3)
-                            (activeContract, initialState)
+                            (ActiveContractState activeContract initialState)
                     logInfoN $ "Installed: " <> tshow activeContract
                     logInfoN "Done"
                     pure $ Right ()
+
+reportContractStatus ::
+       (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
+reportContractStatus uuid = do
+    logInfoN "Finding Contract"
+    statuses <- runGlobalQuery latestContractStatus
+    logInfoN $ render $ Map.lookup uuid statuses
 
 lookupContract ::
        MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
@@ -280,13 +291,12 @@ initContract Contract {contractPath} = do
                 Right value -> pure $ Right value
                 Left err    -> pure . Left $ ContractCommandError 0 (Text.pack err)
 
-saveContractState ::
-       Aggregate () ChainEvent (ActiveContract, PartiallyDecodedResponse)
+saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =
     Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
   where
-    aggregateCommandHandler _ (contract, response) =
-        [UserEvent $ ContractStateTransition contract response]
+    aggregateCommandHandler _ state =
+        [UserEvent $ ContractStateTransition state]
 
 availableContracts :: MonadEventStore ChainEvent m => m (Set Contract)
 availableContracts = runGlobalQuery availableContractsProjection
@@ -306,8 +316,8 @@ activeContractsProjection ::
        Projection (Set ActiveContract) (StreamEvent key position ChainEvent)
 activeContractsProjection = projectionMapMaybe contractPaths setProjection
   where
-    contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition contract _))) =
-        Just contract
+    contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+        Just $ activeContract state
     contractPaths _ = Nothing
 
 ------------------------------------------------------------
