@@ -60,6 +60,7 @@ library
         Plutus.SCB.Events
         Plutus.SCB.Query
         Plutus.SCB.Relation
+        Plutus.SCB.Types
         Plutus.SCB.Utils
     other-modules:
         Plutus.SCB.Events.Contract
@@ -83,6 +84,7 @@ library
         bytestring -any,
         containers -any,
         directory -any,
+        errors -any,
         eventful-core -any,
         eventful-memory -any,
         eventful-sql-common -any,
@@ -91,14 +93,15 @@ library
         http-client -any,
         lens -any,
         monad-logger -any,
-        row-types -any,
         mtl -any,
         optparse-applicative -any,
         persistent-sqlite -any,
         playground-common -any,
         prettyprinter >=1.1.0.1,
+        process -any,
         quickcheck-instances -any,
         random -any,
+        row-types -any,
         servant -any,
         servant-client -any,
         servant-server -any,
@@ -131,6 +134,7 @@ executable plutus-scb
         plutus-scb -any,
         text -any,
         unliftio-core -any,
+        uuid -any,
         yaml -any
 
 executable plutus-contract
@@ -158,11 +162,15 @@ test-suite plutus-scb-test
     build-depends:
         QuickCheck -any,
         base >=4.9 && <5,
+        containers -any,
         eventful-core -any,
         eventful-memory -any,
+        monad-logger -any,
+        mtl -any,
         plutus-scb -any,
         plutus-wallet-api -any,
         quickcheck-instances -any,
         tasty -any,
+        tasty-hunit -any,
         tasty-quickcheck -any,
         transformers -any

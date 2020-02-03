@@ -21,9 +21,11 @@ import           Options.Applicative       (CommandFields, Mod, Parser, auto, co
                                             fullDesc, help, helper, idm, info, infoOption, long, metavar, option,
                                             optional, prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
                                             strOption, subparser, value)
-import           Plutus.SCB.Core           (SCBError)
+import           Plutus.SCB.Core           (Connection, MonadEventStore, dbConnect)
 import qualified Plutus.SCB.Core           as Core
-import           Plutus.SCB.Utils          (logErrorS)
+import           Plutus.SCB.Events         (ChainEvent)
+import           Plutus.SCB.Types          (SCBError)
+import           Plutus.SCB.Utils          (logErrorS, logInfoS)
 import           System.Exit               (ExitCode (ExitFailure, ExitSuccess), exitWith)
 import qualified System.Remote.Monitoring  as EKG
 
@@ -36,8 +38,9 @@ data Command
     | WalletClient
     | NodeClient
     | InstallContract FilePath
-    | ListAvailableContracts
-    | ListActiveContracts
+    | InstantiateContract FilePath
+    | ReportAvailableContracts
+    | ReportActiveContracts
     deriving (Show, Eq)
 
 versionOption :: Parser (a -> a)
@@ -76,8 +79,9 @@ commandParser =
         , mockNodeParser
         , nodeClientParser
         , installContractParser
-        , listAvailableContractsParser
-        , listActiveContractsParser
+        , instantiateContractParser
+        , reportAvailableContractsParser
+        , reportActiveContractsParser
         ]
 
 dbStatsParser :: Mod CommandFields Command
@@ -132,9 +136,22 @@ nodeClientParser =
         (pure NodeClient)
         (fullDesc <> progDesc "Run a basic query against the Cardano node API.")
 
+instantiateContractParser :: Mod CommandFields Command
+instantiateContractParser =
+    command "instantiate-contract" $
+    flip
+        info
+        (fullDesc <> progDesc "Instantiate a smart contract.")
+        (InstantiateContract <$>
+         option
+             auto
+             (short 'n' <> long "name" <>
+              help
+                  "Name of the contract. (See 'available-contracts' for a list.)"))
+
 installContractParser :: Mod CommandFields Command
 installContractParser =
-    command "install" $
+    command "install-contract" $
     flip
         info
         (fullDesc <> progDesc "Install a new smart contract.")
@@ -143,35 +160,47 @@ installContractParser =
              (short 'p' <> long "path" <>
               help "Path to contract. Must be an executable."))
 
-listAvailableContractsParser :: Mod CommandFields Command
-listAvailableContractsParser =
+reportAvailableContractsParser :: Mod CommandFields Command
+reportAvailableContractsParser =
     command "available-contracts" $
     info
-        (pure ListAvailableContracts)
+        (pure ReportAvailableContracts)
         (fullDesc <> progDesc "Show all installed contracts.")
 
-listActiveContractsParser :: Mod CommandFields Command
-listActiveContractsParser =
-    command "contracts" $
+reportActiveContractsParser :: Mod CommandFields Command
+reportActiveContractsParser =
+    command "active-contracts" $
     info
-        (pure ListActiveContracts)
+        (pure ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
 
 ------------------------------------------------------------
 runCliCommand ::
-       (MonadLogger m, MonadUnliftIO m, MonadReader Core.DbConfig m)
+       ( MonadUnliftIO m
+       , MonadLogger m
+       , MonadReader Connection m
+       , MonadEventStore ChainEvent m
+       )
     => Command
     -> m (Either SCBError ())
-runCliCommand Simulate               = Right <$> Core.simulate
-runCliCommand DbStats                = Right <$> Core.dbStats
-runCliCommand Migrate                = Right <$> Core.migrate
-runCliCommand MockWallet             = Right <$> WalletServer.main
-runCliCommand MockNode               = Right <$> NodeServer.main
-runCliCommand WalletClient           = Right <$> liftIO WalletClient.main
-runCliCommand NodeClient             = Right <$> liftIO NodeClient.main
+runCliCommand Simulate = Right <$> Core.simulate
+runCliCommand DbStats = do
+    Right <$> Core.dbStats
+runCliCommand Migrate = Right <$> Core.migrate
+runCliCommand MockWallet = Right <$> WalletServer.main
+runCliCommand MockNode = Right <$> NodeServer.main
+runCliCommand WalletClient = Right <$> liftIO WalletClient.main
+runCliCommand NodeClient = Right <$> liftIO NodeClient.main
 runCliCommand (InstallContract path) = Core.installContract path
-runCliCommand ListAvailableContracts = Right <$> Core.listAvailableContracts
-runCliCommand ListActiveContracts    = Right <$> Core.listActiveContracts
+runCliCommand (InstantiateContract path) = Core.instantiateContract path
+runCliCommand ReportAvailableContracts = do
+    logInfoN "Available Contracts"
+    traverse_ logInfoS =<< Core.availableContracts
+    pure $ Right ()
+runCliCommand ReportActiveContracts = do
+    logInfoN "Active Contracts"
+    traverse_ logInfoS =<< Core.activeContracts
+    pure $ Right ()
 
 main :: IO ()
 main = do
@@ -185,7 +214,8 @@ main = do
         runStderrLoggingT $
         filterLogger (\_ level -> level > LevelDebug) $ do
             logInfoN $ "Running: " <> Text.pack (show cmd)
-            result <- runReaderT (runCliCommand cmd) config
+            connection <- runReaderT dbConnect config
+            result <- runReaderT (runCliCommand cmd) connection
             logDebugN $ "Ran: " <> Text.pack (show result)
             case result of
                 Left err -> do
