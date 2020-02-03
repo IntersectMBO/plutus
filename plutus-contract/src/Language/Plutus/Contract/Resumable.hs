@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -6,6 +5,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 -- | A version of 'Language.Plutus.Contract.Contract' that
 --   writes checkpoints.
 module Language.Plutus.Contract.Resumable(
@@ -310,11 +310,11 @@ runClosed con rc = addRecordMismatchInfo ("runClosed on: " <> pretty con) $
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
                         o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
--- | 'RunOpenProgress' indicats whether progress was made when running a 
---   resumable program on an open record. Progress was made if one of the 
+-- | 'RunOpenProgress' indicats whether progress was made when running a
+--   resumable program on an open record. Progress was made if one of the
 --   branches of the open record switched from open to closed.
-data RunOpenProgress = 
-    Progress 
+data RunOpenProgress =
+    Progress
     | NoProgress
 
 -- | Run an unfinished resumable program on an open record,
@@ -331,9 +331,9 @@ runOpenNoProgress con opr = do
         Left (_, NoProgress) -> pure ()
         _                    -> throwError ProgressError
     -- TODO: The sole purpose of 'runOpenNoProgress' is to run the 'MonadWriter'
-    --       effects. But every time we call 'runOpenNoProgress', 'runOpen con 
-    --       opr' has already been run before. If we could store the 
-    --       'o' that it produced in the record then we can avoid 
+    --       effects. But every time we call 'runOpenNoProgress', 'runOpen con
+    --       opr' has already been run before. If we could store the
+    --       'o' that it produced in the record then we can avoid
     --       'runOpenNoProgress' altogether.
 
 runOpenRightNoProgress
@@ -363,8 +363,8 @@ runOpen con opr =
             lr <- runOpen l opr'
             rr <- runClosed r cr
             case lr of
-                Left (opr'', prog)     -> pure (Left (OpenLeft opr'' cr, prog))
-                Right (cr', a) -> pure (Right (ClosedBin cr' cr, a rr))
+                Left (opr'', prog) -> pure (Left (OpenLeft opr'' cr, prog))
+                Right (cr', a)     -> pure (Right (ClosedBin cr' cr, a rr))
         (CAp l r, OpenRight cr opr') -> do
             lr <- runClosed l cr
             rr <- runOpen r opr'
@@ -423,8 +423,8 @@ runOpen con opr =
             lr <- runClosed c cr
             rr <- runOpen (f lr) opr'
             case rr of
-                Left (opr'', prog)     -> pure (Left (OpenRight cr opr'', prog))
-                Right (cr', a) -> pure (Right (ClosedBin cr cr', a))
+                Left (opr'', prog) -> pure (Left (OpenRight cr opr'', prog))
+                Right (cr', a)     -> pure (Right (ClosedBin cr cr', a))
         (CBind{}, _) -> throwRecordmismatchError "CBind"
 
         (CStep con', OpenLeaf evt) -> do
@@ -467,10 +467,10 @@ updateRecord con rc =
             $ runWriterT @o
             $ runClosed con cl
         OpenRec cl  ->
-            let mkResult (Left openRec, o) = 
+            let mkResult (Left openRec, o) =
                     ResumableResult { wcsRecord = OpenRec openRec, wcsHandlers = o, wcsFinalState = Nothing }
                 mkResult (Right (closedrec, a), o) =
-                    ResumableResult { wcsRecord = ClosedRec closedrec, wcsHandlers = o, wcsFinalState = Just a} 
+                    ResumableResult { wcsRecord = ClosedRec closedrec, wcsHandlers = o, wcsFinalState = Just a}
             in fmap mkResult
             $ runExcept
             $ runWriterT
@@ -493,14 +493,14 @@ runResumable es con = do
     let go r e =
             let r' = over (from record) (insert e) (fst <$> fst r)
                 result = case r' of
-                    Left open -> 
-                        runExcept 
-                        $ runWriterT 
+                    Left open ->
+                        runExcept
+                        $ runWriterT
                         $ fmap (first fst) (runOpen con open)
-                    Right closed -> 
+                    Right closed ->
                         fmap (\(a, h) -> (Right (closed, a), h))
-                        $ runExcept 
-                        $ runWriterT 
+                        $ runExcept
+                        $ runWriterT
                         $ runClosed con closed
             in result
     foldM go initial es >>= \case

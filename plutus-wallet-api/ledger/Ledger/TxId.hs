@@ -17,8 +17,8 @@ import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Prelude as PlutusTx
-import           LedgerBytes               (LedgerBytes(..))
 import           Ledger.Orphans            ()
+import           LedgerBytes               (LedgerBytes (..))
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }

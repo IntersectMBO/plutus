@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
@@ -6,6 +5,7 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 -- | Testing contracts with HUnit and Tasty
