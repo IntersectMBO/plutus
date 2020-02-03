@@ -15,6 +15,7 @@ import           Control.Monad.Logger      (LogLevel (LevelDebug), MonadLogger, 
 import           Control.Monad.Reader      (MonadReader, runReaderT)
 import           Data.Foldable             (traverse_)
 import qualified Data.Text                 as Text
+import           Data.UUID                 (UUID)
 import           Data.Yaml                 (decodeFileThrow)
 import           Git                       (gitRev)
 import           Options.Applicative       (CommandFields, Mod, Parser, auto, command, customExecParser, disambiguate,
@@ -25,7 +26,7 @@ import           Plutus.SCB.Core           (Connection, MonadEventStore, dbConne
 import qualified Plutus.SCB.Core           as Core
 import           Plutus.SCB.Events         (ChainEvent)
 import           Plutus.SCB.Types          (SCBError)
-import           Plutus.SCB.Utils          (logErrorS, logInfoS)
+import           Plutus.SCB.Utils          (logErrorS, logInfoS, render, tshow)
 import           System.Exit               (ExitCode (ExitFailure, ExitSuccess), exitWith)
 import qualified System.Remote.Monitoring  as EKG
 
@@ -39,6 +40,7 @@ data Command
     | NodeClient
     | InstallContract FilePath
     | InstantiateContract FilePath
+    | ContractStatus UUID
     | ReportAvailableContracts
     | ReportActiveContracts
     deriving (Show, Eq)
@@ -80,6 +82,7 @@ commandParser =
         , nodeClientParser
         , installContractParser
         , instantiateContractParser
+        , contractStatusParser
         , reportAvailableContractsParser
         , reportActiveContractsParser
         ]
@@ -159,6 +162,18 @@ installContractParser =
              (short 'p' <> long "path" <>
               help "Path to the executable contract."))
 
+contractStatusParser :: Mod CommandFields Command
+contractStatusParser =
+    command "contract-status" $
+    flip
+        info
+        (fullDesc <> progDesc "Show the current status of a contract.")
+        (ContractStatus <$>
+         option
+             auto
+             (short 'u' <> long "uuid" <>
+              help "ID of the contract. (See 'active-contracts' for a list.)"))
+
 reportAvailableContractsParser :: Mod CommandFields Command
 reportAvailableContractsParser =
     command "available-contracts" $
@@ -192,13 +207,14 @@ runCliCommand WalletClient = Right <$> liftIO WalletClient.main
 runCliCommand NodeClient = Right <$> liftIO NodeClient.main
 runCliCommand (InstallContract path) = Core.installContract path
 runCliCommand (InstantiateContract path) = Core.instantiateContract path
+runCliCommand (ContractStatus uuid) = Right <$> Core.reportContractStatus uuid
 runCliCommand ReportAvailableContracts = do
     logInfoN "Available Contracts"
-    traverse_ logInfoS =<< Core.availableContracts
+    traverse_ (logInfoS . render) =<< Core.availableContracts
     pure $ Right ()
 runCliCommand ReportActiveContracts = do
     logInfoN "Active Contracts"
-    traverse_ logInfoS =<< Core.activeContracts
+    traverse_ (logInfoS . render) =<< Core.activeContracts
     pure $ Right ()
 
 main :: IO ()
