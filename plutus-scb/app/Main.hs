@@ -143,9 +143,8 @@ instantiateContractParser =
         info
         (fullDesc <> progDesc "Instantiate a smart contract.")
         (InstantiateContract <$>
-         option
-             auto
-             (short 'n' <> long "name" <>
+         strOption
+             (short 'p' <> long "path" <>
               help
                   "Name of the contract. (See 'available-contracts' for a list.)"))
 
@@ -158,7 +157,7 @@ installContractParser =
         (InstallContract <$>
          strOption
              (short 'p' <> long "path" <>
-              help "Path to contract. Must be an executable."))
+              help "Path to the executable contract."))
 
 reportAvailableContractsParser :: Mod CommandFields Command
 reportAvailableContractsParser =
