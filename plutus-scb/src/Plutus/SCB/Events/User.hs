@@ -6,10 +6,10 @@ module Plutus.SCB.Events.User where
 
 import           Data.Aeson       (FromJSON, ToJSON)
 import           GHC.Generics     (Generic)
-import           Plutus.SCB.Types (ActiveContract,Contract, PartiallyDecodedResponse)
+import           Plutus.SCB.Types (ActiveContractState, Contract)
 
 data UserEvent
     = InstallContract Contract
-    | ContractStateTransition ActiveContract PartiallyDecodedResponse
+    | ContractStateTransition ActiveContractState
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
