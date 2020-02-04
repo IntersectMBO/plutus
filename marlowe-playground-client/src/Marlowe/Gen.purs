@@ -13,8 +13,9 @@ import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
-import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TokenName)
-import Text.Parsing.Parser.Pos (Position(..))
+import Marlowe.Semantics (CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Semantics as S
+import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
 
 oneOf ::
@@ -72,11 +73,8 @@ genBound = do
   to <- genTerm $ suchThat genBigInteger (\v -> v > from)
   pure $ Bound from' to
 
-genPosition :: forall m. MonadGen m => MonadRec m => m Position
-genPosition = do
-  column <- chooseInt 0 1000
-  line <- chooseInt 0 1000
-  pure $ Position { column, line }
+genPosition :: forall m. MonadGen m => MonadRec m => m Pos
+genPosition = chooseInt 0 1000
 
 genHole :: forall m a. MonadGen m => MonadRec m => m (Term a)
 genHole = do
@@ -276,3 +274,76 @@ genContract' size
     genLeaf ::
       m Contract
     genLeaf = pure Close
+
+----------------------------------------------------------------- Semantics Generators ---------------------------------
+genTokenNameValue :: forall m. MonadGen m => MonadRec m => m S.TokenName
+genTokenNameValue = genString
+
+genCurrencySymbolValue :: forall m. MonadGen m => MonadRec m => m S.CurrencySymbol
+genCurrencySymbolValue = genString
+
+genTokenValue :: forall m. MonadGen m => MonadRec m => m S.Token
+genTokenValue = do
+  currencySymbol <- genCurrencySymbolValue
+  tokenName <- genTokenName
+  pure $ S.Token currencySymbol tokenName
+
+genPartyValue :: forall m. MonadGen m => MonadRec m => m S.Party
+genPartyValue = oneOf $ pk :| [ role ]
+  where
+  pk = S.PK <$> genPubKey
+
+  role = S.Role <$> genTokenNameValue
+
+genAccountIdValue :: forall m. MonadGen m => MonadRec m => m S.AccountId
+genAccountIdValue = do
+  accountNumber <- genBigInteger
+  accountOwner <- genPartyValue
+  pure $ S.AccountId accountNumber accountOwner
+
+genPayeeValue :: forall m. MonadGen m => MonadRec m => m S.Payee
+genPayeeValue = oneOf $ (S.Account <$> genAccountIdValue) :| [ S.Party <$> genPartyValue ]
+
+genValueIdValue :: forall m. MonadGen m => MonadRec m => m S.ValueId
+genValueIdValue = S.ValueId <$> genString
+
+genChoiceIdValue :: forall m. MonadGen m => MonadRec m => m S.ChoiceId
+genChoiceIdValue = do
+  choiceName <- genString
+  choiceOwner <- genPartyValue
+  pure $ S.ChoiceId choiceName choiceOwner
+
+genInput ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m S.Input
+genInput =
+  oneOf
+    $ (IDeposit <$> genAccountIdValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
+    :| [ IChoice <$> genChoiceIdValue <*> genBigInteger
+      , pure INotify
+      ]
+
+genTransactionInput ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m S.TransactionInput
+genTransactionInput = do
+  interval <- genSlotInterval genSlot
+  inputs <- unfoldable genInput
+  pure $ TransactionInput { interval, inputs }
+
+genTransactionWarning ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m TransactionWarning
+genTransactionWarning =
+  oneOf
+    $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genAccountIdValue <*> genTokenValue <*> genBigInteger)
+    :| [ TransactionNonPositivePay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
+      , TransactionPartialPay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
+      , TransactionShadowing <$> genValueIdValue <*> genBigInteger <*> genBigInteger
+      ]

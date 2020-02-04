@@ -2,7 +2,6 @@ module Simulation where
 
 import API (RunResult(RunResult))
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
-import Ace.Types as Ace
 import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
 import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
 import Control.Alternative (map)
@@ -35,8 +34,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
-import Text.Parsing.Parser (runParser)
-import Text.Parsing.Parser.Pos (Position(..))
+import Text.Parsing.StringParser (runParser)
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
@@ -158,28 +156,28 @@ holeDropdowns holes = case Array.uncons holes of
   Just { head: (MarloweHole { marloweType: BigIntegerType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with an integer" ]
     ]
   Just { head: (MarloweHole { marloweType: StringType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with a string" ]
     ]
   Just { head: (MarloweHole { marloweType: ValueIdType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with a string" ]
     ]
   Just { head: (MarloweHole { marloweType: SlotType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with an integer" ]
     ]
@@ -193,8 +191,6 @@ holeDropdowns holes = case Array.uncons holes of
             [ text constructor ]
       )
       (fromFoldable $ Map.keys $ getMarloweConstructors marloweType)
-  where
-  holeToAcePosition (Position { column, line }) = Ace.Position { column, row: line }
 
 demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =
@@ -1014,7 +1010,7 @@ analysisResultPane state =
       _ -> empty
 
 displayTransactionList :: forall p. String -> HTML p HAction
-displayTransactionList transactionList = case runParser transactionList transactionInputList of
+displayTransactionList transactionList = case runParser transactionInputList transactionList of
   Right pTL ->
     ol_
       ( do
@@ -1084,7 +1080,7 @@ displayInput (INotify) =
   ]
 
 displayWarningList :: forall p. String -> HTML p HAction
-displayWarningList transactionWarnings = case runParser transactionWarnings transactionWarningList of
+displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
   Right pWL ->
     ol_
       ( do

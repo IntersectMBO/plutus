@@ -4,7 +4,7 @@ import API (_RunResult)
 import Ace.EditSession as Session
 import Ace.Editor (getSession) as Editor
 import Ace.Halogen.Component (AceMessage(TextChanged))
-import Ace.Types (Editor, Annotation)
+import Ace.Types (Annotation, Editor, Position(..))
 import Analytics (Event, defaultEvent, trackEvent)
 import Bootstrap (active, btn, btnGroup, btnInfo, btnPrimary, btnSmall, colXs12, colSm6, colSm5, container, container_, empty, hidden, listGroupItem_, listGroup_, navItem_, navLink, navTabs_, noGutters, pullRight, row, justifyContentBetween)
 import Control.Bind (bindFlipped, map, void, when)
@@ -27,8 +27,8 @@ import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
-import Editor (compileButton, editorView, editorFeedback)
 import Editor (Action(..), Preferences, loadPreferences) as Editor
+import Editor (compileButton, editorView, editorFeedback)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -50,7 +50,6 @@ import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (MarloweHole(..), replaceInPositions)
 import Marlowe.Parser (contract, hole)
-import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
 import MonadApp (haskellEditorHandleAction, class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
@@ -58,8 +57,10 @@ import Prelude (Unit, add, bind, const, discard, not, one, pure, show, unit, zer
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
-import Text.Parsing.Parser (runParser)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebsocketMessage, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
+import Text.Parsing.StringParser (runParser)
+import Text.Parsing.StringParser.Basic (posToRowAndColumn)
+import Text.Pretty (genericPretty)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), Message, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 mkInitialState :: Editor.Preferences -> FrontendState
@@ -85,7 +86,7 @@ mkMainFrame ::
   MonadAff m =>
   MonadEffect n =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  n (Component HTML HQuery Unit WebsocketMessage m)
+  n (Component HTML HQuery Unit Message m)
 mkMainFrame = do
   editorPreferences <- Editor.loadPreferences
   let
@@ -108,7 +109,7 @@ handleActionWithAnalyticsTracking ::
   forall m.
   MonadAff m =>
   MonadAsk (SPSettings_ SPParams_) m =>
-  HAction -> HalogenM FrontendState HAction ChildSlots WebsocketMessage m Unit
+  HAction -> HalogenM FrontendState HAction ChildSlots Message m Unit
 handleActionWithAnalyticsTracking action = do
   liftEffect $ analyticsTracking action
   runHalogenApp $ handleAction action
@@ -212,7 +213,10 @@ handleAction (MarloweHandleDropEvent event) = do
   updateContractInState contents
 
 handleAction (MarloweMoveToPosition pos) = do
-  marloweEditorMoveCursorToPosition pos
+  contents <- fromMaybe "" <$> marloweEditorGetValue
+  let
+    p = posToRowAndColumn contents pos
+  marloweEditorMoveCursorToPosition (Position p)
   assign _selectedHole Nothing
 
 handleAction CheckAuthStatus = do
@@ -271,7 +275,7 @@ handleAction ApplyTransaction = do
   mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> do
-      marloweEditorSetValue (show $ pretty currContract) (Just 1)
+      marloweEditorSetValue (show $ genericPretty currContract) (Just 1)
     Nothing -> pure unit
 
 handleAction NextSlot = do
@@ -320,7 +324,7 @@ handleAction Undo = do
   modifying _marloweState removeState
   mCurrContract <- use _currentContract
   case mCurrContract of
-    Just currContract -> marloweEditorSetValue (show $ pretty currContract) (Just 1)
+    Just currContract -> marloweEditorSetValue (show $ genericPretty currContract) (Just 1)
     Nothing -> pure unit
   where
   removeState ms =
@@ -340,12 +344,12 @@ handleAction (InsertHole constructor firstHole@(MarloweHole { start }) holes) = 
       -- If we have a top level hole we don't want surround the value with brackets
       -- so we parse the editor contents and if it is a hole we strip the parens
       let
-        contractWithHole = case runParser currContract hole of
+        contractWithHole = case runParser hole currContract of
           Right _ -> stripParens $ replaceInPositions constructor firstHole holes currContract
           Left _ -> replaceInPositions constructor firstHole holes currContract
 
-        prettyContract = case runParser contractWithHole contract of
-          Right c -> show $ pretty c
+        prettyContract = case runParser contract contractWithHole of
+          Right c -> show $ genericPretty c
           Left _ -> contractWithHole
       marloweEditorSetValue prettyContract (Just 1)
     Nothing -> pure unit
