@@ -2,7 +2,6 @@ module Types where
 
 import API (RunResult)
 import Ace (Annotation)
-import Ace as Ace
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
@@ -35,6 +34,7 @@ import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
+import Text.Parsing.StringParser (Pos)
 import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -50,7 +50,7 @@ data HAction
   = MarloweHandleEditorMessage AceMessage
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
-  | MarloweMoveToPosition Ace.Position
+  | MarloweMoveToPosition Pos
   | HaskellEditorAction Editor.Action
   -- Gist support.
   | CheckAuthStatus
@@ -77,7 +77,7 @@ data HAction
   -- websocket
   | AnalyseContract
 
-data WebsocketMessage
+data Message
   = WebsocketMessage String
 
 ------------------------------------------------------------

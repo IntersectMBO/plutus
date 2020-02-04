@@ -821,18 +821,6 @@ let
         installPhase = "ln -s $src $out";
       };
 
-    "parsing" = pkgs.stdenv.mkDerivation {
-        name = "parsing";
-        version = "v5.0.3";
-        src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-parsing.git";
-          rev = "e801a0ef42f3211b1602a94a269eef7ce551423f";
-          sha256 = "0m5xvb5kis28laj3navyyakyq408vw115c2dvngf1vljzh1hk5kj";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
     "partial" = pkgs.stdenv.mkDerivation {
         name = "partial";
         version = "v2.0.1";
@@ -1013,6 +1001,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "string-parsers" = pkgs.stdenv.mkDerivation {
+        name = "string-parsers";
+        version = "v5.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/paf31/purescript-string-parsers.git";
+          rev = "ff023be7eeaf3dd129e652f9f1c225dfb196cf94";
+          sha256 = "1lykswyd3icv9lx4r096lxfd244i0pzj2f4fpm604czzlfw6bspv";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "strings" = pkgs.stdenv.mkDerivation {
         name = "strings";
         version = "v4.0.1";
@@ -1128,18 +1128,6 @@ let
           url = "https://github.com/purescript/purescript-unfoldable.git";
           rev = "be3262a9dc48e794676b1b2883987331d4be6fd7";
           sha256 = "0lzhx030c5933maxcjwk6kzlvbxky1kiwrymqf1dp5wbrar3jyv4";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
-    "unicode" = pkgs.stdenv.mkDerivation {
-        name = "unicode";
-        version = "v4.0.1";
-        src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-unicode.git";
-          rev = "bb70f5a17aa9bcad05104c5a3f191fd75bb3d2ce";
-          sha256 = "1a53jv7pzyjk5v6kmwwy50d3l8d26k0id59sn8g3lzkih24nalhp";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

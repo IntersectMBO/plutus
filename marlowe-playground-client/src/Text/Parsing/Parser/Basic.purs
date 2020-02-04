@@ -1,26 +1,41 @@
-module Text.Parsing.Parser.Basic where
+module Text.Parsing.StringParser.Basic where
 
 import Prelude hiding (between)
 import Control.Alternative ((<|>))
-import Data.Array (foldl, many, mapWithIndex, (:))
+import Data.Array (foldl, last, length, many, some, (:))
 import Data.Array as Array
-import Data.Maybe (Maybe(..))
-import Data.String.CodeUnits (drop, fromCharArray, take)
+import Data.Bifunctor (bimap)
+import Data.Either (Either)
+import Data.Foldable (foldMap)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.String.CodeUnits (drop, fromCharArray, singleton, take)
 import Data.String.CodeUnits as String
-import Text.Parsing.Parser (ParserT)
-import Text.Parsing.Parser.Combinators (between)
-import Text.Parsing.Parser.Pos (Position(..))
-import Text.Parsing.Parser.String (char)
-import Text.Parsing.Parser.Token (digit)
+import Text.Parsing.StringParser (ParseError, Parser(..), Pos)
+import Text.Parsing.StringParser.CodeUnits (anyDigit, char, satisfy, skipSpaces)
+import Text.Parsing.StringParser.Combinators (between)
 
-integral :: forall m. Monad m => ParserT String m String
+integral :: Parser String
 integral = do
-  firstChar <- digit <|> char '-'
-  digits <- many digit
+  firstChar <- anyDigit <|> char '-'
+  digits <- many anyDigit
   pure $ fromCharArray (firstChar : digits)
 
-parens :: forall m a. Monad m => ParserT String m a -> ParserT String m a
-parens = between (char '(') (char ')')
+parens :: forall a. Parser a -> Parser a
+parens p =
+  between (char '(') (char ')') do
+    skipSpaces
+    res <- p
+    skipSpaces
+    pure res
+
+whiteSpaceChar :: Parser Char
+whiteSpaceChar = satisfy \c -> c == '\n' || c == '\r' || c == ' ' || c == '\t'
+
+-- | Match some whitespace characters.
+someWhiteSpace :: Parser String
+someWhiteSpace = do
+  cs <- some whiteSpaceChar
+  pure (foldMap singleton cs)
 
 unlines :: Array String -> String
 unlines = foldl f ""
@@ -50,14 +65,21 @@ lines = map String.fromCharArray <<< go <<< String.toCharArray
   break :: forall a. (a -> Boolean) -> Array a -> { init :: (Array a), rest :: (Array a) }
   break p = Array.span (not <<< p)
 
-replaceInPosition :: Position -> Position -> String -> String -> String
-replaceInPosition (Position start) (Position end) value initial =
-  unlines
-    $ mapWithIndex
-        ( \i line ->
-            if i == (start.line - 1) then
-              (take (start.column - 1) line) <> value <> (drop (end.column - 1) line)
-            else
-              line
-        )
-    $ lines initial
+replaceInPosition :: { start :: Pos, end :: Pos, string :: String, replacement :: String } -> String
+replaceInPosition { start, end, string, replacement } = take start string <> replacement <> drop end string
+
+runParser' :: forall a. Parser a -> String -> Either { error :: ParseError, pos :: Pos } a
+runParser' (Parser p) s = bimap identity _.result (p { str: s, pos: 0 })
+
+posToRowAndColumn :: String -> Pos -> { row :: Int, column :: Int }
+posToRowAndColumn text pos =
+  let
+    prefix = take pos text
+
+    lined = lines prefix
+
+    row = length lined - 1
+
+    column = String.length (fromMaybe "" (last lined))
+  in
+    { row, column }

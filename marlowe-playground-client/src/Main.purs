@@ -56,7 +56,7 @@ main = do
     body <- awaitBody
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
     driver.subscribe $ wsSender socket
-    runProcess (wsProducer socket $$ wsConsumer driver.query)
+    void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer driver.query)
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit
