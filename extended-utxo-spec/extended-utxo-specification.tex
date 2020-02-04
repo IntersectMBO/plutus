@@ -11,7 +11,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{20th December 2019}
+\date{4th February 2020}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -682,7 +682,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \label{rule:all-inputs-refer-to-unspent-outputs}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
-    t.\inputs \subseteq \unspent(l).
+    \{i.\outputref: i \in t.\inputs \} \subseteq \unspent(l).
   \end{displaymath}
 
 \item
@@ -914,7 +914,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \label{rule:all-inputs-refer-to-unspent-outputs-2}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
-    t.\inputs \subseteq \unspent(l).
+    \{i.\outputref: i \in t.\inputs \} \subseteq \unspent(l).
   \end{displaymath}
 
 \item
@@ -925,9 +925,12 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \begin{enumerate}
     \item the ledger $l$ is empty (that is, if it is the initial transaction).
     \item \label{rule:custom-forge}
-      for every key $h$ in $\support(t.\forge)$, there
-      exists $i \in t.\inputs$ and $(a,v,d) \in i.\outputs$ with
-      $a =h$; in other words, some input must spend an output
+      for every key $h \in \support(t.\forge)$, there
+      exists $i \in t.\inputs$ with
+      $$
+      h = \getSpent(i,l).\addr;
+      $$
+      in other words, some input must spend an output
       whose address is $h$.
   \end{enumerate}
 
@@ -967,6 +970,11 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 \end{ruledfigure}
 
 \subsection{Remarks}
+\paragraph{Monetary policies.} 
+Rule~\ref{rule:custom-forge} can be used to enforce monetary policies
+for custom currencies: see Note~\ref{note:monetary-policies} for a
+detailed explanation.
+
 \paragraph{Preservation of value over \qtymap{}.}
 In \cref{rule:value-is-preserved-2},
 $+$ and $\sum$ operate over \qtymap{}, which is
