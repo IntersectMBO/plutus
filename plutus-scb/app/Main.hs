@@ -21,12 +21,12 @@ import           Git                       (gitRev)
 import           Options.Applicative       (CommandFields, Mod, Parser, auto, command, customExecParser, disambiguate,
                                             fullDesc, help, helper, idm, info, infoOption, long, metavar, option,
                                             optional, prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
-                                            strOption, subparser, value)
+                                            strOption, subparser, value, (<|>))
 import           Plutus.SCB.Core           (Connection, MonadEventStore, dbConnect)
 import qualified Plutus.SCB.Core           as Core
 import           Plutus.SCB.Events         (ChainEvent)
 import           Plutus.SCB.Types          (SCBError)
-import           Plutus.SCB.Utils          (logErrorS, logInfoS, render, tshow)
+import           Plutus.SCB.Utils          (logErrorS, render)
 import           System.Exit               (ExitCode (ExitFailure, ExitSuccess), exitWith)
 import qualified System.Remote.Monitoring  as EKG
 
@@ -39,9 +39,9 @@ data Command
     | WalletClient
     | NodeClient
     | InstallContract FilePath
-    | InstantiateContract FilePath
+    | ActivateContract FilePath
     | ContractStatus UUID
-    | ReportAvailableContracts
+    | ReportInstalledContracts
     | ReportActiveContracts
     deriving (Show, Eq)
 
@@ -71,21 +71,29 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser $
-    mconcat
-        [ simulationParser
-        , migrationParser
-        , dbStatsParser
-        , mockWalletParser
-        , walletClientParser
-        , mockNodeParser
-        , nodeClientParser
-        , installContractParser
-        , instantiateContractParser
-        , contractStatusParser
-        , reportAvailableContractsParser
-        , reportActiveContractsParser
-        ]
+    subparser
+        (mconcat
+             [ migrationParser
+             , simulationParser
+             , dbStatsParser
+             , mockWalletParser
+             , walletClientParser
+             , mockNodeParser
+             , nodeClientParser
+             ]) <|>
+    subparser
+        (command
+             "contracts"
+             (info
+                  (subparser
+                       (mconcat
+                            [ installContractParser
+                            , reportInstalledContractsParser
+                            , activateContractParser
+                            , reportActiveContractsParser
+                            , contractStatusParser
+                            ]))
+                  (fullDesc <> progDesc "Manage your smart contracts.")))
 
 dbStatsParser :: Mod CommandFields Command
 dbStatsParser =
@@ -110,15 +118,22 @@ simulationParser =
 
 mockNodeParser :: Mod CommandFields Command
 mockNodeParser =
-    command "mock-node" $
+    command "node-server" $
     info
         (pure MockNode)
         (fullDesc <>
          progDesc "Run a mock version of the Cardano node API server.")
 
+nodeClientParser :: Mod CommandFields Command
+nodeClientParser =
+    command "node-client" $
+    info
+        (pure NodeClient)
+        (fullDesc <> progDesc "Run a basic query against the Cardano node API.")
+
 mockWalletParser :: Mod CommandFields Command
 mockWalletParser =
-    command "mock-wallet" $
+    command "wallet-server" $
     info
         (pure MockWallet)
         (fullDesc <>
@@ -132,58 +147,50 @@ walletClientParser =
         (fullDesc <>
          progDesc "Run a basic query against the Cardano wallet API.")
 
-nodeClientParser :: Mod CommandFields Command
-nodeClientParser =
-    command "node-client" $
+activateContractParser :: Mod CommandFields Command
+activateContractParser =
+    command "activate" $
     info
-        (pure NodeClient)
-        (fullDesc <> progDesc "Run a basic query against the Cardano node API.")
-
-instantiateContractParser :: Mod CommandFields Command
-instantiateContractParser =
-    command "instantiate-contract" $
-    flip
-        info
-        (fullDesc <> progDesc "Instantiate a smart contract.")
-        (InstantiateContract <$>
+        (ActivateContract <$>
          strOption
              (short 'p' <> long "path" <>
               help
-                  "Name of the contract. (See 'available-contracts' for a list.)"))
+                  "Name of the contract. (See 'installed-contracts' for a list.)"))
+        (fullDesc <> progDesc "Activate a smart contract.")
 
 installContractParser :: Mod CommandFields Command
 installContractParser =
-    command "install-contract" $
-    flip
-        info
-        (fullDesc <> progDesc "Install a new smart contract.")
+    command "install" $
+    info
         (InstallContract <$>
          strOption
              (short 'p' <> long "path" <>
               help "Path to the executable contract."))
+        (fullDesc <> progDesc "Install a new smart contract.")
 
 contractStatusParser :: Mod CommandFields Command
 contractStatusParser =
-    command "contract-status" $
-    flip
-        info
-        (fullDesc <> progDesc "Show the current status of a contract.")
-        (ContractStatus <$>
-         option
-             auto
-             (short 'u' <> long "uuid" <>
-              help "ID of the contract. (See 'active-contracts' for a list.)"))
-
-reportAvailableContractsParser :: Mod CommandFields Command
-reportAvailableContractsParser =
-    command "available-contracts" $
+    command "status" $
     info
-        (pure ReportAvailableContracts)
+        (ContractStatus <$> contractIdParser)
+        (fullDesc <> progDesc "Show the current status of a contract.")
+
+contractIdParser :: Parser UUID
+contractIdParser =
+    argument
+        auto
+        (help "ID of the contract. (See 'active-contracts' for a list.)")
+
+reportInstalledContractsParser :: Mod CommandFields Command
+reportInstalledContractsParser =
+    command "installed" $
+    info
+        (pure ReportInstalledContracts)
         (fullDesc <> progDesc "Show all installed contracts.")
 
 reportActiveContractsParser :: Mod CommandFields Command
 reportActiveContractsParser =
-    command "active-contracts" $
+    command "active" $
     info
         (pure ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
@@ -198,23 +205,22 @@ runCliCommand ::
     => Command
     -> m (Either SCBError ())
 runCliCommand Simulate = Right <$> Core.simulate
-runCliCommand DbStats = do
-    Right <$> Core.dbStats
+runCliCommand DbStats = Right <$> Core.dbStats
 runCliCommand Migrate = Right <$> Core.migrate
 runCliCommand MockWallet = Right <$> WalletServer.main
 runCliCommand MockNode = Right <$> NodeServer.main
 runCliCommand WalletClient = Right <$> liftIO WalletClient.main
 runCliCommand NodeClient = Right <$> liftIO NodeClient.main
 runCliCommand (InstallContract path) = Core.installContract path
-runCliCommand (InstantiateContract path) = Core.instantiateContract path
+runCliCommand (ActivateContract path) = Core.activateContract path
 runCliCommand (ContractStatus uuid) = Right <$> Core.reportContractStatus uuid
-runCliCommand ReportAvailableContracts = do
-    logInfoN "Available Contracts"
-    traverse_ (logInfoS . render) =<< Core.availableContracts
+runCliCommand ReportInstalledContracts = do
+    logInfoN "Installed Contracts"
+    traverse_ (logInfoN . render) =<< Core.installedContracts
     pure $ Right ()
 runCliCommand ReportActiveContracts = do
     logInfoN "Active Contracts"
-    traverse_ (logInfoS . render) =<< Core.activeContracts
+    traverse_ (logInfoN . render) =<< Core.activeContracts
     pure $ Right ()
 
 main :: IO ()
@@ -226,7 +232,7 @@ main = do
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
     returnCode <-
-        runStderrLoggingT $
+        runStdoutLoggingT $
         filterLogger (\_ level -> level > LevelDebug) $ do
             logInfoN $ "Running: " <> Text.pack (show cmd)
             connection <- runReaderT dbConnect config
