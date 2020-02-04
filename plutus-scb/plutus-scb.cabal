@@ -125,10 +125,13 @@ executable plutus-scb
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
+        bytestring -any,
+        ekg -any,
+        lens -any,
         monad-logger -any,
         mtl -any,
-        ekg -any,
         optparse-applicative -any,
         playground-common -any,
         plutus-scb -any,

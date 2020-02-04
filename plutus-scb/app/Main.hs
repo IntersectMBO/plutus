@@ -5,30 +5,36 @@ module Main
     ( main
     ) where
 
-import qualified Cardano.Node.Client       as NodeClient
-import qualified Cardano.Node.MockServer   as NodeServer
-import qualified Cardano.Wallet.Client     as WalletClient
-import qualified Cardano.Wallet.MockServer as WalletServer
-import           Control.Monad.IO.Unlift   (MonadUnliftIO, liftIO)
-import           Control.Monad.Logger      (LogLevel (LevelDebug), MonadLogger, filterLogger, logDebugN, logInfoN,
-                                            runStderrLoggingT)
-import           Control.Monad.Reader      (MonadReader, runReaderT)
-import           Data.Foldable             (traverse_)
-import qualified Data.Text                 as Text
-import           Data.UUID                 (UUID)
-import           Data.Yaml                 (decodeFileThrow)
-import           Git                       (gitRev)
-import           Options.Applicative       (CommandFields, Mod, Parser, auto, command, customExecParser, disambiguate,
-                                            fullDesc, help, helper, idm, info, infoOption, long, metavar, option,
-                                            optional, prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
-                                            strOption, subparser, value, (<|>))
-import           Plutus.SCB.Core           (Connection, MonadEventStore, dbConnect)
-import qualified Plutus.SCB.Core           as Core
-import           Plutus.SCB.Events         (ChainEvent)
-import           Plutus.SCB.Types          (SCBError)
-import           Plutus.SCB.Utils          (logErrorS, render)
-import           System.Exit               (ExitCode (ExitFailure, ExitSuccess), exitWith)
-import qualified System.Remote.Monitoring  as EKG
+import qualified Cardano.Node.Client             as NodeClient
+import qualified Cardano.Node.MockServer         as NodeServer
+import qualified Cardano.Wallet.Client           as WalletClient
+import qualified Cardano.Wallet.MockServer       as WalletServer
+import           Control.Lens.Indexed            (itraverse_)
+import           Control.Monad.IO.Unlift         (MonadUnliftIO, liftIO)
+import           Control.Monad.Logger            (LogLevel (LevelDebug), MonadLogger, filterLogger, logDebugN, logInfoN,
+                                                  runStdoutLoggingT)
+import           Control.Monad.Reader            (MonadReader, runReaderT)
+import qualified Data.Aeson                      as JSON
+import qualified Data.ByteString.Lazy.Char8      as BS8
+import           Data.Foldable                   (traverse_)
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
+import           Data.UUID                       (UUID)
+import           Data.Yaml                       (decodeFileThrow)
+import           Git                             (gitRev)
+import           Options.Applicative             (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                                  disambiguate, eitherReader, fullDesc, help, helper, idm, info,
+                                                  infoOption, long, metavar, option, optional, prefs, progDesc, short,
+                                                  showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
+                                                  subparser, value, (<|>))
+import           Options.Applicative.Help.Pretty (int, parens, pretty, (<+>))
+import           Plutus.SCB.Core                 (Connection, MonadEventStore, dbConnect)
+import qualified Plutus.SCB.Core                 as Core
+import           Plutus.SCB.Events               (ChainEvent)
+import           Plutus.SCB.Types                (SCBError)
+import           Plutus.SCB.Utils                (logErrorS, render)
+import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess), exitWith)
+import qualified System.Remote.Monitoring        as EKG
 
 data Command
     = DbStats
@@ -41,6 +47,8 @@ data Command
     | InstallContract FilePath
     | ActivateContract FilePath
     | ContractStatus UUID
+    | UpdateContract UUID Text JSON.Value
+    | ReportContractHistory UUID
     | ReportInstalledContracts
     | ReportActiveContracts
     deriving (Show, Eq)
@@ -92,6 +100,8 @@ commandParser =
                             , activateContractParser
                             , reportActiveContractsParser
                             , contractStatusParser
+                            , updateContractParser
+                            , reportContractHistoryParser
                             ]))
                   (fullDesc <> progDesc "Manage your smart contracts.")))
 
@@ -195,6 +205,24 @@ reportActiveContractsParser =
         (pure ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
 
+updateContractParser :: Mod CommandFields Command
+updateContractParser =
+    command "update" $
+    info
+        (UpdateContract <$> contractIdParser <*>
+         strArgument (help "Endpoint name.") <*>
+         argument
+             (eitherReader (JSON.eitherDecode . BS8.pack))
+             (help "JSON Payload."))
+        (fullDesc <> progDesc "Update a smart contract.")
+
+reportContractHistoryParser :: Mod CommandFields Command
+reportContractHistoryParser =
+    command "history" $
+    info
+        (ReportContractHistory <$> contractIdParser)
+        (fullDesc <> progDesc "Show the state history of a smart contract.")
+
 ------------------------------------------------------------
 runCliCommand ::
        ( MonadUnliftIO m
@@ -221,6 +249,15 @@ runCliCommand ReportInstalledContracts = do
 runCliCommand ReportActiveContracts = do
     logInfoN "Active Contracts"
     traverse_ (logInfoN . render) =<< Core.activeContracts
+    pure $ Right ()
+runCliCommand (UpdateContract uuid endpoint payload) =
+    Core.updateContract uuid endpoint payload
+runCliCommand (ReportContractHistory uuid) = do
+    logInfoN "Contract History"
+    itraverse_
+        (\index contract ->
+             logInfoN $ render (parens (int index) <+> pretty contract)) =<<
+        Core.activeContractHistory uuid
     pure $ Right ()
 
 main :: IO ()
