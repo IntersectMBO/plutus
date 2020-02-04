@@ -18,11 +18,13 @@ module Plutus.SCB.Core
     , installedContractsProjection
     , activeContracts
     , activeContractsProjection
+    , activeContractHistory
     , Connection
     , MonadEventStore
     , refreshProjection
     , runGlobalQuery
     , runAggregateCommand
+    , updateContract
     ) where
 
 import           Control.Concurrent         (forkIO, myThreadId, threadDelay)
@@ -35,10 +37,14 @@ import           Control.Monad.IO.Unlift    (MonadUnliftIO)
 import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Control.Monad.Reader       (MonadReader, ReaderT, ask, runReaderT)
 import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
+import qualified Data.Aeson                 as JSON
+import qualified Data.Aeson.Encode.Pretty   as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL8
+import           Data.Map.Strict            (Map)
 import qualified Data.Map.Strict            as Map
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
+import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import qualified Data.UUID                  as UUID
 import           Database.Persist.Sqlite    (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
@@ -46,10 +52,9 @@ import           Database.Persist.Sqlite    (ConnectionPool, createSqlitePoolFro
 import           Eventful                   (Aggregate (Aggregate), GlobalStreamProjection, Projection,
                                              StreamEvent (StreamEvent), UUID, VersionedStreamEvent,
                                              aggregateCommandHandler, aggregateProjection, commandStoredAggregate,
-                                             getLatestStreamProjection, globalStreamProjection, globalStreamProjection,
-                                             projectionMapMaybe, serializedEventStoreWriter,
-                                             serializedGlobalEventStoreReader, serializedVersionedEventStoreReader,
-                                             streamProjectionState, uuidNextRandom)
+                                             getLatestStreamProjection, globalStreamProjection, projectionMapMaybe,
+                                             serializedEventStoreWriter, serializedGlobalEventStoreReader,
+                                             serializedVersionedEventStoreReader, streamProjectionState, uuidNextRandom)
 import           Eventful.Store.Sql         (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
                                              jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
 import           Eventful.Store.Sqlite      (initializeSqliteEventStore, sqliteEventStoreWriter)
@@ -59,14 +64,14 @@ import           Plutus.SCB.Events          (ChainEvent (UserEvent), EventId (Ev
                                              RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
                                              Tx, UserEvent (ContractStateTransition, InstallContract))
 import qualified Plutus.SCB.Events          as Events
-import           Plutus.SCB.Query           (balances, eventCount, latestContractStatus, nullProjection, requestStats,
-                                             setProjection, trialBalance)
+import           Plutus.SCB.Query           (balances, eventCount, latestContractStatus, monoidProjection,
+                                             nullProjection, requestStats, setProjection, trialBalance)
 import qualified Plutus.SCB.Relation        as Relation
 import           Plutus.SCB.Types           (ActiveContract (ActiveContract), ActiveContractState (ActiveContractState),
                                              Contract (Contract), DbConfig (DbConfig), PartiallyDecodedResponse,
-                                             SCBError (ContractCommandError, ContractNotFound, FileNotFound),
+                                             SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, FileNotFound),
                                              activeContract, activeContractId, activeContractPath, contractPath,
-                                             dbConfigFile, dbConfigPoolSize)
+                                             dbConfigFile, dbConfigPoolSize, newState, partiallyDecodedResponse)
 import           Plutus.SCB.Utils           (logInfoS, render, tshow)
 import           System.Directory           (doesFileExist)
 import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
@@ -261,6 +266,37 @@ activateContract filePath = do
                     logInfoN "Done"
                     pure $ Right ()
 
+updateContract ::
+       (MonadLogger m, MonadEventStore ChainEvent m, MonadIO m)
+    => UUID
+    -> Text
+    -> JSON.Value
+    -> m (Either SCBError ())
+updateContract uuid endpointName endpointPayload = do
+    logInfoN "Finding Contract"
+    mContract <- lookupActiveContractState uuid
+    case mContract of
+        Left err -> pure $ Left err
+        Right oldContractState -> do
+            logInfoN "Updating Contract"
+            response <-
+                updateContract_ oldContractState endpointName endpointPayload
+            case response of
+                Left err -> pure $ Left err
+                Right newState -> do
+                    let updatedContractState =
+                            oldContractState
+                                {partiallyDecodedResponse = newState}
+                    logInfoN "Storing Updated Contract State"
+                    void $
+                        runAggregateCommand
+                            saveContractState
+                            (UUID.fromWords 0 0 0 3)
+                            updatedContractState
+                    logInfoN $ "Updated: " <> render updatedContractState
+                    logInfoN "Done"
+                    pure $ Right ()
+
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
 reportContractStatus uuid = do
@@ -278,11 +314,23 @@ lookupContract filePath = do
                 installed
     pure $ note (ContractNotFound filePath) $ Set.lookupMin matchingContracts
 
-initContract ::
-       MonadIO m => Contract -> m (Either SCBError PartiallyDecodedResponse)
-initContract Contract {contractPath} = do
+lookupActiveContractState ::
+       MonadEventStore ChainEvent m
+    => UUID
+    -> m (Either SCBError ActiveContractState)
+lookupActiveContractState uuid = do
+    active <- activeContractStates
+    pure $ note (ActiveContractStateNotFound uuid) $ Map.lookup uuid active
+
+invokeContract ::
+       MonadIO m
+    => FilePath
+    -> [String]
+    -> String
+    -> m (Either SCBError PartiallyDecodedResponse)
+invokeContract contractPath args stdin = do
     (exitCode, stdout, stderr) <-
-        liftIO $ readProcessWithExitCode contractPath ["init"] ""
+        liftIO $ readProcessWithExitCode contractPath args stdin
     case exitCode of
         ExitFailure code ->
             pure . Left $ ContractCommandError code (Text.pack stderr)
@@ -290,6 +338,33 @@ initContract Contract {contractPath} = do
             case eitherDecode (BSL8.pack stdout) of
                 Right value -> pure $ Right value
                 Left err    -> pure . Left $ ContractCommandError 0 (Text.pack err)
+
+initContract ::
+       MonadIO m => Contract -> m (Either SCBError PartiallyDecodedResponse)
+initContract Contract {contractPath} = invokeContract contractPath ["init"] ""
+
+updateContract_ ::
+       MonadIO m
+    => ActiveContractState
+    -> Text
+    -> JSON.Value
+    -> m (Either SCBError PartiallyDecodedResponse)
+updateContract_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
+                                    , partiallyDecodedResponse
+                                    } endpointName endpointPayload = do
+    let payload =
+            JSON.object
+                [ ("oldState", newState partiallyDecodedResponse)
+                , ( "event"
+                  , JSON.object
+                        [ ("tag", JSON.String endpointName)
+                        , ("value", endpointPayload)
+                        ])
+                ]
+    invokeContract
+        activeContractPath
+        ["update"]
+        (BSL8.unpack (JSON.encodePretty payload))
 
 saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =
@@ -319,6 +394,34 @@ activeContractsProjection = projectionMapMaybe contractPaths setProjection
     contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         Just $ activeContract state
     contractPaths _ = Nothing
+
+activeContractHistory ::
+       MonadEventStore ChainEvent m => UUID -> m [ActiveContractState]
+activeContractHistory uuid = runGlobalQuery activeContractHistoryProjection
+  where
+    activeContractHistoryProjection ::
+           Projection [ActiveContractState] (StreamEvent key position ChainEvent)
+    activeContractHistoryProjection =
+        projectionMapMaybe contractPaths monoidProjection
+      where
+        contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+            if activeContractId (activeContract state) == uuid
+                then Just [state]
+                else Nothing
+        contractPaths _ = Nothing
+
+activeContractStates ::
+       MonadEventStore ChainEvent m => m (Map UUID ActiveContractState)
+activeContractStates = runGlobalQuery activeContractStatesProjection
+  where
+    activeContractStatesProjection ::
+           Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+    activeContractStatesProjection =
+        projectionMapMaybe contractStatePaths monoidProjection
+      where
+        contractStatePaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+            Just $ Map.singleton (activeContractId (activeContract state)) state
+        contractStatePaths _ = Nothing
 
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool

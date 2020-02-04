@@ -44,6 +44,7 @@ instance Pretty ActiveContract where
 data SCBError
     = FileNotFound FilePath
     | ContractNotFound FilePath
+    | ActiveContractStateNotFound UUID
     | ContractError (ResumableError Text)
     | ContractCommandError Int Text
     deriving (Show, Eq)

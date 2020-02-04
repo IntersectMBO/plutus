@@ -54914,11 +54914,14 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , aeson
+, aeson-pretty
 , async
 , base
 , bytestring
 , containers
+, directory
 , ekg
+, errors
 , eventful-core
 , eventful-memory
 , eventful-sql-common
@@ -54936,19 +54939,24 @@ license = stdenv.lib.licenses.asl20;
 , plutus-emulator
 , plutus-tx
 , plutus-tx-plugin
+, plutus-use-cases
 , plutus-wallet-api
 , prettyprinter
+, process
 , QuickCheck
 , quickcheck-instances
 , random
+, row-types
 , servant
 , servant-client
 , servant-server
 , stdenv
 , stm
 , tasty
+, tasty-hunit
 , tasty-quickcheck
 , text
+, time-units
 , transformers
 , unliftio-core
 , unordered-containers
@@ -54966,10 +54974,13 @@ isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
+aeson-pretty
 async
 base
 bytestring
 containers
+directory
+errors
 eventful-core
 eventful-memory
 eventful-sql-common
@@ -54982,20 +54993,24 @@ monad-logger
 mtl
 optparse-applicative
 persistent-sqlite
+playground-common
 plutus-contract
 plutus-emulator
 plutus-tx
 plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
+process
 QuickCheck
 quickcheck-instances
 random
+row-types
 servant
 servant-client
 servant-server
 stm
 text
+time-units
 transformers
 unliftio-core
 unordered-containers
@@ -55005,24 +55020,33 @@ warp
 yaml
 ];
 executableHaskellDepends = [
+aeson
 base
+bytestring
 ekg
+lens
 monad-logger
 mtl
 optparse-applicative
 playground-common
+plutus-use-cases
 text
 unliftio-core
+uuid
 yaml
 ];
 testHaskellDepends = [
 base
+containers
 eventful-core
 eventful-memory
+monad-logger
+mtl
 plutus-wallet-api
 QuickCheck
 quickcheck-instances
 tasty
+tasty-hunit
 tasty-quickcheck
 transformers
 ];
