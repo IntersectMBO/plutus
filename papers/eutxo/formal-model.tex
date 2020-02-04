@@ -6,8 +6,6 @@
 Figure~\ref{fig:basic-types} defines some basic types and
 notation used in the rest of the paper; we have generally followed the
 notation established by Zahnentferner~\cite{Zahnentferner18-UTxO}.
-%% kwxm: Text didn't mention the following figure.
-
 
 \begin{ruledfigure}{!ht}
   \begin{displaymath}
@@ -336,7 +334,7 @@ to create value.
   \label{rule:all-inputs-refer-to-unspent-outputs}
   \textbf{All inputs refer to unspent outputs}
   \begin{displaymath}
-    t.\inputs \subseteq \unspent(l).
+    \{i.\outputref : i \in t.\inputs \} \subseteq \unspent(l).
   \end{displaymath}
 
 \item
