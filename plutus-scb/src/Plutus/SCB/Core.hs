@@ -12,10 +12,10 @@ module Plutus.SCB.Core
     , dbStats
     , dbConnect
     , installContract
-    , instantiateContract
+    , activateContract
     , reportContractStatus
-    , availableContracts
-    , availableContractsProjection
+    , installedContracts
+    , installedContractsProjection
     , activeContracts
     , activeContractsProjection
     , Connection
@@ -32,7 +32,7 @@ import           Control.Error.Util         (note)
 import           Control.Monad              (void, when)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift    (MonadUnliftIO)
-import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, logInfoN, runStderrLoggingT)
+import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Control.Monad.Reader       (MonadReader, ReaderT, ask, runReaderT)
 import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
@@ -117,7 +117,7 @@ runWriters connection = do
         --
     logInfoN "Started writers"
     let writerAction =
-            runStderrLoggingT . flip runReaderT connection $ do
+            runStdoutLoggingT . flip runReaderT connection $ do
                 tx :: Tx <- liftIO $ generate arbitrary
                 void $
                     runAggregateCommand
@@ -230,18 +230,18 @@ installCommand =
               \() contract -> [UserEvent $ InstallContract contract]
         }
 
-instantiateContract ::
+activateContract ::
        (MonadLogger m, MonadEventStore ChainEvent m, MonadIO m)
     => FilePath
     -> m (Either SCBError ())
-instantiateContract filePath = do
+activateContract filePath = do
     logInfoN "Finding Contract"
     mContract <- lookupContract filePath
     activeContractId <- liftIO uuidNextRandom
     case mContract of
         Left err -> pure $ Left err
         Right contract -> do
-            logInfoN "Running Contract"
+            logInfoN "Initializing Contract"
             response <- initContract contract
             case response of
                 Left err -> pure $ Left err
@@ -257,7 +257,7 @@ instantiateContract filePath = do
                             saveContractState
                             (UUID.fromWords 0 0 0 3)
                             (ActiveContractState activeContract initialState)
-                    logInfoN $ "Installed: " <> tshow activeContract
+                    logInfoN $ "Installed: " <> render activeContract
                     logInfoN "Done"
                     pure $ Right ()
 
@@ -271,11 +271,11 @@ reportContractStatus uuid = do
 lookupContract ::
        MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
 lookupContract filePath = do
-    available <- availableContracts
+    installed <- installedContracts
     let matchingContracts =
             Set.filter
                 (\Contract {contractPath} -> contractPath == filePath)
-                available
+                installed
     pure $ note (ContractNotFound filePath) $ Set.lookupMin matchingContracts
 
 initContract ::
@@ -298,12 +298,12 @@ saveContractState =
     aggregateCommandHandler _ state =
         [UserEvent $ ContractStateTransition state]
 
-availableContracts :: MonadEventStore ChainEvent m => m (Set Contract)
-availableContracts = runGlobalQuery availableContractsProjection
+installedContracts :: MonadEventStore ChainEvent m => m (Set Contract)
+installedContracts = runGlobalQuery installedContractsProjection
 
-availableContractsProjection ::
+installedContractsProjection ::
        Projection (Set Contract) (StreamEvent key position ChainEvent)
-availableContractsProjection = projectionMapMaybe contractPaths setProjection
+installedContractsProjection = projectionMapMaybe contractPaths setProjection
   where
     contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
         Just contract

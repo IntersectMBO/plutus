@@ -58,18 +58,18 @@ installContractTests :: TestTree
 installContractTests =
     testGroup
         "installContract scenario"
-        [ testCase "Initially there are no contracts available" $ do
-              installed <- runScenario availableContracts
+        [ testCase "Initially there are no contracts installed" $ do
+              installed <- runScenario installedContracts
               assertEqual "" 0 $ Set.size installed
         , testCase "Initially there are no contracts active" $ do
               active <- runScenario activeContracts
               assertEqual "" 0 $ Set.size active
         , testCase
-              "Installing a contract successfully increases the available contract count." $ do
+              "Installing a contract successfully increases the installed contract count." $ do
               (installation, installed, active) <-
                   runScenario $ do
                       installationResult <- installContract "/bin/sh"
-                      installed <- availableContracts
+                      installed <- installedContracts
                       active <- activeContracts
                       pure (installationResult, installed, active)
               assertRight installation
@@ -81,14 +81,14 @@ installContractTests =
                       installationResult <-
                           installContract
                               "/Users/kris/.local/bin/plutus-contract"
-                      installed <- availableContracts
-                      instantiatationResult <-
-                          instantiateContract
+                      installed <- installedContracts
+                      activationResult <-
+                          activateContract
                               "/Users/kris/.local/bin/plutus-contract"
                       active <- activeContracts
                       pure
                           ( installationResult
-                          , instantiatationResult
+                          , activationResult
                           , installed
                           , active)
               assertRight installation
