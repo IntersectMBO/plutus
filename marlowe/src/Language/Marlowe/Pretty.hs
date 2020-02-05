@@ -121,11 +121,10 @@ instance Pretty Slot where
     prettyFragment (Slot n) = prettyFragment n
 
 instance Pretty PubKeyHash where
-    prettyFragment (PubKeyHash bs) = text "PubKeyHash " <> text (show bs)
+    prettyFragment (PubKeyHash bs) = prettyFragment bs
 
 instance Read PubKeyHash where
     readsPrec p x = [(PubKeyHash v, s) | (v, s) <- readsPrec p x]
-
 
 instance Read Slot where
     readsPrec p x = [(Slot v, s) | (v, s) <- readsPrec p x]

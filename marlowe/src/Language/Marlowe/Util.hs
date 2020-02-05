@@ -8,7 +8,6 @@ import           Data.String
 
 import           Language.Marlowe.Semantics
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (PubKeyHash (..))
 import           Ledger.Ada                 (adaSymbol, adaToken)
 import qualified Ledger.Value               as Val
 
@@ -21,13 +20,6 @@ instance IsString AccountId where
 instance IsString ValueId where
     fromString = ValueId . fromString
 
-{-
-'PubKeyHash' has an 'IsString' instance, but this expects a proper hex string for the hash.
-For our use here we don't want to write out full hex strings so we use this slightly incorrect
-way of constructing 'PubKeyHash'es.
--}
-instance IsString PubKeyHash where
-    fromString = PubKeyHash . fromString
 
 ada :: Token
 ada = Token adaSymbol adaToken

@@ -25,7 +25,7 @@ import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Address, DataValue (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval, CurrencySymbol, TokenName,
+import           Ledger                     (Address, DataValue (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval, CurrencySymbol, TokenName,
                                              mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, scriptTxOut',
                                              txOutRefs)
 import           Ledger.Ada                 (adaValueOf, adaSymbol)

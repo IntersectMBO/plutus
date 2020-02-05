@@ -301,7 +301,7 @@ valuesFormAbelianGroup = property $ do
 showReadStuff :: IO ()
 showReadStuff = do
     assertEqual "alice" (Role "alice") (fromString "alice" :: Party)
-    assertEqual "alice" (Role "alice") (read "\"alice\"")
+    assertEqual "alice" (Role "alice") (read "Role \"alice\"")
     assertEqual "slot" (Slot 123) (read "123")
     let
         investor :: Party

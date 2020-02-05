@@ -87,7 +87,8 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 -- * Aliaces
 
 data Party = PK PubKeyHash | Role TokenName
-  deriving stock (P.Eq,P.Ord)
+  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving anyclass (Pretty)
 
 type NumAccount = Integer
 type Timeout = Slot
@@ -733,8 +734,8 @@ validatePayments MarloweParams{..} pendingTx txOutPayments = all checkValidPayme
     collect :: Map Party Money -> PendingTxOut -> Map Party Money
     collect outputs PendingTxOut{..} =
         case pendingTxOutType of
-            PubKeyTxOut pubKey -> let
-                party = PK pubKey
+            PubKeyTxOut pubKeyHash -> let
+                party = PK pubKeyHash
                 curValue = fromMaybe zero (Map.lookup party outputs)
                 newValue = pendingTxOutValue + curValue
                 in Map.insert party newValue outputs
@@ -861,23 +862,6 @@ instance Eq Party where
     (PK p1) == (PK p2) = p1 == p2
     (Role r1) == (Role r2) = r1 == r2
     _ == _ = False
-
-
-instance Show Party where
-    show (Role r) = show r
-    show (PK pk)  = show pk
-
-
-instance Read Party where
-    readsPrec p x = case readsPrec p x of
-        [(pk@(PubKeyHash _), s)] -> [(PK pk, s)]
-        [] -> [(Role r, s) | (r, s) <- readsPrec p x]
-        _ -> []
-
-
-instance Pretty Party where
-    prettyFragment (PK pk) = prettyFragment pk
-    prettyFragment (Role r) = prettyFragment r
 
 
 instance Eq AccountId where
