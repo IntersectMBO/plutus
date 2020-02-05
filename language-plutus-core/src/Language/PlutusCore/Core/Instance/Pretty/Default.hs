@@ -4,25 +4,31 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Core.Instance.Pretty.Default () where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core.Instance.Pretty.Classic ()
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Classic
 
 instance Pretty (Kind ann) where
     pretty = prettyClassicDef
-instance Pretty (Constant ann) where
+instance (PrettyClassic (tyname ann), GShow uni) => Pretty (Type tyname uni ann) where
     pretty = prettyClassicDef
-instance Pretty (Builtin ann) where
+instance
+        ( PrettyClassic (tyname ann)
+        , PrettyClassic (name ann)
+        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        ) => Pretty (Term tyname name uni ann) where
     pretty = prettyClassicDef
-instance PrettyClassic (tyname ann) => Pretty (Type tyname ann) where
-    pretty = prettyClassicDef
-instance (PrettyClassic (tyname ann), PrettyClassic (name ann)) => Pretty (Term tyname name ann) where
-    pretty = prettyClassicDef
-instance (PrettyClassic (tyname ann), PrettyClassic (name ann)) => Pretty (Program tyname name ann) where
+instance
+        ( PrettyClassic (tyname ann)
+        , PrettyClassic (name ann)
+        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        ) => Pretty (Program tyname name uni ann) where
     pretty = prettyClassicDef

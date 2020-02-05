@@ -17,14 +17,15 @@ import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Plc
 
 instance PrettyBy PrettyConfigPlc (Kind ann)
-instance PrettyBy PrettyConfigPlc (Builtin ann)
-instance DefaultPrettyPlcStrategy (Type tyname ann) =>
-    PrettyBy PrettyConfigPlc (Type tyname ann)
-instance DefaultPrettyPlcStrategy (Term tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Term tyname name ann)
-instance DefaultPrettyPlcStrategy (Program tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Program tyname name ann)
+instance DefaultPrettyPlcStrategy (Type tyname uni ann) =>
+    PrettyBy PrettyConfigPlc (Type tyname uni ann)
+instance DefaultPrettyPlcStrategy (Term tyname name uni ann) =>
+    PrettyBy PrettyConfigPlc (Term tyname name uni ann)
+instance DefaultPrettyPlcStrategy (Program tyname name uni ann) =>
+    PrettyBy PrettyConfigPlc (Program tyname name uni ann)
 
 -- TODO: use @DerivingVia@.
 instance PrettyBy PrettyConfigPlc BuiltinName where
+    prettyBy _ = pretty
+instance PrettyBy PrettyConfigPlc (Builtin ann) where
     prettyBy _ = pretty

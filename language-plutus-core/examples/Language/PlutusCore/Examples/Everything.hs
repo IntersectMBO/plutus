@@ -10,6 +10,7 @@ module Language.PlutusCore.Examples.Everything
     ( examples
     ) where
 
+import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.FsTree
 
 import           Language.PlutusCore.StdLib.Type
@@ -18,7 +19,7 @@ import           Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Examples.Data.TreeForest
 
 -- | All examples exported as a single value.
-examples :: PlcFolderContents
+examples :: PlcFolderContents DefaultUni
 examples =
     FolderContents
       [ treeFolderContents "Examples"

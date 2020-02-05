@@ -1,44 +1,36 @@
 -- | Smart constructors of PLC constants.
 
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module Language.PlutusCore.Constant.Make
     ( builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
-    , makeIntConstant
-    , makeBuiltinInt
-    , makeBuiltinBS
-    , makeBuiltinStr
+    , makeTyBuiltin
+    , makeConstant
     ) where
 
+import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 
-import qualified Data.ByteString.Lazy      as BSL
-
 -- | Lift a 'BuiltinName' to 'Term'.
-builtinNameAsTerm :: TermLike term tyname name => BuiltinName -> term ()
+builtinNameAsTerm :: TermLike term tyname name uni => BuiltinName -> term ()
 builtinNameAsTerm = builtin () . BuiltinName ()
 
 -- | Lift a 'DynamicBuiltinName' to 'Term'.
-dynamicBuiltinNameAsTerm :: TermLike term tyname name => DynamicBuiltinName -> term ()
+dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
 dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
 
--- | Convert a Haskell 'Integer' to the corresponding PLC @integer@.
-makeIntConstant
-    :: TermLike term tyname name
-    => Integer        -- ^ An 'Integer' to lift.
-    -> term ()
-makeIntConstant intVal = constant () $ BuiltinInt () intVal
+makeTyBuiltin
+    :: forall a uni tyname. uni `Includes` a
+    => Type tyname uni ()
+makeTyBuiltin = TyBuiltin () . Some $ knownUni @uni @a
 
--- | Convert a Haskell 'Integer' to the corresponding PLC @integer@.
-makeBuiltinInt :: Integer -> Constant ()
-makeBuiltinInt = BuiltinInt ()
-
--- | Convert a Haskell 'ByteString' to the corresponding PLC @bytestring@.
-makeBuiltinBS :: BSL.ByteString -> Constant ()
-makeBuiltinBS = BuiltinBS ()
-
--- | Convert a Haskell 'String' to the corresponding PLC @string@.
-makeBuiltinStr :: String -> Constant ()
-makeBuiltinStr = BuiltinStr ()
+-- | Wrap a Haskell value as a PLC term.
+makeConstant
+    :: forall a uni term tyname name. (TermLike term tyname name uni, uni `Includes` a)
+    => a -> term ()
+makeConstant = constant () . SomeOf knownUni

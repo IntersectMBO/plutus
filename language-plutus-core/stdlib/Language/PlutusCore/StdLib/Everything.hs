@@ -10,6 +10,7 @@ module Language.PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
+import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.FsTree
 
 import           Language.PlutusCore.StdLib.Data.Bool
@@ -24,7 +25,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
-stdLib :: PlcFolderContents
+stdLib :: PlcFolderContents DefaultUni
 stdLib =
     FolderContents
       [ treeFolderContents "StdLib"

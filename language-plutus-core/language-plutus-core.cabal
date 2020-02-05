@@ -34,7 +34,9 @@ library
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
+        Language.PlutusCore.Constant.DefaultUni
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Constant.Universe
         Language.PlutusCore.Rename.Internal
         Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
@@ -133,7 +135,7 @@ library
     other-extensions: DeriveAnyClass FlexibleInstances
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes 
+                      RankNTypes TemplateHaskell QuasiQuotes
                       ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -153,6 +155,7 @@ library
         deepseq -any,
         dependent-map -any,
         dependent-sum -any,
+        dependent-sum-template -any,
         filepath -any,
         hashable,
         hedgehog <1.0,

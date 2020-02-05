@@ -18,7 +18,7 @@ import           Language.PlutusCore.Quote
 -- | 'Either' as a PLC type.
 --
 -- > \(a b :: *) -> all (r :: *). (a -> r) -> (b -> r) -> r
-sum :: Type TyName ()
+sum :: Type TyName uni ()
 sum = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -34,7 +34,7 @@ sum = runQuote $ do
 -- | 'Left' as a PLC term.
 --
 -- > /\(a b :: *) -> \(x : a) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> f x
-left :: TermLike term TyName Name => term ()
+left :: TermLike term TyName Name uni => term ()
 left = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -55,7 +55,7 @@ left = runQuote $ do
 -- | 'Right' as a PLC term.
 --
 -- > /\(a b :: *) -> \(y : b) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> g y
-right :: TermLike term TyName Name => term ()
+right :: TermLike term TyName Name uni => term ()
 right = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"

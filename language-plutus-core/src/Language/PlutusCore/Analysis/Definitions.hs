@@ -132,7 +132,7 @@ termDefs
         HasUnique (tyname ann) TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
-    => Term tyname name ann
+    => Term tyname name uni ann
     -> m ()
 termDefs = cata $ \case
     VarF ann n           -> addUsage n ann TermScope
@@ -147,7 +147,7 @@ typeDefs
         HasUnique (tyname ann) TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
-    => Type tyname ann
+    => Type tyname uni ann
     -> m ()
 typeDefs = cata $ \case
     TyVarF ann n         -> addUsage n ann TypeScope
@@ -160,7 +160,7 @@ runTermDefs
         HasUnique (name ann) TermUnique,
         HasUnique (tyname ann) TypeUnique,
         Monad m)
-    => Term tyname name ann
+    => Term tyname name uni ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
 
@@ -168,6 +168,6 @@ runTypeDefs
     :: (Ord ann,
         HasUnique (tyname ann) TypeUnique,
         Monad m)
-    => Type tyname ann
+    => Type tyname uni ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTypeDefs = runWriterT . flip execStateT mempty . typeDefs

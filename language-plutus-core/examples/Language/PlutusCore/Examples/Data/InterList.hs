@@ -38,7 +38,7 @@ We encode the following in this module:
 --
 -- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
 -- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
-interListData :: RecursiveType ()
+interListData :: RecursiveType uni ()
 interListData = runQuote $ do
     a         <- freshTyName () "a"
     b         <- freshTyName () "b"
@@ -51,7 +51,7 @@ interListData = runQuote $ do
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ TyVar () r
 
-interNil :: Term TyName Name ()
+interNil :: Term TyName Name uni ()
 interNil = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a <- freshTyName () "a"
@@ -69,7 +69,7 @@ interNil = runQuote $ do
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ Var () z
 
-interCons :: Term TyName Name ()
+interCons :: Term TyName Name uni ()
 interCons = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a  <- freshTyName () "a"
@@ -97,7 +97,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: Term TyName Name ()
+foldrInterList :: Term TyName Name uni ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName () "a0"

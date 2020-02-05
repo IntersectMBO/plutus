@@ -9,3 +9,4 @@ import           Language.PlutusCore.Constant.Function as Export
 import           Language.PlutusCore.Constant.Make     as Export
 import           Language.PlutusCore.Constant.Name     as Export
 import           Language.PlutusCore.Constant.Typed    as Export
+import           Language.PlutusCore.Constant.Universe as Export
