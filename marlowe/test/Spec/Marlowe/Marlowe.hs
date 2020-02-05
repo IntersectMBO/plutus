@@ -30,8 +30,8 @@ import qualified Hedgehog.Range             as Range
 import           Language.Marlowe
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     hiding (Value)
-import qualified Ledger.Value               as Val
 import           Ledger.Ada                 (adaValueOf)
+import qualified Ledger.Value               as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
@@ -215,7 +215,7 @@ uniqueContractHash :: IO ()
 uniqueContractHash = do
     let params cs = MarloweParams
             { rolesCurrency = cs
-            , rolePayoutScriptHash = rolePayoutValidatorHash }
+            , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
     let hash1 = validatorHash $ validatorScript (params "11")
     let hash2 = validatorHash $ validatorScript (params "22")

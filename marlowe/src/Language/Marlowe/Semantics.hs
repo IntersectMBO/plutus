@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DefaultSignatures  #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 -- Big hammer, but helps
@@ -381,8 +381,8 @@ data MarloweData = MarloweData {
 
 
 data MarloweParams = MarloweParams {
-        rolePayoutScriptHash :: ValidatorHash,
-        rolesCurrency :: CurrencySymbol
+        rolePayoutValidatorHash :: ValidatorHash,
+        rolesCurrency           :: CurrencySymbol
     } deriving stock (Show)
 
 
@@ -676,13 +676,13 @@ applyAllInputs env state contract inputs = let
 validateInputWitness :: PendingTx -> CurrencySymbol -> Input -> Bool
 validateInputWitness pendingTx rolesCurrency input =
     case input of
-        IDeposit _ party _ _ -> validatePartyWitness party
+        IDeposit _ party _ _         -> validatePartyWitness party
         IChoice (ChoiceId _ party) _ -> validatePartyWitness party
-        INotify -> True
+        INotify                      -> True
   where
     spentInTx = valueSpent pendingTx
 
-    validatePartyWitness (PK pk) = txSignedBy pendingTx pk
+    validatePartyWitness (PK pk)     = txSignedBy pendingTx pk
     validatePartyWitness (Role role) = Val.valueOf spentInTx rolesCurrency role > 0
 
 
@@ -739,7 +739,7 @@ validatePayments MarloweParams{..} pendingTx txOutPayments = all checkValidPayme
                 curValue = fromMaybe zero (Map.lookup party outputs)
                 newValue = pendingTxOutValue + curValue
                 in Map.insert party newValue outputs
-            ScriptTxOut validatorHash dataValueHash | validatorHash == rolePayoutScriptHash ->
+            ScriptTxOut validatorHash dataValueHash | validatorHash == rolePayoutValidatorHash ->
                 case findData dataValueHash pendingTx of
                     Just (DataValue dv) ->
                         case PlutusTx.fromData dv of
@@ -789,7 +789,7 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
             -- everything is payed out.
             Close -> validatePayments params pendingTx txOutPayments
             -- otherwise check the continuation
-            _ -> validateContinuation txOutPayments txOutState txOutContract
+            _     -> validateContinuation txOutPayments txOutState txOutContract
     Error _ -> traceErrorH "Error"
   where
     validateContinuation txOutPayments txOutState txOutContract =

@@ -29,7 +29,7 @@ import           Ledger                     (Address, DataValue (..), pubKeyHash
                                              mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, scriptTxOut',
                                              txOutRefs)
 import           Ledger.Ada                 (adaValueOf, adaSymbol)
-import           Ledger.Scripts             (RedeemerValue (..), Validator, ValidatorHash, validatorHash)
+import           Ledger.Scripts             (RedeemerValue (..), Validator, validatorHash)
 import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
 import           Ledger.Validation
@@ -233,10 +233,6 @@ rolePayoutScript = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]))
     wrapped = Scripts.wrapValidator rolePayoutValidator
 
 
-rolePayoutValidatorHash :: ValidatorHash
-rolePayoutValidatorHash = validatorHash rolePayoutScript
-
-
 {-# INLINABLE rolePayoutValidator #-}
 rolePayoutValidator :: (CurrencySymbol, TokenName) -> () -> PendingTx -> Bool
 rolePayoutValidator (currency, role) _ pendingTx =
@@ -246,14 +242,14 @@ rolePayoutValidator (currency, role) _ pendingTx =
 marloweParams :: CurrencySymbol -> MarloweParams
 marloweParams rolesCurrency = MarloweParams
     { rolesCurrency = rolesCurrency
-    , rolePayoutScriptHash = rolePayoutValidatorHash }
+    , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
 
 defaultMarloweParams :: MarloweParams
 defaultMarloweParams = marloweParams adaSymbol
 
 
-{-| Generate a validator script for 'creator' PubKey -}
+{-| Generate a validator script for given Marlowe params -}
 validatorScript :: MarloweParams -> Validator
 validatorScript params = mkValidatorScript ($$(PlutusTx.compile [|| validatorParam ||])
     `PlutusTx.applyCode`
