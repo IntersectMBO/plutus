@@ -170,7 +170,16 @@ free = \case
                                                                      , accFreeSet -- FIXME: free(types) as well
                                                                      )
                                      )
-                             ( S.empty, free tIn ) bs
+                             ( S.empty,
+                               -- TODO: duplicate code
+                               free tIn
+                               S.\\      -- removes all the variable names introduced by this letnonrec
+                               (foldMap (\case
+                                            TermBind _ _ (VarDecl _ n _ty) _ -> S.singleton (n^.PLC.unique.coerced)
+                                            DatatypeBind _ _ -> S.empty -- - FIXME: add data type/constructor names  to let-scope
+                                            TypeBind _ (TyVarDecl _ n _) _Rhs -> S.singleton (n^.PLC.unique.coerced))
+                                bs)
+                             ) bs
 
   -- all variables in the letrec are scoped
   Let _ Rec bs tIn -> foldl (\acc -> \case
