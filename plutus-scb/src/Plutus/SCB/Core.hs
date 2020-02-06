@@ -27,56 +27,66 @@ module Plutus.SCB.Core
     , updateContract
     ) where
 
-import           Control.Concurrent         (forkIO, myThreadId, threadDelay)
-import           Control.Concurrent.Async   (concurrently_)
-import           Control.Concurrent.STM     (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
-import           Control.Error.Util         (note)
-import           Control.Monad              (void, when)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift    (MonadUnliftIO)
-import           Control.Monad.Logger       (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Control.Monad.Reader       (MonadReader, ReaderT, ask, runReaderT)
-import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Encode.Pretty   as JSON
-import qualified Data.ByteString.Lazy.Char8 as BSL8
-import           Data.Map.Strict            (Map)
-import qualified Data.Map.Strict            as Map
-import           Data.Set                   (Set)
-import qualified Data.Set                   as Set
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import qualified Data.UUID                  as UUID
-import           Database.Persist.Sqlite    (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
-                                             retryOnBusy, runSqlPool)
-import           Eventful                   (Aggregate (Aggregate), GlobalStreamProjection, Projection,
-                                             StreamEvent (StreamEvent), UUID, VersionedStreamEvent,
-                                             aggregateCommandHandler, aggregateProjection, commandStoredAggregate,
-                                             getLatestStreamProjection, globalStreamProjection, projectionMapMaybe,
-                                             serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                             serializedVersionedEventStoreReader, streamProjectionState, uuidNextRandom)
-import           Eventful.Store.Sql         (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
-                                             jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite      (initializeSqliteEventStore, sqliteEventStoreWriter)
-import           Plutus.SCB.Arbitrary       (genResponse)
-import           Plutus.SCB.Command         (saveRequestResponseAggregate, saveTxAggregate)
-import           Plutus.SCB.Events          (ChainEvent (UserEvent), EventId (EventId),
-                                             RequestEvent (CancelRequest, IssueRequest), ResponseEvent (ResponseEvent),
-                                             Tx, UserEvent (ContractStateTransition, InstallContract))
-import qualified Plutus.SCB.Events          as Events
-import           Plutus.SCB.Query           (balances, eventCount, latestContractStatus, monoidProjection,
-                                             nullProjection, requestStats, setProjection, trialBalance)
-import qualified Plutus.SCB.Relation        as Relation
-import           Plutus.SCB.Types           (ActiveContract (ActiveContract), ActiveContractState (ActiveContractState),
-                                             Contract (Contract), DbConfig (DbConfig), PartiallyDecodedResponse,
-                                             SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, FileNotFound),
-                                             activeContract, activeContractId, activeContractPath, contractPath,
-                                             dbConfigFile, dbConfigPoolSize, newState, partiallyDecodedResponse)
-import           Plutus.SCB.Utils           (logInfoS, render, tshow)
-import           System.Directory           (doesFileExist)
-import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process             (readProcessWithExitCode)
-import           Test.QuickCheck            (arbitrary, frequency, generate)
+import           Control.Concurrent              (forkIO, myThreadId, threadDelay)
+import           Control.Concurrent.Async        (concurrently_)
+import           Control.Concurrent.STM          (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
+import           Control.Error.Util              (note)
+import           Control.Monad                   (void, when)
+import           Control.Monad.IO.Class          (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift         (MonadUnliftIO)
+import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Reader            (MonadReader, ReaderT, ask, runReaderT)
+import           Data.Aeson                      (FromJSON, ToJSON, eitherDecode, withObject, (.:))
+import qualified Data.Aeson                      as JSON
+import qualified Data.Aeson.Encode.Pretty        as JSON
+import           Data.Aeson.Types                (Parser)
+import qualified Data.Aeson.Types                as JSON
+import qualified Data.ByteString.Lazy.Char8      as BSL8
+import           Data.Map.Strict                 (Map)
+import qualified Data.Map.Strict                 as Map
+import           Data.Set                        (Set)
+import qualified Data.Set                        as Set
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
+import qualified Data.UUID                       as UUID
+import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
+                                                  retryOnBusy, runSqlPool)
+import           Eventful                        (Aggregate (Aggregate), EventStoreWriter, GlobalStreamProjection,
+                                                  ProcessManager (ProcessManager), Projection,
+                                                  StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
+                                                  VersionedStreamEvent, aggregateCommandHandler, aggregateProjection,
+                                                  applyProcessManagerCommandsAndEvents, commandStoredAggregate,
+                                                  getLatestStreamProjection, globalStreamProjection, projectionMapMaybe,
+                                                  serializedEventStoreWriter, serializedGlobalEventStoreReader,
+                                                  serializedVersionedEventStoreReader, streamProjectionState,
+                                                  synchronousEventBusWrapper, uuidNextRandom)
+import           Eventful.Store.Sql              (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
+                                                  jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite           (initializeSqliteEventStore, sqliteEventStoreWriter)
+import qualified Language.Plutus.Contract        as Contract
+import           Options.Applicative.Help.Pretty (pretty, (<+>))
+import           Plutus.SCB.Arbitrary            (genResponse)
+import           Plutus.SCB.Command              (saveRequestResponseAggregate, saveTxAggregate)
+import           Plutus.SCB.Events               (ChainEvent (UserEvent), EventId (EventId),
+                                                  RequestEvent (CancelRequest, IssueRequest),
+                                                  ResponseEvent (ResponseEvent), Tx,
+                                                  UserEvent (ContractStateTransition, InstallContract))
+import qualified Plutus.SCB.Events               as Events
+import           Plutus.SCB.Query                (balances, eventCount, latestContractStatus, monoidProjection,
+                                                  nullProjection, requestStats, setProjection, trialBalance)
+import qualified Plutus.SCB.Relation             as Relation
+import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
+                                                  ActiveContractState (ActiveContractState), Contract (Contract),
+                                                  DbConfig (DbConfig), PartiallyDecodedResponse,
+                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, FileNotFound),
+                                                  activeContract, activeContractId, activeContractPath, contractPath,
+                                                  dbConfigFile, dbConfigPoolSize, hooks, newState,
+                                                  partiallyDecodedResponse)
+import           Plutus.SCB.Utils                (logInfoS, render, tshow)
+import           System.Directory                (doesFileExist)
+import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess))
+import           System.Process                  (readProcessWithExitCode)
+import           Test.QuickCheck                 (arbitrary, frequency, generate)
 
 data ThreadState
     = Running
@@ -267,7 +277,9 @@ activateContract filePath = do
                             saveContractState
                             (UUID.fromWords 0 0 0 3)
                             activeContractState
-                    logInfoN $ "Installed: " <> render activeContract
+                    logInfoN . render $
+                        "Installed:" <+>
+                        pretty (activeContract activeContractState)
                     logInfoN "Done"
                     pure $ Right ()
 
@@ -293,14 +305,24 @@ updateContract uuid endpointName endpointPayload = do
                             oldContractState
                                 {partiallyDecodedResponse = response}
                     logInfoN "Storing Updated Contract State"
+                    logInfoN $
+                        "UnbalancedTxs" <>
+                        tshow
+                            (JSON.parseEither
+                                 parseUnbalancedTxKey
+                                 (hooks response))
                     void $
                         runAggregateCommand
                             saveContractState
                             (UUID.fromWords 0 0 0 3)
                             updatedContractState
-                    logInfoN $ "Updated: " <> render updatedContractState
+                    logInfoN . render $
+                        "Updated:" <+> pretty updatedContractState
                     logInfoN "Done"
                     pure $ Right ()
+
+parseUnbalancedTxKey :: JSON.Value -> Parser [Contract.UnbalancedTx]
+parseUnbalancedTxKey = withObject "tx key" $ \o -> o .: "tx"
 
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
