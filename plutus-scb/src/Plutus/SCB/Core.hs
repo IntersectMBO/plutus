@@ -465,6 +465,7 @@ dbConnect = do
     pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
 
 ------------------------------------------------------------
+-- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
 class Monad m =>
       MonadEventStore event m
     -- | Update a 'Projection'.
