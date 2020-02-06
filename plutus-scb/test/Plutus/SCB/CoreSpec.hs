@@ -10,6 +10,7 @@ module Plutus.SCB.CoreSpec
     ) where
 
 import           Control.Monad                  (void)
+import           Control.Monad.IO.Class         (liftIO)
 import           Control.Monad.Logger           (LoggingT, runStderrLoggingT)
 import           Control.Monad.State            (StateT, evalStateT)
 import qualified Data.Set                       as Set
@@ -58,43 +59,40 @@ installContractTests :: TestTree
 installContractTests =
     testGroup
         "installContract scenario"
-        [ testCase "Initially there are no contracts installed" $ do
-              installed <- runScenario installedContracts
-              assertEqual "" 0 $ Set.size installed
-        , testCase "Initially there are no contracts active" $ do
-              active <- runScenario activeContracts
-              assertEqual "" 0 $ Set.size active
+        [ testCase "Initially there are no contracts installed" $
+          runScenario $ do
+              installed <- installedContracts
+              liftIO $ assertEqual "" 0 $ Set.size installed
+        , testCase "Initially there are no contracts active" $
+          runScenario $ do
+              active <- activeContracts
+              liftIO $ assertEqual "" 0 $ Set.size active
         , testCase
-              "Installing a contract successfully increases the installed contract count." $ do
-              (installation, installed, active) <-
-                  runScenario $ do
-                      installationResult <- installContract "/bin/sh"
-                      installed <- installedContracts
-                      active <- activeContracts
-                      pure (installationResult, installed, active)
-              assertRight installation
-              assertEqual "" 1 $ Set.size installed
-              assertEqual "" 0 $ Set.size active
-        , testCase "We can activate a contract." $ do
-              (installation, activation, installed, active) <-
-                  runScenario $ do
-                      installationResult <-
-                          installContract
-                              "/Users/kris/.local/bin/plutus-contract"
-                      installed <- installedContracts
-                      activationResult <-
-                          activateContract
-                              "/Users/kris/.local/bin/plutus-contract"
-                      active <- activeContracts
-                      pure
-                          ( installationResult
-                          , activationResult
-                          , installed
-                          , active)
-              assertRight installation
-              assertRight activation
-              assertEqual "" 1 $ Set.size installed
-              assertEqual "" 1 $ Set.size active
+              "Installing a contract successfully increases the installed contract count." $
+          runScenario $ do
+              installationResult <- installContract "/bin/sh"
+              liftIO $ assertRight installationResult
+              --
+              installed <- installedContracts
+              liftIO $ assertEqual "" 1 $ Set.size installed
+              --
+              active <- activeContracts
+              liftIO $ assertEqual "" 0 $ Set.size active
+        , testCase "We can activate a contract." $
+          runScenario $ do
+              installationResult <-
+                  installContract "/Users/kris/.local/bin/plutus-contract"
+              liftIO $ assertRight installationResult
+              --
+              installed <- installedContracts
+              liftIO $ assertEqual "" 1 $ Set.size installed
+              --
+              activationResult <-
+                  activateContract "/Users/kris/.local/bin/plutus-contract"
+              liftIO $ assertRight activationResult
+              --
+              active <- activeContracts
+              liftIO $ assertEqual "" 1 $ Set.size active
         ]
   where
     runScenario :: StateT (EventMap ChainEvent) (LoggingT IO) a -> IO a
