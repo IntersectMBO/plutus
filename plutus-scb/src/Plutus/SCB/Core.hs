@@ -20,10 +20,13 @@ module Plutus.SCB.Core
     , activeContractsProjection
     , activeContractHistory
     , Connection
+    , ContractCommand(..)
+    , MonadContract
+    , invokeContract
     , MonadEventStore
     , refreshProjection
-    , runGlobalQuery
     , runAggregateCommand
+    , runGlobalQuery
     , updateContract
     ) where
 
@@ -49,8 +52,8 @@ import qualified Data.Set                        as Set
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import qualified Data.UUID                       as UUID
-import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
-                                                  retryOnBusy, runSqlPool)
+import           Database.Persist.Sqlite         (ConnectionPool, SqlPersistT, createSqlitePoolFromInfo,
+                                                  mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
 import           Eventful                        (Aggregate (Aggregate), EventStoreWriter, GlobalStreamProjection,
                                                   ProcessManager (ProcessManager), Projection,
                                                   StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
@@ -78,12 +81,11 @@ import qualified Plutus.SCB.Relation             as Relation
 import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
                                                   ActiveContractState (ActiveContractState), Contract (Contract),
                                                   DbConfig (DbConfig), PartiallyDecodedResponse,
-                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, FileNotFound),
+                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
                                                   activeContract, activeContractId, activeContractPath, contractPath,
                                                   dbConfigFile, dbConfigPoolSize, hooks, newState,
                                                   partiallyDecodedResponse)
 import           Plutus.SCB.Utils                (logInfoS, render, tshow)
-import           System.Directory                (doesFileExist)
 import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                  (readProcessWithExitCode)
 import           Test.QuickCheck                 (arbitrary, frequency, generate)
@@ -215,27 +217,18 @@ reportClosingBalances = do
     logInfoS report
 
 ------------------------------------------------------------
-withFile ::
-       (MonadIO m) => (FilePath -> m b) -> FilePath -> m (Either SCBError b)
-withFile action filePath = do
-    exists <- liftIO $ doesFileExist filePath
-    if not exists
-        then pure $ Left $ FileNotFound filePath
-        else Right <$> action filePath
-
 installContract ::
-       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m)
+       ( MonadLogger m, MonadEventStore ChainEvent m)
     => FilePath
-    -> m (Either SCBError ())
-installContract =
-    withFile $ \filePath -> do
-        logInfoN $ "Installing: " <> tshow filePath
-        void $
-            runAggregateCommand
-                installCommand
-                (UUID.fromWords 0 0 0 3)
-                (Contract {contractPath = filePath})
-        logInfoN "Installed."
+    -> m ()
+installContract filePath = do
+    logInfoN $ "Installing: " <> tshow filePath
+    void $
+        runAggregateCommand
+            installCommand
+            (UUID.fromWords 0 0 0 3)
+            (Contract {contractPath = filePath})
+    logInfoN "Installed."
 
 installCommand :: Aggregate () ChainEvent Contract
 installCommand =
@@ -246,7 +239,7 @@ installCommand =
         }
 
 activateContract ::
-       (MonadLogger m, MonadEventStore ChainEvent m, MonadIO m)
+       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
     => FilePath
     -> m (Either SCBError ())
 activateContract filePath = do
@@ -257,7 +250,8 @@ activateContract filePath = do
         Left err -> pure $ Left err
         Right contract -> do
             logInfoN "Initializing Contract"
-            mResponse <- invokeContract $ InitContract contractPath
+            mResponse <-
+                invokeContract $ InitContract (contractPath contract)
             case mResponse of
                 Left err -> pure $ Left err
                 Right response -> do
@@ -284,7 +278,7 @@ activateContract filePath = do
                     pure $ Right ()
 
 updateContract ::
-       (MonadLogger m, MonadEventStore ChainEvent m, MonadIO m)
+       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
     => UUID
     -> Text
     -> JSON.Value
@@ -354,31 +348,33 @@ data ContractCommand
     | UpdateContract FilePath JSON.Value
     deriving (Show, Eq)
 
-invokeContract ::
-       MonadIO m
-    => ContractCommand
-    -> m (Either SCBError PartiallyDecodedResponse)
-invokeContract contractPath args stdin = do
-    (exitCode, stdout, stderr) <-
-        liftIO $
-        case contractCommand of
-            InitContract contractPath ->
-                readProcessWithExitCode contractPath ["init"] ""
-            UpdateContract contractPath payload ->
-                readProcessWithExitCode
-                    contractPath
-                    ["update"]
-                    (BSL8.unpack (JSON.encodePretty payload))
-    case exitCode of
-        ExitFailure code ->
-            pure . Left $ ContractCommandError code (Text.pack stderr)
-        ExitSuccess ->
-            case eitherDecode (BSL8.pack stdout) of
-                Right value -> pure $ Right value
-                Left err    -> pure . Left $ ContractCommandError 0 (Text.pack err)
+class MonadContract m where
+    invokeContract ::
+           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
+
+instance MonadIO m => MonadContract (SqlPersistT m) where
+    invokeContract contractCommand = liftIO $ do
+        (exitCode, stdout, stderr) <-
+            liftIO $
+            case contractCommand of
+                InitContract contractPath ->
+                    readProcessWithExitCode contractPath ["init"] ""
+                UpdateContract contractPath payload ->
+                    readProcessWithExitCode
+                        contractPath
+                        ["update"]
+                        (BSL8.unpack (JSON.encodePretty payload))
+        case exitCode of
+            ExitFailure code ->
+                pure . Left $ ContractCommandError code (Text.pack stderr)
+            ExitSuccess ->
+                case eitherDecode (BSL8.pack stdout) of
+                    Right value -> pure $ Right value
+                    Left err ->
+                        pure . Left $ ContractCommandError 0 (Text.pack err)
 
 updateContract_ ::
-       MonadIO m
+       MonadContract m
     => ActiveContractState
     -> Text
     -> JSON.Value
@@ -387,7 +383,7 @@ updateContract_ ActiveContractState { activeContract = ActiveContract {activeCon
                                     , partiallyDecodedResponse
                                     } endpointName endpointPayload =
     invokeContract $
-    Updatecontract activeContractPath $
+    UpdateContract activeContractPath $
     JSON.object
         [ ("oldState", newState partiallyDecodedResponse)
         , ( "event"
@@ -517,7 +513,7 @@ addProcessBus writer reader =
         writer
         [ \subwriter _ _ ->
               applyProcessManagerCommandsAndEvents
-                  (ProcessManager nullProjection (\_ -> []) (\_ -> []))
+                  (ProcessManager nullProjection (const []) (const []))
                   subwriter
                   reader
                   ()
