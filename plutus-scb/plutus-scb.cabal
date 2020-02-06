@@ -164,16 +164,20 @@ test-suite plutus-scb-test
 
     build-depends:
         QuickCheck -any,
+        aeson -any,
         base >=4.9 && <5,
         containers -any,
         eventful-core -any,
         eventful-memory -any,
         monad-logger -any,
         mtl -any,
+        plutus-contract -any,
         plutus-scb -any,
+        plutus-use-cases -any,
         plutus-wallet-api -any,
         quickcheck-instances -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any,
+        text -any,
         transformers -any
