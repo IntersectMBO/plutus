@@ -39,7 +39,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
 import Marlowe.Parser (parseTerm, contract)
-import Marlowe.Semantics (Contract(..), Party(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), choiceOwner, computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Semantics (ChoiceId(..), Contract(..), Party(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
@@ -282,7 +282,8 @@ updatePossibleActions oldState =
   actionPerson (DepositInput _ (PK party) _ _) = Just party
   actionPerson (DepositInput _ (Role party) _ _) = Just party
 
-  actionPerson (ChoiceInput choiceId _ _) = Just (choiceOwner choiceId)
+  actionPerson (ChoiceInput (ChoiceId _ (PK pubKey)) _ _) = Just pubKey
+  actionPerson (ChoiceInput (ChoiceId _ (Role role)) _ _) = Just role
 
   -- We have a special person for notifications
   actionPerson NotifyInput = Nothing

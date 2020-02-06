@@ -106,7 +106,7 @@ genToken = do
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ChoiceId
 genChoiceId = do
   choiceName <- genTerm genString
-  choiceOwner <- genTerm genPubKey
+  choiceOwner <- genTerm genParty
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee

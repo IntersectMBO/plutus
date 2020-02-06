@@ -364,7 +364,7 @@ toDefinition (ActionType ChoiceActionType) =
         , args0:
           [ Input { name: "choice_name", text: "Name", spellcheck: false }
           , DummyRight
-          , Input { name: "choice_owner", text: "Party", spellcheck: false }
+          , Value { name: "choice_owner", check: "party", align: Right }
           , DummyRight
           , Statement { name: "bounds", check: (show BoundsType), align: Right }
           ]
@@ -584,7 +584,7 @@ toDefinition (ObservationType ChoseSomethingObservationType) =
         , message0: "chose id %1 for person %2"
         , args0:
           [ Input { name: "choice_name", text: "Name", spellcheck: false }
-          , Input { name: "choice_owner", text: "Party", spellcheck: false }
+          , Value { name: "choice_owner", check: "party", align: Right }
           ]
         , colour: "230"
         , output: Just "observation"
@@ -779,7 +779,7 @@ toDefinition (ValueType ChoiceValueValueType) =
         , message0: "use value of choice with id: %1 chosen by participant with id: %2 if no choice was made use: %3"
         , args0:
           [ Input { name: "choice_name", text: "Name", spellcheck: false }
-          , Input { name: "choice_owner", text: "Party", spellcheck: false }
+          , Value { name: "choice_owner", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
@@ -919,7 +919,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
     pure (Deposit accountId party tok amount)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- getFieldValue block "choice_owner"
+    choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
     let
       choiceId = ChoiceId choiceName choiceOwner
 
@@ -1003,7 +1003,7 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType Obs
     pure (NotObs observation)
   blockDefinition ChoseSomethingObservationType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- getFieldValue block "choice_owner"
+    choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure (ChoseSomething choiceId)
@@ -1057,7 +1057,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
     pure (SubValue value1 value2)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- getFieldValue block "choice_owner"
+    choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
     let
       choiceId = ChoiceId choiceName choiceOwner
     value <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value"
@@ -1180,7 +1180,7 @@ instance toBlocklyAction :: ToBlockly Action where
     block <- newBlock workspace (show ChoiceActionType)
     connectToPrevious block input
     setField block "choice_name" choiceName
-    setField block "choice_owner" choiceOwner
+    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
     inputToBlockly newBlock workspace block "bounds" bounds
   toBlockly newBlock workspace input (Notify observation) = do
     block <- newBlock workspace (show NotifyActionType)
@@ -1264,7 +1264,7 @@ instance toBlocklyObservation :: ToBlockly Observation where
     block <- newBlock workspace (show ChoseSomethingObservationType)
     connectToOutput block input
     setField block "choice_name" choiceName
-    setField block "choice_owner" choiceOwner
+    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
   toBlockly newBlock workspace input (ValueGE v1 v2) = do
     block <- newBlock workspace (show ValueGEObservationType)
     connectToOutput block input
@@ -1327,7 +1327,7 @@ instance toBlocklyValue :: ToBlockly Value where
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input
     setField block "choice_name" choiceName
-    setField block "choice_owner" choiceOwner
+    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
     inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input SlotIntervalStart = do
     block <- newBlock workspace (show SlotIntervalStartValueType)

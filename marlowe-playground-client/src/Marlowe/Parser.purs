@@ -129,7 +129,7 @@ choiceId =
     void spaces
     first <- parseTerm text
     void spaces
-    second <- parseTerm text
+    second <- parseTerm $ parens party
     void maybeSpaces
     pure $ ChoiceId first second
 

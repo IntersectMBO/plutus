@@ -168,7 +168,7 @@ instance prettyAccountId :: Pretty AccountId where
   prettyFragment a = text (show a)
 
 data ChoiceId
-  = ChoiceId String PubKey
+  = ChoiceId String Party
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -182,7 +182,7 @@ instance showChoiceId :: Show ChoiceId where
 instance prettyChoiceId :: Pretty ChoiceId where
   prettyFragment a = text (show a)
 
-choiceOwner :: ChoiceId -> PubKey
+choiceOwner :: ChoiceId -> Party
 choiceOwner (ChoiceId _ owner) = owner
 
 newtype ValueId

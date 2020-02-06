@@ -324,7 +324,7 @@ instance tokenHasMarloweHoles :: HasMarloweHoles Token where
   getHoles m (Token a b) = insertHole m a <> insertHole m b
 
 data ChoiceId
-  = ChoiceId (Term String) (Term PubKey)
+  = ChoiceId (Term String) (Term Party)
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -335,7 +335,7 @@ instance prettyChoiceId :: Pretty ChoiceId where
   prettyFragment a = Leijen.text (show a)
 
 instance choiceIdFromTerm :: FromTerm ChoiceId S.ChoiceId where
-  fromTerm (ChoiceId (Term a) (Term b)) = pure $ S.ChoiceId a b
+  fromTerm (ChoiceId (Term a) (Term b)) = S.ChoiceId <$> pure a <*> fromTerm b
   fromTerm _ = Nothing
 
 instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where

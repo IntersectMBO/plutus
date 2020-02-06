@@ -110,9 +110,9 @@ all =
 
         choice = ChoiceId "choice"
 
-        choice1 = IChoice (choice alice) (fromIntegral 0)
+        choice1 = IChoice (choice (Role alice)) (fromIntegral 0)
 
-        choice2 = IChoice (choice bob) (fromIntegral 0)
+        choice2 = IChoice (choice (Role bob)) (fromIntegral 0)
 
         (Tuple _ finalState) =
           runTests
