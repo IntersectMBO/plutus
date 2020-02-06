@@ -247,21 +247,26 @@ activateContract filePath = do
         Left err -> pure $ Left err
         Right contract -> do
             logInfoN "Initializing Contract"
-            response <- initContract contract
-            case response of
+            mResponse <- invokeContract $ InitContract contractPath
+            case mResponse of
                 Left err -> pure $ Left err
-                Right initialState -> do
-                    let activeContract =
-                            ActiveContract
-                                { activeContractId
-                                , activeContractPath = contractPath contract
+                Right response -> do
+                    let activeContractState =
+                            ActiveContractState
+                                { activeContract =
+                                      ActiveContract
+                                          { activeContractId
+                                          , activeContractPath =
+                                                contractPath contract
+                                          }
+                                , partiallyDecodedResponse = response
                                 }
                     logInfoN "Storing Initial Contract State"
                     void $
                         runAggregateCommand
                             saveContractState
                             (UUID.fromWords 0 0 0 3)
-                            (ActiveContractState activeContract initialState)
+                            activeContractState
                     logInfoN $ "Installed: " <> render activeContract
                     logInfoN "Done"
                     pure $ Right ()
@@ -279,14 +284,14 @@ updateContract uuid endpointName endpointPayload = do
         Left err -> pure $ Left err
         Right oldContractState -> do
             logInfoN "Updating Contract"
-            response <-
+            mResponse <-
                 updateContract_ oldContractState endpointName endpointPayload
-            case response of
+            case mResponse of
                 Left err -> pure $ Left err
-                Right newState -> do
+                Right response -> do
                     let updatedContractState =
                             oldContractState
-                                {partiallyDecodedResponse = newState}
+                                {partiallyDecodedResponse = response}
                     logInfoN "Storing Updated Contract State"
                     void $
                         runAggregateCommand
@@ -322,15 +327,26 @@ lookupActiveContractState uuid = do
     active <- activeContractStates
     pure $ note (ActiveContractStateNotFound uuid) $ Map.lookup uuid active
 
+data ContractCommand
+    = InitContract FilePath
+    | UpdateContract FilePath JSON.Value
+    deriving (Show, Eq)
+
 invokeContract ::
        MonadIO m
-    => FilePath
-    -> [String]
-    -> String
+    => ContractCommand
     -> m (Either SCBError PartiallyDecodedResponse)
 invokeContract contractPath args stdin = do
     (exitCode, stdout, stderr) <-
-        liftIO $ readProcessWithExitCode contractPath args stdin
+        liftIO $
+        case contractCommand of
+            InitContract contractPath ->
+                readProcessWithExitCode contractPath ["init"] ""
+            UpdateContract contractPath payload ->
+                readProcessWithExitCode
+                    contractPath
+                    ["update"]
+                    (BSL8.unpack (JSON.encodePretty payload))
     case exitCode of
         ExitFailure code ->
             pure . Left $ ContractCommandError code (Text.pack stderr)
@@ -338,10 +354,6 @@ invokeContract contractPath args stdin = do
             case eitherDecode (BSL8.pack stdout) of
                 Right value -> pure $ Right value
                 Left err    -> pure . Left $ ContractCommandError 0 (Text.pack err)
-
-initContract ::
-       MonadIO m => Contract -> m (Either SCBError PartiallyDecodedResponse)
-initContract Contract {contractPath} = invokeContract contractPath ["init"] ""
 
 updateContract_ ::
        MonadIO m
@@ -351,20 +363,15 @@ updateContract_ ::
     -> m (Either SCBError PartiallyDecodedResponse)
 updateContract_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
                                     , partiallyDecodedResponse
-                                    } endpointName endpointPayload = do
-    let payload =
-            JSON.object
-                [ ("oldState", newState partiallyDecodedResponse)
-                , ( "event"
-                  , JSON.object
-                        [ ("tag", JSON.String endpointName)
-                        , ("value", endpointPayload)
-                        ])
-                ]
-    invokeContract
-        activeContractPath
-        ["update"]
-        (BSL8.unpack (JSON.encodePretty payload))
+                                    } endpointName endpointPayload =
+    invokeContract $
+    Updatecontract activeContractPath $
+    JSON.object
+        [ ("oldState", newState partiallyDecodedResponse)
+        , ( "event"
+          , JSON.object
+                [("tag", JSON.String endpointName), ("value", endpointPayload)])
+        ]
 
 saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =
