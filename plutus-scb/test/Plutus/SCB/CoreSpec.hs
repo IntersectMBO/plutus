@@ -9,25 +9,36 @@ module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
-import           Control.Monad                  (void)
-import           Control.Monad.IO.Class         (liftIO)
-import           Control.Monad.Logger           (LoggingT, runStderrLoggingT)
-import           Control.Monad.State            (StateT, evalStateT)
-import qualified Data.Set                       as Set
-import           Eventful                       (Aggregate, Projection, StreamEvent (StreamEvent), VersionedStreamEvent,
-                                                 aggregateCommandHandler, aggregateProjection, commandStoredAggregate,
-                                                 getLatestStreamProjection, latestProjection, nil, projectionSeed)
-import           Eventful.Store.Memory          (EventMap, emptyEventMap, stateEventStoreReader, stateEventStoreWriter,
-                                                 stateGlobalEventStoreReader)
-import           Ledger.Value                   (isZero)
-import           Plutus.SCB.Command             (saveTxAggregate)
+import           Control.Monad                                 (void)
+import           Control.Monad.IO.Class                        (MonadIO, liftIO)
+import           Control.Monad.Logger                          (LoggingT, runStderrLoggingT)
+import           Control.Monad.State                           (StateT, evalStateT)
+import           Data.Aeson                                    as JSON
+import           Data.Aeson.Types                              as JSON
+import           Data.Bifunctor                                (first)
+import qualified Data.Set                                      as Set
+import           Data.Text                                     (Text)
+import qualified Data.Text                                     as Text
+import           Eventful                                      (Aggregate, Projection, StreamEvent (StreamEvent),
+                                                                VersionedStreamEvent, aggregateCommandHandler,
+                                                                aggregateProjection, commandStoredAggregate,
+                                                                getLatestStreamProjection, latestProjection, nil,
+                                                                projectionSeed)
+import           Eventful.Store.Memory                         (EventMap, emptyEventMap, stateEventStoreReader,
+                                                                stateEventStoreWriter, stateGlobalEventStoreReader)
+import           Language.Plutus.Contract.Resumable            (ResumableError)
+import           Language.Plutus.Contract.Servant              (initialResponse, runUpdate)
+import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
+import           Ledger.Value                                  (isZero)
+import           Plutus.SCB.Command                            (saveTxAggregate)
 import           Plutus.SCB.Core
-import           Plutus.SCB.Events              (ChainEvent)
-import qualified Plutus.SCB.Query               as Query
-import           Test.QuickCheck.Instances.UUID ()
-import           Test.Tasty                     (TestTree, testGroup)
-import           Test.Tasty.HUnit               (assertEqual, assertFailure, testCase)
-import           Test.Tasty.QuickCheck          (property, testProperty)
+import           Plutus.SCB.Events                             (ChainEvent)
+import qualified Plutus.SCB.Query                              as Query
+import           Plutus.SCB.Types                              (SCBError (ContractCommandError, ContractNotFound))
+import           Test.QuickCheck.Instances.UUID                ()
+import           Test.Tasty                                    (TestTree, testGroup)
+import           Test.Tasty.HUnit                              (HasCallStack, assertEqual, assertFailure, testCase)
+import           Test.Tasty.QuickCheck                         (property, testProperty)
 
 tests :: TestTree
 tests =
@@ -70,8 +81,7 @@ installContractTests =
         , testCase
               "Installing a contract successfully increases the installed contract count." $
           runScenario $ do
-              installationResult <- installContract "/bin/sh"
-              liftIO $ assertRight installationResult
+              installContract "/bin/sh"
               --
               installed <- installedContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
@@ -80,22 +90,20 @@ installContractTests =
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract." $
           runScenario $ do
-              installationResult <-
-                  installContract "/Users/kris/.local/bin/plutus-contract"
-              liftIO $ assertRight installationResult
+              installContract "game"
               --
               installed <- installedContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              activationResult <-
-                  activateContract "/Users/kris/.local/bin/plutus-contract"
+              activationResult <- activateContract "game"
               liftIO $ assertRight activationResult
               --
               active <- activeContracts
               liftIO $ assertEqual "" 1 $ Set.size active
         ]
   where
-    runScenario :: StateT (EventMap ChainEvent) (LoggingT IO) a -> IO a
+    runScenario ::
+           MonadIO m => StateT (EventMap ChainEvent) (LoggingT m) a -> m a
     runScenario action = runStderrLoggingT $ evalStateT action emptyEventMap
 
 runCommandQueryChain ::
@@ -117,7 +125,28 @@ instance Monad m => MonadEventStore event (StateT (EventMap event) m) where
     runAggregateCommand =
         commandStoredAggregate stateEventStoreWriter stateEventStoreReader
 
-assertRight :: Show e => Either e a -> IO ()
+instance Monad m => MonadContract (StateT state m) where
+    invokeContract (InitContract "game") =
+        pure $ do
+            value <- bar $ initialResponse Contracts.Game.game
+            foo $ JSON.eitherDecode (JSON.encode value)
+    invokeContract (UpdateContract "game" payload) =
+        pure $ do
+            request <- foo $ JSON.parseEither JSON.parseJSON payload
+            value <- bar $ runUpdate Contracts.Game.game request
+            foo $ JSON.eitherDecode (JSON.encode value)
+    invokeContract (InitContract contractPath) =
+        pure $ Left $ ContractNotFound contractPath
+    invokeContract (UpdateContract contractPath _) =
+        pure $ Left $ ContractNotFound contractPath
+
+foo :: Either String a -> Either SCBError a
+foo = first (ContractCommandError 0 . Text.pack)
+
+bar :: Either (ResumableError Text) a -> Either SCBError a
+bar = first (ContractCommandError 0 . Text.pack . show)
+
+assertRight :: (HasCallStack, Show e) => Either e a -> IO ()
 assertRight (Right _) = pure ()
 assertRight (Left value) =
     void $

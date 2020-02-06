@@ -11,6 +11,8 @@
 
 module Plutus.SCB.ContractCLI
     ( commandLineApp
+    , runCliCommand
+    , Command(..)
     ) where
 
 import           Control.Monad.IO.Class             (MonadIO, liftIO)
