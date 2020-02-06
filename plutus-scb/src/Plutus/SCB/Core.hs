@@ -487,12 +487,14 @@ instance (FromJSON event, ToJSON event) =>
             getLatestStreamProjection reader projection
     runAggregateCommand aggregate identifier input = do
         (Connection (sqlConfig, connectionPool)) <- ask
-        let writer =
-                serializedEventStoreWriter jsonStringSerializer $
-                sqliteEventStoreWriter sqlConfig
-            reader =
+        let reader =
                 serializedVersionedEventStoreReader jsonStringSerializer $
                 sqlEventStoreReader sqlConfig
+        let writer =
+                addProcessBus
+                    (serializedEventStoreWriter jsonStringSerializer $
+                     sqliteEventStoreWriter sqlConfig)
+                    reader
         retryOnBusy . flip runSqlPool connectionPool $
             commandStoredAggregate writer reader aggregate identifier input
 
@@ -503,3 +505,19 @@ runGlobalQuery ::
 runGlobalQuery query =
     fmap streamProjectionState <$> refreshProjection $
     globalStreamProjection query
+
+addProcessBus ::
+       Monad m
+    => EventStoreWriter m event
+    -> VersionedEventStoreReader m event
+    -> EventStoreWriter m event
+addProcessBus writer reader =
+    synchronousEventBusWrapper
+        writer
+        [ \subwriter _ _ ->
+              applyProcessManagerCommandsAndEvents
+                  (ProcessManager nullProjection (\_ -> []) (\_ -> []))
+                  subwriter
+                  reader
+                  ()
+        ]
