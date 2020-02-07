@@ -10,8 +10,8 @@ import           Control.Lens
 import Data.Foldable (traverse_)
 
 import qualified Algebra.Graph.AdjacencyMap           as AM
-
-import qualified Data.Graph.Typed as AT
+import qualified Algebra.Graph.AdjacencyMap.Algorithm           as AM
+import qualified Algebra.Graph.NonEmpty.AdjacencyMap as AMN
 
 import Control.Monad.RWS
 import Control.Monad.State
@@ -23,13 +23,14 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.IntMap as IM
 
-type U = PLC.Unique
+import Data.List ((\\))
+import qualified Data.List.NonEmpty as LN
 
-
+import Data.Maybe (fromJust)
 
 -- | Each Let has a rank, i.e. the topmost Lambda (location and name) that can enclose the rhs of this Let without having out-of-scope errors
 type Rank = ( Int               -- the depth of the lambda dep
-            , U                 --  the name of the lambda dep
+            , PLC.Unique                 --  the name of the lambda dep
             )
           -- TODO: add instance Monoid Rank
 
@@ -41,12 +42,12 @@ topRank = ( 0
 
 
 type FloatInfo = M.Map
-                 U              -- the let name to float
+                 PLC.Unique              -- the let name to float
                  Rank       -- the rank that this let can float to
 
 type DepthInfo = IM.IntMap      -- depth
-                 (M.Map U            -- lambda name
-                      [U])         -- let level (unsorted in terms of dependency graph)
+                 (M.Map PLC.Unique            -- lambda name
+                        [PLC.Unique])         -- let level (unsorted in terms of dependency graph)
 
 type Ctx = [Rank] -- the enclosing lambdas in scope that surround a let
 
@@ -61,28 +62,49 @@ floatPass1 t = fst $ execRWS (floatPass1' t :: RWS Ctx () FloatInfo ())
 floatPass1' :: (MonadReader Ctx m, MonadState FloatInfo m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
      => Term tyname name a -> m ()
 floatPass1' = \case
-    Let _ NonRec bs t -> do
+    Let _ NonRec bs tIn -> do
+      lamRanks <- M.fromList . map (\ l -> (snd l, l)) <$> ask
       traverse_ (\case
                     TermBind _ _ (VarDecl _ n _ty) rhs -> do
-                      floatPass1' rhs
+                      floatPass1' rhs -- TODO: perhaps move this to the end of the traversal
                       let freeVars = free rhs -- FIXME: We traverse too much the AST here , in quadratic time.
-                      lamRanks <- M.fromList . map (\ l -> (snd l, l)) <$> ask
                       modify (\ letRanks -> M.insert
                                             (n^.PLC.unique.coerced)
 
                                             -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-                                            (let allFreeOccurs = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
-                                             in if M.null allFreeOccurs
+                                            (let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
+                                             in if M.null allFreeRanks
                                                 then topRank
-                                                else maximum allFreeOccurs)
+                                                else maximum allFreeRanks)
 
                                             letRanks)
                     TypeBind _ _ _ -> pure () -- FIXME:
                     DatatypeBind _ _ -> pure () -- FIXME:
                 ) bs
-      floatPass1' t
-    -- FIXME: think about let Rec
-    
+      floatPass1' tIn
+
+    Let _ Rec bs tIn -> do
+      lamRanks <- M.fromList . map (\ l -> (snd l, l)) <$> ask
+      indivFreeVars <- S.unions <$> traverse (\case
+                                           TermBind _ _ (VarDecl _ _ _ty) rhs -> do
+                                             floatPass1' rhs -- TODO: perhaps move this to the end of the traversal
+                                             pure (free rhs) -- FIXME: We traverse too much the AST here , in quadratic time.
+                                           TypeBind _ _ _ -> pure undefined -- FIXME:
+                                           DatatypeBind _ _ -> pure undefined -- FIXME:
+                                       ) bs
+      let groupFreeVars = foldr (S.delete . bindingUnique) indivFreeVars bs --Remove any free var bounds by the whole current letrec-group
+
+      modify (\ letRanks ->
+                let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) groupFreeVars
+                      -- Take the maximum rank of all free vars of the whole letrec-group (excluding the vars introduced here), or TopRank if no free var deps
+                    maxRank = if M.null allFreeRanks
+                              then topRank
+                              else maximum allFreeRanks
+                in foldr (\ b -> M.insert (bindingUnique b) maxRank) letRanks bs --every let bound by this group get the same shared maximum ranking.
+             )
+
+      floatPass1' tIn
+
     -- TODO: abstract repetition
     TyAbs _ n _ t -> local (\ ctx ->  ( case ctx of
                                           [] -> 1
@@ -109,18 +131,39 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
   floatInfo = floatPass1 topTerm
   depthInfo = IM.toAscList $  toDepthInfo floatInfo
   (topTermClean, letTable) = extractLets topTerm
-  depGraph = runTermDeps topTerm :: AM.AdjacencyMap Node
-  sortedDeps = reverse $ map (\case Variable u -> u; Root -> PLC.Unique {PLC.unUnique = -2}) $ AT.topSort (AT.fromAdjacencyMap depGraph) -- FIXME: is this really going to work for letrec? Otherwise abstract the scc away
+  depGraph = AM.gmap (\case Variable u -> u; _ -> error "just for completion")
+             $ AM.removeVertex Root --we remove Root because we do not care about it right now
+             $ runTermDeps topTerm
+  sortedSccs = fromJust $ AM.topSort $ AM.scc depGraph :: [AMN.AdjacencyMap PLC.Unique]
 
-
-  generateLetLvl lets curDepth restDepthTable =  Let
-                                                 (fstT $ snd $ M.findMin letTable ) -- TODO: fix annotation with monoid?
-                                                 NonRec    -- what about this?
-                                                 (foldr (\ d acc ->
-                                                          if d `elem` lets  -- perhaps this can be done faster
-                                                          then over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! d)) : acc
-                                                          else acc --skip
-                                                        ) [] sortedDeps)
+  generateLetLvl' lets curDepth restDepthTable tRest =
+    foldl (\ acc dcc ->
+             case AMN.vertexList1 dcc of
+               (v LN.:| []) -> if v `elem` lets
+                               then
+                                 case acc of
+                                   Let _ NonRec accBs accIn -> -- merge with let-nonrec of acc
+                                     Let
+                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                                     NonRec
+                                     (over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v)) : accBs)
+                                     accIn
+                                   _ ->
+                                     Let
+                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                                     NonRec
+                                     [over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))]
+                                     acc
+                               else acc
+               vs -> if null (LN.toList vs \\ lets)
+                     then
+                       Let
+                       (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                       Rec
+                       (LN.toList $ fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))) vs)
+                       acc
+                     else acc -- skip
+             ) tRest sortedSccs
 
   fstT (a,_,_) = a
   trdT (_,_,c) = c
@@ -133,7 +176,7 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
     then processTerm curDepth depthTable lamBody
     else -- assume/assert curDepth == searchingForDepth
       (case M.lookup u lams_lets of
-        Just lets -> generateLetLvl lets curDepth restDepthTable
+        Just lets -> generateLetLvl' lets curDepth restDepthTable
         _ -> id)  (processTerm curDepth restDepthTable lamBody)
   processTerm _ [] = id
   processTerm curDepth remInfo =
@@ -151,7 +194,7 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
 -- FIXME: track also free occurences in TYPES. Now it only works the same as untype lambda calculus
 free ::
   (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-  => Term tyname name a -> S.Set U
+  => Term tyname name a -> S.Set PLC.Unique
 free = \case
   Var _ x -> S.singleton $ x ^. PLC.unique . coerced
 
@@ -211,7 +254,7 @@ toDepthInfo = M.foldrWithKey (\ letName (depth,lamName) acc -> IM.insertWith (M.
 
 
 -- | A table from a let-introduced identifier to its RHS.
-type LetTable tyname name a = M.Map U (a, Recursivity, Binding tyname name a)
+type LetTable tyname name a = M.Map PLC.Unique (a, Recursivity, Binding tyname name a)
 
 -- | This function takes a 'Term' and returns the same 'Term' but with all 'Let'-bindings removed and stored into a separate table.
 extractLets :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
