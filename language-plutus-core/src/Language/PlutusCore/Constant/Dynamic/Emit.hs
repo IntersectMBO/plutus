@@ -64,7 +64,7 @@ withEmitTerm cont (EmitHandler handler) =
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
             dynEmitTerm = dynamicCall dynEmitName
-            dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> pure $ ExBudget 1 1) -- TODO
+            dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy

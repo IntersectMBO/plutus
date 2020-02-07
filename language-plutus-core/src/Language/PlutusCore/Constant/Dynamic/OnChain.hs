@@ -106,7 +106,7 @@ handleDynamicEmitter
     => OnChainHandler name f r (forall a. KnownType a => IO ([a], r))
 handleDynamicEmitter eval env term = withEmit $ \emit -> do
     let emitName = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
-        emitDef  = dynamicCallAssign emitName emit (\_ -> pure $ ExBudget 1 1) -- TODO
+        emitDef  = dynamicCallAssign emitName emit (\_ -> ExBudget 1 1) -- TODO
         env' = insertDynamicBuiltinNameDefinition emitDef env
     evaluate . eval env' $ mangleOnChain term
 

@@ -22,11 +22,11 @@ dynamicCallAssign
     :: KnownType a
     => DynamicBuiltinName
     -> (a -> IO ())
-    -> (a -> IO ExBudget) -- TODO do we actually need IO here?
+    -> (a -> ExBudget) -- TODO do we actually need IO here?
     -> DynamicBuiltinNameDefinition
 dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
-        DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) (unsafePerformIO . exF)
+        DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name ()
 dynamicCall = dynamicBuiltinNameAsTerm
