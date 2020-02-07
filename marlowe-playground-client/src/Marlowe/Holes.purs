@@ -1,7 +1,6 @@
 module Marlowe.Holes where
 
 import Prelude
-
 import Data.Array (foldMap, foldl, mapWithIndex, (:))
 import Data.BigInteger (BigInteger)
 import Data.Foldable (intercalate)
@@ -279,7 +278,6 @@ instance partyIsMarloweType :: IsMarloweType Party where
 instance partyHasMarloweHoles :: HasMarloweHoles Party where
   getHoles m (PK a) = insertHole m a
   getHoles m (Role a) = insertHole m a
-
 
 data AccountId
   = AccountId (Term BigInteger) (Term Party)

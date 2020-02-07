@@ -1,7 +1,6 @@
 module MonadApp where
 
 import Prelude
-
 import API (RunResult)
 import Ace (Annotation, Editor)
 import Ace as Ace
@@ -280,9 +279,11 @@ updatePossibleActions oldState =
 
   actionPerson :: ActionInput -> (Maybe PubKey)
   actionPerson (DepositInput _ (PK party) _ _) = Just party
+
   actionPerson (DepositInput _ (Role party) _ _) = Just party
 
   actionPerson (ChoiceInput (ChoiceId _ (PK pubKey)) _ _) = Just pubKey
+
   actionPerson (ChoiceInput (ChoiceId _ (Role role)) _ _) = Just role
 
   -- We have a special person for notifications

@@ -93,7 +93,6 @@ instance boundedEnumPayeeType :: BoundedEnum PayeeType where
 payeeTypes :: Array PayeeType
 payeeTypes = upFromIncluding bottom
 
-
 data PartyType
   = PKPartyType
   | RolePartyType

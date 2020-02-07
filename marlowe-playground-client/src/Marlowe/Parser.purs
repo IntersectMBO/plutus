@@ -186,8 +186,9 @@ pubkey :: Parser String PubKey
 pubkey = text
 
 party :: Parser String Party
-party = (PK <$> (string "PK" **> parseTerm pubkey))
-                <|> (Role <$> (string "Role" **> parseTerm tokenName))
+party =
+  (PK <$> (string "PK" **> parseTerm pubkey))
+    <|> (Role <$> (string "Role" **> parseTerm tokenName))
 
 currencySymbol :: Parser String CurrencySymbol
 currencySymbol = text

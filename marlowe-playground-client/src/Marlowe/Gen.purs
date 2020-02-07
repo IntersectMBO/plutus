@@ -1,7 +1,6 @@
 module Marlowe.Gen where
 
 import Prelude
-
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Gen (class MonadGen, chooseInt, resize, suchThat, unfoldable)
 import Control.Monad.Gen as Gen
@@ -51,10 +50,11 @@ genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
 
 genParty :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Party
-genParty = oneOf $ pk :| [role]
+genParty = oneOf $ pk :| [ role ]
   where
-    pk = PK <$> genTerm genPubKey
-    role = Role <$> genTerm genTokenName
+  pk = PK <$> genTerm genPubKey
+
+  role = Role <$> genTerm genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
 genCurrencySymbol = genString
