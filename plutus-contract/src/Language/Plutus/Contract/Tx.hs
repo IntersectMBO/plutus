@@ -22,6 +22,7 @@ module Language.Plutus.Contract.Tx(
     , mustBeSignedBy
     , mustSpendInput
     , mustProduceOutput
+    , mustIncludeDataValue
     -- * Inspecting 'UnbalancedTx' values
     , valueMoved
     , requiredSignatories
@@ -156,6 +157,9 @@ mustSpendInput i = mempty { _inputs = Set.singleton i }
 -- | Require the transaction to produce the ouptut
 mustProduceOutput :: L.TxOut -> UnbalancedTx
 mustProduceOutput o = mempty { _outputs = [o] }
+
+mustIncludeDataValue :: DataValue -> UnbalancedTx
+mustIncludeDataValue dv = mempty { _dataValues = [dv] }
 
 -- TODO: this is a bit of a hack, I'm not sure quite what the best way to avoid this is
 -- (used in the typed contract stuff only)
