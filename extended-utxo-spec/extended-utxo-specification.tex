@@ -569,7 +569,12 @@ related types.
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
-     \toPendingTx: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction in the context of an input}\\
+     \toPendingTx: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow\\
+      \ptx &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+      \\
+      %% Without the break after the right arrow, the = sign is well
+      %% over halfway across the pages, which is horrible. This makes
+      %% it a bit better, but not much.
      \toData: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{} as \Data}
   \end{array}
   \end{displaymath}
@@ -648,11 +653,13 @@ $t$ to be considered valid with respect to a ledger $l$.
   \label{fig:validation-functions-1}
 \end{ruledfigure}
 
-\noindent The function $\lookupTx(l,id)$ looks up the unique transaction
-$T$ whose $\TxId$ is $id$. This can of course fail, but we will assume it does
-not, since \cref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
-of the transaction inputs refer to existing unspent outputs, and hence that
-looking up the input cannot fail.
+\noindent The function $\lookupTx(l,id)$ looks up the unique
+transaction $T$ whose $\TxId$ is $id$, and can of course
+fail. However, during validation
+Rule~\ref{rule:all-inputs-refer-to-unspent-outputs} of
+Figure~\ref{fig:eutxo-1-validity} ensures that all of the transaction
+inputs refer to existing unspent outputs, and in these circumstances
+$\lookupTx$ will always succeed for the transactions of interest.
 
 We can now define what it means for a transaction $t$ of
 type $\eutxotx$ to be valid for a ledger $l$ during the slot $\msf{currentSlot}$: see
@@ -712,7 +719,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPendingTx(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPendingTx(t,i,l))) = \true.
   \end{displaymath}
 
 \item
@@ -873,7 +880,10 @@ the details are given in \cref{fig:ptx-2-types}.
                  & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap)\\
     \\
-    \toPendingTx_2: \eutxotx_2 \times \N \rightarrow \ptx_2 &=& \mbox{summarises a transaction in the context of an input}\\
+    \toPendingTx_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow&\\
+    
+      \ptx_2 &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+     \\
     \toData_2: \ptx_2 \rightarrow \Data &=& \mbox{encodes a $\ptx_2$}
   \end{array}
   \end{displaymath}
@@ -954,7 +964,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \toData_2(\toPendingTx_2(t, i))) = \true
+    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \toData_2(\toPendingTx_2(t, i, l))) = \true
   \end{displaymath}
 
 \item

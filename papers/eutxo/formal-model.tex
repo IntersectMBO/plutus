@@ -225,7 +225,6 @@ Figure~\ref{fig:ptx-1-types}, along with some related types.
                & &\ \i{validityInterval}: \Interval{\tick},\\
                & &\ \i{thisInput}: \N)\\
      \\
-     \toPtx: \eutxotx \times \N \rightarrow \ptx &=& \mbox{summarises a transaction in the context of an input}\\
   \end{array}
   \end{displaymath}
   \caption{The \ptx{} type for the \EUTXO{} model}
@@ -245,6 +244,11 @@ transaction, and made suitable for consumption in a script. That results in the 
   allows easy equality comparisons without requiring script languages to be able
   to represent their own programs.
 \end{enumerate}
+\noindent We assume that there is a function $\toPtx: \eutxotx \times
+  \s{Input} \times \s{Ledger} \rightarrow \ptx$ which summarises a
+transaction in the context of an input and a ledger state.
+%% kwxm: moved this out of the figure because adding the Ledger
+%% parameter pushed everything too far to the right.
 
 \paragraph{Determinism.}
 The information provided by \ptx{}
@@ -257,40 +261,12 @@ consumed can be determined ahead of time. This is helpful
 for systems that charge for script execution, since users can reliably compute
 how much they will need to pay ahead of time.
 
-A common way for systems to violate this property is by providing access to some
-piece of mutable information, like a the current time (in our system, the current tick has
-this role). This then allows scripts to branch on this, leading to
-non-deterministic behaviour. We sidestep this issue with the validation
-interval mechanism (see the introduction in Section~\ref{sec:eutxo}).
-
-\subsection{Validity of \EUTXO{} transactions}
-\label{sec:eutxo-validity}
-
-Figure~\ref{fig:eutxo-validity} defines what it means for a transaction $t$
-to be valid for a ledger $l$ during the tick \currentTick, using some auxiliary functions from
-Figure~\ref{fig:validation-functions-1}.
-Our definition combines
-Definitions 6 and 14 from Zahnentferner~\cite{Zahnentferner18-UTxO}, differing from
-the latter in Rule~\ref{rule:all-inputs-validate}.
-
-This definition extends to an entire ledger: a ledger
-$l$ is \textit{valid} if either $l$ is empty or
-$l$ is of the form $t::l^{\prime}$ with
-$l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
-
-\paragraph{Lookup failures.}
-The function $\lookupTx$ looks up the unique transaction
-in the ledger with a particular id. This can of course fail, but we will assume it does
-not, since Rule~\ref{rule:all-inputs-refer-to-unspent-outputs} ensures that all
-of the transaction inputs refer to existing unspent outputs, and hence that
-looking up the input cannot fail.
-
-\paragraph{Creating value.}
-Most blockchain systems have special rules for creating or destroying value.
-These are usually fairly idiosyncratic, and are not relevant to this paper, so
-we have provided a simple genesis condition in
-Rule~\ref{rule:value-is-preserved} which allows the initial transaction in the ledger
-to create value.
+A common way for systems to violate this property is by providing
+access to some piece of mutable information, like a the current time
+(in our system, the current tick has this role). Scripts can then
+branch on this information, leading to non-deterministic behaviour. We
+sidestep this issue with the validation interval mechanism (see the
+introduction in Section~\ref{sec:eutxo}).
 
 \begin{ruledfigure}{!ht}
   \begin{displaymath}
@@ -313,7 +289,25 @@ to create value.
   \label{fig:validation-functions-1}
 \end{ruledfigure}
 
-\begin{ruledfigure}{!ht}
+
+\subsection{Validity of \EUTXO{} transactions}
+\label{sec:eutxo-validity}
+
+Figure~\ref{fig:eutxo-validity} defines what it means for a transaction $t$
+to be valid for a ledger $l$ during the tick \currentTick, using some auxiliary functions from
+Figure~\ref{fig:validation-functions-1}.
+Our definition combines
+Definitions 6 and 14 from Zahnentferner~\cite{Zahnentferner18-UTxO}, differing from
+the latter in Rule~\ref{rule:all-inputs-validate}.
+
+This definition extends to an entire ledger: a ledger
+$l$ is \textit{valid} if either $l$ is empty or
+$l$ is of the form $t::l^{\prime}$ with
+$l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
+%%
+\vspace{-2mm}
+%%
+\begin{ruledfigure}{H}
 \begin{enumerate}
 
 \item
@@ -357,7 +351,7 @@ to create value.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPtx(t,i))) = \true.
+    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPtx(t,i,l))) = \true.
   \end{displaymath}
 
 \item
@@ -378,3 +372,23 @@ to create value.
 \caption{Validity of a transaction $t$ in the \EUTXO{} model}
 \label{fig:eutxo-validity}
 \end{ruledfigure}
+%%
+%% kwxm: some dubious fiddling with vertical space to get the validity
+%% figure in the right place and still stay within the page limit
+%%
+\vspace{-8mm}
+\paragraph{Creating value.}
+Most blockchain systems have special rules for creating or destroying value.
+These are usually fairly idiosyncratic, and are not relevant to this paper, so
+we have provided a simple genesis condition in
+Rule~\ref{rule:value-is-preserved} which allows the initial transaction in the ledger
+to create value.
+\vspace{-1mm}
+\paragraph{Lookup failures.}
+The function $\getSpent$ calls $\lookupTx$, which looks up the unique
+transaction in the ledger with a particular id and can of course
+fail. However Rule~\ref{rule:all-inputs-refer-to-unspent-outputs}
+ensures that during validation all of the transaction inputs refer to
+existing unspent outputs, and in these circumstances $\lookupTx$ will
+always succeed for the transactions of interest.
+
