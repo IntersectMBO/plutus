@@ -17,11 +17,13 @@ import qualified Test.Tasty.HUnit                                      as HUnit
 import qualified Spec.Lib                                              as Lib
 import           Spec.TokenAccount                                     (assertAccountBalance)
 
-import           Ledger                                                (OracleValue (..))
+import           Ledger.Oracle (SignedMessage, Observation(..))
+import qualified Ledger.Oracle as Oracle
 import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
-import           Ledger.Crypto                                         (PubKey (..))
+import           Ledger.Crypto                                         (PubKey (..), PrivateKey)
 import           Ledger.Value                                          (Value, scale)
+import           Ledger.Slot                                           (Slot)
 
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                                     as PlutusTx
@@ -59,7 +61,7 @@ tests =
         >> addBlocks 20
         >> settleEarly)
 
-    , checkPredicate @FutureSchema "can pay out"
+     , checkPredicate @FutureSchema "can pay out"
         (F.futureContract theFuture)
         (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
@@ -96,7 +98,7 @@ theFuture = Future {
     ftUnits         = units,
     ftUnitPrice     = forwardPrice,
     ftInitialMargin = Ada.lovelaceValueOf 800,
-    ftPriceOracle   = oracle,
+    ftPriceOracle   = snd oracleKeys,
     ftMarginPenalty = penalty
     }
 
@@ -124,7 +126,7 @@ payOut :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema
 payOut = do
     let
         spotPrice = Ada.lovelaceValueOf 1124
-        ov = OracleValue oracle (ftDeliveryDate theFuture) spotPrice
+        ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
     callEndpoint @"settle-future" (Wallet 2) ov
     handleUtxoQueries (Wallet 2)
     handleBlockchainEvents (Wallet 2)
@@ -143,8 +145,10 @@ forwardPrice = Ada.lovelaceValueOf 1123
 units :: Integer
 units = 187
 
-oracle :: PubKey
-oracle = walletPubKey (Wallet 10)
+oracleKeys :: (PrivateKey, PubKey)
+oracleKeys = 
+    let wllt = Wallet 10 in
+        (walletPrivKey wllt, walletPubKey wllt)
 
 accounts :: FutureAccounts
 accounts =
@@ -159,6 +163,11 @@ settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureS
 settleEarly = do
     let
         spotPrice = Ada.lovelaceValueOf 11240
-        ov = OracleValue oracle (Ledger.Slot 25) spotPrice
+        ov = mkSignedMessage (Ledger.Slot 25) spotPrice
     callEndpoint @"settle-early" (Wallet 2) ov
     handleBlockchainEvents (Wallet 2)
+
+mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
+mkSignedMessage sl vl =
+    let obs = Observation{obsValue=vl, obsSlot=sl} in
+    Oracle.signMessage obs (fst oracleKeys)
