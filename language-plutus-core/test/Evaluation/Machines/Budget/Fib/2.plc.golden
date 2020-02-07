@@ -1,6 +1,9 @@
 ((Right (1))
-, ({ tally: ({ BAST causes ({ cpu: 0
-| mem: 657
+, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 2
+| mem: 2
+})
+| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 1
+| mem: 1
 })
 | BTyInst causes ({ cpu: 12
 | mem: 12
@@ -14,13 +17,16 @@
 | BIWrap causes ({ cpu: 1
 | mem: 1
 })
+| BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 3
+| mem: 3
+})
 | BUnwrap causes ({ cpu: 4
 | mem: 4
 })
-| BStaticBuiltin causes ({ cpu: 12
-| mem: 12
+| BAST causes ({ cpu: 0
+| mem: 657
 })})
-| budget: ({ cpu: 117
-| mem: 774
+| budget: ({ cpu: 111
+| mem: 768
 })
 }))

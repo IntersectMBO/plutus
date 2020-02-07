@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 -- | The L machine
 -- A lazy machine based on the L machine of Friedman et al. [Improving the Lazy Krivine Machine]
@@ -44,16 +46,15 @@ module Language.PlutusCore.Evaluation.Machine.L
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Data.IntMap                                      (IntMap)
-import qualified Data.IntMap                                      as IntMap
-
-type Plain f = f TyName Name ()
-
+import           Data.IntMap                                        (IntMap)
+import qualified Data.IntMap                                        as IntMap
 
 
 -- | Errors specific to the L machine
@@ -67,6 +68,9 @@ type LEvaluationException = EvaluationException LMachineError ()
 
 -- | The monad the L machine runs in.
 type LM = Either LEvaluationException
+
+instance SpendBudget LM where
+    spendBudget _ _ _ = pure ()
 
 instance Pretty LMachineError where
     pretty (LocationNotInHeap l) = "Location" <+> pretty l <+> "does not exist in the heap"
@@ -249,7 +253,7 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
 
 
 applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> LM (ConstAppResult ())
-applyEvaluateBuiltinName heap env = runApplyBuiltinName (const $ evalL heap env)
+applyEvaluateBuiltinName heap env name args = void <$> runApplyBuiltinName (const $ evalL heap env) name (withMemory <$> args)
 
 evalL :: Heap -> Environment -> Plain Term -> LM (Plain Term)
 evalL heap env term = translateResult $ computeL [] heap (Closure term env)

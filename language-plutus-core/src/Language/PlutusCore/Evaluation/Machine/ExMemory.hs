@@ -19,12 +19,13 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 , withMemory
 ) where
 
-import           Language.PlutusCore
+import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
-import qualified Data.ByteString.Lazy     as BSL
-import qualified Data.Text                as T
+import qualified Data.ByteString.Lazy          as BSL
+import qualified Data.Text                     as T
 import           Foreign.Storable
 
 import           GHC.Generics

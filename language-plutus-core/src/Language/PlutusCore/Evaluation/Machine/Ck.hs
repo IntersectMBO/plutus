@@ -20,6 +20,8 @@ import           PlutusPrelude
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
@@ -38,6 +40,9 @@ type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
 type CkEvaluationException = EvaluationException NoDynamicBuiltinNamesMachineError ()
 
 type CkM = Either CkEvaluationException
+
+instance SpendBudget CkM where
+    spendBudget _ _ _ = pure ()
 
 data Frame
     = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
@@ -148,7 +153,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppStuck       -> stack <| term
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM (ConstAppResult ())
-applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
+applyEvaluateCkBuiltinName name args = void <$> runApplyBuiltinName (const ([] |>)) name (withMemory <$> args)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

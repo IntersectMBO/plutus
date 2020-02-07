@@ -128,7 +128,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme c r
+        :: TypeScheme c exC r
         -> Term TyName Name ()
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c

@@ -31,13 +31,14 @@ module Language.PlutusCore.Constant.Typed
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                                         (Map)
+import           Data.Map                                           (Map)
 import           Data.Proxy
 import           GHC.TypeLits
 
@@ -47,9 +48,9 @@ infixr 9 `TypeSchemeArrow`
 -- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
 -- @r@ is the resulting type in @a@, e.g. the resulting type in
 -- @ByteString -> Size -> Integer@ is @Integer@.
-data TypeScheme a r where
-    TypeSchemeResult :: KnownType a => Proxy a -> TypeScheme a a
-    TypeSchemeArrow  :: KnownType a => Proxy a -> TypeScheme b r -> TypeScheme (a -> b) r
+data TypeScheme a costFun r where
+    TypeSchemeResult :: KnownType a => Proxy a -> TypeScheme a ExBudget a
+    TypeSchemeArrow  :: KnownType a => Proxy a -> TypeScheme b exB r -> TypeScheme (a -> b) (a -> exB) r
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -73,15 +74,15 @@ data TypeScheme a r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm text uniq => Proxy ot -> TypeScheme a r)
-        -> TypeScheme a r
+        -> (forall ot. ot ~ OpaqueTerm text uniq => Proxy ot -> TypeScheme a exA r)
+        -> TypeScheme a exA r
 
     -- The @r@ is rather ad hoc and needed only for tests.
     -- We could use type families to compute it instead of storing as an index.
     -- That's a TODO perhaps.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName a r = TypedBuiltinName BuiltinName (TypeScheme a r)
+data TypedBuiltinName a exA r = TypedBuiltinName BuiltinName (TypeScheme a exA r)
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -99,7 +100,7 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning =
-    forall a r. DynamicBuiltinNameMeaning (TypeScheme a r) a
+    forall a exA r. DynamicBuiltinNameMeaning (TypeScheme a exA r) a exA
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition =
@@ -126,6 +127,9 @@ newtype EvaluateT m a = EvaluateT
         , MonadReader (Evaluator Term m)
         , MonadError e
         )
+
+instance MonadTrans EvaluateT where
+    lift m = EvaluateT $ lift m
 
 -- | Run an 'EvaluateT' computation using the given 'Evaluator'.
 runEvaluateT :: Evaluator Term m -> EvaluateT m a -> m a
