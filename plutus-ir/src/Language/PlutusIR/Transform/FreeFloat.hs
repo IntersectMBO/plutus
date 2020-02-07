@@ -144,29 +144,26 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
                                  case acc of
                                    Let _ NonRec accBs accIn -> -- merge with let-nonrec of acc
                                      Let
-                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                                     (fst $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
                                      NonRec
-                                     (over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v)) : accBs)
+                                     (over bindingSubterms (processTerm curDepth restDepthTable) (snd (letTable M.! v)) : accBs)
                                      accIn
                                    _ ->
                                      Let
-                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                                     (fst $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
                                      NonRec
-                                     [over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))]
+                                     [over bindingSubterms (processTerm curDepth restDepthTable) (snd (letTable M.! v))]
                                      acc
                                else acc
                vs -> if null (LN.toList vs \\ lets)
                      then
                        Let
-                       (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                       (fst $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
                        Rec
-                       (LN.toList $ fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))) vs)
+                       (LN.toList $ fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (snd (letTable M.! v))) vs)
                        acc
                      else acc -- skip
              ) tRest sortedSccs
-
-  fstT (a,_,_) = a
-  trdT (_,_,c) = c
 
   -- TODO: we can transform easily the following processing to a Reader CurDepth
   -- TODO: using this pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthInfoRemaining instead.
@@ -254,7 +251,7 @@ toDepthInfo = M.foldrWithKey (\ letName (depth,lamName) acc -> IM.insertWith (M.
 
 
 -- | A table from a let-introduced identifier to its RHS.
-type LetTable tyname name a = M.Map PLC.Unique (a, Recursivity, Binding tyname name a)
+type LetTable tyname name a = M.Map PLC.Unique (a, Binding tyname name a)
 
 -- | This function takes a 'Term' and returns the same 'Term' but with all 'Let'-bindings removed and stored into a separate table.
 extractLets :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
@@ -269,12 +266,12 @@ extractLets = flip runState M.empty . extractLets'
                   -> StateT (LetTable tyname name a) m (Term tyname name a)
     extractLets' = \case
           -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
-          Let a r bs t' -> do
+          Let a _ bs t' -> do
 
             bs' <- traverse (bindingSubterms extractLets') bs
 
             let newMap = M.fromList $
-                                fmap (\ b -> (bindingUnique b, (a,r,b))) bs'
+                                fmap (\ b -> (bindingUnique b, (a,b))) bs'
 
             modify (M.union newMap)
 
