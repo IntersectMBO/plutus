@@ -48,8 +48,18 @@ hole =
   where
   nameChars = alphaNum <|> char '_'
 
+term' :: forall a. Parser a -> Parser (Term a)
+term' (Parser p) =
+  Parser \{ pos, str } -> do
+    { result, suffix } <- p { pos, str }
+    let
+      start = pos
+
+      end = suffix.pos
+    pure { result: Term result start end, suffix }
+
 parseTerm :: forall a. Parser a -> Parser (Term a)
-parseTerm p = hole <|> (Term <$> p)
+parseTerm p = hole <|> (term' p)
 
 -- All arguments are space separated so we add **> to reduce boilerplate
 appRSpaces :: forall a b. Parser a -> Parser b -> Parser b

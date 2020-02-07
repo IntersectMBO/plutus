@@ -11,6 +11,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (class Newtype)
 import Data.String (length)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -150,7 +151,7 @@ constructMarloweType constructorName (MarloweHole { name, marloweType, start }) 
   showArgument _ _ NewtypeArg = ""
 
 data Term a
-  = Term a
+  = Term a Pos Pos
   | Hole String (Proxy a) Pos Pos
 
 derive instance genericTerm :: Generic (Term a) _
@@ -159,17 +160,17 @@ instance eqTerm :: Eq a => Eq (Term a) where
   eq a b = genericEq a b
 
 instance showTerm :: Show a => Show (Term a) where
-  show (Term a) = show a
+  show (Term a _ _) = show a
   show (Hole name _ _ _) = "?" <> name
 
 instance prettyTerm :: Pretty a => Pretty (Term a) where
-  pretty (Term a) = P.pretty a
+  pretty (Term a _ _) = P.pretty a
   pretty (Hole name _ _ _) = P.text $ "?" <> name
 
 instance hasArgsTerm :: Args a => Args (Term a) where
-  hasArgs (Term a) = hasArgs a
+  hasArgs (Term a _ _) = hasArgs a
   hasArgs _ = false
-  hasNestedArgs (Term a) = hasNestedArgs a
+  hasNestedArgs (Term a _ _) = hasNestedArgs a
   hasNestedArgs _ = false
 
 -- a concrete type for holes only
@@ -228,7 +229,7 @@ validateHoles (Holes m) = foldlWithIndex f (Tuple [] mempty) m
   f k (Tuple duplicates uniquesMap) vs = Tuple (duplicates <> vs) uniquesMap
 
 insertHole :: forall a. IsMarloweType a => Holes -> Term a -> Holes
-insertHole m (Term _) = m
+insertHole m (Term _ _ _) = m
 
 insertHole (Holes m) (Hole name proxy start end) = Holes $ Map.alter f name m
   where
@@ -240,7 +241,7 @@ class HasMarloweHoles a where
   getHoles :: Holes -> a -> Holes
 
 instance termHasMarloweHoles :: (IsMarloweType a, HasMarloweHoles a) => HasMarloweHoles (Term a) where
-  getHoles m (Term a) = getHoles m a
+  getHoles m (Term a _ _) = getHoles m a
   getHoles m h = insertHole m h
 
 instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
@@ -288,8 +289,8 @@ instance hasArgsParty :: Args Party where
   hasNestedArgs = genericHasNestedArgs
 
 instance partyFromTerm :: FromTerm Party S.Party where
-  fromTerm (PK (Term b)) = pure $ S.PK b
-  fromTerm (Role (Term b)) = pure $ S.Role b
+  fromTerm (PK (Term b _ _)) = pure $ S.PK b
+  fromTerm (Role (Term b _ _)) = pure $ S.Role b
   fromTerm _ = Nothing
 
 instance partyIsMarloweType :: IsMarloweType Party where
@@ -315,7 +316,7 @@ instance hasArgsAccountId :: Args AccountId where
   hasNestedArgs = genericHasNestedArgs
 
 instance accountIdFromTerm :: FromTerm AccountId S.AccountId where
-  fromTerm (AccountId (Term b) (Term c)) = S.AccountId <$> pure b <*> fromTerm c
+  fromTerm (AccountId (Term b _ _) (Term c _ _)) = S.AccountId <$> pure b <*> fromTerm c
   fromTerm _ = Nothing
 
 instance accountIdIsMarloweType :: IsMarloweType AccountId where
@@ -340,7 +341,7 @@ instance hasArgsToken :: Args Token where
   hasNestedArgs = genericHasNestedArgs
 
 instance tokenFromTerm :: FromTerm Token S.Token where
-  fromTerm (Token (Term b) (Term c)) = pure $ S.Token b c
+  fromTerm (Token (Term b _ _) (Term c _ _)) = pure $ S.Token b c
   fromTerm _ = Nothing
 
 instance tokenIsMarloweType :: IsMarloweType Token where
@@ -365,7 +366,7 @@ instance hasArgsChoiceId :: Args ChoiceId where
   hasNestedArgs = genericHasNestedArgs
 
 instance choiceIdFromTerm :: FromTerm ChoiceId S.ChoiceId where
-  fromTerm (ChoiceId (Term a) (Term b)) = S.ChoiceId <$> pure a <*> fromTerm b
+  fromTerm (ChoiceId (Term a _ _) (Term b _ _)) = S.ChoiceId <$> pure a <*> fromTerm b
   fromTerm _ = Nothing
 
 instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where
@@ -422,7 +423,7 @@ instance hasArgsPayee :: Args Payee where
 
 instance payeeFromTerm :: FromTerm Payee S.Payee where
   fromTerm (Account a) = S.Account <$> fromTerm a
-  fromTerm (Party (Term a)) = S.Party <$> fromTerm a
+  fromTerm (Party (Term a _ _)) = S.Party <$> fromTerm a
   fromTerm _ = Nothing
 
 instance payeeMarloweType :: IsMarloweType Payee where
@@ -535,7 +536,7 @@ instance hasArgsObservation :: Args Observation where
   hasNestedArgs a = genericHasNestedArgs a
 
 instance fromTermTerm :: FromTerm a b => FromTerm (Term a) b where
-  fromTerm (Term a) = fromTerm a
+  fromTerm (Term a _ _) = fromTerm a
   fromTerm _ = Nothing
 
 instance observationFromTerm :: FromTerm Observation S.Observation where
@@ -608,6 +609,12 @@ newtype ValueId
 
 derive instance genericValueId :: Generic ValueId _
 
+derive instance newtypeValueId :: Newtype ValueId _
+
+derive newtype instance eqValueId :: Eq ValueId
+
+derive newtype instance ordValueId :: Ord ValueId
+
 instance showValueId :: Show ValueId where
   show (ValueId valueId') = show valueId'
 
@@ -628,7 +635,7 @@ instance valueIdHasMarloweHoles :: HasMarloweHoles ValueId where
   getHoles m _ = m
 
 termToValue :: forall a. Term a -> Maybe a
-termToValue (Term a) = Just a
+termToValue (Term a _ _) = Just a
 
 termToValue _ = Nothing
 

@@ -87,7 +87,7 @@ genHole = do
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> m (Term a)
 genTerm g = do
   withHoles <- ask
-  oneOf $ (Term <$> g) :| (if withHoles then [ genHole ] else [])
+  oneOf $ (Term <$> g <*> pure 0 <*> pure 0) :| (if withHoles then [ genHole ] else [])
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do

@@ -21,7 +21,7 @@ import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (_Just, assign, modifying, over, preview, use, view)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
-import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
@@ -49,7 +49,8 @@ import Marlowe (SPParams_)
 import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (MarloweHole(..), replaceInPositions)
-import Marlowe.Parser (contract, hole)
+import Marlowe.Parser (contract, hole, parseTerm)
+import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
 import MonadApp (haskellEditorHandleAction, class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
@@ -59,7 +60,7 @@ import Simulation (simulationPane)
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (posToRowAndColumn)
-import Text.Pretty (genericPretty)
+import Text.Pretty (genericPretty, pretty)
 import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), Message, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
@@ -254,8 +255,12 @@ handleAction (LoadMarloweScript key) = do
   case Map.lookup key StaticData.marloweContracts of
     Nothing -> pure unit
     Just contents -> do
-      marloweEditorSetValue contents (Just 1)
-      updateContractInState contents
+      let
+        prettyContents = case runParser (parseTerm P.contract) contents of
+          Right pcon -> show $ pretty pcon
+          Left _ -> contents
+      marloweEditorSetValue prettyContents (Just 1)
+      updateContractInState prettyContents
       resetContract
 
 handleAction SendResult = do
