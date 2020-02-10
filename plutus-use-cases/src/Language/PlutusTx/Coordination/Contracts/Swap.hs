@@ -20,7 +20,7 @@ import           Ledger                    (Slot, PubKey, PubKeyHash, Validator)
 import qualified Ledger                    as Ledger
 import qualified Ledger.Typed.Scripts      as Scripts
 import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
-import           Ledger.Oracle             (Observation(..), SignedMessage(..))
+import           Ledger.Oracle             (Observation(..), SignedMessage)
 import qualified Ledger.Oracle             as Oracle
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
@@ -69,8 +69,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
         extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> Slot -> Rational
         extractVerifyAt sm pk slt =
-            let SignedMessage{osmSignature, osmMessageHash} = sm in
-            case Oracle.checkSignature osmMessageHash pk osmSignature >> Oracle.checkHashOnChain p sm of
+            case Oracle.verifySignedMessageOnChain p pk sm of
                 Left _ -> traceH "checkSignatureAndDecode failed" (error ())
                 Right Observation{obsValue, obsSlot} ->
                     if obsSlot == slt

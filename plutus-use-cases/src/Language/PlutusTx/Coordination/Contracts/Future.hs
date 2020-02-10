@@ -321,14 +321,14 @@ validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 
 {-# INLINABLE verifyOracleOnChain #-}
 verifyOracleOnChain :: PlutusTx.IsData a => PendingTx -> Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
-verifyOracleOnChain ptx Future{ftPriceOracle} sm@SignedMessage{osmSignature, osmMessageHash, osmData} =
-    case Oracle.checkSignature osmMessageHash ftPriceOracle osmSignature >> Oracle.checkHashOnChain ptx sm of
+verifyOracleOnChain ptx Future{ftPriceOracle} sm =
+    case Oracle.verifySignedMessageOnChain ptx ftPriceOracle sm of
         Left _ -> Nothing
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
 verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
-verifyOracleOffChain Future{ftPriceOracle} sm@SignedMessage{osmSignature, osmMessageHash, osmData} =
-    case Oracle.checkSignature osmMessageHash ftPriceOracle osmSignature >> Oracle.checkHashOffChain sm of
+verifyOracleOffChain Future{ftPriceOracle} sm =
+    case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
         Left _ -> Nothing
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
