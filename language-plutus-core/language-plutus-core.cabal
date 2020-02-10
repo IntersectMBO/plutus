@@ -27,7 +27,6 @@ library
         Language.PlutusCore.Evaluation.Machine.Ck
         Language.PlutusCore.Evaluation.Machine.Cek
         Language.PlutusCore.Evaluation.Machine.ExMemory
-        Language.PlutusCore.Evaluation.Machine.L
         Language.PlutusCore.Evaluation.Machine.Exception
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
@@ -133,7 +132,7 @@ library
     other-extensions: DeriveAnyClass FlexibleInstances
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes 
+                      RankNTypes TemplateHaskell QuasiQuotes
                       ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
