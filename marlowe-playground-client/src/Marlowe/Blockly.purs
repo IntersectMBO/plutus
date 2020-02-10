@@ -27,8 +27,8 @@ import Halogen.HTML.Properties (id_)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Party(..), Token(..), Value(..), ValueId(..))
 import Record (merge)
-import Text.Parsing.Parser (Parser, runParser)
-import Text.Parsing.Parser.Basic (parens)
+import Text.Parsing.StringParser (Parser)
+import Text.Parsing.StringParser.Basic (parens, runParser')
 
 data ActionType
   = DepositActionType
@@ -847,8 +847,8 @@ workspaceBlocks =
     [ block [ blockType (show BaseContractType), x "13", y "187", id_ "root_contract" ] []
     ]
 
-parse :: forall a. Parser String a -> String -> Either String a
-parse p = lmap show <<< flip runParser (parens p <|> p)
+parse :: forall a. Parser a -> String -> Either String a
+parse p = lmap show <<< runParser' (parens p <|> p)
 
 buildGenerator :: BlocklyState -> Generator
 buildGenerator blocklyState =

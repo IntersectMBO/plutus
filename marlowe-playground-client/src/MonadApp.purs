@@ -43,9 +43,9 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
-import Text.Parsing.Parser (ParseError(..), runParser)
-import Text.Parsing.Parser.Pos (Position(..))
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, WebsocketMessage(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
+import Text.Parsing.StringParser (ParseError, Pos)
+import Text.Parsing.StringParser.Basic (posToRowAndColumn, runParser')
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, Message(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
 
@@ -80,7 +80,7 @@ class
   checkContractForWarnings :: String -> m Unit
 
 newtype HalogenApp m a
-  = HalogenApp (HalogenM FrontendState HAction ChildSlots WebsocketMessage m a)
+  = HalogenApp (HalogenM FrontendState HAction ChildSlots Message m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
@@ -201,12 +201,12 @@ marloweEditorGetValueImpl = withMarloweEditor $ liftEffect <<< AceEditor.getValu
 updateContractInStateImpl :: forall m. String -> HalogenApp m Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
 
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState HAction ChildSlots WebsocketMessage m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM FrontendState HAction ChildSlots Message m a
 runHalogenApp = unwrap
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots WebsocketMessage m) a ->
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Message m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
 
@@ -225,7 +225,7 @@ withMarloweEditor ::
 withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = case runParser text (parseTerm contract) of
+updateContractInStateP text state = case runParser' (parseTerm contract) text of
   Right pcon ->
     let
       (Tuple duplicates holes) = validateHoles $ getHoles mempty pcon
@@ -245,13 +245,25 @@ updateContractInStateP text state = case runParser text (parseTerm contract) of
 
             holes'' = fold $ fromFoldable $ Map.values m
 
-            errors = map holeToAnnotation holes'
+            errors = map (holeToAnnotation text) holes'
           (set _editorErrors errors <<< set _holes holesm) state
-  Left error -> (set _editorErrors [ errorToAnnotation error ] <<< set _holes mempty) state
-  where
-  errorToAnnotation (ParseError msg (Position { line, column })) = { column: column, row: (line - 1), text: msg, "type": "error" }
+  Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
 
-  holeToAnnotation (MarloweHole { name, marloweType, start: (Position { column, line }), end }) = { column: column, row: (line - 1), text: "Found hole ?" <> name, "type": "warning" }
+holeToAnnotation :: String -> MarloweHole -> Annotation
+holeToAnnotation str (MarloweHole { name, marloweType, start }) =
+  let
+    { column, row } = posToRowAndColumn str start
+  in
+    { column, row, text: "Found hole ?" <> name, "type": "warning" }
+
+errorToAnnotation :: String -> { error :: ParseError, pos :: Pos } -> Annotation
+errorToAnnotation str { error, pos } =
+  let
+    { column, row } = posToRowAndColumn str pos
+
+    msg = show error
+  in
+    { column, row, text: msg, "type": "error" }
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =

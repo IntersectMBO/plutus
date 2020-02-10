@@ -16,7 +16,7 @@ You can edit this file as you like.
     , "matryoshka"
     , "node-fs"
     , "numerics"
-    , "parsing"
+    , "string-parsers"
     , "prelude"
     , "psci-support"
     , "remotedata"
