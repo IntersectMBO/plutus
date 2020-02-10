@@ -12,8 +12,8 @@ import Data.Either (Either)
 import Data.List (List, some)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm)
-import Marlowe.Semantics (CurrencySymbol, Party, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm)
+import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (bind, const, discard, flip, pure, show, void, ($), (*>), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.Parser (ParseState(..), Parser, fail, runParser)
@@ -117,7 +117,7 @@ accountId =
     void spaces
     first <- parseTerm $ maybeParens bigInteger
     void spaces
-    second <- parseTerm text
+    second <- parseTerm $ parens party
     void maybeSpaces
     pure $ AccountId first second
 
@@ -129,7 +129,7 @@ choiceId =
     void spaces
     first <- parseTerm text
     void spaces
-    second <- parseTerm text
+    second <- parseTerm $ parens party
     void maybeSpaces
     pure $ ChoiceId first second
 
@@ -180,13 +180,15 @@ observation = atomObservation <|> recObservation
 payee :: Parser String Payee
 payee =
   (Account <$> (string "Account" **> parseTerm accountId))
-    <|> (Party <$> (string "Party" **> parseTerm text))
+    <|> (Party <$> (string "Party" **> parseTerm (parens party)))
 
 pubkey :: Parser String PubKey
 pubkey = text
 
 party :: Parser String Party
-party = pubkey
+party =
+  (PK <$> (string "PK" **> parseTerm pubkey))
+    <|> (Role <$> (string "Role" **> parseTerm tokenName))
 
 currencySymbol :: Parser String CurrencySymbol
 currencySymbol = text
@@ -219,7 +221,7 @@ bound = do
 
 action :: Parser String Action
 action =
-  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm party <**> parseTerm token <**> value')
+  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm (parens party) <**> parseTerm token <**> value')
     <|> (Choice <$> (string "Choice" **> parseTerm choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
@@ -400,7 +402,7 @@ testString =
 input :: Parser String S.Input
 input =
   maybeParens
-    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> party <**> parseToValue token <**> (maybeParens bigInteger))
+    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> parseToValue party <**> parseToValue token <**> (maybeParens bigInteger))
         <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
         <|> ((const S.INotify) <$> (string "INotify"))
     )
@@ -469,7 +471,7 @@ transactionWarning = do
       ( do
           void maybeSpaces
           tWaS <-
-            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> party) <**> accountIdValue <**> parseToValue token <**> maybeParens bigInteger)
+            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> parseToValue party) <**> accountIdValue <**> parseToValue token <**> maybeParens bigInteger)
               <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue token <**> maybeParens bigInteger)
               <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue token <**> maybeParens bigInteger <**> maybeParens bigInteger)
               <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
