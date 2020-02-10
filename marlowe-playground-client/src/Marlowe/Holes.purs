@@ -17,7 +17,7 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Marlowe.Pretty (class Pretty, genericPretty, prettyFragment)
-import Marlowe.Semantics (ChosenNum, Money, Party, PubKey, Slot, Timeout)
+import Marlowe.Semantics (ChosenNum, Money, PubKey, Slot, Timeout, TokenName)
 import Marlowe.Semantics as S
 import Text.Parsing.Parser.Basic (replaceInPosition)
 import Text.Parsing.Parser.Pos (Position(..))
@@ -41,6 +41,7 @@ data MarloweType
   | ContractType
   | BoundType
   | TokenType
+  | PartyType
 
 derive instance eqMarloweType :: Eq MarloweType
 
@@ -124,6 +125,12 @@ getMarloweConstructors ContractType =
 getMarloweConstructors BoundType = Map.singleton "Bound" [ DataArg "from", DataArg "to" ]
 
 getMarloweConstructors TokenType = Map.singleton "Token" [ DataArg "currency", DataArg "token" ]
+
+getMarloweConstructors PartyType =
+  Map.fromFoldable
+    [ (Tuple "PK" [ DataArg "pubKey" ])
+    , (Tuple "Role" [ DataArg "token" ])
+    ]
 
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
 constructMarloweType constructorName (MarloweHole { name, marloweType, start }) m = case Map.lookup constructorName m of
@@ -248,8 +255,32 @@ instance boundIsMarloweType :: IsMarloweType Bound where
 instance boundHasMarloweHoles :: HasMarloweHoles Bound where
   getHoles m (Bound a b) = insertHole m a <> insertHole m b
 
+data Party
+  = PK (Term PubKey)
+  | Role (Term TokenName)
+
+derive instance genericParty :: Generic Party _
+
+instance showParty :: Show Party where
+  show v = genericShow v
+
+instance prettyParty :: Pretty Party where
+  prettyFragment a = Leijen.text (show a)
+
+instance partyFromTerm :: FromTerm Party S.Party where
+  fromTerm (PK (Term b)) = pure $ S.PK b
+  fromTerm (Role (Term b)) = pure $ S.Role b
+  fromTerm _ = Nothing
+
+instance partyIsMarloweType :: IsMarloweType Party where
+  marloweType _ = PartyType
+
+instance partyHasMarloweHoles :: HasMarloweHoles Party where
+  getHoles m (PK a) = insertHole m a
+  getHoles m (Role a) = insertHole m a
+
 data AccountId
-  = AccountId (Term BigInteger) (Term PubKey)
+  = AccountId (Term BigInteger) (Term Party)
 
 derive instance genericAccountId :: Generic AccountId _
 
@@ -260,7 +291,7 @@ instance prettyAccountId :: Pretty AccountId where
   prettyFragment a = Leijen.text (show a)
 
 instance accountIdFromTerm :: FromTerm AccountId S.AccountId where
-  fromTerm (AccountId (Term b) (Term c)) = pure $ S.AccountId b c
+  fromTerm (AccountId (Term b) (Term c)) = S.AccountId <$> pure b <*> fromTerm c
   fromTerm _ = Nothing
 
 instance accountIdIsMarloweType :: IsMarloweType AccountId where
@@ -291,7 +322,7 @@ instance tokenHasMarloweHoles :: HasMarloweHoles Token where
   getHoles m (Token a b) = insertHole m a <> insertHole m b
 
 data ChoiceId
-  = ChoiceId (Term String) (Term PubKey)
+  = ChoiceId (Term String) (Term Party)
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -302,7 +333,7 @@ instance prettyChoiceId :: Pretty ChoiceId where
   prettyFragment a = Leijen.text (show a)
 
 instance choiceIdFromTerm :: FromTerm ChoiceId S.ChoiceId where
-  fromTerm (ChoiceId (Term a) (Term b)) = pure $ S.ChoiceId a b
+  fromTerm (ChoiceId (Term a) (Term b)) = S.ChoiceId <$> pure a <*> fromTerm b
   fromTerm _ = Nothing
 
 instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where
@@ -325,7 +356,7 @@ instance prettyAction :: Pretty Action where
   prettyFragment a = Leijen.text (show a)
 
 instance actionFromTerm :: FromTerm Action S.Action where
-  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> termToValue b <*> fromTerm c <*> fromTerm d
+  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
   fromTerm (Choice a b) = S.Choice <$> fromTerm a <*> (traverse fromTerm b)
   fromTerm (Notify a) = S.Notify <$> fromTerm a
 
@@ -351,7 +382,7 @@ instance prettyPayee :: Pretty Payee where
 
 instance payeeFromTerm :: FromTerm Payee S.Payee where
   fromTerm (Account a) = S.Account <$> fromTerm a
-  fromTerm (Party (Term a)) = pure $ S.Party a
+  fromTerm (Party (Term a)) = S.Party <$> fromTerm a
   fromTerm _ = Nothing
 
 instance payeeMarloweType :: IsMarloweType Payee where

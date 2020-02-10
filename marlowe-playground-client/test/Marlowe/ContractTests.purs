@@ -13,7 +13,7 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
 import Editor as Editor
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..))
+import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
@@ -106,13 +106,13 @@ all =
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromIntegral 0) alice) alice ada (fromIntegral 450)
+        deposit = IDeposit (AccountId (fromIntegral 0) (Role alice)) (Role alice) ada (fromIntegral 450)
 
         choice = ChoiceId "choice"
 
-        choice1 = IChoice (choice alice) (fromIntegral 0)
+        choice1 = IChoice (choice (Role alice)) (fromIntegral 0)
 
-        choice2 = IChoice (choice bob) (fromIntegral 0)
+        choice2 = IChoice (choice (Role bob)) (fromIntegral 0)
 
         (Tuple _ finalState) =
           runTests
