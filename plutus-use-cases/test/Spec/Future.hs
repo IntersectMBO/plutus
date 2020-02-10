@@ -168,6 +168,4 @@ settleEarly = do
     handleBlockchainEvents (Wallet 2)
 
 mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
-mkSignedMessage sl vl =
-    let obs = Observation{obsValue=vl, obsSlot=sl} in
-    Oracle.signMessage obs (fst oracleKeys)
+mkSignedMessage sl vl = Oracle.signObservation sl vl (fst oracleKeys)
