@@ -333,7 +333,7 @@ renderDeposit (AccountId accountNumber accountOwner) party tok money =
   , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
-  , b_ [ spanText party ]
+  , b_ [ spanText (show party) ]
   ]
 
 inputChoice :: forall p. Boolean -> Maybe PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
@@ -861,7 +861,7 @@ renderPayment :: forall p. Party -> CurrencySymbol -> TokenName -> BigInteger ->
 renderPayment party currSym tokName money =
   tr []
     [ td_
-        [ text party
+        [ text (show party)
         ]
     , td
         [ class_ $ ClassName "middle-column"

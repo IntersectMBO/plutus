@@ -8,9 +8,11 @@ import           Data.String
 
 import           Language.Marlowe.Semantics
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (PubKeyHash (..))
 import           Ledger.Ada                 (adaSymbol, adaToken)
 import qualified Ledger.Value               as Val
+
+instance IsString Party where
+    fromString s = Role (fromString s)
 
 instance IsString AccountId where
     fromString s = AccountId 0 (fromString s)
@@ -18,47 +20,9 @@ instance IsString AccountId where
 instance IsString ValueId where
     fromString = ValueId . fromString
 
-{-
-'PubKeyHash' has an 'IsString' instance, but this expects a proper hex string for the hash.
-For our use here we don't want to write out full hex strings so we use this slightly incorrect
-way of constructing 'PubKeyHash'es.
--}
-instance IsString PubKeyHash where
-    fromString = PubKeyHash . fromString
 
 ada :: Token
 ada = Token adaSymbol adaToken
-
-alicePubKey :: Party
-alicePubKey = "Alice"
-
-aliceAcc :: AccountId
-aliceAcc = AccountId 0 alicePubKey
-
-bobPubKey :: Party
-bobPubKey = "Bob"
-
-bobAcc :: AccountId
-bobAcc = AccountId 0 bobPubKey
-
-carolPubKey :: Party
-carolPubKey = "Carol"
-
-carolAcc :: AccountId
-carolAcc = AccountId 0 carolPubKey
-
-charliePubKey :: Party
-charliePubKey = "Charlie"
-
-charlieAcc :: AccountId
-charlieAcc = AccountId 0 charliePubKey
-
-evePubKey :: Party
-evePubKey = "Eve"
-
-eveAcc :: AccountId
-eveAcc = AccountId 0 evePubKey
-
 
 type AccountsDiff = Map Party Money
 

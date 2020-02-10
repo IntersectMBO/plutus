@@ -12,7 +12,7 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
+import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
 import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TokenName)
 import Text.Parsing.Parser.Pos (Position(..))
 import Type.Proxy (Proxy(..))
@@ -48,6 +48,13 @@ genPubKey = genString
 
 genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
+
+genParty :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Party
+genParty = oneOf $ pk :| [ role ]
+  where
+  pk = PK <$> genTerm genPubKey
+
+  role = Role <$> genTerm genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
 genCurrencySymbol = genString
@@ -87,7 +94,7 @@ genTerm g = do
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do
   accountNumber <- genTerm genBigInteger
-  accountOwner <- genTerm genPubKey
+  accountOwner <- genTerm genParty
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Token
@@ -99,16 +106,16 @@ genToken = do
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ChoiceId
 genChoiceId = do
   choiceName <- genTerm genString
-  choiceOwner <- genTerm genPubKey
+  choiceOwner <- genTerm genParty
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genPubKey ]
+genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genParty ]
 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadAsk Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genTerm genAccountId <*> genTerm genPubKey <*> genTerm genToken <*> genTerm (genValue' size))
+    $ (Deposit <$> genTerm genAccountId <*> genTerm genParty <*> genTerm genToken <*> genTerm (genValue' size))
     :| [ Choice <$> genTerm genChoiceId <*> resize (_ - 1) (unfoldable (genTerm genBound))
       , Notify <$> genTerm (genObservation' size)
       ]

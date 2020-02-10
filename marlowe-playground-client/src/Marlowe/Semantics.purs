@@ -25,8 +25,21 @@ import Text.PrettyPrint.Leijen (appendWithSoftbreak, text)
 type PubKey
   = String
 
-type Party
-  = PubKey
+data Party
+  = PK PubKey
+  | Role TokenName
+
+derive instance genericParty :: Generic Party _
+
+derive instance eqParty :: Eq Party
+
+derive instance ordParty :: Ord Party
+
+instance showParty :: Show Party where
+  show = genericShow
+
+instance prettyParty :: Pretty Party where
+  prettyFragment = genericPretty
 
 type Timeout
   = Slot
@@ -140,7 +153,7 @@ derive newtype instance realRingAda :: Real Ada
 instance commutativeRingAda :: CommutativeRing Ada
 
 data AccountId
-  = AccountId BigInteger PubKey
+  = AccountId BigInteger Party
 
 derive instance genericAccountId :: Generic AccountId _
 
@@ -155,7 +168,7 @@ instance prettyAccountId :: Pretty AccountId where
   prettyFragment a = text (show a)
 
 data ChoiceId
-  = ChoiceId String PubKey
+  = ChoiceId String Party
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -169,7 +182,7 @@ instance showChoiceId :: Show ChoiceId where
 instance prettyChoiceId :: Pretty ChoiceId where
   prettyFragment a = text (show a)
 
-choiceOwner :: ChoiceId -> PubKey
+choiceOwner :: ChoiceId -> Party
 choiceOwner (ChoiceId _ owner) = owner
 
 newtype ValueId
@@ -613,7 +626,7 @@ emptyState sn =
     , minSlot: sn
     }
 
-accountOwner :: AccountId -> PubKey
+accountOwner :: AccountId -> Party
 accountOwner (AccountId _ owner) = owner
 
 inBounds :: ChosenNum -> Array Bound -> Boolean
