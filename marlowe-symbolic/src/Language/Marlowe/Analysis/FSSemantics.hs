@@ -59,10 +59,9 @@ type SlotNumber = Integer
 type SSlotNumber = SInteger
 type SlotInterval = (SlotNumber, SlotNumber)
 type SSlotInterval = STuple SlotNumber SlotNumber
-type PubKey = Integer
 
-type Party = PubKey
-type SParty = SBV PubKey
+type Party = Integer
+type SParty = SBV Party
 
 type NumChoice = Integer
 type NumAccount = Integer
@@ -119,9 +118,6 @@ unNestChoiceId (numCho, party) = ChoiceId numCho party
 literalChoiceId :: ChoiceId -> SChoiceId
 literalChoiceId (ChoiceId c p) = sChoiceId c p
 
-newtype OracleId = OracleId PubKey
-  deriving (Eq,Ord,Show,Read)
-
 newtype ValueId = ValueId Integer
   deriving (Eq,Ord,Show,Read)
 type NValueId = Integer
@@ -145,7 +141,6 @@ data Value = AvailableMoney AccountId
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
---           | OracleValue OracleId Value
   deriving (Eq,Ord,Show,Read)
 
 data Observation = AndObs Observation Observation
@@ -159,7 +154,6 @@ data Observation = AndObs Observation Observation
                  | ValueEQ Value Value
                  | TrueObs
                  | FalseObs
---                 | OracleValueProvided OracleId
   deriving (Eq,Ord,Show,Read)
 
 type Bound = (Integer, Integer)
