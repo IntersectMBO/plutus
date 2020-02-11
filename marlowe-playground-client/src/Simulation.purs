@@ -310,7 +310,7 @@ inputDeposit ::
   BigInteger ->
   HTML p HAction
 inputDeposit isEnabled person index accountId party token value =
-  flexRow_
+  div_
     $ [ button
           [ class_ $ ClassName "composer-add-button"
           , enabled isEnabled
@@ -341,7 +341,7 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
 
     errorRow = if validBounds then [] else [ text boundsError ]
   in
-    flexRow_
+    div_
       ( [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
@@ -369,7 +369,7 @@ inputNotify ::
   Int ->
   HTML p HAction
 inputNotify isEnabled person index =
-  flexRow_
+  div_
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
