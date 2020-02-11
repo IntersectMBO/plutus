@@ -153,13 +153,15 @@ handleWallet = interpret $ \case
 
 -- HACK: these shouldn't exist, but WalletAPI needs to die first
 instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
-    submitTxn = submitTxn
     ownPubKey = ownPubKey
     sign = sign
     updatePaymentWithChange = updatePaymentWithChange
     watchedAddresses = watchedAddresses
     -- TODO: Remove or rework. This is a noop, since the wallet client watches all addresses currently.
     startWatching _ = pure ()
+
+instance (Member WalletEffect effs) => WAPI.NodeAPI (Eff effs) where
+    submitTxn = submitTxn
     slot = walletSlot
 
 instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAPIError (Eff effs) where
