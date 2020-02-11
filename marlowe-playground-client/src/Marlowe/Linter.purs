@@ -8,7 +8,7 @@ module Marlowe.Linter
   ) where
 
 import Prelude
-import Data.Array (catMaybes, fold, (:))
+import Data.Array (catMaybes, fold, foldMap, (:))
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens', over, set, view)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -16,7 +16,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Data.Tuple.Nested (type (/\), get1, get2, get3, (/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Holes (Action(..), Case(..), Contract(..), Holes, Term(..), Value(..), getHoles, insertHole)
 import Text.Parsing.StringParser (Pos)
 
@@ -116,21 +116,13 @@ maybeCons Nothing xs = xs
 
 maybeCons (Just x) xs = x : xs
 
-collectFromTuples :: forall a b c. Array (a /\ b /\ c /\ Unit) -> Array a /\ Array b /\ Array c
-collectFromTuples ts =
-  let
-    as = map get1 ts
+collectFromTuples :: forall a b c. Array (a /\ b /\ c) -> Array a /\ Array b /\ Array c
+collectFromTuples = foldMap (\(a /\ b /\ c) -> [ a ] /\ [ b ] /\ [ c ])
 
-    bs = map get2 ts
+contractFromCase :: Holes -> Term Case -> Holes /\ Maybe Position /\ Maybe (Term Contract)
+contractFromCase holes (Term (Case action contract) _ _) = getHoles action holes /\ negativeDeposit action /\ Just contract
 
-    cs = map get3 ts
-  in
-    as /\ bs /\ cs
-
-contractFromCase :: Holes -> Term Case -> Holes /\ Maybe Position /\ Maybe (Term Contract) /\ Unit
-contractFromCase holes (Term (Case action contract) _ _) = getHoles action holes /\ negativeDeposit action /\ Just contract /\ unit
-
-contractFromCase holes _ = holes /\ Nothing /\ Nothing /\ unit
+contractFromCase holes _ = holes /\ Nothing /\ Nothing
 
 negativeDeposit :: Term Action -> Maybe Position
 negativeDeposit (Term (Deposit _ _ _ value) _ _) = negativeValue value
