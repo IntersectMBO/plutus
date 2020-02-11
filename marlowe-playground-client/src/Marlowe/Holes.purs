@@ -454,9 +454,6 @@ instance caseFromTerm :: FromTerm Case S.Case where
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
 
-instance caseHasMarloweHoles :: HasMarloweHoles Case where
-  getHoles m (Case a b) = getHoles m a <> getHoles m b
-
 data Value
   = AvailableMoney (Term AccountId) (Term Token)
   | Constant (Term BigInteger)
@@ -596,13 +593,6 @@ instance contractFromTerm :: FromTerm Contract S.Contract where
 
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
-
-instance contractHasMarloweHoles :: HasMarloweHoles Contract where
-  getHoles m Close = mempty
-  getHoles m (Pay a b c d e) = getHoles m a <> getHoles m b <> getHoles m c <> getHoles m d <> getHoles m e
-  getHoles m (If a b c) = getHoles m a <> getHoles m b <> getHoles m c
-  getHoles m (When as b c) = getHoles m as <> insertHole m b <> getHoles m c
-  getHoles m (Let a b c) = getHoles m a <> getHoles m b <> getHoles m c
 
 newtype ValueId
   = ValueId String
