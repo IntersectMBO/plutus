@@ -20,6 +20,8 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Tuple (Tuple(..), snd)
 import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -122,9 +124,9 @@ holesPane selectedHole (Holes holes) =
           holesGroup
       ]
   where
-  sortHoles = compare `on` (head <<< snd)
+  sortHoles = compare `on` (head <<< Set.toUnfoldable <<< snd)
 
-displayHole :: forall p. Maybe String -> String -> Array MarloweHole -> HTML p HAction
+displayHole :: forall p. Maybe String -> String -> Set MarloweHole -> HTML p HAction
 displayHole selectedHole name holes =
   div [ classes ([ ClassName "btn-group" ] <> showClass) ]
     [ button
@@ -141,7 +143,7 @@ displayHole selectedHole name holes =
         [ classes ([ ClassName "dropdown-menu" ] <> showClass)
         , ariaLabelledBy ("hole-btn-" <> name)
         ]
-        (holeDropdowns holes)
+        (holeDropdowns (Set.toUnfoldable holes))
     ]
   where
   expanded = selectedHole == Just name

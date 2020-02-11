@@ -1,10 +1,9 @@
 module Marlowe.Holes where
 
 import Prelude
-import Data.Array (foldMap, foldl, mapWithIndex, (:))
+import Data.Array (foldMap, foldl, mapWithIndex)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (intercalate)
-import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
@@ -12,6 +11,8 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.String (length)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -203,7 +204,7 @@ instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
 
 -- a Monoid for collecting Holes
 data Holes
-  = Holes (Map String (Array MarloweHole))
+  = Holes (Map String (Set MarloweHole))
 
 derive instance genericHoles :: Generic Holes _
 
@@ -216,36 +217,24 @@ instance semigroupHoles :: Semigroup Holes where
 instance monoidHoles :: Monoid Holes where
   mempty = Holes mempty
 
-{- | Find holes with the same name
-  We collect all the `Holes` using `getHoles` and then we fold through the result
-  to find occurances that have the same name as well as changing the values to be
-  single MarloweHoles rather than an array of MarloweHoles
--}
-validateHoles :: Holes -> Tuple (Array MarloweHole) (Map String MarloweHole)
-validateHoles (Holes m) = foldlWithIndex f (Tuple [] mempty) m
-  where
-  f k (Tuple duplicates uniquesMap) [ v ] = Tuple duplicates (Map.insert k v uniquesMap)
+insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
+insertHole (Term _ _ _) m = m
 
-  f k (Tuple duplicates uniquesMap) vs = Tuple (duplicates <> vs) uniquesMap
-
-insertHole :: forall a. IsMarloweType a => Holes -> Term a -> Holes
-insertHole m (Term _ _ _) = m
-
-insertHole (Holes m) (Hole name proxy start end) = Holes $ Map.alter f name m
+insertHole (Hole name proxy start end) (Holes m) = Holes $ Map.alter f name m
   where
   marloweHole = MarloweHole { name, marloweType: (marloweType proxy), start, end }
 
-  f v = Just (marloweHole : fromMaybe [] v)
+  f v = Just (Set.insert marloweHole $ fromMaybe mempty v)
 
 class HasMarloweHoles a where
-  getHoles :: Holes -> a -> Holes
+  getHoles :: a -> Holes -> Holes
 
 instance termHasMarloweHoles :: (IsMarloweType a, HasMarloweHoles a) => HasMarloweHoles (Term a) where
-  getHoles m (Term a _ _) = getHoles m a
-  getHoles m h = insertHole m h
+  getHoles (Term a _ _) m = getHoles a m
+  getHoles h m = insertHole h m
 
 instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
-  getHoles m as = foldMap (getHoles m) as
+  getHoles as m = foldMap (\a -> getHoles a m) as
 
 -- Parsable versions of the Marlowe types
 data Bound
@@ -270,7 +259,7 @@ instance boundIsMarloweType :: IsMarloweType Bound where
   marloweType _ = BoundType
 
 instance boundHasMarloweHoles :: HasMarloweHoles Bound where
-  getHoles m (Bound a b) = insertHole m a <> insertHole m b
+  getHoles (Bound a b) m = insertHole a m <> insertHole b m
 
 data Party
   = PK (Term PubKey)
@@ -297,8 +286,8 @@ instance partyIsMarloweType :: IsMarloweType Party where
   marloweType _ = PartyType
 
 instance partyHasMarloweHoles :: HasMarloweHoles Party where
-  getHoles m (PK a) = insertHole m a
-  getHoles m (Role a) = insertHole m a
+  getHoles (PK a) m = insertHole a m
+  getHoles (Role a) m = insertHole a m
 
 data AccountId
   = AccountId (Term BigInteger) (Term Party)
@@ -323,7 +312,7 @@ instance accountIdIsMarloweType :: IsMarloweType AccountId where
   marloweType _ = AccountIdType
 
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles m (AccountId a b) = insertHole m a <> insertHole m b
+  getHoles (AccountId a b) m = insertHole a m <> insertHole b m
 
 data Token
   = Token (Term String) (Term String)
@@ -348,7 +337,7 @@ instance tokenIsMarloweType :: IsMarloweType Token where
   marloweType _ = TokenType
 
 instance tokenHasMarloweHoles :: HasMarloweHoles Token where
-  getHoles m (Token a b) = insertHole m a <> insertHole m b
+  getHoles (Token a b) m = insertHole a m <> insertHole b m
 
 data ChoiceId
   = ChoiceId (Term String) (Term Party)
@@ -373,7 +362,7 @@ instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where
   marloweType _ = ChoiceIdType
 
 instance choiceIdHasMarloweHoles :: HasMarloweHoles ChoiceId where
-  getHoles m (ChoiceId a b) = insertHole m a <> insertHole m b
+  getHoles (ChoiceId a b) m = insertHole a m <> insertHole b m
 
 data Action
   = Deposit (Term AccountId) (Term Party) (Term Token) (Term Value)
@@ -401,9 +390,9 @@ instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
 
 instance actionHasMarloweHoles :: HasMarloweHoles Action where
-  getHoles m (Deposit a b c d) = getHoles m a <> insertHole m b <> getHoles m c <> getHoles m d
-  getHoles m (Choice a bs) = getHoles m a <> getHoles m bs
-  getHoles m (Notify a) = getHoles m a
+  getHoles (Deposit a b c d) m = getHoles a m <> insertHole b m <> getHoles c m <> getHoles d m
+  getHoles (Choice a bs) m = getHoles a m <> getHoles bs m
+  getHoles (Notify a) m = getHoles a m
 
 data Payee
   = Account (Term AccountId)
@@ -430,8 +419,8 @@ instance payeeMarloweType :: IsMarloweType Payee where
   marloweType _ = PayeeType
 
 instance payeeHasMarloweHoles :: HasMarloweHoles Payee where
-  getHoles m (Account a) = getHoles m a
-  getHoles m (Party a) = insertHole m a
+  getHoles (Account a) m = getHoles a m
+  getHoles (Party a) m = insertHole a m
 
 data Case
   = Case (Term Action) (Term Contract)
@@ -492,15 +481,15 @@ instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
 
 instance valueHasMarloweHoles :: HasMarloweHoles Value where
-  getHoles m (AvailableMoney a b) = getHoles m a <> getHoles m b
-  getHoles m (Constant a) = insertHole m a
-  getHoles m (NegValue a) = getHoles m a
-  getHoles m (AddValue a b) = getHoles m a <> getHoles m b
-  getHoles m (SubValue a b) = getHoles m a <> getHoles m b
-  getHoles m (ChoiceValue a b) = getHoles m a <> getHoles m b
-  getHoles m SlotIntervalStart = mempty
-  getHoles m SlotIntervalEnd = mempty
-  getHoles m (UseValue a) = getHoles m a
+  getHoles (AvailableMoney a b) m = getHoles a m <> getHoles b m
+  getHoles (Constant a) m = insertHole a m
+  getHoles (NegValue a) m = getHoles a m
+  getHoles (AddValue a b) m = getHoles a m <> getHoles b m
+  getHoles (SubValue a b) m = getHoles a m <> getHoles b m
+  getHoles (ChoiceValue a b) m = getHoles a m <> getHoles b m
+  getHoles SlotIntervalStart m = mempty
+  getHoles SlotIntervalEnd m = mempty
+  getHoles (UseValue a) m = getHoles a m
 
 data Input
   = IDeposit (Term AccountId) (Term Party) (Term Money)
@@ -553,17 +542,17 @@ instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
 
 instance observationHasMarloweHoles :: HasMarloweHoles Observation where
-  getHoles m (AndObs a b) = getHoles m a <> getHoles m b
-  getHoles m (OrObs a b) = getHoles m a <> getHoles m b
-  getHoles m (NotObs a) = getHoles m a
-  getHoles m (ChoseSomething a) = getHoles m a
-  getHoles m (ValueGE a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueGT a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueLT a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueLE a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueEQ a b) = getHoles m a <> getHoles m b
-  getHoles m TrueObs = mempty
-  getHoles m FalseObs = mempty
+  getHoles (AndObs a b) m = getHoles a m <> getHoles b m
+  getHoles (OrObs a b) m = getHoles a m <> getHoles b m
+  getHoles (NotObs a) m = getHoles a m
+  getHoles (ChoseSomething a) m = getHoles a m
+  getHoles (ValueGE a b) m = getHoles a m <> getHoles b m
+  getHoles (ValueGT a b) m = getHoles a m <> getHoles b m
+  getHoles (ValueLT a b) m = getHoles a m <> getHoles b m
+  getHoles (ValueLE a b) m = getHoles a m <> getHoles b m
+  getHoles (ValueEQ a b) m = getHoles a m <> getHoles b m
+  getHoles TrueObs m = mempty
+  getHoles FalseObs m = mempty
 
 data Contract
   = Close
@@ -622,7 +611,7 @@ instance valueIdIsMarloweType :: IsMarloweType ValueId where
   marloweType _ = ValueIdType
 
 instance valueIdHasMarloweHoles :: HasMarloweHoles ValueId where
-  getHoles m _ = m
+  getHoles _ m = m
 
 termToValue :: forall a. Term a -> Maybe a
 termToValue (Term a _ _) = Just a
@@ -643,13 +632,13 @@ replaceInPositions constructor firstHole@(MarloweHole { marloweType, name }) hol
 
     holeString = constructMarloweType constructor firstHole m
 
-    stringLengthDifference = (length holeString) - (length name)
+    stringLengthDifference = (length holeString) - (length name) - 1
 
     (final /\ _) =
       foldl
         ( \(currString /\ currLength) hole@(MarloweHole { name, start, end }) ->
             let
-              newString = replaceInPosition { start, end, string: currString, replacement: holeString }
+              newString = replaceInPosition { start: start + currLength, end: end + currLength, string: currString, replacement: holeString }
 
               newLength = currLength + stringLengthDifference
             in

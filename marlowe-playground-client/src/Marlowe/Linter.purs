@@ -8,7 +8,7 @@ module Marlowe.Linter
   ) where
 
 import Prelude
-import Data.Array (catMaybes, cons, fold, (:))
+import Data.Array (catMaybes, fold, (:))
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens', over, set, view)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -66,24 +66,22 @@ traverseContract state (Term Close _ _) = state
 
 traverseContract state (Term (Pay acc payee token payment contract) start end) =
   let
-    hs = view _holes state
+    gatherHoles = getHoles acc <> getHoles payee <> getHoles token <> getHoles payment
 
-    holes = getHoles hs acc <> getHoles hs payee <> getHoles hs token <> getHoles hs payment
-
-    stateWithHoles = set _holes holes state
+    newState =
+      over _holes gatherHoles
+        <<< over _negativePayments (maybeCons (negativeValue payment))
+        $ state
   in
-    traverseContract stateWithHoles contract
-      <> case negativeValue payment of
-          Just pos -> over _negativePayments (cons pos) mempty
-          Nothing -> mempty
+    traverseContract newState contract
 
 traverseContract state (Term (If obs c1 c2) _ _) =
   let
-    hs = view _holes state
+    gatherHoles = getHoles obs
 
-    stateWithHoles = set _holes (getHoles hs obs) state
+    newState = over _holes gatherHoles state
   in
-    stateWithHoles <> traverseContract mempty c1 <> traverseContract mempty c2
+    traverseContract newState c1 <> traverseContract newState c2
 
 traverseContract state (Term (When cases timeout contract) start end) =
   let
@@ -91,28 +89,32 @@ traverseContract state (Term (When cases timeout contract) start end) =
 
     (holes /\ mnds /\ contracts) = collectFromTuples (map (contractFromCase hs) cases)
 
-    stateWithHoles = set _holes (insertHole (fold holes) timeout) state
-
     nds = catMaybes mnds
 
-    nextState = fold $ map (traverseContract mempty) (contract : catMaybes contracts)
-
-    newState = over _negativeDeposits (append nds) nextState
+    newState =
+      over _negativeDeposits (append nds)
+        <<< set _holes (insertHole timeout (fold holes))
+        $ state
   in
-    newState <> stateWithHoles
+    fold $ map (traverseContract newState) (contract : catMaybes contracts)
 
 traverseContract state (Term (Let valueId value contract) _ _) =
   let
-    hs = view _holes state
+    gatherHoles = getHoles valueId <> getHoles value
 
-    stateWithHoles = set _holes (getHoles hs valueId <> getHoles hs value) state
+    newState =
+      over _holes gatherHoles
+        <<< over _negativePayments (maybeCons (negativeValue value))
+        $ state
   in
-    traverseContract stateWithHoles contract
-      <> case negativeValue value of
-          Just pos -> over _negativePayments (cons pos) mempty
-          Nothing -> mempty
+    traverseContract newState contract
 
-traverseContract state hole@(Hole _ _ _ _) = over _holes (\hs -> insertHole hs hole) state
+traverseContract state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state
+
+maybeCons :: forall a. Maybe a -> Array a -> Array a
+maybeCons Nothing xs = xs
+
+maybeCons (Just x) xs = x : xs
 
 collectFromTuples :: forall a b c. Array (a /\ b /\ c /\ Unit) -> Array a /\ Array b /\ Array c
 collectFromTuples ts =
@@ -126,7 +128,7 @@ collectFromTuples ts =
     as /\ bs /\ cs
 
 contractFromCase :: Holes -> Term Case -> Holes /\ Maybe Position /\ Maybe (Term Contract) /\ Unit
-contractFromCase holes (Term (Case action contract) _ _) = getHoles holes action /\ negativeDeposit action /\ Just contract /\ unit
+contractFromCase holes (Term (Case action contract) _ _) = getHoles action holes /\ negativeDeposit action /\ Just contract /\ unit
 
 contractFromCase holes _ = holes /\ Nothing /\ Nothing /\ unit
 

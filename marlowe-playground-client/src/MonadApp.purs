@@ -23,6 +23,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Set as Set
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -36,7 +37,7 @@ import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, validateHoles)
+import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm)
 import Marlowe.Linter (Position, lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseTerm, contract)
@@ -234,7 +235,7 @@ updateContractInStateP text state = case runParser' (parseTerm contract) text of
 
       lintHoles = view L._holes lintResult
 
-      (Tuple duplicates holes) = validateHoles $ lintHoles
+      (Holes holes) = lintHoles
 
       warnings =
         map (warningToAnnotation text "The contract can make a negative payment here") (view L._negativePayments lintResult)
@@ -247,15 +248,13 @@ updateContractInStateP text state = case runParser' (parseTerm contract) text of
           set _editorErrors warnings <<< set _contract (Just contract) $ state
         Nothing -> do
           let
-            holes' = fromFoldable $ Map.values holes
-
-            (Holes m) = lintHoles
+            holes' = fold $ fromFoldable $ Map.values holes
 
             holesm = lintHoles
 
-            holes'' = fold $ fromFoldable $ Map.values m
+            holes'' = fold $ fromFoldable $ Map.values holes
 
-            errors = warnings <> map (holeToAnnotation text) holes'
+            errors = warnings <> map (holeToAnnotation text) (Set.toUnfoldable holes')
           (set _editorErrors errors <<< set _holes holesm) state
   Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
 
