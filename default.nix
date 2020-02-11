@@ -465,6 +465,7 @@ let
                                 pkgs.cacert
                                 pkgs.yarn
                                 pkgs.zlib
+                                pkgs.z3
                                 pkgs.sqlite-analyzer
                                 pkgs.sqlite-interactive
 
