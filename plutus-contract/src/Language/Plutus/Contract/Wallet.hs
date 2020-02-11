@@ -34,7 +34,7 @@ import           Ledger.Tx                   (Tx (..), TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
-import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError)
+import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError, WalletAPI)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Emulator             (Wallet)
 import qualified Wallet.Emulator             as E
@@ -78,7 +78,7 @@ be submitted to the network, the contract backend needs to
 -- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
 --   [Submitting transactions from Plutus contracts].
 balanceWallet
-    :: (WAPI.MonadWallet m)
+    :: MonadWallet m
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
@@ -95,7 +95,7 @@ balanceWallet utx = do
 --
 --   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
-computeBalance :: WAPI.MonadWallet m => Tx -> m Value
+computeBalance :: MonadWallet m => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
@@ -112,7 +112,7 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.
 balanceTx
-    :: ( WAPI.MonadWallet m )
+    :: MonadWallet m
     => Map TxOutRef TxOut
     -- ^ Unspent transaction outputs that may be used to balance the
     --   left hand side (inputs) of the transaction.
@@ -167,13 +167,13 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
+handleTx :: (MonadWallet m, WAPI.NodeAPI m) => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
     balanceWallet utx >>= addSignatures p (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit
 
 -- | The signing process gets a finished transaction and a list of public keys,
 --   and signs the transaction with the corresponding private keys.
-newtype SigningProcess = SigningProcess { addSignatures :: forall m. MonadWallet m => [L.PubKeyHash] -> Tx -> m Tx }
+newtype SigningProcess = SigningProcess { addSignatures :: forall m. (WalletAPI m, MonadError WalletAPIError m) => [L.PubKeyHash] -> Tx -> m Tx }
 
 -- | The default signing process is 'signWallet'
 defaultSigningProcess :: SigningProcess

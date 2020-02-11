@@ -111,15 +111,15 @@ instance Pretty WalletAPIError where
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
 
-type MonadWallet m = (WalletAPI m, NodeAPI m, WalletDiagnostics m)
+type MonadWallet m = (WalletAPI m, WalletDiagnostics m, MonadError WalletAPIError m)
 
 -- | The ability to log messages and throw errors.
-class MonadError WalletAPIError m => WalletDiagnostics m where
+class Monad m => WalletDiagnostics m where
     -- | Write some information to the log.
     logMsg :: Text -> m ()
 
 -- | Used by Plutus client to interact with wallet
-class WalletAPI m where
+class Monad m => WalletAPI m where
 
     -- | Access the wallet's 'PublicKey'.
     ownPubKey :: m PubKey
@@ -157,7 +157,6 @@ class NodeAPI m where
     The current slot.
     -}
     slot :: m Slot
-
 
 createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
