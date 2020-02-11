@@ -3,6 +3,7 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE TypeOperators             #-}
 
 module Language.PlutusCore.Generators.Internal.Denotation
     ( Denotation(..)
@@ -18,9 +19,9 @@ module Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
 import qualified Data.ByteString.Lazy.Hash                         as Hash
@@ -105,7 +106,7 @@ insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
 -- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'TypedBuiltinName's.
 typedBuiltinNames
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => DenotationContext uni
 typedBuiltinNames
     = insertTypedBuiltinName typedAddInteger           (+)

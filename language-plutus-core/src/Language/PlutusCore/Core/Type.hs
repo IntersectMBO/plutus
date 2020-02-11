@@ -33,7 +33,7 @@ where
 import           PlutusPrelude
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Constant.Universe
+import           Language.PlutusCore.Universe
 
 import           Control.Lens
 import           Data.Hashable

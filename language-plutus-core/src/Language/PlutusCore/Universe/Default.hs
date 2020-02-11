@@ -14,23 +14,29 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Constant.DefaultUni
+module Language.PlutusCore.Universe.Default
     ( ByteString16 (..)
     , DefaultUni (..)
-    , HasDefaultUni
     ) where
 
-import           Language.PlutusCore.Constant.Universe
+import           Language.PlutusCore.Pretty.Utils
+import           Language.PlutusCore.Universe.Core
 
-import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.ByteString.Lazy              as BSL
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show.TH
-import           Language.Haskell.TH.Syntax            (Lift)
+import           Data.Text.Prettyprint.Doc
+import           Language.Haskell.TH.Syntax
 
 -- TODO: use strict bytestrings.
 newtype ByteString16 = ByteString16
     { unByteString16 :: BSL.ByteString
     } deriving newtype (Eq, Ord)
+-- A 'Show' instance is intentionally not provided. PLC things are shown using 'pretty' or 'prettyBy'.
+-- If you need to satisfy a 'Show' constraint, use the 'APretty' wrapper.
+
+instance Pretty ByteString16 where
+    pretty = prettyBytes . unByteString16
 
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
@@ -41,6 +47,7 @@ data DefaultUni a where
 deriveGEq   ''DefaultUni
 deriveGShow ''DefaultUni
 deriving instance Lift (DefaultUni a)
+instance GLift DefaultUni
 
 instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
 instance DefaultUni `Includes` ByteString16    where knownUni = DefaultUniByteString
@@ -70,5 +77,3 @@ instance Closed DefaultUni where
     bring _ DefaultUniByteString = id
     bring _ DefaultUniString     = id
     bring _ DefaultUniChar       = id
-
-type HasDefaultUni uni = DefaultUni `Everywhere` Includes uni

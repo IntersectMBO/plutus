@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -24,9 +25,9 @@ import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import qualified Data.ByteString.Lazy     as BSL
+import           Data.Proxy
 import qualified Data.Text                as T
 import           Foreign.Storable
-
 import           GHC.Generics
 
 {- Note [Memory Usage for Plutus]
@@ -40,9 +41,9 @@ abstractily specifiable. It's an implementation detail.
 
 -}
 
-type Plain f = f TyName Name ()
+type Plain f (uni :: * -> *) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
-type WithMemory f = f TyName Name ExMemory
+type WithMemory f (uni :: * -> *) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -86,22 +87,35 @@ newtype GenericExMemoryUsage a = GenericExMemoryUsage { getGenericExMemoryUsage 
 instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUsage a) where
   memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
 
+deriving via GenericExMemoryUsage (a, b)
+  instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
+
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-deriving via (GenericExMemoryUsage (Constant ann)) instance ExMemoryUsage ann => ExMemoryUsage (Constant ann)
 deriving via (GenericExMemoryUsage (Name ann)) instance ExMemoryUsage ann => ExMemoryUsage (Name ann)
-deriving via (GenericExMemoryUsage TypeBuiltin) instance ExMemoryUsage TypeBuiltin
-deriving via (GenericExMemoryUsage (Type TyName ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName ann)
+deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
 deriving via (GenericExMemoryUsage (Builtin ann)) instance ExMemoryUsage ann => ExMemoryUsage (Builtin ann)
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Plain Term)) instance ExMemoryUsage (Plain Term)
-deriving via (GenericExMemoryUsage (WithMemory Term)) instance ExMemoryUsage (WithMemory Term)
+-- TODO: Can we merge these two instances together?
+deriving via (GenericExMemoryUsage (Plain Term uni))
+  instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Plain Term uni)
+deriving via (GenericExMemoryUsage (WithMemory Term uni))
+  instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (WithMemory Term uni)
 deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
+
+instance ExMemoryUsage (Some uni) where
+  memoryUsage _ = 0 -- TODO or 1?
+
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (SomeOf uni) where
+  memoryUsage (SomeOf uni x) = memoryUsage
+    ( Some uni
+    , bring (Proxy @ExMemoryUsage) uni $ memoryUsage x
+    )
 
 instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
@@ -112,10 +126,15 @@ instance ExMemoryUsage Integer where
 instance ExMemoryUsage BSL.ByteString where
   memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
 
+deriving newtype instance ExMemoryUsage ByteString16
+
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
 
 instance ExMemoryUsage Int where
+  memoryUsage _ = 1
+
+instance ExMemoryUsage Char where
   memoryUsage _ = 1
 
 instance ExMemoryUsage String where

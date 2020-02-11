@@ -10,8 +10,8 @@ module Language.PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.FsTree
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat

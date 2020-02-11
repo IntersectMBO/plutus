@@ -11,10 +11,10 @@ module Language.PlutusCore.Core.Instance.Pretty.Default () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core.Instance.Pretty.Classic ()
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Universe
 
 instance Pretty (Kind ann) where
     pretty = prettyClassicDef

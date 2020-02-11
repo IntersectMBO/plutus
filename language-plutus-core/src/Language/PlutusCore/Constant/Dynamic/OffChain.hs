@@ -6,10 +6,10 @@ module Language.PlutusCore.Constant.Dynamic.OffChain
 
 import           Language.PlutusCore.Constant.Dynamic.BuiltinName
 import           Language.PlutusCore.Constant.Function
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.TypeCheck
+import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 

@@ -12,16 +12,14 @@
 
 module Language.PlutusCore.Constant.Dynamic.Instances () where
 
-import           Language.PlutusCore.Constant.DefaultUni
-import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Bool
+import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 import qualified Data.Text                                        as Text
@@ -65,23 +63,23 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
     readKnown eval = fmap OpaqueTerm . eval mempty
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer where
-    toTypeAst _ = makeTyBuiltin @Integer
-    makeKnown = makeConstant
+    toTypeAst _ = mkTyBuiltin @Integer
+    makeKnown = mkConstant
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` ByteString16) => KnownType uni ByteString16 where
-    toTypeAst _ = makeTyBuiltin @ByteString16
-    makeKnown = makeConstant
+    toTypeAst _ = mkTyBuiltin @ByteString16
+    makeKnown = mkConstant
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Char) => KnownType uni Char where
-    toTypeAst _ = makeTyBuiltin @Char
-    makeKnown = makeConstant
+    toTypeAst _ = mkTyBuiltin @Char
+    makeKnown = mkConstant
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
-    toTypeAst _ = makeTyBuiltin @String
-    makeKnown = makeConstant
+    toTypeAst _ = mkTyBuiltin @String
+    makeKnown = mkConstant
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool where
@@ -90,8 +88,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool wher
     makeKnown b = if b then true else false
 
     readKnown eval b = do
-        let integer = makeTyBuiltin @Integer
-            integerToTerm = makeConstant @Integer
+        let integer = mkTyBuiltin @Integer
+            integerToTerm = mkConstant @Integer
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b integer) [integerToTerm 1, integerToTerm 0]
         i <- extractConstant eval term

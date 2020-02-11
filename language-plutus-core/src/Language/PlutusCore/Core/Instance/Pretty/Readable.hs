@@ -12,10 +12,10 @@ module Language.PlutusCore.Core.Instance.Pretty.Readable () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Readable
+import           Language.PlutusCore.Universe
 
 import           Data.Text.Prettyprint.Doc.Internal              (enclose)
 

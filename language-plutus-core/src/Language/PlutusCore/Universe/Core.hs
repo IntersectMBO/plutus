@@ -1,4 +1,3 @@
-{-# LANGUAGE UndecidableSuperClasses #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -12,18 +11,23 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE QuantifiedConstraints     #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Language.PlutusCore.Constant.Universe
+module Language.PlutusCore.Universe.Core
     ( Some (..)
     , SomeOf (..)
+    , someValue
     , Includes (..)
     , Closed (..)
+    , type (<:)
     , knownUniOf
     , bringApply
     , GEq (..)
     , (:~:) (..)
     , GShow (..)
     , gshow
+    , GLift (..)
     ) where
 
 import           Control.DeepSeq
@@ -34,7 +38,8 @@ import           Data.List
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc (Pretty (..))
 import           GHC.Exts
-import           Language.Haskell.TH.Syntax (Lift (..))
+import           Language.Haskell.TH.Syntax
+import           Language.Haskell.TH.Lift
 
 data Some f = forall a. Some (f a)
 data SomeOf f = forall a. SomeOf (f a) a
@@ -46,11 +51,16 @@ class uni `Includes` a where
 knownUniOf :: uni `Includes` a => proxy a -> uni a
 knownUniOf _ = knownUni
 
+someValue :: forall a uni. uni `Includes` a => a -> SomeOf uni
+someValue = SomeOf knownUni
+
 class Closed uni where
     type Everywhere uni (constr :: * -> Constraint) :: Constraint
     tagOf :: uni a -> Int
     uniAt :: Int -> Maybe (Some uni)
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
+
+type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
 bringApply
     :: (Closed uni, uni `Everywhere` constr)
@@ -90,11 +100,39 @@ instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (SomeOf uni) where
 instance NFData (Some f) where
     rnf (Some a) = a `seq` ()
 
-instance Lift (Some uni) where
-    lift (Some uni) = undefined
+-- | 'GLift' to 'Lift' is what 'GShow' to 'Show'.
+class GLift f where
+    glift :: f a -> Q Exp
+    default glift :: Lift (f a) => f a -> Q Exp
+    glift = lift
 
--- instance (forall a. Lift (uni a)) => Lift (Some uni) where
---     lift (Some uni) = lift uni
+-- | A wrapper that allows to provide a 'Lift' instance for any @uni@ implementing 'GLift'.
+newtype AGLift uni a = AGLift
+    { unAGLift :: uni a
+    }
+
+instance GLift uni => Lift (AGLift uni a) where
+    lift = glift . unAGLift
+
+newtype SomeAGLift uni = SomeAGLift
+    { unSomeAGLift :: Some (AGLift uni)
+    }
+
+$(return [])
+instance GLift uni => Lift (SomeAGLift uni) where
+    lift = $(makeLift ''Some) . unSomeAGLift
+
+-- >>> :set -XGADTs
+-- >>> :set -XStandaloneDeriving
+-- >>> :set -XTemplateHaskell
+-- >>> data U a where UInt :: U Int; UBool :: U Bool
+-- >>> deriving instance Show (U a)
+-- >>> instance GShow U where gshowsPrec = showsPrec
+-- >>> deriving instance Lift (U a)
+-- >>> instance GLift U
+-- >>> $(lift $ Some UInt)
+-- Some (UInt)
+deriving via SomeAGLift uni instance GLift uni => Lift (Some uni)
 
 instance Closed uni => Hashable (Some uni) where
     hashWithSalt salt (Some uni) = hashWithSalt salt $ tagOf uni
@@ -102,8 +140,10 @@ instance Closed uni => Hashable (Some uni) where
 instance (Closed uni, uni `Everywhere` NFData) => NFData (SomeOf uni) where
     rnf = bringApply (Proxy @NFData) rnf
 
-instance (Closed uni, uni `Everywhere` Lift) => Lift (SomeOf uni) where
-    lift = bringApply (Proxy @Lift) lift
+instance (GLift uni, Closed uni, uni `Everywhere` Lift) => Lift (SomeOf uni) where
+    -- TODO: FIXME.
+    lift = undefined
 
 instance (Closed uni, uni `Everywhere` Hashable) => Hashable (SomeOf uni) where
-    hashWithSalt salt = bringApply (Proxy @Hashable) $ hashWithSalt salt
+    hashWithSalt salt (SomeOf uni x) =
+        bring (Proxy @Hashable) uni $ hashWithSalt salt (Some uni, x)

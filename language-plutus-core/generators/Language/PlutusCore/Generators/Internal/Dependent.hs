@@ -15,6 +15,7 @@ module Language.PlutusCore.Generators.Internal.Dependent
 import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Universe
 
 import           Data.GADT.Compare
 import           Unsafe.Coerce

@@ -10,8 +10,8 @@ module Language.PlutusCore.Examples.Everything
     ( examples
     ) where
 
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.FsTree
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Type
 

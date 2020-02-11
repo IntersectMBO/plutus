@@ -32,11 +32,11 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Universe
 
 import           Control.Lens
 import           Control.Monad.Except

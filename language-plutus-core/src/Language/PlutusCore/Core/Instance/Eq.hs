@@ -16,11 +16,11 @@ module Language.PlutusCore.Core.Instance.Eq
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Eq
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
+import           Language.PlutusCore.Universe
 
 -- See Note [Annotations and equality].
 

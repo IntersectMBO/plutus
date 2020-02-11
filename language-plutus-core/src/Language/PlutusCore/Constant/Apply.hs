@@ -23,15 +23,14 @@ module Language.PlutusCore.Constant.Apply
 
 import           Crypto
 
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Constant.Dynamic.Instances   ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                             as BSL
@@ -108,7 +107,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 -- Checks that the values are of expected types.
 applyBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => BuiltinName -> [Value TyName Name uni ()] -> EvaluateConstApp uni m ()
 applyBuiltinName AddInteger           =
@@ -158,7 +157,7 @@ applyBuiltinName GtByteString         =
 -- given evaluator.
 runApplyBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => Evaluator Term uni m -> BuiltinName -> [Value TyName Name uni ()] -> m (ConstAppResult uni ())
 runApplyBuiltinName eval name = runEvaluateT eval . applyBuiltinName name

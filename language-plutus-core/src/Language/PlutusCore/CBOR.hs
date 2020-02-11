@@ -11,19 +11,19 @@
 -- before touching anything in this file.
 module Language.PlutusCore.CBOR () where
 
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.MkPlc             (TyVarDecl (..), VarDecl (..))
+import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import           Data.Functor.Foldable                 hiding (fold)
+import           Data.Functor.Foldable          hiding (fold)
 import           Data.Proxy
 
 {- Note [Stable encoding of PLC]

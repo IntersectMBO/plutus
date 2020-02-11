@@ -15,12 +15,11 @@ module Language.PlutusCore.StdLib.Data.Nat
 
 import           Prelude                                  hiding (succ)
 
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type
@@ -135,7 +134,7 @@ natToInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term 
 natToInteger = runQuote $ do
     let addInteger = builtin () $ BuiltinName () AddInteger
     return $
-        mkIterApp () (tyInst () foldNat $ makeTyBuiltin @Integer)
-          [ apply () addInteger (makeConstant @Integer 1)
-          , makeConstant @Integer 0
+        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer)
+          [ apply () addInteger (mkConstant @Integer 1)
+          , mkConstant @Integer 0
           ]

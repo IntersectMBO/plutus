@@ -24,9 +24,9 @@ import           PlutusPrelude
 import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity

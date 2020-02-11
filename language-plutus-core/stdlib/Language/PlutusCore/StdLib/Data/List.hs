@@ -19,12 +19,11 @@ module Language.PlutusCore.StdLib.Data.List
 
 import           Prelude                                  hiding (enumFromTo, product, reverse, sum)
 
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
@@ -201,7 +200,7 @@ enumFromTo = runQuote $ do
     n'  <- freshName () "n'"
     u   <- freshName () "u"
     let gtInteger  = builtin () $ BuiltinName () GreaterThanInteger
-        int = makeTyBuiltin @Integer
+        int = mkTyBuiltin @Integer
         listInt = TyApp () list int
     return
         . lamAbs () n int
@@ -227,19 +226,19 @@ enumFromTo = runQuote $ do
 -- > foldList {integer} {integer} addInteger 0
 sum :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
 sum = runQuote $ do
-    let int = makeTyBuiltin @Integer
+    let int = mkTyBuiltin @Integer
         add = builtin () (BuiltinName () AddInteger)
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ add , makeConstant @Integer 0]
+        $ [ add , mkConstant @Integer 0]
 
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
 product :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
 product = runQuote $ do
-    let int = makeTyBuiltin @Integer
+    let int = mkTyBuiltin @Integer
         mul = builtin () (BuiltinName () MultiplyInteger)
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ mul , makeConstant @Integer 1]
+        $ [ mul , mkConstant @Integer 1]

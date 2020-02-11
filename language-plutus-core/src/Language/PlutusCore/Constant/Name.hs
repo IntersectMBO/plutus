@@ -6,7 +6,8 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Constant.Name
-    ( withTypedBuiltinName
+    ( makeTypedBuiltinName
+    , withTypedBuiltinName
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -30,18 +31,29 @@ module Language.PlutusCore.Constant.Name
     , typedGtByteString
     ) where
 
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 
+class KnownTypeScheme uni as r where
+    knownTypeScheme :: TypeScheme uni as r
+
+instance KnownType uni r => KnownTypeScheme uni '[] r where
+    knownTypeScheme = TypeSchemeResult Proxy
+
+instance (KnownType uni a, KnownTypeScheme uni as r) => KnownTypeScheme uni (a ': as) r where
+    knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
+
+makeTypedBuiltinName :: KnownTypeScheme uni as r => BuiltinName -> TypedBuiltinName uni as r
+makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
+
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinName -> (forall a r. TypedBuiltinName uni a r -> c) -> c
 withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
@@ -64,18 +76,6 @@ withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName LtByteString         k = k typedLtByteString
 withTypedBuiltinName GtByteString         k = k typedGtByteString
-
-class KnownTypeScheme uni as r where
-    knownTypeScheme :: TypeScheme uni as r
-
-instance KnownType uni r => KnownTypeScheme uni '[] r where
-    knownTypeScheme = TypeSchemeResult Proxy
-
-instance (KnownType uni a, KnownTypeScheme uni as r) => KnownTypeScheme uni (a ': as) r where
-    knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
-
-makeTypedBuiltinName :: KnownTypeScheme uni as r => BuiltinName -> TypedBuiltinName uni as r
-makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
 
 -- | Typed 'AddInteger'.
 typedAddInteger

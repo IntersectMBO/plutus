@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.TypeCheck.Internal
     ( DynamicBuiltinNameTypes (..)
@@ -26,23 +27,23 @@ module Language.PlutusCore.TypeCheck.Internal
     ) where
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
-import qualified Language.PlutusCore.Normalize.Internal  as Norm
+import qualified Language.PlutusCore.Normalize.Internal as Norm
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
+import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
-import           Control.Lens.TH                         (makeLenses)
+import           Control.Lens.TH                        (makeLenses)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                                (Map)
-import qualified Data.Map                                as Map
+import           Data.Map                               (Map)
+import qualified Data.Map                               as Map
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -314,7 +315,7 @@ checkKindOfPatternFunctorM ann pat k =
 
 -- | Return the 'Type' of a 'BuiltinName'.
 typeOfBuiltinName
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinName -> Type TyName uni ()
 typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
@@ -336,7 +337,7 @@ unfoldFixOf pat arg k = do
 
 -- | Infer the type of a 'Builtin'.
 inferTypeOfBuiltinM
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Builtin ann -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 -- We have a weird corner case here: the type of a 'BuiltinName' can contain 'TypedBuiltinDyn', i.e.
 -- a static built-in name is allowed to depend on a dynamic built-in type which are not required
@@ -350,7 +351,7 @@ inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann na
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Term TyName Name uni ann -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 
 -- c : vTy
@@ -444,7 +445,7 @@ inferTypeM (Error ann ty)           = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann -> Term TyName Name uni ann -> Normalized (Type TyName uni ()) -> TypeCheckM uni ann ()
 
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy

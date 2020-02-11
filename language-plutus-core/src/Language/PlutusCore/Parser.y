@@ -21,9 +21,8 @@ import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Core
 import Language.PlutusCore.Name
-import Language.PlutusCore.Constant.Universe
+import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
-import Language.PlutusCore.Constant.Make
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE

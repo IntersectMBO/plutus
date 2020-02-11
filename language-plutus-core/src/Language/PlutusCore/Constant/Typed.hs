@@ -37,12 +37,12 @@ module Language.PlutusCore.Constant.Typed
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -338,8 +338,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni () where
     makeKnown () = unitval
 
     readKnown eval term = do
-        let integer = makeTyBuiltin @Integer
-        i <- extractConstant eval . Apply () (TyInst () term integer) $ makeConstant @Integer 1
+        let integer = mkTyBuiltin @Integer
+        i <- extractConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer 1
         if i == (1 :: Integer)
             then pure ()
             else throwingWithCause _UnliftingError "Not an integer-encoded ()" $ Just term

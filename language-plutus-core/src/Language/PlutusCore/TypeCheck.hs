@@ -1,5 +1,7 @@
 -- | Kind/type inference/checking.
 
+{-# LANGUAGE TypeOperators #-}
+
 module Language.PlutusCore.TypeCheck
     (
     -- * Configuration.
@@ -25,7 +27,6 @@ module Language.PlutusCore.TypeCheck
     ) where
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.DefaultUni
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
@@ -33,6 +34,7 @@ import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.TypeCheck.Internal
+import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 
@@ -85,7 +87,7 @@ checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 -- | Infer the type of a term.
 inferType
     :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni -> Term TyName Name uni ann -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
@@ -95,7 +97,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
     :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni
     -> ann
@@ -109,7 +111,7 @@ checkType config ann term ty = do
 -- | Infer the type of a program.
 inferTypeOfProgram
     :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni -> Program TyName Name uni ann -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ _ term) = inferType config term
@@ -119,7 +121,7 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
     :: (AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, HasDefaultUni uni
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni
     -> ann

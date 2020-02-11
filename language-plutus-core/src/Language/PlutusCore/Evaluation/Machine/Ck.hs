@@ -19,12 +19,11 @@ module Language.PlutusCore.Evaluation.Machine.Ck
 import           PlutusPrelude
 
 import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.DefaultUni
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
 infix 4 |>, <|
@@ -85,7 +84,7 @@ substituteDb varFor new = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
 stack |> TyInst _ fun ty        = FrameTyInstArg ty      : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg      : stack |> fun
@@ -111,7 +110,7 @@ _     |> var@Var{}              =
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Value TyName Name uni () -> CkM uni (Term TyName Name uni ())
 []                             <| term    = pure term
 FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
@@ -127,7 +126,7 @@ FrameUnwrap            : stack <| wrapped = case wrapped of
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni
     -> Type TyName uni ()
     -> Term TyName Name uni ()
@@ -144,7 +143,7 @@ instantiateEvaluate stack ty fun
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni
     -> Value TyName Name uni ()
     -> Value TyName Name uni ()
@@ -166,7 +165,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppStuck       -> stack <| term
 
 applyEvaluateCkBuiltinName
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
 applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 
@@ -179,12 +178,12 @@ applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk
-    :: (GShow uni, GEq uni, HasDefaultUni uni)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Term TyName Name uni () -> Either (CkEvaluationException uni) (Term TyName Name uni ())
 evaluateCk term = [] |> term
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 unsafeEvaluateCk
-    :: (GShow uni, GEq uni, HasDefaultUni uni, Closed uni, Typeable uni, uni `Everywhere` Pretty)
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, Typeable uni, uni `Everywhere` Pretty)
     => Term TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk

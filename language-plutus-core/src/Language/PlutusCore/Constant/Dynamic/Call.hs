@@ -10,10 +10,10 @@ module Language.PlutusCore.Constant.Dynamic.Call
     , dynamicCall
     ) where
 
-import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.Universe
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 import           System.IO.Unsafe

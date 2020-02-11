@@ -1,11 +1,18 @@
+{-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
+    , builtinNameAsTerm
+    , dynamicBuiltinNameAsTerm
+    , mkTyBuiltin
+    , mkConstant
     , VarDecl (..)
     , TyVarDecl (..)
     , TyDecl (..)
@@ -37,7 +44,7 @@ module Language.PlutusCore.MkPlc
 
 import           Prelude                               hiding (error)
 
-import           Language.PlutusCore.Constant.Universe
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Core
 
 import           Data.List                             (foldl')
@@ -58,6 +65,25 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
     error    :: ann -> Type tyname uni ann -> term ann
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
+
+-- | Lift a 'BuiltinName' to 'Term'.
+builtinNameAsTerm :: TermLike term tyname name uni => BuiltinName -> term ()
+builtinNameAsTerm = builtin () . BuiltinName ()
+
+-- | Lift a 'DynamicBuiltinName' to 'Term'.
+dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
+dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
+
+mkTyBuiltin
+    :: forall a uni tyname. uni `Includes` a
+    => Type tyname uni ()
+mkTyBuiltin = TyBuiltin () . Some $ knownUni @uni @a
+
+-- | Wrap a Haskell value as a PLC term.
+mkConstant
+    :: forall a uni term tyname name. (TermLike term tyname name uni, uni `Includes` a)
+    => a -> term ()
+mkConstant = constant () . SomeOf knownUni
 
 instance TermLike (Term tyname name uni) tyname name uni where
     var      = Var
