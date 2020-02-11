@@ -425,7 +425,7 @@ mkSymbolicDatatype ''ReduceResult
 data DetReduceResult = DRRContractOver
                      | DRRNoProgressNormal
                      | DRRNoProgressError
-                     | DRRProgress Contract Integer -- Integer is num of Payments
+                     | DRRProgress Contract
   deriving (Eq,Ord,Show,Read)
 
 -- Carry a step of the contract with no inputs
@@ -433,13 +433,12 @@ reduce :: SymVal a => Bounds -> SEnvironment -> SState -> Contract
        -> (SReduceResult -> DetReduceResult -> SBV a) -> SBV a
 reduce bnds _ state Close f = f sNotReduced DRRContractOver
 reduce bnds env state (Pay accId payee val nc) f =
-  ite (mon .<= 0)
-      (f (sReduced (sReduceNonPositivePay (literalAccountId accId)
+  f (ite (mon .<= 0)
+         (sReduced (sReduceNonPositivePay (literalAccountId accId)
                                           (literal $ nestPayee payee)
                                           mon)
                    sReduceNoEffect state)
-         (DRRProgress nc 0))
-      (f (sReduced noMonWarn payEffect (state `setAccount` finalAccs)) (DRRProgress nc 1))
+         (sReduced noMonWarn payEffect (state `setAccount` finalAccs))) (DRRProgress nc)
   where mon = evalValue bnds env state val
         (paidMon, newAccs) = ST.untuple $
                                withdrawMoneyFromAccount (account state) accId mon
@@ -450,17 +449,17 @@ reduce bnds env state (Pay accId payee val nc) f =
         (payEffect, finalAccs) = ST.untuple $ giveMoney newAccs payee paidMon
 reduce bnds env state (If obs cont1 cont2) f =
   ite (evalObservation bnds env state obs)
-      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont1 0))
-      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont2 0))
+      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont1))
+      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont2))
 reduce _ env state (When _ timeout c) f =
    ite (endSlot .< literal timeout)
        (f sNotReduced DRRNoProgressNormal)
        (ite (startSlot .>= literal timeout)
-            (f (sReduced sReduceNoWarning sReduceNoEffect state) $ DRRProgress c 0)
+            (f (sReduced sReduceNoWarning sReduceNoEffect state) $ DRRProgress c)
             (f (sReduceError sReduceAmbiguousSlotInterval) DRRNoProgressError))
   where (startSlot, endSlot) = ST.untuple $ slotInterval env
 reduce bnds env state (Let valId val cont) f =
-    f (sReduced warn sReduceNoEffect ns) (DRRProgress cont 0)
+    f (sReduced warn sReduceNoEffect ns) (DRRProgress cont)
   where
     sv = boundValues state
     evVal = evalValue bnds env state val
@@ -505,7 +504,7 @@ splitReduceResultReduce bnds _ _ SSNotReduced =
   ([] {- SNH -}, [] {- SNH -}, emptySState bnds 0 {- SNH -}, sReduceAmbiguousSlotInterval {- SNH -})
 splitReduceResultReduce bnds _ _ (SSReduceError terr) = ([] {- SNH -}, [] {- SNH -}, emptySState bnds 0{- SNH -}, terr)
 
-reduceAllAux bnds payNum Nothing env sta c wa ef f =
+reduceAllAux bnds Nothing env sta c wa ef f =
     reduce bnds env sta c contFunc
   where contFunc sr dr =
           let (nwa, nef, nsta, err) =
@@ -516,11 +515,11 @@ reduceAllAux bnds payNum Nothing env sta c wa ef f =
                                  DRARContractOver
             DRRNoProgressNormal -> f (sReducedAll wa ef sta) $ DRARNormal c 0
             DRRNoProgressError -> f (sReduceAllError err) DRARError
-            DRRProgress nc p -> reduceAllAux bnds (payNum + p) Nothing env nsta nc nwa nef f
+            DRRProgress nc -> reduceAllAux bnds Nothing env nsta nc nwa nef f
 
 reduceAll :: SymVal a => Bounds -> SEnvironment -> SState -> Contract
           -> (SReduceAllResult -> DetReduceAllResult -> SBV a) -> SBV a
-reduceAll bnds env sta c = reduceAllAux bnds 0 Nothing env sta c [] []
+reduceAll bnds env sta c = reduceAllAux bnds Nothing env sta c [] []
 
 -- APPLY
 
@@ -791,12 +790,8 @@ processApplyResult bnds tra sta c f saar (DAARNormal ncon numPays numInps) =
        (\wa ef nsta ->
 --        let sigs = getSignatures bnds numInps inps in
 --        let outcomes = getOutcomes bnds numPays numInps ef inps in
-        if c == ncon
-        then (if c /= Close
-              then f (sTransactionError sTEUselessTransaction) DTError
-              else ite (SL.null $ account sta)
-                       (f (sTransactionError sTEUselessTransaction) DTError)
-                       (f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
+        if c == ncon && c /= Close
+        then f (sTransactionError sTEUselessTransaction) DTError
         else f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
     saar
   where inps = inputs tra
