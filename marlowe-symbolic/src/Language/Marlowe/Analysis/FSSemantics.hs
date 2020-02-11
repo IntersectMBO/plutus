@@ -480,7 +480,7 @@ mkSymbolicDatatype ''ReduceAllResult
 
 data DetReduceAllResult = DRARContractOver
                         | DRARError
-                        | DRARNormal Contract Integer -- Integer is num of Payments
+                        | DRARNormal Contract
   deriving (Eq,Ord,Show,Read)
 
 -- Reduce until it cannot be reduced more
@@ -513,7 +513,7 @@ reduceAllAux bnds Nothing env sta c wa ef f =
           case dr of
             DRRContractOver -> f (sReducedAll wa ef {- ToDo: extract refunds -} sta)
                                  DRARContractOver
-            DRRNoProgressNormal -> f (sReducedAll wa ef sta) $ DRARNormal c 0
+            DRRNoProgressNormal -> f (sReducedAll wa ef sta) $ DRARNormal c
             DRRNoProgressError -> f (sReduceAllError err) DRARError
             DRRProgress nc -> reduceAllAux bnds Nothing env nsta nc nwa nef f
 
@@ -547,7 +547,6 @@ data ApplyResult = Applied NApplyWarning State
 mkSymbolicDatatype ''ApplyResult
 
 data DetApplyResult = DARNormal Contract
-                                Integer -- num of Inputs
                     | DARError
 
 splitReduceAllResult :: Bounds -> SList NTransactionWarning -> SList NReduceEffect
@@ -572,7 +571,7 @@ applyCases :: SymVal a => Bounds -> SEnvironment -> SState -> SSInput -> [Case] 
 applyCases bnds env state inp@(SSIDeposit accId1 party1 mon1)
            (Case (Deposit accId2 party2 val2) nc : t) f =
   ite ((accId1 .== sAccId2) .&& (party1 .== sParty2) .&& (mon1 .== mon2))
-      (f (sApplied warning newState) (DARNormal nc 1))
+      (f (sApplied warning newState) (DARNormal nc))
       (applyCases bnds env state inp t f)
   where sAccId2 = literalAccountId accId2
         sParty2 = literal party2
@@ -586,14 +585,14 @@ applyCases bnds env state inp@(SSIDeposit accId1 party1 mon1)
 applyCases bnds env state inp@(SSIChoice choId1 cho1)
            (Case (Choice choId2 bounds2) nc : t) f =
   ite ((choId1 .== sChoId2) .&& inBounds cho1 bounds2)
-      (f (sApplied sApplyNoWarning newState) (DARNormal nc 1))
+      (f (sApplied sApplyNoWarning newState) (DARNormal nc))
       (applyCases bnds env state inp t f)
   where newState = state `setChoice`
                      (IntegerArray.insert (choiceNumber choId2) cho1 $ choice state)
         sChoId2 = literalChoiceId choId2
 applyCases bnds env state inp@SSINotify (Case (Notify obs) nc : t) f =
   ite (evalObservation bnds env state obs)
-      (f (sApplied sApplyNoWarning state) (DARNormal nc 1))
+      (f (sApplied sApplyNoWarning state) (DARNormal nc))
       (applyCases bnds env state inp t f)
 applyCases _ _ _ _ _ f = f (sApplyError sApplyNoMatch) DARError
 
@@ -613,8 +612,6 @@ data ApplyAllResult = AppliedAll [NTransactionWarning] [NReduceEffect] State
 mkSymbolicDatatype ''ApplyAllResult
 
 data DetApplyAllResult = DAARNormal Contract
-                                    Integer -- num of Payments
-                                    Integer -- num of Inputs
                        | DAARError
 
 addIfEffWa :: SList NTransactionWarning -> SSApplyWarning -> SList NTransactionWarning
@@ -624,11 +621,11 @@ addIfEffWa nwa (SSApplyNonPositiveDeposit party accId amount) =
 
 -- Apply a list of Inputs to the contract
 applyAllAux :: SymVal a => Integer
-            -> Bounds -> Integer -> Integer
+            -> Bounds
             -> SEnvironment -> SState -> Contract -> SList NInput
             -> SList NTransactionWarning -> SList NReduceEffect
             -> (SApplyAllResult -> DetApplyAllResult -> SBV a) -> SBV a
-applyAllAux n bnds numPays numInps env state c l wa ef f
+applyAllAux n bnds env state c l wa ef f
   | n >= 0 = reduceAll bnds env state c contFunReduce
   | otherwise = f (sAAReduceError sReduceAmbiguousSlotInterval) DAARError -- SNH
   where contFunReduce sr DRARError =
@@ -637,24 +634,24 @@ applyAllAux n bnds numPays numInps env state c l wa ef f
         contFunReduce sr DRARContractOver =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
           ite (SL.null l)
-              (f (sAppliedAll nwa nef nstate) $ DAARNormal Close numPays numInps)
+              (f (sAppliedAll nwa nef nstate) $ DAARNormal Close)
               (f (sAAApplyError sApplyNoMatch) DAARError)
-        contFunReduce sr (DRARNormal nc p) =
+        contFunReduce sr (DRARNormal nc) =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
           ite (SL.null l)
-              (f (sAppliedAll nwa nef nstate) $ DAARNormal nc (p + numPays) numInps)
-              (apply bnds env nstate (SL.head l) nc (contFunApply (SL.tail l) nwa nef p))
-        contFunApply _ _ _ _ sr DARError =
+              (f (sAppliedAll nwa nef nstate) $ DAARNormal nc)
+              (apply bnds env nstate (SL.head l) nc (contFunApply (SL.tail l) nwa nef))
+        contFunApply _ _ _ sr DARError =
           f (symCaseApplyResult
                (\case
                   SSApplied _ _    -> sAAReduceError sReduceAmbiguousSlotInterval -- SNH
                   SSApplyError err -> sAAApplyError err) sr)
             DAARError
-        contFunApply t nwa nef np sr (DARNormal nc ni) =
+        contFunApply t nwa nef sr (DARNormal nc) =
           symCaseApplyResult
             (\case
                 SSApplied twa nst ->
-                    applyAllAux (n - 1) bnds (numPays + np) (numInps + ni)
+                    applyAllAux (n - 1) bnds
                                 env nst nc t (symCaseApplyWarning (addIfEffWa nwa) twa) nef f
                 SSApplyError err -> f (sAAApplyError err) DAARError {- SNH -}) sr
 
@@ -662,7 +659,7 @@ applyAll :: SymVal a => Bounds
          -> SEnvironment -> SState -> Contract -> SList NInput
          -> (SApplyAllResult -> DetApplyAllResult -> SBV a) -> SBV a
 applyAll bnds env state c l =
-  applyAllAux 1 bnds 0 0 env state c l [] []
+  applyAllAux 1 bnds env state c l [] []
 
 -- PROCESS
 
@@ -783,7 +780,7 @@ processApplyResult :: SymVal a => Bounds -> STransaction -> SState -> Contract
                    -> (STransactionResult -> DetTransactionResult -> SBV a)
                    -> SApplyAllResult -> DetApplyAllResult
                    -> SBV a
-processApplyResult bnds tra sta c f saar (DAARNormal ncon numPays numInps) =
+processApplyResult bnds tra sta c f saar (DAARNormal ncon) =
   symCaseApplyAllResult
     (\aar ->
      extractAppliedAll bnds aar
