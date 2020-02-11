@@ -17,7 +17,7 @@ import           Ledger.Tx
 import qualified Ledger.Typed.Scripts as Scripts
 import qualified Ledger.Typed.Tx      as Typed
 import           Ledger.Value
-import           Wallet.API           (SlotRange, WalletAPI, WalletAPIError)
+import           Wallet.API           (NodeAPI, SlotRange, WalletAPI, WalletAPIError)
 import qualified Wallet.API           as WAPI
 
 import           Control.Lens
@@ -31,7 +31,7 @@ import qualified Data.Text            as T
 
 signTxAndSubmit
     :: forall ins outs m .
-    (Monad m, WalletAPI m, MonadError WalletAPIError m)
+    (Monad m, WalletAPI m, NodeAPI m, MonadError WalletAPIError m)
     => Typed.TypedTx ins outs
     -> m (Typed.TypedTx ins outs)
 signTxAndSubmit tx = do
@@ -58,7 +58,7 @@ makeScriptPayment ct range v ds = do
 
 payToScript
     :: forall a m .
-    (WalletAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
+    (WalletAPI m, NodeAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
     => Scripts.ScriptInstance a
     -> SlotRange
     -> Value
@@ -68,7 +68,7 @@ payToScript ct range v ds = makeScriptPayment ct range v ds >>= signTxAndSubmit
 
 payToScript_
     :: forall a m .
-    (WalletAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
+    (WalletAPI m, NodeAPI m, MonadError WalletAPIError m, PlutusTx.IsData (Scripts.DataType a))
     => Scripts.ScriptInstance a
     -> SlotRange
     -> Value
