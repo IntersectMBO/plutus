@@ -62,6 +62,7 @@ library
         Ledger.Blockchain,
         Ledger.Crypto,
         Ledger.Orphans,
+        Ledger.Oracle,
         Ledger.Slot,
         Ledger.Scripts,
         Ledger.Tx,
@@ -111,6 +112,7 @@ library plutus-ledger
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto
+        Ledger.Oracle
         Ledger.Orphans
         Ledger.Slot
         Ledger.Scripts

@@ -32,8 +32,6 @@ module Ledger.Validation
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
     , scriptCurrencySymbol
-    -- * Oracles
-    , OracleValue(..)
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
@@ -63,7 +61,7 @@ import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
 import           Ledger.Crypto             (PubKey (..), PubKeyHash (..), Signature (..))
 import           Ledger.Scripts
-import           Ledger.Slot               (Slot, SlotRange)
+import           Ledger.Slot               (SlotRange)
 import           Ledger.TxId
 import           Ledger.Value              (CurrencySymbol (..), Value)
 import qualified Ledger.Value              as Value
@@ -159,36 +157,6 @@ getContinuingOutputs PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=(inp
     where
         f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _                                                     = False
-
-{- Note [Oracles]
-I'm not sure how oracles are going to work eventually, so I'm going to use this
-definition for now:
-* Oracles are identified by their public key
-* An oracle can produce "observations", which are values annotated with time
-  (slot number). These observations are signed by the oracle. This means we are
-  assume a _trusted_ oracle (as opposed to services such as
-  http://www.oraclize.it/ who provide untrusted oracles). Trusting the oracle
-  makes sense when dealing with financial data: Current prices etc. are usually
-  provided by companies such as Bloomberg or Yahoo Finance, who are
-  necessarily trusted by the consumers of their data. It seems reasonable to
-  assume that similar providers will exist for Plutus, who simply sign the
-  data with a known key in the way we implemented it here.
-* To use an oracle value inside a validator script, it has to be provided as the
-  redeemer script of the transaction that consumes the output locked by the
-  validator script.
-Examples of this can be found in the
-Language.Plutus.Coordination.Contracts.Swap.swapValidator and
-Language.Plutus.Coordination.Contracts.Future.validator scripts.
--}
-
--- | @OracleValue a@ is a value observed at a time signed by
--- an oracle. See note [Oracles].
-data OracleValue a = OracleValue {
-        ovSignature :: PubKey,
-        ovSlot      :: Slot,
-        ovValue     :: a
-    }
-    deriving (Generic, Show)
 
 {- Note [Hashes in validator scripts]
 
@@ -335,6 +303,3 @@ makeIsData ''PendingTxIn'
 
 makeLift ''PendingTx'
 makeIsData ''PendingTx'
-
-makeLift ''OracleValue
-makeIsData ''OracleValue

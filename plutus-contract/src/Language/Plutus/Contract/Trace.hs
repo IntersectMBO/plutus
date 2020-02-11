@@ -55,6 +55,7 @@ module Language.Plutus.Contract.Trace
     -- * Wallets
     , EM.Wallet(..)
     , EM.walletPubKey
+    , EM.walletPrivKey
     , allWallets
     ) where
 
