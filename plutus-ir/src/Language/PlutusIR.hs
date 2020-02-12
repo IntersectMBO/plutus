@@ -74,6 +74,13 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
 
+instance Semigroup Recursivity where
+  NonRec <> x = x
+  Rec <> _ = Rec
+
+instance Monoid Recursivity where
+  mempty = NonRec
+
 instance Serialise Recursivity
 
 data Strictness = NonStrict | Strict

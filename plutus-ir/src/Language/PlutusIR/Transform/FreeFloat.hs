@@ -57,8 +57,8 @@ type FloatInfo = M.Map
 
 type DepthInfo = IM.IntMap      -- depth
                  (M.Map PLC.Unique            -- lambda name
-                        [PLC.Unique])         -- a series of let bindings (not just identifiers) of this level, unsorted w.r.t. dependency graph
-
+                   (S.Set PLC.Unique)  -- let bindings
+                 )
 type Ctx = [Rank] -- the enclosing lambdas in scope that surround a let
 
 -- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
@@ -160,38 +160,46 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
   depGraph = AM.gmap (\case Variable u -> u; _ -> error "just for completion")
              $ AM.removeVertex Root --we remove Root because we do not care about it right now
              $ runTermDeps topTerm
-  sortedSccs = fromJust $ AM.topSort $ AM.scc depGraph :: [AMN.AdjacencyMap PLC.Unique]
+  -- mergedDepGraph = foldr (\ (_,lvlEntry) accGraph ->
+  --                            M.foldr (\ lamEntry accGraph' ->
+  --                                     M.foldrWithKey (\ let1 assocLets accGraph'' ->
+  --                                                       foldr (\ assocLet accGraph''' -> AM.replaceVertex assocLet let1 accGraph''') accGraph'' assocLets
+  --                                                    ) accGraph' lamEntry
+  --                                    ) accGraph lvlEntry
+  --                           ) depGraph depthInfo
+  mergedDepGraph = M.foldr (\ (_,_,b) accGraph ->
+                              case b of
+                                DatatypeBind _ dt -> let princ = bindingUnique b
+                                                     in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph (datatypeIdentifiers dt)
+                                _ -> accGraph) depGraph letTable
+
+  sortedSccs = fromJust $ AM.topSort $ AM.scc mergedDepGraph :: [AMN.AdjacencyMap PLC.Unique]
 
   generateLetLvl' lets curDepth restDepthTable tRest =
     foldl (\ acc dcc ->
-             case AMN.vertexList1 dcc of
-               (v LN.:| []) -> if v `elem` lets
-                               then
-                                 case acc of
-                                   Let _ NonRec accBs accIn -> -- merge with let-nonrec of acc
-                                     Let
-                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
-                                     NonRec
-                                     (over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v)) : accBs)
-                                     accIn
-                                   _ ->
-                                     Let
-                                     (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
-                                     NonRec
-                                     [over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))]
-                                     acc
-                               else acc
-               vs -> if null (LN.toList vs \\ lets)
-                     then
-                       Let
-                       (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
-                       Rec
-                       (LN.toList $ fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))) vs)
-                       acc
-                     else acc -- skip
+             let vs = AMN.vertexSet dcc -- TODO: switch to Sets
+             in if vs `S.isSubsetOf` lets -- mandatory check to see if this scc belongs to this rank
+                then
+                  let newBindings = fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))) $ S.toList vs
+                      newRecurs = foldMap (sndT . (letTable M.!)) vs
+                  in case acc of
+                       Let accAnn NonRec accBs accIn | newRecurs == NonRec -> -- merge if acc and new is nonrec
+                         Let
+                         (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                         NonRec
+                         (newBindings ++ accBs)
+                         accIn
+                       _ ->
+                         Let
+                         (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
+                         newRecurs
+                         newBindings
+                         acc
+               else acc -- skip
              ) tRest sortedSccs
 
   fstT (a,_,_) = a
+  sndT (_,b,_) = b
   trdT (_,_,c) = c
 
   -- TODO: we can transform easily the following processing to a Reader CurDepth
@@ -296,10 +304,9 @@ freeT = \case
   TyBuiltin _ _ -> S.empty
 
 toDepthInfo :: FloatInfo -> DepthInfo
-toDepthInfo = M.foldr (\ ((depth,lamName),letName) acc -> IM.insertWith (M.unionWith (++)) depth (M.singleton lamName [letName]) acc) IM.empty
+toDepthInfo = M.foldr (\ ((depth,lamName), letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) depth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
 
-
-
+--toDepthInfo = M.foldrWithKey (\ letName ((depth,lamName),letNamePrincipal) acc -> IM.insertWith (M.unionWith (M.unionWith (++))) depth (M.singleton lamName (M.singleton letNamePrincipal [letName])) acc) IM.empty
 
 -- | A table from a let-introduced identifier to its RHS.
 type LetTable tyname name a = M.Map PLC.Unique (a, Recursivity, Binding tyname name a)
