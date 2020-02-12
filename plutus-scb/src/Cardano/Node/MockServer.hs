@@ -6,29 +6,31 @@
 
 module Cardano.Node.MockServer where
 
-import           Cardano.Node.API         (API)
-import           Control.Concurrent       (forkIO, threadDelay)
-import           Control.Concurrent.MVar  (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens             (view, (%=))
-import           Control.Monad            (forever, void)
-import           Control.Monad.Except     (ExceptT (ExceptT), runExceptT, throwError)
-import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Control.Monad.Logger     (MonadLogger, logInfoN)
-import           Control.Monad.State      (StateT, get, gets, put, runStateT)
-import qualified Data.ByteString.Lazy     as BL
-import           Data.Proxy               (Proxy (Proxy))
-import           Data.Text                (Text)
-import qualified Data.Text.Encoding       as Text
-import           Data.Time.Units          (Second, toMicroseconds)
-import           Ledger                   (Slot, Tx)
-import qualified Ledger.Blockchain        as Blockchain
-import           Network.Wai.Handler.Warp (run)
-import           Plutus.SCB.Arbitrary     ()
-import           Plutus.SCB.Utils         (tshow)
-import           Servant                  ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (NoContent),
-                                           err500, errBody, hoistServer, serve)
-import           Wallet.Emulator          (EmulatorState, MonadEmulator, emptyEmulatorState)
-import qualified Wallet.Emulator          as EM
+import           Cardano.Node.API          (API)
+import           Control.Concurrent        (forkIO, threadDelay)
+import           Control.Concurrent.MVar   (MVar, newMVar, putMVar, takeMVar)
+import           Control.Lens              (view, (%=))
+import           Control.Monad             (forever, void)
+import           Control.Monad.Except      (ExceptT (ExceptT), runExceptT, throwError)
+import           Control.Monad.IO.Class    (MonadIO, liftIO)
+import           Control.Monad.Logger      (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.State       (StateT, get, gets, put, runStateT)
+import qualified Data.ByteString.Lazy      as BL
+import           Data.Proxy                (Proxy (Proxy))
+import           Data.Text                 (Text)
+import qualified Data.Text.Encoding        as Text
+import           Data.Text.Prettyprint.Doc (Pretty (pretty))
+import           Data.Time.Units           (Second, toMicroseconds)
+import           Ledger                    (Slot, Tx)
+import qualified Ledger
+import qualified Ledger.Blockchain         as Blockchain
+import           Network.Wai.Handler.Warp  (run)
+import           Plutus.SCB.Arbitrary      ()
+import           Plutus.SCB.Utils          (tshow)
+import           Servant                   ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (NoContent),
+                                            err500, errBody, hoistServer, serve)
+import           Wallet.Emulator           (EmulatorState, MonadEmulator, emptyEmulatorState)
+import qualified Wallet.Emulator           as EM
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
@@ -49,8 +51,11 @@ addBlock = do
             put newState
             getCurrentSlot
 
-addTx :: MonadEmulator e m => Tx -> m NoContent
-addTx tx = EM.chainState . EM.txPool %= (tx:) >> pure NoContent
+addTx :: (MonadLogger m, MonadEmulator e m) => Tx -> m NoContent
+addTx tx = do
+    logInfoN  $ "Adding tx " <> tshow (Ledger.txId tx)
+    logDebugN $ tshow (pretty tx)
+    EM.chainState . EM.txPool %= (tx:) >> pure NoContent
 
 ------------------------------------------------------------
 asHandler ::
@@ -100,8 +105,8 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (asHandler stateVar)
-        (healthcheck 
-        :<|> addTx
+        (healthcheck
+        :<|> runStdoutLoggingT . addTx
         :<|> getCurrentSlot)
 
 main :: (MonadIO m, MonadLogger m) => m ()
