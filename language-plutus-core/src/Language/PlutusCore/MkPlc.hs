@@ -77,13 +77,13 @@ dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
 mkTyBuiltin
     :: forall a uni tyname. uni `Includes` a
     => Type tyname uni ()
-mkTyBuiltin = TyBuiltin () . Some $ knownUni @uni @a
+mkTyBuiltin = TyBuiltin () . Some . In $ knownUni @uni @a
 
 -- | Wrap a Haskell value as a PLC term.
 mkConstant
     :: forall a uni term tyname name. (TermLike term tyname name uni, uni `Includes` a)
     => a -> term ()
-mkConstant = constant () . SomeOf knownUni
+mkConstant = constant () . someValue
 
 instance TermLike (Term tyname name uni) tyname name uni where
     var      = Var

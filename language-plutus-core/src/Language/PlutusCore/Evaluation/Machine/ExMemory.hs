@@ -108,12 +108,12 @@ deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
-instance ExMemoryUsage (Some uni) where
+instance ExMemoryUsage (Some (In uni)) where
   memoryUsage _ = 0 -- TODO or 1?
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (SomeOf uni) where
-  memoryUsage (SomeOf uni x) = memoryUsage
-    ( Some uni
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Of uni)) where
+  memoryUsage (Some (Of uni x)) = memoryUsage
+    ( Some $ In uni
     , bring (Proxy @ExMemoryUsage) uni $ memoryUsage x
     )
 

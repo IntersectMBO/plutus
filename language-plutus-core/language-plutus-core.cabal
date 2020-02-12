@@ -107,8 +107,9 @@ library
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Pretty.Utils
-        Language.PlutusCore.Universe.Default
         Language.PlutusCore.Universe.Core
+        Language.PlutusCore.Universe.Default
+        Language.PlutusCore.Universe.Lift
         Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal

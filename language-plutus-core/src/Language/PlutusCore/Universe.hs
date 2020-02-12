@@ -4,3 +4,4 @@ module Language.PlutusCore.Universe
 
 import           Language.PlutusCore.Universe.Core    as Export
 import           Language.PlutusCore.Universe.Default as Export
+import           Language.PlutusCore.Universe.Lift    as Export

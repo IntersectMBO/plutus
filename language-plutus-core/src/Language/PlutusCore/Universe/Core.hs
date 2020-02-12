@@ -16,21 +16,23 @@
 
 module Language.PlutusCore.Universe.Core
     ( Some (..)
-    , SomeOf (..)
+    , In (..)
+    , Of (..)
+    , SomeIn
+    , SomeOf
     , someValue
     , Includes (..)
     , Closed (..)
     , type (<:)
     , knownUniOf
-    , bringApply
     , GEq (..)
     , (:~:) (..)
     , GShow (..)
     , gshow
-    , GLift (..)
     ) where
 
 import           Control.DeepSeq
+import           Control.Monad
 import           Data.GADT.Compare
 import           Data.GADT.Show
 import           Data.Hashable
@@ -38,11 +40,15 @@ import           Data.List
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc (Pretty (..))
 import           GHC.Exts
-import           Language.Haskell.TH.Syntax
-import           Language.Haskell.TH.Lift
 
 data Some f = forall a. Some (f a)
-data SomeOf f = forall a. SomeOf (f a) a
+
+newtype In uni a = In (uni a)
+
+data Of uni a = Of (uni a) a
+
+type SomeIn uni = Some (In uni)
+type SomeOf uni = Some (Of uni)
 
 -- We probably want to use that together with `fastsum`.
 class uni `Includes` a where
@@ -52,98 +58,96 @@ knownUniOf :: uni `Includes` a => proxy a -> uni a
 knownUniOf _ = knownUni
 
 someValue :: forall a uni. uni `Includes` a => a -> SomeOf uni
-someValue = SomeOf knownUni
+someValue = Some . Of knownUni
 
 class Closed uni where
     type Everywhere uni (constr :: * -> Constraint) :: Constraint
     tagOf :: uni a -> Int
-    uniAt :: Int -> Maybe (Some uni)
+    uniAt :: Int -> Maybe (SomeIn uni)
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
 
 type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
-bringApply
-    :: (Closed uni, uni `Everywhere` constr)
-    => Proxy constr -> (forall a. constr a => a -> r) -> SomeOf uni -> r
-bringApply proxy f (SomeOf uni x) = bring proxy uni $ f x
+-------------------- 'Show' / 'GShow'
 
 parens :: String -> String
 parens str = "(" ++ str ++ ")"
 
-instance GShow uni => Show (Some uni) where
-   show (Some uni) = "Some " ++ parens (gshow uni)
+-- TODO: precedence.
+instance GShow f => Show (Some f) where
+   show (Some a) = "Some " ++ parens (gshow a)
 
-instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (SomeOf uni) where
-    show (SomeOf uni x) =
+-- TODO: precedence.
+instance GShow uni => Show (In uni a) where
+    show (In uni) = "In " ++ parens (gshow uni)
+
+-- TODO: precedence.
+instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (Of uni a) where
+    show (Of uni x) =
         intercalate " "
-            [ "SomeOf"
+            [ "Of"
             , parens $ gshow uni
             , parens $ bring (Proxy @Show) uni (show x)
             ]
 
-instance GShow uni => Pretty (Some uni) where
-    pretty (Some uni) = pretty $ gshow uni
+instance GShow uni => GShow (In uni) where
+    gshowsPrec = showsPrec
 
-instance (Closed uni, uni `Everywhere` Pretty) => Pretty (SomeOf uni) where
-    pretty = bringApply (Proxy @Pretty) pretty
+instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (Of uni) where
+    gshowsPrec = showsPrec
 
-instance GEq uni => Eq (Some uni) where
-    Some uni1 == Some uni2 = uni1 `defaultEq` uni2
+-------------------- 'Pretty'
 
-instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (SomeOf uni) where
-    SomeOf uni1 x1 == SomeOf uni2 x2 =
-        case uni1 `geq` uni2 of
-            Nothing   -> False
-            Just Refl -> bring (Proxy @Eq) uni1 (x1 == x2)
+instance GShow uni => Pretty (In uni a) where
+    pretty (In uni) = pretty $ gshow uni
 
--- We could use 'NFData1' here, but we don't really need it for our particular case.
-instance NFData (Some f) where
-    rnf (Some a) = a `seq` ()
+instance (Closed uni, uni `Everywhere` Pretty) => Pretty (Of uni a) where
+    pretty (Of uni x) = bring (Proxy @Pretty) uni $ pretty x
 
--- | 'GLift' to 'Lift' is what 'GShow' to 'Show'.
-class GLift f where
-    glift :: f a -> Q Exp
-    default glift :: Lift (f a) => f a -> Q Exp
-    glift = lift
+instance GShow uni => Pretty (Some (In uni)) where
+    pretty (Some s) = pretty s
 
--- | A wrapper that allows to provide a 'Lift' instance for any @uni@ implementing 'GLift'.
-newtype AGLift uni a = AGLift
-    { unAGLift :: uni a
-    }
+instance (Closed uni, uni `Everywhere` Pretty) => Pretty (Some (Of uni)) where
+    pretty (Some s) = pretty s
 
-instance GLift uni => Lift (AGLift uni a) where
-    lift = glift . unAGLift
+-------------------- 'Eq' / 'GEq'
 
-newtype SomeAGLift uni = SomeAGLift
-    { unSomeAGLift :: Some (AGLift uni)
-    }
+instance GEq f => Eq (Some f) where
+    Some a1 == Some a2 = a1 `defaultEq` a2
 
-$(return [])
-instance GLift uni => Lift (SomeAGLift uni) where
-    lift = $(makeLift ''Some) . unSomeAGLift
+deriving newtype instance GEq uni => GEq (In uni)
 
--- >>> :set -XGADTs
--- >>> :set -XStandaloneDeriving
--- >>> :set -XTemplateHaskell
--- >>> data U a where UInt :: U Int; UBool :: U Bool
--- >>> deriving instance Show (U a)
--- >>> instance GShow U where gshowsPrec = showsPrec
--- >>> deriving instance Lift (U a)
--- >>> instance GLift U
--- >>> $(lift $ Some UInt)
--- Some (UInt)
-deriving via SomeAGLift uni instance GLift uni => Lift (Some uni)
+instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (Of uni) where
+    Of uni1 x1 `geq` Of uni2 x2 = do
+        Refl <- uni1 `geq` uni2
+        guard $ bring (Proxy @Eq) uni1 (x1 == x2)
+        Just Refl
 
-instance Closed uni => Hashable (Some uni) where
-    hashWithSalt salt (Some uni) = hashWithSalt salt $ tagOf uni
+-------------------- 'NFData'
 
-instance (Closed uni, uni `Everywhere` NFData) => NFData (SomeOf uni) where
-    rnf = bringApply (Proxy @NFData) rnf
+instance NFData (In uni a) where
+    rnf (In uni) = uni `seq` ()
 
-instance (GLift uni, Closed uni, uni `Everywhere` Lift) => Lift (SomeOf uni) where
-    -- TODO: FIXME.
-    lift = undefined
+instance (Closed uni, uni `Everywhere` NFData) => NFData (Of uni a) where
+    rnf (Of uni x) = bring (Proxy @NFData) uni $ rnf x
 
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (SomeOf uni) where
-    hashWithSalt salt (SomeOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (Some uni, x)
+instance NFData (Some (In uni)) where
+    rnf (Some s) = rnf s
+
+instance (Closed uni, uni `Everywhere` NFData) => NFData (Some (Of uni)) where
+    rnf (Some s) = rnf s
+
+-------------------- 'Hashable'
+
+instance Closed uni => Hashable (In uni a) where
+    hashWithSalt salt (In uni) = hashWithSalt salt $ tagOf uni
+
+instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Of uni a) where
+    hashWithSalt salt (Of uni x) =
+        bring (Proxy @Hashable) uni $ hashWithSalt salt (Some (In uni), x)
+
+instance Closed uni => Hashable (Some (In uni)) where
+    hashWithSalt salt (Some s) = hashWithSalt salt s
+
+instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (Of uni)) where
+    hashWithSalt salt (Some s) = hashWithSalt salt s

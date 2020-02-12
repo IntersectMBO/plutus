@@ -14,7 +14,10 @@ module Language.PlutusCore
     , parseType
     -- * Universe
     , Some (..)
-    , SomeOf (..)
+    , In (..)
+    , Of (..)
+    , SomeIn
+    , SomeOf
     , someValue
     , Includes (..)
     , Closed (..)

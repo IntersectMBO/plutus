@@ -313,7 +313,7 @@ extractConstant
 extractConstant eval term = do
     res <- eval mempty term
     case res of
-        Constant () (SomeOf uniAct x) -> do
+        Constant () (Some (Of uniAct x)) -> do
             let uniExp = knownUni @uni @a
             case uniAct `geq` uniExp of
                 Just Refl -> pure x

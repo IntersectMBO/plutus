@@ -357,8 +357,8 @@ inferTypeM
 -- c : vTy
 -- -------------------------
 -- [infer| G !- con c : vTy]
-inferTypeM (Constant _ (SomeOf uni _)) =
-    pure . Normalized . TyBuiltin () $ Some uni
+inferTypeM (Constant _ (Some (Of uni _))) =
+    pure . Normalized . TyBuiltin () $ Some (In uni)
 
 -- [infer| G !- bi : vTy]
 -- ------------------------------

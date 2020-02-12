@@ -63,7 +63,7 @@ data Type tyname uni ann
     | TyIFix ann (Type tyname uni ann) (Type tyname uni ann)
       -- ^ Fix-point type, for constructing self-recursive types
     | TyForall ann (tyname ann) (Kind ann) (Type tyname uni ann)
-    | TyBuiltin ann (Some uni) -- ^ Builtin type
+    | TyBuiltin ann (SomeIn uni) -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     deriving (Functor, Show, Generic, NFData, Lift, Hashable)

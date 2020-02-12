@@ -21,6 +21,7 @@ module Language.PlutusCore.Universe.Default
 
 import           Language.PlutusCore.Pretty.Utils
 import           Language.PlutusCore.Universe.Core
+import           Language.PlutusCore.Universe.Lift
 
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.GADT.Compare.TH
@@ -32,8 +33,8 @@ import           Language.Haskell.TH.Syntax
 newtype ByteString16 = ByteString16
     { unByteString16 :: BSL.ByteString
     } deriving newtype (Eq, Ord)
--- A 'Show' instance is intentionally not provided. PLC things are shown using 'pretty' or 'prettyBy'.
--- If you need to satisfy a 'Show' constraint, use the 'APretty' wrapper.
+-- A 'Show' instance is not provided intentionally. PLC things are shown using 'pretty' or 'prettyBy'.
+-- If you need to satisfy a 'Show' constraint, use the 'PlutusPrelude.APretty' wrapper.
 
 instance Pretty ByteString16 where
     pretty = prettyBytes . unByteString16
@@ -67,10 +68,10 @@ instance Closed DefaultUni where
     tagOf DefaultUniString     = 2
     tagOf DefaultUniChar       = 3
 
-    uniAt 0 = Just $ Some DefaultUniInteger
-    uniAt 1 = Just $ Some DefaultUniByteString
-    uniAt 2 = Just $ Some DefaultUniString
-    uniAt 3 = Just $ Some DefaultUniChar
+    uniAt 0 = Just . Some $ In DefaultUniInteger
+    uniAt 1 = Just . Some $ In DefaultUniByteString
+    uniAt 2 = Just . Some $ In DefaultUniString
+    uniAt 3 = Just . Some $ In DefaultUniChar
     uniAt _ = Nothing
 
     bring _ DefaultUniInteger    = id
