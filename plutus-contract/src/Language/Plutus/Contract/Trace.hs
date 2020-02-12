@@ -104,7 +104,6 @@ import           Language.Plutus.Contract.Resumable                (ResumableErr
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
 import qualified Ledger.AddressMap                                 as AM
-import qualified Ledger.Blockchain                                 as Blockchain
 import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Tx                                         (Tx, txId)
 import           Ledger.TxId                                       (TxId)
@@ -514,7 +513,7 @@ addBlocksUntil
     => Slot
     -> ContractTrace s e m a ()
 addBlocksUntil sl = do
-    currentSlot <- lift $ gets (Blockchain.lastSlot . view (EM.chainState . EM.chainNewestFirst))
+    currentSlot <- lift $ use (EM.chainState . EM.currentSlot)
     let Slot missing = sl - currentSlot
     addBlocks (max 0 missing)
 
