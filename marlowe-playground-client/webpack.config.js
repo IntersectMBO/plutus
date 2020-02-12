@@ -56,6 +56,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
+                                '../playground-common/src/**/*.purs',
                                 '../web-common/src/**/*.purs'
                             ],
                             psc: null,

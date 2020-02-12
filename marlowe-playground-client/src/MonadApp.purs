@@ -229,33 +229,32 @@ withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case runParser' (parseTerm contract) text of
-  Right pcon ->
+  Right parsedContract ->
     let
-      lintResult = lint pcon
-
-      lintHoles = view L._holes lintResult
-
-      (Holes holes) = lintHoles
+      lintResult = lint parsedContract
 
       warnings =
         map (warningToAnnotation text "The contract can make a negative payment here") (view L._negativePayments lintResult)
           <> map (warningToAnnotation text "The contract can make a negative deposit here") (view L._negativeDeposits lintResult)
+          <> map (warningToAnnotation text "Timeouts should always increase in value") (view L._timeoutNotIncreasing lintResult)
+          <> map (warningToAnnotation text "The contract tries to Use a ValueId that has not been defined in a Let") (view L._uninitializedUse lintResult)
+          <> map (warningToAnnotation text "Let is redefining a ValueId that already exists") (view L._shadowedLet lintResult)
+          <> map (warningToAnnotation text "This Observation will always evaluate to True") (view L._trueObservation lintResult)
+          <> map (warningToAnnotation text "This Observation will always evaluate to False") (view L._falseObservation lintResult)
 
-      mContract = fromTerm pcon
+      mContract = fromTerm parsedContract
     in
       case mContract of
         Just contract -> do
           set _editorErrors warnings <<< set _contract (Just contract) $ state
         Nothing -> do
           let
-            holes' = fold $ fromFoldable $ Map.values holes
+            (Holes holes) = view L._holes lintResult
 
-            holesm = lintHoles
+            holesArray = Set.toUnfoldable $ fold $ Map.values holes
 
-            holes'' = fold $ fromFoldable $ Map.values holes
-
-            errors = warnings <> map (holeToAnnotation text) (Set.toUnfoldable holes')
-          (set _editorErrors errors <<< set _holes holesm) state
+            errors = warnings <> map (holeToAnnotation text) holesArray
+          (set _editorErrors errors <<< set _holes (Holes holes)) state
   Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
 
 warningToAnnotation :: String -> String -> Position -> Annotation
