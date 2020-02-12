@@ -9,7 +9,7 @@ module Cardano.Node.MockServer where
 import           Cardano.Node.API         (API)
 import           Control.Concurrent       (forkIO, threadDelay)
 import           Control.Concurrent.MVar  (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens             (view)
+import           Control.Lens             (view, (%=))
 import           Control.Monad            (forever, void)
 import           Control.Monad.Except     (ExceptT (ExceptT), runExceptT, throwError)
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
@@ -20,7 +20,7 @@ import           Data.Proxy               (Proxy (Proxy))
 import           Data.Text                (Text)
 import qualified Data.Text.Encoding       as Text
 import           Data.Time.Units          (Second, toMicroseconds)
-import           Ledger                   (Slot)
+import           Ledger                   (Slot, Tx)
 import qualified Ledger.Blockchain        as Blockchain
 import           Network.Wai.Handler.Warp (run)
 import           Plutus.SCB.Arbitrary     ()
@@ -48,6 +48,9 @@ addBlock = do
         Right _ -> do
             put newState
             getCurrentSlot
+
+addTx :: MonadEmulator e m => Tx -> m NoContent
+addTx tx = EM.chainState . EM.txPool %= (tx:) >> pure NoContent
 
 ------------------------------------------------------------
 asHandler ::
@@ -97,7 +100,9 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (asHandler stateVar)
-        (healthcheck :<|> (getCurrentSlot :<|> addBlock))
+        (healthcheck 
+        :<|> addTx
+        :<|> getCurrentSlot)
 
 main :: (MonadIO m, MonadLogger m) => m ()
 main = do

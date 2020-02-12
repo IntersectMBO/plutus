@@ -6,6 +6,7 @@ module Plutus.SCB.Events.Node(
   ) where
 
 import           Data.Aeson  (FromJSON, ToJSON)
+import GHC.Generics (Generic)
 
 import           Ledger.Slot (Slot)
 import           Ledger.Tx   (Tx)
