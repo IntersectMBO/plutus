@@ -12,13 +12,14 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
 
-import           Language.PlutusCore.StdLib.Data.List as Plc
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.StdLib.Data.List               as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.Except
-import           Data.Either                          (isRight)
+import           Data.Either                                        (isRight)
 import           Data.Proxy
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -27,7 +28,7 @@ dynamicIntegerToStringName :: DynamicBuiltinName
 dynamicIntegerToStringName = DynamicBuiltinName "integerToString"
 
 dynamicIntegerToStringMeaning :: DynamicBuiltinNameMeaning
-dynamicIntegerToStringMeaning = DynamicBuiltinNameMeaning sch show where
+dynamicIntegerToStringMeaning = DynamicBuiltinNameMeaning sch show (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicIntegerToString :: Term tyname name ()

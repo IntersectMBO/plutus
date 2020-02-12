@@ -67,12 +67,13 @@ possible to adjust them at runtime.
 -}
 
 module Language.PlutusCore.Evaluation.Machine.ExBudgeting
-    ( CekBudgetMode(..)
+    ( ExBudgetMode(..)
     , ExBudget(..)
     , ExBudgetState(..)
     , ExTally(..)
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
+    , SpendBudget(..)
     , estimateStaticStagedCost
     , exBudgetCPU
     , exBudgetMemory
@@ -83,7 +84,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
 where
 
 
-import           Language.PlutusCore
+import           Language.PlutusCore.Core.Type
 import           PlutusPrelude
 
 import           Control.Lens.Indexed
@@ -98,9 +99,12 @@ import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
 
-data CekBudgetMode =
+data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
+
+class SpendBudget m where
+    spendBudget :: ExBudgetCategory -> WithMemory Term -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst
@@ -108,8 +112,7 @@ data ExBudgetCategory
     | BIWrap
     | BUnwrap
     | BVar
-    | BDynamicBuiltin
-    | BStaticBuiltin
+    | BBuiltin StagedBuiltinName
     | BAST
     deriving stock (Show, Eq, Generic)
 instance Hashable ExBudgetCategory

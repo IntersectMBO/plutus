@@ -19,7 +19,9 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
@@ -38,6 +40,9 @@ type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
 type CkEvaluationException = EvaluationException NoDynamicBuiltinNamesMachineError ()
 
 type CkM = Either CkEvaluationException
+
+instance SpendBudget CkM where
+    spendBudget _ _ _ = pure ()
 
 data Frame
     = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
@@ -72,14 +77,14 @@ substituteDb varFor new = go where
 
 -- | The computing part of the CK machine. Rules are as follows:
 --
--- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
--- > s ▷ [M N]      ↦ s , [_ N]        ▷ M
--- > s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
--- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
--- > s ▷ abs α K M  ↦ s ◁ abs α K M
--- > s ▷ lam x A M  ↦ s ◁ lam x A M
--- > s ▷ con cn     ↦ s ◁ con cn
--- > s ▷ error A    ↦ ◆
+-- > s |> {M A}      ↦ s , {_ A}        ▷ M
+-- > s |> [M N]      ↦ s , [_ N]        ▷ M
+-- > s |> wrap α A M ↦ s , (wrap α S _) ▷ M
+-- > s |> unwrap M   ↦ s , (unwrap _)   ▷ M
+-- > s |> abs α K M  ↦ s ◁ abs α K M
+-- > s |> lam x A M  ↦ s ◁ lam x A M
+-- > s |> con cn     ↦ s ◁ con cn
+-- > s |> error A    ↦ ◆
 (|>) :: Context -> Term TyName Name () -> CkM (Term TyName Name ())
 stack |> TyInst _ fun ty        = FrameTyInstArg ty      : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg      : stack |> fun
@@ -148,7 +153,7 @@ applyEvaluate stack fun                    arg =
                     ConstAppStuck       -> stack <| term
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM (ConstAppResult ())
-applyEvaluateCkBuiltinName = runApplyBuiltinName $ const ([] |>)
+applyEvaluateCkBuiltinName name args = void <$> runApplyBuiltinName (const ([] |>)) name (withMemory <$> args)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
