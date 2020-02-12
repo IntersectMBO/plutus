@@ -66,6 +66,7 @@ library
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Mock
         Plutus.SCB.Events.User
+        Plutus.SCB.Events.Node
         Servant.Extra
     hs-source-dirs: src
     build-depends:
