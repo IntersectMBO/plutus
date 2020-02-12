@@ -15,12 +15,13 @@ import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
-import           Control.Exception                         (evaluate)
+import           Control.Exception                                  (evaluate)
 import           Data.IORef
-import           System.IO.Unsafe                          (unsafePerformIO)
+import           System.IO.Unsafe                                   (unsafePerformIO)
 
 -- This does not stream elements lazily. There is a version that allows to stream elements lazily,
 -- but we do not have it here because it's way too convoluted.
@@ -63,7 +64,7 @@ withEmitTerm cont (EmitHandler handler) =
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
             dynEmitTerm = dynamicCall dynEmitName
-            dynEmitDef  = dynamicCallAssign dynEmitName emit
+            dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy

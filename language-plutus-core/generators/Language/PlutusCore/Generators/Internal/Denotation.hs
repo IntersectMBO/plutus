@@ -29,12 +29,12 @@ import           Data.Functor.Compose
 import           Data.Proxy
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
-data Denotation object r = forall a. Denotation
+data Denotation object r = forall a exA. Denotation
     { _denotationObject :: object                         -- ^ A PLC object.
     , _denotationToTerm :: object -> Term TyName Name ()  -- ^ How to embed the object into a term.
     , _denotationItself :: a                              -- ^ The denotation of the object.
                                                           -- E.g. the denotation of 'AddInteger' is '(+)'.
-    , _denotationScheme :: TypeScheme a r                 -- ^ The 'TypeScheme' of the object.
+    , _denotationScheme :: TypeScheme a exA r             -- ^ The 'TypeScheme' of the object.
                                                           -- See 'intIntInt' for example.
     }
 
@@ -60,7 +60,7 @@ newtype DenotationContext = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme a r -> AsKnownType r
+typeSchemeResult :: TypeScheme a exA r -> AsKnownType r
 typeSchemeResult (TypeSchemeResult _)       = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK Proxy
@@ -70,7 +70,7 @@ denoteVariable :: KnownType r => Name () -> r -> Denotation (Name ()) r
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
-denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName r
+denoteTypedBuiltinName :: TypedBuiltinName a exA r -> a -> Denotation BuiltinName r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
     Denotation name (Builtin () . BuiltinName ()) meta scheme
 
@@ -88,7 +88,7 @@ insertVariable :: KnownType a => Name () -> a -> DenotationContext -> Denotation
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
-insertTypedBuiltinName :: TypedBuiltinName a r -> a -> DenotationContext -> DenotationContext
+insertTypedBuiltinName :: TypedBuiltinName a exA r -> a -> DenotationContext -> DenotationContext
 insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
     case typeSchemeResult scheme of
         AsKnownType -> insertDenotation (denoteTypedBuiltinName tbn meta)

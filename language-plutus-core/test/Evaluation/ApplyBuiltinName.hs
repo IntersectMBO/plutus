@@ -31,7 +31,7 @@ import           Test.Tasty.Hedgehog
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
     :: KnownType r
-    => TypedBuiltinName a r  -- ^ A (typed) builtin name to apply.
+    => TypedBuiltinName a exA r  -- ^ A (typed) builtin name to apply.
     -> a                     -- ^ The semantics of the builtin name. E.g. the semantics of
                              -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> TypedBuiltinGenT IO   -- ^ How to generate values of builtin types.

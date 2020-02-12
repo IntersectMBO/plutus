@@ -15,14 +15,15 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 
 import           Language.PlutusCore.StdLib.Data.Bool
-import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
+import qualified Language.PlutusCore.StdLib.Data.Function           as Plc
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Data.Either                                (isRight)
+import           Data.Either                                        (isRight)
 import           Data.Proxy
-import           Hedgehog                                   hiding (Size, Var)
-import qualified Hedgehog.Gen                               as Gen
+import           Hedgehog                                           hiding (Size, Var)
+import qualified Hedgehog.Gen                                       as Gen
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -31,7 +32,7 @@ dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"
 
 dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
-dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
+dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
@@ -57,7 +58,7 @@ dynamicConstName :: DynamicBuiltinName
 dynamicConstName = DynamicBuiltinName "const"
 
 dynamicConstMeaning :: DynamicBuiltinNameMeaning
-dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const where
+dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
         TypeSchemeAllType @"b" @1 Proxy $ \b ->

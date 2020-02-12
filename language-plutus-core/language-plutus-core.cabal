@@ -26,8 +26,9 @@ library
         Language.PlutusCore.MkPlc
         Language.PlutusCore.Evaluation.Machine.Ck
         Language.PlutusCore.Evaluation.Machine.Cek
-        Language.PlutusCore.Evaluation.Machine.ExMemory
+        Language.PlutusCore.Evaluation.Machine.ExBudgeting
         Language.PlutusCore.Evaluation.Machine.Exception
+        Language.PlutusCore.Evaluation.Machine.ExMemory
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
@@ -123,7 +124,6 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
         Language.PlutusCore.Evaluation.Machine.GenericSemigroup
-        Language.PlutusCore.Evaluation.Machine.ExBudgeting
     default-language: Haskell2010
     default-extensions: ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
