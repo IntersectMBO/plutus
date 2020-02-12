@@ -137,12 +137,12 @@ floatPass1' = \case
 
       floatPass1' tIn
 
-    -- TODO: abstract repetition
     TyAbs _ n _ t -> local (\ ctx ->  ( case ctx of
                                           [] -> 1
                                           (d,_):_ -> d+1
                                       , n ^. PLC.unique . coerced) : ctx)
                      $ floatPass1' t
+    -- TODO: duplicate code
     LamAbs _ n _ t -> local (\ ctx ->  ( case ctx of
                                           [] -> 1
                                           (d,_):_ -> d+1
@@ -170,7 +170,7 @@ float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
   mergedDepGraph = M.foldr (\ (_,_,b) accGraph ->
                               case b of
                                 DatatypeBind _ dt -> let princ = bindingUnique b
-                                                     in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph (datatypeIdentifiers dt)
+                                                     in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph $ datatypeIdentifiers dt
                                 _ -> accGraph) depGraph letTable
 
   sortedSccs = fromJust $ AM.topSort $ AM.scc mergedDepGraph :: [AMN.AdjacencyMap PLC.Unique]
@@ -244,7 +244,7 @@ free = \case
                               DatatypeBind _ dt@(Datatype _ _ _ _ vdecls) -> (
                                 -- new linear scope is the introduced identifiers plus the old linear scope
                                 -- add to the next linear scope, all the newly introduced identifiers
-                                S.fromList (datatypeIdentifiers dt) `S.union` accLinearScope,
+                                datatypeIdentifiers dt `S.union` accLinearScope,
 
                                 -- all Ty occurences of this databind - the previous linear scope
                                 (S.unions (fmap (\(VarDecl _ _ ty) -> freeT ty) vdecls) S.\\ accLinearScope) `S.union` accFreeSet
@@ -258,7 +258,7 @@ free = \case
                                S.\\   -- removes all the identifiers introduced by this letnonrec
                                (foldMap (\case
                                             TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-                                            DatatypeBind _ dt -> S.fromList $ datatypeIdentifiers dt
+                                            DatatypeBind _ dt -> datatypeIdentifiers dt
                                             TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced))
                                 bs)
                              ) bs
@@ -273,7 +273,7 @@ free = \case
                       -- TODO: duplicate code
                       (foldMap (\case
                               TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-                              DatatypeBind _ dt -> S.fromList $ datatypeIdentifiers dt
+                              DatatypeBind _ dt -> datatypeIdentifiers dt
                               TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced))
                        bs)
 
@@ -344,8 +344,8 @@ bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerce
                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
                       DatatypeBind _ (Datatype _ _ _ n _) -> n ^. PLC.unique . coerced -- arbitrary: use the match-function-name as the principal name of the data binding group
 
-datatypeIdentifiers :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Datatype tyname name a ->  [PLC.Unique] -- TODO: Change it to Set
+datatypeIdentifiers :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Datatype tyname name a ->  S.Set PLC.Unique
 datatypeIdentifiers (Datatype _ tvdecl tvdecls n vdecls) =
-  n^.PLC.unique.coerced
-  : fmap (\(TyVarDecl _ tn _) ->tn^.PLC.unique.coerced) (tvdecl:tvdecls)
-  ++ fmap (\(VarDecl _ vn _)->vn^.PLC.unique.coerced) vdecls
+  (n^.PLC.unique.coerced)
+  `S.insert` foldMap (\(TyVarDecl _ tn _) -> S.singleton $ tn^.PLC.unique.coerced) (tvdecl:tvdecls)
+  `S.union` foldMap (\(VarDecl _ vn _)-> S.singleton $  vn^.PLC.unique.coerced) vdecls
