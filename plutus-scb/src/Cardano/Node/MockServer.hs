@@ -1,41 +1,66 @@
-{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Cardano.Node.MockServer where
+module Cardano.Node.MockServer(
+    MockServerConfig(..)
+    , defaultConfig
+    , main
+    ) where
 
-import           Cardano.Node.API          (API)
-import           Control.Concurrent        (forkIO, threadDelay)
-import           Control.Concurrent.MVar   (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens              (view, (%=))
-import           Control.Monad             (forever, void)
-import           Control.Monad.Except      (ExceptT (ExceptT), runExceptT, throwError)
-import           Control.Monad.IO.Class    (MonadIO, liftIO)
-import           Control.Monad.Logger      (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Control.Monad.State       (StateT, get, gets, put, runStateT)
-import qualified Data.ByteString.Lazy      as BL
-import           Data.Proxy                (Proxy (Proxy))
-import           Data.Text                 (Text)
-import qualified Data.Text.Encoding        as Text
-import           Data.Text.Prettyprint.Doc (Pretty (pretty))
-import           Data.Time.Units           (Second, toMicroseconds)
-import           Ledger                    (Slot, Tx)
+import           Cardano.Node.API           (API)
+import           Control.Concurrent         (forkIO, threadDelay)
+import           Control.Concurrent.MVar    (MVar, newMVar, putMVar, takeMVar)
+import           Control.Lens               (view)
+import           Control.Monad              (forever, void)
+import           Control.Monad.Freer        (Eff, Member)
+import qualified Control.Monad.Freer        as Eff
+import           Control.Monad.Freer.State  (State)
+import qualified Control.Monad.Freer.State  as Eff
+import           Control.Monad.Freer.Writer (Writer)
+import qualified Control.Monad.Freer.Writer as Eff
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import           Control.Monad.Logger       (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Data.Foldable              (traverse_)
+import           Data.Proxy                 (Proxy (Proxy))
+import           Data.Text                  (Text)
+import           Data.Text.Prettyprint.Doc  (Pretty (pretty))
+import           Data.Time.Units            (Second, toMicroseconds)
+import           Ledger                     (Slot, Tx)
 import qualified Ledger
-import qualified Ledger.Blockchain         as Blockchain
-import           Network.Wai.Handler.Warp  (run)
-import           Plutus.SCB.Arbitrary      ()
-import           Plutus.SCB.Utils          (tshow)
-import           Servant                   ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (NoContent),
-                                            err500, errBody, hoistServer, serve)
-import           Wallet.Emulator           (EmulatorState, MonadEmulator, emptyEmulatorState)
-import qualified Wallet.Emulator           as EM
+import qualified Ledger.Blockchain          as Blockchain
+import qualified Network.Wai.Handler.Warp   as Warp
+import           Plutus.SCB.Arbitrary       ()
+import           Plutus.SCB.Utils           (tshow)
+import           Servant                    ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer, serve)
+import qualified Wallet.Emulator            as EM
+import           Wallet.Emulator.Chain      (ChainEffect, ChainEvent, ChainState)
+import qualified Wallet.Emulator.Chain      as Chain
+
+data SimpleLog r where
+    SimpleLogInfo :: Text -> SimpleLog ()
+    SimpleLogDebug :: Text -> SimpleLog ()
+
+simpleLogInfo :: Member SimpleLog effs => Text -> Eff effs ()
+simpleLogInfo = Eff.send . SimpleLogInfo
+
+simpleLogDebug :: Member SimpleLog effs => Text -> Eff effs ()
+simpleLogDebug = Eff.send . SimpleLogDebug
+
+runSimpleLog :: (MonadLogger m, MonadIO m) => Eff '[SimpleLog, m] a -> m a
+runSimpleLog = Eff.runM . Eff.interpretM (\case
+        SimpleLogInfo t -> runStdoutLoggingT $ logInfoN t
+        SimpleLogDebug t -> runStdoutLoggingT $ logDebugN t)
 
 data MockServerConfig =
     MockServerConfig
-        { mscPort :: Int
+        { mscPort       :: Int
         , mscSlotLength :: Second
         }
 
@@ -49,95 +74,77 @@ defaultConfig =
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
-getCurrentSlot :: MonadEmulator e m => m Slot
-getCurrentSlot =
-    gets (Blockchain.lastSlot . view (EM.chainState . EM.chainNewestFirst))
+getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
+getCurrentSlot = Eff.gets (Blockchain.lastSlot . view EM.chainNewestFirst)
 
-addBlock :: MonadEmulator e m => m Slot
+addBlock :: (Member SimpleLog effs, Member ChainEffect effs) => Eff effs ()
 addBlock = do
-    chainState <- get
-    let (value, newState) =
-            EM.runEmulator chainState $
-            EM.EmulatorAction $ EM.processEmulated $ EM.addBlocks 1
-    case value of
-        Left err -> throwError err
-        Right _ -> do
-            put newState
-            getCurrentSlot
+    simpleLogInfo "Adding slot"
+    void Chain.processBlock
 
-addTx :: (MonadLogger m, MonadEmulator e m) => Tx -> m NoContent
+addTx :: (Member SimpleLog effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
 addTx tx = do
-    logInfoN  $ "Adding tx " <> tshow (Ledger.txId tx)
-    logDebugN $ tshow (pretty tx)
-    EM.chainState . EM.txPool %= (tx:) >> pure NoContent
+    simpleLogInfo  $ "Adding tx " <> tshow (Ledger.txId tx)
+    simpleLogDebug $ tshow (pretty tx)
+    Chain.queueTx tx
+    pure NoContent
+
+type NodeServerEffects m = [ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
 
 ------------------------------------------------------------
-asHandler ::
-       MVar EmulatorState
-    -> StateT EmulatorState (ExceptT Text IO) a
-    -> Handler a
-asHandler stateVar action = Handler . ExceptT $ stepState stateVar runAction
-  where
-    runAction oldState = do
-        result <- runExceptT $ runStateT action oldState
-        case result of
-            Left err ->
-                pure
-                    ( Left $
-                      err500 {errBody = BL.fromStrict $ Text.encodeUtf8 err}
-                    , oldState)
-            Right (value, newState) -> pure (Right value, newState)
 
-asThread ::
-    ( MonadIO m )
-    => MVar EmulatorState
-    -> StateT EmulatorState (ExceptT Text m) a
-    -> m (Either Text a)
-asThread stateVar action = stepState stateVar runAction
-  where
-    runAction oldState = do
-        result <- runExceptT $ runStateT action oldState
-        case result of
-            Left err                -> pure (Left err, oldState)
-            Right (value, newState) -> pure (Right value, newState)
+runChainEffects ::
+        ( MonadIO m, MonadLogger m )
+        => MVar ChainState
+        -> Eff (NodeServerEffects m) a
+        -> m ([ChainEvent], a)
+runChainEffects stateVar eff = do
+    oldState <- liftIO $ takeMVar stateVar
+    ((a, newState), events) <- runSimpleLog $ Eff.runWriter $ Eff.runState oldState $ Chain.handleChain eff
+    liftIO $ putMVar stateVar newState
+    pure (events, a)
+
+processChainEffects ::
+    ( MonadIO m, MonadLogger m )
+    => MVar ChainState
+    -> Eff (NodeServerEffects m) a
+    -> m a
+processChainEffects stateVar eff = do
+    (events, result) <- runChainEffects stateVar eff
+    -- TODO: We need to process the events instead of just printing them out
+    -- Process = add them to some internal queue that the clients can consume
+    traverse_ (logDebugN . tshow) events
+    pure result
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
-slotCoordinator :: 
+slotCoordinator ::
     ( MonadIO m
     , MonadLogger m
     )
     => MockServerConfig
-    -> MVar EmulatorState
+    -> MVar ChainState
     -> m ()
 slotCoordinator MockServerConfig{mscSlotLength} stateVar =
     forever $ do
-        logDebugN "Adding slot"
-        void $ asThread stateVar addBlock
+        void $ processChainEffects stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds mscSlotLength
 
-stepState :: MonadIO m => MVar a -> (a -> m (b, a)) -> m b
-stepState stateVar action = do
-    oldState <- liftIO $ takeMVar stateVar
-    (value, newState) <- action oldState
-    liftIO $ putMVar stateVar newState
-    pure value
-
-app :: MVar EmulatorState -> Application
+app :: MVar ChainState -> Application
 app stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
-        (asHandler stateVar)
+        (runStdoutLoggingT . processChainEffects stateVar)
         (healthcheck
-        :<|> runStdoutLoggingT . addTx
+        :<|> addTx
         :<|> getCurrentSlot)
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
     let MockServerConfig{mscPort} = config
-    stateVar <- liftIO $ newMVar emptyEmulatorState
+    stateVar <- liftIO $ newMVar Chain.emptyChainState
     logInfoN "Starting slot coordination thread."
     void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator defaultConfig stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
-    liftIO $ run mscPort $ app stateVar
+    liftIO $ Warp.run mscPort $ app stateVar

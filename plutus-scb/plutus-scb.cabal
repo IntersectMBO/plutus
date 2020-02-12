@@ -115,7 +115,8 @@ library
         uuid -any,
         vector -any,
         warp -any,
-        yaml -any
+        yaml -any,
+        freer-simple -any
 
 executable plutus-scb
     main-is: Main.hs
