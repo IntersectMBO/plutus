@@ -101,14 +101,16 @@ asThread stateVar action = stepState stateVar runAction
             Left err                -> pure (Left err, oldState)
             Right (value, newState) -> pure (Right value, newState)
 
-activitySimulator :: 
+-- | Calls 'addBlock' at the start of every slot, causing pending transactions
+--   to be validated and added to the chain.
+slotCoordinator :: 
     ( MonadIO m
     , MonadLogger m
     )
     => MockServerConfig
     -> MVar EmulatorState
     -> m ()
-activitySimulator MockServerConfig{mscSlotLength} stateVar =
+slotCoordinator MockServerConfig{mscSlotLength} stateVar =
     forever $ do
         logDebugN "Adding slot"
         void $ asThread stateVar addBlock
@@ -135,7 +137,7 @@ main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
     let MockServerConfig{mscPort} = config
     stateVar <- liftIO $ newMVar emptyEmulatorState
-    logInfoN "Starting activity simulation thread."
-    void $ liftIO $ forkIO $ runStdoutLoggingT $ activitySimulator defaultConfig stateVar
+    logInfoN "Starting slot coordination thread."
+    void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator defaultConfig stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ run mscPort $ app stateVar
