@@ -15,7 +15,7 @@ import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Json.JsonEither (JsonEither)
-import Data.Lens (assign, modifying, over, set, to, use, (^.))
+import Data.Lens (assign, modifying, over, set, to, use, view, (^.))
 import Data.List as List
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
@@ -23,6 +23,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.Set as Set
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -36,7 +37,9 @@ import Halogen.Blockly (BlocklyQuery(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm, getHoles, validateHoles)
+import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm)
+import Marlowe.Linter (Position, lint)
+import Marlowe.Linter as L
 import Marlowe.Parser (parseTerm, contract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Party(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
@@ -228,26 +231,39 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case runParser' (parseTerm contract) text of
   Right pcon ->
     let
-      (Tuple duplicates holes) = validateHoles $ getHoles mempty pcon
+      lintResult = lint pcon
+
+      lintHoles = view L._holes lintResult
+
+      (Holes holes) = lintHoles
+
+      warnings =
+        map (warningToAnnotation text "The contract can make a negative payment here") (view L._negativePayments lintResult)
+          <> map (warningToAnnotation text "The contract can make a negative deposit here") (view L._negativeDeposits lintResult)
 
       mContract = fromTerm pcon
     in
       case mContract of
         Just contract -> do
-          set _editorErrors [] <<< set _contract (Just contract) $ state
+          set _editorErrors warnings <<< set _contract (Just contract) $ state
         Nothing -> do
           let
-            holes' = fromFoldable $ Map.values holes
+            holes' = fold $ fromFoldable $ Map.values holes
 
-            (Holes m) = getHoles mempty pcon
+            holesm = lintHoles
 
-            holesm = getHoles mempty pcon
+            holes'' = fold $ fromFoldable $ Map.values holes
 
-            holes'' = fold $ fromFoldable $ Map.values m
-
-            errors = map (holeToAnnotation text) holes'
+            errors = warnings <> map (holeToAnnotation text) (Set.toUnfoldable holes')
           (set _editorErrors errors <<< set _holes holesm) state
   Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
+
+warningToAnnotation :: String -> String -> Position -> Annotation
+warningToAnnotation str text { start, end } =
+  let
+    { column, row } = posToRowAndColumn str start
+  in
+    { column, row, text, "type": "warning" }
 
 holeToAnnotation :: String -> MarloweHole -> Annotation
 holeToAnnotation str (MarloweHole { name, marloweType, start }) =
