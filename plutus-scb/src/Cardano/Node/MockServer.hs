@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -31,6 +32,19 @@ import           Servant                   ((:<|>) ((:<|>)), Application, Handle
                                             err500, errBody, hoistServer, serve)
 import           Wallet.Emulator           (EmulatorState, MonadEmulator, emptyEmulatorState)
 import qualified Wallet.Emulator           as EM
+
+data MockServerConfig =
+    MockServerConfig
+        { mscPort :: Int
+        , mscSlotLength :: Second
+        }
+
+defaultConfig :: MockServerConfig
+defaultConfig =
+    MockServerConfig
+        { mscPort = 8082
+        , mscSlotLength = 5
+        }
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
@@ -75,9 +89,10 @@ asHandler stateVar action = Handler . ExceptT $ stepState stateVar runAction
             Right (value, newState) -> pure (Right value, newState)
 
 asThread ::
-       MVar EmulatorState
-    -> StateT EmulatorState (ExceptT Text IO) a
-    -> IO (Either Text a)
+    ( MonadIO m )
+    => MVar EmulatorState
+    -> StateT EmulatorState (ExceptT Text m) a
+    -> m (Either Text a)
 asThread stateVar action = stepState stateVar runAction
   where
     runAction oldState = do
@@ -86,11 +101,18 @@ asThread stateVar action = stepState stateVar runAction
             Left err                -> pure (Left err, oldState)
             Right (value, newState) -> pure (Right value, newState)
 
-activitySimulator :: MVar EmulatorState -> IO ()
-activitySimulator stateVar =
+activitySimulator :: 
+    ( MonadIO m
+    , MonadLogger m
+    )
+    => MockServerConfig
+    -> MVar EmulatorState
+    -> m ()
+activitySimulator MockServerConfig{mscSlotLength} stateVar =
     forever $ do
+        logDebugN "Adding slot"
         void $ asThread stateVar addBlock
-        threadDelay $ fromIntegral $ toMicroseconds (5 :: Second)
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds mscSlotLength
 
 stepState :: MonadIO m => MVar a -> (a -> m (b, a)) -> m b
 stepState stateVar action = do
@@ -109,11 +131,11 @@ app stateVar =
         :<|> runStdoutLoggingT . addTx
         :<|> getCurrentSlot)
 
-main :: (MonadIO m, MonadLogger m) => m ()
-main = do
-    let port = 8082
+main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
+main config = do
+    let MockServerConfig{mscPort} = config
     stateVar <- liftIO $ newMVar emptyEmulatorState
     logInfoN "Starting activity simulation thread."
-    void $ liftIO $ forkIO $ activitySimulator stateVar
-    logInfoN $ "Starting mock node server on port: " <> tshow port
-    liftIO $ run port $ app stateVar
+    void $ liftIO $ forkIO $ runStdoutLoggingT $ activitySimulator defaultConfig stateVar
+    logInfoN $ "Starting mock node server on port: " <> tshow mscPort
+    liftIO $ run mscPort $ app stateVar
