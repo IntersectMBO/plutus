@@ -243,7 +243,7 @@ assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
 -- | Validate a transaction in a mockchain.
 validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
-    h      = lastSlot [blck]
+    h      = 1
     idx    = Index.initialise [blck]
     result = Index.runValidation (Index.validateTransaction h tx) idx
 
