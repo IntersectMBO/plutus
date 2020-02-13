@@ -47,14 +47,19 @@ library
     exposed-modules:
         Cardano.Node.API
         Cardano.Node.Client
+        Cardano.Node.Mock
         Cardano.Node.RandomTx
-        Cardano.Node.MockServer
-        Cardano.Node.SimpleLog
+        Cardano.Node.Server
         Cardano.Node.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
-        Cardano.Wallet.MockServer
+        Cardano.Wallet.Mock
+        Cardano.Wallet.Server
         Cardano.Wallet.Types
+        Control.Monad.Freer.Extra.Log
+        Control.Monad.Freer.Extra.State
+        Data.Time.Units.Extra
+        Plutus.SCB.App
         Plutus.SCB.Arbitrary
         Plutus.SCB.Command
         Plutus.SCB.ContractCLI
@@ -66,9 +71,9 @@ library
         Plutus.SCB.Utils
     other-modules:
         Plutus.SCB.Events.Contract
-        Plutus.SCB.Events.Mock
-        Plutus.SCB.Events.User
         Plutus.SCB.Events.Node
+        Plutus.SCB.Events.User
+        Plutus.SCB.Events.Wallet
         Servant.Extra
     hs-source-dirs: src
     build-depends:
@@ -92,12 +97,14 @@ library
         eventful-memory -any,
         eventful-sql-common -any,
         eventful-sqlite -any,
+        freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
+        persistent -any,
         persistent-sqlite -any,
         playground-common -any,
         prettyprinter >=1.1.0.1,
@@ -105,6 +112,7 @@ library
         quickcheck-instances -any,
         random -any,
         row-types -any,
+        scientific -any,
         servant -any,
         servant-client -any,
         servant-server -any,
@@ -136,12 +144,15 @@ executable plutus-scb
         base >=4.9 && <5,
         bytestring -any,
         ekg -any,
+        freer-simple -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
         playground-common -any,
         plutus-scb -any,
+        plutus-wallet-api -any,
+        prettyprinter >=1.1.0.1,
         text -any,
         unliftio-core -any,
         uuid -any,
@@ -168,14 +179,18 @@ test-suite plutus-scb-test
     other-modules:
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
+        Plutus.SCB.TestApp
 
     build-depends:
         QuickCheck -any,
         aeson -any,
+        aeson-pretty -any,
         base >=4.9 && <5,
         containers -any,
         eventful-core -any,
         eventful-memory -any,
+        freer-simple -any,
+        lens -any,
         monad-logger -any,
         mtl -any,
         plutus-contract -any,
@@ -183,6 +198,7 @@ test-suite plutus-scb-test
         plutus-use-cases -any,
         plutus-wallet-api -any,
         quickcheck-instances -any,
+        servant-client -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any,

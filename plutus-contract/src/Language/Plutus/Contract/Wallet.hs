@@ -34,7 +34,7 @@ import           Ledger.Tx                   (Tx (..), TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
-import           Wallet.API                  (MonadWallet, PubKey, WalletAPIError, WalletAPI)
+import           Wallet.API                  (MonadWallet, PubKey, WalletAPI, WalletAPIError)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Emulator             (Wallet)
 import qualified Wallet.Emulator             as E
@@ -167,7 +167,7 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: (MonadWallet m, WAPI.NodeAPI m) => SigningProcess -> UnbalancedTx -> m Tx
+handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
     balanceWallet utx >>= addSignatures p (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit
 

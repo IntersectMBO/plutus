@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -5,325 +6,258 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Plutus.SCB.Core
-    ( migrate
-    , simulate
-    , dbStats
-    , dbConnect
+    ( dbConnect
     , installContract
     , activateContract
     , reportContractStatus
     , installedContracts
     , installedContractsProjection
     , activeContracts
+    , txHistory
+    , txHistoryProjection
     , activeContractsProjection
     , activeContractHistory
-    , Connection
+    , Connection(Connection)
     , ContractCommand(..)
     , MonadContract
     , invokeContract
     , MonadEventStore
     , refreshProjection
-    , runAggregateCommand
+    , runCommand
     , runGlobalQuery
     , updateContract
+    , addProcessBus
+    , Source(..)
+    , toUUID
     ) where
 
-import           Control.Concurrent              (forkIO, myThreadId, threadDelay)
-import           Control.Concurrent.Async        (concurrently_)
-import           Control.Concurrent.STM          (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
-import           Control.Error.Util              (note)
-import           Control.Monad                   (void, when)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift         (MonadUnliftIO)
-import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Control.Monad.Reader            (MonadReader, ReaderT, ask, runReaderT)
-import           Data.Aeson                      (FromJSON, ToJSON, eitherDecode, withObject, (.:))
-import qualified Data.Aeson                      as JSON
-import qualified Data.Aeson.Encode.Pretty        as JSON
-import           Data.Aeson.Types                (Parser)
-import qualified Data.Aeson.Types                as JSON
-import qualified Data.ByteString.Lazy.Char8      as BSL8
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.UUID                       as UUID
-import           Database.Persist.Sqlite         (ConnectionPool, SqlPersistT, createSqlitePoolFromInfo,
-                                                  mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
-import           Eventful                        (Aggregate (Aggregate), EventStoreWriter, GlobalStreamProjection,
-                                                  ProcessManager (ProcessManager), Projection,
-                                                  StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                  VersionedStreamEvent, aggregateCommandHandler, aggregateProjection,
-                                                  applyProcessManagerCommandsAndEvents, commandStoredAggregate,
-                                                  getLatestStreamProjection, globalStreamProjection, projectionMapMaybe,
-                                                  serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                                  serializedVersionedEventStoreReader, streamProjectionState,
-                                                  synchronousEventBusWrapper, uuidNextRandom)
-import           Eventful.Store.Sql              (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
-                                                  jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite           (initializeSqliteEventStore, sqliteEventStoreWriter)
-import qualified Language.Plutus.Contract        as Contract
-import           Options.Applicative.Help.Pretty (pretty, (<+>))
-import           Plutus.SCB.Arbitrary            (genResponse)
-import           Plutus.SCB.Command              (saveRequestResponseAggregate, saveTxAggregate)
-import           Plutus.SCB.Events               (ChainEvent (UserEvent), EventId (EventId),
-                                                  RequestEvent (CancelRequest, IssueRequest),
-                                                  ResponseEvent (ResponseEvent), Tx,
-                                                  UserEvent (ContractStateTransition, InstallContract))
-import qualified Plutus.SCB.Events               as Events
-import           Plutus.SCB.Query                (balances, eventCount, latestContractStatus, monoidProjection,
-                                                  nullProjection, requestStats, setProjection, trialBalance)
-import qualified Plutus.SCB.Relation             as Relation
-import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
-                                                  ActiveContractState (ActiveContractState), Contract (Contract),
-                                                  DbConfig (DbConfig), PartiallyDecodedResponse,
-                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
-                                                  activeContract, activeContractId, activeContractPath, contractPath,
-                                                  dbConfigFile, dbConfigPoolSize, hooks, newState,
-                                                  partiallyDecodedResponse)
-import           Plutus.SCB.Utils                (logInfoS, render, tshow)
-import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                  (readProcessWithExitCode)
-import           Test.QuickCheck                 (arbitrary, frequency, generate)
-
-data ThreadState
-    = Running
-    | Stopped
-    deriving (Show, Eq)
+import           Control.Error.Util                         (note)
+import           Control.Monad                              (void)
+import           Control.Monad.Except                       (MonadError, throwError)
+import           Control.Monad.Except.Extras                (mapError)
+import           Control.Monad.IO.Class                     (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift                    (MonadUnliftIO)
+import           Control.Monad.Logger                       (LoggingT, MonadLogger, logDebugN, logInfoN, logWarnN)
+import           Control.Monad.Reader                       (MonadReader, ReaderT, ask)
+import           Data.Aeson                                 (FromJSON, ToJSON, withObject, (.:))
+import qualified Data.Aeson                                 as JSON
+import           Data.Aeson.Types                           (Parser)
+import qualified Data.Aeson.Types                           as JSON
+import           Data.Foldable                              (traverse_)
+import           Data.Map.Strict                            (Map)
+import qualified Data.Map.Strict                            as Map
+import           Data.Set                                   (Set)
+import qualified Data.Set                                   as Set
+import           Data.Text                                  (Text)
+import qualified Data.Text                                  as Text
+import           Data.Text.Prettyprint.Doc                  (pretty, (<+>))
+import qualified Data.UUID                                  as UUID
+import           Database.Persist.Sqlite                    (ConnectionPool, createSqlitePoolFromInfo,
+                                                             mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
+import           Eventful                                   (Aggregate, EventStoreWriter, GlobalStreamProjection,
+                                                             ProcessManager (ProcessManager), Projection,
+                                                             StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
+                                                             VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
+                                                             commandStoredAggregate, getLatestStreamProjection,
+                                                             globalStreamProjection, projectionMapMaybe,
+                                                             serializedEventStoreWriter,
+                                                             serializedGlobalEventStoreReader,
+                                                             serializedVersionedEventStoreReader, streamProjectionState,
+                                                             synchronousEventBusWrapper, uuidNextRandom)
+import           Eventful.Store.Sql                         (JSONString, SqlEvent, SqlEventStoreConfig,
+                                                             defaultSqlEventStoreConfig, jsonStringSerializer,
+                                                             sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite                      (sqliteEventStoreWriter)
+import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
+import qualified Language.Plutus.Contract.Wallet            as Wallet
+import qualified Ledger
+import qualified Ledger.Constraints                         as Ledger
+import           Plutus.SCB.Command                         (installCommand, saveBalancedTx, saveBalancedTxResult,
+                                                             saveContractState)
+import           Plutus.SCB.Events                          (ChainEvent (NodeEvent, UserEvent), NodeEvent (SubmittedTx),
+                                                             UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Query                           (latestContractStatus, monoidProjection, nullProjection,
+                                                             setProjection)
+import           Plutus.SCB.Types                           (ActiveContract (ActiveContract),
+                                                             ActiveContractState (ActiveContractState),
+                                                             Contract (Contract), DbConfig (DbConfig),
+                                                             PartiallyDecodedResponse,
+                                                             SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
+                                                             activeContract, activeContractId, activeContractPath,
+                                                             contractPath, dbConfigFile, dbConfigPoolSize, hooks,
+                                                             newState, partiallyDecodedResponse)
+import           Plutus.SCB.Utils                           (liftError, render, tshow)
+import           Wallet.API                                 (NodeAPI, WalletAPI, WalletDiagnostics)
+import qualified Wallet.API                                 as WAPI
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
 
--- | Initialize/update the database to hold events.
-migrate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
-migrate = do
-    logInfoN "Migrating"
-    Connection (sqlConfig, connectionPool) <- ask
-    initializeSqliteEventStore sqlConfig connectionPool
-
--- | A long-ish running process that fills the database with lots of event data.
-simulate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
-simulate = do
-    logInfoN "Simulating"
-    connection <- ask
-    runWriters connection
-
--- | Dump various statistics and reports from various queries over the event store database.
-dbStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-dbStats = do
-    logInfoN "Querying"
-    reportTrialBalance
-    reportClosingBalances
-    reportEventCount
-    reportRequestStats
-
-------------------------------------------------------------
--- | Write lots of events into the store. At the moment this code
--- exercises the eventstore and the multi-threaded generation/storage of
--- events.
-runWriters ::
-       forall m. (MonadLogger m, MonadIO m)
-    => Connection
-    -> m ()
-runWriters connection = do
-    threadState <- liftIO $ newTVarIO Running
-        --
-    logInfoN "Started writers"
-    let writerAction =
-            runStdoutLoggingT . flip runReaderT connection $ do
-                tx :: Tx <- liftIO $ generate arbitrary
-                void $
-                    runAggregateCommand
-                        saveTxAggregate
-                        (UUID.fromWords 0 0 0 1)
-                        tx
-                --
-                requestId <- liftIO $ EventId <$> uuidNextRandom
-                request <- liftIO $ generate arbitrary
-                cancellation <-
-                    liftIO $
-                    generate $
-                    frequency
-                        [ (1, pure $ Just (CancelRequest requestId))
-                        , (10, pure Nothing)
-                        ]
-                response <-
-                    liftIO $
-                    generate $
-                    frequency
-                        [ ( 10
-                          , case genResponse request of
-                                Nothing -> pure Nothing
-                                Just generator ->
-                                    Just . ResponseEvent requestId <$> generator)
-                        , (1, pure Nothing)
-                        ]
-                me <- liftIO myThreadId
-                logInfoN $ "(" <> tshow me <> ") Write"
-                void $
-                    runAggregateCommand
-                        saveRequestResponseAggregate
-                        (UUID.fromWords 0 0 0 2)
-                        (IssueRequest requestId request, cancellation, response)
-                liftIO pauseBeforeRepeat
-        runWriterAction =
-            void . forkIO $ repeatIOAction threadState writerAction
-    liftIO $
-        concurrently_
-            (concurrently_ runWriterAction runWriterAction)
-            (do pauseForWrites
-                atomically $ writeTVar threadState Stopped)
-    logInfoN "Stopped writers"
-  where
-    pauseForWrites = void $ threadDelay (5 * 60 * 1000 * 1000)
-    pauseBeforeRepeat = void $ threadDelay (500 * 1000)
-
-repeatIOAction :: TVar ThreadState -> IO a -> IO ()
-repeatIOAction threadState action = go
-  where
-    go = do
-        state <- readTVarIO threadState
-        when (state == Running) $ do
-            void action
-            go
-
-------------------------------------------------------------
-reportTrialBalance :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportTrialBalance = do
-    trialBalanceProjection <- runGlobalQuery trialBalance
-    logInfoN "Trial Balance"
-    logInfoS trialBalanceProjection
-
-reportEventCount :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportEventCount = do
-    eventCountProjection <- runGlobalQuery eventCount
-    logInfoN $ "EventCount: " <> tshow eventCountProjection
-
-reportRequestStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportRequestStats = do
-    requestStatsProjection <- runGlobalQuery requestStats
-    logInfoN $ render requestStatsProjection
-
-reportClosingBalances :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportClosingBalances = do
-    updatedProjection <- runGlobalQuery balances
-    logInfoN "Closing Balances"
-    let closingBalances = Relation.fromMap updatedProjection
-    let report = (,) <$> Events.users <*> closingBalances
-    logInfoS report
-
-------------------------------------------------------------
 installContract ::
-       ( MonadLogger m, MonadEventStore ChainEvent m)
-    => FilePath
-    -> m ()
+       (MonadLogger m, MonadEventStore ChainEvent m) => FilePath -> m ()
 installContract filePath = do
     logInfoN $ "Installing: " <> tshow filePath
     void $
-        runAggregateCommand
+        runCommand
             installCommand
-            (UUID.fromWords 0 0 0 3)
+            UserEventSource
             (Contract {contractPath = filePath})
     logInfoN "Installed."
 
-installCommand :: Aggregate () ChainEvent Contract
-installCommand =
-    Aggregate
-        { aggregateProjection = nullProjection
-        , aggregateCommandHandler =
-              \() contract -> [UserEvent $ InstallContract contract]
-        }
-
 activateContract ::
-       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
+       ( MonadIO m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , MonadContract m
+       , MonadError SCBError m
+       )
     => FilePath
-    -> m (Either SCBError ())
+    -> m UUID
 activateContract filePath = do
     logInfoN "Finding Contract"
-    mContract <- lookupContract filePath
+    contract <- liftError $ lookupContract filePath
     activeContractId <- liftIO uuidNextRandom
-    case mContract of
-        Left err -> pure $ Left err
-        Right contract -> do
-            logInfoN "Initializing Contract"
-            mResponse <-
-                invokeContract $ InitContract (contractPath contract)
-            case mResponse of
-                Left err -> pure $ Left err
-                Right response -> do
-                    let activeContractState =
-                            ActiveContractState
-                                { activeContract =
-                                      ActiveContract
-                                          { activeContractId
-                                          , activeContractPath =
-                                                contractPath contract
-                                          }
-                                , partiallyDecodedResponse = response
-                                }
-                    logInfoN "Storing Initial Contract State"
-                    void $
-                        runAggregateCommand
-                            saveContractState
-                            (UUID.fromWords 0 0 0 3)
-                            activeContractState
-                    logInfoN . render $
-                        "Installed:" <+>
-                        pretty (activeContract activeContractState)
-                    logInfoN "Done"
-                    pure $ Right ()
+    logInfoN "Initializing Contract"
+    response <-
+        liftError $ invokeContract $ InitContract (contractPath contract)
+    let activeContractState =
+            ActiveContractState
+                { activeContract =
+                      ActiveContract
+                          { activeContractId
+                          , activeContractPath = contractPath contract
+                          }
+                , partiallyDecodedResponse = response
+                }
+    logInfoN "Storing Initial Contract State"
+    void $ runCommand saveContractState ContractEventSource activeContractState
+    logInfoN . render $
+        "Activated:" <+> pretty (activeContract activeContractState)
+    logInfoN "Done"
+    pure activeContractId
 
 updateContract ::
-       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
+       ( MonadLogger m
+       , MonadEventStore ChainEvent m
+       , MonadContract m
+       , MonadError SCBError m
+       , WalletAPI m
+       , NodeAPI m
+       , WalletDiagnostics m
+       )
     => UUID
     -> Text
     -> JSON.Value
-    -> m (Either SCBError ())
+    -> m ()
 updateContract uuid endpointName endpointPayload = do
     logInfoN "Finding Contract"
-    mContract <- lookupActiveContractState uuid
-    case mContract of
-        Left err -> pure $ Left err
-        Right oldContractState -> do
-            logInfoN "Updating Contract"
-            mResponse <-
-                updateContract_ oldContractState endpointName endpointPayload
-            case mResponse of
-                Left err -> pure $ Left err
-                Right response -> do
-                    let updatedContractState =
-                            oldContractState
-                                {partiallyDecodedResponse = response}
-                    logInfoN "Storing Updated Contract State"
-                    logInfoN $
-                        "UnbalancedTxs" <>
-                        tshow
-                            (JSON.parseEither
-                                 parseUnbalancedTxKey
-                                 (hooks response))
-                    void $
-                        runAggregateCommand
-                            saveContractState
-                            (UUID.fromWords 0 0 0 3)
-                            updatedContractState
-                    logInfoN . render $
-                        "Updated:" <+> pretty updatedContractState
-                    logInfoN "Done"
-                    pure $ Right ()
+    oldContractState <- liftError $ lookupActiveContractState uuid
+    logInfoN "Updating Contract"
+    response <-
+        invokeContractUpdate oldContractState endpointName endpointPayload
+    let newContractState =
+            oldContractState {partiallyDecodedResponse = response}
+    logInfoN . render $ "Updated:" <+> pretty newContractState
+    logInfoN "Storing Updated Contract State"
+    void $ runCommand saveContractState ContractEventSource newContractState
+    --
+    logInfoN "Handling Resulting Blockchain Events"
+    handleBlockchainEvents response
+    logInfoN "Done"
 
-parseUnbalancedTxKey :: JSON.Value -> Parser [Contract.UnbalancedTx]
-parseUnbalancedTxKey = withObject "tx key" $ \o -> o .: "tx"
+handleBlockchainEvents ::
+       ( MonadError SCBError m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       )
+    => PartiallyDecodedResponse
+    -> m ()
+handleBlockchainEvents response = do
+    handleTxHook response
+    handleUtxoAtHook response
+    handleOwnPubKeyHook response
+
+parseSingleHook ::
+       MonadError SCBError m
+    => (JSON.Value -> Parser a)
+    -> PartiallyDecodedResponse
+    -> m a
+parseSingleHook parser response =
+    case JSON.parseEither parser (hooks response) of
+        Left err     -> throwError $ ContractCommandError 0 $ Text.pack err
+        Right result -> pure result
+
+handleTxHook ::
+       ( MonadError SCBError m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       )
+    => PartiallyDecodedResponse
+    -> m ()
+handleTxHook response = do
+    logInfoN "Handling 'tx' hook."
+    unbalancedTxs <- parseSingleHook txKeyParser response
+    logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
+    balancedTxs <-
+        traverse (mapError WalletError . Wallet.balanceWallet) unbalancedTxs
+    traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
+    --
+    logInfoN $ "Submitting balanced TXs: " <> tshow unbalancedTxs
+    balanceResults <- traverse submitTxn balancedTxs
+    traverse_ (runCommand saveBalancedTxResult NodeEventSource) balanceResults
+
+handleUtxoAtHook ::
+       (MonadError SCBError m, MonadLogger m)
+    => PartiallyDecodedResponse
+    -> m ()
+handleUtxoAtHook response = do
+    logInfoN "Handling 'utxo-at' hook."
+    utxoAts <- parseSingleHook utxoAtKeyParser response
+    traverse_ (logInfoN . tshow) utxoAts
+    logWarnN "UNIMPLEMENTED: handleUtxoAtHook"
+
+handleOwnPubKeyHook ::
+       (MonadError SCBError m, MonadLogger m)
+    => PartiallyDecodedResponse
+    -> m ()
+handleOwnPubKeyHook response = do
+    logInfoN "Handling 'own-pubkey' hook."
+    ownPubKeys <- parseSingleHook ownPubKeyParser response
+    logInfoN $ tshow ownPubKeys
+    logWarnN "UNIMPLEMENTED: handleOwnPubKeyHook"
+
+-- | A wrapper around the NodeAPI function that returns some more
+-- useful evidence of the work done.
+submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.Tx
+submitTxn txn = do
+    WAPI.submitTxn txn
+    pure txn
+
+txKeyParser :: JSON.Value -> Parser [Ledger.UnbalancedTx]
+txKeyParser = withObject "tx key" $ \o -> o .: "tx"
+
+utxoAtKeyParser :: JSON.Value -> Parser [Ledger.Address]
+utxoAtKeyParser = withObject "utxo-at key" $ \o -> o .: "utxo-at"
+
+ownPubKeyParser :: JSON.Value -> Parser OwnPubKeyRequest
+ownPubKeyParser = withObject "own-pubkey key" $ \o -> o .: "own-pubkey"
 
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
 reportContractStatus uuid = do
     logInfoN "Finding Contract"
     statuses <- runGlobalQuery latestContractStatus
-    logInfoN $ render $ Map.lookup uuid statuses
+    logInfoN $ render $ pretty $ Map.lookup uuid statuses
 
 lookupContract ::
        MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
@@ -348,40 +282,16 @@ data ContractCommand
     | UpdateContract FilePath JSON.Value
     deriving (Show, Eq)
 
-class MonadContract m where
-    invokeContract ::
-           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
-
-instance MonadIO m => MonadContract (SqlPersistT m) where
-    invokeContract contractCommand = liftIO $ do
-        (exitCode, stdout, stderr) <-
-            liftIO $
-            case contractCommand of
-                InitContract contractPath ->
-                    readProcessWithExitCode contractPath ["init"] ""
-                UpdateContract contractPath payload ->
-                    readProcessWithExitCode
-                        contractPath
-                        ["update"]
-                        (BSL8.unpack (JSON.encodePretty payload))
-        case exitCode of
-            ExitFailure code ->
-                pure . Left $ ContractCommandError code (Text.pack stderr)
-            ExitSuccess ->
-                case eitherDecode (BSL8.pack stdout) of
-                    Right value -> pure $ Right value
-                    Left err ->
-                        pure . Left $ ContractCommandError 0 (Text.pack err)
-
-updateContract_ ::
-       MonadContract m
+invokeContractUpdate ::
+       (MonadContract m, MonadError SCBError m)
     => ActiveContractState
     -> Text
     -> JSON.Value
-    -> m (Either SCBError PartiallyDecodedResponse)
-updateContract_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
-                                    , partiallyDecodedResponse
-                                    } endpointName endpointPayload =
+    -> m PartiallyDecodedResponse
+invokeContractUpdate ActiveContractState { activeContract = ActiveContract {activeContractPath}
+                                         , partiallyDecodedResponse
+                                         } endpointName endpointPayload =
+    liftError $
     invokeContract $
     UpdateContract activeContractPath $
     JSON.object
@@ -390,13 +300,6 @@ updateContract_ ActiveContractState { activeContract = ActiveContract {activeCon
           , JSON.object
                 [("tag", JSON.String endpointName), ("value", endpointPayload)])
         ]
-
-saveContractState :: Aggregate () ChainEvent ActiveContractState
-saveContractState =
-    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
-  where
-    aggregateCommandHandler _ state =
-        [UserEvent $ ContractStateTransition state]
 
 installedContracts :: MonadEventStore ChainEvent m => m (Set Contract)
 installedContracts = runGlobalQuery installedContractsProjection
@@ -419,6 +322,16 @@ activeContractsProjection = projectionMapMaybe contractPaths setProjection
     contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         Just $ activeContract state
     contractPaths _ = Nothing
+
+txHistory :: MonadEventStore ChainEvent m => m [Ledger.Tx]
+txHistory = runGlobalQuery txHistoryProjection
+
+txHistoryProjection ::
+       Projection [Ledger.Tx] (StreamEvent key position ChainEvent)
+txHistoryProjection = projectionMapMaybe submittedTxs monoidProjection
+  where
+    submittedTxs (StreamEvent _ _ (NodeEvent (SubmittedTx tx))) = Just [tx]
+    submittedTxs _                                              = Nothing
 
 activeContractHistory ::
        MonadEventStore ChainEvent m => UUID -> m [ActiveContractState]
@@ -461,17 +374,18 @@ dbConnect = do
     pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
 
 ------------------------------------------------------------
--- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
+class MonadContract m where
+    invokeContract ::
+           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
+
 class Monad m =>
       MonadEventStore event m
-    -- | Update a 'Projection'.
     where
     refreshProjection ::
            GlobalStreamProjection state event
         -> m (GlobalStreamProjection state event)
-    -- | Update a command through an 'Aggregate'.
-    runAggregateCommand ::
-           Aggregate state event command -> UUID -> command -> m [event]
+    runCommand ::
+           Aggregate state event command -> Source -> command -> m [event]
 
 instance (FromJSON event, ToJSON event) =>
          MonadEventStore event (ReaderT Connection (LoggingT IO)) where
@@ -482,7 +396,7 @@ instance (FromJSON event, ToJSON event) =>
                 sqlGlobalEventStoreReader sqlConfig
         flip runSqlPool connectionPool $
             getLatestStreamProjection reader projection
-    runAggregateCommand aggregate identifier input = do
+    runCommand aggregate source input = do
         (Connection (sqlConfig, connectionPool)) <- ask
         let reader =
                 serializedVersionedEventStoreReader jsonStringSerializer $
@@ -493,7 +407,7 @@ instance (FromJSON event, ToJSON event) =>
                      sqliteEventStoreWriter sqlConfig)
                     reader
         retryOnBusy . flip runSqlPool connectionPool $
-            commandStoredAggregate writer reader aggregate identifier input
+            commandStoredAggregate writer reader aggregate (toUUID source) input
 
 runGlobalQuery ::
        MonadEventStore event m
@@ -518,3 +432,17 @@ addProcessBus writer reader =
                   reader
                   ()
         ]
+
+------------------------------------------------------------
+data Source
+    = ContractEventSource
+    | WalletEventSource
+    | UserEventSource
+    | NodeEventSource
+    deriving (Show, Eq)
+
+toUUID :: Source -> UUID
+toUUID ContractEventSource = UUID.fromWords 0 0 0 2
+toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
+toUUID UserEventSource     = UUID.fromWords 0 0 0 3
+toUUID NodeEventSource     = UUID.fromWords 0 0 0 4

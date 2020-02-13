@@ -1,22 +1,24 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
-module Plutus.SCB.Events.Node(
-  NodeEvent(..)
-  ) where
 
-import           Data.Aeson  (FromJSON, ToJSON)
-import GHC.Generics (Generic)
+module Plutus.SCB.Events.Node
+    ( NodeEvent(..)
+    ) where
 
-import           Ledger.Slot (Slot)
-import           Ledger.Tx   (Tx)
+import           Data.Aeson   (FromJSON, ToJSON)
+import           GHC.Generics (Generic)
 
-data NodeEvent =
-  BlockAdded [Tx]
+import           Ledger       (Slot, Tx)
+
+data NodeEvent
+    = BlockAdded [Tx]
   -- ^ A new block was added to the blockchain
-  | NewSlot Slot
+    | NewSlot Slot
   -- ^ A new slot has been added
+    | SubmittedTx Tx
+  -- ^ Confirmation that the transactions were received.
   -- TODO: Rollbacks?
   -- | Rollback Int -- ^ n blocks were rolled back
-  deriving stock (Show, Eq, Generic)
-  deriving anyclass (FromJSON, ToJSON)
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)

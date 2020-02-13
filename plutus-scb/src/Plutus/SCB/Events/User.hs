@@ -9,7 +9,7 @@ import           GHC.Generics     (Generic)
 import           Plutus.SCB.Types (ActiveContractState, Contract)
 
 data UserEvent
-    = InstallContract Contract
-    | ContractStateTransition ActiveContractState
+    = InstallContract !Contract
+    | ContractStateTransition !ActiveContractState
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
