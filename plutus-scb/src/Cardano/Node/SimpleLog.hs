@@ -10,13 +10,9 @@ module Cardano.Node.SimpleLog(
   , runSimpleLog
   ) where
 
-import           Control.Monad.Freer        (Eff, LastMember, Member)
+import           Control.Monad.Freer        (Eff, Member)
 import qualified Control.Monad.Freer        as Eff
-import           Control.Monad.Freer.State  (State)
-import qualified Control.Monad.Freer.State  as Eff
-import           Control.Monad.Freer.Writer (Writer)
-import qualified Control.Monad.Freer.Writer as Eff
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Logger       (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Text                  (Text)
 

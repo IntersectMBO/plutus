@@ -55,7 +55,7 @@ defaultConfig =
     MockServerConfig
         { mscPort = 8082
         , mscSlotLength = 5
-        , mscRandomTxInterval = Just 8
+        , mscRandomTxInterval = Just 20
         }
 
 healthcheck :: Monad m => m NoContent

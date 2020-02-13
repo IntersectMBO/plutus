@@ -10,7 +10,6 @@ module Plutus.SCB.Events
     ) where
 
 import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Plutus.SCB.Events.Contract as Events.Contract
 import           Plutus.SCB.Events.Node     as Events.Node

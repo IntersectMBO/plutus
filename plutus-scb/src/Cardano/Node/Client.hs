@@ -14,9 +14,9 @@ getCurrentSlot :: ClientM Slot
 addTx :: Tx -> ClientM NoContent
 randomTx :: ClientM Tx
 (healthcheck, addTx, getCurrentSlot, randomTx) =
-    (healthcheck_, addTx_, getCurrentSlot_, randomTx)
+    (healthcheck_, addTx_, getCurrentSlot_, randomTx_)
   where
-    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> randomTx = client (Proxy @API)
+    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> randomTx_ = client (Proxy @API)
     
 main :: IO ()
 main = do
