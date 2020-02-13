@@ -464,8 +464,8 @@ dbConnect = do
 -- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
 class Monad m =>
       MonadEventStore event m
-    -- | Update a 'Projection'.
     where
+    -- | Update a 'Projection'.
     refreshProjection ::
            GlobalStreamProjection state event
         -> m (GlobalStreamProjection state event)
