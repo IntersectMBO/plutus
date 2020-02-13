@@ -246,7 +246,8 @@ activateContract filePath = do
     contract <- liftError $ lookupContract filePath
     activeContractId <- liftIO uuidNextRandom
     logInfoN "Initializing Contract"
-    response <- liftError $ invokeContract $ InitContract (contractPath contract)
+    response <-
+        liftError $ invokeContract $ InitContract (contractPath contract)
     let activeContractState =
             ActiveContractState
                 { activeContract =
@@ -283,8 +284,7 @@ updateContract uuid endpointName endpointPayload = do
     logInfoN "Finding Contract"
     oldContractState <- liftError $ lookupActiveContractState uuid
     logInfoN "Updating Contract"
-    response <-
-        updateContract_ oldContractState endpointName endpointPayload
+    response <- updateContract_ oldContractState endpointName endpointPayload
     case JSON.parseEither parseUnbalancedTxKey (hooks response) of
         Left err -> throwError $ ContractCommandError 0 $ Text.pack err
         Right unbalancedTxs -> do
@@ -298,26 +298,21 @@ updateContract uuid endpointName endpointPayload = do
                 balancedTxs
                       --
             logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
-            balanceResults :: [Ledger.TxId] <-
-                traverse submitTxn balancedTxs
+            balanceResults :: [Ledger.TxId] <- traverse submitTxn balancedTxs
                       --
             traverse_
-                (runAggregateCommand
-                     saveBalancedTxResult
-                     nodeEventSource)
+                (runAggregateCommand saveBalancedTxResult nodeEventSource)
                 balanceResults
                       --
             let updatedContractState =
-                    oldContractState
-                        {partiallyDecodedResponse = response}
+                    oldContractState {partiallyDecodedResponse = response}
             logInfoN "Storing Updated Contract State"
             void $
                 runAggregateCommand
                     saveContractState
                     contractEventSource
                     updatedContractState
-            logInfoN . render $
-                "Updated:" <+> pretty updatedContractState
+            logInfoN . render $ "Updated:" <+> pretty updatedContractState
             logInfoN "Done"
 
 -- | A wrapper around the NodeAPI function that returns some more
@@ -469,8 +464,8 @@ dbConnect = do
 -- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
 class Monad m =>
       MonadEventStore event m
-    -- | Update a 'Projection'.
     where
+    -- | Update a 'Projection'.
     refreshProjection ::
            GlobalStreamProjection state event
         -> m (GlobalStreamProjection state event)
@@ -544,7 +539,11 @@ instance (WalletDiagnostics m, Monad m) =>
          WalletDiagnostics (ExceptT WalletAPIError m) where
     logMsg = lift . WAPI.logMsg
 
-instance (WalletAPI m, Monad m) => WalletAPI (ExceptT WalletAPIError m) where
+instance (Monad m, NodeAPI m) => NodeAPI (ExceptT WalletAPIError m) where
+    submitTxn = lift . WAPI.submitTxn
+    slot = lift WAPI.slot
+
+instance WalletAPI m => WalletAPI (ExceptT WalletAPIError m) where
     ownPubKey = lift WAPI.ownPubKey
     sign = lift . WAPI.sign
     updatePaymentWithChange value inputs =

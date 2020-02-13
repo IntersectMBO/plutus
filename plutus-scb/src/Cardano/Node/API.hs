@@ -5,8 +5,8 @@ module Cardano.Node.API
     ( API
     ) where
 
-import           Ledger      (Tx, Slot)
-import           Servant.API ((:<|>), (:>), Get, JSON, NoContent, ReqBody, Post)
+import           Ledger      (Slot, Tx)
+import           Servant.API ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent

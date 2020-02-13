@@ -168,7 +168,7 @@ instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAP
     throwError = throwError
     catchError = catchError
 
-instance (Member WalletEffect effs, Member (Error WAPI.WalletAPIError) effs) => WAPI.WalletDiagnostics (Eff effs) where
+instance (Member WalletEffect effs) => WAPI.WalletDiagnostics (Eff effs) where
     logMsg = walletLogMsg
 
 -- UTILITIES: should probably be elsewhere

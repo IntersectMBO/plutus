@@ -13,7 +13,7 @@ import           Control.Monad.Except       (ExceptT (ExceptT), MonadError, runE
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Logger       (LogLevel (LevelDebug), LoggingT, MonadLogger, filterLogger, logInfoN,
                                              runStdoutLoggingT)
-import           Control.Monad.Reader       (MonadReader, ReaderT (ReaderT),  asks, runReaderT)
+import           Control.Monad.Reader       (MonadReader, ReaderT (ReaderT), asks, runReaderT)
 import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty   as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL8
@@ -64,9 +64,9 @@ instance NodeAPI App where
 instance WalletAPI App where
     ownPubKey = runWalletClientM WalletClient.getOwnPubKey
     sign bs = runWalletClientM $ WalletClient.sign bs
-    updatePaymentWithChange value payment = undefined
+    updatePaymentWithChange _ _ = undefined
     watchedAddresses = pure mempty
-    startWatching address = pure ()
+    startWatching _ = pure ()
 
 runAppClientM ::
        (Env -> ClientEnv) -> (ServantError -> SCBError) -> ClientM a -> App a

@@ -31,7 +31,7 @@ import qualified Data.Text            as T
 
 signTxAndSubmit
     :: forall ins outs m .
-    (Monad m, WalletAPI m, NodeAPI m, MonadError WalletAPIError m)
+    (Monad m, WalletAPI m, NodeAPI m)
     => Typed.TypedTx ins outs
     -> m (Typed.TypedTx ins outs)
 signTxAndSubmit tx = do

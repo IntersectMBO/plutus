@@ -6,8 +6,8 @@ module Cardano.Wallet.API
     ) where
 
 import           Cardano.Wallet.Types   (WalletId)
-import qualified Data.ByteString.Lazy      as BSL
-import           Ledger                 (PubKey, Value,Signature)
+import qualified Data.ByteString.Lazy   as BSL
+import           Ledger                 (PubKey, Signature, Value)
 import           Servant.API            ((:<|>), (:>), Capture, Get, JSON, Post, ReqBody)
 import           Wallet.Emulator.Wallet (Wallet)
 

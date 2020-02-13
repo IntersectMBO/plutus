@@ -10,11 +10,11 @@ module Cardano.Node.SimpleLog(
   , runSimpleLog
   ) where
 
-import           Control.Monad.Freer        (Eff, Member)
-import qualified Control.Monad.Freer        as Eff
-import           Control.Monad.IO.Class     (MonadIO)
-import           Control.Monad.Logger       (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Data.Text                  (Text)
+import           Control.Monad.Freer    (Eff, Member)
+import qualified Control.Monad.Freer    as Eff
+import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.Logger   (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Data.Text              (Text)
 
 -- $simpleLog
 -- A @freer-simple@ wrapper around @Control.Monad.Logger@
