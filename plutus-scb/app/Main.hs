@@ -10,10 +10,9 @@ import qualified Cardano.Node.MockServer         as NodeServer
 import qualified Cardano.Wallet.Client           as WalletClient
 import qualified Cardano.Wallet.MockServer       as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
-import           Control.Monad.IO.Unlift         (MonadUnliftIO, liftIO)
-import           Control.Monad.Logger            (LogLevel (LevelDebug), MonadLogger, filterLogger, logDebugN, logInfoN,
-                                                  runStdoutLoggingT)
-import           Control.Monad.Reader            (MonadReader, runReaderT)
+import           Control.Monad.IO.Class          (liftIO)
+import           Control.Monad.Logger            (logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Reader            (MonadReader, ReaderT, asks, runReaderT)
 import qualified Data.Aeson                      as JSON
 import qualified Data.ByteString.Lazy.Char8      as BS8
 import           Data.Foldable                   (traverse_)
@@ -28,10 +27,9 @@ import           Options.Applicative             (CommandFields, Mod, Parser, ar
                                                   showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
                                                   subparser, value, (<|>))
 import           Options.Applicative.Help.Pretty (int, parens, pretty, (<+>))
-import           Plutus.SCB.Core                 (Connection, MonadEventStore, dbConnect)
+import           Plutus.SCB.App                  (App, runApp)
+import qualified Plutus.SCB.App                  as App
 import qualified Plutus.SCB.Core                 as Core
-import           Plutus.SCB.Events               (ChainEvent)
-import           Plutus.SCB.Types                (SCBError)
 import           Plutus.SCB.Utils                (logErrorS, render)
 import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess), exitWith)
 import qualified System.Remote.Monitoring        as EKG
@@ -224,41 +222,38 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand ::
-       ( MonadUnliftIO m
-       , MonadLogger m
-       , MonadReader Connection m
-       , MonadEventStore ChainEvent m
-       )
-    => Command
-    -> m (Either SCBError ())
-runCliCommand Simulate = Right <$> Core.simulate
-runCliCommand DbStats = Right <$> Core.dbStats
-runCliCommand Migrate = Right <$> Core.migrate
-runCliCommand MockWallet = Right <$> WalletServer.main
-runCliCommand MockNode = Right <$> NodeServer.main NodeServer.defaultConfig
-runCliCommand WalletClient = Right <$> liftIO WalletClient.main
-runCliCommand NodeClient = Right <$> liftIO NodeClient.main
-runCliCommand (InstallContract path) = Right <$> Core.installContract path
--- runCliCommand (ActivateContract path) = Core.activateContract path
-runCliCommand (ContractStatus uuid) = Right <$> Core.reportContractStatus uuid
+localReaderT :: MonadReader f m => (f -> e) -> ReaderT e m a -> m a
+localReaderT f action = do
+    env <- asks f
+    runReaderT action env
+
+runCliCommand :: Command -> App ()
+runCliCommand Migrate = App.migrate
+runCliCommand Simulate = localReaderT App.dbConnection Core.simulate
+runCliCommand DbStats = Core.dbStats
+runCliCommand MockWallet = WalletServer.main
+runCliCommand MockNode = NodeServer.main NodeServer.defaultConfig
+runCliCommand WalletClient = liftIO WalletClient.main
+runCliCommand NodeClient = liftIO NodeClient.main
+runCliCommand (InstallContract path) = Core.installContract path
+runCliCommand (ActivateContract path) = Core.activateContract path
+runCliCommand (ContractStatus uuid) = Core.reportContractStatus uuid
 runCliCommand ReportInstalledContracts = do
     logInfoN "Installed Contracts"
     traverse_ (logInfoN . render) =<< Core.installedContracts
-    pure $ Right ()
+    pure ()
 runCliCommand ReportActiveContracts = do
     logInfoN "Active Contracts"
     traverse_ (logInfoN . render) =<< Core.activeContracts
-    pure $ Right ()
--- runCliCommand (UpdateContract uuid endpoint payload) =
---     Core.updateContract uuid endpoint payload
+    pure ()
+runCliCommand (UpdateContract uuid endpoint payload) =
+    Core.updateContract uuid endpoint payload
 runCliCommand (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
         (\index contract ->
              logInfoN $ render (parens (int index) <+> pretty contract)) =<<
         Core.activeContractHistory uuid
-    pure $ Right ()
 
 main :: IO ()
 main = do
@@ -268,16 +263,14 @@ main = do
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
-    returnCode <-
-        runStdoutLoggingT $
-        filterLogger (\_ level -> level > LevelDebug) $ do
-            logInfoN $ "Running: " <> Text.pack (show cmd)
-            connection <- runReaderT dbConnect config
-            result <- runReaderT (runCliCommand cmd) connection
-            logDebugN $ "Ran: " <> Text.pack (show result)
-            case result of
-                Left err -> do
-                    logErrorS err
-                    pure (ExitFailure 1)
-                Right () -> pure ExitSuccess
-    exitWith returnCode
+    result <-
+        do runApp config $ do
+               logInfoN $ "Running: " <> Text.pack (show cmd)
+               result <- runCliCommand cmd
+               logDebugN $ "Ran: " <> Text.pack (show result)
+               pure result
+    case result of
+        Left err -> do
+            runStdoutLoggingT $ logErrorS err
+            exitWith (ExitFailure 1)
+        Right _ -> exitWith ExitSuccess

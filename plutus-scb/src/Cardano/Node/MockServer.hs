@@ -40,7 +40,6 @@ import qualified Language.Plutus.Contract.Trace as Trace
 
 import           Ledger                         (Slot, Tx)
 import qualified Ledger
-import qualified Ledger.Blockchain              as Blockchain
 
 import           Cardano.Node.RandomTx
 import           Cardano.Node.SimpleLog
@@ -86,7 +85,7 @@ healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
-getCurrentSlot = Eff.gets (Blockchain.lastSlot . view EM.chainNewestFirst)
+getCurrentSlot = Eff.gets (view EM.currentSlot)
 
 addBlock :: (Member SimpleLog effs, Member ChainEffect effs) => Eff effs ()
 addBlock = do
@@ -145,7 +144,7 @@ slotCoordinator slotLength  stateVar =
         void $ processChainEffects stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
 
--- | Generates a random transaction once in each 'mscRandomTxInterval' of the 
+-- | Generates a random transaction once in each 'mscRandomTxInterval' of the
 --   config
 transactionGenerator ::
     ( MonadIO m
@@ -159,7 +158,7 @@ transactionGenerator itvl stateVar =
         void $ processChainEffects stateVar (genRandomTx >>= addTx)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
 
--- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory 
+-- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
     ( MonadIO m

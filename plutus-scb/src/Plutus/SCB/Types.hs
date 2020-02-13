@@ -15,6 +15,8 @@ import           Data.UUID                          (UUID)
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import           Options.Applicative.Help.Pretty    (Pretty, indent, pretty, string, text, vsep, (<+>))
+import           Servant.Client                     (ServantError)
+import           Wallet.API                         (WalletAPIError)
 
 newtype Contract =
     Contract
@@ -46,7 +48,11 @@ data SCBError
     | ContractNotFound FilePath
     | ActiveContractStateNotFound UUID
     | ContractError (ResumableError Text)
+    | WalletClientError ServantError
+    | NodeClientError ServantError
+    | WalletError WalletAPIError
     | ContractCommandError Int Text
+    | OtherError Text
     deriving (Show, Eq)
 
 data PartiallyDecodedResponse =
