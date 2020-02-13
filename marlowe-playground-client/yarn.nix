@@ -4618,11 +4618,11 @@
       };
     }
     {
-      name = "purs_loader___purs_loader_3.6.0.tgz";
+      name = "purs_loader___purs_loader_3.7.1.tgz";
       path = fetchurl {
-        name = "purs_loader___purs_loader_3.6.0.tgz";
-        url  = "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.6.0.tgz";
-        sha1 = "01e9361b6f4d660323631dca39392a6b3fcc7fdd";
+        name = "purs_loader___purs_loader_3.7.1.tgz";
+        url  = "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.7.1.tgz";
+        sha1 = "190ae0362f03648bd0200fda436eeb0aeacb2616";
       };
     }
     {

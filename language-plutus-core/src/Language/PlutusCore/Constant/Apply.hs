@@ -21,20 +21,21 @@ module Language.PlutusCore.Constant.Apply
     , runApplyBuiltinName
     ) where
 
-import           Crypto
-
-import           Language.PlutusCore.Constant.Dynamic.Instances   ()
+import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                             as BSL
-import qualified Data.ByteString.Lazy.Hash                        as Hash
+import           Crypto
+import qualified Data.ByteString.Lazy                               as BSL
+import qualified Data.ByteString.Lazy.Hash                          as Hash
 import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
@@ -65,99 +66,123 @@ integerToInt64 = fromIntegral
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: forall e m as uni r.
-       (MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni)
-    => TypeScheme uni as r
+       ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => StagedBuiltinName
+    -> TypeScheme uni as r
     -> FoldArgs as r
-    -> [Value TyName Name uni ()]
-    -> EvaluateConstApp uni m ()
-applyTypeSchemed = go where
+    -> FoldArgs as ExBudget
+    -> [Value TyName Name uni ExMemory]
+    -> EvaluateConstApp uni m ExMemory
+applyTypeSchemed name = go where
     go
         :: forall as'.
            TypeScheme uni as' r
         -> FoldArgs as' r
-        -> [Value TyName Name uni ()]
-        -> EvaluateConstApp uni m ()
-    go (TypeSchemeResult _)        y args =
+        -> FoldArgs as' ExBudget
+        -> [Value TyName Name uni ExMemory]
+        -> EvaluateConstApp uni m ExMemory
+    go (TypeSchemeResult _)        y _ args =
+        -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
-            [] -> pure . ConstAppSuccess $ makeKnown y    -- Computed the result.
+            -- TODO is `withMemory` a good idea here?
+            [] -> pure . ConstAppSuccess $ withMemory $ makeKnown y    -- Computed the result.
             _  -> throwingWithCause _ConstAppError        -- Too many arguments.
-                    (ExcessArgumentsConstAppError args)
+                    (ExcessArgumentsConstAppError $ void <$> args)
                     Nothing
-    go (TypeSchemeAllType _ schK)  f args =
-        go (schK Proxy) f args
-    go (TypeSchemeArrow _ schB)    f args = case args of
+    go (TypeSchemeAllType _ schK)  f exF args =
+        go (schK Proxy) f exF args
+    go (TypeSchemeArrow _ schB)    f exF args = case args of
         []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            x <- readKnownM arg
+            x <- readKnownM $ void arg
             -- Apply the function to the coerced argument and proceed recursively.
-            go schB (f x) args'
+            case schB of
+                (TypeSchemeResult _) -> do
+                    let
+                        budget :: ExBudget
+                        budget = (exF x)
+                    lift $ spendBudget (BBuiltin name) arg budget
+                    go schB (f x) budget args'
+                _ -> go schB (f x) (exF x) args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
-    :: (MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni)
+    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => TypedBuiltinName uni as r
     -> FoldArgs as r
-    -> [Value TyName Name uni ()]
-    -> EvaluateConstApp uni m ()
-applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
+    -> FoldArgs as ExBudget
+    -> [Value TyName Name uni ExMemory]
+    -> EvaluateConstApp uni m ExMemory
+applyTypedBuiltinName (TypedBuiltinName name schema) =
+    applyTypeSchemed (StaticStagedBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
+-- TODO all of these cost functions
 applyBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , GShow uni, GEq uni, DefaultUni <: uni
        )
-    => BuiltinName -> [Value TyName Name uni ()] -> EvaluateConstApp uni m ()
+    => BuiltinName -> [Value TyName Name uni ExMemory] -> EvaluateConstApp uni m ExMemory
 applyBuiltinName AddInteger           =
-    applyTypedBuiltinName typedAddInteger           (+)
+    applyTypedBuiltinName typedAddInteger           (+) (\_ _ -> ExBudget 1 1)
 applyBuiltinName SubtractInteger      =
-    applyTypedBuiltinName typedSubtractInteger      (-)
+    applyTypedBuiltinName typedSubtractInteger      (-) (\_ _ -> ExBudget 1 1)
 applyBuiltinName MultiplyInteger      =
-    applyTypedBuiltinName typedMultiplyInteger      (*)
+    applyTypedBuiltinName typedMultiplyInteger      (*) (\_ _ -> ExBudget 1 1)
 applyBuiltinName DivideInteger        =
-    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
+    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div) (\_ _ -> ExBudget 1 1)
 applyBuiltinName QuotientInteger      =
-    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
+    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot) (\_ _ -> ExBudget 1 1)
 applyBuiltinName RemainderInteger     =
-    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
+    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem) (\_ _ -> ExBudget 1 1)
 applyBuiltinName ModInteger           =
-    applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
+    applyTypedBuiltinName typedModInteger           (nonZeroArg mod) (\_ _ -> ExBudget 1 1)
 applyBuiltinName LessThanInteger      =
-    applyTypedBuiltinName typedLessThanInteger      (<)
+    applyTypedBuiltinName typedLessThanInteger      (<) (\_ _ -> ExBudget 1 1)
 applyBuiltinName LessThanEqInteger    =
-    applyTypedBuiltinName typedLessThanEqInteger    (<=)
+    applyTypedBuiltinName typedLessThanEqInteger    (<=) (\_ _ -> ExBudget 1 1)
 applyBuiltinName GreaterThanInteger   =
-    applyTypedBuiltinName typedGreaterThanInteger   (>)
+    applyTypedBuiltinName typedGreaterThanInteger   (>) (\_ _ -> ExBudget 1 1)
 applyBuiltinName GreaterThanEqInteger =
-    applyTypedBuiltinName typedGreaterThanEqInteger (>=)
+    applyTypedBuiltinName typedGreaterThanEqInteger (>=) (\_ _ -> ExBudget 1 1)
 applyBuiltinName EqInteger            =
-    applyTypedBuiltinName typedEqInteger            (==)
+    applyTypedBuiltinName typedEqInteger            (==) (\_ _ -> ExBudget 1 1)
 applyBuiltinName Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (coerce BSL.append)
+    applyTypedBuiltinName typedConcatenate          (coerce BSL.append) (\_ _ -> ExBudget 1 1)
 applyBuiltinName TakeByteString       =
-    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64)
+    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (\_ _ -> ExBudget 1 1)
 applyBuiltinName DropByteString       =
-    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64)
+    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64) (\_ _ -> ExBudget 1 1)
 applyBuiltinName SHA2                 =
-    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2)
+    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2) (\_ -> ExBudget 1 1)
 applyBuiltinName SHA3                 =
-    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3)
+    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3) (\_ -> ExBudget 1 1)
 applyBuiltinName VerifySignature      =
-    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult)
+    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult) (\_ _ _ -> ExBudget 1 1)
 applyBuiltinName EqByteString         =
-    applyTypedBuiltinName typedEqByteString         (==)
+    applyTypedBuiltinName typedEqByteString         (==) (\_ _ -> ExBudget 1 1)
 applyBuiltinName LtByteString         =
-    applyTypedBuiltinName typedLtByteString         (<)
+    applyTypedBuiltinName typedLtByteString         (<) (\_ _ -> ExBudget 1 1)
 applyBuiltinName GtByteString         =
-    applyTypedBuiltinName typedGtByteString         (>)
+    applyTypedBuiltinName typedGtByteString         (>) (\_ _ -> ExBudget 1 1)
 
 -- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
 -- given evaluator.
 runApplyBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , GShow uni, GEq uni, DefaultUni <: uni
        )
-    => Evaluator Term uni m -> BuiltinName -> [Value TyName Name uni ()] -> m (ConstAppResult uni ())
+    => Evaluator Term uni m
+    -> BuiltinName
+    -> [Value TyName Name uni ExMemory]
+    -> m (ConstAppResult uni ExMemory)
 runApplyBuiltinName eval name = runEvaluateT eval . applyBuiltinName name

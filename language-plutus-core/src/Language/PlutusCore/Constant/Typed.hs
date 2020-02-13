@@ -38,6 +38,7 @@ module Language.PlutusCore.Constant.Typed
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -46,7 +47,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                                         (Map)
+import           Data.Map                                           (Map)
 import           Data.Proxy
 import           Data.String
 import           GHC.TypeLits
@@ -111,7 +112,7 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning uni =
-    forall as r. DynamicBuiltinNameMeaning (TypeScheme uni as r) (FoldArgs as r)
+    forall as r. DynamicBuiltinNameMeaning (TypeScheme uni as r) (FoldArgs as r) (FoldArgs as ExBudget)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition uni =
@@ -138,6 +139,9 @@ newtype EvaluateT uni m a = EvaluateT
         , MonadReader (Evaluator Term uni m)
         , MonadError e
         )
+
+instance MonadTrans (EvaluateT uni) where
+    lift m = EvaluateT $ lift m
 
 -- | Run an 'EvaluateT' computation using the given 'Evaluator'.
 runEvaluateT :: Evaluator Term uni m -> EvaluateT uni m a -> m a

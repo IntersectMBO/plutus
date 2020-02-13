@@ -20,7 +20,9 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 , withMemory
 ) where
 
-import           Language.PlutusCore
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Universe
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict

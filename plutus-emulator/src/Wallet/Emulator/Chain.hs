@@ -22,10 +22,10 @@ import qualified Control.Monad.State        as S
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.List                  (partition)
 import           Data.Maybe                 (isNothing)
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Block, Blockchain, Slot (..), Tx (..), TxId, lastSlot, txId)
+import           Ledger                     (Block, Blockchain, Slot (..), Tx (..), TxId, txId)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Interval            as Interval
 
@@ -51,11 +51,12 @@ type TxPool = [Tx]
 data ChainState = ChainState {
     _chainNewestFirst :: Blockchain, -- ^ The current chain, with the newest transactions first in the list.
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
-    _index            :: Index.UtxoIndex -- ^ The UTxO index, used for validation.
+    _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
+    _currentSlot      :: Slot -- ^ The current slot number
 } deriving (Show)
 
 emptyChainState :: ChainState
-emptyChainState = ChainState [] [] mempty
+emptyChainState = ChainState [] [] mempty 0
 
 makeLenses ''ChainState
 
@@ -76,8 +77,7 @@ handleChain = interpret $ \case
     ProcessBlock -> do
         st <- get
         let pool  = st ^. txPool
-            chain = st ^. chainNewestFirst
-            slot  = lastSlot chain
+            slot  = st ^. currentSlot
             idx   = st ^. index
             (ValidatedBlock block events rest, idx') =
                 validateBlock slot idx pool
@@ -85,6 +85,7 @@ handleChain = interpret $ \case
         let st' = st & txPool .~ rest
                    & chainNewestFirst %~ (block :)
                    & index .~ idx'
+                   & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
         put st'
         tell events
 

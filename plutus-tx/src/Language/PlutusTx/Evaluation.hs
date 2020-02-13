@@ -52,7 +52,7 @@ evaluateCekTrace p =
     let
         (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do
             let logName = dynamicTraceName
-                logDefinition = dynamicCallAssign logName emit
+                logDefinition = dynamicCallAssign logName emit (\_ -> ExBudget 1 1)
                 env = insertDynamicBuiltinNameDefinition logDefinition
                                                          stringBuiltins
             evaluate $ runCekCounting env $ toTerm p

@@ -27,8 +27,8 @@ import Marlowe.Semantics (Contract)
 import Test.QuickCheck (class Testable, Result(..), (===))
 import Test.Unit (Test, TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import Text.Parsing.Parser (runParser)
-import Text.Parsing.Parser.Basic (parens)
+import Text.Parsing.StringParser (runParser)
+import Text.Parsing.StringParser.Basic (parens)
 
 all :: TestSuite
 all =
@@ -72,7 +72,7 @@ runContract contract = do
     eCode = workspaceToCode state.blocklyState state.generator
   pure
     $ case eCode of
-        Right code -> lmap show $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
+        Right code -> lmap show $ runParser (parens Parser.contractValue <|> Parser.contractValue) code
         Left err -> Left err
 
 buildBlocks :: forall r. BlocklyState -> Contract -> ST r Unit

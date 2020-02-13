@@ -5,7 +5,6 @@ module Ledger.Blockchain (
     Block,
     Blockchain,
     ValidationData(..),
-    lastSlot,
     transaction,
     out,
     value,
@@ -26,7 +25,6 @@ import           Data.Maybe     (listToMaybe)
 
 import           Ledger.Crypto
 import           Ledger.Scripts
-import           Ledger.Slot    (Slot (..))
 import           Ledger.Tx
 import           Ledger.TxId
 import           Ledger.Value   (Value)
@@ -36,12 +34,6 @@ import           Ledger.Value   (Value)
 type Block = [Tx]
 -- | A blockchain, which is just a list of blocks, starting with the newest.
 type Blockchain = [Block]
-
--- | The slot number of the last slot of a blockchain. Assumes that each slot
---   has precisely one block. This is true in the
---   emulator but not necessarily on the real chain.
-lastSlot :: Blockchain -> Slot
-lastSlot = Slot . fromIntegral . length
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx

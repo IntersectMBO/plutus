@@ -21,10 +21,11 @@ module Language.PlutusCore.Constant.Dynamic.OnChain
 
 import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
+import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
@@ -32,7 +33,7 @@ import           Language.PlutusCore.Universe
 import           Control.Exception
 import           Data.Coerce
 import           Data.Proxy
-import qualified Data.Text                                      as Text
+import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
 {- Note [Interpretation of names]
@@ -106,7 +107,7 @@ handleDynamicEmitter
     => OnChainHandler name f uni r (forall a. KnownType uni a => IO ([a], r))
 handleDynamicEmitter eval env term = withEmit $ \emit -> do
     let emitName = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
-        emitDef  = dynamicCallAssign emitName emit
+        emitDef  = dynamicCallAssign emitName emit (\_ -> ExBudget 1 1) -- TODO
         env' = insertDynamicBuiltinNameDefinition emitDef env
     evaluate . eval env' $ mangleOnChain term
 

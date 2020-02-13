@@ -25,6 +25,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Pretty
 
 import           Control.Exception
@@ -57,7 +58,7 @@ trivialProgram = Program () (defaultVersion ())
 
 runPlc
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
        )
     => [a] -> ExceptT SomeException IO (EvaluationResultDef uni)
 runPlc values = do
@@ -87,14 +88,14 @@ goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
 
 goldenEval
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlc values)
 
 goldenEvalCatch
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runPlc values

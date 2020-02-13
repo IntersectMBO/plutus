@@ -34,7 +34,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ExTally(..)
     , ExBudget(..)
     , ExRestrictingBudget(..)
-    , CekBudgetMode(..)
+    , ExBudgetMode(..)
     , Plain
     , WithMemory
     , extractEvaluationResult
@@ -106,7 +106,7 @@ type VarEnv uni = UniqueMap TermUnique (Closure uni)
 data CekEnv uni = CekEnv
     { _cekEnvMeans      :: DynamicBuiltinNameMeanings uni
     , _cekEnvVarEnv     :: VarEnv uni
-    , _cekEnvBudgetMode :: CekBudgetMode
+    , _cekEnvBudgetMode :: ExBudgetMode
     }
 
 makeLenses ''CekEnv
@@ -115,19 +115,17 @@ makeLenses ''CekEnv
 -- get it back in case of error.
 type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
 
-spendBudget
-    :: ExBudgetCategory -> WithMemory Term uni -> ExBudget
-    -> CekM uni ()
-spendBudget key term budget = do
-    modifying exBudgetStateTally
-              (<> (ExTally (singleton key budget)))
-    newBudget <- exBudgetStateBudget <%= (<> budget)
-    mode <- view cekEnvBudgetMode
-    case mode of
-        Counting -> pure ()
-        Restricting resb ->
-            when (exceedsBudget resb newBudget) $
-                throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
+instance SpendBudget (CekM uni) uni where
+    spendBudget key term budget = do
+        modifying exBudgetStateTally
+                (<> (ExTally (singleton key budget)))
+        newBudget <- exBudgetStateBudget <%= (<> budget)
+        mode <- view cekEnvBudgetMode
+        case mode of
+            Counting -> pure ()
+            Restricting resb ->
+                when (exceedsBudget resb newBudget) $
+                    throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
 
 data Frame uni
     = FrameApplyFun (VarEnv uni) (WithMemory Value uni)                          -- ^ @[V _]@
@@ -273,7 +271,7 @@ applyEvaluate funVarEnv _ con fun arg =
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
-                constAppResult <- applyStagedBuiltinName arg headName spine
+                constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
@@ -288,29 +286,27 @@ computeInCekM = runEvaluateT eval where
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => WithMemory Value uni
-    -> StagedBuiltinName
+    => StagedBuiltinName
     -> [WithMemory Value uni]
     -> CekM uni (ConstAppResult uni ExMemory)
-applyStagedBuiltinName arg (DynamicStagedBuiltinName name) args = do
-    spendBudget BDynamicBuiltin arg (ExBudget 1 1)
-    DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
-    fmap (fmap (const 1)) $ computeInCekM $ applyTypeSchemed
+applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
+    DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
+    computeInCekM $ applyTypeSchemed
+        n
         sch
         x
-        (fmap void args)
-applyStagedBuiltinName arg (StaticStagedBuiltinName name) args = do
-    let (cpu, memory) = estimateStaticStagedCost name args
-    spendBudget BStaticBuiltin arg (ExBudget cpu memory)
-    fmap (fmap (const memory)) $ computeInCekM $ applyBuiltinName
+        exX
+        args
+applyStagedBuiltinName (StaticStagedBuiltinName name) args =
+    computeInCekM $ applyBuiltinName
         name
-        (fmap void args)
+        args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
-    -> CekBudgetMode
+    -> ExBudgetMode
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCek means mode term =

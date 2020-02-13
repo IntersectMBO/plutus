@@ -16,22 +16,23 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicTraceDefinitionMock
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
+import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Data.Proxy
-import           Debug.Trace                                    (trace)
+import           Debug.Trace                                        (trace)
 
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
 dynamicCharToStringMeaning
     :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Char)
-    => DynamicBuiltinNameMeaning uni
-dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure where
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
+dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 1 1) where
     sch =
         Proxy @Char `TypeSchemeArrow`
         TypeSchemeResult (Proxy @String)
@@ -50,8 +51,8 @@ dynamicAppendName = DynamicBuiltinName "append"
 
 dynamicAppendMeaning
     :: (GShow uni, GEq uni, uni `Includes` String)
-    => DynamicBuiltinNameMeaning uni
-dynamicAppendMeaning = DynamicBuiltinNameMeaning sch (++) where
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
+dynamicAppendMeaning = DynamicBuiltinNameMeaning sch (++) (\_ _ -> ExBudget 1 1) where
     sch =
         Proxy @String `TypeSchemeArrow`
         Proxy @String `TypeSchemeArrow`
@@ -71,8 +72,8 @@ dynamicTraceName = DynamicBuiltinName "trace"
 
 dynamicTraceMeaningMock
     :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
-    => DynamicBuiltinNameMeaning uni
-dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) where
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
+dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) (\_ -> ExBudget 1 1) where
     sch =
         Proxy @String `TypeSchemeArrow`
         TypeSchemeResult (Proxy @())
