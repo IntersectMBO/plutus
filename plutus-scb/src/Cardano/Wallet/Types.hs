@@ -4,9 +4,10 @@
 
 module Cardano.Wallet.Types where
 
-import           Data.Aeson   (FromJSON, ToJSON)
-import           Data.Text    (Text)
-import           GHC.Generics (Generic)
+import           Data.Aeson     (FromJSON, ToJSON)
+import           Data.Text      (Text)
+import           GHC.Generics   (Generic)
+import           Servant.Client (BaseUrl)
 
 type WalletId = Integer
 
@@ -37,6 +38,13 @@ data CoinSelectionResponse =
     CoinSelectionResponse
         { inputs  :: [Coin]
         , outputs :: [Coin]
+        }
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+newtype Config =
+    Config
+        { baseUrl :: BaseUrl
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

@@ -94,6 +94,7 @@ library
         plutus-tx -any,
         plutus-ledger -any,
         serialise -any,
+        transformers -any,
         template-haskell -any,
         text -any,
         recursion-schemes -any,

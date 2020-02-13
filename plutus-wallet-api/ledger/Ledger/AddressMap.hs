@@ -15,6 +15,7 @@ module Ledger.AddressMap(
     filterRefs,
     fundsAt,
     values,
+    traverseWithKey,
     singleton,
     fromTxOutputs,
     knownAddresses,
@@ -115,6 +116,14 @@ addAddresses = flip (foldr addAddress)
 -- | The total value of unspent outputs (which the map knows about) at an address.
 values :: AddressMap -> Map Address Value
 values = Map.map (fold . Map.map (txOutValue . txOutTxOut)) . getAddressMap
+
+-- | Walk through the address map, applying an effectful function to each entry.
+traverseWithKey ::
+     Applicative f
+  => (Address -> Map TxOutRef TxOutTx -> f (Map TxOutRef TxOutTx))
+  -> AddressMap
+  -> f AddressMap
+traverseWithKey f (AddressMap m) = AddressMap <$> Map.traverseWithKey f m
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap

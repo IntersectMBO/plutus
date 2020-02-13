@@ -26,6 +26,7 @@ We need some language extensions and imports:
 ----
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ScopedTypeVariables #-} -- <.>
