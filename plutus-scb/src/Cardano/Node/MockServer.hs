@@ -16,7 +16,7 @@ module Cardano.Node.MockServer(
 import           Cardano.Node.API               (API)
 import           Control.Concurrent             (forkIO, threadDelay)
 import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens                   (view)
+import           Control.Lens                   (view, over)
 import           Control.Monad                  (forever, void)
 import           Control.Monad.Freer            (Eff, Member)
 import           Control.Monad.Freer.State      (State)
@@ -53,12 +53,23 @@ import           Wallet.Emulator.Chain          (ChainEffect, ChainEvent, ChainS
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
+data BlockReaperConfig =
+    BlockReaperConfig
+        { brcInterval :: Second
+        , brcBlocksToKeep :: Int
+        }
+
 data MockServerConfig =
     MockServerConfig
         { mscPort                :: Int
         , mscSlotLength          :: Second
+        -- ^ Duration of one slot
         , mscRandomTxInterval    :: Maybe Second
+        -- ^ Time between two randomly generated transactions
         , mscInitialDistribution :: InitialDistribution
+        -- ^ Initial distribution of funds to wallets
+        , mscBlockReaper         :: Maybe BlockReaperConfig
+        -- ^ When to discard old blocks
         }
 
 defaultConfig :: MockServerConfig
@@ -68,6 +79,7 @@ defaultConfig =
         , mscSlotLength = 5
         , mscRandomTxInterval = Just 20
         , mscInitialDistribution = Trace.defaultDist
+        , mscBlockReaper = Just BlockReaperConfig{brcInterval = 600, brcBlocksToKeep = 100 }
         }
 
 healthcheck :: Monad m => m NoContent
@@ -125,27 +137,41 @@ slotCoordinator ::
     ( MonadIO m
     , MonadLogger m
     )
-    => MockServerConfig
+    => Second
     -> MVar ChainState
     -> m ()
-slotCoordinator MockServerConfig{mscSlotLength} stateVar =
+slotCoordinator slotLength  stateVar =
     forever $ do
         void $ processChainEffects stateVar addBlock
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds mscSlotLength
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
 
--- | Generates a random transaction per block
+-- | Generates a random transaction once in each 'mscRandomTxInterval' of the 
+--   config
 transactionGenerator ::
     ( MonadIO m
     , MonadLogger m
     )
-    => MockServerConfig
+    => Second
     -> MVar ChainState
     -> m ()
-transactionGenerator MockServerConfig{mscRandomTxInterval=Nothing} _          = pure ()
-transactionGenerator MockServerConfig{mscRandomTxInterval=Just itvl} stateVar =
+transactionGenerator itvl stateVar =
     forever $ do
         void $ processChainEffects stateVar (genRandomTx >>= addTx)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
+
+-- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory 
+--   leak)
+blockReaper ::
+    ( MonadIO m
+    , MonadLogger m
+    )
+    => BlockReaperConfig
+    -> MVar ChainState
+    -> m ()
+blockReaper BlockReaperConfig{brcInterval, brcBlocksToKeep} stateVar =
+    forever $ do
+        void $ processChainEffects stateVar (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
 
 app :: MVar ChainState -> Application
 app stateVar =
@@ -160,12 +186,20 @@ app stateVar =
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
-    let MockServerConfig{mscPort, mscInitialDistribution} = config
+    let MockServerConfig{mscPort, mscInitialDistribution, mscRandomTxInterval, mscBlockReaper, mscSlotLength} = config
     stateVar <- liftIO $ newMVar (initialChainState mscInitialDistribution)
     logInfoN "Starting slot coordination thread."
-    void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator defaultConfig stateVar
-    logInfoN "Starting transaction generator thread."
-    void $ liftIO $ forkIO $ runStdoutLoggingT $ transactionGenerator defaultConfig stateVar
+    void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength stateVar
+    case mscRandomTxInterval of
+        Nothing -> logInfoN "No random transactions will be generated."
+        Just i -> do
+            logInfoN "Starting transaction generator thread."
+            void $ liftIO $ forkIO $ runStdoutLoggingT $ transactionGenerator i stateVar
+    case mscBlockReaper of
+        Nothing -> logInfoN "Old blocks will be kept in memory forever"
+        Just cfg -> do
+            logInfoN "Starting block reaper thread."
+            void $ liftIO $ forkIO $ runStdoutLoggingT $ blockReaper cfg stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ Warp.run mscPort $ app stateVar
 
