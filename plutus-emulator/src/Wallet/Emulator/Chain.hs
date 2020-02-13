@@ -22,7 +22,7 @@ import qualified Control.Monad.State        as S
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.List                  (partition)
 import           Data.Maybe                 (isNothing)
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           Data.Traversable           (for)
 import           GHC.Generics               (Generic)
 import           Ledger                     (Block, Blockchain, Slot (..), Tx (..), TxId, lastSlot, txId)

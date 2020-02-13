@@ -47,7 +47,9 @@ library
     exposed-modules:
         Cardano.Node.API
         Cardano.Node.Client
+        Cardano.Node.RandomTx
         Cardano.Node.MockServer
+        Cardano.Node.SimpleLog
         Cardano.Node.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
@@ -116,7 +118,10 @@ library
         vector -any,
         warp -any,
         yaml -any,
-        freer-simple -any
+        freer-simple -any,
+        mwc-random -any,
+        primitive -any,
+        hedgehog -any
 
 executable plutus-scb
     main-is: Main.hs

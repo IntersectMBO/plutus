@@ -12,10 +12,11 @@ import           Servant.Client      (ClientM, client, mkClientEnv, parseBaseUrl
 healthcheck :: ClientM NoContent
 getCurrentSlot :: ClientM Slot
 addTx :: Tx -> ClientM NoContent
-(healthcheck, addTx, getCurrentSlot) =
-    (healthcheck_, addTx_, getCurrentSlot_)
+randomTx :: ClientM Tx
+(healthcheck, addTx, getCurrentSlot, randomTx) =
+    (healthcheck_, addTx_, getCurrentSlot_, randomTx)
   where
-    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ = client (Proxy @API)
+    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> randomTx = client (Proxy @API)
     
 main :: IO ()
 main = do

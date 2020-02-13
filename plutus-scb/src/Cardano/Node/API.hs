@@ -12,3 +12,4 @@ type API
      = "healthcheck" :> Get '[ JSON] NoContent
        :<|> "mempool" :> ReqBody '[ JSON] Tx :> Post '[ JSON] NoContent
        :<|> "slot" :> Get '[ JSON] Slot
+       :<|> "random-tx" :> Get '[ JSON] Tx

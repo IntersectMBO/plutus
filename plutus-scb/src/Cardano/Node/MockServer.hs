@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -20,7 +19,6 @@ import           Control.Concurrent.MVar    (MVar, newMVar, putMVar, takeMVar)
 import           Control.Lens               (view)
 import           Control.Monad              (forever, void)
 import           Control.Monad.Freer        (Eff, Member)
-import qualified Control.Monad.Freer        as Eff
 import           Control.Monad.Freer.State  (State)
 import qualified Control.Monad.Freer.State  as Eff
 import           Control.Monad.Freer.Writer (Writer)
@@ -29,7 +27,6 @@ import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Logger       (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable              (traverse_)
 import           Data.Proxy                 (Proxy (Proxy))
-import           Data.Text                  (Text)
 import           Data.Text.Prettyprint.Doc  (Pretty (pretty))
 import           Data.Time.Units            (Second, toMicroseconds)
 import           Ledger                     (Slot, Tx)
@@ -43,25 +40,14 @@ import qualified Wallet.Emulator            as EM
 import           Wallet.Emulator.Chain      (ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.Chain      as Chain
 
-data SimpleLog r where
-    SimpleLogInfo :: Text -> SimpleLog ()
-    SimpleLogDebug :: Text -> SimpleLog ()
-
-simpleLogInfo :: Member SimpleLog effs => Text -> Eff effs ()
-simpleLogInfo = Eff.send . SimpleLogInfo
-
-simpleLogDebug :: Member SimpleLog effs => Text -> Eff effs ()
-simpleLogDebug = Eff.send . SimpleLogDebug
-
-runSimpleLog :: (MonadLogger m, MonadIO m) => Eff '[SimpleLog, m] a -> m a
-runSimpleLog = Eff.runM . Eff.interpretM (\case
-        SimpleLogInfo t -> runStdoutLoggingT $ logInfoN t
-        SimpleLogDebug t -> runStdoutLoggingT $ logDebugN t)
+import Cardano.Node.RandomTx 
+import Cardano.Node.SimpleLog
 
 data MockServerConfig =
     MockServerConfig
         { mscPort       :: Int
         , mscSlotLength :: Second
+        , mscRandomTxInterval :: Maybe Second
         }
 
 defaultConfig :: MockServerConfig
@@ -69,6 +55,7 @@ defaultConfig =
     MockServerConfig
         { mscPort = 8082
         , mscSlotLength = 5
+        , mscRandomTxInterval = Just 8
         }
 
 healthcheck :: Monad m => m NoContent
@@ -89,7 +76,7 @@ addTx tx = do
     Chain.queueTx tx
     pure NoContent
 
-type NodeServerEffects m = [ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
+type NodeServerEffects m = [GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
 
 ------------------------------------------------------------
 
@@ -100,7 +87,11 @@ runChainEffects ::
         -> m ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
-    ((a, newState), events) <- runSimpleLog $ Eff.runWriter $ Eff.runState oldState $ Chain.handleChain eff
+    ((a, newState), events) <- runSimpleLog 
+        $ Eff.runWriter
+        $ Eff.runState oldState
+        $ Chain.handleChain
+        $ runGenRandomTx eff
     liftIO $ putMVar stateVar newState
     pure (events, a)
 
@@ -113,7 +104,7 @@ processChainEffects stateVar eff = do
     (events, result) <- runChainEffects stateVar eff
     -- TODO: We need to process the events instead of just printing them out
     -- Process = add them to some internal queue that the clients can consume
-    traverse_ (logDebugN . tshow) events
+    traverse_ (logDebugN . tshow . pretty) events
     pure result
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
@@ -130,6 +121,20 @@ slotCoordinator MockServerConfig{mscSlotLength} stateVar =
         void $ processChainEffects stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds mscSlotLength
 
+-- | Generates a random transaction per block
+transactionGenerator ::
+    ( MonadIO m
+    , MonadLogger m
+    )
+    => MockServerConfig
+    -> MVar ChainState
+    -> m ()
+transactionGenerator MockServerConfig{mscRandomTxInterval=Nothing} _          = pure ()
+transactionGenerator MockServerConfig{mscRandomTxInterval=Just itvl} stateVar =
+    forever $ do
+        void $ processChainEffects stateVar (genRandomTx >>= addTx)
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
+
 app :: MVar ChainState -> Application
 app stateVar =
     serve (Proxy @API) $
@@ -138,7 +143,8 @@ app stateVar =
         (runStdoutLoggingT . processChainEffects stateVar)
         (healthcheck
         :<|> addTx
-        :<|> getCurrentSlot)
+        :<|> getCurrentSlot
+        :<|> genRandomTx)
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
@@ -146,5 +152,7 @@ main config = do
     stateVar <- liftIO $ newMVar Chain.emptyChainState
     logInfoN "Starting slot coordination thread."
     void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator defaultConfig stateVar
+    logInfoN "Starting transaction generator thread."
+    void $ liftIO $ forkIO $ runStdoutLoggingT $ transactionGenerator defaultConfig stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ Warp.run mscPort $ app stateVar

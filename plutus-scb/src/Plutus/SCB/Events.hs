@@ -13,6 +13,7 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Plutus.SCB.Events.Contract as Events.Contract
+import           Plutus.SCB.Events.Node     as Events.Node
 import           Plutus.SCB.Events.Mock     as Events.Mock
 import           Plutus.SCB.Events.User     as Events.User
 
@@ -24,6 +25,6 @@ data ChainEvent
     | RecordResponse
           !(Events.Contract.ResponseEvent Events.Contract.ContractResponse)
     | UserEvent Events.User.UserEvent
-    | NodeEvent Text
+    | NodeEvent Events.Node.NodeEvent
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
