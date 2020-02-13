@@ -250,6 +250,7 @@ validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result whe
 -- | Split a value into max. n positive-valued parts such that the sum of the
 --   parts equals the original value.
 splitVal :: (MonadGen m, Integral n) => Int -> n -> m [n]
+splitVal _  0     = pure []
 splitVal mx init' = go 0 0 [] where
     go i c l =
         if i >= pred mx

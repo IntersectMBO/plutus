@@ -3,25 +3,21 @@
 module Cardano.Node.Client where
 
 import           Cardano.Node.API    (API)
-import           Data.Function       ((&))
 import           Data.Proxy          (Proxy (Proxy))
-import           Ledger              (Slot)
+import           Ledger              (Slot, Tx)
 import           Network.HTTP.Client (defaultManagerSettings, newManager)
-import           Servant             (NoContent)
+import           Servant             (NoContent, (:<|>)(..))
 import           Servant.Client      (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
-import           Servant.Extra       (left, right)
 
 healthcheck :: ClientM NoContent
 getCurrentSlot :: ClientM Slot
-addBlock :: ClientM Slot
-(healthcheck, getCurrentSlot, addBlock) =
-    (healthcheck_, getCurrentSlot_, addBlock_)
+addTx :: Tx -> ClientM NoContent
+randomTx :: ClientM Tx
+(healthcheck, addTx, getCurrentSlot, randomTx) =
+    (healthcheck_, addTx_, getCurrentSlot_, randomTx_)
   where
-    api = client (Proxy @API)
-    healthcheck_ = left api
-    getCurrentSlot_ = right api & left
-    addBlock_ = right api & right
-
+    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> randomTx_ = client (Proxy @API)
+    
 main :: IO ()
 main = do
     manager <- newManager defaultManagerSettings
