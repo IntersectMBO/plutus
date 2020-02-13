@@ -60,7 +60,7 @@ test_logInt = testCase "logInt" $ do
     let term
             = Apply () dynamicLog
             . Apply () dynamicIntegerToString
-            $ mkConstant @Integer @DefaultUni 1
+            $ mkConstant @Integer @DefaultUni () 1
 
     let eval1 = evaluateHandlersCek (handleDynamicIntegerToString . handleDynamicLog)
     let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntegerToString)
@@ -74,7 +74,7 @@ test_logInt = testCase "logInt" $ do
 test_logInts :: TestTree
 test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
-            let integer = mkTyBuiltin @Integer @DefaultUni
+            let integer = mkTyBuiltin @Integer @DefaultUni ()
             u <- freshName () "u"
             x <- freshName () "x"
 
@@ -87,8 +87,8 @@ test_logInts = testCase "logInts" $ do
                       $ Var () x
                     , unitval
                     , mkIterApp () Plc.enumFromTo
-                        [ mkConstant @Integer 1
-                        , mkConstant @Integer 10
+                        [ mkConstant @Integer () 1
+                        , mkConstant @Integer () 10
                         ]
                     ]
 

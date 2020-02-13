@@ -73,11 +73,11 @@ genOverapplication = do
 factorial :: uni `Includes` Integer => Term TyName Name uni ()
 factorial = runQuote $ do
     i <- freshName () "i"
-    let int = mkTyBuiltin @Integer
+    let int = mkTyBuiltin @Integer ()
     return
         . LamAbs () i int
         . mkIterApp () List.product
-        $ [ mkIterApp () List.enumFromTo [ mkConstant @Integer 1 , Var () i]]
+        $ [ mkIterApp () List.enumFromTo [ mkConstant @Integer () 1 , Var () i]]
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
@@ -98,25 +98,25 @@ naiveFib iv = runQuote $ do
     i   <- freshName () "i"
     u   <- freshName () "u"
     let
-      intS = mkTyBuiltin @Integer
+      intS = mkTyBuiltin @Integer ()
       fib = LamAbs () i0 intS
         $ mkIterApp () (mkIterInst () fix [intS, intS])
             [   LamAbs () rec (TyFun () intS intS)
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
                   [ mkIterApp () (builtinNameAsTerm LessThanEqInteger)
-                      [Var () i, mkConstant @Integer 1]
+                      [Var () i, mkConstant @Integer () 1]
                   , LamAbs () u unit $ Var () i
                   , LamAbs () u unit $ mkIterApp () (builtinNameAsTerm AddInteger)
                       [ Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, mkConstant @Integer 1]
+                          [Var () i, mkConstant @Integer () 1]
                       , Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, mkConstant @Integer 2]
+                          [Var () i, mkConstant @Integer () 2]
                       ]
                   ]
             , Var () i0
             ]
-    pure . Apply () fib $ mkConstant @Integer iv
+    pure . Apply () fib $ mkConstant @Integer () iv
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
@@ -124,7 +124,7 @@ genFactorial :: uni `Includes` Integer => TermGen uni Integer
 genFactorial = do
     let m = 10
     iv <- Gen.integral $ Range.linear 1 m
-    let term = Apply () factorial (mkConstant @Integer iv)
+    let term = Apply () factorial (mkConstant @Integer () iv)
     return . TermOf term $ Prelude.product [1..iv]
 
 -- | Generate a term that computes the ith Fibonacci number and return it
@@ -152,7 +152,7 @@ genNatRoundtrip = do
 -- | @sumNat@ as a PLC term.
 natSum :: uni `Includes` Integer => Term TyName Name uni ()
 natSum = runQuote $ do
-    let int = mkTyBuiltin @Integer
+    let int = mkTyBuiltin @Integer ()
         nat = _recursiveType natData
         add = Builtin () (BuiltinName () AddInteger)
     acc <- freshName () "acc"
@@ -165,7 +165,7 @@ natSum = runQuote $ do
             $ [ Var () acc
               , mkIterApp () natToInteger [ Var () n ]
               ]
-          , mkConstant @Integer 0
+          , mkConstant @Integer () 0
           ]
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
@@ -241,7 +241,7 @@ genDivideByZero
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ AsKnownType @_ @Integer
-    let term = mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer 0]
+    let term = mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer () 0]
     return $ TermOf term EvaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
@@ -255,8 +255,8 @@ genDivideByZeroDrop = do
     TermOf i iv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () Function.const [int, int])
-                [ mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer 0]
-                , mkConstant @Integer iv
+                [ mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer () 0]
+                , mkConstant @Integer () iv
                 ]
     return $ TermOf term EvaluationFailure
 

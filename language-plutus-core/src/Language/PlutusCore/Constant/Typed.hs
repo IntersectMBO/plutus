@@ -342,8 +342,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni () where
     makeKnown () = unitval
 
     readKnown eval term = do
-        let integer = mkTyBuiltin @Integer
-        i <- extractConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer 1
+        let integer = mkTyBuiltin @Integer ()
+        i <- extractConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer () 1
         if i == (1 :: Integer)
             then pure ()
             else throwingWithCause _UnliftingError "Not an integer-encoded ()" $ Just term

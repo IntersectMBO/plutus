@@ -54,7 +54,7 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            ten = mkConstant @Integer @DefaultUni 10
+            ten = mkConstant @Integer @DefaultUni () 10
             lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial ten
             rhs = typecheckEvaluateCek mempty $ Apply () factorial ten
         assertBool "type checks" $ isRight lhs

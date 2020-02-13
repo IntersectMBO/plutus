@@ -113,5 +113,5 @@ test_golden = testGroup "golden"
     , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
     , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
     , goldenVsEvaluated "polyError" $ polyError
-    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer)
+    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer ())
     ]

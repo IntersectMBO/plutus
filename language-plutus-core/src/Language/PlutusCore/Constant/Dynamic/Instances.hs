@@ -63,23 +63,23 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
     readKnown eval = fmap OpaqueTerm . eval mempty
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer where
-    toTypeAst _ = mkTyBuiltin @Integer
-    makeKnown = mkConstant
+    toTypeAst _ = mkTyBuiltin @Integer ()
+    makeKnown = mkConstant ()
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` ByteString16) => KnownType uni ByteString16 where
-    toTypeAst _ = mkTyBuiltin @ByteString16
-    makeKnown = mkConstant
+    toTypeAst _ = mkTyBuiltin @ByteString16 ()
+    makeKnown = mkConstant ()
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Char) => KnownType uni Char where
-    toTypeAst _ = mkTyBuiltin @Char
-    makeKnown = mkConstant
+    toTypeAst _ = mkTyBuiltin @Char ()
+    makeKnown = mkConstant ()
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
-    toTypeAst _ = mkTyBuiltin @String
-    makeKnown = mkConstant
+    toTypeAst _ = mkTyBuiltin @String ()
+    makeKnown = mkConstant ()
     readKnown = extractConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool where
@@ -88,8 +88,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool wher
     makeKnown b = if b then true else false
 
     readKnown eval b = do
-        let integer = mkTyBuiltin @Integer
-            integerToTerm = mkConstant @Integer
+        let integer = mkTyBuiltin @Integer ()
+            integerToTerm = mkConstant @Integer ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b integer) [integerToTerm 1, integerToTerm 0]
         i <- extractConstant eval term

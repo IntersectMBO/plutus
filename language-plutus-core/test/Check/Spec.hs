@@ -96,7 +96,7 @@ values :: TestTree
 values = runQuote $ do
     aN <- freshTyName () "a"
     let aV = TyVar () aN
-        val = mkConstant @Integer @DefaultUni 2
+        val = mkConstant @Integer @DefaultUni () 2
         nonVal = Error () aV
     pure $ testGroup "values" [
           testCase "wrapNonValue" $ VR.isTermValue (IWrap () aV aV nonVal) @?= False
@@ -110,14 +110,14 @@ values = runQuote $ do
         , testCase "app" $ VR.isTermValue (Apply () val val) @?= False
         , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
         , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
-        , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni 1) @?= True
+        , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni () 1) @?= True
         , testCase "builtin" $ VR.isTermValue (builtinNameAsTerm AddInteger) @?= False
       ]
 
 normalTypes :: TestTree
 normalTypes = runQuote $ do
     aN <- freshTyName () "a"
-    let integer = mkTyBuiltin @Integer @DefaultUni
+    let integer = mkTyBuiltin @Integer @DefaultUni ()
         aV = TyVar () aN
         neutral = integer
         normal = integer
@@ -147,7 +147,7 @@ normalTypesCheck :: TestTree
 normalTypesCheck = runQuote $ do
     aN <- freshTyName () "a"
     xN <- freshName () "x"
-    let integer = mkTyBuiltin @Integer
+    let integer = mkTyBuiltin @Integer ()
         aV = TyVar () aN
         xV = Var () xN
         normal = integer
@@ -168,7 +168,7 @@ normalTypesCheck = runQuote $ do
         , testCase "errorNormal" $ isRight (checkNormal (Error () normal)) @? "Normalization"
         , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
 
-        , testCase "constant" $ isRight (checkNormal (mkConstant @Integer 2)) @? "Normalization"
+        , testCase "constant" $ isRight (checkNormal (mkConstant @Integer () 2)) @? "Normalization"
         , testCase "builtin" $ isRight (checkNormal (builtinNameAsTerm AddInteger)) @? "Normalization"
       ]
         where

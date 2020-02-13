@@ -134,7 +134,7 @@ natToInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term 
 natToInteger = runQuote $ do
     let addInteger = builtin () $ BuiltinName () AddInteger
     return $
-        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer)
-          [ apply () addInteger (mkConstant @Integer 1)
-          , mkConstant @Integer 0
+        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
+          [ apply () addInteger (mkConstant @Integer () 1)
+          , mkConstant @Integer () 0
           ]
