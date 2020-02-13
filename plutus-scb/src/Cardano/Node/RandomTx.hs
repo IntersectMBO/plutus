@@ -4,7 +4,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 module Cardano.Node.RandomTx(
   -- $randomTx
@@ -24,9 +23,7 @@ import           Data.List.NonEmpty        (NonEmpty (..))
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe)
 import qualified Data.Set                  as Set
-import           Data.Text.Prettyprint.Doc (Pretty (pretty))
 import qualified Hedgehog.Gen              as Gen
-import           Plutus.SCB.Utils          (tshow)
 import           System.Random.MWC         as MWC
 
 import qualified Ledger.Ada                as Ada
@@ -65,7 +62,7 @@ runGenRandomTx = Eff.interpret (\case
     GenRandomTx -> do
         UtxoIndex utxo <- Eff.gets (view EM.index)
         simpleLogDebug "Generating a random transaction"
-        tx <- Eff.sendM $ liftIO $ do
+        Eff.sendM $ liftIO $ do
           gen <- MWC.createSystemRandom
           (sourcePrivKey, sourcePubKey) <- pickNEL gen keyPairs
           (_, targetPubKey) <- pickNEL gen keyPairs
@@ -100,8 +97,6 @@ runGenRandomTx = Eff.interpret (\case
                     & Tx.outputs .~ targetTxOuts
                     & Tx.addSignature sourcePrivKey
           return tx
-        simpleLogDebug $ tshow (pretty tx)
-        pure tx
     )
 
 keyPairs :: NonEmpty (PrivateKey, PubKey)

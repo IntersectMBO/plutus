@@ -13,41 +13,52 @@ module Cardano.Node.MockServer(
     , main
     ) where
 
-import           Cardano.Node.API           (API)
-import           Control.Concurrent         (forkIO, threadDelay)
-import           Control.Concurrent.MVar    (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens               (view)
-import           Control.Monad              (forever, void)
-import           Control.Monad.Freer        (Eff, Member)
-import           Control.Monad.Freer.State  (State)
-import qualified Control.Monad.Freer.State  as Eff
-import           Control.Monad.Freer.Writer (Writer)
-import qualified Control.Monad.Freer.Writer as Eff
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.Logger       (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Data.Foldable              (traverse_)
-import           Data.Proxy                 (Proxy (Proxy))
-import           Data.Text.Prettyprint.Doc  (Pretty (pretty))
-import           Data.Time.Units            (Second, toMicroseconds)
-import           Ledger                     (Slot, Tx)
-import qualified Ledger
-import qualified Ledger.Blockchain          as Blockchain
-import qualified Network.Wai.Handler.Warp   as Warp
-import           Plutus.SCB.Arbitrary       ()
-import           Plutus.SCB.Utils           (tshow)
-import           Servant                    ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer, serve)
-import qualified Wallet.Emulator            as EM
-import           Wallet.Emulator.Chain      (ChainEffect, ChainEvent, ChainState)
-import qualified Wallet.Emulator.Chain      as Chain
+import           Cardano.Node.API               (API)
+import           Control.Concurrent             (forkIO, threadDelay)
+import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
+import           Control.Lens                   (view)
+import           Control.Monad                  (forever, void)
+import           Control.Monad.Freer            (Eff, Member)
+import           Control.Monad.Freer.State      (State)
+import qualified Control.Monad.Freer.State      as Eff
+import           Control.Monad.Freer.Writer     (Writer)
+import qualified Control.Monad.Freer.Writer     as Eff
+import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import           Control.Monad.Logger           (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Data.Foldable                  (traverse_)
+import qualified Data.Map                       as Map
+import           Data.Proxy                     (Proxy (Proxy))
+import           Data.Text.Prettyprint.Doc      (Pretty (pretty))
+import           Data.Time.Units                (Second, toMicroseconds)
 
-import Cardano.Node.RandomTx 
-import Cardano.Node.SimpleLog
+import qualified Network.Wai.Handler.Warp       as Warp
+import           Servant                        ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer,
+                                                 serve)
+
+import           Language.Plutus.Contract.Trace (InitialDistribution)
+import qualified Language.Plutus.Contract.Trace as Trace
+
+import           Ledger                         (Slot, Tx)
+import qualified Ledger
+import qualified Ledger.Blockchain              as Blockchain
+
+import           Cardano.Node.RandomTx
+import           Cardano.Node.SimpleLog
+
+import           Plutus.SCB.Arbitrary           ()
+import           Plutus.SCB.Utils               (tshow)
+
+import qualified Wallet.Emulator                as EM
+import           Wallet.Emulator.Chain          (ChainEffect, ChainEvent, ChainState)
+import qualified Wallet.Emulator.Chain          as Chain
+import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
 data MockServerConfig =
     MockServerConfig
-        { mscPort       :: Int
-        , mscSlotLength :: Second
-        , mscRandomTxInterval :: Maybe Second
+        { mscPort                :: Int
+        , mscSlotLength          :: Second
+        , mscRandomTxInterval    :: Maybe Second
+        , mscInitialDistribution :: InitialDistribution
         }
 
 defaultConfig :: MockServerConfig
@@ -56,6 +67,7 @@ defaultConfig =
         { mscPort = 8082
         , mscSlotLength = 5
         , mscRandomTxInterval = Just 20
+        , mscInitialDistribution = Trace.defaultDist
         }
 
 healthcheck :: Monad m => m NoContent
@@ -87,7 +99,7 @@ runChainEffects ::
         -> m ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
-    ((a, newState), events) <- runSimpleLog 
+    ((a, newState), events) <- runSimpleLog
         $ Eff.runWriter
         $ Eff.runState oldState
         $ Chain.handleChain
@@ -148,11 +160,17 @@ app stateVar =
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
-    let MockServerConfig{mscPort} = config
-    stateVar <- liftIO $ newMVar Chain.emptyChainState
+    let MockServerConfig{mscPort, mscInitialDistribution} = config
+    stateVar <- liftIO $ newMVar (initialChainState mscInitialDistribution)
     logInfoN "Starting slot coordination thread."
     void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator defaultConfig stateVar
     logInfoN "Starting transaction generator thread."
     void $ liftIO $ forkIO $ runStdoutLoggingT $ transactionGenerator defaultConfig stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ Warp.run mscPort $ app stateVar
+
+initialChainState :: InitialDistribution -> ChainState
+initialChainState =
+    view EM.chainState
+    . MultiAgent.emulatorStateInitialDist
+    . Map.mapKeys EM.walletPubKey
