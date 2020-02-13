@@ -54926,13 +54926,17 @@ license = stdenv.lib.licenses.asl20;
 , eventful-memory
 , eventful-sql-common
 , eventful-sqlite
+, freer-simple
 , generic-arbitrary
+, hedgehog
 , http-client
 , iots-export
 , lens
 , monad-logger
 , mtl
+, mwc-random
 , optparse-applicative
+, persistent
 , persistent-sqlite
 , playground-common
 , plutus-contract
@@ -54942,6 +54946,7 @@ license = stdenv.lib.licenses.asl20;
 , plutus-use-cases
 , plutus-wallet-api
 , prettyprinter
+, primitive
 , process
 , QuickCheck
 , quickcheck-instances
@@ -54985,13 +54990,17 @@ eventful-core
 eventful-memory
 eventful-sql-common
 eventful-sqlite
+freer-simple
 generic-arbitrary
+hedgehog
 http-client
 iots-export
 lens
 monad-logger
 mtl
+mwc-random
 optparse-applicative
+persistent
 persistent-sqlite
 playground-common
 plutus-contract
@@ -55000,6 +55009,7 @@ plutus-tx
 plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
+primitive
 process
 QuickCheck
 quickcheck-instances
@@ -55024,30 +55034,38 @@ aeson
 base
 bytestring
 ekg
+freer-simple
 lens
 monad-logger
 mtl
 optparse-applicative
 playground-common
 plutus-use-cases
+plutus-wallet-api
 text
 unliftio-core
 uuid
 yaml
 ];
 testHaskellDepends = [
+aeson
+aeson-pretty
 base
 containers
 eventful-core
 eventful-memory
+freer-simple
 monad-logger
 mtl
+plutus-contract
+plutus-use-cases
 plutus-wallet-api
 QuickCheck
 quickcheck-instances
 tasty
 tasty-hunit
 tasty-quickcheck
+text
 transformers
 ];
 doHaddock = false;
