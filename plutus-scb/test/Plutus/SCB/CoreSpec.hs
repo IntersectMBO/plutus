@@ -10,6 +10,7 @@ module Plutus.SCB.CoreSpec
     ) where
 
 import           Control.Monad                                 (void)
+import           Control.Monad.Except                          (ExceptT, runExceptT)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Control.Monad.Logger                          (LoggingT, runStderrLoggingT)
 import           Control.Monad.State                           (StateT, evalStateT)
@@ -95,16 +96,21 @@ installContractTests =
               installed <- installedContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              activationResult <- activateContract "game"
-              liftIO $ assertRight activationResult
+              activateContract "game"
               --
               active <- activeContracts
               liftIO $ assertEqual "" 1 $ Set.size active
         ]
   where
     runScenario ::
-           MonadIO m => StateT (EventMap ChainEvent) (LoggingT m) a -> m a
-    runScenario action = runStderrLoggingT $ evalStateT action emptyEventMap
+           MonadIO m
+        => StateT (EventMap ChainEvent) (LoggingT (ExceptT SCBError m)) a
+        -> m a
+    runScenario action = do
+      result <- runExceptT $ runStderrLoggingT $ evalStateT action emptyEventMap
+      case result of
+        Left err -> error $ show err
+        Right value -> pure value
 
 runCommandQueryChain ::
        Aggregate aState event command
@@ -128,26 +134,20 @@ instance Monad m => MonadEventStore event (StateT (EventMap event) m) where
 instance Monad m => MonadContract (StateT state m) where
     invokeContract (InitContract "game") =
         pure $ do
-            value <- bar $ initialResponse Contracts.Game.game
-            foo $ JSON.eitherDecode (JSON.encode value)
+            value <- fromResumable $ initialResponse Contracts.Game.game
+            fromString $ JSON.eitherDecode (JSON.encode value)
     invokeContract (UpdateContract "game" payload) =
         pure $ do
-            request <- foo $ JSON.parseEither JSON.parseJSON payload
-            value <- bar $ runUpdate Contracts.Game.game request
-            foo $ JSON.eitherDecode (JSON.encode value)
+            request <- fromString $ JSON.parseEither JSON.parseJSON payload
+            value <- fromResumable $ runUpdate Contracts.Game.game request
+            fromString $ JSON.eitherDecode (JSON.encode value)
     invokeContract (InitContract contractPath) =
         pure $ Left $ ContractNotFound contractPath
     invokeContract (UpdateContract contractPath _) =
         pure $ Left $ ContractNotFound contractPath
 
-foo :: Either String a -> Either SCBError a
-foo = first (ContractCommandError 0 . Text.pack)
+fromString :: Either String a -> Either SCBError a
+fromString = first (ContractCommandError 0 . Text.pack)
 
-bar :: Either (ResumableError Text) a -> Either SCBError a
-bar = first (ContractCommandError 0 . Text.pack . show)
-
-assertRight :: (HasCallStack, Show e) => Either e a -> IO ()
-assertRight (Right _) = pure ()
-assertRight (Left value) =
-    void $
-    assertFailure $ "Expected (Right _), got: (Left " <> show value <> ")"
+fromResumable :: Either (ResumableError Text) a -> Either SCBError a
+fromResumable = first (ContractCommandError 0 . Text.pack . show)

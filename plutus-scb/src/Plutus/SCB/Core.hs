@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -5,10 +6,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Plutus.SCB.Core
-    ( migrate
-    , simulate
+    ( simulate
     , dbStats
     , dbConnect
     , installContract
@@ -19,7 +21,7 @@ module Plutus.SCB.Core
     , activeContracts
     , activeContractsProjection
     , activeContractHistory
-    , Connection
+    , Connection(Connection)
     , ContractCommand(..)
     , MonadContract
     , invokeContract
@@ -28,6 +30,7 @@ module Plutus.SCB.Core
     , runAggregateCommand
     , runGlobalQuery
     , updateContract
+    , addProcessBus
     ) where
 
 import           Control.Concurrent              (forkIO, myThreadId, threadDelay)
@@ -35,16 +38,18 @@ import           Control.Concurrent.Async        (concurrently_)
 import           Control.Concurrent.STM          (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
 import           Control.Error.Util              (note)
 import           Control.Monad                   (void, when)
+import           Control.Monad.Except            (ExceptT, MonadError, throwError)
+import           Control.Monad.Except.Extras     (mapError)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift         (MonadUnliftIO)
 import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Control.Monad.Reader            (MonadReader, ReaderT, ask, runReaderT)
-import           Data.Aeson                      (FromJSON, ToJSON, eitherDecode, withObject, (.:))
+import           Control.Monad.Trans.Class       (lift)
+import           Data.Aeson                      (FromJSON, ToJSON, withObject, (.:))
 import qualified Data.Aeson                      as JSON
-import qualified Data.Aeson.Encode.Pretty        as JSON
 import           Data.Aeson.Types                (Parser)
 import qualified Data.Aeson.Types                as JSON
-import qualified Data.ByteString.Lazy.Char8      as BSL8
+import           Data.Foldable                   (traverse_)
 import           Data.Map.Strict                 (Map)
 import qualified Data.Map.Strict                 as Map
 import           Data.Set                        (Set)
@@ -52,8 +57,8 @@ import qualified Data.Set                        as Set
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import qualified Data.UUID                       as UUID
-import           Database.Persist.Sqlite         (ConnectionPool, SqlPersistT, createSqlitePoolFromInfo,
-                                                  mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
+import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
+                                                  retryOnBusy, runSqlPool)
 import           Eventful                        (Aggregate (Aggregate), EventStoreWriter, GlobalStreamProjection,
                                                   ProcessManager (ProcessManager), Projection,
                                                   StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
@@ -65,8 +70,10 @@ import           Eventful                        (Aggregate (Aggregate), EventSt
                                                   synchronousEventBusWrapper, uuidNextRandom)
 import           Eventful.Store.Sql              (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
                                                   jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite           (initializeSqliteEventStore, sqliteEventStoreWriter)
+import           Eventful.Store.Sqlite           (sqliteEventStoreWriter)
 import qualified Language.Plutus.Contract        as Contract
+import qualified Language.Plutus.Contract.Wallet as Wallet
+import qualified Ledger
 import           Options.Applicative.Help.Pretty (pretty, (<+>))
 import           Plutus.SCB.Arbitrary            (genResponse)
 import           Plutus.SCB.Command              (saveRequestResponseAggregate, saveTxAggregate)
@@ -81,14 +88,14 @@ import qualified Plutus.SCB.Relation             as Relation
 import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
                                                   ActiveContractState (ActiveContractState), Contract (Contract),
                                                   DbConfig (DbConfig), PartiallyDecodedResponse,
-                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
+                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
                                                   activeContract, activeContractId, activeContractPath, contractPath,
                                                   dbConfigFile, dbConfigPoolSize, hooks, newState,
                                                   partiallyDecodedResponse)
-import           Plutus.SCB.Utils                (logInfoS, render, tshow)
-import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                  (readProcessWithExitCode)
+import           Plutus.SCB.Utils                (liftError, logInfoS, render, tshow)
 import           Test.QuickCheck                 (arbitrary, frequency, generate)
+import           Wallet.API                      (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics, logMsg)
+import qualified Wallet.API                      as WAPI
 
 data ThreadState
     = Running
@@ -98,15 +105,8 @@ data ThreadState
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
 
--- | Initialize/update the database to hold events.
-migrate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
-migrate = do
-    logInfoN "Migrating"
-    Connection (sqlConfig, connectionPool) <- ask
-    initializeSqliteEventStore sqlConfig connectionPool
-
 -- | A long-ish running process that fills the database with lots of event data.
-simulate :: (MonadUnliftIO m, MonadLogger m, MonadReader Connection m) => m ()
+simulate :: (MonadIO m, MonadLogger m, MonadReader Connection m) => m ()
 simulate = do
     logInfoN "Simulating"
     connection <- ask
@@ -136,11 +136,7 @@ runWriters connection = do
     let writerAction =
             runStdoutLoggingT . flip runReaderT connection $ do
                 tx :: Tx <- liftIO $ generate arbitrary
-                void $
-                    runAggregateCommand
-                        saveTxAggregate
-                        (UUID.fromWords 0 0 0 1)
-                        tx
+                void $ runAggregateCommand saveTxAggregate mockEventSource tx
                 --
                 requestId <- liftIO $ EventId <$> uuidNextRandom
                 request <- liftIO $ generate arbitrary
@@ -167,7 +163,7 @@ runWriters connection = do
                 void $
                     runAggregateCommand
                         saveRequestResponseAggregate
-                        (UUID.fromWords 0 0 0 2)
+                        contractEventSource
                         (IssueRequest requestId request, cancellation, response)
                 liftIO pauseBeforeRepeat
         runWriterAction =
@@ -218,15 +214,13 @@ reportClosingBalances = do
 
 ------------------------------------------------------------
 installContract ::
-       ( MonadLogger m, MonadEventStore ChainEvent m)
-    => FilePath
-    -> m ()
+       (MonadLogger m, MonadEventStore ChainEvent m) => FilePath -> m ()
 installContract filePath = do
     logInfoN $ "Installing: " <> tshow filePath
     void $
         runAggregateCommand
             installCommand
-            (UUID.fromWords 0 0 0 3)
+            userEventSource
             (Contract {contractPath = filePath})
     logInfoN "Installed."
 
@@ -239,81 +233,99 @@ installCommand =
         }
 
 activateContract ::
-       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
+       ( MonadIO m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , MonadContract m
+       , MonadError SCBError m
+       )
     => FilePath
-    -> m (Either SCBError ())
+    -> m ()
 activateContract filePath = do
     logInfoN "Finding Contract"
-    mContract <- lookupContract filePath
+    contract <- liftError $ lookupContract filePath
     activeContractId <- liftIO uuidNextRandom
-    case mContract of
-        Left err -> pure $ Left err
-        Right contract -> do
-            logInfoN "Initializing Contract"
-            mResponse <-
-                invokeContract $ InitContract (contractPath contract)
-            case mResponse of
-                Left err -> pure $ Left err
-                Right response -> do
-                    let activeContractState =
-                            ActiveContractState
-                                { activeContract =
-                                      ActiveContract
-                                          { activeContractId
-                                          , activeContractPath =
-                                                contractPath contract
-                                          }
-                                , partiallyDecodedResponse = response
-                                }
-                    logInfoN "Storing Initial Contract State"
-                    void $
-                        runAggregateCommand
-                            saveContractState
-                            (UUID.fromWords 0 0 0 3)
-                            activeContractState
-                    logInfoN . render $
-                        "Installed:" <+>
-                        pretty (activeContract activeContractState)
-                    logInfoN "Done"
-                    pure $ Right ()
+    logInfoN "Initializing Contract"
+    response <- liftError $ invokeContract $ InitContract (contractPath contract)
+    let activeContractState =
+            ActiveContractState
+                { activeContract =
+                      ActiveContract
+                          { activeContractId
+                          , activeContractPath = contractPath contract
+                          }
+                , partiallyDecodedResponse = response
+                }
+    logInfoN "Storing Initial Contract State"
+    void $
+        runAggregateCommand
+            saveContractState
+            contractEventSource
+            activeContractState
+    logInfoN . render $
+        "Installed:" <+> pretty (activeContract activeContractState)
+    logInfoN "Done"
 
 updateContract ::
-       (MonadIO m, MonadLogger m, MonadEventStore ChainEvent m,MonadContract m)
+       ( MonadLogger m
+       , MonadEventStore ChainEvent m
+       , MonadContract m
+       , MonadError SCBError m
+       , WalletAPI m
+       , NodeAPI m
+       , WalletDiagnostics m
+       )
     => UUID
     -> Text
     -> JSON.Value
-    -> m (Either SCBError ())
+    -> m ()
 updateContract uuid endpointName endpointPayload = do
     logInfoN "Finding Contract"
-    mContract <- lookupActiveContractState uuid
-    case mContract of
-        Left err -> pure $ Left err
-        Right oldContractState -> do
-            logInfoN "Updating Contract"
-            mResponse <-
-                updateContract_ oldContractState endpointName endpointPayload
-            case mResponse of
-                Left err -> pure $ Left err
-                Right response -> do
-                    let updatedContractState =
-                            oldContractState
-                                {partiallyDecodedResponse = response}
-                    logInfoN "Storing Updated Contract State"
-                    logInfoN $
-                        "UnbalancedTxs" <>
-                        tshow
-                            (JSON.parseEither
-                                 parseUnbalancedTxKey
-                                 (hooks response))
-                    void $
-                        runAggregateCommand
-                            saveContractState
-                            (UUID.fromWords 0 0 0 3)
-                            updatedContractState
-                    logInfoN . render $
-                        "Updated:" <+> pretty updatedContractState
-                    logInfoN "Done"
-                    pure $ Right ()
+    oldContractState <- liftError $ lookupActiveContractState uuid
+    logInfoN "Updating Contract"
+    response <-
+        updateContract_ oldContractState endpointName endpointPayload
+    case JSON.parseEither parseUnbalancedTxKey (hooks response) of
+        Left err -> throwError $ ContractCommandError 0 $ Text.pack err
+        Right unbalancedTxs -> do
+            logInfoN $ "Balancing unbalanced TXs" <> tshow unbalancedTxs
+            balancedTxs :: [Ledger.Tx] <-
+                traverse
+                    (mapError WalletError . Wallet.balanceWallet)
+                    unbalancedTxs
+            traverse_
+                (runAggregateCommand saveBalancedTx walletEventSource)
+                balancedTxs
+                      --
+            logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
+            balanceResults :: [Ledger.TxId] <-
+                traverse submitTxn balancedTxs
+                      --
+            traverse_
+                (runAggregateCommand
+                     saveBalancedTxResult
+                     nodeEventSource)
+                balanceResults
+                      --
+            let updatedContractState =
+                    oldContractState
+                        {partiallyDecodedResponse = response}
+            logInfoN "Storing Updated Contract State"
+            void $
+                runAggregateCommand
+                    saveContractState
+                    contractEventSource
+                    updatedContractState
+            logInfoN . render $
+                "Updated:" <+> pretty updatedContractState
+            logInfoN "Done"
+
+-- | A wrapper around the NodeAPI function that returns some more
+-- useful evidence of the work done.
+submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.TxId
+submitTxn txn = do
+    WAPI.submitTxn txn
+    pure $ Ledger.txId txn
 
 parseUnbalancedTxKey :: JSON.Value -> Parser [Contract.UnbalancedTx]
 parseUnbalancedTxKey = withObject "tx key" $ \o -> o .: "tx"
@@ -352,36 +364,16 @@ class MonadContract m where
     invokeContract ::
            ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
 
-instance MonadIO m => MonadContract (SqlPersistT m) where
-    invokeContract contractCommand = liftIO $ do
-        (exitCode, stdout, stderr) <-
-            liftIO $
-            case contractCommand of
-                InitContract contractPath ->
-                    readProcessWithExitCode contractPath ["init"] ""
-                UpdateContract contractPath payload ->
-                    readProcessWithExitCode
-                        contractPath
-                        ["update"]
-                        (BSL8.unpack (JSON.encodePretty payload))
-        case exitCode of
-            ExitFailure code ->
-                pure . Left $ ContractCommandError code (Text.pack stderr)
-            ExitSuccess ->
-                case eitherDecode (BSL8.pack stdout) of
-                    Right value -> pure $ Right value
-                    Left err ->
-                        pure . Left $ ContractCommandError 0 (Text.pack err)
-
 updateContract_ ::
-       MonadContract m
+       (MonadContract m, MonadError SCBError m)
     => ActiveContractState
     -> Text
     -> JSON.Value
-    -> m (Either SCBError PartiallyDecodedResponse)
+    -> m PartiallyDecodedResponse
 updateContract_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
                                     , partiallyDecodedResponse
                                     } endpointName endpointPayload =
+    liftError $
     invokeContract $
     UpdateContract activeContractPath $
     JSON.object
@@ -390,6 +382,19 @@ updateContract_ ActiveContractState { activeContract = ActiveContract {activeCon
           , JSON.object
                 [("tag", JSON.String endpointName), ("value", endpointPayload)])
         ]
+
+saveBalancedTx :: Aggregate () ChainEvent Ledger.Tx
+saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
+  where
+    aggregateProjection = nullProjection
+    aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
+
+saveBalancedTxResult :: Aggregate () ChainEvent Ledger.TxId
+saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
+  where
+    aggregateProjection = nullProjection
+    aggregateCommandHandler _ txId =
+        [Events.NodeEvent $ Events.SubmittedTx txId]
 
 saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =
@@ -518,3 +523,31 @@ addProcessBus writer reader =
                   reader
                   ()
         ]
+
+------------------------------------------------------------
+mockEventSource :: UUID
+mockEventSource = UUID.fromWords 0 0 0 1
+
+contractEventSource :: UUID
+contractEventSource = UUID.fromWords 0 0 0 2
+
+walletEventSource :: UUID
+walletEventSource = UUID.fromWords 0 0 0 2
+
+userEventSource :: UUID
+userEventSource = UUID.fromWords 0 0 0 3
+
+nodeEventSource :: UUID
+nodeEventSource = UUID.fromWords 0 0 0 4
+
+instance (WalletDiagnostics m, Monad m) =>
+         WalletDiagnostics (ExceptT WalletAPIError m) where
+    logMsg = lift . WAPI.logMsg
+
+instance (WalletAPI m, Monad m) => WalletAPI (ExceptT WalletAPIError m) where
+    ownPubKey = lift WAPI.ownPubKey
+    sign = lift . WAPI.sign
+    updatePaymentWithChange value inputs =
+        lift $ WAPI.updatePaymentWithChange value inputs
+    watchedAddresses = lift WAPI.watchedAddresses
+    startWatching = lift . WAPI.startWatching

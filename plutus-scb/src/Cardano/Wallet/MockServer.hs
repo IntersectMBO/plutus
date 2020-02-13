@@ -2,15 +2,19 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Cardano.Wallet.MockServer where
+module Cardano.Wallet.MockServer
+    ( main
+    ) where
 
 import           Cardano.Wallet.API       (API)
 import           Cardano.Wallet.Types     (WalletId)
 import           Control.Monad.Except     (ExceptT)
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
 import           Control.Monad.Logger     (MonadLogger, logInfoN)
+import qualified Data.ByteString.Lazy     as BSL
 import           Data.Proxy               (Proxy (Proxy))
-import           Ledger                   (PubKey, Value)
+import           Ledger                   (PubKey, Signature, Value)
+import qualified Ledger.Crypto            as Crypto
 import           Network.Wai.Handler.Warp (run)
 import           Plutus.SCB.Arbitrary     ()
 import           Plutus.SCB.Utils         (tshow)
@@ -19,6 +23,7 @@ import           Servant                  ((:<|>) ((:<|>)), Application, Handler
 import           Servant.Extra            (capture)
 import           Test.QuickCheck          (arbitrary, generate)
 import           Wallet.Emulator.Wallet   (Wallet (Wallet))
+import qualified Wallet.Emulator.Wallet   as EM
 
 wallets :: Monad m => m [Wallet]
 wallets = pure $ Wallet <$> [1 .. 10]
@@ -29,6 +34,17 @@ selectCoin _ target = pure ([target], mempty)
 allocateAddress :: MonadIO m => WalletId -> m PubKey
 allocateAddress _ = liftIO $ generate arbitrary
 
+getOwnPubKey :: Monad m => m PubKey
+getOwnPubKey = pure $ EM.walletPubKey activeWallet
+
+activeWallet :: Wallet
+activeWallet = Wallet 1
+
+sign :: Monad m => BSL.ByteString -> m Signature
+sign bs = do
+    let privK = EM.walletPrivKey activeWallet
+    pure (Crypto.sign (BSL.toStrict bs) privK)
+
 ------------------------------------------------------------
 asHandler :: ExceptT ServantErr IO a -> Handler a
 asHandler = Handler
@@ -37,7 +53,8 @@ app :: Application
 app =
     serve (Proxy @API) $
     hoistServer (Proxy @API) asHandler $
-    wallets :<|> capture (selectCoin :<|> allocateAddress)
+    wallets :<|> getOwnPubKey :<|> sign :<|>
+    capture (selectCoin :<|> allocateAddress)
 
 main :: (MonadIO m, MonadLogger m) => m ()
 main = do
