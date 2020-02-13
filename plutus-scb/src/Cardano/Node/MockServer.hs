@@ -16,7 +16,7 @@ module Cardano.Node.MockServer(
 import           Cardano.Node.API               (API)
 import           Control.Concurrent             (forkIO, threadDelay)
 import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens                   (view, over)
+import           Control.Lens                   (over, view)
 import           Control.Monad                  (forever, void)
 import           Control.Monad.Freer            (Eff, Member)
 import           Control.Monad.Freer.State      (State)
@@ -54,7 +54,7 @@ import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
 data BlockReaperConfig =
     BlockReaperConfig
-        { brcInterval :: Second
+        { brcInterval     :: Second
         , brcBlocksToKeep :: Int
         }
 
@@ -81,6 +81,17 @@ defaultConfig =
         , mscBlockReaper = Just BlockReaperConfig{brcInterval = 600, brcBlocksToKeep = 100 }
         }
 
+-- Spec:
+-- Radu: You get block data, you get headers data and you can submit balanced transactions.
+-- Index is a client of the node.
+-- As it receives new blocks it will index whatever information it needs and perform different tasks.
+-- contract
+-- ---> (unabalanced tx) @ wallet
+-- ---> (balanced tx) @ contract / network
+-- ---> .. blockchain updates ..
+-- ---> @node-client (incoming blocks)
+-- ---> @index
+-- ---> (confirmed K-blocks after tx that you care about event) @ contract
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 

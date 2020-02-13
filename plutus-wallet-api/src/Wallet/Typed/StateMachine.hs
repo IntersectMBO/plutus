@@ -54,7 +54,7 @@ getStates (SM.StateMachineInstance _ si) am =
 
 mkInitialise
     :: forall s i m
-    . (WAPI.WalletAPI m, MonadError WAPI.WalletAPIError m, WAPI.WalletDiagnostics m, PlutusTx.IsData s)
+    . (WAPI.WalletAPI m, MonadError WAPI.WalletAPIError m, PlutusTx.IsData s)
     => SM.StateMachineInstance s i
     -- ^ Signatories and required signatures
     -> s
@@ -75,7 +75,7 @@ mkInitialise (SM.StateMachineInstance _ si) state vl = do
 --
 mkStep
     :: forall s i m
-    . (WAPI.WalletAPI m, MonadError WAPI.WalletAPIError m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
+    . (WAPI.WalletAPI m, MonadError WAPI.WalletAPIError m, PlutusTx.IsData s, PlutusTx.IsData i)
     => SM.StateMachineInstance s i
     -- ^ The parameters of the contract instance
     -> s
@@ -114,7 +114,7 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
 --
 mkHalt
     :: forall s i m
-    . (Show s, MonadError WAPI.WalletAPIError m, WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
+    . (Show s, MonadError WAPI.WalletAPIError m, WAPI.WalletAPI m, PlutusTx.IsData s, PlutusTx.IsData i)
     => SM.StateMachineInstance s i
     -- ^ The parameters of the contract instance
     -> s

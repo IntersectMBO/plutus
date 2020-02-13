@@ -109,7 +109,7 @@ installContractTests =
     runScenario action = do
       result <- runExceptT $ runStderrLoggingT $ evalStateT action emptyEventMap
       case result of
-        Left err -> error $ show err
+        Left err    -> error $ show err
         Right value -> pure value
 
 runCommandQueryChain ::
