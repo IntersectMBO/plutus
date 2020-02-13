@@ -80,7 +80,7 @@ installContractTests =
               active <- activeContracts
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase
-              "Installing a contract successfully increases the installed contract count." $
+              "Installing a contract successfully increases the installed contract count" $
           runScenario $ do
               installContract "/bin/sh"
               --
@@ -89,7 +89,7 @@ installContractTests =
               --
               active <- activeContracts
               liftIO $ assertEqual "" 0 $ Set.size active
-        , testCase "We can activate a contract." $
+        , testCase "We can activate a contract" $
           runScenario $ do
               installContract "game"
               --
