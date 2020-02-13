@@ -203,19 +203,19 @@ instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
   marloweType _ = BigIntegerType
 
 -- a Monoid for collecting Holes
-data Holes
+newtype Holes
   = Holes (Map String (Set MarloweHole))
 
 derive instance genericHoles :: Generic Holes _
 
-instance showHoles :: Show Holes where
-  show = genericShow
+derive instance newtypeHoles :: Newtype Holes _
+
+derive newtype instance showHoles :: Show Holes
 
 instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
 
-instance monoidHoles :: Monoid Holes where
-  mempty = Holes mempty
+derive newtype instance monoidHoles :: Monoid Holes
 
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _ _) m = m
@@ -389,11 +389,6 @@ instance actionFromTerm :: FromTerm Action S.Action where
 instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
 
-instance actionHasMarloweHoles :: HasMarloweHoles Action where
-  getHoles (Deposit a b c d) m = getHoles a m <> insertHole b m <> getHoles c m <> getHoles d m
-  getHoles (Choice a bs) m = getHoles a m <> getHoles bs m
-  getHoles (Notify a) m = getHoles a m
-
 data Payee
   = Account (Term AccountId)
   | Party (Term Party)
@@ -480,17 +475,6 @@ instance valueFromTerm :: FromTerm Value S.Value where
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
 
-instance valueHasMarloweHoles :: HasMarloweHoles Value where
-  getHoles (AvailableMoney a b) m = getHoles a m <> getHoles b m
-  getHoles (Constant a) m = insertHole a m
-  getHoles (NegValue a) m = getHoles a m
-  getHoles (AddValue a b) m = getHoles a m <> getHoles b m
-  getHoles (SubValue a b) m = getHoles a m <> getHoles b m
-  getHoles (ChoiceValue a b) m = getHoles a m <> getHoles b m
-  getHoles SlotIntervalStart m = mempty
-  getHoles SlotIntervalEnd m = mempty
-  getHoles (UseValue a) m = getHoles a m
-
 data Input
   = IDeposit (Term AccountId) (Term Party) (Term Money)
   | IChoice (Term ChoiceId) (Term ChosenNum)
@@ -540,19 +524,6 @@ instance observationFromTerm :: FromTerm Observation S.Observation where
 
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
-
-instance observationHasMarloweHoles :: HasMarloweHoles Observation where
-  getHoles (AndObs a b) m = getHoles a m <> getHoles b m
-  getHoles (OrObs a b) m = getHoles a m <> getHoles b m
-  getHoles (NotObs a) m = getHoles a m
-  getHoles (ChoseSomething a) m = getHoles a m
-  getHoles (ValueGE a b) m = getHoles a m <> getHoles b m
-  getHoles (ValueGT a b) m = getHoles a m <> getHoles b m
-  getHoles (ValueLT a b) m = getHoles a m <> getHoles b m
-  getHoles (ValueLE a b) m = getHoles a m <> getHoles b m
-  getHoles (ValueEQ a b) m = getHoles a m <> getHoles b m
-  getHoles TrueObs m = mempty
-  getHoles FalseObs m = mempty
 
 data Contract
   = Close
