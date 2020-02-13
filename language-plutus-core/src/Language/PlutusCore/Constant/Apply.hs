@@ -156,7 +156,7 @@ applyBuiltinName GreaterThanEqInteger =
 applyBuiltinName EqInteger            =
     applyTypedBuiltinName typedEqInteger            (==) (\_ _ -> ExBudget 1 1)
 applyBuiltinName Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (coerce BSL.append) (\_ _ -> ExBudget 1 1)
+    applyTypedBuiltinName typedConcatenate          (<>) (\_ _ -> ExBudget 1 1)
 applyBuiltinName TakeByteString       =
     applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (\_ _ -> ExBudget 1 1)
 applyBuiltinName DropByteString       =

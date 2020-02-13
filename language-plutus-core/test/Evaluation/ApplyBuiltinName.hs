@@ -11,9 +11,11 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Pretty
 
 import qualified Data.ByteString.Lazy                      as BSL
 import qualified Data.ByteString.Lazy.Hash                 as Hash
+import           Data.Coerce
 import           Data.Foldable
 import           Data.List
 import           Hedgehog                                  hiding (Var)
@@ -30,11 +32,11 @@ import           Test.Tasty.Hedgehog
 -- we check that the results of the two computations match. We also check that each
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
-    :: KnownType r
-    => TypedBuiltinName a exA r  -- ^ A (typed) builtin name to apply.
-    -> a                     -- ^ The semantics of the builtin name. E.g. the semantics of
-                             -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> TypedBuiltinGenT IO   -- ^ How to generate values of builtin types.
+    :: (uni ~ DefaultUni, KnownType uni r, Pretty r)
+    => TypedBuiltinName uni as r  -- ^ A (typed) builtin name to apply.
+    -> FoldArgs as r              -- ^ The semantics of the builtin name. E.g. the semantics of
+                                  -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> TypedBuiltinGenT uni IO    -- ^ How to generate values of builtin types.
     -> Property
 prop_applyBuiltinName tbn op allTbs = property $ do
     let getIterAppValue = runPlcT allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
@@ -125,25 +127,25 @@ test_typedConcatenate
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyBuiltinName typedTakeByteString (BSL.take . fromIntegral)
+    $ prop_applyBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
     $ genTypedBuiltinDef
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
     = testProperty "typedSHA2"
-    $ prop_applyBuiltinName typedSHA2 Hash.sha2
+    $ prop_applyBuiltinName typedSHA2 (coerce Hash.sha2)
     $ genTypedBuiltinDef
 
 test_typedSHA3 :: TestTree
 test_typedSHA3
     = testProperty "typedSHA3"
-    $ prop_applyBuiltinName typedSHA3 Hash.sha3
+    $ prop_applyBuiltinName typedSHA3 (coerce Hash.sha3)
     $ genTypedBuiltinDef
 
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyBuiltinName typedDropByteString (BSL.drop . fromIntegral)
+    $ prop_applyBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
     $ genTypedBuiltinDef
 
 test_typedEqByteString :: TestTree
