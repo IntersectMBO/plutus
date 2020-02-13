@@ -236,11 +236,11 @@ runCliCommand Simulate = Right <$> Core.simulate
 runCliCommand DbStats = Right <$> Core.dbStats
 runCliCommand Migrate = Right <$> Core.migrate
 runCliCommand MockWallet = Right <$> WalletServer.main
-runCliCommand MockNode = Right <$> NodeServer.main
+runCliCommand MockNode = Right <$> NodeServer.main NodeServer.defaultConfig
 runCliCommand WalletClient = Right <$> liftIO WalletClient.main
 runCliCommand NodeClient = Right <$> liftIO NodeClient.main
-runCliCommand (InstallContract path) = Core.installContract path
-runCliCommand (ActivateContract path) = Core.activateContract path
+runCliCommand (InstallContract path) = Right <$> Core.installContract path
+-- runCliCommand (ActivateContract path) = Core.activateContract path
 runCliCommand (ContractStatus uuid) = Right <$> Core.reportContractStatus uuid
 runCliCommand ReportInstalledContracts = do
     logInfoN "Installed Contracts"
@@ -250,8 +250,8 @@ runCliCommand ReportActiveContracts = do
     logInfoN "Active Contracts"
     traverse_ (logInfoN . render) =<< Core.activeContracts
     pure $ Right ()
-runCliCommand (UpdateContract uuid endpoint payload) =
-    Core.updateContract uuid endpoint payload
+-- runCliCommand (UpdateContract uuid endpoint payload) =
+--     Core.updateContract uuid endpoint payload
 runCliCommand (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
