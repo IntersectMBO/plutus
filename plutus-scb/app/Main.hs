@@ -62,15 +62,16 @@ ekgPortParser :: Parser Int
 ekgPortParser =
     option
         auto
-        (long "monitoring-port" <> short 'p' <> metavar "PORT" <>
-         help "Open an EKG server on PORT")
+        (long "monitoring-port" <>
+         short 'p' <> metavar "PORT" <> help "Open an EKG server on PORT")
 
 configFileParser :: Parser FilePath
 configFileParser =
     option
         str
-        (long "config" <> metavar "CONFIG_FILE" <> help "Config file location." <>
-         value "plutus-scb.yaml")
+        (long "config" <>
+         metavar "CONFIG_FILE" <>
+         help "Config file location." <> value "plutus-scb.yaml")
 
 commandParser :: Parser Command
 commandParser =
@@ -142,7 +143,8 @@ activateContractParser =
     info
         (ActivateContract <$>
          strOption
-             (short 'p' <> long "path" <>
+             (short 'p' <>
+              long "path" <>
               help
                   "Name of the contract. (See 'installed-contracts' for a list.)"))
         (fullDesc <> progDesc "Activate a smart contract.")
@@ -153,8 +155,8 @@ installContractParser =
     info
         (InstallContract <$>
          strOption
-             (short 'p' <> long "path" <>
-              help "Path to the executable contract."))
+             (short 'p' <>
+              long "path" <> help "Path to the executable contract."))
         (fullDesc <> progDesc "Install a new smart contract.")
 
 contractStatusParser :: Mod CommandFields Command
