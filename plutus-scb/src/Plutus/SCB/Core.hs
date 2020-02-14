@@ -154,7 +154,7 @@ updateContract uuid endpointName endpointPayload = do
     case JSON.parseEither parseUnbalancedTxKey (hooks response) of
         Left err -> throwError $ ContractCommandError 0 $ Text.pack err
         Right unbalancedTxs -> do
-            logInfoN $ "Balancing unbalanced TXs" <> tshow unbalancedTxs
+            logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
             balancedTxs :: [Ledger.Tx] <-
                 traverse
                     (mapError WalletError . Wallet.balanceWallet)
