@@ -25,10 +25,12 @@ module Plutus.SCB.Core
     , invokeContract
     , MonadEventStore
     , refreshProjection
-    , runAggregateCommand
+    , runCommand
     , runGlobalQuery
     , updateContract
     , addProcessBus
+    , Source(..)
+    , toUUID
     ) where
 
 import           Control.Error.Util              (note)
@@ -94,9 +96,9 @@ installContract ::
 installContract filePath = do
     logInfoN $ "Installing: " <> tshow filePath
     void $
-        runAggregateCommand
+        runCommand
             installCommand
-            userEventSource
+            UserEventSource
             (Contract {contractPath = filePath})
     logInfoN "Installed."
 
@@ -126,11 +128,7 @@ activateContract filePath = do
                 , partiallyDecodedResponse = response
                 }
     logInfoN "Storing Initial Contract State"
-    void $
-        runAggregateCommand
-            saveContractState
-            contractEventSource
-            activeContractState
+    void $ runCommand saveContractState ContractEventSource activeContractState
     logInfoN . render $
         "Installed:" <+> pretty (activeContract activeContractState)
     logInfoN "Done"
@@ -161,24 +159,22 @@ updateContract uuid endpointName endpointPayload = do
                 traverse
                     (mapError WalletError . Wallet.balanceWallet)
                     unbalancedTxs
-            traverse_
-                (runAggregateCommand saveBalancedTx walletEventSource)
-                balancedTxs
+            traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
                       --
             logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
             balanceResults :: [Ledger.TxId] <- traverse submitTxn balancedTxs
                       --
             traverse_
-                (runAggregateCommand saveBalancedTxResult nodeEventSource)
+                (runCommand saveBalancedTxResult NodeEventSource)
                 balanceResults
                       --
             let updatedContractState =
                     oldContractState {partiallyDecodedResponse = response}
             logInfoN "Storing Updated Contract State"
             void $
-                runAggregateCommand
+                runCommand
                     saveContractState
-                    contractEventSource
+                    ContractEventSource
                     updatedContractState
             logInfoN . render $ "Updated:" <+> pretty updatedContractState
             logInfoN "Done"
@@ -309,17 +305,14 @@ class MonadContract m where
     invokeContract ::
            ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
 
--- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
 class Monad m =>
       MonadEventStore event m
-    -- | Update a 'Projection'.
     where
     refreshProjection ::
            GlobalStreamProjection state event
         -> m (GlobalStreamProjection state event)
-    -- | Update a command through an 'Aggregate'.
-    runAggregateCommand ::
-           Aggregate state event command -> UUID -> command -> m [event]
+    runCommand ::
+           Aggregate state event command -> Source -> command -> m [event]
 
 instance (FromJSON event, ToJSON event) =>
          MonadEventStore event (ReaderT Connection (LoggingT IO)) where
@@ -330,7 +323,7 @@ instance (FromJSON event, ToJSON event) =>
                 sqlGlobalEventStoreReader sqlConfig
         flip runSqlPool connectionPool $
             getLatestStreamProjection reader projection
-    runAggregateCommand aggregate identifier input = do
+    runCommand aggregate source input = do
         (Connection (sqlConfig, connectionPool)) <- ask
         let reader =
                 serializedVersionedEventStoreReader jsonStringSerializer $
@@ -341,7 +334,7 @@ instance (FromJSON event, ToJSON event) =>
                      sqliteEventStoreWriter sqlConfig)
                     reader
         retryOnBusy . flip runSqlPool connectionPool $
-            commandStoredAggregate writer reader aggregate identifier input
+            commandStoredAggregate writer reader aggregate (toUUID source) input
 
 runGlobalQuery ::
        MonadEventStore event m
@@ -368,17 +361,18 @@ addProcessBus writer reader =
         ]
 
 ------------------------------------------------------------
-contractEventSource :: UUID
-contractEventSource = UUID.fromWords 0 0 0 2
+data Source
+    = ContractEventSource
+    | WalletEventSource
+    | UserEventSource
+    | NodeEventSource
+    deriving (Show, Eq)
 
-walletEventSource :: UUID
-walletEventSource = UUID.fromWords 0 0 0 2
-
-userEventSource :: UUID
-userEventSource = UUID.fromWords 0 0 0 3
-
-nodeEventSource :: UUID
-nodeEventSource = UUID.fromWords 0 0 0 4
+toUUID :: Source -> UUID
+toUUID ContractEventSource = UUID.fromWords 0 0 0 2
+toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
+toUUID UserEventSource     = UUID.fromWords 0 0 0 3
+toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
 
 instance (WalletDiagnostics m, Monad m) =>
          WalletDiagnostics (ExceptT WalletAPIError m) where

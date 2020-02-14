@@ -27,7 +27,7 @@ import           Eventful.Store.Sqlite      (initializeSqliteEventStore, sqliteE
 import           Network.HTTP.Client        (defaultManagerSettings, newManager)
 import           Plutus.SCB.Core            (Connection (Connection), ContractCommand (InitContract, UpdateContract),
                                              MonadContract, MonadEventStore, addProcessBus, dbConnect, invokeContract,
-                                             refreshProjection, runAggregateCommand)
+                                             refreshProjection, runCommand, toUUID)
 import           Plutus.SCB.Types           (DbConfig,
                                              SCBError (ContractCommandError, NodeClientError, WalletClientError))
 import           Servant.Client             (ClientEnv, ClientM, ServantError, mkClientEnv, parseBaseUrl, runClientM)
@@ -105,7 +105,7 @@ instance (FromJSON event, ToJSON event) => MonadEventStore event App where
                     sqlGlobalEventStoreReader sqlConfig
             ExceptT . fmap Right . flip runSqlPool connectionPool $
                 getLatestStreamProjection reader projection
-    runAggregateCommand aggregate identifier input =
+    runCommand aggregate source input =
         App $ do
             (Connection (sqlConfig, connectionPool)) <- asks dbConnection
             let reader =
@@ -118,7 +118,12 @@ instance (FromJSON event, ToJSON event) => MonadEventStore event App where
                         reader
             ExceptT $
                 fmap Right . retryOnBusy . flip runSqlPool connectionPool $
-                commandStoredAggregate writer reader aggregate identifier input
+                commandStoredAggregate
+                    writer
+                    reader
+                    aggregate
+                    (toUUID source)
+                    input
 
 instance MonadContract App where
     invokeContract contractCommand =

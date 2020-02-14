@@ -84,8 +84,12 @@ installContractTests =
 
 instance Monad m => MonadEventStore event (StateT (EventMap event) m) where
     refreshProjection = getLatestStreamProjection stateGlobalEventStoreReader
-    runAggregateCommand =
-        commandStoredAggregate stateEventStoreWriter stateEventStoreReader
+    runCommand aggregate source =
+        commandStoredAggregate
+            stateEventStoreWriter
+            stateEventStoreReader
+            aggregate
+            (toUUID source)
 
 instance Monad m => MonadContract (StateT state m) where
     invokeContract (InitContract "game") =
