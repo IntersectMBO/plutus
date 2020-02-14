@@ -101,6 +101,10 @@ for using the Plutus Platform to write smart contracts.
 
 To build a full HTML version of the tutorial that you can view locally, build the `docs.plutus-tutorial` xref:building-with-nix[using Nix].
 
+=== How to learn about the terminology we use
+
+There is a comprehensive glossary in link:GLOSSARY{outfilesuffix}[GLOSSARY].
+
 === Where to find the changelog
 
 The changelog is stored in link:./CHANGELOG.md[CHANGELOG].
