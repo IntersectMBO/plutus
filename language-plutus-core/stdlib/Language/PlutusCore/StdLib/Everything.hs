@@ -46,7 +46,7 @@ stdLib =
                   , plcTypeFile "Self"   $ _recursiveType selfData
                   , plcTermFile "Unroll" unroll
                   , plcTermFile "Fix"    fix
-                  , plcTermFile "Fix2"   $ (fst $ fixN 2)
+                  , plcTermFile "Fix2"   $ fixN 2 fixBy
                   ]
               , treeFolderContents "Integer"
                   [ plcTermFile "SuccInteger" succInteger

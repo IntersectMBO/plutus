@@ -15,6 +15,9 @@ import           Control.Monad
 import           Control.Monad.Error.Lens
 import           Control.Monad.Trans
 
+import           Data.List.NonEmpty                         hiding (length)
+import qualified Data.Set                                   as Set
+
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.MkPlc                  as PLC
 import           Language.PlutusCore.Quote
@@ -64,17 +67,17 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 compileRecTerms
     :: Compiling m e a
     => PIRTerm a
-    -> [TermDef TyName Name (Provenance a)]
+    -> NonEmpty (TermDef TyName Name (Provenance a))
     -> DefT SharedName (Provenance a) m (PIRTerm a)
 compileRecTerms body bs = do
     p <- lift getEnclosing
     fixpoint <- mkFixpoint bs
-    Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> bs) fixpoint body
+    Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> toList bs) fixpoint body
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint
     :: forall m e a . Compiling m e a
-    => [TermDef TyName Name (Provenance a)]
+    => NonEmpty (TermDef TyName Name (Provenance a))
     -> DefT SharedName (Provenance a) m (Tuple.Tuple (Term TyName Name) (Provenance a))
 mkFixpoint bs = do
     p0 <- lift getEnclosing
@@ -85,19 +88,29 @@ mkFixpoint bs = do
             Nothing  -> lift $ throwing _Error $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
 
     -- See Note [Extra definitions while compiling let-bindings]
-    let arity = fromIntegral $ length funs
-        key = FixpointCombinator arity
-    fixN <- do
-        maybeFix <- lookupTerm p0 key
-        case maybeFix of
-            Just f -> pure f
-            Nothing -> do
-                name <- liftQuote $ toProgramName key
-                let (fixNTerm, fixNType) = Function.fixN arity
-                    var :: PLC.VarDecl TyName Name (Provenance a)
-                    var = PLC.VarDecl NoProvenance (NoProvenance <$ name) (NoProvenance <$ fixNType)
-                defineTerm key (PLC.Def var (NoProvenance <$ fixNTerm, Strict)) mempty
+    let
+        arity = fromIntegral $ length funs
+        fixByKey = FixBy
+        fixNKey = FixpointCombinator arity
 
-                pure $ PIR.mkVar p0 var
+    let mkFixByDef = do
+          name <- liftQuote $ toProgramName fixByKey
+          let (fixByTerm, fixByType) = Function.fixByAndType
+          pure (PLC.Def (PLC.VarDecl NoProvenance (NoProvenance <$ name) (NoProvenance <$ fixByType)) (NoProvenance <$ fixByTerm, Strict), mempty)
+    fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
 
-    liftQuote $ Function.getMutualFixOf p0 fixN funs
+    let mkFixNDef = do
+          name <- liftQuote $ toProgramName fixNKey
+          let ((fixNTerm, fixNType), fixNDeps) =
+                  if arity == 1
+                  then (Function.fixAndType, mempty)
+                  -- fixN depends on fixBy
+                  else (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
+          pure (PLC.Def (PLC.VarDecl NoProvenance (NoProvenance <$ name) (NoProvenance <$ fixNType)) (NoProvenance <$ fixNTerm, Strict), fixNDeps)
+    fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
+
+    liftQuote $ case funs of
+        -- Takes a list of function defs and function bodies and turns them into a Scott-encoded tuple, which
+        -- happens to be exactly what we want
+        f :| [] -> Tuple.getSpineToTuple p0 [(PLC.functionDefToType f, Function.getSingleFixOf p0 fixN f)]
+        f :| fs -> Function.getMutualFixOf p0 fixN (f:fs)
