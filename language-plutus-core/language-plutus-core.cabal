@@ -110,7 +110,6 @@ library
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core
         Language.PlutusCore.Universe.Default
-        Language.PlutusCore.Universe.Lift
         Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
@@ -152,10 +151,11 @@ library
         containers -any,
         cryptonite -any,
         cryptonite,
-        deepseq -any,
         dependent-map -any,
         dependent-sum -any,
         dependent-sum-template -any,
+        deriving-compat -any,
+        deepseq -any,
         filepath -any,
         hashable,
         hedgehog <1.0,

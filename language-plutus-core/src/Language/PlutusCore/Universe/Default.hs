@@ -1,18 +1,13 @@
+-- | The universe used by default and its instances.
+
 -- Appears in generated instances.
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Universe.Default
     ( ByteString16 (..)
@@ -21,7 +16,6 @@ module Language.PlutusCore.Universe.Default
 
 import           Language.PlutusCore.Pretty.Utils
 import           Language.PlutusCore.Universe.Core
-import           Language.PlutusCore.Universe.Lift
 
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy              as BSL
@@ -30,6 +24,7 @@ import           Data.Text.Prettyprint.Doc
 import           Language.Haskell.TH.Syntax
 
 -- TODO: use strict bytestrings.
+-- | A 'ByteString' pretty-printed in hex form.
 newtype ByteString16 = ByteString16
     { unByteString16 :: BSL.ByteString
     } deriving newtype (Show, Eq, Ord, Semigroup, Monoid, Serialise)
@@ -37,24 +32,23 @@ newtype ByteString16 = ByteString16
 instance Pretty ByteString16 where
     pretty = prettyBytes . unByteString16
 
+-- The universe used by default.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni ByteString16
     DefaultUniChar       :: DefaultUni Char
     DefaultUniString     :: DefaultUni String
 
-deriveGEq   ''DefaultUni
+deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
 instance GLift DefaultUni
 
+instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
     show DefaultUniInteger    = "integer"
     show DefaultUniByteString = "bytestring"
     show DefaultUniChar       = "char"
     show DefaultUniString     = "string"
-
-instance GShow DefaultUni where
-    gshowsPrec = showsPrec
 
 instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
 instance DefaultUni `Includes` ByteString16    where knownUni = DefaultUniByteString
