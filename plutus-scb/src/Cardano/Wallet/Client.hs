@@ -23,9 +23,10 @@ sign :: BSL.ByteString -> ClientM Signature
   where
     api = client (Proxy @API)
     getWallets_ = left api
-    getOwnPubKey_ = right api & left
-    sign_ = right api & right & left
-    byWalletId = right api & right & right
+    active_ = right api & left
+    getOwnPubKey_ = left active_
+    sign_ = right active_
+    byWalletId =  right api & right
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
 
