@@ -86,13 +86,13 @@ runNodeClientM = runAppClientM nodeClientEnv NodeClientError
 
 runApp :: DbConfig -> App a -> IO (Either SCBError a)
 runApp dbConfig (App action) =
-    runStdoutLoggingT . filterLogger (\_ level -> level > LevelDebug) $ do
-        nodeManager <- liftIO $ newManager defaultManagerSettings
-        nodeBaseUrl <- parseBaseUrl "http://localhost:8081"
-        let nodeClientEnv = mkClientEnv nodeManager nodeBaseUrl
+    runStdoutLoggingT . filterLogger (\_ level -> level >= LevelDebug) $ do
         walletManager <- liftIO $ newManager defaultManagerSettings
-        walletBaseUrl <- parseBaseUrl "http://localhost:8082"
+        walletBaseUrl <- parseBaseUrl "http://localhost:8081"
         let walletClientEnv = mkClientEnv walletManager walletBaseUrl
+        nodeManager <- liftIO $ newManager defaultManagerSettings
+        nodeBaseUrl <- parseBaseUrl "http://localhost:8082"
+        let nodeClientEnv = mkClientEnv nodeManager nodeBaseUrl
         dbConnection <- runReaderT dbConnect dbConfig
         runReaderT (runExceptT action) $ Env {..}
 
