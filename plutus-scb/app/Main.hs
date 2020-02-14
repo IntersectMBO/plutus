@@ -92,8 +92,8 @@ commandParser =
                             , reportInstalledContractsParser
                             , activateContractParser
                             , reportActiveContractsParser
-                            , contractStatusParser
                             , updateContractParser
+                            , contractStatusParser
                             , reportContractHistoryParser
                             ]))
                   (fullDesc <> progDesc "Manage your smart contracts.")))
