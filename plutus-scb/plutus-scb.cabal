@@ -67,7 +67,6 @@ library
         Plutus.SCB.Utils
     other-modules:
         Plutus.SCB.Events.Contract
-        Plutus.SCB.Events.Mock
         Plutus.SCB.Events.Node
         Plutus.SCB.Events.User
         Plutus.SCB.Events.Wallet

@@ -8,10 +8,12 @@ module Plutus.SCB.Utils
     , tshow
     , render
     , liftError
+    , liftLocalReader
     ) where
 
 import           Control.Monad.Except            (MonadError, throwError)
 import           Control.Monad.Logger            (MonadLogger, logDebugN, logErrorN, logInfoN)
+import           Control.Monad.Reader            (MonadReader, ReaderT, asks, runReaderT)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import           Options.Applicative.Help.Pretty (Pretty, displayS, pretty, renderPretty)
@@ -49,3 +51,8 @@ liftError action =
     action >>= \case
         Left err -> throwError err
         Right value -> pure value
+
+liftLocalReader :: MonadReader f m => (f -> e) -> ReaderT e m a -> m a
+liftLocalReader f action = do
+    env <- asks f
+    runReaderT action env

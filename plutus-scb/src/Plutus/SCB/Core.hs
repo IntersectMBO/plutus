@@ -10,9 +10,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Plutus.SCB.Core
-    ( simulate
-    , dbStats
-    , dbConnect
+    ( dbConnect
     , installContract
     , activateContract
     , reportContractStatus
@@ -33,17 +31,14 @@ module Plutus.SCB.Core
     , addProcessBus
     ) where
 
-import           Control.Concurrent              (forkIO, myThreadId, threadDelay)
-import           Control.Concurrent.Async        (concurrently_)
-import           Control.Concurrent.STM          (TVar, atomically, newTVarIO, readTVarIO, writeTVar)
 import           Control.Error.Util              (note)
-import           Control.Monad                   (void, when)
+import           Control.Monad                   (void)
 import           Control.Monad.Except            (ExceptT, MonadError, throwError)
 import           Control.Monad.Except.Extras     (mapError)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift         (MonadUnliftIO)
-import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Control.Monad.Reader            (MonadReader, ReaderT, ask, runReaderT)
+import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN)
+import           Control.Monad.Reader            (MonadReader, ReaderT, ask)
 import           Control.Monad.Trans.Class       (lift)
 import           Data.Aeson                      (FromJSON, ToJSON, withObject, (.:))
 import qualified Data.Aeson                      as JSON
@@ -59,12 +54,12 @@ import qualified Data.Text                       as Text
 import qualified Data.UUID                       as UUID
 import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
                                                   retryOnBusy, runSqlPool)
-import           Eventful                        (Aggregate (Aggregate), EventStoreWriter, GlobalStreamProjection,
+import           Eventful                        (Aggregate, EventStoreWriter, GlobalStreamProjection,
                                                   ProcessManager (ProcessManager), Projection,
                                                   StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                  VersionedStreamEvent, aggregateCommandHandler, aggregateProjection,
-                                                  applyProcessManagerCommandsAndEvents, commandStoredAggregate,
-                                                  getLatestStreamProjection, globalStreamProjection, projectionMapMaybe,
+                                                  VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
+                                                  commandStoredAggregate, getLatestStreamProjection,
+                                                  globalStreamProjection, projectionMapMaybe,
                                                   serializedEventStoreWriter, serializedGlobalEventStoreReader,
                                                   serializedVersionedEventStoreReader, streamProjectionState,
                                                   synchronousEventBusWrapper, uuidNextRandom)
@@ -75,16 +70,11 @@ import qualified Language.Plutus.Contract        as Contract
 import qualified Language.Plutus.Contract.Wallet as Wallet
 import qualified Ledger
 import           Options.Applicative.Help.Pretty (pretty, (<+>))
-import           Plutus.SCB.Arbitrary            (genResponse)
-import           Plutus.SCB.Command              (saveRequestResponseAggregate, saveTxAggregate)
-import           Plutus.SCB.Events               (ChainEvent (UserEvent), EventId (EventId),
-                                                  RequestEvent (CancelRequest, IssueRequest),
-                                                  ResponseEvent (ResponseEvent), Tx,
+import           Plutus.SCB.Command              (installCommand, saveBalancedTx, saveBalancedTxResult,
+                                                  saveContractState)
+import           Plutus.SCB.Events               (ChainEvent (UserEvent),
                                                   UserEvent (ContractStateTransition, InstallContract))
-import qualified Plutus.SCB.Events               as Events
-import           Plutus.SCB.Query                (balances, eventCount, latestContractStatus, monoidProjection,
-                                                  nullProjection, requestStats, setProjection, trialBalance)
-import qualified Plutus.SCB.Relation             as Relation
+import           Plutus.SCB.Query                (latestContractStatus, monoidProjection, nullProjection, setProjection)
 import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
                                                   ActiveContractState (ActiveContractState), Contract (Contract),
                                                   DbConfig (DbConfig), PartiallyDecodedResponse,
@@ -92,127 +82,13 @@ import           Plutus.SCB.Types                (ActiveContract (ActiveContract
                                                   activeContract, activeContractId, activeContractPath, contractPath,
                                                   dbConfigFile, dbConfigPoolSize, hooks, newState,
                                                   partiallyDecodedResponse)
-import           Plutus.SCB.Utils                (liftError, logInfoS, render, tshow)
-import           Test.QuickCheck                 (arbitrary, frequency, generate)
+import           Plutus.SCB.Utils                (liftError, render, tshow)
 import           Wallet.API                      (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics, logMsg)
 import qualified Wallet.API                      as WAPI
-
-data ThreadState
-    = Running
-    | Stopped
-    deriving (Show, Eq)
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
 
--- | A long-ish running process that fills the database with lots of event data.
-simulate :: (MonadIO m, MonadLogger m, MonadReader Connection m) => m ()
-simulate = do
-    logInfoN "Simulating"
-    connection <- ask
-    runWriters connection
-
--- | Dump various statistics and reports from various queries over the event store database.
-dbStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-dbStats = do
-    logInfoN "Querying"
-    reportTrialBalance
-    reportClosingBalances
-    reportEventCount
-    reportRequestStats
-
-------------------------------------------------------------
--- | Write lots of events into the store. At the moment this code
--- exercises the eventstore and the multi-threaded generation/storage of
--- events.
-runWriters ::
-       forall m. (MonadLogger m, MonadIO m)
-    => Connection
-    -> m ()
-runWriters connection = do
-    threadState <- liftIO $ newTVarIO Running
-        --
-    logInfoN "Started writers"
-    let writerAction =
-            runStdoutLoggingT . flip runReaderT connection $ do
-                tx :: Tx <- liftIO $ generate arbitrary
-                void $ runAggregateCommand saveTxAggregate mockEventSource tx
-                --
-                requestId <- liftIO $ EventId <$> uuidNextRandom
-                request <- liftIO $ generate arbitrary
-                cancellation <-
-                    liftIO $
-                    generate $
-                    frequency
-                        [ (1, pure $ Just (CancelRequest requestId))
-                        , (10, pure Nothing)
-                        ]
-                response <-
-                    liftIO $
-                    generate $
-                    frequency
-                        [ ( 10
-                          , case genResponse request of
-                                Nothing -> pure Nothing
-                                Just generator ->
-                                    Just . ResponseEvent requestId <$> generator)
-                        , (1, pure Nothing)
-                        ]
-                me <- liftIO myThreadId
-                logInfoN $ "(" <> tshow me <> ") Write"
-                void $
-                    runAggregateCommand
-                        saveRequestResponseAggregate
-                        contractEventSource
-                        (IssueRequest requestId request, cancellation, response)
-                liftIO pauseBeforeRepeat
-        runWriterAction =
-            void . forkIO $ repeatIOAction threadState writerAction
-    liftIO $
-        concurrently_
-            (concurrently_ runWriterAction runWriterAction)
-            (do pauseForWrites
-                atomically $ writeTVar threadState Stopped)
-    logInfoN "Stopped writers"
-  where
-    pauseForWrites = void $ threadDelay (5 * 60 * 1000 * 1000)
-    pauseBeforeRepeat = void $ threadDelay (500 * 1000)
-
-repeatIOAction :: TVar ThreadState -> IO a -> IO ()
-repeatIOAction threadState action = go
-  where
-    go = do
-        state <- readTVarIO threadState
-        when (state == Running) $ do
-            void action
-            go
-
-------------------------------------------------------------
-reportTrialBalance :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportTrialBalance = do
-    trialBalanceProjection <- runGlobalQuery trialBalance
-    logInfoN "Trial Balance"
-    logInfoS trialBalanceProjection
-
-reportEventCount :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportEventCount = do
-    eventCountProjection <- runGlobalQuery eventCount
-    logInfoN $ "EventCount: " <> tshow eventCountProjection
-
-reportRequestStats :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportRequestStats = do
-    requestStatsProjection <- runGlobalQuery requestStats
-    logInfoN $ render requestStatsProjection
-
-reportClosingBalances :: (MonadLogger m, MonadEventStore ChainEvent m) => m ()
-reportClosingBalances = do
-    updatedProjection <- runGlobalQuery balances
-    logInfoN "Closing Balances"
-    let closingBalances = Relation.fromMap updatedProjection
-    let report = (,) <$> Events.users <*> closingBalances
-    logInfoS report
-
-------------------------------------------------------------
 installContract ::
        (MonadLogger m, MonadEventStore ChainEvent m) => FilePath -> m ()
 installContract filePath = do
@@ -223,14 +99,6 @@ installContract filePath = do
             userEventSource
             (Contract {contractPath = filePath})
     logInfoN "Installed."
-
-installCommand :: Aggregate () ChainEvent Contract
-installCommand =
-    Aggregate
-        { aggregateProjection = nullProjection
-        , aggregateCommandHandler =
-              \() contract -> [UserEvent $ InstallContract contract]
-        }
 
 activateContract ::
        ( MonadIO m
@@ -355,10 +223,6 @@ data ContractCommand
     | UpdateContract FilePath JSON.Value
     deriving (Show, Eq)
 
-class MonadContract m where
-    invokeContract ::
-           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
-
 updateContract_ ::
        (MonadContract m, MonadError SCBError m)
     => ActiveContractState
@@ -377,26 +241,6 @@ updateContract_ ActiveContractState { activeContract = ActiveContract {activeCon
           , JSON.object
                 [("tag", JSON.String endpointName), ("value", endpointPayload)])
         ]
-
-saveBalancedTx :: Aggregate () ChainEvent Ledger.Tx
-saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
-  where
-    aggregateProjection = nullProjection
-    aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
-
-saveBalancedTxResult :: Aggregate () ChainEvent Ledger.TxId
-saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
-  where
-    aggregateProjection = nullProjection
-    aggregateCommandHandler _ txId =
-        [Events.NodeEvent $ Events.SubmittedTx txId]
-
-saveContractState :: Aggregate () ChainEvent ActiveContractState
-saveContractState =
-    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
-  where
-    aggregateCommandHandler _ state =
-        [UserEvent $ ContractStateTransition state]
 
 installedContracts :: MonadEventStore ChainEvent m => m (Set Contract)
 installedContracts = runGlobalQuery installedContractsProjection
@@ -461,11 +305,15 @@ dbConnect = do
     pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
 
 ------------------------------------------------------------
+class MonadContract m where
+    invokeContract ::
+           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
+
 -- TODO Perhaps we should change runAggregateCommand to take a closed list of sources, rather than any freeform UUID.
 class Monad m =>
       MonadEventStore event m
-    where
     -- | Update a 'Projection'.
+    where
     refreshProjection ::
            GlobalStreamProjection state event
         -> m (GlobalStreamProjection state event)
@@ -520,9 +368,6 @@ addProcessBus writer reader =
         ]
 
 ------------------------------------------------------------
-mockEventSource :: UUID
-mockEventSource = UUID.fromWords 0 0 0 1
-
 contractEventSource :: UUID
 contractEventSource = UUID.fromWords 0 0 0 2
 

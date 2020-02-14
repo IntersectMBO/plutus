@@ -12,7 +12,6 @@ import qualified Cardano.Wallet.MockServer       as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Logger            (logDebugN, logInfoN, runStdoutLoggingT)
-import           Control.Monad.Reader            (MonadReader, ReaderT, asks, runReaderT)
 import qualified Data.Aeson                      as JSON
 import qualified Data.ByteString.Lazy.Char8      as BS8
 import           Data.Foldable                   (traverse_)
@@ -35,9 +34,7 @@ import           System.Exit                     (ExitCode (ExitFailure, ExitSuc
 import qualified System.Remote.Monitoring        as EKG
 
 data Command
-    = DbStats
-    | Simulate
-    | Migrate
+    = Migrate
     | MockNode
     | MockWallet
     | WalletClient
@@ -80,8 +77,6 @@ commandParser =
     subparser
         (mconcat
              [ migrationParser
-             , simulationParser
-             , dbStatsParser
              , mockWalletParser
              , walletClientParser
              , mockNodeParser
@@ -103,26 +98,12 @@ commandParser =
                             ]))
                   (fullDesc <> progDesc "Manage your smart contracts.")))
 
-dbStatsParser :: Mod CommandFields Command
-dbStatsParser =
-    command "stats" $
-    info
-        (pure DbStats)
-        (fullDesc <> progDesc "Report some useful database statistics.")
-
 migrationParser :: Mod CommandFields Command
 migrationParser =
     command "migrate" $
     info
         (pure Migrate)
         (fullDesc <> progDesc "Update the database with the latest schema.")
-
-simulationParser :: Mod CommandFields Command
-simulationParser =
-    command "simulate" $
-    info
-        (pure Simulate)
-        (fullDesc <> progDesc "Seed the event stream with simulated events.")
 
 mockNodeParser :: Mod CommandFields Command
 mockNodeParser =
@@ -222,15 +203,8 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-localReaderT :: MonadReader f m => (f -> e) -> ReaderT e m a -> m a
-localReaderT f action = do
-    env <- asks f
-    runReaderT action env
-
 runCliCommand :: Command -> App ()
 runCliCommand Migrate = App.migrate
-runCliCommand Simulate = localReaderT App.dbConnection Core.simulate
-runCliCommand DbStats = Core.dbStats
 runCliCommand MockWallet = WalletServer.main
 runCliCommand MockNode = NodeServer.main NodeServer.defaultConfig
 runCliCommand WalletClient = liftIO WalletClient.main
