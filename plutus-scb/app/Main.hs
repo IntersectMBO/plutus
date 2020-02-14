@@ -11,7 +11,7 @@ import qualified Cardano.Wallet.Client           as WalletClient
 import qualified Cardano.Wallet.MockServer       as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
 import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Logger            (logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import qualified Data.Aeson                      as JSON
 import qualified Data.ByteString.Lazy.Char8      as BS8
 import           Data.Foldable                   (traverse_)
@@ -242,9 +242,7 @@ main = do
     result <-
         do runApp config $ do
                logInfoN $ "Running: " <> Text.pack (show cmd)
-               result <- runCliCommand cmd
-               logDebugN $ "Ran: " <> Text.pack (show result)
-               pure result
+               runCliCommand cmd
     case result of
         Left err -> do
             runStdoutLoggingT $ logErrorS err
