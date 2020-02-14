@@ -9,7 +9,6 @@ module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
-import           Control.Monad                                 (void)
 import           Control.Monad.Except                          (ExceptT, runExceptT)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Control.Monad.Logger                          (LoggingT, runStderrLoggingT)
@@ -20,52 +19,22 @@ import           Data.Bifunctor                                (first)
 import qualified Data.Set                                      as Set
 import           Data.Text                                     (Text)
 import qualified Data.Text                                     as Text
-import           Eventful                                      (Aggregate, Projection, StreamEvent (StreamEvent),
-                                                                VersionedStreamEvent, aggregateCommandHandler,
-                                                                aggregateProjection, commandStoredAggregate,
-                                                                getLatestStreamProjection, latestProjection, nil,
-                                                                projectionSeed)
+import           Eventful                                      (commandStoredAggregate, getLatestStreamProjection)
 import           Eventful.Store.Memory                         (EventMap, emptyEventMap, stateEventStoreReader,
                                                                 stateEventStoreWriter, stateGlobalEventStoreReader)
 import           Language.Plutus.Contract.Resumable            (ResumableError)
 import           Language.Plutus.Contract.Servant              (initialResponse, runUpdate)
 import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
-import           Ledger.Value                                  (isZero)
-import           Plutus.SCB.Command                            (saveTxAggregate)
+import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Events                             (ChainEvent)
-import qualified Plutus.SCB.Query                              as Query
 import           Plutus.SCB.Types                              (SCBError (ContractCommandError, ContractNotFound))
 import           Test.QuickCheck.Instances.UUID                ()
 import           Test.Tasty                                    (TestTree, testGroup)
-import           Test.Tasty.HUnit                              (HasCallStack, assertEqual, assertFailure, testCase)
-import           Test.Tasty.QuickCheck                         (property, testProperty)
+import           Test.Tasty.HUnit                              (assertEqual, testCase)
 
 tests :: TestTree
-tests =
-    testGroup
-        "SCB.Core"
-        [eventCountTests, trialBalanceTests, installContractTests]
-
-eventCountTests :: TestTree
-eventCountTests =
-    testGroup
-        "saveTx/eventCount"
-        [ testProperty "Overall balance is always 0" $ \txs ->
-              property $
-              isZero $
-              runCommandQueryChain saveTxAggregate Query.trialBalance txs
-        ]
-
-trialBalanceTests :: TestTree
-trialBalanceTests =
-    testGroup
-        "saveTx/trialBalance"
-        [ testProperty "Overall balance is always 0" $ \txs ->
-              property $
-              isZero $
-              runCommandQueryChain saveTxAggregate Query.trialBalance txs
-        ]
+tests = testGroup "SCB.Core" [installContractTests]
 
 installContractTests :: TestTree
 installContractTests =
@@ -107,24 +76,11 @@ installContractTests =
         => StateT (EventMap ChainEvent) (LoggingT (ExceptT SCBError m)) a
         -> m a
     runScenario action = do
-      result <- runExceptT $ runStderrLoggingT $ evalStateT action emptyEventMap
-      case result of
-        Left err    -> error $ show err
-        Right value -> pure value
-
-runCommandQueryChain ::
-       Aggregate aState event command
-    -> Projection pState (VersionedStreamEvent event)
-    -> [command]
-    -> pState
-runCommandQueryChain aggregate projection commands =
-    latestProjection projection $
-    fmap (StreamEvent nil 1) $
-    foldMap
-        (aggregateCommandHandler
-             aggregate
-             (projectionSeed (aggregateProjection aggregate)))
-        commands
+        result <-
+            runExceptT $ runStderrLoggingT $ evalStateT action emptyEventMap
+        case result of
+            Left err    -> error $ show err
+            Right value -> pure value
 
 instance Monad m => MonadEventStore event (StateT (EventMap event) m) where
     refreshProjection = getLatestStreamProjection stateGlobalEventStoreReader
