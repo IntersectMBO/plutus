@@ -26,6 +26,7 @@ import qualified Control.Monad.Freer.Writer     as Eff
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Control.Monad.Logger           (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable                  (traverse_)
+import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import           Data.Proxy                     (Proxy (Proxy))
 import           Data.Text.Prettyprint.Doc      (Pretty (pretty))
@@ -38,7 +39,7 @@ import           Servant                        ((:<|>) ((:<|>)), Application, N
 import           Language.Plutus.Contract.Trace (InitialDistribution)
 import qualified Language.Plutus.Contract.Trace as Trace
 
-import           Ledger                         (Slot, Tx)
+import           Ledger                         (Address, Slot, Tx, TxOut(..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
 import           Cardano.Node.RandomTx
@@ -102,6 +103,11 @@ addBlock :: (Member SimpleLog effs, Member ChainEffect effs) => Eff effs ()
 addBlock = do
     simpleLogInfo "Adding slot"
     void Chain.processBlock
+
+utxoAt :: (Member (State ChainState) effs) => Address -> Eff effs (Map TxOutRef TxOut)
+utxoAt addr = do
+    UtxoIndex idx <- Eff.gets (view EM.index)
+    pure $ Map.filter (\TxOut{txOutAddress} -> txOutAddress == addr) idx
 
 addTx :: (Member SimpleLog effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
 addTx tx = do
@@ -192,7 +198,7 @@ app stateVar =
         (healthcheck
         :<|> addTx
         :<|> getCurrentSlot
-        :<|> genRandomTx)
+        :<|> (genRandomTx :<|> utxoAt))
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
