@@ -5,11 +5,18 @@ module Cardano.Node.API
     ( API
     ) where
 
-import           Ledger      (Slot, Tx)
+import           Data.Map    (Map)
+
+import           Ledger      (Address, Slot, Tx, TxOutRef, TxOut)
 import           Servant.API ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent
        :<|> "mempool" :> ReqBody '[ JSON] Tx :> Post '[ JSON] NoContent
        :<|> "slot" :> Get '[ JSON] Slot
-       :<|> "random-tx" :> Get '[ JSON] Tx
+       :<|> "mock" :> MockAPI
+
+-- Routes that are not guaranteed to exist on the real node
+type MockAPI =
+       "random-tx" :> Get '[ JSON] Tx
+       :<|> "utxo-at" :> ReqBody '[ JSON] Address :> Post '[ JSON] (Map TxOutRef TxOut)
