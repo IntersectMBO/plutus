@@ -39,6 +39,7 @@ import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 
+-- | A class that allows to derive a 'TypeScheme' for a builtin.
 class KnownTypeScheme uni as r where
     knownTypeScheme :: TypeScheme uni as r
 
@@ -48,6 +49,7 @@ instance KnownType uni r => KnownTypeScheme uni '[] r where
 instance (KnownType uni a, KnownTypeScheme uni as r) => KnownTypeScheme uni (a ': as) r where
     knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
 
+-- | Automatically typify a 'BuiltinName'.
 makeTypedBuiltinName :: KnownTypeScheme uni as r => BuiltinName -> TypedBuiltinName uni as r
 makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
 

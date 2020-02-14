@@ -65,22 +65,22 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer where
     toTypeAst _ = mkTyBuiltin @Integer ()
     makeKnown = mkConstant ()
-    readKnown = extractConstant
+    readKnown = unliftConstant
 
 instance (GShow uni, GEq uni, uni `Includes` ByteString16) => KnownType uni ByteString16 where
     toTypeAst _ = mkTyBuiltin @ByteString16 ()
     makeKnown = mkConstant ()
-    readKnown = extractConstant
+    readKnown = unliftConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Char) => KnownType uni Char where
     toTypeAst _ = mkTyBuiltin @Char ()
     makeKnown = mkConstant ()
-    readKnown = extractConstant
+    readKnown = unliftConstant
 
 instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
     toTypeAst _ = mkTyBuiltin @String ()
     makeKnown = mkConstant ()
-    readKnown = extractConstant
+    readKnown = unliftConstant
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool where
     toTypeAst _ = bool
@@ -92,7 +92,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool wher
             integerToTerm = mkConstant @Integer ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b integer) [integerToTerm 1, integerToTerm 0]
-        i <- extractConstant eval term
+        i <- unliftConstant eval term
         case i :: Integer of
             0 -> pure False
             1 -> pure True

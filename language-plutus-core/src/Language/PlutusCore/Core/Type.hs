@@ -1,5 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -54,7 +53,7 @@ newtype Gas = Gas
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Type' assigned to expressions.
 data Type tyname uni ann
@@ -66,7 +65,7 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeIn uni) -- ^ Builtin type
     | TyLam ann (tyname ann) (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | Builtin functions
 data BuiltinName
@@ -110,7 +109,7 @@ data StagedBuiltinName
 data Builtin ann
     = BuiltinName ann BuiltinName
     | DynBuiltinName ann DynamicBuiltinName
-    deriving (Functor, Show, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 data Term tyname name uni ann
     = Var ann (name ann) -- ^ a named variable

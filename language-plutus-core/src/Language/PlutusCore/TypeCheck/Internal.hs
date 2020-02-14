@@ -358,6 +358,7 @@ inferTypeM
 -- -------------------------
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (Of uni _))) =
+    -- See Note [PLC types and universes].
     pure . Normalized . TyBuiltin () $ Some (In uni)
 
 -- [infer| G !- bi : vTy]

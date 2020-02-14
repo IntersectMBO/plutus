@@ -23,10 +23,12 @@ module Language.PlutusCore
     , Closed (..)
     , knownUniOf
     , GShow (..)
+    , show
     , GEq (..)
+    , GLift (..)
+    , type (<:)
     , ByteString16 (..)
     , DefaultUni (..)
-    , type (<:)
     -- * AST
     , Term (..)
     , termSubterms

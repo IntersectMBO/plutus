@@ -49,5 +49,5 @@ insertDynamicBuiltinNameDefinition
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName uni as b -> Type TyName uni ()
+typeOfTypedBuiltinName :: TypedBuiltinName uni as r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme

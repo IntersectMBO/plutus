@@ -89,9 +89,6 @@ newtype GenericExMemoryUsage a = GenericExMemoryUsage { getGenericExMemoryUsage 
 instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUsage a) where
   memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
 
-deriving via GenericExMemoryUsage (a, b)
-  instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
-
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 

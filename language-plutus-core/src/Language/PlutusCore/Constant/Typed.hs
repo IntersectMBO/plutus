@@ -32,7 +32,7 @@ module Language.PlutusCore.Constant.Typed
     , OpaqueTerm (..)
     , readKnownM
     , readKnownBy
-    , extractConstant
+    , unliftConstant
     ) where
 
 import           PlutusPrelude
@@ -309,12 +309,15 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
             Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 
-extractConstant
+-- | Evaluate a term using an evaluator and extract the resulting 'Constant'
+-- (or throw an error if the result is not a 'Constant' or
+-- the constant is not of the expected type).
+unliftConstant
     :: forall a m uni err.
        ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
        , GShow uni, GEq uni, uni `Includes` a)
     => Evaluator Term uni m -> Term TyName Name uni () -> m a
-extractConstant eval term = do
+unliftConstant eval term = do
     res <- eval mempty term
     case res of
         Constant () (Some (Of uniAct x)) -> do
@@ -343,7 +346,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni () where
 
     readKnown eval term = do
         let integer = mkTyBuiltin @Integer ()
-        i <- extractConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer () 1
+        i <- unliftConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer () 1
         if i == (1 :: Integer)
             then pure ()
             else throwingWithCause _UnliftingError "Not an integer-encoded ()" $ Just term

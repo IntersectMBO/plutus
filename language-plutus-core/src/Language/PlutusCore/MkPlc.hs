@@ -74,12 +74,13 @@ builtinNameAsTerm = builtin () . BuiltinName ()
 dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
 dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
 
+-- | Embed a type from a universe into a PLC type.
 mkTyBuiltin
     :: forall a uni tyname ann. uni `Includes` a
     => ann -> Type tyname uni ann
 mkTyBuiltin ann = TyBuiltin ann . Some . In $ knownUni @uni @a
 
--- | Wrap a Haskell value as a PLC term.
+-- | Embed a Haskell value into a PLC term.
 mkConstant
     :: forall a uni term tyname name ann. (TermLike term tyname name uni, uni `Includes` a)
     => ann -> a -> term ann

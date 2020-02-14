@@ -22,10 +22,10 @@ module Language.PlutusCore.Universe.Core
     , Closed (..)
     , type (<:)
     , knownUniOf
-    , GEq (..)
-    , (:~:) (..)
     , GShow (..)
     , gshow
+    , GEq (..)
+    , (:~:) (..)
     , GLift (..)
     ) where
 

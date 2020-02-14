@@ -32,7 +32,32 @@ newtype ByteString16 = ByteString16
 instance Pretty ByteString16 where
     pretty = prettyBytes . unByteString16
 
--- The universe used by default.
+{- Note [PLC types and universes]
+At the moment the default universe is finite and we don't have things like
+
+    DefaultUniList :: !(DefaultUni a) -> DefaultUni [a]
+
+Such a type constructor can be added, but note that this doesn't directly lead to interop between
+Plutus Core and Haskell, i.e. you can't have a meta-list whose elements are of a PLC type.
+You can only have a meta-list constant with elements of a meta-type (i.e. a type from the universe).
+This restriction might be fixable by adding
+
+    DefaultUniPlc :: Type TyName DefaultUni () -> DefaultUni (Term TyName Name DefaultUni ())
+
+to the universe (modulo exact details like 'Type'/'Term' being PLC things rather than general 'ty'
+and 'term' to properly support IR, etc). But that'll require adding support to every procedure
+out there (renaming, normalization, type checking, evaluation, what have you).
+
+There might be another solution: instead of requiring universes to be of kind @* -> *@, we can allow
+universes of any @k -> *@, then we'll need to establish a connection between Haskell @k@ and
+a PLC 'Kind'.
+
+Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
+We already allow builtin names with polymorphic types. There might be a way to utilize this feature
+and have meta-constructors as builtin names. We still have to handle types somehow, though.
+-}
+
+-- | The universe used by default.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni ByteString16
