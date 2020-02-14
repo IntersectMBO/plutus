@@ -53,7 +53,7 @@ app :: Application
 app =
     serve (Proxy @API) $
     hoistServer (Proxy @API) asHandler $
-    wallets :<|> getOwnPubKey :<|> sign :<|>
+    wallets :<|> (getOwnPubKey :<|> sign) :<|>
     capture (selectCoin :<|> allocateAddress)
 
 main :: (MonadIO m, MonadLogger m) => m ()

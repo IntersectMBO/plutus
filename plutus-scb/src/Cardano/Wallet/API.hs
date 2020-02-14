@@ -17,8 +17,8 @@ import           Wallet.Emulator.Wallet (Wallet)
 -- have to be revisited later.
 type API
      = "wallets" :> (Get '[ JSON] [Wallet]
-                     :<|> "active" :> "pubkey" :> Get '[ JSON] PubKey
-                     :<|> "active" :> "sign" :> ReqBody '[JSON] BSL.ByteString :> Post '[ JSON] Signature
+                     :<|> "active" :> ("pubkey" :> Get '[ JSON] PubKey
+                                       :<|> "sign" :> ReqBody '[ JSON] BSL.ByteString :> Post '[ JSON] Signature)
                      :<|> (Capture "walletId" WalletId :> ("coin-selections" :> "random" :> ReqBody '[ JSON] Value :> Get '[ JSON] ( [Value]
                                                                                                                                    , Value)
                                                            :<|> "addresses" :> "new" :> Post '[ JSON] PubKey)))
