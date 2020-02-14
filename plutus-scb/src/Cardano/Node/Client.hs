@@ -5,7 +5,7 @@ module Cardano.Node.Client where
 import           Cardano.Node.API    (API)
 import           Data.Map            (Map)
 import           Data.Proxy          (Proxy (Proxy))
-import           Ledger              (Address, Slot, Tx, TxOutRef, TxOut)
+import           Ledger              (Address, Slot, Tx, TxOut, TxOutRef)
 import           Network.HTTP.Client (defaultManagerSettings, newManager)
 import           Servant             ((:<|>) (..), NoContent)
 import           Servant.Client      (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)

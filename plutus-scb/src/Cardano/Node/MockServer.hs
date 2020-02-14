@@ -39,7 +39,7 @@ import           Servant                        ((:<|>) ((:<|>)), Application, N
 import           Language.Plutus.Contract.Trace (InitialDistribution)
 import qualified Language.Plutus.Contract.Trace as Trace
 
-import           Ledger                         (Address, Slot, Tx, TxOut(..), TxOutRef, UtxoIndex (..))
+import           Ledger                         (Address, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
 import           Cardano.Node.RandomTx

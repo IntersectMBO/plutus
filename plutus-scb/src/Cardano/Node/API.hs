@@ -7,7 +7,7 @@ module Cardano.Node.API
 
 import           Data.Map    (Map)
 
-import           Ledger      (Address, Slot, Tx, TxOutRef, TxOut)
+import           Ledger      (Address, Slot, Tx, TxOut, TxOutRef)
 import           Servant.API ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
 
 type API
