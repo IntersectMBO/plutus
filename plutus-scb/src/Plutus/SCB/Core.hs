@@ -33,60 +33,67 @@ module Plutus.SCB.Core
     , toUUID
     ) where
 
-import           Control.Error.Util              (note)
-import           Control.Monad                   (void)
-import           Control.Monad.Except            (ExceptT, MonadError, throwError)
-import           Control.Monad.Except.Extras     (mapError)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift         (MonadUnliftIO)
-import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN)
-import           Control.Monad.Reader            (MonadReader, ReaderT, ask)
-import           Control.Monad.Trans.Class       (lift)
-import           Data.Aeson                      (FromJSON, ToJSON, withObject, (.:))
-import qualified Data.Aeson                      as JSON
-import           Data.Aeson.Types                (Parser)
-import qualified Data.Aeson.Types                as JSON
-import           Data.Foldable                   (traverse_)
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.UUID                       as UUID
-import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
-                                                  retryOnBusy, runSqlPool)
-import           Eventful                        (Aggregate, EventStoreWriter, GlobalStreamProjection,
-                                                  ProcessManager (ProcessManager), Projection,
-                                                  StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                  VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
-                                                  commandStoredAggregate, getLatestStreamProjection,
-                                                  globalStreamProjection, projectionMapMaybe,
-                                                  serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                                  serializedVersionedEventStoreReader, streamProjectionState,
-                                                  synchronousEventBusWrapper, uuidNextRandom)
-import           Eventful.Store.Sql              (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
-                                                  jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite           (sqliteEventStoreWriter)
-import qualified Language.Plutus.Contract        as Contract
-import qualified Language.Plutus.Contract.Wallet as Wallet
+import           Control.Error.Util                            (note)
+import           Control.Monad                                 (void)
+import           Control.Monad.Except                          (ExceptT, MonadError, throwError)
+import           Control.Monad.Except.Extras                   (mapError)
+import           Control.Monad.IO.Class                        (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift                       (MonadUnliftIO)
+import           Control.Monad.Logger                          (LoggingT, MonadLogger, logDebugN, logInfoN)
+import           Control.Monad.Reader                          (MonadReader, ReaderT, ask)
+import           Control.Monad.Trans.Class                     (lift)
+import           Data.Aeson                                    (FromJSON, ToJSON, withObject, (.:))
+import qualified Data.Aeson                                    as JSON
+import           Data.Aeson.Types                              (Parser)
+import qualified Data.Aeson.Types                              as JSON
+import           Data.Foldable                                 (traverse_)
+import           Data.Map.Strict                               (Map)
+import qualified Data.Map.Strict                               as Map
+import           Data.Set                                      (Set)
+import qualified Data.Set                                      as Set
+import           Data.Text                                     (Text)
+import qualified Data.Text                                     as Text
+import qualified Data.UUID                                     as UUID
+import           Database.Persist.Sqlite                       (ConnectionPool, createSqlitePoolFromInfo,
+                                                                mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
+import           Eventful                                      (Aggregate, EventStoreWriter, GlobalStreamProjection,
+                                                                ProcessManager (ProcessManager), Projection,
+                                                                StreamEvent (StreamEvent), UUID,
+                                                                VersionedEventStoreReader, VersionedStreamEvent,
+                                                                applyProcessManagerCommandsAndEvents,
+                                                                commandStoredAggregate, getLatestStreamProjection,
+                                                                globalStreamProjection, projectionMapMaybe,
+                                                                serializedEventStoreWriter,
+                                                                serializedGlobalEventStoreReader,
+                                                                serializedVersionedEventStoreReader,
+                                                                streamProjectionState, synchronousEventBusWrapper,
+                                                                uuidNextRandom)
+import           Eventful.Store.Sql                            (JSONString, SqlEvent, SqlEventStoreConfig,
+                                                                defaultSqlEventStoreConfig, jsonStringSerializer,
+                                                                sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite                         (sqliteEventStoreWriter)
+import qualified Language.Plutus.Contract                      as Contract
+import qualified Language.Plutus.Contract.Wallet               as Wallet
 import qualified Ledger
-import           Options.Applicative.Help.Pretty (pretty, (<+>))
-import           Plutus.SCB.Command              (installCommand, saveBalancedTx, saveBalancedTxResult,
-                                                  saveContractState)
-import           Plutus.SCB.Events               (ChainEvent (UserEvent),
-                                                  UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Query                (latestContractStatus, monoidProjection, nullProjection, setProjection)
-import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
-                                                  ActiveContractState (ActiveContractState), Contract (Contract),
-                                                  DbConfig (DbConfig), PartiallyDecodedResponse,
-                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
-                                                  activeContract, activeContractId, activeContractPath, contractPath,
-                                                  dbConfigFile, dbConfigPoolSize, hooks, newState,
-                                                  partiallyDecodedResponse)
-import           Plutus.SCB.Utils                (liftError, render, tshow)
-import           Wallet.API                      (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics, logMsg)
-import qualified Wallet.API                      as WAPI
+import           Options.Applicative.Help.Pretty               (pretty, (<+>))
+import           Plutus.SCB.Command                            (installCommand, saveBalancedTx, saveBalancedTxResult,
+                                                                saveContractState)
+import           Plutus.SCB.Events                             (ChainEvent (UserEvent),
+                                                                UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Query                              (latestContractStatus, monoidProjection, nullProjection,
+                                                                setProjection)
+import           Plutus.SCB.Types                              (ActiveContract (ActiveContract),
+                                                                ActiveContractState (ActiveContractState),
+                                                                Contract (Contract), DbConfig (DbConfig),
+                                                                PartiallyDecodedResponse,
+                                                                SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
+                                                                activeContract, activeContractId, activeContractPath,
+                                                                contractPath, dbConfigFile, dbConfigPoolSize, hooks,
+                                                                newState, partiallyDecodedResponse)
+import           Plutus.SCB.Utils                              (liftError, render, tshow)
+import           Wallet.API                                    (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics,
+                                                                logMsg)
+import qualified Wallet.API                                    as WAPI
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
@@ -151,33 +158,48 @@ updateContract uuid endpointName endpointPayload = do
     oldContractState <- liftError $ lookupActiveContractState uuid
     logInfoN "Updating Contract"
     response <- updateContract_ oldContractState endpointName endpointPayload
-    case JSON.parseEither parseUnbalancedTxKey (hooks response) of
-        Left err -> throwError $ ContractCommandError 0 $ Text.pack err
-        Right unbalancedTxs -> do
-            logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
-            balancedTxs :: [Ledger.Tx] <-
-                traverse
-                    (mapError WalletError . Wallet.balanceWallet)
-                    unbalancedTxs
-            traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
+    handleTxHook oldContractState response
+    logInfoN "Done"
+
+parseSingleHook ::
+       MonadError SCBError m
+    => (JSON.Value -> Parser a)
+    -> PartiallyDecodedResponse
+    -> m a
+parseSingleHook parser response =
+    case JSON.parseEither parser (hooks response) of
+        Left err     -> throwError $ ContractCommandError 0 $ Text.pack err
+        Right result -> pure result
+
+handleTxHook ::
+       ( MonadError SCBError m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       )
+    => ActiveContractState
+    -> PartiallyDecodedResponse
+    -> m ()
+handleTxHook oldContractState response = do
+    logInfoN "Handling 'tx' hook."
+    unbalancedTxs <- parseSingleHook txKeyParser response
+    logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
+    balancedTxs :: [Ledger.Tx] <-
+        traverse (mapError WalletError . Wallet.balanceWallet) unbalancedTxs
+    traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
                       --
-            logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
-            balanceResults :: [Ledger.TxId] <- traverse submitTxn balancedTxs
+    logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
+    balanceResults :: [Ledger.TxId] <- traverse submitTxn balancedTxs
                       --
-            traverse_
-                (runCommand saveBalancedTxResult NodeEventSource)
-                balanceResults
+    traverse_ (runCommand saveBalancedTxResult NodeEventSource) balanceResults
                       --
-            let updatedContractState =
-                    oldContractState {partiallyDecodedResponse = response}
-            logInfoN "Storing Updated Contract State"
-            void $
-                runCommand
-                    saveContractState
-                    ContractEventSource
-                    updatedContractState
-            logInfoN . render $ "Updated:" <+> pretty updatedContractState
-            logInfoN "Done"
+    let updatedContractState =
+            oldContractState {partiallyDecodedResponse = response}
+    logInfoN "Storing Updated Contract State"
+    void $ runCommand saveContractState ContractEventSource updatedContractState
+    logInfoN . render $ "Updated:" <+> pretty updatedContractState
 
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
@@ -186,8 +208,8 @@ submitTxn txn = do
     WAPI.submitTxn txn
     pure $ Ledger.txId txn
 
-parseUnbalancedTxKey :: JSON.Value -> Parser [Contract.UnbalancedTx]
-parseUnbalancedTxKey = withObject "tx key" $ \o -> o .: "tx"
+txKeyParser :: JSON.Value -> Parser [Contract.UnbalancedTx]
+txKeyParser = withObject "tx key" $ \o -> o .: "tx"
 
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
