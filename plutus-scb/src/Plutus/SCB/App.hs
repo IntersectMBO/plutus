@@ -66,7 +66,7 @@ instance WalletAPI App where
     sign bs = runWalletClientM $ WalletClient.sign bs
     updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
     watchedAddresses = runWalletClientM WalletClient.getWatchedAddresses
-    startWatching _ = error "UNIMPLEMENTED: startWatching"
+    startWatching = void . runWalletClientM . WalletClient.startWatching
 
 runAppClientM ::
        (Env -> ClientEnv) -> (ServantError -> SCBError) -> ClientM a -> App a
@@ -86,7 +86,7 @@ runNodeClientM = runAppClientM nodeClientEnv NodeClientError
 
 runApp :: DbConfig -> App a -> IO (Either SCBError a)
 runApp dbConfig (App action) =
-    runStdoutLoggingT . filterLogger (\_ level -> level >= LevelDebug) $ do
+    runStdoutLoggingT . filterLogger (\_ level -> level > LevelDebug) $ do
         walletManager <- liftIO $ newManager defaultManagerSettings
         walletBaseUrl <- parseBaseUrl "http://localhost:8081"
         let walletClientEnv = mkClientEnv walletManager walletBaseUrl

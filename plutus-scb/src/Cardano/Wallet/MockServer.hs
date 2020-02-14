@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -10,21 +11,23 @@ module Cardano.Wallet.MockServer
 
 import           Cardano.Wallet.API          (API)
 import           Cardano.Wallet.Types        (WalletId)
-import           Control.Concurrent.STM.TVar (TVar, newTVarIO, readTVarIO)
+import           Control.Concurrent.STM      (atomically)
+import           Control.Concurrent.STM.TVar (TVar, modifyTVar, newTVarIO, readTVarIO)
+import           Control.Lens                (makeLenses, over)
 import           Control.Monad.Except        (ExceptT)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
 import           Control.Monad.Logger        (MonadLogger, logInfoN)
 import           Control.Monad.Reader        (MonadReader, ReaderT, ask, runReaderT)
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.Proxy                  (Proxy (Proxy))
-import           Ledger                      (PubKey, Signature, Value)
-import           Ledger.AddressMap           (AddressMap)
+import           Ledger                      (Address, PubKey, Signature, Value)
+import           Ledger.AddressMap           (AddressMap, addAddress)
 import qualified Ledger.Crypto               as Crypto
 import           Network.Wai.Handler.Warp    (run)
 import           Plutus.SCB.Arbitrary        ()
 import           Plutus.SCB.Utils            (tshow)
-import           Servant                     ((:<|>) ((:<|>)), Application, Handler (Handler), ServantErr, hoistServer,
-                                              serve)
+import           Servant                     ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (NoContent),
+                                              ServantErr, hoistServer, serve)
 import           Servant.Extra               (capture)
 import           Test.QuickCheck             (arbitrary, generate)
 import           Wallet.Emulator.Wallet      (Wallet (Wallet))
@@ -35,6 +38,8 @@ newtype State =
         { _watchedAddresses :: AddressMap
         }
     deriving (Show, Eq)
+
+makeLenses 'State
 
 initialState :: State
 initialState = State {_watchedAddresses = mempty}
@@ -60,6 +65,15 @@ getWatchedAddresses = do
     State {_watchedAddresses} <- liftIO $ readTVarIO tvarState
     pure _watchedAddresses
 
+startWatching ::
+       (MonadIO m, MonadReader (TVar State) m) => Address -> m NoContent
+startWatching address = do
+    tvarState <- ask
+    liftIO $
+        atomically $
+        modifyTVar tvarState (over watchedAddresses (addAddress address))
+    pure NoContent
+
 sign :: Monad m => BSL.ByteString -> m Signature
 sign bs = do
     let privK = EM.walletPrivKey activeWallet
@@ -74,7 +88,8 @@ app :: TVar State -> Application
 app tvarState =
     serve (Proxy @API) $
     hoistServer (Proxy @API) (asHandler tvarState) $
-    wallets :<|> (getOwnPubKey :<|> sign :<|> getWatchedAddresses) :<|>
+    wallets :<|>
+    (getOwnPubKey :<|> sign :<|> getWatchedAddresses :<|> startWatching) :<|>
     capture (selectCoin :<|> allocateAddress)
 
 main :: (MonadIO m, MonadLogger m) => m ()

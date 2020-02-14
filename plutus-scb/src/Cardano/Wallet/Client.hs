@@ -7,9 +7,10 @@ import           Cardano.Wallet.Types   (WalletId)
 import qualified Data.ByteString.Lazy   as BSL
 import           Data.Function          ((&))
 import           Data.Proxy             (Proxy (Proxy))
-import           Ledger                 (PubKey, Signature, Value)
+import           Ledger                 (Address, PubKey, Signature, Value)
 import           Ledger.AddressMap      (AddressMap)
 import           Network.HTTP.Client    (defaultManagerSettings, newManager)
+import           Servant                (NoContent)
 import           Servant.Client         (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
 import           Servant.Extra          (left, right)
 import           Wallet.Emulator.Wallet (Wallet)
@@ -19,12 +20,14 @@ allocateAddress :: WalletId -> ClientM PubKey
 getWatchedAddresses :: ClientM AddressMap
 getWallets :: ClientM [Wallet]
 getOwnPubKey :: ClientM PubKey
+startWatching :: Address -> ClientM NoContent
 sign :: BSL.ByteString -> ClientM Signature
-(getWallets, getOwnPubKey, sign, getWatchedAddresses, selectCoins, allocateAddress) =
+(getWallets, getOwnPubKey, sign, getWatchedAddresses, startWatching, selectCoins, allocateAddress) =
     ( getWallets_
     , getOwnPubKey_
     , sign_
     , getWatchedAddresses_
+    , startWatching_
     , selectCoins_
     , allocateAddress_)
   where
@@ -33,7 +36,8 @@ sign :: BSL.ByteString -> ClientM Signature
     active_ = api & right & left
     getOwnPubKey_ = active_ & left
     sign_ = active_ & right & left
-    getWatchedAddresses_ = active_ & right & right
+    getWatchedAddresses_ = active_ & right & right & left
+    startWatching_ = active_ & right & right & right
     byWalletId = api & right & right
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
