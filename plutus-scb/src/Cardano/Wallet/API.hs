@@ -8,6 +8,7 @@ module Cardano.Wallet.API
 import           Cardano.Wallet.Types   (WalletId)
 import qualified Data.ByteString.Lazy   as BSL
 import           Ledger                 (PubKey, Signature, Value)
+import           Ledger.AddressMap      (AddressMap)
 import           Servant.API            ((:<|>), (:>), Capture, Get, JSON, Post, ReqBody)
 import           Wallet.Emulator.Wallet (Wallet)
 
@@ -18,7 +19,8 @@ import           Wallet.Emulator.Wallet (Wallet)
 type API
      = "wallets" :> (Get '[ JSON] [Wallet]
                      :<|> "active" :> ("pubkey" :> Get '[ JSON] PubKey
-                                       :<|> "sign" :> ReqBody '[ JSON] BSL.ByteString :> Post '[ JSON] Signature)
+                                       :<|> "sign" :> ReqBody '[ JSON] BSL.ByteString :> Post '[ JSON] Signature
+                                       :<|> "watched-addresses" :> Get '[ JSON] AddressMap)
                      :<|> (Capture "walletId" WalletId :> ("coin-selections" :> "random" :> ReqBody '[ JSON] Value :> Get '[ JSON] ( [Value]
                                                                                                                                    , Value)
                                                            :<|> "addresses" :> "new" :> Post '[ JSON] PubKey)))

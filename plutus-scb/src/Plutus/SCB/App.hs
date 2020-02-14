@@ -64,9 +64,9 @@ instance NodeAPI App where
 instance WalletAPI App where
     ownPubKey = runWalletClientM WalletClient.getOwnPubKey
     sign bs = runWalletClientM $ WalletClient.sign bs
-    updatePaymentWithChange _ _ = undefined
-    watchedAddresses = pure mempty
-    startWatching _ = pure ()
+    updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
+    watchedAddresses = runWalletClientM WalletClient.getWatchedAddresses
+    startWatching _ = error "UNIMPLEMENTED: startWatching"
 
 runAppClientM ::
        (Env -> ClientEnv) -> (ServantError -> SCBError) -> ClientM a -> App a
