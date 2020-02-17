@@ -17,6 +17,7 @@ module Language.PlutusIR (
     typeSubtypes,
     Datatype (..),
     datatypeNameString,
+    datatypeIds,
     Recursivity (..),
     Strictness (..),
     Binding (..),
@@ -36,12 +37,15 @@ import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
+import qualified Language.PlutusCore.Name        as PLC
 
 import           Control.Lens               hiding (Strict)
 
 import           Codec.Serialise            (Serialise)
 
 import qualified Data.Text                  as T
+
+import qualified Data.Set as S
 
 import           GHC.Generics               (Generic)
 
@@ -68,6 +72,14 @@ tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
+
+datatypeIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Datatype tyname name a ->  S.Set PLC.Unique
+-- | TODO: perhaps a more general coercible type?
+datatypeIds (Datatype _ tvdecl tvdecls n vdecls) =
+  (n^.PLC.unique.coerced)
+  `S.insert` foldMap (\(TyVarDecl _ tn _) -> S.singleton $ tn^.PLC.unique.coerced) (tvdecl:tvdecls)
+  `S.union` foldMap (\(VarDecl _ vn _)-> S.singleton $  vn^.PLC.unique.coerced) vdecls
+
 
 -- Bindings
 

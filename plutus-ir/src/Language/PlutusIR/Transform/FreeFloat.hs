@@ -1,126 +1,128 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE GADTs            #-}
-module Language.PlutusIR.Transform.FreeFloat where
+module Language.PlutusIR.Transform.FreeFloat (floatTerm) where
 
 import Language.PlutusIR
+import Language.PlutusIR.Free
 import Language.PlutusIR.Analysis.Dependencies
-
-import           Control.Lens
-import Data.Foldable (traverse_)
-
-import qualified Algebra.Graph.AdjacencyMap           as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm           as AM
-import qualified Algebra.Graph.NonEmpty.AdjacencyMap as AMN
 
 import Control.Monad.RWS
 import Control.Monad.State
+import           Control.Lens
+import Data.Foldable (traverse_)
 
 import qualified Language.PlutusCore                as PLC
 import qualified Language.PlutusCore.Name        as PLC
+
+import qualified Algebra.Graph.AdjacencyMap           as AM
+import qualified Algebra.Graph.AdjacencyMap.Algorithm           as AM
+import qualified Algebra.Graph.NonEmpty.AdjacencyMap as AMN (vertexSet)
 
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.IntMap as IM
 
-import Data.List ((\\))
-import qualified Data.List.NonEmpty as LN
 
-import Data.Maybe (fromJust)
-
-import Language.PlutusIR.Parser
-import Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Transform.Rename          ()
-import           Language.PlutusCore.Quote
-import Language.PlutusCore.Pretty
-import qualified Language.PlutusIR.Analysis.Dependencies as D
-
-
-
--- | Each Let has a rank, i.e. the topmost Lambda (location and name) that can enclose the rhs of this Let without having out-of-scope errors
-type Rank = ( Int               -- the depth of the lambda dep
-            , PLC.Unique        --  the name of the lambda dep
+-- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
+-- In other words, this is a pointer to a lambda location in the PIR program.
+type Rank = ( Int               -- ^ the depth of the lambda dep
+            , PLC.Unique        -- ^ the name of the lambda dep
             )
           -- TODO: add instance Monoid Rank
 
-topRank :: Rank
--- | Lets that do not depend on any lambda can be floated at the toplevel using this rank.
-topRank = ( 0
-          , PLC.Unique { PLC.unUnique = -1}
-          )
-
-
-type FloatInfo = M.Map
-                 PLC.Unique -- an identifier introduced by a let-binding
-                 (Rank,--  where this identifier can maximally float upwards to
-                  PLC.Unique)   -- the principal name of the binding (because a binding in Data can introduce multiple identifiers)
-
-type DepthInfo = IM.IntMap      -- depth
-                 (M.Map PLC.Unique            -- lambda name
-                   (S.Set PLC.Unique)  -- let bindings
-                 )
+-- | During the first pass of the AST, a reader context holds the current in-scope stack of lambdas, as "potential ranks" for consideration.
 type Ctx = [Rank] -- the enclosing lambdas in scope that surround a let
 
--- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
--- It is like the first-pass of the SPJ algorithm.
-floatPass1 ::  (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-     => Term tyname name a -> FloatInfo
-floatPass1 t = fst $ execRWS (floatPass1' t :: RWS Ctx () FloatInfo ())
-               []
-               M.empty
+-- | During the first pass of the AST, we accumulate into a state the minimum rank of each lets encountered.
+type RankData = M.Map
+                 PLC.Unique -- ^ the identifier introduced by a let-binding
+                 ( Rank-- ^ the minimum rank for this let binding, i.e. where this identifier can topmost/highest float upwards to
+                 , PLC.Unique   -- ^ a principal name for this binding, used only because a let-Datatype-bind can introduce multiple identifiers
+                 )
+-- | During the second pass of the AST, we transform the 'RankData' to an assoc. list of depth=>lambda=>{let_unique} mappings left to process. This assoc. list is sorted by depth for easier code generation.
+type DepthData = [(Int,         -- ^ the depth
+                    M.Map       -- ^ a mapping of lambdanames belonging to this depth => letidentifiers to float
+                      PLC.Unique    -- ^ a lambda name
+                      (S.Set PLC.Unique)  -- ^ the let bindings that should be floated/placed under this lambda
+                  )
+                 ]
 
-floatPass1' :: (MonadReader Ctx m, MonadState FloatInfo m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-     => Term tyname name a -> m ()
-floatPass1' = \case
+-- | A simple table holding a let identifier to its RHS (a triple of annotation, recursivity, binding).
+type LetTable tyname name a = M.Map PLC.Unique (a, Recursivity, Binding tyname name a)
+
+-- | An arbitrary-minimal rank to signify that a let-binding has no lambda deps, and thus is allowed to float at the *toplevel* of the PIR program.
+topRank :: Rank
+topRank = ( 0                               -- ^ depth of the toplevel
+          , PLC.Unique { PLC.unUnique = -1} -- ^ a dummy unique
+          )
+
+-- | This function takes a 'Term', cleans the 'Term' from all its 'Let'-bindings and stores those lets into a separate table.
+-- Note: the output term is most-likely not a valid PIR program anymore.
+removeLets :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+            => Term tyname name a
+            -> (Term tyname name a, LetTable tyname name a)
+removeLets = flip runState M.empty . removeLets'
+ where removeLets' = \case
+         -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
+         Let a r bs tIn -> do
+           bs' <- traverse (bindingSubterms removeLets') bs
+           let newMap = M.fromList $ fmap (\ b -> (bindingUnique b, (a,r,b))) bs'
+           modify (M.union newMap)
+           removeLets' tIn
+         t -> termSubterms removeLets' t
+
+-- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
+compRanks ::  (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+              => Term tyname name a -> RankData
+compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.empty
+ where
+  addMaxRank freeVars n = do
+    lamRanks <- M.fromList . map (\ l -> (snd l, (l, snd l))) <$> ask
+    modify (\ letRanks -> M.insert
+                          (n^.PLC.unique.coerced)
+                          -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
+                          ( let freeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
+                            in if M.null freeRanks
+                               then topRank
+                               else fst $ maximum freeRanks
+                          , n^.PLC.unique.coerced)
+
+                          letRanks)
+
+  compRanks' = \case
     Let _ NonRec bs tIn -> do
-      lamRanks <- M.fromList . map (\ l -> (snd l, (l, snd l))) <$> ask
       traverse_ (\case
                     TermBind _ _ (VarDecl _ n ty) rhs -> do
-                      floatPass1' rhs -- TODO: perhaps move this to the end of the traversal
-                      let freeVars = freeT ty `S.union` free rhs -- TODO: We traverse too much the AST here , in quadratic time.
-                      modify (\ letRanks -> M.insert
-                                            (n^.PLC.unique.coerced)
+                      compRanks' rhs -- TODO: perhaps move this to the end of the traversal
+                      let freeVars = fType ty `S.union` fTerm rhs -- TODO: We traverse too much the AST here , in quadratic time.
+                        in addMaxRank freeVars n
 
-                                            -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-                                            ((let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
-                                             in if M.null allFreeRanks
-                                                then topRank
-                                                else fst $ maximum allFreeRanks), n^.PLC.unique.coerced)
+                    TypeBind _ (TyVarDecl _ n _k) tyRhs ->
+                      let freeVars = fType tyRhs
+                      in addMaxRank freeVars n
 
-                                            letRanks)
-                    TypeBind _ (TyVarDecl _ n _k) tyRhs -> do
-                      let freeVars = freeT tyRhs
-                      -- TODO: duplicate code
-                      modify (\ letRanks -> M.insert
-                                            (n^.PLC.unique.coerced)
-
-                                            -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-                                            ((let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
-                                             in if M.null allFreeRanks
-                                                then topRank
-                                                else fst $ maximum allFreeRanks), n^.PLC.unique.coerced)
-
-                                            letRanks)
                     DatatypeBind _ dt@(Datatype _ _tvdecl _tvdecls n vdecls) -> do
-                      let freeVars = foldMap (\(VarDecl _ _ ty) -> freeT ty) vdecls
+                      lamRanks <- M.fromList . map (\ l -> (snd l, (l, snd l))) <$> ask
+                      let freeVars = foldMap (\(VarDecl _ _ ty) -> fType ty) vdecls
                       modify (\ letRanks ->
                                  let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
                                      newValue = (if M.null allFreeRanks
                                                  then topRank
                                                  else fst $ maximum allFreeRanks
                                                 , n^.PLC.unique.coerced) -- the principal data name
-                                 in foldr (\ i -> M.insert i newValue) letRanks $ datatypeIdentifiers dt)
+                                 in foldr (\ i -> M.insert i newValue) letRanks $ datatypeIds dt)
                 ) bs
-      floatPass1' tIn
+      compRanks' tIn
 
     Let _ Rec bs tIn -> do
       lamRanks <- M.fromList . map (\ l -> (snd l, (l, snd l))) <$> ask
       indivFreeVars <- S.unions <$> traverse (\case
                                            TermBind _ _ (VarDecl _ _ ty) rhs -> do
-                                             floatPass1' rhs -- TODO: perhaps move this to the end of the traversal
-                                             pure $ freeT ty `S.union` free rhs -- TODO: We traverse too much the AST here , in quadratic time.
-                                           TypeBind _ _ tyRhs -> pure $ freeT tyRhs
-                                           DatatypeBind _ (Datatype _ _ _ _ vdecls) -> pure $ foldMap (\(VarDecl _ _ ty) -> freeT ty) vdecls
+                                             compRanks' rhs -- TODO: perhaps move this to the end of the traversal
+                                             pure $ fType ty `S.union` fTerm rhs -- TODO: We traverse too much the AST here , in quadratic time.
+                                           TypeBind _ _ tyRhs -> pure $ fType tyRhs
+                                           DatatypeBind _ (Datatype _ _ _ _ vdecls) -> pure $ foldMap (\(VarDecl _ _ ty) -> fType ty) vdecls
                                        ) bs
       let groupFreeVars = foldr (S.delete . bindingUnique) indivFreeVars bs --Remove any free var bounds by the whole current letrec-group
 
@@ -131,221 +133,105 @@ floatPass1' = \case
                               then topRank
                               else fst $ maximum allFreeRanks
                 in foldl (\ acc b -> case b of
-                             DatatypeBind _ dt -> foldr (\ i -> M.insert i (maxRank, bindingUnique b)) acc $ datatypeIdentifiers dt
+                             DatatypeBind _ dt -> foldr (\ i -> M.insert i (maxRank, bindingUnique b)) acc $ datatypeIds dt
                              _ -> M.insert (bindingUnique b) (maxRank, bindingUnique b) acc) letRanks bs --every let bound by this group get the same shared maximum ranking.
              )
 
-      floatPass1' tIn
+      compRanks' tIn
 
-    TyAbs _ n _ t -> local (\ ctx ->  ( case ctx of
-                                          [] -> 1
-                                          (d,_):_ -> d+1
-                                      , n ^. PLC.unique . coerced) : ctx)
-                     $ floatPass1' t
-    -- TODO: duplicate code
-    LamAbs _ n _ t -> local (\ ctx ->  ( case ctx of
-                                          [] -> 1
-                                          (d,_):_ -> d+1
-                                      , n ^. PLC.unique . coerced) : ctx)
-                     $ floatPass1' t
-    x -> traverse_ floatPass1' (x ^.. termSubterms)
+    TyAbs _ n _ t -> withLam n $ compRanks' t
+    LamAbs _ n _ t -> withLam n $ compRanks' t
 
-float :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-           => Term tyname name a -> Term tyname name a
-float topTerm = processLam (fst topRank) depthInfo (snd topRank) topTermClean
+    x -> traverse_ compRanks' (x ^.. termSubterms)
+
+  withLam n = local (\ ctx ->  ( case ctx of
+                                   [] -> 1 -- depth of toplevel lambda
+                                   (d,_):_ -> d+1 -- increase depth
+                               , n^.PLC.unique.coerced) : ctx)
+
+
+floatTerm :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
+          => Term tyname name a -> Term tyname name a
+floatTerm pir =
+  let depthData = toDepthData $ compRanks pir -- run the first pass
+  in visitBody (topRank^._1) depthData (topRank^._2) pirClean
  where
-  floatInfo = floatPass1 topTerm
-  depthInfo = IM.toAscList $  toDepthInfo floatInfo
-  (topTermClean, letTable) = extractLets topTerm
+  -- Visiting a term to apply the float transformation
+  visitTerm curDepth remInfo = \case
+      LamAbs a n ty tBody -> LamAbs a n ty $ visitBody  (curDepth+1) remInfo (n ^. PLC.unique . coerced) tBody
+      TyAbs a n k tBody  -> TyAbs a n k $ visitBody  (curDepth+1)  remInfo (n ^. PLC.unique . coerced) tBody
+      t -> over termSubterms (visitTerm curDepth remInfo) t -- descend
+
+  -- Special case of 'visitTerm' where we visit a lambda or a Lambda body
+  visitBody _  [] _ tBody = tBody -- no lets are left to float, do not descend
+  visitBody curDepth depthTable@((searchingForDepth, lams_lets):restDepthTable) u tBody
+    | curDepth < searchingForDepth = visitTerm curDepth depthTable tBody
+    | curDepth == searchingForDepth =
+        let tBody' = visitTerm curDepth restDepthTable tBody
+        in case M.lookup u lams_lets of
+             Just lets -> wrapLets lets curDepth restDepthTable tBody'
+             _ -> tBody'
+    | otherwise = error "just for completion"
+
+  -- TODO: we can transform easily the above visits to a Reader CurDepth
+  -- TODO: using the above pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthDataRemaining instead.
+
+
+  (pirClean, letTable) = removeLets pir
+
+  -- the classic dependency graph, same as the one used by the deadcode elimination transformation
   depGraph = AM.gmap (\case Variable u -> u; _ -> error "just for completion")
-             $ AM.removeVertex Root --we remove Root because we do not care about it right now
-             $ runTermDeps topTerm
-  -- mergedDepGraph = foldr (\ (_,lvlEntry) accGraph ->
-  --                            M.foldr (\ lamEntry accGraph' ->
-  --                                     M.foldrWithKey (\ let1 assocLets accGraph'' ->
-  --                                                       foldr (\ assocLet accGraph''' -> AM.replaceVertex assocLet let1 accGraph''') accGraph'' assocLets
-  --                                                    ) accGraph' lamEntry
-  --                                    ) accGraph lvlEntry
-  --                           ) depGraph depthInfo
-  mergedDepGraph = M.foldr (\ (_,_,b) accGraph ->
+             $ AM.removeVertex Root -- we remove Root because we do not care about it right now
+             $ runTermDeps pir
+
+  -- the dependency graph, but with datatype-related nodes merged/grouped under a single node per datatypebind a, see 'bindingUnique'.
+  reducedDepGraph = M.foldr (\ (_,_,b) accGraph ->
                               case b of
                                 DatatypeBind _ dt -> let princ = bindingUnique b
-                                                     in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph $ datatypeIdentifiers dt
+                                                     in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph $ datatypeIds dt
                                 _ -> accGraph) depGraph letTable
 
-  sortedSccs = fromJust $ AM.topSort $ AM.scc mergedDepGraph :: [AMN.AdjacencyMap PLC.Unique]
+  -- take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
+  -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
+  Just topSortedSccs = AM.topSort $ AM.scc reducedDepGraph
 
-  generateLetLvl' lets curDepth restDepthTable tRest =
+  -- | Tries to wrap a given term with newly-generated Let expression(s), essentially floating some Let-Rhses.
+  -- The given set of lets is not sorted w.r.t. linear scoping, so this function uses the 'topSortedSccs' of the dependency graph,
+  -- to figure out the order in which to generate those new Lets.
+  --
+  -- The resulting term is wrapped with linear-scope-sorted LetRecs and LetNonRecs (interspersed between each other because letnonrec and letrec syntax cannot be combined)
+  -- Example: `let {i = e, ...} in let rec {j = e, ...} in let rec {...} in let {...} in ..... in originalTerm`
+  wrapLets lets curDepth restDepthTable t =
     foldl (\ acc dcc ->
-             let vs = AMN.vertexSet dcc -- TODO: switch to Sets
+             let vs = AMN.vertexSet dcc
              in if vs `S.isSubsetOf` lets -- mandatory check to see if this scc belongs to this rank
                 then
-                  let newBindings = fmap (\ v -> over bindingSubterms (processTerm curDepth restDepthTable) (trdT (letTable M.! v))) $ S.toList vs
-                      newRecurs = foldMap (sndT . (letTable M.!)) vs
+                  let newBindings = fmap (\ v -> over bindingSubterms (visitTerm curDepth restDepthTable) ((letTable M.! v)^._3)) $ S.toList vs
+                      (mAnn, mRecurs) = foldMap (\ v -> let b = letTable M.! v in (b^._1,b^._2)) vs
                   in case acc of
-                       Let accAnn NonRec accBs accIn | newRecurs == NonRec -> -- merge if acc and new is nonrec
-                         Let
-                         (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
-                         NonRec
-                         (newBindings ++ accBs)
-                         accIn
+                       Let accAnn NonRec accBs accIn | mRecurs == NonRec ->
+                         -- merge current let-group with previous let-group if both groups' recursivity is nonrec
+                         Let (accAnn <> mAnn) NonRec (newBindings ++ accBs) accIn
                        _ ->
-                         Let
-                         (fstT $ snd $ M.findMin letTable ) -- FIXME: fix annotation with monoid?
-                         newRecurs
-                         newBindings
-                         acc
+                         -- never merge if the previous let-group is a Rec or the current let-group is Rec,
+                         -- but nest the current let-group under the previous let-group (above)
+                         Let mAnn mRecurs newBindings acc
                else acc -- skip
-             ) tRest sortedSccs
-
-  fstT (a,_,_) = a
-  sndT (_,b,_) = b
-  trdT (_,_,c) = c
-
-  -- TODO: we can transform easily the following processing to a Reader CurDepth
-  -- TODO: using this pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthInfoRemaining instead.
-  processLam _  [] _ lamBody = lamBody
-  processLam curDepth depthTable@((searchingForDepth, lams_lets):restDepthTable) u lamBody =
-    if curDepth < searchingForDepth
-    then processTerm curDepth depthTable lamBody
-    else -- assume/assert curDepth == searchingForDepth
-      (case M.lookup u lams_lets of
-        Just lets -> generateLetLvl' lets curDepth restDepthTable
-        _ -> id)  (processTerm curDepth restDepthTable lamBody)
-  processTerm _ [] = id
-  processTerm curDepth remInfo =
-    \case
-      LamAbs a n ty lamBody -> LamAbs a n ty $ processLam  (curDepth+1) remInfo (n ^. PLC.unique . coerced) lamBody
-      TyAbs a n k lamBody  -> TyAbs a n k $ processLam  (curDepth+1)  remInfo (n ^. PLC.unique . coerced) lamBody
-      Apply a t1 t2 -> Apply a (processTerm curDepth remInfo t1) (processTerm curDepth remInfo t2)
-      TyInst a t ty -> TyInst a (processTerm curDepth remInfo t) ty
-      IWrap a ty1 ty2 t -> IWrap a ty1 ty2 $ processTerm curDepth remInfo t
-      Unwrap a t -> Unwrap a $ processTerm curDepth remInfo t
-      x -> x
+             ) t topSortedSccs
 
 
--- | Given a term, it returns a set of all the FREE variables inside that term (i.e. not declared/scoped inside the term).
-free ::
-  (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-  => Term tyname name a -> S.Set PLC.Unique
-free = \case
-  Var _ x -> S.singleton $ x ^. PLC.unique . coerced
+-- Helpers
+----------
 
-  -- linear scoping on the let non-rec
+toDepthData :: RankData -> DepthData
+toDepthData = IM.toAscList . M.foldr (\ ((depth,lamName), letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) depth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
 
-  -- we don't assume term is renamed, that is why we do this for name shadowing 
-
-  -- TODO: check if termSubterms, termSubtypes can be used and lens + fold
-
-  Let _ NonRec bs tIn -> snd $ foldl (\(accLinearScope,accFreeSet) -> \case
-                              TermBind _ _ (VarDecl _ n ty) tRhs -> ( S.insert (n ^. PLC.unique . coerced) accLinearScope
-                                                                     , (S.union (freeT ty) (free tRhs) S.\\ accLinearScope) `S.union` accFreeSet
-                                                                     )
-                              DatatypeBind _ dt@(Datatype _ _ _ _ vdecls) -> (
-                                -- new linear scope is the introduced identifiers plus the old linear scope
-                                -- add to the next linear scope, all the newly introduced identifiers
-                                datatypeIdentifiers dt `S.union` accLinearScope,
-
-                                -- all Ty occurences of this databind - the previous linear scope
-                                (S.unions (fmap (\(VarDecl _ _ ty) -> freeT ty) vdecls) S.\\ accLinearScope) `S.union` accFreeSet
-                                )
-                              TypeBind _ (TyVarDecl _ n _k) tyRhs -> ( S.insert (n ^. PLC.unique . coerced) accLinearScope
-                                                                     , (freeT tyRhs S.\\ accLinearScope) `S.union` accFreeSet
-                                                                     )
-                                     )
-                             ( S.empty,
-                               free tIn
-                               S.\\   -- removes all the identifiers introduced by this letnonrec
-                               (foldMap (\case
-                                            TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-                                            DatatypeBind _ dt -> datatypeIdentifiers dt
-                                            TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced))
-                                bs)
-                             ) bs
-
-  -- all variables in the letrec are scoped
-  Let _ Rec bs tIn -> foldl (\acc -> \case
-                              TermBind _ _ (VarDecl _ _ ty) tRhs -> S.unions [freeT ty, free tRhs, acc]
-                              DatatypeBind _ (Datatype _ _ _ _ vdecls) -> S.unions $ fmap (\(VarDecl _ _ ty) -> freeT ty) vdecls
-                              TypeBind _ (TyVarDecl _ _ _k) tyRhs -> freeT tyRhs `S.union` acc
-                            ) (free tIn) bs
-                      S.\\      -- removes all the variable names introduced by this letrec
-                      -- TODO: duplicate code
-                      (foldMap (\case
-                              TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-                              DatatypeBind _ dt -> datatypeIdentifiers dt
-                              TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced))
-                       bs)
-
-  TyAbs _ n _ t -> S.delete (n ^. PLC.unique . coerced) $ free t
-  LamAbs _ n ty t -> freeT ty
-                     `S.union`
-                     S.delete (n ^. PLC.unique . coerced) (free t)
-  Apply _ t1 t2 -> free t1 `S.union` free t2
-  TyInst _ t ty -> free t `S.union` freeT ty
-  IWrap _ ty1 ty2 t -> S.unions [freeT ty1, freeT ty2, free t]
-  Unwrap _ t -> free t
-  _ -> S.empty
-
-
-freeT :: (PLC.HasUnique (tyname a) PLC.TypeUnique)
-  => Type tyname a -> S.Set PLC.Unique
-freeT = \case
-  -- occurences
-  TyVar _ n -> S.singleton $ n ^. PLC.unique . coerced
-  TyForall _ n _k ty -> S.insert (n ^. PLC.unique . coerced) $ freeT ty
-
-  -- introduction of type, thus ignore sub-occurrences
-  TyLam _ n _k ty -> S.delete (n ^. PLC.unique . coerced) $ freeT ty
-
-  TyFun _ ty1 ty2 -> S.union (freeT ty1) (freeT ty2)
-  TyIFix _ ty1 ty2 -> S.union (freeT ty1) (freeT ty2)
-  TyApp _ ty1 ty2 -> S.union (freeT ty1) (freeT ty2)
-  TyBuiltin _ _ -> S.empty
-
-toDepthInfo :: FloatInfo -> DepthInfo
-toDepthInfo = M.foldr (\ ((depth,lamName), letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) depth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
-
---toDepthInfo = M.foldrWithKey (\ letName ((depth,lamName),letNamePrincipal) acc -> IM.insertWith (M.unionWith (M.unionWith (++))) depth (M.singleton lamName (M.singleton letNamePrincipal [letName])) acc) IM.empty
-
--- | A table from a let-introduced identifier to its RHS.
-type LetTable tyname name a = M.Map PLC.Unique (a, Recursivity, Binding tyname name a)
-
--- | This function takes a 'Term' and returns the same 'Term' but with all 'Let'-bindings removed and stored into a separate table.
-extractLets :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-                    => Term tyname name a
-                    -> (Term tyname name a
-                       ,LetTable tyname name a
-                       )
-extractLets = flip runState M.empty . extractLets'
- where
-    extractLets' :: (Monad m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-                  => Term tyname name a
-                  -> StateT (LetTable tyname name a) m (Term tyname name a)
-    extractLets' = \case
-          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
-          Let a r bs t' -> do
-
-            bs' <- traverse (bindingSubterms extractLets') bs
-
-            let newMap = M.fromList $
-                                fmap (\ b -> (bindingUnique b, (a,r,b))) bs'
-
-            modify (M.union newMap)
-
-            extractLets' t'
-
-          t -> termSubterms extractLets' t
-
--- | return a single 'Unique' for a particular binding.
--- TODO: maybe remove this boilerplate by having a lens "name" for a Binding
+-- | Returns a single 'Unique' for a particular binding.
+-- We need this because datatypebinds introduce multiple identifiers, but we need only one as a key of our 'LetTable',etc. See also: 'datatypeIdentifiers'
+--
+-- TODO: maybe remove this boilerplate by having a lens "unique" for a Binding
 bindingUnique :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> PLC.Unique
-bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced
-                      TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
-                      DatatypeBind _ (Datatype _ _ _ n _) -> n ^. PLC.unique . coerced -- arbitrary: use the match-function-name as the principal name of the data binding group
+bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
+                      TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
+                      DatatypeBind _ (Datatype _ _ _ n _) -> n ^. PLC.unique . coerced -- arbitrary: uses the match-function's unique as the principal unique of this data binding group
 
-datatypeIdentifiers :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Datatype tyname name a ->  S.Set PLC.Unique
-datatypeIdentifiers (Datatype _ tvdecl tvdecls n vdecls) =
-  (n^.PLC.unique.coerced)
-  `S.insert` foldMap (\(TyVarDecl _ tn _) -> S.singleton $ tn^.PLC.unique.coerced) (tvdecl:tvdecls)
-  `S.union` foldMap (\(VarDecl _ vn _)-> S.singleton $  vn^.PLC.unique.coerced) vdecls
