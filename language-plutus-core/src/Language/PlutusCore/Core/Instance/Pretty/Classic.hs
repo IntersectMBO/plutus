@@ -37,10 +37,11 @@ instance (PrettyClassicBy configName (tyname a), GShow uni) =>
 
         prettyName = prettyBy config
 
-instance ( PrettyClassicBy configName (tyname a)
-         , PrettyClassicBy configName (name a)
-         , GShow uni, Closed uni, uni `Everywhere` Pretty) =>
-        PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
+instance
+        ( PrettyClassicBy configName (tyname a)
+        , PrettyClassicBy configName (name a)
+        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
         a (ConstantF _ b)      = parens' ("con" </> pretty b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)

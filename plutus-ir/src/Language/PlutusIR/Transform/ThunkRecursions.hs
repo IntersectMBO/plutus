@@ -69,17 +69,17 @@ let bindings. Non-strict let bindings are exactly delayed like this, so we can s
 any recursive, non-function bindings to become non-strict bindings.
 -}
 
-isFunctionType :: Type tyname a -> Bool
+isFunctionType :: Type tyname uni a -> Bool
 isFunctionType = \case
     TyFun {} -> True
     _ -> False
 
-thunkBinding :: Binding tyname name a -> Binding tyname name a
+thunkBinding :: Binding tyname name uni a -> Binding tyname name uni a
 thunkBinding = \case
     TermBind x Strict d@(VarDecl _ _ ty) rhs | not $ isFunctionType ty -> TermBind x NonStrict d rhs
     b -> b
 
-thunkRecursions :: Term TyName Name a -> Term TyName Name a
+thunkRecursions :: Term tyname name uni a -> Term tyname name uni a
 thunkRecursions = \case
     -- See Note [Thunking recursions]
     t@(Let _ Rec _ _) -> t
