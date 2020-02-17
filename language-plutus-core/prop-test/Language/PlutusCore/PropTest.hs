@@ -17,7 +17,7 @@ import           Control.Monad.Except
 import           Data.Coolean (Cool)
 import qualified Data.Coolean as Cool
 import qualified Data.Text as Text
-import           Distribution.TestSuite
+import           Test.Tasty.HUnit
 import           Text.Printf
 
 
@@ -32,7 +32,7 @@ type TyPropG = KindG -> ClosedTypeG -> Cool
 testTyProp :: Int      -- ^ Search depth
            -> Kind ann -- ^ Kind for generated types
            -> TyProp   -- ^ Property to test
-           -> IO Progress
+           -> IO ()
 testTyProp depth k typrop = do
   -- NOTE: Any strategy which attempts fairness will crash the search!
   --       These strategies evaluate !=> in *parallel*, and hence attempt
@@ -41,8 +41,8 @@ testTyProp depth k typrop = do
   let kG = fromKind k
   result <- ctrex' OS depth (toTyPropG typrop kG)
   case result of
-    Left  _   -> return . Finished $ Pass
-    Right tyG -> return . Finished $ Fail (errorMsgTyProp kG tyG)
+    Left  _   -> return ()
+    Right tyG -> assertFailure (errorMsgTyProp kG tyG)
 
 
 -- |Generate the error message for a failed `TyProp`.

@@ -234,8 +234,8 @@ test-suite language-plutus-core-test
         ghc-options: -Wmissing-export-lists
 
 test-suite language-plutus-core-prop-test
-    type: detailed-0.9
-    test-module: Tests
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
     hs-source-dirs: prop-test
     other-modules: Language.PlutusCore.Gen.Common
                  , Language.PlutusCore.Gen.Type
@@ -249,12 +249,12 @@ test-suite language-plutus-core-prop-test
                  -Wredundant-constraints -Widentities
     build-depends:
         base -any,
-        Cabal >= 1.9.2,
         language-plutus-core -any,
         lazy-search -any,
         mtl -any,
         size-based -any,
         tasty -any,
+        tasty-hunit -any,
         testing-feat -any,
         text -any
 
