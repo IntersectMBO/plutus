@@ -190,15 +190,14 @@ handleTxHook oldContractState response = do
     logInfoN "Handling 'tx' hook."
     unbalancedTxs <- parseSingleHook txKeyParser response
     logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
-    balancedTxs :: [Ledger.Tx] <-
+    balancedTxs <-
         traverse (mapError WalletError . Wallet.balanceWallet) unbalancedTxs
     traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
-                      --
+    --
     logInfoN $ "Submitting balanced TXs" <> tshow unbalancedTxs
-    balanceResults :: [Ledger.TxId] <- traverse submitTxn balancedTxs
-                      --
+    balanceResults <- traverse submitTxn balancedTxs
     traverse_ (runCommand saveBalancedTxResult NodeEventSource) balanceResults
-                      --
+    --
     let updatedContractState =
             oldContractState {partiallyDecodedResponse = response}
     logInfoN "Storing Updated Contract State"
@@ -219,7 +218,7 @@ handleUtxoAtHook ::
 handleUtxoAtHook oldContractState response = do
     logInfoN "Handling 'utxo-at' hook."
     utxoAts <- parseSingleHook utxoAtKeyParser response
-    traverse (logInfoN . tshow) utxoAts
+    traverse_ (logInfoN . tshow) utxoAts
     logWarnN "UNIMPLEMENTED: handleUtxoAtHook"
 
 -- | A wrapper around the NodeAPI function that returns some more
