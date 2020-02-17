@@ -112,6 +112,8 @@ holesPane selectedHole (Holes holes) =
   let
     kvs = Map.toUnfoldable holes
 
+    sortHoles = compare `on` (head <<< Set.toUnfoldable <<< snd)
+
     ordered = sortBy sortHoles kvs
 
     holesGroup = map (\(Tuple k v) -> displayHole selectedHole k v) ordered
@@ -123,8 +125,6 @@ holesPane selectedHole (Holes holes) =
           ]
           holesGroup
       ]
-  where
-  sortHoles = compare `on` (head <<< Set.toUnfoldable <<< snd)
 
 displayHole :: forall p. Maybe String -> String -> Set MarloweHole -> HTML p HAction
 displayHole selectedHole name holes =
