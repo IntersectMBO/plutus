@@ -11,11 +11,13 @@ import           Language.PlutusCore.Gen.Common
 import           Language.PlutusCore.Gen.Type
 import           Language.PlutusCore.Pretty
 
-import           Control.Search (ctrex', Options (..))
+import           Control.Search
 import           Control.Monad.Except
 
-import           Data.Coolean (Cool, (!=>))
+import           Data.Coolean (Cool)
+import qualified Data.Coolean as Cool
 import qualified Data.Text as Text
+import           Distribution.TestSuite
 import           Text.Printf
 
 
@@ -30,7 +32,7 @@ type TyPropG = KindG -> ClosedTypeG -> Cool
 testTyProp :: Int      -- ^ Search depth
            -> Kind ann -- ^ Kind for generated types
            -> TyProp   -- ^ Property to test
-           -> IO ()
+           -> IO Progress
 testTyProp depth k typrop = do
   -- NOTE: Any strategy which attempts fairness will crash the search!
   --       These strategies evaluate !=> in *parallel*, and hence attempt
@@ -39,14 +41,14 @@ testTyProp depth k typrop = do
   let kG = fromKind k
   result <- ctrex' OS depth (toTyPropG typrop kG)
   case result of
-    Left  _   -> return ()
-    Right tyG -> error (errorMsgTyProp kG tyG)
+    Left  _   -> return . Finished $ Pass
+    Right tyG -> return . Finished $ Fail (errorMsgTyProp kG tyG)
 
 
 -- |Generate the error message for a failed `TyProp`.
 errorMsgTyProp :: KindG -> ClosedTypeG -> String
 errorMsgTyProp kG tyG =
-  case run (inferKind defOffChainConfig =<< liftQuote tyQ) of
+  case runTCM (inferKind defOffChainConfig =<< liftQuote tyQ) of
     Left err ->
       printf "Counterexample found: %s, generated for kind %s\n%s"
         (show (pretty ty)) (show (pretty k1)) (show (prettyPlcClassicDef err))
@@ -54,8 +56,8 @@ errorMsgTyProp kG tyG =
       printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
         (show (pretty ty)) (show (pretty k1)) (show (pretty k2))
   where
-    run :: ExceptT (TypeError ()) Quote a -> Either (TypeError ()) a
-    run = runQuote . runExceptT
+    runTCM :: ExceptT (TypeError ()) Quote a -> Either (TypeError ()) a
+    runTCM = runQuote . runExceptT
 
     tyQ = toClosedType tynames kG tyG :: Quote (Type TyName ())
     ty  = runQuote tyQ                :: Type TyName ()
@@ -64,7 +66,7 @@ errorMsgTyProp kG tyG =
 
 -- |Convert a `TyProp` to the internal representation of types.
 toTyPropG :: TyProp -> TyPropG
-toTyPropG typrop kG tyG = tyG_ok !=> typrop_ok
+toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
   where
     tyG_ok    = checkClosedTypeG kG tyG
     typrop_ok = typrop (toKind kG) (toClosedType tynames kG tyG)

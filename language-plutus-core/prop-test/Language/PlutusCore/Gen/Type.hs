@@ -99,7 +99,7 @@ toType ns _ (TyVarG i) =
 toType ns TypeG (TyFunG ty1 ty2) =
   TyFun () <$> toType ns TypeG ty1 <*> toType ns TypeG ty2
 toType ns TypeG (TyIFixG ty1 k ty2) =
-  TyIFix () <$> toType ns k' ty1 <*> toType ns TypeG ty2
+  TyIFix () <$> toType ns k' ty1 <*> toType ns k ty2
   where
     k' = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
 toType ns TypeG (TyForallG k ty) = do
@@ -168,7 +168,7 @@ checkTypeG kcs TypeG (TyIFixG ty1 k ty2)
   where
     ty1Kind   = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
     ty1KindOk = checkTypeG kcs ty1Kind ty1
-    ty2KindOk = checkTypeG kcs TypeG ty2
+    ty2KindOk = checkTypeG kcs k ty2
 
 checkTypeG kcs TypeG (TyForallG k body)
   = tyKindOk
