@@ -148,12 +148,14 @@ For the zero coupon example above, with a threshold of 34, the compressed serial
 the minimal size (8149 bytes) occurred for thresholds between 128 and 143, and then the size
 increased to a maximum of 9360 for large thresholds where nothing was Merklised at all.
 
-When all of the validators were examined, it turned out that the uncompressed validator was always smallest
-with a threshold of 34 (and nearby values), but the minimal size of the compressed version occurred at 
-different thresholds, but a threshold of 150 always gave something less than 50 bytes larger than the optimal 
-one.  The figures in the next section use this threshold in order to get Merklisation
-results close to the best possible, in order to see how well Merklisation performed in
-comparison with doing no Merklisation at all.
+When all of the validators were examined, it turned out that the
+uncompressed validator was always smallest with a threshold of 34 (and
+nearby values). The minimal size of the compressed version occurred at
+different thresholds, but a threshold of 150 always gave something
+less than 50 bytes larger than the optimal one.  The figures in the
+next section use these thresholds in order to get Merklisation results
+close to the best possible so that we can see how well Merklisation
+performs in comparison with doing no Merklisation at all.
 
 ### Results
 The table below shows various numbers for the validators appearing in the tests.  As an experiment
