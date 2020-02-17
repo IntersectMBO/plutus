@@ -7,8 +7,8 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Cardano.Node.MockServer(
-    MockServerConfig(..)
+module Cardano.Node.MockServer
+    ( MockServerConfig(..)
     , defaultConfig
     , main
     ) where
@@ -79,20 +79,10 @@ defaultConfig =
         , mscSlotLength = 5
         , mscRandomTxInterval = Just 20
         , mscInitialDistribution = Trace.defaultDist
-        , mscBlockReaper = Just BlockReaperConfig{brcInterval = 600, brcBlocksToKeep = 100 }
+        , mscBlockReaper =
+              Just BlockReaperConfig {brcInterval = 600, brcBlocksToKeep = 100}
         }
 
--- Spec:
--- Radu: You get block data, you get headers data and you can submit balanced transactions.
--- Index is a client of the node.
--- As it receives new blocks it will index whatever information it needs and perform different tasks.
--- contract
--- ---> (unabalanced tx) @ wallet
--- ---> (balanced tx) @ contract / network
--- ---> .. blockchain updates ..
--- ---> @node-client (incoming blocks)
--- ---> @index
--- ---> (confirmed K-blocks after tx that you care about event) @ contract
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
@@ -104,39 +94,44 @@ addBlock = do
     simpleLogInfo "Adding slot"
     void Chain.processBlock
 
-utxoAt :: (Member (State ChainState) effs) => Address -> Eff effs (Map TxOutRef TxOut)
+utxoAt ::
+       (Member (State ChainState) effs)
+    => Address
+    -> Eff effs (Map TxOutRef TxOut)
 utxoAt addr = do
     UtxoIndex idx <- Eff.gets (view EM.index)
-    pure $ Map.filter (\TxOut{txOutAddress} -> txOutAddress == addr) idx
+    pure $ Map.filter (\TxOut {txOutAddress} -> txOutAddress == addr) idx
 
-addTx :: (Member SimpleLog effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
+addTx ::
+       (Member SimpleLog effs, Member ChainEffect effs)
+    => Tx
+    -> Eff effs NoContent
 addTx tx = do
-    simpleLogInfo  $ "Adding tx " <> tshow (Ledger.txId tx)
+    simpleLogInfo $ "Adding tx " <> tshow (Ledger.txId tx)
     simpleLogDebug $ tshow (pretty tx)
     Chain.queueTx tx
     pure NoContent
 
-type NodeServerEffects m = [GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
+type NodeServerEffects m
+     = '[ GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
 
 ------------------------------------------------------------
-
 runChainEffects ::
-        ( MonadIO m, MonadLogger m )
-        => MVar ChainState
-        -> Eff (NodeServerEffects m) a
-        -> m ([ChainEvent], a)
+       (MonadIO m, MonadLogger m)
+    => MVar ChainState
+    -> Eff (NodeServerEffects m) a
+    -> m ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
-    ((a, newState), events) <- runSimpleLog
-        $ Eff.runWriter
-        $ Eff.runState oldState
-        $ Chain.handleChain
-        $ runGenRandomTx eff
+    ((a, newState), events) <-
+        runSimpleLog $
+        Eff.runWriter $
+        Eff.runState oldState $ Chain.handleChain $ runGenRandomTx eff
     liftIO $ putMVar stateVar newState
     pure (events, a)
 
 processChainEffects ::
-    ( MonadIO m, MonadLogger m )
+       (MonadIO m, MonadLogger m)
     => MVar ChainState
     -> Eff (NodeServerEffects m) a
     -> m a
@@ -144,19 +139,14 @@ processChainEffects stateVar eff = do
     (events, result) <- runChainEffects stateVar eff
     -- TODO: We need to process the events instead of just printing them out
     -- Process = add them to some internal queue that the clients can consume
-    traverse_ (logDebugN . tshow . pretty) events
+    traverse_ (\event -> logDebugN $ "Event: " <> tshow (pretty event)) events
     pure result
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
 slotCoordinator ::
-    ( MonadIO m
-    , MonadLogger m
-    )
-    => Second
-    -> MVar ChainState
-    -> m ()
-slotCoordinator slotLength  stateVar =
+       (MonadIO m, MonadLogger m) => Second -> MVar ChainState -> m ()
+slotCoordinator slotLength stateVar =
     forever $ do
         void $ processChainEffects stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
@@ -164,12 +154,7 @@ slotCoordinator slotLength  stateVar =
 -- | Generates a random transaction once in each 'mscRandomTxInterval' of the
 --   config
 transactionGenerator ::
-    ( MonadIO m
-    , MonadLogger m
-    )
-    => Second
-    -> MVar ChainState
-    -> m ()
+       (MonadIO m, MonadLogger m) => Second -> MVar ChainState -> m ()
 transactionGenerator itvl stateVar =
     forever $ do
         void $ processChainEffects stateVar (genRandomTx >>= addTx)
@@ -178,15 +163,16 @@ transactionGenerator itvl stateVar =
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
-    ( MonadIO m
-    , MonadLogger m
-    )
+       (MonadIO m, MonadLogger m)
     => BlockReaperConfig
     -> MVar ChainState
     -> m ()
-blockReaper BlockReaperConfig{brcInterval, brcBlocksToKeep} stateVar =
+blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} stateVar =
     forever $ do
-        void $ processChainEffects stateVar (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
+        void $
+            processChainEffects
+                stateVar
+                (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
 
 app :: MVar ChainState -> Application
@@ -195,32 +181,39 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (runStdoutLoggingT . processChainEffects stateVar)
-        (healthcheck
-        :<|> addTx
-        :<|> getCurrentSlot
-        :<|> (genRandomTx :<|> utxoAt))
+        (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
+         (genRandomTx :<|> utxoAt))
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
-    let MockServerConfig{mscPort, mscInitialDistribution, mscRandomTxInterval, mscBlockReaper, mscSlotLength} = config
+    let MockServerConfig { mscPort
+                         , mscInitialDistribution
+                         , mscRandomTxInterval
+                         , mscBlockReaper
+                         , mscSlotLength
+                         } = config
     stateVar <- liftIO $ newMVar (initialChainState mscInitialDistribution)
     logInfoN "Starting slot coordination thread."
-    void $ liftIO $ forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength stateVar
+    void $
+        liftIO $
+        forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength stateVar
     case mscRandomTxInterval of
         Nothing -> logInfoN "No random transactions will be generated."
         Just i -> do
             logInfoN "Starting transaction generator thread."
-            void $ liftIO $ forkIO $ runStdoutLoggingT $ transactionGenerator i stateVar
+            void $
+                liftIO $
+                forkIO $ runStdoutLoggingT $ transactionGenerator i stateVar
     case mscBlockReaper of
         Nothing -> logInfoN "Old blocks will be kept in memory forever"
         Just cfg -> do
             logInfoN "Starting block reaper thread."
-            void $ liftIO $ forkIO $ runStdoutLoggingT $ blockReaper cfg stateVar
+            void $
+                liftIO $ forkIO $ runStdoutLoggingT $ blockReaper cfg stateVar
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ Warp.run mscPort $ app stateVar
 
 initialChainState :: InitialDistribution -> ChainState
 initialChainState =
-    view EM.chainState
-    . MultiAgent.emulatorStateInitialDist
-    . Map.mapKeys EM.walletPubKey
+    view EM.chainState .
+    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
