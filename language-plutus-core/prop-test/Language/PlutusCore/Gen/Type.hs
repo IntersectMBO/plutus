@@ -4,44 +4,22 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module Language.PlutusCore.Type.Gen
+module Language.PlutusCore.Gen.Type
   ( KindG (..)
   , TypeBuiltinG (..)
   , TypeG (..)
+  , ClosedTypeG
   , toClosedType
   , checkClosedTypeG
+  , toKind
   ) where
 
-import Language.PlutusCore (Type(..), TypeBuiltin(..), Kind(..))
-import Control.Enumerable
-import Data.Coolean
-import Text.Printf
-
-
-
--- * Enumerating deBruijn indices
-
-data Z
-  deriving (Typeable, Eq, Show)
-
-data S n
-  = FZ
-  | FS n
-  deriving (Typeable, Eq, Show)
-
-instance Enumerable Z where
-  enumerate = datatype []
-
-instance Enumerable n => Enumerable (S n) where
-  enumerate = share $ aconcat
-    [ c0 FZ
-    , c1 FS
-    ]
-
--- |Absurd for the zero type.
-fromZ :: Z -> a
-fromZ i = i `seq` error "instance of empty type Z"
-
+import           Language.PlutusCore
+import           Language.PlutusCore.Gen.Common
+import           Control.Enumerable
+import           Data.Coolean
+import qualified Data.Text as Text
+import           Text.Printf
 
 
 -- * Enumerating kinds
@@ -95,27 +73,43 @@ $(deriveEnumerable ''TypeG)
 
 
 -- |Convert well-kinded generated types to Plutus types.
-toType :: Show n
-       => NS tyname n -- ^ Namespace
-       -> KindG       -- ^ Kind of the Type below
-       -> TypeG n     -- ^ Type to convert
-       -> Type tyname ()
-toType ns _ (TyVarG i) = TyVar () (nameOf ns i)
-toType ns TypeG (TyFunG ty1 ty2) = TyFun () (toType ns TypeG ty1) (toType ns TypeG ty2)
-toType ns TypeG (TyIFixG ty1 k ty2) = TyIFix () (toType ns k' ty1) (toType ns TypeG ty2)
+--
+-- NOTE: Passes an explicit `TyNameState`, instead of using a State monad,
+--       as the type of the `TyNameState` changes throughout the computation.
+--       Alternatively, this could be written using an indexed State monad.
+--
+-- NOTE: The error types in Language.PlutusCore.Error are closed, and hence it
+--       isn't possible to define new possible errors without introducing them
+--       for the full language. Since conversion errors always indicate an
+--       internal error in `checkKindG`, I'm deciding to just use `error`.
+toType
+  :: (Show n, MonadQuote m)
+  => TyNameState n      -- ^ Type name environment with fresh name stream
+  -> KindG              -- ^ Kind of type below
+  -> TypeG n            -- ^ Type to convert
+  -> m (Type TyName ())
+toType ns _ (TyVarG i) =
+  return (TyVar () (tynameOf ns i))
+toType ns TypeG (TyFunG ty1 ty2) =
+  TyFun () <$> toType ns TypeG ty1 <*> toType ns TypeG ty2
+toType ns TypeG (TyIFixG ty1 k ty2) =
+  TyIFix () <$> toType ns k' ty1 <*> toType ns TypeG ty2
   where
     k' = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
-toType ns TypeG (TyForallG k ty) = TyForall () (nameOf ns' FZ) (toKind k) (toType ns' TypeG ty)
-  where
-    ns' = extendNS ns
-toType _ _ (TyBuiltinG tyBuiltin) = TyBuiltin () (toTypeBuiltin tyBuiltin)
-toType ns (KindArrowG k1 k2) (TyLamG ty) = TyLam () (nameOf ns' FZ) (toKind k1) (toType ns' k2 ty)
-  where
-    ns' = extendNS ns
-toType ns k2 (TyAppG ty1 ty2 k1) = TyApp () (toType ns k' ty1) (toType ns k1 ty2)
+toType ns TypeG (TyForallG k ty) = do
+  ns' <- extendTyNameState ns
+  TyForall () (tynameOf ns' FZ) (toKind k) <$> toType ns' TypeG ty
+toType _ _ (TyBuiltinG tyBuiltin) =
+  return (TyBuiltin () (toTypeBuiltin tyBuiltin))
+toType ns (KindArrowG k1 k2) (TyLamG ty) = do
+  ns' <- extendTyNameState ns
+  TyLam () (tynameOf ns' FZ) (toKind k1) <$> toType ns' k2 ty
+toType ns k2 (TyAppG ty1 ty2 k1) =
+  TyApp () <$> toType ns k' ty1 <*> toType ns k1 ty2
   where
     k' = k1 `KindArrowG` k2
-toType _ k ty = error (printf "toType: convert type %s at kind %s" (show ty) (show k))
+toType _ k ty =
+  error (printf "toType: convert type %s at kind %s" (show ty) (show k))
 
 
 
@@ -125,23 +119,13 @@ type ClosedTypeG = TypeG Z
 
 
 -- |Convert generated closed types to Plutus types.
-toClosedType :: [tyname ()] -> KindG -> ClosedTypeG -> Type tyname ()
-toClosedType fresh = toType NS{ nameOf = fromZ, fresh = fresh }
-
-
-
--- * Namespaces
-
-data NS tyname n = NS { nameOf :: n -> tyname (), fresh :: [tyname ()] }
-
-
--- |Extend the type name map with a fresh name.
-extendNS :: forall tyname n. NS tyname n -> NS tyname (S n)
-extendNS NS{..} = NS{ nameOf = nameOf', fresh = tail fresh }
-  where
-    nameOf' :: S n -> tyname ()
-    nameOf' FZ = head fresh
-    nameOf' (FS i) = nameOf i
+toClosedType
+  :: (MonadQuote m)
+  => [Text.Text]
+  -> KindG
+  -> ClosedTypeG
+  -> m (Type TyName ())
+toClosedType strs = toType (emptyTyNameState strs)
 
 
 
