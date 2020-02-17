@@ -33,60 +33,70 @@ module Plutus.SCB.Core
     , toUUID
     ) where
 
-import           Control.Error.Util              (note)
-import           Control.Monad                   (void)
-import           Control.Monad.Except            (ExceptT, MonadError, throwError)
-import           Control.Monad.Except.Extras     (mapError)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift         (MonadUnliftIO)
-import           Control.Monad.Logger            (LoggingT, MonadLogger, logDebugN, logInfoN)
-import           Control.Monad.Reader            (MonadReader, ReaderT, ask)
-import           Control.Monad.Trans.Class       (lift)
-import           Data.Aeson                      (FromJSON, ToJSON, withObject, (.:))
-import qualified Data.Aeson                      as JSON
-import           Data.Aeson.Types                (Parser)
-import qualified Data.Aeson.Types                as JSON
-import           Data.Foldable                   (traverse_)
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.UUID                       as UUID
-import           Database.Persist.Sqlite         (ConnectionPool, createSqlitePoolFromInfo, mkSqliteConnectionInfo,
-                                                  retryOnBusy, runSqlPool)
-import           Eventful                        (Aggregate, EventStoreWriter, GlobalStreamProjection,
-                                                  ProcessManager (ProcessManager), Projection,
-                                                  StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                  VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
-                                                  commandStoredAggregate, getLatestStreamProjection,
-                                                  globalStreamProjection, projectionMapMaybe,
-                                                  serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                                  serializedVersionedEventStoreReader, streamProjectionState,
-                                                  synchronousEventBusWrapper, uuidNextRandom)
-import           Eventful.Store.Sql              (JSONString, SqlEvent, SqlEventStoreConfig, defaultSqlEventStoreConfig,
-                                                  jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite           (sqliteEventStoreWriter)
-import qualified Language.Plutus.Contract        as Contract
-import qualified Language.Plutus.Contract.Wallet as Wallet
+import           Control.Error.Util                            (note)
+import           Control.Monad                                 (void)
+import           Control.Monad.Except                          (ExceptT, MonadError, throwError)
+import           Control.Monad.Except.Extras                   (mapError)
+import           Control.Monad.IO.Class                        (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift                       (MonadUnliftIO)
+import           Control.Monad.Logger                          (LoggingT, MonadLogger, logDebugN, logInfoN, logWarnN)
+import           Control.Monad.Reader                          (MonadReader, ReaderT, ask)
+import           Control.Monad.Trans.Class                     (lift)
+import           Data.Aeson                                    (FromJSON, ToJSON, withArray, withObject, (.:))
+import qualified Data.Aeson                                    as JSON
+import           Data.Aeson.Types                              (Parser)
+import qualified Data.Aeson.Types                              as JSON
+import           Data.Foldable                                 (traverse_)
+import           Data.Map.Strict                               (Map)
+import qualified Data.Map.Strict                               as Map
+import           Data.Set                                      (Set)
+import qualified Data.Set                                      as Set
+import           Data.Text                                     (Text)
+import qualified Data.Text                                     as Text
+import qualified Data.UUID                                     as UUID
+import qualified Data.Vector                                   as Vector
+import           Database.Persist.Sqlite                       (ConnectionPool, createSqlitePoolFromInfo,
+                                                                mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
+import           Eventful                                      (Aggregate, EventStoreWriter, GlobalStreamProjection,
+                                                                ProcessManager (ProcessManager), Projection,
+                                                                StreamEvent (StreamEvent), UUID,
+                                                                VersionedEventStoreReader, VersionedStreamEvent,
+                                                                applyProcessManagerCommandsAndEvents,
+                                                                commandStoredAggregate, getLatestStreamProjection,
+                                                                globalStreamProjection, projectionMapMaybe,
+                                                                serializedEventStoreWriter,
+                                                                serializedGlobalEventStoreReader,
+                                                                serializedVersionedEventStoreReader,
+                                                                streamProjectionState, synchronousEventBusWrapper,
+                                                                uuidNextRandom)
+import           Eventful.Store.Sql                            (JSONString, SqlEvent, SqlEventStoreConfig,
+                                                                defaultSqlEventStoreConfig, jsonStringSerializer,
+                                                                sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite                         (sqliteEventStoreWriter)
+import qualified Language.Plutus.Contract                      as Contract
+import           Language.Plutus.Contract.Effects.UtxoAt       (UtxoAtAddress)
+import           Language.Plutus.Contract.Effects.WatchAddress (AddressSet)
+import qualified Language.Plutus.Contract.Wallet               as Wallet
 import qualified Ledger
-import           Options.Applicative.Help.Pretty (pretty, (<+>))
-import           Plutus.SCB.Command              (installCommand, saveBalancedTx, saveBalancedTxResult,
-                                                  saveContractState)
-import           Plutus.SCB.Events               (ChainEvent (UserEvent),
-                                                  UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Query                (latestContractStatus, monoidProjection, nullProjection, setProjection)
-import           Plutus.SCB.Types                (ActiveContract (ActiveContract),
-                                                  ActiveContractState (ActiveContractState), Contract (Contract),
-                                                  DbConfig (DbConfig), PartiallyDecodedResponse,
-                                                  SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
-                                                  activeContract, activeContractId, activeContractPath, contractPath,
-                                                  dbConfigFile, dbConfigPoolSize, hooks, newState,
-                                                  partiallyDecodedResponse)
-import           Plutus.SCB.Utils                (liftError, render, tshow)
-import           Wallet.API                      (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics, logMsg)
-import qualified Wallet.API                      as WAPI
+import           Options.Applicative.Help.Pretty               (pretty, (<+>))
+import           Plutus.SCB.Command                            (installCommand, saveBalancedTx, saveBalancedTxResult,
+                                                                saveContractState)
+import           Plutus.SCB.Events                             (ChainEvent (UserEvent),
+                                                                UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Query                              (latestContractStatus, monoidProjection, nullProjection,
+                                                                setProjection)
+import           Plutus.SCB.Types                              (ActiveContract (ActiveContract),
+                                                                ActiveContractState (ActiveContractState),
+                                                                Contract (Contract), DbConfig (DbConfig),
+                                                                PartiallyDecodedResponse,
+                                                                SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
+                                                                activeContract, activeContractId, activeContractPath,
+                                                                contractPath, dbConfigFile, dbConfigPoolSize, hooks,
+                                                                newState, partiallyDecodedResponse)
+import           Plutus.SCB.Utils                              (liftError, render, tshow)
+import           Wallet.API                                    (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics,
+                                                                logMsg)
+import qualified Wallet.API                                    as WAPI
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
@@ -152,6 +162,7 @@ updateContract uuid endpointName endpointPayload = do
     logInfoN "Updating Contract"
     response <- updateContract_ oldContractState endpointName endpointPayload
     handleTxHook oldContractState response
+    handleUtxoAtHook oldContractState response
     logInfoN "Done"
 
 parseSingleHook ::
@@ -194,6 +205,23 @@ handleTxHook oldContractState response = do
     void $ runCommand saveContractState ContractEventSource updatedContractState
     logInfoN . render $ "Updated:" <+> pretty updatedContractState
 
+handleUtxoAtHook ::
+       ( MonadError SCBError m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       )
+    => ActiveContractState
+    -> PartiallyDecodedResponse
+    -> m ()
+handleUtxoAtHook oldContractState response = do
+    logInfoN "Handling 'utxo-at' hook."
+    utxoAts <- parseSingleHook utxoAtKeyParser response
+    traverse (logInfoN . tshow) utxoAts
+    logWarnN "UNIMPLEMENTED: handleUtxoAtHook"
+
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
 submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.TxId
@@ -203,6 +231,9 @@ submitTxn txn = do
 
 txKeyParser :: JSON.Value -> Parser [Contract.UnbalancedTx]
 txKeyParser = withObject "tx key" $ \o -> o .: "tx"
+
+utxoAtKeyParser :: JSON.Value -> Parser [Ledger.Address]
+utxoAtKeyParser = withObject "utxo-at key" $ \o -> o .: "utxo-at"
 
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
