@@ -92,6 +92,7 @@ recursion :: TestNested
 recursion = testNested "recursion"
     [ goldenPlcFromPir term "even3"
     , goldenEvalPir term "even3Eval"
+    , goldenPlcFromPir term "stupidZero"
     , goldenPlcFromPir term "mutuallyRecursiveValues"
     ]
 

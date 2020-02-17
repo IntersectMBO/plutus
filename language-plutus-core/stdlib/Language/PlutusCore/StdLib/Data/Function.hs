@@ -9,9 +9,14 @@ module Language.PlutusCore.StdLib.Data.Function
     , selfData
     , unroll
     , fix
+    , fixAndType
+    , fixBy
+    , fixByAndType
     , fixN
+    , fixNAndType
     , FunctionDef (..)
     , getMutualFixOf
+    , getSingleFixOf
     ) where
 
 import           PlutusPrelude
@@ -104,7 +109,10 @@ unroll = runQuote $ do
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
 fix :: TermLike term TyName Name => term ()
-fix = runQuote $ do
+fix = fst fixAndType
+
+fixAndType :: TermLike term TyName Name => (term (), Type TyName ())
+fixAndType = runQuote $ do
     let RecursiveType self wrapSelf = selfData
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -114,18 +122,24 @@ fix = runQuote $ do
     let funAB = TyFun () (TyVar () a) $ TyVar () b
         unrollFunAB = tyInst () unroll funAB
     let selfFunAB = TyApp () self funAB
-    return
-        . tyAbs () a (Type ())
-        . tyAbs () b (Type ())
-        . lamAbs () f (TyFun () funAB funAB)
-        . apply () unrollFunAB
-        . wrapSelf [funAB]
-        . lamAbs () s selfFunAB
-        . lamAbs () x (TyVar () a)
-        $ mkIterApp () (var () f)
-          [ apply () unrollFunAB $ var () s
-          , var () x
-          ]
+    let fixTerm =
+            tyAbs () a (Type ())
+            . tyAbs () b (Type ())
+            . lamAbs () f (TyFun () funAB funAB)
+            . apply () unrollFunAB
+            . wrapSelf [funAB]
+            . lamAbs () s selfFunAB
+            . lamAbs () x (TyVar () a)
+            $ mkIterApp () (var () f)
+            [ apply () unrollFunAB $ var () s
+            , var () x
+            ]
+    let fixType =
+            TyForall () a (Type ())
+            . TyForall () b (Type ())
+            $ TyFun () (TyFun () funAB funAB) funAB
+    pure (fixTerm, fixType)
+
 
 -- | A type that looks like a transformation.
 --
@@ -154,13 +168,21 @@ natTransId f = do
 -- >     ((F ~> Id) -> (F ~> Id)) ->
 -- >     ((F ~> F) -> (F ~> Id))
 fixBy :: TermLike term TyName Name => term ()
-fixBy = runQuote $ do
+fixBy = fst fixByAndType
+
+fixByAndType :: TermLike term TyName Name => (term (), Type TyName ())
+fixByAndType = runQuote $ do
     f <- freshTyName () "F"
 
     -- by : (F ~> Id) -> (F ~> Id)
     by <- freshName () "by"
     byTy <- do
         nt1 <- natTransId (TyVar () f)
+        nt2 <- natTransId (TyVar () f)
+        pure $ TyFun () nt1 nt2
+
+    resTy <- do
+        nt1 <- natTrans (TyVar () f) (TyVar () f)
         nt2 <- natTransId (TyVar () f)
         pure $ TyFun () nt1 nt2
 
@@ -200,17 +222,22 @@ fixBy = runQuote $ do
                 lamAbs () fq fqTy $
                 apply () (tyInst () (apply () (var () recc) (var () h)) (TyVar () q)) $
                 apply () (tyInst () (var () h) (TyVar () q)) (var () fq)
-    pure $
-        tyAbs () f (KindArrow () (Type ()) (Type ())) $
-        lamAbs () by byTy $
-        apply () instantiatedFix $
-        lamAbs () recc reccTy $
-        lamAbs () h hty $
-        tyAbs () r (Type ()) $
-        lamAbs () fr frTy $
-        apply () (tyInst () inner (TyVar () r)) (var () fr)
+    let fixByTerm =
+            tyAbs () f (KindArrow () (Type ()) (Type ())) $
+            lamAbs () by byTy $
+            apply () instantiatedFix $
+            lamAbs () recc reccTy $
+            lamAbs () h hty $
+            tyAbs () r (Type ()) $
+            lamAbs () fr frTy $
+            apply () (tyInst () inner (TyVar () r)) (var () fr)
+    let fixByType =
+            TyForall () f (KindArrow () (Type ()) (Type ())) $
+            TyFun () byTy resTy
+    pure (fixByTerm, fixByType)
 
--- | Make a @n@-ary fixpoint combinator, along with its type.
+
+-- | Make a @n@-ary fixpoint combinator.
 --
 -- > FixN n :
 -- >     forall A1 B1 ... An Bn :: * .
@@ -221,8 +248,11 @@ fixBy = runQuote $ do
 -- >         (An -> Bn) ->
 -- >         Q) ->
 -- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
-fixN :: TermLike term TyName Name => Integer -> (term (), Type TyName ())
-fixN n = runQuote $ do
+fixN :: TermLike term TyName Name => Integer -> term () -> term ()
+fixN n fixByTerm = fst (fixNAndType n fixByTerm)
+
+fixNAndType :: TermLike term TyName Name => Integer -> term () -> (term (), Type TyName ())
+fixNAndType n fixByTerm = runQuote $ do
     -- the list of pairs of A and B types
     asbs <- replicateM (fromIntegral n) $ do
         a <- freshTyName () "a"
@@ -249,7 +279,7 @@ fixN n = runQuote $ do
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
         x <- freshTyName () "X"
-        pure $ tyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
+        pure $ tyInst () fixByTerm (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
     -- f : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> (A1 -> B1) -> ... -> (An -> Bn) -> Q)
     f <- freshName () "f"
@@ -302,6 +332,15 @@ fixN n = runQuote $ do
               , var () f
               ]
     pure (fixNTerm, fixNType)
+
+-- | Get the fixed-point of a single recursive function.
+getSingleFixOf
+    :: (TermLike term TyName Name)
+    => ann -> term ann -> FunctionDef term TyName Name ann -> term ann
+getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod)} =
+    let instantiatedFix = mkIterInst ann fix1 [dom, cod]
+        abstractedBody = mkIterLamAbs [functionDefVarDecl fun] $ _functionDefTerm fun
+    in apply ann instantiatedFix abstractedBody
 
 -- | Get the fixed-point of a list of mutually recursive functions.
 --

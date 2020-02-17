@@ -20,6 +20,7 @@ import           Control.Monad.Trans
 import           Control.Lens                           hiding (Strict)
 
 import           Data.List
+import           Data.List.NonEmpty                     hiding (partition, reverse)
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -88,7 +89,9 @@ compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
         TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
         _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
-    compileRecTerms body binds
+    case nonEmpty binds of
+        Just tbs -> compileRecTerms body tbs
+        Nothing  -> pure body
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
 compileRecTypeBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)
