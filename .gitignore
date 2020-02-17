@@ -33,6 +33,7 @@ stack.yaml.lock
 *.chi
 *.chs.h
 *.prof
+.liquid/
 
 # Agda
 *.agdai
@@ -46,6 +47,7 @@ pkgs/.stack
 *~
 *#
 .psc-ide-port
+.dir-locals.el
 
 # Misc
 .history/
