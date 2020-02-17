@@ -16,7 +16,7 @@ import           Control.Concurrent.STM.TVar (TVar, modifyTVar, newTVarIO, readT
 import           Control.Lens                (makeLenses, over)
 import           Control.Monad.Except        (ExceptT)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import           Control.Monad.Logger        (MonadLogger, logInfoN)
+import           Control.Monad.Logger        (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader        (MonadReader, ReaderT, ask, runReaderT)
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.Proxy                  (Proxy (Proxy))
@@ -44,45 +44,64 @@ makeLenses 'State
 initialState :: State
 initialState = State {_watchedAddresses = mempty}
 
-wallets :: Monad m => m [Wallet]
-wallets = pure $ Wallet <$> [1 .. 10]
+wallets :: MonadLogger m => m [Wallet]
+wallets = do
+    logInfoN "wallets"
+    pure $ Wallet <$> [1 .. 10]
 
-selectCoin :: MonadIO m => WalletId -> Value -> m ([Value], Value)
-selectCoin _ target = pure ([target], mempty)
+selectCoin :: MonadLogger m => WalletId -> Value -> m ([Value], Value)
+selectCoin walletId target = do
+    logInfoN "selectCoin"
+    logInfoN $ "  Wallet ID: " <> tshow walletId
+    logInfoN $ "     Target: " <> tshow target
+    pure ([target], mempty)
 
-allocateAddress :: MonadIO m => WalletId -> m PubKey
-allocateAddress _ = liftIO $ generate arbitrary
+allocateAddress :: (MonadIO m, MonadLogger m) => WalletId -> m PubKey
+allocateAddress _ = do
+    logInfoN "allocateAddress"
+    liftIO $ generate arbitrary
 
-getOwnPubKey :: Monad m => m PubKey
-getOwnPubKey = pure $ EM.walletPubKey activeWallet
+getOwnPubKey :: MonadLogger m => m PubKey
+getOwnPubKey = do
+    logInfoN "getOwnPubKey"
+    pure $ EM.walletPubKey activeWallet
 
 activeWallet :: Wallet
 activeWallet = Wallet 1
 
-getWatchedAddresses :: (MonadIO m, MonadReader (TVar State) m) => m AddressMap
+getWatchedAddresses ::
+       (MonadIO m, MonadLogger m, MonadReader (TVar State) m) => m AddressMap
 getWatchedAddresses = do
+    logInfoN "getWatchedAddresses"
     tvarState <- ask
     State {_watchedAddresses} <- liftIO $ readTVarIO tvarState
     pure _watchedAddresses
 
 startWatching ::
-       (MonadIO m, MonadReader (TVar State) m) => Address -> m NoContent
+       (MonadIO m, MonadLogger m, MonadReader (TVar State) m)
+    => Address
+    -> m NoContent
 startWatching address = do
+    logInfoN "startWatching"
     tvarState <- ask
     liftIO $
         atomically $
         modifyTVar tvarState (over watchedAddresses (addAddress address))
     pure NoContent
 
-sign :: Monad m => BSL.ByteString -> m Signature
+sign :: MonadLogger m => BSL.ByteString -> m Signature
 sign bs = do
+    logInfoN "sign"
     let privK = EM.walletPrivKey activeWallet
     pure (Crypto.sign (BSL.toStrict bs) privK)
 
 ------------------------------------------------------------
 asHandler ::
-       TVar State -> ReaderT (TVar State) (ExceptT ServantErr IO) a -> Handler a
-asHandler tvarState action = Handler (runReaderT action tvarState)
+       TVar State
+    -> LoggingT (ReaderT (TVar State) (ExceptT ServantErr IO)) a
+    -> Handler a
+asHandler tvarState action =
+    Handler (runReaderT (runStderrLoggingT action) tvarState)
 
 app :: TVar State -> Application
 app tvarState =
