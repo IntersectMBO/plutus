@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Language.PlutusCore.PropTest
   ( TyProp
-  , testTy
+  , testTyProp
   ) where
 
 import           Language.PlutusCore
@@ -18,20 +19,24 @@ import qualified Data.Text as Text
 import           Text.Printf
 
 
-type TyProp  = Kind () -> Quote (Type TyName ()) -> Bool
+-- |The type for properties on well-kinded PlutusCore types.
+type TyProp = Kind () -> Quote (Type TyName ()) -> Cool
+
+-- |Internal version of type properties.
 type TyPropG = KindG -> ClosedTypeG -> Cool
 
 
 -- |Test property on well-kinded types.
-testTy :: Int    -- ^ Search depth
-       -> KindG  -- ^ Kind for generated types
-       -> TyProp -- ^ Property to test
-       -> IO ()
-testTy depth kG typrop = do
+testTyProp :: Int      -- ^ Search depth
+           -> Kind ann -- ^ Kind for generated types
+           -> TyProp   -- ^ Property to test
+           -> IO ()
+testTyProp depth k typrop = do
   -- NOTE: Any strategy which attempts fairness will crash the search!
   --       These strategies evaluate !=> in *parallel*, and hence attempt
   --       to convert ill-kinded types, but `toType` is partial!
   -- TODO: This *may* be a bug in the lazy-search library.
+  let kG = fromKind k
   result <- ctrex' OS depth (toTyPropG typrop kG)
   case result of
     Left  _   -> return ()

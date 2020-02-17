@@ -12,6 +12,7 @@ module Language.PlutusCore.Gen.Type
   , toClosedType
   , checkClosedTypeG
   , toKind
+  , fromKind
   ) where
 
 import           Language.PlutusCore
@@ -37,6 +38,11 @@ toKind :: KindG -> Kind ()
 toKind TypeG              = Type ()
 toKind (KindArrowG k1 k2) = KindArrow () (toKind k1) (toKind k2)
 
+
+-- |Convert Plutus kinds to generated kinds.
+fromKind :: Kind ann -> KindG
+fromKind (Type _)            = TypeG
+fromKind (KindArrow _ k1 k2) = KindArrowG (fromKind k1) (fromKind k2)
 
 
 -- * Enumerating builtin types

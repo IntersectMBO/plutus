@@ -2,18 +2,35 @@
 module Main (main) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.PropTest
-import           Language.PlutusCore.Gen.Type
 import           Control.Monad.Except
+
+import           Data.Coolean
 import           Data.Either
 
-
 main :: IO ()
-main = testTy 10 TypeG isWellKinded
+main = do
+  testTyProp 10 (Type ()) wellKinded
+  testTyProp 10 (Type ()) normalizePreservesKind
+
 
 -- |Property: Generated types are well-kinded.
-isWellKinded :: TyProp
-isWellKinded k tyQ = isSafe (liftQuote tyQ >>= \ty -> checkKind defOffChainConfig () ty k)
-  where
-    isSafe :: ExceptT (TypeError ()) Quote () -> Bool
-    isSafe = isRight . runQuote . runExceptT
+wellKinded :: TyProp
+wellKinded k tyQ = isSafe $ do
+  ty <- liftQuote tyQ
+  checkKind defOffChainConfig () ty k
+
+-- |Property: Normalisation preserves kind.
+normalizePreservesKind :: TyProp
+normalizePreservesKind k tyQ = isSafe $ do
+  ty <- liftQuote tyQ
+  ty' <- unNormalized <$> normalizeTypeFull ty
+  checkKind defOffChainConfig () ty' k
+
+
+-- * Helper functions
+
+-- |Check if the type/kind checker threw any errors.
+isSafe :: ExceptT (Error ()) Quote () -> Cool
+isSafe = toCool . isRight . runQuote . runExceptT
