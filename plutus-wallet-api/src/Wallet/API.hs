@@ -65,7 +65,8 @@ module Wallet.API(
 
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
-import           Control.Monad.Error.Class (MonadError (..))
+import           Control.Monad.Except      (MonadError (..),ExceptT, throwError)
+import           Control.Monad.Trans.Class (lift)
 import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold)
@@ -73,11 +74,10 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
-import           IOTS                      (IotsType)
-
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import           Ledger                    hiding (inputs, out, sign, to, value)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Index              (minFee)
@@ -116,6 +116,10 @@ class Monad m => WalletDiagnostics m where
     -- | Write some information to the log.
     logMsg :: Text -> m ()
 
+instance (WalletDiagnostics m, Monad m) =>
+         WalletDiagnostics (ExceptT WalletAPIError m) where
+    logMsg = lift . logMsg
+
 -- | Used by Plutus client to interact with wallet
 class Monad m => WalletAPI m where
 
@@ -147,6 +151,10 @@ class Monad m => WalletAPI m where
     -}
     startWatching :: Address -> m ()
 
+instance (Monad m, NodeAPI m) => NodeAPI (ExceptT WalletAPIError m) where
+    submitTxn = lift . submitTxn
+    slot = lift slot
+
 class NodeAPI m where
     -- | Submit a transaction to the blockchain.
     submitTxn :: Tx -> m ()
@@ -156,6 +164,13 @@ class NodeAPI m where
     -}
     slot :: m Slot
 
+instance WalletAPI m => WalletAPI (ExceptT WalletAPIError m) where
+    ownPubKey = lift ownPubKey
+    sign = lift . sign
+    updatePaymentWithChange value inputs =
+        lift $ updatePaymentWithChange value inputs
+    watchedAddresses = lift watchedAddresses
+    startWatching = lift . startWatching
 
 createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)

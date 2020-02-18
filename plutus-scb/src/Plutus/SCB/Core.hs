@@ -35,13 +35,12 @@ module Plutus.SCB.Core
 
 import           Control.Error.Util                         (note)
 import           Control.Monad                              (void)
-import           Control.Monad.Except                       (ExceptT, MonadError, throwError)
+import           Control.Monad.Except                       (MonadError, throwError)
 import           Control.Monad.Except.Extras                (mapError)
 import           Control.Monad.IO.Class                     (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift                    (MonadUnliftIO)
 import           Control.Monad.Logger                       (LoggingT, MonadLogger, logDebugN, logInfoN, logWarnN)
 import           Control.Monad.Reader                       (MonadReader, ReaderT, ask)
-import           Control.Monad.Trans.Class                  (lift)
 import           Data.Aeson                                 (FromJSON, ToJSON, withObject, (.:))
 import qualified Data.Aeson                                 as JSON
 import           Data.Aeson.Types                           (Parser)
@@ -90,8 +89,7 @@ import           Plutus.SCB.Types                           (ActiveContract (Act
                                                              contractPath, dbConfigFile, dbConfigPoolSize, hooks,
                                                              newState, partiallyDecodedResponse)
 import           Plutus.SCB.Utils                           (liftError, render, tshow)
-import           Wallet.API                                 (NodeAPI, WalletAPI, WalletAPIError, WalletDiagnostics,
-                                                             logMsg)
+import           Wallet.API                                 (NodeAPI, WalletAPI, WalletDiagnostics)
 import qualified Wallet.API                                 as WAPI
 
 newtype Connection =
@@ -435,19 +433,3 @@ toUUID ContractEventSource = UUID.fromWords 0 0 0 2
 toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
 toUUID UserEventSource     = UUID.fromWords 0 0 0 3
 toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
-
-instance (WalletDiagnostics m, Monad m) =>
-         WalletDiagnostics (ExceptT WalletAPIError m) where
-    logMsg = lift . WAPI.logMsg
-
-instance (Monad m, NodeAPI m) => NodeAPI (ExceptT WalletAPIError m) where
-    submitTxn = lift . WAPI.submitTxn
-    slot = lift WAPI.slot
-
-instance WalletAPI m => WalletAPI (ExceptT WalletAPIError m) where
-    ownPubKey = lift WAPI.ownPubKey
-    sign = lift . WAPI.sign
-    updatePaymentWithChange value inputs =
-        lift $ WAPI.updatePaymentWithChange value inputs
-    watchedAddresses = lift WAPI.watchedAddresses
-    startWatching = lift . WAPI.startWatching
