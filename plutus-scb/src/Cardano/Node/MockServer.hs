@@ -4,6 +4,7 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -15,8 +16,8 @@ module Cardano.Node.MockServer
 
 import           Cardano.Node.API               (API)
 import           Control.Concurrent             (forkIO, threadDelay)
-import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
-import           Control.Lens                   (over, view)
+import           Control.Concurrent.MVar        (MVar, modifyMVar_, newMVar, putMVar, takeMVar)
+import           Control.Lens                   (makeLenses, over, set, view)
 import           Control.Monad                  (forever, void)
 import           Control.Monad.Freer            (Eff, Member)
 import           Control.Monad.Freer.State      (State)
@@ -39,7 +40,7 @@ import           Servant                        ((:<|>) ((:<|>)), Application, N
 import           Language.Plutus.Contract.Trace (InitialDistribution)
 import qualified Language.Plutus.Contract.Trace as Trace
 
-import           Ledger                         (Address, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
+import           Ledger                         (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
 import           Cardano.Node.RandomTx
@@ -83,6 +84,15 @@ defaultConfig =
               Just BlockReaperConfig {brcInterval = 600, brcBlocksToKeep = 100}
         }
 
+data AppState =
+    AppState
+        { _chainState   :: ChainState
+        , _eventHistory :: [ChainEvent]
+        }
+    deriving (Show)
+
+makeLenses 'AppState
+
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
@@ -94,6 +104,9 @@ addBlock = do
     simpleLogInfo "Adding slot"
     void Chain.processBlock
 
+blockchain :: Member (State ChainState) effs => Eff effs Blockchain
+blockchain = Eff.gets (view EM.chainNewestFirst)
+
 utxoAt ::
        (Member (State ChainState) effs)
     => Address
@@ -101,6 +114,15 @@ utxoAt ::
 utxoAt addr = do
     UtxoIndex idx <- Eff.gets (view EM.index)
     pure $ Map.filter (\TxOut {txOutAddress} -> txOutAddress == addr) idx
+
+consumeEventHistory :: MonadIO m => MVar AppState -> m [ChainEvent]
+consumeEventHistory stateVar =
+    liftIO $ do
+        oldState <- takeMVar stateVar
+        let events = view eventHistory oldState
+        let newState = set eventHistory mempty oldState
+        putMVar stateVar newState
+        pure events
 
 addTx ::
        (Member SimpleLog effs, Member ChainEffect effs)
@@ -118,34 +140,37 @@ type NodeServerEffects m
 ------------------------------------------------------------
 runChainEffects ::
        (MonadIO m, MonadLogger m)
-    => MVar ChainState
+    => MVar AppState
     -> Eff (NodeServerEffects m) a
     -> m ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
-    ((a, newState), events) <-
+    let oldChainState = view chainState oldState
+    ((a, newChainState), events) <-
         runSimpleLog $
         Eff.runWriter $
-        Eff.runState oldState $ Chain.handleChain $ runGenRandomTx eff
+        Eff.runState oldChainState $ Chain.handleChain $ runGenRandomTx eff
+    let newState = set chainState newChainState oldState
     liftIO $ putMVar stateVar newState
     pure (events, a)
 
 processChainEffects ::
        (MonadIO m, MonadLogger m)
-    => MVar ChainState
+    => MVar AppState
     -> Eff (NodeServerEffects m) a
     -> m a
 processChainEffects stateVar eff = do
     (events, result) <- runChainEffects stateVar eff
-    -- TODO: We need to process the events instead of just printing them out
-    -- Process = add them to some internal queue that the clients can consume
     traverse_ (\event -> logDebugN $ "Event: " <> tshow (pretty event)) events
+    liftIO $
+        modifyMVar_
+            stateVar
+            (\state -> pure $ over eventHistory (mappend events) state)
     pure result
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
-slotCoordinator ::
-       (MonadIO m, MonadLogger m) => Second -> MVar ChainState -> m ()
+slotCoordinator :: (MonadIO m, MonadLogger m) => Second -> MVar AppState -> m ()
 slotCoordinator slotLength stateVar =
     forever $ do
         void $ processChainEffects stateVar addBlock
@@ -154,7 +179,7 @@ slotCoordinator slotLength stateVar =
 -- | Generates a random transaction once in each 'mscRandomTxInterval' of the
 --   config
 transactionGenerator ::
-       (MonadIO m, MonadLogger m) => Second -> MVar ChainState -> m ()
+       (MonadIO m, MonadLogger m) => Second -> MVar AppState -> m ()
 transactionGenerator itvl stateVar =
     forever $ do
         void $ processChainEffects stateVar (genRandomTx >>= addTx)
@@ -163,10 +188,7 @@ transactionGenerator itvl stateVar =
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
-       (MonadIO m, MonadLogger m)
-    => BlockReaperConfig
-    -> MVar ChainState
-    -> m ()
+       (MonadIO m, MonadLogger m) => BlockReaperConfig -> MVar AppState -> m ()
 blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} stateVar =
     forever $ do
         void $
@@ -175,14 +197,15 @@ blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} stateVar =
                 (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
 
-app :: MVar ChainState -> Application
+app :: MVar AppState -> Application
 app stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
         (runStdoutLoggingT . processChainEffects stateVar)
         (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
-         (genRandomTx :<|> utxoAt))
+         (genRandomTx :<|> utxoAt :<|> blockchain :<|>
+          consumeEventHistory stateVar))
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main config = do
@@ -192,7 +215,13 @@ main config = do
                          , mscBlockReaper
                          , mscSlotLength
                          } = config
-    stateVar <- liftIO $ newMVar (initialChainState mscInitialDistribution)
+    stateVar <-
+        liftIO $
+        newMVar
+            (AppState
+                 { _chainState = initialChainState mscInitialDistribution
+                 , _eventHistory = mempty
+                 })
     logInfoN "Starting slot coordination thread."
     void $
         liftIO $
