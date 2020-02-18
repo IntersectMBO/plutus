@@ -12,33 +12,34 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
 
-import           Language.PlutusCore.StdLib.Data.List as Plc
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.StdLib.Data.List               as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.Except
-import           Data.Either                          (isRight)
+import           Data.Either                                        (isRight)
 import           Data.Proxy
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-dynamicIntToStringName :: DynamicBuiltinName
-dynamicIntToStringName = DynamicBuiltinName "intToString"
+dynamicIntegerToStringName :: DynamicBuiltinName
+dynamicIntegerToStringName = DynamicBuiltinName "integerToString"
 
-dynamicIntToStringMeaning :: DynamicBuiltinNameMeaning
-dynamicIntToStringMeaning = DynamicBuiltinNameMeaning sch show where
-    sch = Proxy @Int `TypeSchemeArrow` TypeSchemeResult Proxy
+dynamicIntegerToStringMeaning :: DynamicBuiltinNameMeaning
+dynamicIntegerToStringMeaning = DynamicBuiltinNameMeaning sch show (\_ -> ExBudget 1 1) where
+    sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
 
-dynamicIntToString :: Term tyname name ()
-dynamicIntToString = dynamicBuiltinNameAsTerm dynamicIntToStringName
+dynamicIntegerToString :: Term tyname name ()
+dynamicIntegerToString = dynamicBuiltinNameAsTerm dynamicIntegerToStringName
 
-handleDynamicIntToString :: OnChainHandler "intToString" f r r
-handleDynamicIntToString = handleDynamicByMeaning dynamicIntToStringMeaning
+handleDynamicIntegerToString :: OnChainHandler "integerToString" f r r
+handleDynamicIntegerToString = handleDynamicByMeaning dynamicIntegerToStringMeaning
 
 evaluateHandlersCek
     :: MonadError (Error ()) m
-    => (Evaluator (OnChain '[] Term) m -> OnChainEvaluator names Term r)
+    => (AnEvaluator (OnChain '[] Term) m EvaluationResultDef -> OnChainEvaluator names Term r)
     -> OnChain names Term TyName Name ()
     -> r
 evaluateHandlersCek = evaluateHandlersBy typecheckEvaluateCek
@@ -47,11 +48,11 @@ test_logInt :: TestTree
 test_logInt = testCase "logInt" $ do
     let term
             = Apply () dynamicLog
-            . Apply () dynamicIntToString
+            . Apply () dynamicIntegerToString
             $ Constant () (BuiltinInt () 1)
 
-    let eval1 = evaluateHandlersCek (handleDynamicIntToString . handleDynamicLog)
-    let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntToString)
+    let eval1 = evaluateHandlersCek (handleDynamicIntegerToString . handleDynamicLog)
+    let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntegerToString)
     (logs1, errOrRes1) <- eval1 $ OnChain term
     (logs2, errOrRes2) <- eval2 $ OnChain term
     isRight errOrRes1 @?= True
@@ -62,16 +63,16 @@ test_logInt = testCase "logInt" $ do
 test_logInts :: TestTree
 test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
-            let int4 = TyBuiltin () TyInteger
+            let integer = TyBuiltin () TyInteger
             u <- freshName () "u"
             x <- freshName () "x"
 
             return
-                $ mkIterApp () (mkIterInst () foldList [int4, unit])
+                $ mkIterApp () (mkIterInst () foldList [integer, unit])
                     [   LamAbs () u unit
-                      . LamAbs () x int4
+                      . LamAbs () x integer
                       . Apply () dynamicLog
-                      . Apply () dynamicIntToString
+                      . Apply () dynamicIntegerToString
                       $ Var () x
                     , unitval
                     , mkIterApp () Plc.enumFromTo
@@ -80,14 +81,14 @@ test_logInts = testCase "logInts" $ do
                         ]
                     ]
 
-    let eval1 = evaluateHandlersCek (handleDynamicIntToString . handleDynamicLog)
-    let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntToString)
+    let eval1 = evaluateHandlersCek (handleDynamicIntegerToString . handleDynamicLog)
+    let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntegerToString)
     (logs1, errOrRes1) <- liftIO . eval1 $ OnChain term
     (logs2, errOrRes2) <- liftIO . eval2 $ OnChain term
     isRight errOrRes1 @?= True
     isRight errOrRes2 @?= True
-    logs1 @?= map show [1 .. 10 :: Int]
-    logs2 @?= map show [1 .. 10 :: Int]
+    logs1 @?= map show [1 .. 10 :: Integer]
+    logs2 @?= map show [1 .. 10 :: Integer]
 
 test_logging :: TestTree
 test_logging =

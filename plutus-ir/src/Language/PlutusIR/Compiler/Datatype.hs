@@ -305,7 +305,6 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = withEnclosing (Datatype
         -- See Note [Recursive datatypes]
         -- wrap
         wrap p dty (fmap (PIR.mkTyVar p) tvs)$
-        -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall out
         TyAbs p resultType (Type p) $
         -- \case_1 .. case_j

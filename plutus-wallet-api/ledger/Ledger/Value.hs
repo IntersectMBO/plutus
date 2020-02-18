@@ -177,11 +177,11 @@ instance Semigroup Value where
     (<>) = unionWith (+)
 
 instance Haskell.Monoid Value where
-    mempty = Value (Map.empty ())
+    mempty = Value Map.empty
 
 instance Monoid Value where
     {-# INLINABLE mempty #-}
-    mempty = Value (Map.empty ())
+    mempty = Value Map.empty
 
 instance Group Value where
     {-# INLINABLE inv #-}
@@ -251,8 +251,8 @@ unionWith f ls rs =
     let
         combined = unionVal ls rs
         unThese k' = case k' of
-            This a -> f a 0
-            That b -> f 0 b
+            This a    -> f a 0
+            That b    -> f 0 b
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
 

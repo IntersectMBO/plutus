@@ -72,8 +72,8 @@ txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
 -- | Create a 'PubKeyTxIn'.
-makePubKeyTxIn :: TxOutRef -> PubKey -> PubKeyTxIn
-makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxIn ref $ ConsumePublicKeyAddress pubkey
+makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
+makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
@@ -108,7 +108,8 @@ data TypedTx (ins :: [Type]) (outs :: [Type]) = TypedTx {
     tyTxTypedTxOuts  :: HListF TypedScriptTxOut outs,
     tyTxPubKeyTxOuts :: [PubKeyTxOut],
     tyTxForge        :: !Value.Value,
-    tyTxValidRange   :: !SlotRange
+    tyTxValidRange   :: !SlotRange,
+    tyTxForgeScripts :: Set.Set MonetaryPolicy
     }
 
 baseTx :: TypedTx '[] '[]
@@ -118,7 +119,8 @@ baseTx = TypedTx {
     tyTxTypedTxOuts = HNilF,
     tyTxPubKeyTxOuts = [],
     tyTxForge = mempty,
-    tyTxValidRange = Interval.always
+    tyTxValidRange = Interval.always,
+    tyTxForgeScripts = mempty
     }
 
 -- | Adds a 'TypedScriptTxOut' to a 'TypedTx'.
@@ -138,13 +140,15 @@ addTypedTxOut out TypedTx {
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = TypedTx {
+    tyTxValidRange,
+    tyTxForgeScripts } = TypedTx {
       tyTxTypedTxOuts=HConsF out tyTxTypedTxOuts,
       tyTxPubKeyTxOuts,
       tyTxTypedTxIns,
       tyTxPubKeyTxIns,
       tyTxForge,
-      tyTxValidRange }
+      tyTxValidRange,
+      tyTxForgeScripts }
 
 -- | Adds a 'TypedScriptTxIn' to a 'TypedTx'.
 addTypedTxIn
@@ -159,13 +163,15 @@ addTypedTxIn inn TypedTx {
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = TypedTx {
+    tyTxValidRange,
+    tyTxForgeScripts } = TypedTx {
       tyTxTypedTxOuts,
       tyTxPubKeyTxOuts,
       tyTxTypedTxIns=HConsF inn tyTxTypedTxIns,
       tyTxPubKeyTxIns,
       tyTxForge,
-      tyTxValidRange }
+      tyTxValidRange,
+      tyTxForgeScripts }
 
 -- | A wrapper around a 'TypedTx' that hides the input list type as an existential parameter.
 -- This allows us to perform some operations more easily by not caring about the input connection
@@ -212,13 +218,15 @@ toUntypedTx TypedTx{
     tyTxTypedTxIns,
     tyTxPubKeyTxIns,
     tyTxForge,
-    tyTxValidRange } = Tx {
+    tyTxValidRange,
+    tyTxForgeScripts } = Tx {
     txOutputs = hfOut tyTxOutTxOut tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
     txInputs = Set.fromList (hfOut tyTxInTxIn tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
     txForge = tyTxForge,
     txFee = zero,
     txValidRange = tyTxValidRange,
     txSignatures = mempty,
+    txForgeScripts = tyTxForgeScripts,
     txData = Map.fromList $ hfOut dsEntry tyTxTypedTxOuts}
     where
         dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataValue $ toData d in (dataValueHash ds, ds)
@@ -307,8 +315,8 @@ typePubKeyTxIn
     -> m PubKeyTxIn
 typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
-        ConsumePublicKeyAddress _ -> pure ()
-        x                         -> throwError $ WrongInType x
+        ConsumePublicKeyAddress -> pure ()
+        x                       -> throwError $ WrongInType x
     pure $ PubKeyTxIn inn
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
@@ -356,6 +364,6 @@ typePubKeyTxOut
     -> m PubKeyTxOut
 typePubKeyTxOut out@TxOut{txOutType} = do
     case txOutType of
-        PayToPubKey _ -> pure ()
-        x             -> throwError $ WrongOutType x
+        PayToPubKey -> pure ()
+        x           -> throwError $ WrongOutType x
     pure $ PubKeyTxOut out

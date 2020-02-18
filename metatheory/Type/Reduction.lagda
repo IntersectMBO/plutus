@@ -20,10 +20,10 @@ open import Relation.Binary.PropositionalEquality
 data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
-  V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}{x}
+  V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
     → Value⋆ N
       ----------------------------
-    → Value⋆ (Π x N)
+    → Value⋆ (Π N)
 
   _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
     → Value⋆ S
@@ -31,10 +31,10 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
       -----------------------------------
     → Value⋆ (S ⇒ T)
 
-  V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}{x}
+  V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
     → Value⋆ N
       -----------------------------
-    → Value⋆ (ƛ x N)
+    → Value⋆ (ƛ N)
 
   N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
     → Neutral⋆ N
@@ -94,22 +94,20 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       --------------
     → V · M —→⋆ V · M′
 
-  ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}{x}
+  ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}
     → M —→⋆ M′
       -----------------
-    → Π x M —→⋆ Π x M′
+    → Π M —→⋆ Π M′
 
-  ξ-ƛ : ∀ {Γ K J} {M M′ : Γ ,⋆ K ⊢⋆ J}{x}
+  ξ-ƛ : ∀ {Γ K J} {M M′ : Γ ,⋆ K ⊢⋆ J}
     → M —→⋆ M′
       -----------------
-    → ƛ x M —→⋆ ƛ x M′
+    → ƛ M —→⋆ ƛ M′
 
-
-
-  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}{x}
+  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
  --   → Value⋆ W
       -------------------
-    → ƛ x N · W —→⋆ N [ W ]
+    → ƛ N · W —→⋆ N [ W ]
 \end{code}
 
 \begin{code}
@@ -125,11 +123,11 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       ---------
     → L —↠⋆ N
 
-ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J}{x} → M —↠⋆ N → ƛ x M —↠⋆ ƛ x N
+ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
 ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
 ƛ—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-ƛ p) (ƛ—↠⋆ q)
 
-Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *}{x} → M —↠⋆ N → Π x M —↠⋆ Π x N
+Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
 Π—↠⋆ refl—↠⋆          = refl—↠⋆
 Π—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-Π p) (Π—↠⋆ q)
 
@@ -186,22 +184,22 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
 progress⋆ : ∀ {Γ K} → (M : Γ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` α) = done (N- N-`)
 progress⋆ μ1      = done (N- N-μ1)
-progress⋆ (Π _ M)   with progress⋆ M
-progress⋆ (Π _ M) | step p = step (ξ-Π p)
-progress⋆ (Π _ M) | done p = done (V-Π p)
+progress⋆ (Π M)   with progress⋆ M
+progress⋆ (Π M) | step p = step (ξ-Π p)
+progress⋆ (Π M) | done p = done (V-Π p)
 progress⋆ (M ⇒ N) with progress⋆ M
 progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
 progress⋆ (M ⇒ N) | done VM with progress⋆ N
 progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
 progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
-progress⋆ (ƛ _ M)   with progress⋆ M
-progress⋆ (ƛ _ M) | step p  = step (ξ-ƛ p)
-progress⋆ (ƛ _ M) | done VM = done (V-ƛ VM)
+progress⋆ (ƛ M)   with progress⋆ M
+progress⋆ (ƛ M) | step p  = step (ξ-ƛ p)
+progress⋆ (ƛ M) | done VM = done (V-ƛ VM)
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ p)
-progress⋆ (.(ƛ _ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
+progress⋆ (.(ƛ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
 progress⋆ (con tcn) = done V-con
 

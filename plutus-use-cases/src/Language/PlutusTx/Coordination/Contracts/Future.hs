@@ -37,6 +37,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , tokenFor
     , initialState
     , scriptInstance
+    , setupTokens
     ) where
 
 import           Control.Lens                   (prism', review, makeClassyPrisms)
@@ -48,12 +49,14 @@ import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude      hiding (Semigroup(..))
 import qualified Language.PlutusTx.StateMachine as SM
-import           Ledger                         (PubKey, Slot (..), Validator, Value, Address, DataValue, ValidatorHash)
+import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, DataValue(..), ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Interval                as Interval
+import           Ledger.Oracle                  (SignedMessage(..), Observation(..))
+import qualified Ledger.Oracle                  as Oracle
 import           Ledger.Tokens
 import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Validation              (OracleValue (..), PendingTx, PendingTx' (..))
+import           Ledger.Validation              (PendingTx, PendingTx' (..))
 import qualified Ledger.Validation              as Validation
 import           Ledger.Value                   as Value
 
@@ -106,7 +109,7 @@ data FutureAccounts =
         { ftoLong  :: Account
         -- ^ The owner of the "long" account (represented by a token)
         , ftoLongAccount :: ValidatorHash
-        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We 
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We
         --   store it here so that we can lift it into on-chain code.
         , ftoShort :: Account
         -- ^ The owner of the "short" account (represented by a token).
@@ -126,7 +129,7 @@ instance Eq Margins where
     l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
 
 -- | The state of the future contract.
-data FutureState = 
+data FutureState =
     Running Margins
     -- ^ Ongoing contract, with the current margins.
     | Finished
@@ -142,11 +145,11 @@ instance Eq FutureState where
 data FutureAction =
     AdjustMargin Role Value
     -- ^ Change the margin of one of the roles.
-    | Settle (OracleValue Value)
+    | Settle (SignedMessage (Observation Value))
     -- ^ Close the contract at the delivery date by making the agreed payment
     --   and returning the margin deposits to their owners
-    | SettleEarly (OracleValue Value)
-    -- ^ Close the contract early after a margin payment has been missed. 
+    | SettleEarly (SignedMessage (Observation Value))
+    -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
     deriving (Show)
@@ -176,8 +179,8 @@ type FutureSchema =
         .\/ Endpoint "initialise-future" (FutureSetup, Role)
         .\/ Endpoint "join-future" (FutureAccounts, FutureSetup)
         .\/ Endpoint "increase-margin" (Value, Role)
-        .\/ Endpoint "settle-early" (OracleValue Value)
-        .\/ Endpoint "settle-future" (OracleValue Value)
+        .\/ Endpoint "settle-early" (SignedMessage (Observation Value))
+        .\/ Endpoint "settle-future" (SignedMessage (Observation Value))
 
 instance AsEscrowError FutureError where
     _EscrowError = prism' EscrowFailed (\case { EscrowFailed e -> Just e; _ -> Nothing})
@@ -195,7 +198,7 @@ data FutureSetup =
         , longPK :: PubKey
         -- ^ Initial owner of the long token
         , contractStart :: Slot
-        -- ^ Start of the futures contract itself. By this time the setup code 
+        -- ^ Start of the futures contract itself. By this time the setup code
         --   has to be finished, otherwise the contract is void.
         } deriving (Haskell.Show)
 
@@ -308,7 +311,7 @@ machineClient
     -> Future
     -> FutureAccounts
     -> SM.StateMachineClient FutureState FutureAction
-machineClient inst future ftos = 
+machineClient inst future ftos =
     let machine = futureStateMachine future ftos
         i = SM.StateMachineInstance machine inst
     in SM.mkStateMachineClient i (allocate future ftos)
@@ -316,10 +319,18 @@ machineClient inst future ftos =
 validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 
-{-# INLINABLE verifyOracle #-}
-verifyOracle :: Future -> OracleValue a -> Maybe (Slot, a)
-verifyOracle Future{ftPriceOracle} OracleValue{ovSignature, ovSlot, ovValue} =
-    if ovSignature == ftPriceOracle then Just (ovSlot, ovValue) else Nothing
+{-# INLINABLE verifyOracleOnChain #-}
+verifyOracleOnChain :: PlutusTx.IsData a => PendingTx -> Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
+verifyOracleOnChain ptx Future{ftPriceOracle} sm =
+    case Oracle.verifySignedMessageOnChain ptx ftPriceOracle sm of
+        Left _ -> Nothing
+        Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
+
+verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
+verifyOracleOffChain Future{ftPriceOracle} sm =
+    case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
+        Left _ -> Nothing
+        Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
 {-# INLINABLE futureTransition #-}
 futureTransition :: FutureState -> FutureAction -> Maybe FutureState
@@ -334,11 +345,11 @@ data Payouts =
         , payoutsLong  :: Value
         }
 
-payoutsTx 
+payoutsTx
     :: Payouts
     -> FutureAccounts
     -> UnbalancedTx
-payoutsTx 
+payoutsTx
     Payouts{payoutsShort, payoutsLong}
     FutureAccounts{ftoShort, ftoLong} =
         TokenAccount.payTx (TokenAccount.scriptInstance ftoShort) payoutsShort
@@ -369,7 +380,7 @@ futureCheck future owners state action ptx =
             let
                 Future{ftDeliveryDate} = future
                 FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
-                Just (oracleDate, spotPrice) = verifyOracle future ov
+                Just (oracleDate, spotPrice) = verifyOracleOnChain ptx future ov
                 err = traceH "Margin requirements not violated" (error ())
                 vRole = fromMaybe err (violatingRole future accounts spotPrice)
                 payoutValid = case vRole of
@@ -381,7 +392,7 @@ futureCheck future owners state action ptx =
             let
                 Future{ftDeliveryDate} = future
                 FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
-                Just (oracleDate, spotPrice) = verifyOracle future ov
+                Just (oracleDate, spotPrice) = verifyOracleOnChain ptx future ov
                 Payouts{payoutsShort, payoutsLong} = payouts future accounts spotPrice
                 payoutValid =
                     Validation.valueLockedBy ptx ftoLongAccount `geq` payoutsLong
@@ -392,13 +403,13 @@ futureCheck future owners state action ptx =
         _ -> False
 
 allocate :: Future -> FutureAccounts -> FutureState -> FutureAction -> Value -> Maybe ValueAllocation
-allocate _ _ Running{} (AdjustMargin _ topUp) vl = 
+allocate _ _ Running{} (AdjustMargin _ topUp) vl =
     Just $ ValueAllocation
         { vaOwnAddress = topUp + vl
         , vaOtherPayments=Haskell.mempty
         }
 allocate future ftos (Running margins) (SettleEarly ov) vl = do
-    (_, spotPrice) <- verifyOracle future ov
+    (_, spotPrice) <- verifyOracleOffChain future ov
     rl <- violatingRole future margins vl
     let Margins{ftsShortMargin, ftsLongMargin} = margins
         payments  =
@@ -407,16 +418,17 @@ allocate future ftos (Running margins) (SettleEarly ov) vl = do
                 Short -> Payouts{payoutsLong=ftsShortMargin+ftsLongMargin, payoutsShort = mempty}
     Just $ ValueAllocation
         { vaOwnAddress = mempty
-        , vaOtherPayments = payoutsTx payments ftos
+        , vaOtherPayments = payoutsTx payments ftos <> mustIncludeDataValue (osmData ov)
         }
 allocate future ftos (Running accounts) (Settle ov) vl = do
-    (_, spotPrice) <- verifyOracle future ov
+    (_, spotPrice) <- verifyOracleOffChain future ov
     let payments = payouts future accounts spotPrice
     Just $ ValueAllocation
         { vaOwnAddress = mempty
         , vaOtherPayments =
             payoutsTx payments ftos
                 <> mustBeValidIn (Interval.from (succ $ ftDeliveryDate future))
+                <> mustIncludeDataValue (osmData ov)
         }
 allocate _ _ _ _ vl = Nothing
 
@@ -449,7 +461,7 @@ futureAddress ft fo = Ledger.scriptAddress (validator ft fo)
 -- | The role that violated its margin requirements
 violatingRole :: Future -> Margins -> Value -> Maybe Role
 violatingRole future margins spotPrice =
-    let 
+    let
         minMargin = requiredMargin future spotPrice
         Margins{ftsShortMargin, ftsLongMargin} = margins
     in
@@ -514,7 +526,7 @@ initialiseFuture future = do
 --   funds locked by the future to the token accounts specified in
 --   the 'FutureAccounts' argument.
 settleFuture
-    :: ( HasEndpoint "settle-future" (OracleValue Value) s
+    :: ( HasEndpoint "settle-future" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
        , AsSMContractError e FutureState FutureAction
        , AsContractError e
@@ -531,7 +543,7 @@ settleFuture client = do
 --   violate its obligations. Throws a 'MarginRequirementsNotViolated' error if
 --   the spot price is within the margin range.
 settleEarly
-    :: ( HasEndpoint "settle-early" (OracleValue Value) s
+    :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
        , AsSMContractError e FutureState FutureAction
        , AsContractError e
@@ -593,28 +605,28 @@ setupTokens = do
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract pk [("long", 1), ("short", 1)])
-    let tokenSym = Currency.currencySymbol cur
-    pure $ mkAccounts (Account (tokenSym, "long")) (Account (tokenSym, "short"))
+    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)])
+    let sym = Currency.currencySymbol cur
+    pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
 
 -- | The escrow contract that initialises the future. Both parties have to pay
 --   their initial margin to this contract in order to unlock their tokens.
-escrowParams 
+escrowParams
     :: SM.StateMachineClient FutureState FutureAction
     -> Future
     -> FutureAccounts
     -> FutureSetup
     -> EscrowParams DataValue
-escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} = 
+escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
         dataScript  = Ledger.DataValue $ PlutusTx.toData $ initialState future
-        targets = 
-            [ Escrow.payToScriptTarget address 
+        targets =
+            [ Escrow.payToScriptTarget address
                 dataScript
                 (scale 2 (initialMargin future))
-            , Escrow.payToPubKeyTarget longPK (tokenFor Long ftos)
-            , Escrow.payToPubKeyTarget shortPK (tokenFor Short ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash longPK) (tokenFor Long ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash shortPK) (tokenFor Short ftos)
             ]
     in EscrowParams
         { escrowDeadline = contractStart

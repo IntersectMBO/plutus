@@ -84,9 +84,9 @@ vesting =
     VestingParams
         { vestingTranche1 = VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
         , vestingTranche2 = VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
-        , vestingOwner    = walletPubKey wallet1 }
+        , vestingOwner    = Ledger.pubKeyHash $ walletPubKey wallet1 }
 
-retrieveFundsTrace 
+retrieveFundsTrace
     :: ( MonadEmulator (TraceError e) m )
     => ContractTrace VestingSchema e m () ()
 retrieveFundsTrace = do

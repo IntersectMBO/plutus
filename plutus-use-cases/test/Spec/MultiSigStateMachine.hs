@@ -17,6 +17,7 @@ import qualified Test.Tasty.HUnit                                as HUnit
 import           Spec.Lib                                        as Lib
 
 import           Language.PlutusTx.Lattice
+import qualified Ledger
 import qualified Ledger.Ada                                      as Ada
 import           Ledger.Index                                    (ValidationError(ScriptFailure))
 import           Ledger.Scripts                                  (ScriptError(EvaluationError))
@@ -31,7 +32,7 @@ import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine (
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine as MS
 
 tests :: TestTree
-tests = 
+tests =
     testGroup "multi sig state machine tests"
     [ checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay - SUCCESS"
         (MS.contract params)
@@ -73,7 +74,7 @@ w3 = EM.Wallet 3
 -- | A multisig contract that requires 3 out of 5 signatures
 params :: MS.Params
 params = MS.Params keys 3 where
-    keys = EM.walletPubKey . EM.Wallet <$> [1..5]
+    keys = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..5]
 
 checkScriptError :: TxId -> ValidationError -> Bool
 checkScriptError _ = \case
@@ -85,14 +86,14 @@ payment :: MS.Payment
 payment =
     MS.Payment
         { MS.paymentAmount    = Ada.lovelaceValueOf 5
-        , MS.paymentRecipient = EM.walletPubKey w2
+        , MS.paymentRecipient = Ledger.pubKeyHash $ EM.walletPubKey w2
         , MS.paymentDeadline  = 20
         }
 
 -- | Lock some funds in the contract, then propose the payment
 --   'payment', then call @"add-signature"@ a number of times and
 --   finally call @"pay"@ a number of times.
-lockProposeSignPay 
+lockProposeSignPay
     :: MonadEmulator (TraceError MultiSigError) m
     => Integer
     -> Integer

@@ -23,7 +23,6 @@ tests = testGroup "checks"
     , multiplyDefined
     , incoherentUse
     , values
-    , valueRestriction
     , normalTypes
     , normalTypesCheck
     ]
@@ -89,26 +88,6 @@ propRenameCheck = property $ do
             -- we can still get incoherent usage errors, ignore them for now
             checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
-valueRestriction :: TestTree
-valueRestriction = runQuote $ do
-    aN <- freshTyName () "a"
-    bN <- freshTyName () "b"
-    xN <- freshName () "x"
-    let typeAbs v = TyAbs () v (Type ())
-        aV = TyVar () aN
-        xV = Var () xN
-    pure $ testGroup "value restriction" [
-        testCase "absError" $ isLeft (checkVR (typeAbs aN $ Error () aV)) @? "Value restriction"
-      , testCase "nestedAbsError" $ isLeft (checkVR (typeAbs aN . typeAbs bN $ Error () aV)) @? "Value restriction"
-      , testCase "wrapError" $ isLeft (checkVR (typeAbs aN $ IWrap () aV aV $ Error () aV)) @? "Value restriction"
-
-      , testCase "absLam" $ isRight (checkVR (typeAbs aN $ LamAbs () xN aV xV)) @? "Value restriction"
-      , testCase "nestedAbsLam" $ isRight (checkVR (typeAbs aN . typeAbs bN $ LamAbs () xN aV xV)) @? "Value restriction"
-      ]
-        where
-            checkVR :: Term TyName Name () -> Either (VR.ValueRestrictionError TyName ()) ()
-            checkVR = VR.checkTerm
-
 values :: TestTree
 values = runQuote $ do
     aN <- freshTyName () "a"
@@ -119,7 +98,7 @@ values = runQuote $ do
           testCase "wrapNonValue" $ VR.isTermValue (IWrap () aV aV nonVal) @?= False
         , testCase "wrapValue" $ VR.isTermValue (IWrap () aV aV val) @?= True
 
-        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= False
+        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= True
         , testCase "absValue" $ VR.isTermValue (TyAbs () aN (Type()) val) @?= True
 
         , testCase "error" $ VR.isTermValue (Error () aV) @?= False

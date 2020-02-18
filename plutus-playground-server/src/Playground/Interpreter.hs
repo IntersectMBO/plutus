@@ -207,9 +207,6 @@ runghcOpts =
     -- runghc is interpreting our code
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
-    -- FIXME: stupid GHC bug still
-    , "-package plutus-tx"
-    , "-package plutus-wallet-api"
     ]
 
 mkExpr :: (MonadError PlaygroundError m, MonadIO m) => Evaluation -> m String

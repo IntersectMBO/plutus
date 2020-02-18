@@ -12,9 +12,10 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
-import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TokenName)
-import Text.Parsing.Parser.Pos (Position(..))
+import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
+import Marlowe.Semantics (CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Semantics as S
+import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
 
 oneOf ::
@@ -49,6 +50,13 @@ genPubKey = genString
 genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
 
+genParty :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Party
+genParty = oneOf $ pk :| [ role ]
+  where
+  pk = PK <$> genTerm genPubKey
+
+  role = Role <$> genTerm genTokenName
+
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
 genCurrencySymbol = genString
 
@@ -65,11 +73,8 @@ genBound = do
   to <- genTerm $ suchThat genBigInteger (\v -> v > from)
   pure $ Bound from' to
 
-genPosition :: forall m. MonadGen m => MonadRec m => m Position
-genPosition = do
-  column <- chooseInt 0 1000
-  line <- chooseInt 0 1000
-  pure $ Position { column, line }
+genPosition :: forall m. MonadGen m => MonadRec m => m Pos
+genPosition = chooseInt 0 1000
 
 genHole :: forall m a. MonadGen m => MonadRec m => m (Term a)
 genHole = do
@@ -82,12 +87,12 @@ genHole = do
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> m (Term a)
 genTerm g = do
   withHoles <- ask
-  oneOf $ (Term <$> g) :| (if withHoles then [ genHole ] else [])
+  oneOf $ (Term <$> g <*> pure 0 <*> pure 0) :| (if withHoles then [ genHole ] else [])
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do
   accountNumber <- genTerm genBigInteger
-  accountOwner <- genTerm genPubKey
+  accountOwner <- genTerm genParty
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Token
@@ -99,16 +104,16 @@ genToken = do
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ChoiceId
 genChoiceId = do
   choiceName <- genTerm genString
-  choiceOwner <- genTerm genPubKey
+  choiceOwner <- genTerm genParty
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genPubKey ]
+genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genParty ]
 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadAsk Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genTerm genAccountId <*> genTerm genPubKey <*> genTerm genToken <*> genTerm (genValue' size))
+    $ (Deposit <$> genTerm genAccountId <*> genTerm genParty <*> genTerm genToken <*> genTerm (genValue' size))
     :| [ Choice <$> genTerm genChoiceId <*> resize (_ - 1) (unfoldable (genTerm genBound))
       , Notify <$> genTerm (genObservation' size)
       ]
@@ -269,3 +274,76 @@ genContract' size
     genLeaf ::
       m Contract
     genLeaf = pure Close
+
+----------------------------------------------------------------- Semantics Generators ---------------------------------
+genTokenNameValue :: forall m. MonadGen m => MonadRec m => m S.TokenName
+genTokenNameValue = genString
+
+genCurrencySymbolValue :: forall m. MonadGen m => MonadRec m => m S.CurrencySymbol
+genCurrencySymbolValue = genString
+
+genTokenValue :: forall m. MonadGen m => MonadRec m => m S.Token
+genTokenValue = do
+  currencySymbol <- genCurrencySymbolValue
+  tokenName <- genTokenName
+  pure $ S.Token currencySymbol tokenName
+
+genPartyValue :: forall m. MonadGen m => MonadRec m => m S.Party
+genPartyValue = oneOf $ pk :| [ role ]
+  where
+  pk = S.PK <$> genPubKey
+
+  role = S.Role <$> genTokenNameValue
+
+genAccountIdValue :: forall m. MonadGen m => MonadRec m => m S.AccountId
+genAccountIdValue = do
+  accountNumber <- genBigInteger
+  accountOwner <- genPartyValue
+  pure $ S.AccountId accountNumber accountOwner
+
+genPayeeValue :: forall m. MonadGen m => MonadRec m => m S.Payee
+genPayeeValue = oneOf $ (S.Account <$> genAccountIdValue) :| [ S.Party <$> genPartyValue ]
+
+genValueIdValue :: forall m. MonadGen m => MonadRec m => m S.ValueId
+genValueIdValue = S.ValueId <$> genString
+
+genChoiceIdValue :: forall m. MonadGen m => MonadRec m => m S.ChoiceId
+genChoiceIdValue = do
+  choiceName <- genString
+  choiceOwner <- genPartyValue
+  pure $ S.ChoiceId choiceName choiceOwner
+
+genInput ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m S.Input
+genInput =
+  oneOf
+    $ (IDeposit <$> genAccountIdValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
+    :| [ IChoice <$> genChoiceIdValue <*> genBigInteger
+      , pure INotify
+      ]
+
+genTransactionInput ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m S.TransactionInput
+genTransactionInput = do
+  interval <- genSlotInterval genSlot
+  inputs <- unfoldable genInput
+  pure $ TransactionInput { interval, inputs }
+
+genTransactionWarning ::
+  forall m.
+  MonadGen m =>
+  MonadRec m =>
+  m TransactionWarning
+genTransactionWarning =
+  oneOf
+    $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genAccountIdValue <*> genTokenValue <*> genBigInteger)
+    :| [ TransactionNonPositivePay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
+      , TransactionPartialPay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
+      , TransactionShadowing <$> genValueIdValue <*> genBigInteger <*> genBigInteger
+      ]

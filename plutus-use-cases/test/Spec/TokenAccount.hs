@@ -9,6 +9,7 @@ import           Test.Tasty
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
+import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Value                                          (TokenName, Value)
 
@@ -23,7 +24,7 @@ tests = testGroup "token account"
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
         /\ walletFundsChange w1 theToken)
-        (  callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
+        (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1)
 
     , checkPredicate @TokenAccountSchema @ContractError "Pay into the account"
@@ -31,7 +32,7 @@ tests = testGroup "token account"
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
-        ( callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
+        ( callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1
         >> addBlocks 1
         >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
@@ -44,13 +45,13 @@ tests = testGroup "token account"
         /\ assertNotDone w1 "contract should not have any errors"
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
-        (  callEndpoint @"new-account" w1 (tokenName, walletPubKey w1)
+        (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1
         >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
         >> payToWallet w1 w2 theToken
         >> handleBlockchainEvents w1
-        >> callEndpoint @"redeem" w2 (account, walletPubKey w2)
+        >> callEndpoint @"redeem" w2 (account, Ledger.pubKeyHash $ walletPubKey w2)
         >> handleBlockchainEvents w2)
 
     ]
@@ -64,8 +65,8 @@ tokenName = "test token"
 
 account :: Account
 account =
-    let currencySymbol = "b66fb1a5ce1f188099d40edfc5bc4bacb79e478fc1d3a8c204efd524eaa21e5f"
-    in Account (currencySymbol, tokenName)
+    let con = Accounts.newAccount tokenName (Ledger.pubKeyHash $ walletPubKey w1) in
+    either error id $ evalTrace @TokenAccountSchema @ContractError con (handleBlockchainEvents w1) w1
 
 theToken :: Value
 theToken = Accounts.accountToken account

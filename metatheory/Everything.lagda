@@ -31,10 +31,11 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
---import Declarative.Erasure
+import Declarative.Erasure
 
 --import Declarative.Examples
 import Declarative.StdLib.Unit
+
 import Declarative.StdLib.Bool
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
@@ -45,7 +46,6 @@ import Main
 -- types
 
 import Algorithmic
-import Algorithmic.Equality
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
@@ -54,8 +54,8 @@ import Algorithmic.Evaluation
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure
---import Algorithmic.Erasure.RenamingSubstitution
---import Algorithmic.Erasure.Reduction
+import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
@@ -78,6 +78,8 @@ import Scoped.Extrication
 --import Scoped.Extrication.Reduction
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
---import Scoped.Erasure.Reduction
+import Scoped.Erasure.Reduction
 import Scoped.CK
+
+import Check
 \end{code}

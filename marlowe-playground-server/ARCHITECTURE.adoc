@@ -1,0 +1,7 @@
+=== `marlowe-playground-server`
+
+This packages contains the server that backs the Marlowe Playground by
+compiling user code and evaluating their simulations.
+
+It also defines an executable that generates Purescript bindings for the types that
+the Purescript code needs.

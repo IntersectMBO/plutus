@@ -1,6 +1,8 @@
 {
     {-# LANGUAGE OverloadedStrings  #-}
     module Language.PlutusCore.Parser ( parse
+				      , parseTm
+				      , parseTy 
                                       , parseST
                                       , parseTermST
                                       , parseTypeST
@@ -186,6 +188,12 @@ parseType str = mapParseRun (parseTypeST str)
 -- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}))) (Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}}))))
 parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name AlexPosn)
 parse str = fmap fst $ runExcept $ runStateT (parseST str) emptyIdentifierState
+
+parseTm :: BSL.ByteString -> Either (ParseError AlexPosn) (Term TyName Name AlexPosn)
+parseTm str = fmap fst $ runExcept $ runStateT (parseTermST str) emptyIdentifierState
+
+parseTy :: BSL.ByteString -> Either (ParseError AlexPosn) (Type TyName AlexPosn)
+parseTy str = fmap fst $ runExcept $ runStateT (parseTypeST str) emptyIdentifierState
 
 type Parse = ExceptT (ParseError AlexPosn) Alex
 

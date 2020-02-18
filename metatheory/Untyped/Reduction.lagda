@@ -9,8 +9,8 @@ open import Builtin
 open import Builtin.Constant.Type
 
 import Data.Bool as Bool
-open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_; _*_)
-open import Data.Integer hiding (suc)
+open import Data.Nat using (ℕ;suc;zero)
+open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.List hiding ([_]; take; drop)
@@ -18,7 +18,7 @@ open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Function
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 open import Utils
-open import Data.Fin hiding (_+_; _-_; _≤?_; _≟_)
+open import Data.Fin using ()
 \end{code}
 
 \begin{code}
@@ -41,8 +41,11 @@ data Error {n} : n ⊢ → Set where
 
 
 data Value {n} : n ⊢ → Set where
-  V-ƛ : ∀{x}(t : suc n ⊢) → Value (ƛ x t)
+  V-ƛ : ∀(t : suc n ⊢) → Value (ƛ t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
+  V-builtin : (b : Builtin)
+              (ts : List (n ⊢))
+              → Value (builtin b ts)
 
 VTel : ∀ n → Tel n → Set
 VTel n []       = ⊤
@@ -61,7 +64,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
 
   E-· : {L : n ⊢}{M : n ⊢} → Error L → L · M —→ error
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
-  β-ƛ : ∀{x}{L : suc n ⊢}{M : n ⊢} → ƛ x L · M —→ L [ M ]
+  β-ƛ : ∀{L : suc n ⊢}{M : n ⊢} → ƛ L · M —→ L [ M ]
 
   ξ-builtin : (b : Builtin)
               (ts : Tel n)
@@ -70,10 +73,9 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               {t t' : n ⊢}
             → t —→ t'
             → (ts'' : Tel n)
-            → (ts''' : Tel n)
-            → ts''' ≡ ts' ++ Data.List.[ t' ] ++ ts''
+            → ts ≡ ts' ++ Data.List.[ t ] ++ ts''
             → builtin b ts —→
-                builtin b ts'''
+                builtin b (ts' ++ Data.List.[ t' ] ++ ts'')
   E-builtin : {b : Builtin}
               {ts : List (n ⊢)}
               {ts' : List (n ⊢)}
@@ -86,6 +88,11 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               (ts : Tel n)
               (vs : VTel n ts)
             → builtin b ts —→ BUILTIN b ts vs
+
+  sat-builtin : {b : Builtin}
+                {ts : List (n ⊢)}
+                {t : n ⊢}
+              → builtin b ts · t —→ builtin b (ts ++ Data.List.[ t ])
 \end{code}
 
 
@@ -97,8 +104,8 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 
 \begin{code}
 VERIFYSIG : ∀{n} → Maybe Bool.Bool → n ⊢
-VERIFYSIG (just Bool.false) = false 
-VERIFYSIG (just Bool.true)  = true 
+VERIFYSIG (just Bool.false) = plc_false 
+VERIFYSIG (just Bool.true)  = plc_true 
 VERIFYSIG nothing           = error
 
 BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
@@ -116,15 +123,15 @@ BUILTIN remainderInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j)
 BUILTIN modInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
   = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (mod i j)))
 BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.<? j) true false 
+  decIf (i <? j) plc_true plc_false 
 BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≤? j) true false 
+  decIf (i ≤? j) plc_true plc_false 
 BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.>? j) true false 
+  decIf (i Builtin.Constant.Type.>? j) plc_true plc_false 
 BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.≥? j) true false 
+  decIf (i Builtin.Constant.Type.≥? j) plc_true plc_false 
 BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≟ j) true false 
+  decIf (i ≟ j) plc_true plc_false 
 BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   con (bytestring (append b b'))
 BUILTIN takeByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
@@ -135,13 +142,13 @@ BUILTIN sha2-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-
 BUILTIN sha3-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN verifySignature (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  Bool.if (equals b b') then true else false 
+  Bool.if (equals b b') then plc_true else plc_false 
 BUILTIN _ _ _ = error
 
 data ProgList {n} (tel : Tel n) : Set where
   done : VTel n tel → ProgList tel
-  step : (tel' : Tel n) → VTel n tel' → {t t' : n ⊢} → t —→ t' → Tel n
-    → ProgList tel 
+  step : (tel' : Tel n) → VTel n tel' → {t t' : n ⊢} → t —→ t' → (tel'' : Tel n)
+    → tel ≡ tel' ++ Data.List.[ t ] ++ tel'' → ProgList tel 
   error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → Tel n
     → ProgList tel
 
@@ -160,10 +167,12 @@ data Progress {n}(M : n ⊢) : Set where
     → Progress M
 
 progress-· : ∀{n}{t : n ⊢} → Progress t → (u : n ⊢) → Progress (t · u)
-progress-· (step p)           u = step (ξ-·₁ p)
-progress-· (done (V-ƛ t))     u = step β-ƛ
-progress-· (done (V-con tcn)) u = error E-todo
-progress-· (error e)          u = error E-todo
+progress-· (step p)                u = step (ξ-·₁ p)
+progress-· (done (V-ƛ t))          u = step β-ƛ
+progress-· (done (V-con tcn))      u = error E-todo
+progress-· (done (V-builtin b ts)) u = step sat-builtin
+progress-· (error e)               u = error E-todo
+
 
 progress : (t : 0 ⊢) → Progress t
 progressList : (tel : Tel 0) → ProgList {0} tel
@@ -171,22 +180,22 @@ progressList []       = done _
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | done vt with progressList ts
 progressList (t ∷ ts) | done vt | done vs   = done (vt , vs)
-progressList (t ∷ ts) | done vt | step  ts' vs p ts'' =
-  step (t ∷ ts') (vt , vs) p ts''
+progressList (t ∷ ts) | done vt | step  ts' vs p ts'' p' =
+  step (t ∷ ts') (vt , vs) p ts'' (cong (t ∷_) p')
 progressList (t ∷ ts) | done vt | error ts' vs e ts'' =
   error (t ∷ ts') (vt , vs) e ts''
 progressList (t ∷ ts) | error e = error [] _ e ts
-progressList (t ∷ ts) | step p = step [] _ p ts
+progressList (t ∷ ts) | step p = step [] _ p ts refl
 
 progress (` ())
-progress (ƛ x t)      = done (V-ƛ t)
+progress (ƛ t)        = done (V-ƛ t)
 progress (t · u)      = progress-· (progress t) u
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
   step (β-builtin ts vs)
-progress (builtin b ts) | step  ts' vs p ts'' =
-  step (ξ-builtin b ts vs p ts'' (ts' ++ _ ∷ ts'') refl)
+progress (builtin b ts) | step  ts' vs p ts'' p' =
+  step (ξ-builtin b ts vs p ts'' p')
 progress (builtin b ts) | error ts' vs e ts'' =
   error E-todo
 progress error       = error E-error

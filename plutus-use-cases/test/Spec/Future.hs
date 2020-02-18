@@ -17,18 +17,19 @@ import qualified Test.Tasty.HUnit                                      as HUnit
 import qualified Spec.Lib                                              as Lib
 import           Spec.TokenAccount                                     (assertAccountBalance)
 
-import           Ledger                                                (OracleValue (..))
+import           Ledger.Oracle (SignedMessage, Observation(..))
+import qualified Ledger.Oracle as Oracle
 import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
-import           Ledger.Crypto                                         (PubKey (..))
-import           Ledger.Value                                          (CurrencySymbol, Value, scale)
+import           Ledger.Crypto                                         (PubKey (..), PrivateKey)
+import           Ledger.Value                                          (Value, scale)
+import           Ledger.Slot                                           (Slot)
 
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                                     as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.Future       (Future (..), FutureAccounts (..), FutureError,
                                                                         FutureSchema, FutureSetup (..), Role (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future       as F
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import           Language.PlutusTx.Lattice
 
 tests :: TestTree
@@ -60,7 +61,7 @@ tests =
         >> addBlocks 20
         >> settleEarly)
 
-    , checkPredicate @FutureSchema "can pay out"
+     , checkPredicate @FutureSchema "can pay out"
         (F.futureContract theFuture)
         (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
@@ -97,13 +98,9 @@ theFuture = Future {
     ftUnits         = units,
     ftUnitPrice     = forwardPrice,
     ftInitialMargin = Ada.lovelaceValueOf 800,
-    ftPriceOracle   = oracle,
+    ftPriceOracle   = snd oracleKeys,
     ftMarginPenalty = penalty
     }
-
--- | This is the address of contract 'theFuture', initialised by wallet 1
-tokenCurrency :: CurrencySymbol
-tokenCurrency = "16e2b431d9907e229c7a27387a15ba667363e230084132292ff9e646e45f1d51"
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
@@ -129,11 +126,11 @@ payOut :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema
 payOut = do
     let
         spotPrice = Ada.lovelaceValueOf 1124
-        ov = OracleValue oracle (ftDeliveryDate theFuture) spotPrice
+        ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
     callEndpoint @"settle-future" (Wallet 2) ov
     handleUtxoQueries (Wallet 2)
     handleBlockchainEvents (Wallet 2)
-    addBlocks 1
+    addBlocks 2
     handleBlockchainEvents (Wallet 2)
 
 -- | Margin penalty
@@ -148,13 +145,14 @@ forwardPrice = Ada.lovelaceValueOf 1123
 units :: Integer
 units = 187
 
-oracle :: PubKey
-oracle = walletPubKey (Wallet 10)
+oracleKeys :: (PrivateKey, PubKey)
+oracleKeys = 
+    let wllt = Wallet 10 in
+        (walletPrivKey wllt, walletPubKey wllt)
 
 accounts :: FutureAccounts
-accounts = F.mkAccounts
-            (Account (tokenCurrency, "long"))
-            (Account (tokenCurrency, "short"))
+accounts =
+    either error id $ evalTrace @FutureSchema @FutureError F.setupTokens (handleBlockchainEvents w1) w1
 
 increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 increaseMargin = do
@@ -165,6 +163,9 @@ settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureS
 settleEarly = do
     let
         spotPrice = Ada.lovelaceValueOf 11240
-        ov = OracleValue oracle (Ledger.Slot 25) spotPrice
+        ov = mkSignedMessage (Ledger.Slot 25) spotPrice
     callEndpoint @"settle-early" (Wallet 2) ov
     handleBlockchainEvents (Wallet 2)
+
+mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
+mkSignedMessage sl vl = Oracle.signObservation sl vl (fst oracleKeys)

@@ -3,7 +3,7 @@
 module Language.PlutusTx.Applicative where
 
 import           Language.PlutusTx.Functor
-import           Prelude                   (Maybe (..))
+import           Prelude                   (Bool, Either (..), Maybe (..))
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -43,6 +43,10 @@ traverse f (h:t) = (:) <$> f h <*> traverse f t
 sequence :: Applicative f => [f a] -> f [a]
 sequence = traverse id
 
+{-# INLINABLE unless #-}
+unless :: (Applicative f) => Bool -> f () -> f ()
+unless p s =  if p then pure () else s
+
 instance Applicative Maybe where
     {-# INLINABLE pure #-}
     pure = Just
@@ -50,3 +54,10 @@ instance Applicative Maybe where
     Nothing <*> _ = Nothing
     _ <*> Nothing = Nothing
     Just f <*> Just x = Just (f x)
+
+instance Applicative (Either a) where
+    {-# INLINABLE pure #-}
+    pure = Right
+    {-# INLINABLE (<*>) #-}
+    Left  e <*> _ = Left e
+    Right f <*> r = fmap f r

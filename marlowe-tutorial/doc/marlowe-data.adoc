@@ -24,21 +24,8 @@ We saw xref:marlowe-step-by-step#marlowe-step-by-step[in the previous tutorial] 
 
 === Basic components
 
-In modelling basic parts of Marlowe we use a combination of Haskell `data` types, that define _new_ types, and `type` synonyms that give a new name to an existing type.footnote:[In fact we used `newtype` declarations rather than `data` types because they are more efficiently implemented.] So, members of `PubKey` and `Party` will look like `(PubKey "alice")`, `(PubKey "bob")` and so on.
-[source,haskell]
-----
-data PubKey = PubKey Text
-type Party  = PubKey
-----
-However, Haskell allows us to present and read in these values more concisely (by declaring a custom instance of `Show` and using _overloaded strings_) so that these can be input and read as `"alice"`, `"bob"` etc. Because `Party` is a synonym for `PubKey`, the same applies to parties to contracts.
+In modelling basic parts of Marlowe we use a combination of Haskell `data` types, that define _new_ types, and `type` synonyms that give a new name to an existing type.footnote:[In fact we used `newtype` declarations rather than `data` types because they are more efficiently implemented.]
 
-Slot numbers and amounts of money are treated in a similar way; with the same show/overload approach they will appear in contracts as numbers:
-
-[source,haskell]
-----
-data Slot    = Slot Integer
-type Timeout = Slot
-----
 
 A Marlowe Account holds amounts of multiple currencies and/or fungible and non-fungible tokens.
 A concrete amount is indexed by a `Token`, which is a pair of `CurrencySymbol` and `TokenName`.
@@ -68,6 +55,31 @@ account = fromList[(Token tradeRoles buyer, 1), (ada 1000)]
 ----
 
 Here `account` holds a `buyer` token of currency "TradeRoles", and 1000 Ada.
+
+A `Party` is represented as either a public key hash or a role name.
+
+[source,haskell]
+----
+data Party  = PK PubKeyHash | Role TokenName
+----
+
+In order to progress a Marlowe contract, a party must provide an evidence.
+For `PK` party that would be a valid signature of a transaction signed by
+a private key of a public key that hashes to party's `PubKeyHash`, similarly to Bitcoin's
+`Pay to Public Key Hash` mechanism.
+For a `Role` party the evidence is spending a `role token` within the same transaction,
+usually to the same owner.
+
+So, `Role` parties will look like `(Role "alice")`, `(Role "bob")` and so on.
+However, Haskell allows us to present and read in these values more concisely (by declaring a custom instance of `Show` and using _overloaded strings_) so that these can be input and read as `"alice"`, `"bob"` etc.
+
+Slot numbers and amounts of money are treated in a similar way; with the same show/overload approach they will appear in contracts as numbers:
+
+[source,haskell]
+----
+data Slot    = Slot Integer
+type Timeout = Slot
+----
 
 
 Accounts have a number `NumAccount` and an owner, who is a `Party` to the contract.
@@ -227,10 +239,3 @@ be established externally: hence the input of (a collection of) deposits for
 each transaction.
 * The model manages the refund of funds back to the owner of a particular account when a
 contract reaches the point of `Close`.
-
-For ease of reading, in the `+data+` type definition at the start of
-this section, we omit the `+!+` symbol before every field of all
-constructors. This makes them strict in that field. We choose to make
-Marlowe strict in all arguments to all constructors, so that Marlowe
-contracts are wholly _finite_ data structures, with no partial or
-infinite components.

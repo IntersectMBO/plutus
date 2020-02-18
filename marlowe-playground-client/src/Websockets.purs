@@ -11,7 +11,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Foreign (Foreign, F, readString)
-import Types (HQuery(..), WebsocketMessage(..))
+import Types (HQuery(..), Message(..))
 import Web.Event.EventTarget (addEventListener, eventListener)
 import Web.Socket.Event.EventTypes (onMessage)
 import Web.Socket.Event.MessageEvent as MessageEvent
@@ -37,7 +37,7 @@ wsConsumer query =
     void $ query $ ReceiveWebsocketMessage msg unit
     pure Nothing
 
-wsSender :: WebSocket -> Consumer WebsocketMessage Aff Unit
+wsSender :: WebSocket -> Consumer Message Aff Unit
 wsSender socket =
   CR.consumer
     $ \msg -> do

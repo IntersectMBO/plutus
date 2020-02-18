@@ -6,9 +6,11 @@
 
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
+    , TermOf(..)
     , genOverapplication
     , factorial
     , genFactorial
+    , naiveFib
     , genNaiveFib
     , genNatRoundtrip
     , natSum
@@ -85,15 +87,15 @@ factorial = runQuote $ do
 -- >                         (rec (subtractInteger i 1))
 -- >                         (rec (subtractInteger i 2)))
 -- >         i0
-naiveFib :: Term TyName Name ()
-naiveFib = runQuote $ do
+naiveFib :: Integer -> Term TyName Name ()
+naiveFib iv = runQuote $ do
     i0  <- freshName () "i0"
     rec <- freshName () "rec"
     i   <- freshName () "i"
     u   <- freshName () "u"
-    let intS              = TyBuiltin () TyInteger
-    return
-        . LamAbs () i0 intS
+    let
+      intS = TyBuiltin () TyInteger
+      fib = LamAbs () i0 intS
         $ mkIterApp () (mkIterInst () fix [intS, intS])
             [   LamAbs () rec (TyFun () intS intS)
               . LamAbs () i intS
@@ -110,6 +112,7 @@ naiveFib = runQuote $ do
                   ]
             , Var () i0
             ]
+    pure $ Apply () fib . Constant () $ BuiltinInt () iv
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
@@ -127,8 +130,7 @@ genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
     iv <- Gen.integral $ Range.linear 0 m
-    let term = Apply () naiveFib . Constant () $ BuiltinInt () iv
-    return . TermOf term $ fibs `genericIndex` iv
+    return . TermOf (naiveFib iv) $ fibs `genericIndex` iv
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'Nat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
@@ -226,16 +228,31 @@ genDivideByZero = do
     let term = mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
     return $ TermOf term EvaluationFailure
 
+-- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
+genDivideByZeroDrop :: TermGen (EvaluationResult Integer)
+genDivideByZeroDrop = do
+    op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf i iv <- genTermLoose typedInt
+    let term =
+            mkIterApp () (mkIterInst () Function.const [int, int])
+                [ mkIterApp () (builtinNameAsTerm op) [i, makeIntConstant 0]
+                , makeIntConstant iv
+                ]
+    return $ TermOf term EvaluationFailure
+
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens :: (forall a. KnownType a => String -> TermGen a -> c) -> [c]
 fromInterestingTermGens f =
-    [ f "overapplication" genOverapplication
-    , f "factorial"       genFactorial
-    , f "fibonacci"       genNaiveFib
-    , f "NatRoundTrip"    genNatRoundtrip
-    , f "ListSum"         genListSum
-    , f "IfIntegers"      genIfIntegers
-    , f "ApplyAdd1"       genApplyAdd1
-    , f "ApplyAdd2"       genApplyAdd2
-    , f "DivideByZero"    genDivideByZero
+    [ f "overapplication"  genOverapplication
+    , f "factorial"        genFactorial
+    , f "fibonacci"        genNaiveFib
+    , f "NatRoundTrip"     genNatRoundtrip
+    , f "ListSum"          genListSum
+    , f "IfIntegers"       genIfIntegers
+    , f "ApplyAdd1"        genApplyAdd1
+    , f "ApplyAdd2"        genApplyAdd2
+    , f "DivideByZero"     genDivideByZero
+    , f "DivideByZeroDrop" genDivideByZeroDrop
     ]

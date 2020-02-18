@@ -18,7 +18,7 @@ let
               import qualified App
               main = App.main
               '';
-  z3 = pkgs.callPackage ../nix/z3.nix { staticbin = true; };
+  z3 = pkgs.z3.override { staticbin = true; };
   killallz3 = pkgs.writeScriptBin "killallz3" ''
     kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
   '';

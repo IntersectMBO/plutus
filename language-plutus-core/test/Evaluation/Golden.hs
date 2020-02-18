@@ -15,7 +15,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
@@ -42,7 +42,7 @@ evenAndOdd = runQuote $ do
     evenF <- FunctionDef () evenn (FunctionType () nat bool) <$> eoFunc true oddd
     oddF  <- FunctionDef () oddd  (FunctionType () nat bool) <$> eoFunc false evenn
 
-    getMutualFixOf () (fst $ fixN 2) [evenF, oddF]
+    getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
 even :: Term TyName Name ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
@@ -82,7 +82,7 @@ evenAndOddList = runQuote $ do
             LamAbs () t listNat $
             Apply () (Var () evenn) (Var () t)
 
-    getMutualFixOf () (fst $ fixN 2) [evenF, oddF]
+    getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
 evenList :: Term TyName Name ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
@@ -92,16 +92,25 @@ smallNatList = metaListToList nat nats where
     nats = map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
+polyError :: Term TyName Name ()
+polyError = runQuote $ do
+    a <- freshTyName () "a"
+    pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
+
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
+goldenVsEvaluated :: String -> Term TyName Name () -> TestTree
+goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty
+
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree
 test_golden = testGroup "golden"
-    [ goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
-    , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
-    , goldenVsPretty "evenList" . pure . evaluateCk $
-          Apply () natSum $ Apply () evenList smallNatList
+    [ goldenVsEvaluated "even2" $ Apply () even $ metaIntegerToNat 2
+    , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
+    , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
+    , goldenVsEvaluated "polyError" $ polyError
+    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (TyBuiltin () TyInteger)
     ]

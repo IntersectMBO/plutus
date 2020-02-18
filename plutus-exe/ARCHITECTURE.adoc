@@ -1,0 +1,4 @@
+=== `plutus-exe`
+
+This package defines a command-line executable that used to typecheck or
+evaluate Plutus Core programs.

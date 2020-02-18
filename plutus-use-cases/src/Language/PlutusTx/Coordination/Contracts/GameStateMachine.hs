@@ -37,9 +37,11 @@ import           Ledger                       hiding (to)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import qualified Ledger.Validation            as Validation
+import qualified Ledger.Scripts         as Scripts
 import qualified Ledger.Typed.Scripts         as Scripts
 
 import qualified Data.ByteString.Lazy.Char8   as C
+import qualified Data.Set   as Set
 
 import           Language.Plutus.Contract.StateMachine (ValueAllocation(..), AsSMContractError)
 import qualified Language.Plutus.Contract.StateMachine as SM
@@ -48,13 +50,13 @@ import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Tx as Tx
 
 newtype HashedString = HashedString ByteString
-    deriving newtype PlutusTx.IsData
+    deriving newtype (PlutusTx.IsData, Eq)
     deriving stock Show
 
 PlutusTx.makeLift ''HashedString
 
 newtype ClearString = ClearString ByteString
-    deriving newtype PlutusTx.IsData
+    deriving newtype (PlutusTx.IsData, Eq)
     deriving stock Show
 
 PlutusTx.makeLift ''ClearString
@@ -98,17 +100,17 @@ contract = (lock <|> guess) >> contract
 
 -- | State of the guessing game
 data GameState =
-    Initialised HashedString
+    Initialised CurrencySymbol HashedString
     -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
-    | Locked TokenName HashedString
+    | Locked CurrencySymbol TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
     deriving (Show)
 
 instance Eq GameState where
     {-# INLINABLE (==) #-}
-    (Initialised (HashedString s)) == (Initialised (HashedString s')) = s == s'
-    (Locked (V.TokenName n) (HashedString s)) == (Locked (V.TokenName n') (HashedString s')) = s == s' && n == n'
+    (Initialised sym s) == (Initialised sym' s') = sym == sym' && s == s'
+    (Locked sym n s) == (Locked sym' n' s') = sym == sym' && s == s' && n == n'
     _ == _ = traceIfFalseH "states not equal" False
 
 -- | Check whether a 'ClearString' is the preimage of a
@@ -128,33 +130,31 @@ data GameInput =
 {-# INLINABLE step #-}
 step :: GameState -> GameInput -> Maybe GameState
 step state input = case (state, input) of
-    (Initialised s, ForgeToken tn) -> Just $ Locked tn s
-    (Locked tn _, Guess _ nextSecret _) -> Just $ Locked tn nextSecret
+    (Initialised sym s, ForgeToken tn) -> Just $ Locked sym tn s
+    (Locked sym tn _, Guess _ nextSecret _) -> Just $ Locked sym tn nextSecret
     _ -> Nothing
 
 {-# INLINABLE check #-}
 check :: GameState -> GameInput -> PendingTx -> Bool
 check state input ptx = case (state, input) of
-    (Initialised _, ForgeToken tn) -> checkForge (tokenVal tn)
-    (Locked tn currentSecret, Guess theGuess _ _) ->
+    (Initialised sym _, ForgeToken tn) -> checkForge (tokenVal sym tn)
+    (Locked sym tn currentSecret, Guess theGuess _ _) ->
         checkGuess currentSecret theGuess
-            && tokenPresent tn
+            && tokenPresent sym tn
             && checkForge zero
     _ -> False
     where
         -- | Given a 'TokeName', get the value that contains
         --   exactly one token of that name in the contract's
         --   currency.
-        tokenVal :: TokenName -> V.Value
-        tokenVal tn =
-            let ownSymbol = Validation.ownCurrencySymbol ptx
-            in V.singleton ownSymbol tn 1
+        tokenVal :: CurrencySymbol -> TokenName -> V.Value
+        tokenVal sym tn = V.singleton sym tn 1
         -- | Check whether the token that was forged at the beginning of the
         --   contract is present in the pending transaction
-        tokenPresent :: TokenName -> Bool
-        tokenPresent tn =
+        tokenPresent :: CurrencySymbol -> TokenName -> Bool
+        tokenPresent sym tn =
             let vSpent = Validation.valueSpent ptx
-            in  V.geq vSpent (tokenVal tn)
+            in  vSpent `V.geq` tokenVal sym tn
         -- | Check whether the value forged by the  pending transaction 'p' is
         --   equal to the argument.
         checkForge :: Value -> Bool
@@ -175,6 +175,12 @@ scriptInstance = Scripts.validator @(SM.StateMachine GameState GameInput)
     where
         wrap = Scripts.wrapValidator @GameState @GameInput
 
+monetaryPolicy :: Scripts.MonetaryPolicy
+monetaryPolicy = Scripts.mkMonetaryPolicyScript $
+    let vhsh = Scripts.validatorHash $ Scripts.validatorScript scriptInstance
+    in $$(PlutusTx.compile [|| \hsh -> Scripts.wrapMonetaryPolicy (\ptx -> not $ null $ scriptOutputsAt hsh ptx) ||])
+       `PlutusTx.applyCode` PlutusTx.liftCode vhsh
+
 -- | The 'SM.StateMachineInstance' of the game state machine contract. It uses
 --   the functions in 'Language.PlutusTx.StateMachine' to generate a validator
 --   script based on the functions 'step' and 'check' we defined above.
@@ -183,14 +189,14 @@ machineInstance = SM.StateMachineInstance machine scriptInstance
 
 -- | Allocate the funds for each transition.
 allocate :: GameState -> GameInput -> Value -> Maybe ValueAllocation
-allocate (Initialised _) (ForgeToken _) currentVal = 
+allocate (Initialised{}) (ForgeToken{}) currentVal =
     Just $ ValueAllocation
         { vaOwnAddress    = currentVal
         -- use 'Tx.forgeValue' to ensure that the transaction forges
         -- the token.
-        , vaOtherPayments = Tx.forgeValue gameTokenVal
+        , vaOtherPayments = Tx.forgeValue gameTokenVal (Set.singleton monetaryPolicy)
         }
-allocate (Locked _ _) (Guess _ _ takenOut) currentVal =
+allocate (Locked{}) (Guess _ _ takenOut) currentVal =
     Just $ ValueAllocation
         { vaOwnAddress = currentVal - takenOut
         -- use 'Tx.moveValue' to ensure that the transaction includes
@@ -212,7 +218,7 @@ gameTokenVal :: Value
 gameTokenVal =
     let
         -- see note [Obtaining the currency symbol]
-        cur = scriptCurrencySymbol (Scripts.validatorScript scriptInstance)
+        cur = scriptCurrencySymbol monetaryPolicy
     in
         V.singleton cur gameToken 1
 
@@ -238,7 +244,8 @@ lock ::
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
-    _ <- SM.runInitialise client (Initialised secret) lockArgsValue
+        sym = scriptCurrencySymbol monetaryPolicy
+    _ <- SM.runInitialise client (Initialised sym secret) lockArgsValue
     void (SM.runStep client (ForgeToken gameToken))
 
 PlutusTx.makeIsData ''GameState

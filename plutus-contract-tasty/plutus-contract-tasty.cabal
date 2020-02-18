@@ -85,3 +85,6 @@ test-suite plutus-contract-tasty-test
         plutus-tx -any,
         plutus-contract-tasty -any,
         aeson -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any

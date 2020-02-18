@@ -1,0 +1,3 @@
+=== `pkgs`
+
+This contains the generated Nix code representing our Haskell package set.

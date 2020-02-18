@@ -5,8 +5,8 @@ module Main (main) where
 import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.Normal           as Normal
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeRunCek)
-import           Language.PlutusCore.Evaluation.Machine.Ck  (runCk)
+import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
@@ -108,9 +108,9 @@ main =
                         g' = processor g
                     in
 
-                    bgroup "runCk"
-                      [ bench "valid" $ nf (fmap runCk) f'
-                      , bench "invalid" $ nf (fmap runCk) g'
+                    bgroup "unsafeEvaluateCk"
+                      [ bench "valid" $ nf (fmap $ unsafeEvaluateCk . toTerm) f'
+                      , bench "invalid" $ nf (fmap $ unsafeEvaluateCk . toTerm) g'
                       ]
                 , env evalFiles $ \ ~(f, g) ->
                    let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
@@ -119,9 +119,9 @@ main =
                        g' = processor g
                    in
 
-                   bgroup "runCek"
-                     [ bench "valid" $ nf (fmap (unsafeRunCek mempty)) f'
-                     , bench "invalid" $ nf (fmap (unsafeRunCek mempty)) g'
+                   bgroup "unsafeEvaluateCek"
+                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek mempty . toTerm) f'
+                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty . toTerm) g'
                      ]
                 ,   bgroup "verifySignature" $
                       let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool

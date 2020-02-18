@@ -5,7 +5,6 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Value         as VR
 import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
@@ -26,7 +25,6 @@ kindcheck ty = do
 
 typecheck :: MonadError (Error ()) m => Term TyName Name () -> m ()
 typecheck term = do
-    _ <- VR.checkTerm term
     _ <- runQuoteT $ inferType defOffChainConfig term
     return ()
 

@@ -1,28 +1,28 @@
 module Marlowe.Holes where
 
 import Prelude
-import Data.Array (foldMap, foldl, mapWithIndex, (:))
+import Data.Array (foldMap, foldl, mapWithIndex)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (intercalate)
-import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Function (on)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (class Newtype)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.String (length)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Marlowe.Pretty (class Pretty, genericPretty, prettyFragment)
-import Marlowe.Semantics (ChosenNum, Money, Party, PubKey, Slot, Timeout)
+import Marlowe.Semantics (ChosenNum, Money, PubKey, Slot, Timeout, TokenName)
 import Marlowe.Semantics as S
-import Text.Parsing.Parser.Basic (replaceInPosition)
-import Text.Parsing.Parser.Pos (Position(..))
-import Text.PrettyPrint.Leijen (appendWithSoftbreak)
-import Text.PrettyPrint.Leijen as Leijen
+import Text.Parsing.StringParser (Pos)
+import Text.Parsing.StringParser.Basic (replaceInPosition)
+import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs)
+import Text.Pretty as P
 import Type.Proxy (Proxy)
 
 data MarloweType
@@ -41,8 +41,14 @@ data MarloweType
   | ContractType
   | BoundType
   | TokenType
+  | PartyType
 
 derive instance eqMarloweType :: Eq MarloweType
+
+derive instance genericMarloweType :: Generic MarloweType _
+
+instance showMarloweType :: Show MarloweType where
+  show = genericShow
 
 data Argument
   = ArrayArg String
@@ -125,30 +131,29 @@ getMarloweConstructors BoundType = Map.singleton "Bound" [ DataArg "from", DataA
 
 getMarloweConstructors TokenType = Map.singleton "Token" [ DataArg "currency", DataArg "token" ]
 
+getMarloweConstructors PartyType =
+  Map.fromFoldable
+    [ (Tuple "PK" [ DataArg "pubKey" ])
+    , (Tuple "Role" [ DataArg "token" ])
+    ]
+
+-- | Creates a String consisting of the data constructor name followed by argument holes
+--   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
 constructMarloweType constructorName (MarloweHole { name, marloweType, start }) m = case Map.lookup constructorName m of
   Nothing -> ""
   Just [] -> constructorName
-  Just vs ->
-    let
-      Position { line, column } = start
-    in
-      "(" <> constructorName <> " " <> intercalate " " (mapWithIndex (showArgument line column) vs) <> ")"
+  Just vs -> "(" <> constructorName <> " " <> intercalate " " (mapWithIndex (showArgument start) vs) <> ")"
   where
-  showArgument line column i (ArrayArg arg) = "[ ?" <> arg <> "_" <> show line <> "_" <> show (column + i) <> " ]"
+  showArgument startPos i (ArrayArg arg) = "[ ?" <> arg <> "_" <> show (startPos + i) <> " ]"
 
-  showArgument line column i (DataArg arg) = "?" <> arg <> "_" <> show line <> "_" <> show (column + i)
+  showArgument startPos i (DataArg arg) = "?" <> arg <> "_" <> show (startPos + i)
 
-  showArgument _ _ _ NewtypeArg = ""
-
-derive instance genericMarloweType :: Generic MarloweType _
-
-instance showMarloweType :: Show MarloweType where
-  show = genericShow
+  showArgument _ _ NewtypeArg = ""
 
 data Term a
-  = Term a
-  | Hole String (Proxy a) Position Position
+  = Term a Pos Pos
+  | Hole String (Proxy a) Pos Pos
 
 derive instance genericTerm :: Generic (Term a) _
 
@@ -156,26 +161,37 @@ instance eqTerm :: Eq a => Eq (Term a) where
   eq a b = genericEq a b
 
 instance showTerm :: Show a => Show (Term a) where
-  show (Term a) = show a
+  show (Term a _ _) = show a
   show (Hole name _ _ _) = "?" <> name
 
 instance prettyTerm :: Pretty a => Pretty (Term a) where
-  prettyFragment (Term a) = prettyFragment a
-  prettyFragment (Hole name _ _ _) = Leijen.text $ "?" <> name
+  pretty (Term a _ _) = P.pretty a
+  pretty (Hole name _ _ _) = P.text $ "?" <> name
+
+instance hasArgsTerm :: Args a => Args (Term a) where
+  hasArgs (Term a _ _) = hasArgs a
+  hasArgs _ = false
+  hasNestedArgs (Term a _ _) = hasNestedArgs a
+  hasNestedArgs _ = false
 
 -- a concrete type for holes only
 data MarloweHole
   = MarloweHole
     { name :: String
     , marloweType :: MarloweType
-    , start :: Position
-    , end :: Position
+    , start :: Pos
+    , end :: Pos
     }
+
+derive instance genericMarloweHole :: Generic MarloweHole _
 
 derive instance eqMarloweHole :: Eq MarloweHole
 
 instance ordMarloweHole :: Ord MarloweHole where
-  compare (MarloweHole { start: (Position a) }) (MarloweHole { start: (Position b) }) = (compare `on` _.line <> compare `on` _.column) a b
+  compare (MarloweHole { start: a }) (MarloweHole { start: b }) = compare a b
+
+instance showMarloweHole :: Show MarloweHole where
+  show = genericShow
 
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
@@ -187,45 +203,38 @@ instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
   marloweType _ = BigIntegerType
 
 -- a Monoid for collecting Holes
-data Holes
-  = Holes (Map String (Array MarloweHole))
+newtype Holes
+  = Holes (Map String (Set MarloweHole))
+
+derive instance genericHoles :: Generic Holes _
+
+derive instance newtypeHoles :: Newtype Holes _
+
+derive newtype instance showHoles :: Show Holes
 
 instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
 
-instance monoidHoles :: Monoid Holes where
-  mempty = Holes mempty
+derive newtype instance monoidHoles :: Monoid Holes
 
-{- | Find holes with the same name
-  We collect all the `Holes` using `getHoles` and then we fold through the result
-  to find occurances that have the same name as well as changing the values to be
-  single MarloweHoles rather than an array of MarloweHoles
--}
-validateHoles :: Holes -> Tuple (Array MarloweHole) (Map String MarloweHole)
-validateHoles (Holes m) = foldlWithIndex f (Tuple [] mempty) m
-  where
-  f k (Tuple duplicates uniquesMap) [ v ] = Tuple duplicates (Map.insert k v uniquesMap)
+insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
+insertHole (Term _ _ _) m = m
 
-  f k (Tuple duplicates uniquesMap) vs = Tuple (duplicates <> vs) uniquesMap
-
-insertHole :: forall a. IsMarloweType a => Holes -> Term a -> Holes
-insertHole m (Term _) = m
-
-insertHole (Holes m) (Hole name proxy start end) = Holes $ Map.alter f name m
+insertHole (Hole name proxy start end) (Holes m) = Holes $ Map.alter f name m
   where
   marloweHole = MarloweHole { name, marloweType: (marloweType proxy), start, end }
 
-  f v = Just (marloweHole : fromMaybe [] v)
+  f v = Just (Set.insert marloweHole $ fromMaybe mempty v)
 
 class HasMarloweHoles a where
-  getHoles :: Holes -> a -> Holes
+  getHoles :: a -> Holes -> Holes
 
 instance termHasMarloweHoles :: (IsMarloweType a, HasMarloweHoles a) => HasMarloweHoles (Term a) where
-  getHoles m (Term a) = getHoles m a
-  getHoles m h = insertHole m h
+  getHoles (Term a _ _) m = getHoles a m
+  getHoles h m = insertHole h m
 
 instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
-  getHoles m as = foldMap (getHoles m) as
+  getHoles as m = foldMap (\a -> getHoles a m) as
 
 -- Parsable versions of the Marlowe types
 data Bound
@@ -237,7 +246,11 @@ instance showBound :: Show Bound where
   show v = genericShow v
 
 instance prettyBound :: Pretty Bound where
-  prettyFragment a = Leijen.text $ show a
+  pretty v = genericPretty v
+
+instance hasArgsBound :: Args Bound where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance boundFromTerm :: FromTerm Bound S.Bound where
   fromTerm (Bound a b) = S.Bound <$> termToValue a <*> termToValue b
@@ -246,10 +259,38 @@ instance boundIsMarloweType :: IsMarloweType Bound where
   marloweType _ = BoundType
 
 instance boundHasMarloweHoles :: HasMarloweHoles Bound where
-  getHoles m (Bound a b) = insertHole m a <> insertHole m b
+  getHoles (Bound a b) m = insertHole a m <> insertHole b m
+
+data Party
+  = PK (Term PubKey)
+  | Role (Term TokenName)
+
+derive instance genericParty :: Generic Party _
+
+instance showParty :: Show Party where
+  show v = genericShow v
+
+instance prettyParty :: Pretty Party where
+  pretty = genericPretty
+
+instance hasArgsParty :: Args Party where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
+
+instance partyFromTerm :: FromTerm Party S.Party where
+  fromTerm (PK (Term b _ _)) = pure $ S.PK b
+  fromTerm (Role (Term b _ _)) = pure $ S.Role b
+  fromTerm _ = Nothing
+
+instance partyIsMarloweType :: IsMarloweType Party where
+  marloweType _ = PartyType
+
+instance partyHasMarloweHoles :: HasMarloweHoles Party where
+  getHoles (PK a) m = insertHole a m
+  getHoles (Role a) m = insertHole a m
 
 data AccountId
-  = AccountId (Term BigInteger) (Term PubKey)
+  = AccountId (Term BigInteger) (Term Party)
 
 derive instance genericAccountId :: Generic AccountId _
 
@@ -257,17 +298,21 @@ instance showAccountId :: Show AccountId where
   show v = genericShow v
 
 instance prettyAccountId :: Pretty AccountId where
-  prettyFragment a = Leijen.text (show a)
+  pretty = genericPretty
+
+instance hasArgsAccountId :: Args AccountId where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 instance accountIdFromTerm :: FromTerm AccountId S.AccountId where
-  fromTerm (AccountId (Term b) (Term c)) = pure $ S.AccountId b c
+  fromTerm (AccountId (Term b _ _) (Term c _ _)) = S.AccountId <$> pure b <*> fromTerm c
   fromTerm _ = Nothing
 
 instance accountIdIsMarloweType :: IsMarloweType AccountId where
   marloweType _ = AccountIdType
 
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles m (AccountId a b) = insertHole m a <> insertHole m b
+  getHoles (AccountId a b) m = insertHole a m <> insertHole b m
 
 data Token
   = Token (Term String) (Term String)
@@ -278,20 +323,24 @@ instance showToken :: Show Token where
   show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
-  prettyFragment a = Leijen.text (show a)
+  pretty = genericPretty
+
+instance hasArgsToken :: Args Token where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 instance tokenFromTerm :: FromTerm Token S.Token where
-  fromTerm (Token (Term b) (Term c)) = pure $ S.Token b c
+  fromTerm (Token (Term b _ _) (Term c _ _)) = pure $ S.Token b c
   fromTerm _ = Nothing
 
 instance tokenIsMarloweType :: IsMarloweType Token where
   marloweType _ = TokenType
 
 instance tokenHasMarloweHoles :: HasMarloweHoles Token where
-  getHoles m (Token a b) = insertHole m a <> insertHole m b
+  getHoles (Token a b) m = insertHole a m <> insertHole b m
 
 data ChoiceId
-  = ChoiceId (Term String) (Term PubKey)
+  = ChoiceId (Term String) (Term Party)
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -299,17 +348,21 @@ instance showChoiceId :: Show ChoiceId where
   show v = genericShow v
 
 instance prettyChoiceId :: Pretty ChoiceId where
-  prettyFragment a = Leijen.text (show a)
+  pretty = genericPretty
+
+instance hasArgsChoiceId :: Args ChoiceId where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 instance choiceIdFromTerm :: FromTerm ChoiceId S.ChoiceId where
-  fromTerm (ChoiceId (Term a) (Term b)) = pure $ S.ChoiceId a b
+  fromTerm (ChoiceId (Term a _ _) (Term b _ _)) = S.ChoiceId <$> pure a <*> fromTerm b
   fromTerm _ = Nothing
 
 instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where
   marloweType _ = ChoiceIdType
 
 instance choiceIdHasMarloweHoles :: HasMarloweHoles ChoiceId where
-  getHoles m (ChoiceId a b) = insertHole m a <> insertHole m b
+  getHoles (ChoiceId a b) m = insertHole a m <> insertHole b m
 
 data Action
   = Deposit (Term AccountId) (Term Party) (Term Token) (Term Value)
@@ -322,20 +375,19 @@ instance showAction :: Show Action where
   show v = genericShow v
 
 instance prettyAction :: Pretty Action where
-  prettyFragment a = Leijen.text (show a)
+  pretty v = genericPretty v
+
+instance hasArgsAction :: Args Action where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance actionFromTerm :: FromTerm Action S.Action where
-  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> termToValue b <*> fromTerm c <*> fromTerm d
+  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
   fromTerm (Choice a b) = S.Choice <$> fromTerm a <*> (traverse fromTerm b)
   fromTerm (Notify a) = S.Notify <$> fromTerm a
 
 instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
-
-instance actionHasMarloweHoles :: HasMarloweHoles Action where
-  getHoles m (Deposit a b c d) = getHoles m a <> insertHole m b <> getHoles m c <> getHoles m d
-  getHoles m (Choice a bs) = getHoles m a <> getHoles m bs
-  getHoles m (Notify a) = getHoles m a
 
 data Payee
   = Account (Term AccountId)
@@ -347,19 +399,23 @@ instance showPayee :: Show Payee where
   show v = genericShow v
 
 instance prettyPayee :: Pretty Payee where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsPayee :: Args Payee where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance payeeFromTerm :: FromTerm Payee S.Payee where
   fromTerm (Account a) = S.Account <$> fromTerm a
-  fromTerm (Party (Term a)) = pure $ S.Party a
+  fromTerm (Party (Term a _ _)) = S.Party <$> fromTerm a
   fromTerm _ = Nothing
 
 instance payeeMarloweType :: IsMarloweType Payee where
   marloweType _ = PayeeType
 
 instance payeeHasMarloweHoles :: HasMarloweHoles Payee where
-  getHoles m (Account a) = getHoles m a
-  getHoles m (Party a) = insertHole m a
+  getHoles (Account a) m = getHoles a m
+  getHoles (Party a) m = insertHole a m
 
 data Case
   = Case (Term Action) (Term Contract)
@@ -369,18 +425,18 @@ derive instance genericCase :: Generic Case _
 instance showCase :: Show Case where
   show v = genericShow v
 
--- FIXME: pretty printing is a disaster and slooooowwwww
 instance prettyCase :: Pretty Case where
-  prettyFragment (Case action' contract') = appendWithSoftbreak (Leijen.text "Case " <> prettyFragment action' <> Leijen.text " ") (prettyFragment contract')
+  pretty v = genericPretty v
+
+instance hasArgsCase :: Args Case where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance caseFromTerm :: FromTerm Case S.Case where
   fromTerm (Case a b) = S.Case <$> fromTerm a <*> fromTerm b
 
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
-
-instance caseHasMarloweHoles :: HasMarloweHoles Case where
-  getHoles m (Case a b) = getHoles m a <> getHoles m b
 
 data Value
   = AvailableMoney (Term AccountId) (Term Token)
@@ -399,7 +455,11 @@ instance showValue :: Show Value where
   show v = genericShow v
 
 instance prettyValue :: Pretty Value where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsValue :: Args Value where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (AvailableMoney a b) = S.AvailableMoney <$> fromTerm a <*> fromTerm b
@@ -414,17 +474,6 @@ instance valueFromTerm :: FromTerm Value S.Value where
 
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
-
-instance valueHasMarloweHoles :: HasMarloweHoles Value where
-  getHoles m (AvailableMoney a b) = getHoles m a <> getHoles m b
-  getHoles m (Constant a) = insertHole m a
-  getHoles m (NegValue a) = getHoles m a
-  getHoles m (AddValue a b) = getHoles m a <> getHoles m b
-  getHoles m (SubValue a b) = getHoles m a <> getHoles m b
-  getHoles m (ChoiceValue a b) = getHoles m a <> getHoles m b
-  getHoles m SlotIntervalStart = mempty
-  getHoles m SlotIntervalEnd = mempty
-  getHoles m (UseValue a) = getHoles m a
 
 data Input
   = IDeposit (Term AccountId) (Term Party) (Term Money)
@@ -450,10 +499,14 @@ instance showObservation :: Show Observation where
   show v = genericShow v
 
 instance prettyObservation :: Pretty Observation where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsObservation :: Args Observation where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance fromTermTerm :: FromTerm a b => FromTerm (Term a) b where
-  fromTerm (Term a) = fromTerm a
+  fromTerm (Term a _ _) = fromTerm a
   fromTerm _ = Nothing
 
 instance observationFromTerm :: FromTerm Observation S.Observation where
@@ -472,19 +525,6 @@ instance observationFromTerm :: FromTerm Observation S.Observation where
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
 
-instance observationHasMarloweHoles :: HasMarloweHoles Observation where
-  getHoles m (AndObs a b) = getHoles m a <> getHoles m b
-  getHoles m (OrObs a b) = getHoles m a <> getHoles m b
-  getHoles m (NotObs a) = getHoles m a
-  getHoles m (ChoseSomething a) = getHoles m a
-  getHoles m (ValueGE a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueGT a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueLT a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueLE a b) = getHoles m a <> getHoles m b
-  getHoles m (ValueEQ a b) = getHoles m a <> getHoles m b
-  getHoles m TrueObs = mempty
-  getHoles m FalseObs = mempty
-
 data Contract
   = Close
   | Pay (Term AccountId) (Term Payee) (Term Token) (Term Value) (Term Contract)
@@ -498,7 +538,11 @@ instance showContract :: Show Contract where
   show v = genericShow v
 
 instance prettyContract :: Pretty Contract where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsContract :: Args Contract where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 instance contractFromTerm :: FromTerm Contract S.Contract where
   fromTerm Close = pure S.Close
@@ -510,23 +554,26 @@ instance contractFromTerm :: FromTerm Contract S.Contract where
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
 
-instance contractHasMarloweHoles :: HasMarloweHoles Contract where
-  getHoles m Close = mempty
-  getHoles m (Pay a b c d e) = getHoles m a <> getHoles m b <> getHoles m c <> getHoles m d <> getHoles m e
-  getHoles m (If a b c) = getHoles m a <> getHoles m b <> getHoles m c
-  getHoles m (When as b c) = getHoles m as <> insertHole m b <> getHoles m c
-  getHoles m (Let a b c) = getHoles m a <> getHoles m b <> getHoles m c
-
 newtype ValueId
   = ValueId String
 
 derive instance genericValueId :: Generic ValueId _
 
+derive instance newtypeValueId :: Newtype ValueId _
+
+derive newtype instance eqValueId :: Eq ValueId
+
+derive newtype instance ordValueId :: Ord ValueId
+
 instance showValueId :: Show ValueId where
   show (ValueId valueId') = show valueId'
 
 instance prettyValueId :: Pretty ValueId where
-  prettyFragment a = Leijen.text (show a)
+  pretty (ValueId valueId) = P.text $ show valueId
+
+instance hasArgsValueId :: Args ValueId where
+  hasArgs _ = false
+  hasNestedArgs _ = false
 
 instance valueIdFromTerm :: FromTerm ValueId S.ValueId where
   fromTerm (ValueId a) = pure $ S.ValueId a
@@ -535,10 +582,10 @@ instance valueIdIsMarloweType :: IsMarloweType ValueId where
   marloweType _ = ValueIdType
 
 instance valueIdHasMarloweHoles :: HasMarloweHoles ValueId where
-  getHoles m _ = m
+  getHoles _ m = m
 
 termToValue :: forall a. Term a -> Maybe a
-termToValue (Term a) = Just a
+termToValue (Term a _ _) = Just a
 
 termToValue _ = Nothing
 
@@ -550,39 +597,25 @@ instance slotMarloweType :: IsMarloweType Slot where
 
 -- Replace all holes of a certain name with the value
 replaceInPositions :: String -> MarloweHole -> Array MarloweHole -> String -> String
-replaceInPositions constructor firstHole@(MarloweHole { marloweType }) holes currentContract =
+replaceInPositions constructor firstHole@(MarloweHole { marloweType, name }) holes currentContract =
   let
-    offset (Position { line, column }) x = Position { line, column: column + x }
-
-    lengthOfReplacement value (Position { column: start }) (Position { column: end }) = (length value) - (end - start)
-
-    getLine (Position { line }) = line
-
     m = getMarloweConstructors marloweType
 
     holeString = constructMarloweType constructor firstHole m
 
-    (_ /\ _ /\ final) =
-      ( foldl
-          ( \(currLength /\ currLineNumber /\ currString) hole@(MarloweHole { name, marloweType, start, end }) ->
-              let
-                thisLine = getLine start
+    stringLengthDifference = (length holeString) - (length name) - 1
 
-                thisLength = currLength + (lengthOfReplacement holeString start end)
-              in
-                if currLineNumber == thisLine then
-                  ( thisLength
-                      /\ thisLine
-                      /\ (replaceInPosition (offset start thisLength) (offset end thisLength) holeString currString)
-                  )
-                else
-                  ( 0
-                      /\ thisLine
-                      /\ (replaceInPosition start end holeString currString)
-                  )
-          )
-          (0 /\ 0 /\ currentContract)
-          holes
-      )
+    (final /\ _) =
+      foldl
+        ( \(currString /\ currLength) hole@(MarloweHole { name, start, end }) ->
+            let
+              newString = replaceInPosition { start: start + currLength, end: end + currLength, string: currString, replacement: holeString }
+
+              newLength = currLength + stringLengthDifference
+            in
+              (newString /\ newLength)
+        )
+        (currentContract /\ 0)
+        holes
   in
     final

@@ -62,6 +62,7 @@ library
         Ledger.Blockchain,
         Ledger.Crypto,
         Ledger.Orphans,
+        Ledger.Oracle,
         Ledger.Slot,
         Ledger.Scripts,
         Ledger.Tx,
@@ -111,6 +112,7 @@ library plutus-ledger
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Crypto
+        Ledger.Oracle
         Ledger.Orphans
         Ledger.Slot
         Ledger.Scripts
@@ -132,7 +134,6 @@ library plutus-ledger
         bytestring -any,
         cborg -any,
         containers -any,
-        plutus-tx -any,
         plutus-ir -any,
         cryptonite >=0.25,
         hashable -any,
@@ -144,6 +145,7 @@ library plutus-ledger
         natural-transformation -any,
         operational -any,
         prettyprinter -any,
+        plutus-tx -any,
         serialise -any,
         servant -any,
         template-haskell -any,

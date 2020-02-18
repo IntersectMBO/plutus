@@ -1,0 +1,18 @@
+=== plutus-tx-plugin
+
+This package contains the GHC Core to Plutus IR compiler ("the
+Plutus Tx compiler"), and a GHC Core plugin which enables programs
+to use it.
+
+Because of the way plugins work, clients can use the functions in the
+`plutus-tx` package to use the plugin, but will require an additional
+dependency on this package.
+
+`plutus-tx-plugin` is separated out from `plutus-tx` because it
+depends on the `ghc` library, which is difficult in a number of ways.
+Specifically, when cross-compiling, the plugin module needs to be provided
+as a "native"-compiled module, not as a cross-compiled module. Due to
+cabal's lack of support for cross-compilation, this needs to be accomplished
+by external means, and the best we can do is ensure that we *don't* try and
+compile this package cross -- hence why we recommend depending on it
+conditionally.

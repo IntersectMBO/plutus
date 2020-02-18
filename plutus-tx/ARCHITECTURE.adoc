@@ -1,0 +1,12 @@
+=== `plutus-tx`
+
+This package provides several things:
+
+- The Plutus Tx compiler, which compiles GHC Core into
+Plutus IR.
+- Functions for triggering the compiler plugin from `plutus-tx-plugin`.
+- A couple of special typeclasses which aid with the interface
+between Haskell and Plutus Tx, and Template Haskell support for
+generating instances.
+- A partial replacement Prelude, since many parts of the
+normal Haskell Prelude cannot be used with Plutus Tx.

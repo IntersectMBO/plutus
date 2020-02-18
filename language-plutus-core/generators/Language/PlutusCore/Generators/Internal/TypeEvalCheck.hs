@@ -18,16 +18,13 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
 
 import           PlutusPrelude
 
-import           PlcTestUtils
-
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
-import qualified Language.PlutusCore.Check.Value                         as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -54,9 +51,6 @@ makeClassyPrisms ''TypeEvalCheckError
 
 instance ann ~ () => AsError TypeEvalCheckError ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
-
-instance (tyname ~ TyName, ann ~ ()) => AsValueRestrictionError TypeEvalCheckError tyname ann where
-    _ValueRestrictionError = _TypeEvalCheckErrorIllFormed . _ValueRestrictionError
 
 instance ann ~ () => AsTypeError TypeEvalCheckError ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
@@ -85,18 +79,17 @@ type TypeEvalCheckM = Either TypeEvalCheckError
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Pretty err, KnownType a)
-    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+    :: (Pretty internal, KnownType a)
+    => (Term TyName Name () -> Either (EvaluationException internal user) (Plain Term))
        -- ^ An evaluator.
     -> TermOf a
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
-    _ <- VR.checkTerm term
     termTy <- runQuoteT $ inferType defOffChainConfig term
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure
             t         -> EvaluationSuccess t
-    fmap (TypeEvalCheckResult termTy) $ case eval term of
+    fmap (TypeEvalCheckResult termTy) $ case extractEvaluationResult $ eval term of
         Right valActual
             | valExpected == valActual -> return valActual
             | otherwise                ->
@@ -108,7 +101,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 unsafeTypeEvalCheck
     :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (pureTry @CkMachineException . evaluateCk) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCek mempty) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

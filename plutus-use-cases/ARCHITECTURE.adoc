@@ -1,0 +1,26 @@
+=== `plutus-use-cases`
+
+This package contains worked examples of a number of contracts, along with
+tests using the emulator. This should always be our "most real" project: this is
+where we try and do the things that we think people will really try and do.
+
+It has a few other miscellaneous tests and benchmarks that use the use-cases as
+a source of large/real validators.
+
+The following contracts are implemented:
+
+* `Crowdfunding`: A crowdfunding campaign
+* `Currency`: A custom currency with a monetary policy that allows the forging of a fixed amount of units
+* `ErrorHandling`: Demonstrates how to deal with errors in Plutus contracts
+* `Escrow`: A general-purpose escrow contract
+* `Future`: A tokenised financial contract (future), using the state machine library
+* `Game`: A guessing game
+* `GameStateMachine`: Tokenised guessing game written as a state machine
+* `MultiSig`: Implements an n-out-of-m multisig contract
+* `MultiSigStateMachine`: A multisig contract written as a state machine
+* `PubKey`: A "pay-to-pubkey" transaction output implemented as a Plutus contract
+* `Swap`: A financial contract (swap)
+* `TokenAccount`: Plutus implementation of an account that can be unlocked with a token
+* `Vesting`: A simple vesting scheme. Money is locked by a contract and may only be retrieved after some time has passed.
+
+The test suite includes unit tests for all contracts

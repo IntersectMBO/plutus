@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -26,22 +26,22 @@ module Ledger.Ada(
     , isZero
     ) where
 
-import qualified Prelude                   as Haskell
+import qualified Prelude                          as Haskell
 
 import           Data.Fixed
 
-import           Codec.Serialise.Class     (Serialise)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc (Pretty)
+import           Codec.Serialise.Class            (Serialise)
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (divide)
-import qualified Language.PlutusTx.Prelude as P
-import           Ledger.Value              (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value              as TH
+import           GHC.Generics                     (Generic)
+import           IOTS                             (IotsType)
+import qualified Language.PlutusTx                as PlutusTx
+import           Language.PlutusTx.Lift           (makeLift)
+import           Language.PlutusTx.Prelude        hiding (divide)
+import qualified Language.PlutusTx.Prelude        as P
+import           Ledger.Value                     (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value                     as TH
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.

@@ -1,18 +1,18 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns       #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE RankNTypes  #-}
-{-# LANGUAGE DerivingVia  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -26,6 +26,7 @@ module Ledger.Scripts(
     ScriptError (..),
     evaluateScript,
     runScript,
+    runMonetaryPolicyScript,
     applyScript,
     -- * Script wrappers
     mkValidatorScript,
@@ -33,51 +34,54 @@ module Ledger.Scripts(
     unValidatorScript,
     RedeemerValue(..),
     DataValue(..),
+    mkMonetaryPolicyScript,
+    MonetaryPolicy (..),
+    unMonetaryPolicyScript,
     ValidationData(..),
     -- * Hashes
     DataValueHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
+    MonetaryPolicyHash (..),
     dataValueHash,
     redeemerHash,
     validatorHash,
+    monetaryPolicyHash,
     -- * Example scripts
     unitRedeemer,
     unitData
     ) where
 
-import qualified Prelude                                  as Haskell
+import qualified Prelude                              as Haskell
 
-import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise                          (serialise)
-import           Codec.Serialise.Class                    (Serialise, encode)
-import           Control.Monad                            (unless)
-import           Control.Monad.Except                     (MonadError, throwError, runExcept)
-import           Control.DeepSeq                          (NFData)
-import           Crypto.Hash                              (Digest, SHA256, hash)
-import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                               as JSON
-import qualified Data.Aeson.Extras                        as JSON
-import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Functor                             (void)
-import           Data.Hashable                            (Hashable)
+import qualified Codec.CBOR.Write                     as Write
+import           Codec.Serialise                      (serialise)
+import           Codec.Serialise.Class                (Serialise, encode)
+import           Control.DeepSeq                      (NFData)
+import           Control.Monad.Except                 (MonadError, runExcept, throwError)
+import           Crypto.Hash                          (Digest, SHA256, hash)
+import           Data.Aeson                           (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                           as JSON
+import qualified Data.Aeson.Extras                    as JSON
+import qualified Data.ByteArray                       as BA
+import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Functor                         (void)
+import           Data.Hashable                        (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                             (Generic)
-import           IOTS                                     (IotsType (iotsDefinition))
-import qualified Language.PlutusCore                      as PLC
-import qualified Language.PlutusCore.Pretty               as PLC
-import qualified Language.PlutusCore.Constant.Dynamic     as PLC
-import qualified Language.PlutusCore.Evaluation.Result    as PLC
-import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusTx.Lift                   (liftCode)
-import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
+import           GHC.Generics                         (Generic)
+import           IOTS                                 (IotsType (iotsDefinition))
+import qualified Language.PlutusCore                  as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+import qualified Language.PlutusCore.Pretty           as PLC
+import           Language.PlutusTx                    (CompiledCode, Data, IsData (..), getPlc, makeLift)
+import           Language.PlutusTx.Builtins           as Builtins
+import           Language.PlutusTx.Evaluation         (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import           Language.PlutusTx.Lift               (liftCode)
 import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.Builtins               as Builtins
-import           LedgerBytes                              (LedgerBytes (..))
-import           Ledger.Orphans                           ()
+import           Ledger.Orphans                       ()
+import           LedgerBytes                          (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
@@ -152,7 +156,10 @@ fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
-data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String] | EvaluationException Haskell.String
+data ScriptError =
+      TypecheckError Haskell.String -- ^ Incorrect type at runtime
+    | EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
+    | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -162,9 +169,12 @@ evaluateScript checking s = do
     case checking of
       DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
-    let (logOut, result) = evaluateCekTrace (unScript s)
-    res <- either (throwError . EvaluationException . show) Haskell.pure result
-    unless (PLC.isEvaluationSuccess res) $ throwError $ EvaluationError logOut
+    let (logOut, _tally, result) = evaluateCekTrace (unScript s)
+    case result of
+        Right _ -> Haskell.pure ()
+        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
+            InternalEvaluationError {} -> EvaluationException $ show errWithCause
+            UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
@@ -197,6 +207,12 @@ mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
+
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
+
+unMonetaryPolicyScript :: MonetaryPolicy -> Script
+unMonetaryPolicyScript = getMonetaryPolicy
 
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
@@ -242,6 +258,22 @@ instance BA.ByteArrayAccess RedeemerValue where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
+-- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
+newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
+  deriving stock (Generic)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
+  deriving Pretty via (PrettyShow MonetaryPolicy)
+
+instance Show MonetaryPolicy where
+    show = const "MonetaryPolicy { <script> }"
+
+instance BA.ByteArrayAccess MonetaryPolicy where
+    length =
+        BA.length . Write.toStrictByteString . encode
+    withByteArray =
+        BA.withByteArray . Write.toStrictByteString . encode
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.ByteString
@@ -275,6 +307,17 @@ newtype RedeemerHash =
 instance IotsType RedeemerHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
+-- | Script runtime representation of a @Digest SHA256@.
+newtype MonetaryPolicyHash =
+    MonetaryPolicyHash Builtins.ByteString
+    deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+
+instance IotsType MonetaryPolicyHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+
 dataValueHash :: DataValue -> DataValueHash
 dataValueHash = DataValueHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
@@ -287,13 +330,19 @@ validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
     h' :: Digest SHA256 = hash h
     e = encode vl
 
+monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
+monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
+    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h' :: Digest SHA256 = hash h
+    e = encode vl
+
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype ValidationData = ValidationData Data
     deriving stock (Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
 
--- | Evaluate a validator script with the given arguments, returning the log and a boolean indicating whether evaluation was successful.
+-- | Evaluate a validator script with the given arguments, returning the log.
 runScript
     :: (MonadError ScriptError m)
     => Checking
@@ -304,6 +353,17 @@ runScript
     -> m [Haskell.String]
 runScript checking (ValidationData valData) (Validator validator) (DataValue dataValue) (RedeemerValue redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+    evaluateScript checking appliedValidator
+
+-- | Evaluate a monetary policy script just the validation data, returning the log.
+runMonetaryPolicyScript
+    :: (MonadError ScriptError m)
+    => Checking
+    -> ValidationData
+    -> MonetaryPolicy
+    -> m [Haskell.String]
+runMonetaryPolicyScript checking (ValidationData valData) (MonetaryPolicy validator) = do
+    let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
 -- | @()@ as a data script.
@@ -317,6 +377,8 @@ unitRedeemer = RedeemerValue $ toData ()
 makeLift ''ValidatorHash
 
 makeLift ''DataValueHash
+
+makeLift ''MonetaryPolicyHash
 
 makeLift ''RedeemerHash
 

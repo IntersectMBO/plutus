@@ -24,11 +24,11 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Parser as Parser
-import Marlowe.Pretty (pretty)
 import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
-import Text.Parsing.Parser (runParser)
-import Text.Parsing.Parser.Basic (parens)
+import Text.Parsing.StringParser (runParser)
+import Text.Parsing.StringParser.Basic (parens)
+import Text.Pretty (genericPretty)
 
 type BlocklyState
   = { blocklyState :: Maybe BT.BlocklyState, generator :: Maybe Generator, errorMessage :: Maybe String }
@@ -93,7 +93,7 @@ handleQuery (Resize next) = do
 handleQuery (SetCode code next) = do
   { blocklyState } <- get
   let
-    contract = case runParser code Parser.contractValue of
+    contract = case runParser Parser.contractValue code of
       Right c -> c
       Left _ -> Close
   case blocklyState of
@@ -126,8 +126,8 @@ handleAction GetCode = do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ workspaceToCode blocklyState generator
-      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser code (parens Parser.contractValue <|> Parser.contractValue)
-      lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
+      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser (parens Parser.contractValue <|> Parser.contractValue) code
+      lift <<< raise <<< CurrentCode <<< show <<< genericPretty $ contract
   case res of
     Left e -> assign _errorMessage $ Just e
     Right _ -> assign _errorMessage Nothing

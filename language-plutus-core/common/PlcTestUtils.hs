@@ -13,16 +13,19 @@ module PlcTestUtils (
     goldenEval,
     goldenEvalCatch) where
 
+import           PlutusPrelude
+
 import           Common
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Pretty
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Data.Text.Prettyprint.Doc                 as PP
+import qualified Data.Text.Prettyprint.Doc                        as PP
 import           System.IO.Unsafe
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
@@ -52,7 +55,7 @@ runPlc :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResultDef
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps
-    catchAll $ runCk p
+    liftEither . first toException . extractEvaluationResult . evaluateCk $ toTerm p
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

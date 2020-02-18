@@ -1,15 +1,17 @@
-{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 -- | A version of 'Language.Plutus.Contract.Contract' that
 --   writes checkpoints.
 module Language.Plutus.Contract.Resumable(
     Resumable(..)
     , ResumableError(..)
+    , ResumableResult(..)
     , Step(..)
     , contramapI
     , mapO
@@ -308,11 +310,11 @@ runClosed con rc = addRecordMismatchInfo ("runClosed on: " <> pretty con) $
                         CBind l' f  -> runClosed l' l >>= flip runClosed r . f
                         o           -> throwRecordmismatchError ("ClosedBin with wrong contract type: " ++ pretty o)
 
--- | 'RunOpenProgress' indicats whether progress was made when running a 
---   resumable program on an open record. Progress was made if one of the 
+-- | 'RunOpenProgress' indicats whether progress was made when running a
+--   resumable program on an open record. Progress was made if one of the
 --   branches of the open record switched from open to closed.
-data RunOpenProgress = 
-    Progress 
+data RunOpenProgress =
+    Progress
     | NoProgress
 
 -- | Run an unfinished resumable program on an open record,
@@ -329,9 +331,9 @@ runOpenNoProgress con opr = do
         Left (_, NoProgress) -> pure ()
         _                    -> throwError ProgressError
     -- TODO: The sole purpose of 'runOpenNoProgress' is to run the 'MonadWriter'
-    --       effects. But every time we call 'runOpenNoProgress', 'runOpen con 
-    --       opr' has already been run before. If we could store the 
-    --       'o' that it produced in the record then we can avoid 
+    --       effects. But every time we call 'runOpenNoProgress', 'runOpen con
+    --       opr' has already been run before. If we could store the
+    --       'o' that it produced in the record then we can avoid
     --       'runOpenNoProgress' altogether.
 
 runOpenRightNoProgress
@@ -361,8 +363,8 @@ runOpen con opr =
             lr <- runOpen l opr'
             rr <- runClosed r cr
             case lr of
-                Left (opr'', prog)     -> pure (Left (OpenLeft opr'' cr, prog))
-                Right (cr', a) -> pure (Right (ClosedBin cr' cr, a rr))
+                Left (opr'', prog) -> pure (Left (OpenLeft opr'' cr, prog))
+                Right (cr', a)     -> pure (Right (ClosedBin cr' cr, a rr))
         (CAp l r, OpenRight cr opr') -> do
             lr <- runClosed l cr
             rr <- runOpen r opr'
@@ -421,8 +423,8 @@ runOpen con opr =
             lr <- runClosed c cr
             rr <- runOpen (f lr) opr'
             case rr of
-                Left (opr'', prog)     -> pure (Left (OpenRight cr opr'', prog))
-                Right (cr', a) -> pure (Right (ClosedBin cr cr', a))
+                Left (opr'', prog) -> pure (Left (OpenRight cr opr'', prog))
+                Right (cr', a)     -> pure (Right (ClosedBin cr cr', a))
         (CBind{}, _) -> throwRecordmismatchError "CBind"
 
         (CStep con', OpenLeaf evt) -> do
@@ -436,28 +438,40 @@ runOpen con opr =
             fmap (\(_, a) -> (jsonLeaf a, a)) <$> runOpen con' opr'
         _ -> throwRecordmismatchError "runOpen"
 
+-- | The result of running a 'Resumable'
+data ResumableResult i o a =
+    ResumableResult
+        { wcsRecord     :: Record i -- The record with the resumable's execution history
+        , wcsHandlers   :: o -- Handlers that the 'Resumable' has registered
+        , wcsFinalState :: Maybe a -- Final state of the 'Resumable'
+        }
+
 insertAndUpdate
     :: Monoid o
     => Resumable e (Step (Maybe i) o) a
     -> Record i
     -> i
-    -> Either (ResumableError e) (Record i, o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 insertAndUpdate con rc e = updateRecord con (insert e rc)
 
 updateRecord
-    :: Monoid o
+    :: forall a e i o. Monoid o
     => Resumable e (Step (Maybe i) o) a
     -> Record i
-    -> Either (ResumableError e) (Record i, o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 updateRecord con rc =
     case rc of
         ClosedRec cl ->
-            fmap (first $ const $ ClosedRec cl)
+            fmap (\(a, _) -> ResumableResult { wcsRecord = ClosedRec cl, wcsHandlers = mempty, wcsFinalState = Just a })
             $ runExcept
-            $ runWriterT
+            $ runWriterT @o
             $ runClosed con cl
         OpenRec cl  ->
-            fmap (first (view (from record) . fmap fst))
+            let mkResult (Left openRec, o) =
+                    ResumableResult { wcsRecord = OpenRec openRec, wcsHandlers = o, wcsFinalState = Nothing }
+                mkResult (Right (closedrec, a), o) =
+                    ResumableResult { wcsRecord = ClosedRec closedrec, wcsHandlers = o, wcsFinalState = Just a}
+            in fmap mkResult
             $ runExcept
             $ runWriterT
             $ fmap (first fst) (runOpen con cl)
@@ -467,26 +481,28 @@ execResumable
     => [i]
     -> Resumable e (Step (Maybe i) o) a
     -> Either (ResumableError e) o
-execResumable es = fmap snd . runResumable es
+execResumable es = fmap wcsHandlers . runResumable es
 
 runResumable
     :: Monoid o
     => [i]
     -> Resumable e (Step (Maybe i) o) a
-    -> Either (ResumableError e) (Either (OpenRecord i) (ClosedRecord i, a), o)
+    -> Either (ResumableError e) (ResumableResult i o a)
 runResumable es con = do
     initial <- runExcept $ runWriterT (initialise con)
-    foldM go initial es where
-        go r e =
+    let go r e =
             let r' = over (from record) (insert e) (fst <$> fst r)
                 result = case r' of
-                    Left open -> 
-                        runExcept 
-                        $ runWriterT 
+                    Left open ->
+                        runExcept
+                        $ runWriterT
                         $ fmap (first fst) (runOpen con open)
-                    Right closed -> 
-                        fmap (\(a, h) -> (Right (closed, a), h)) 
-                        $ runExcept 
-                        $ runWriterT 
+                    Right closed ->
+                        fmap (\(a, h) -> (Right (closed, a), h))
+                        $ runExcept
+                        $ runWriterT
                         $ runClosed con closed
             in result
+    foldM go initial es >>= \case
+        (Left openRec, o) -> pure ResumableResult{wcsRecord=OpenRec openRec, wcsHandlers = o, wcsFinalState = Nothing}
+        (Right (cr, a), o) -> pure ResumableResult{wcsRecord=ClosedRec cr, wcsHandlers = o, wcsFinalState = Just a}

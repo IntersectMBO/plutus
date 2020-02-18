@@ -6,7 +6,6 @@ module Main (main) where
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.L   as PLC
 import qualified Language.PlutusCore.Generators             as PLC
 import qualified Language.PlutusCore.Generators.Interesting as PLC
 import qualified Language.PlutusCore.Generators.Test        as PLC
@@ -16,10 +15,11 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
+import           Control.Exception                          (toException)
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
-import           Data.Bifunctor                             (second)
+import           Data.Bifunctor                             (first, second)
 import           Data.Foldable                              (traverse_)
 
 import qualified Data.ByteString.Lazy                       as BSL
@@ -55,7 +55,7 @@ stdInput = flag' StdInput
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input NormalizationMode
-data EvalMode = CK | CEK | L deriving (Show, Read)
+data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -90,7 +90,7 @@ evalMode = option auto
   <> metavar "MODE"
   <> value CEK
   <> showDefault
-  <> help "Evaluation mode (one of CK, CEK or L)" )
+  <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input <*> evalMode
@@ -137,14 +137,16 @@ runEval (EvalOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
-            CK  -> PLC.runCk
-            CEK -> PLC.unsafeRunCek mempty
-            L   -> PLC.runL mempty
-    case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
-        Left (e :: PLC.Error PLC.AlexPosn) -> do
-            T.putStrLn $ PLC.prettyPlcDefText e
+            CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty
+    case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
+        Left (errCheck :: PLC.Error PLC.AlexPosn) -> do
+            T.putStrLn $ PLC.prettyPlcDefText errCheck
             exitFailure
-        Right v -> do
+        Right (Left errEval) -> do
+            print errEval
+            exitFailure
+        Right (Right v) -> do
             T.putStrLn $ PLC.prettyPlcDefText v
             exitSuccess
 

@@ -175,7 +175,7 @@ balancesChartOptions =
           , axisClass: "ct-y-axis-title"
           , offset:
             { x: 0
-            , y: (30)
+            , y: 30
             }
           , textAnchor: "middle"
           , flipTitle: true

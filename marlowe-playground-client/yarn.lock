@@ -3543,8 +3543,9 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
 
 purs-loader@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.6.0.tgz#01e9361b6f4d660323631dca39392a6b3fcc7fdd"
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.7.1.tgz#190ae0362f03648bd0200fda436eeb0aeacb2616"
+  integrity sha512-ZbaSNtmHrDUx0xiqDjGqIBLFCMFlYkUIcgA9kiGP/oc0ggpbmMinPU5DqrVMz3ZwL3tcvDpLUBHFTNBgrRXwpw==
   dependencies:
     bluebird "^3.3.5"
     chalk "^1.1.3"
