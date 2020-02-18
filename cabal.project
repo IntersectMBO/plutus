@@ -82,9 +82,9 @@ constraints: happy==1.19.12
 -- https://github.com/input-output-hk/cardano-crypto/pull/62
 source-repository-package
   type: git
-  location: https://github.com/angerman/cardano-crypto
-  tag: 614c89c92d16d2d4a41792c40b988129b40cd085
-  --sha256: 1xm8552qqyl9azzk23898pdkdf4kp2fik0xn20w9fjq4l6syihp6
+  location: https://github.com/input-output-hk/cardano-crypto
+  tag: 2547ad1e80aeabca2899951601079408becbc92c
+  --sha256: 1p2kg2w02q5w1cvqzhfhqmxviy4xrzada3mmb096j2n6hfr20kri
 
 -- https://github.com/haskell-foundation/foundation/pull/531
 source-repository-package
