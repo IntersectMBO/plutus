@@ -12,12 +12,12 @@ module Cardano.Wallet.MockServer
 import qualified Cardano.Node.Client            as NodeClient
 import           Cardano.Wallet.API             (API)
 import           Cardano.Wallet.Types           (WalletId)
-import           Control.Concurrent.MVar        (MVar, modifyMVar_, newMVar, putMVar, readMVar, takeMVar)
-import           Control.Lens                   (makeLenses, over, set, view)
+import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
+import           Control.Lens                   (makeLenses, modifying, set, use, view)
 import           Control.Monad.Except           (ExceptT)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Control.Monad.Logger           (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
-import           Control.Monad.Reader           (MonadReader, ReaderT, ask, runReaderT)
+import           Control.Monad.State            (MonadState, StateT,  execStateT, get, put, runStateT)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Proxy                     (Proxy (Proxy))
 import           Language.Plutus.Contract.Trace (allWallets)
@@ -78,25 +78,16 @@ activeWallet :: Wallet
 activeWallet = Wallet 1
 
 getWatchedAddresses ::
-       (MonadIO m, MonadLogger m, MonadReader (MVar State) m) => m AddressMap
+       (MonadIO m, MonadLogger m, MonadState State m) => m AddressMap
 getWatchedAddresses = do
     logInfoN "getWatchedAddresses"
-    mVarState <- ask
-    State {_watchedAddresses} <- liftIO $ readMVar mVarState
-    logInfoN $ "  " <> tshow _watchedAddresses
-    pure _watchedAddresses
+    use watchedAddresses
 
 startWatching ::
-       (MonadIO m, MonadLogger m, MonadReader (MVar State) m)
-    => Address
-    -> m NoContent
+       (MonadIO m, MonadLogger m, MonadState State m) => Address -> m NoContent
 startWatching address = do
     logInfoN "startWatching"
-    mVarState <- ask
-    liftIO $
-        modifyMVar_
-            mVarState
-            (pure . over watchedAddresses (addAddress address))
+    modifying watchedAddresses (addAddress address)
     pure NoContent
 
 sign :: MonadLogger m => BSL.ByteString -> m Signature
@@ -108,9 +99,9 @@ sign bs = do
 ------------------------------------------------------------
 -- | Synchronise the initial state.
 -- At the moment, this means, "as the node for UTXOs at all our watched addresses.
-syncState :: MonadIO m => ClientEnv -> MVar State -> m ()
-syncState nodeClientEnv mVarState = do
-    oldState <- liftIO $ takeMVar mVarState
+syncState :: (MonadIO m, MonadState State m) => ClientEnv -> m ()
+syncState nodeClientEnv = do
+    oldState <- get
     result :: Either ServantError Blockchain <-
         liftIO $ runClientM NodeClient.blockchain nodeClientEnv
     case result of
@@ -127,15 +118,24 @@ syncState nodeClientEnv mVarState = do
                         oldAddressMap
                         blockchain
                 newState = set watchedAddresses newAddressMap oldState
-            liftIO $ putMVar mVarState newState
+            put newState
 
 ------------------------------------------------------------
+-- | Run all handlers, affecting a single, global 'MVar State'.
+--
+-- Note this code is pretty simplistic, as it makes every handler
+-- block on access to a single, global 'MVar'.  We could do something
+-- smarter, but I don't think it matters as this is only a mock.
 asHandler ::
        MVar State
-    -> LoggingT (ReaderT (MVar State) (ExceptT ServantErr IO)) a
+    -> LoggingT (StateT State (ExceptT ServantErr IO)) a
     -> Handler a
 asHandler mVarState action =
-    Handler (runReaderT (runStderrLoggingT action) mVarState)
+    Handler
+        (do oldState <- liftIO $ takeMVar mVarState
+            (result, newState) <- runStateT (runStderrLoggingT action) oldState
+            liftIO $ putMVar mVarState newState
+            pure result)
 
 app :: MVar State -> Application
 app mVarState =
@@ -149,9 +149,9 @@ main :: (MonadIO m, MonadLogger m) => m ()
 main = do
     let port = 8081
     logInfoN $ "Starting mock wallet server on port: " <> tshow port
-    mVarState <- liftIO $ newMVar initialState
     nodeClientEnv <- mkEnv "http://localhost:8082"
-    syncState nodeClientEnv mVarState
+    populatedState <- execStateT (syncState nodeClientEnv) initialState
+    mVarState <- liftIO $ newMVar populatedState
     liftIO $ run port $ app mVarState
   where
     mkEnv baseUrl =
