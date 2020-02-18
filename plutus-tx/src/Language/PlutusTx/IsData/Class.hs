@@ -15,6 +15,8 @@ import           Language.PlutusTx.Data
 import           Language.PlutusTx.Applicative
 import           Language.PlutusTx.Functor
 
+import qualified Language.PlutusCore.Universe  as PLC
+
 import           Data.Kind
 
 {-# ANN module "HLint: ignore" #-}
@@ -40,9 +42,9 @@ instance IsData Integer where
 
 instance IsData ByteString where
     {-# INLINABLE toData #-}
-    toData = B
+    toData bs = B(PLC.ByteString16 bs)
     {-# INLINABLE fromData #-}
-    fromData (B b) = Just b
+    fromData (B b) = Just (PLC.unByteString16 b)
     fromData _     = Nothing
 
 instance IsData a => IsData [a] where

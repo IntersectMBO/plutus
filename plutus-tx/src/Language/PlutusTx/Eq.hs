@@ -2,9 +2,12 @@
 module Language.PlutusTx.Eq (Eq(..), (/=)) where
 
 import           Language.PlutusTx.Bool
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Data
-import           Prelude                    hiding (Eq (..), not, (&&))
+
+import           Language.PlutusCore.Universe (ByteString16 (..))
+
+import           Prelude                      hiding (Eq (..), not, (&&))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -27,6 +30,10 @@ instance Eq Integer where
 instance Eq Builtins.ByteString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsByteString
+
+instance Eq ByteString16 where
+    {-# INLINABLE (==) #-}
+    ByteString16 b1 == ByteString16 b2 = b1 == b2
 
 instance Eq a => Eq [a] where
     {-# INLINABLE (==) #-}

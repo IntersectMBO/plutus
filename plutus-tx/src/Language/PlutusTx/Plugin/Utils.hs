@@ -14,6 +14,6 @@ import           Language.PlutusTx.Utils
 -- If we inline this then we won't be able to find it later!
 {-# NOINLINE plc #-}
 -- | Marks the given expression for compilation to PLC.
-plc :: forall (loc::Symbol) a . a -> CompiledCode a
+plc :: forall (loc::Symbol) a uni . a -> CompiledCode uni a
 -- this constructor is only really there to get rid of the unused warning
 plc _ = SerializedCode (mustBeReplaced "pir") (mustBeReplaced "plc")
