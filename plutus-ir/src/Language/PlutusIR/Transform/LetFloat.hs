@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE GADTs            #-}
-module Language.PlutusIR.Transform.FreeFloat (floatTerm) where
+module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import Language.PlutusIR
 import Language.PlutusIR.Free
@@ -82,8 +82,8 @@ compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.em
     modify (\ letRanks -> M.insert
                           (n^.PLC.unique.coerced)
                           -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-                          ( let freeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
-                            in if M.null freeRanks
+                          ( let freeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars
+                            in if M.null freeRanks -- TODO: fold :: Monoid
                                then topRank
                                else fst $ maximum freeRanks
                           , n^.PLC.unique.coerced)
@@ -106,8 +106,8 @@ compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.em
                       lamRanks <- M.fromList . map (\ l -> (snd l, (l, snd l))) <$> ask
                       let freeVars = foldMap (\(VarDecl _ _ ty) -> fType ty) vdecls
                       modify (\ letRanks ->
-                                 let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars -- TODO: fold :: Monoid
-                                     newValue = (if M.null allFreeRanks
+                                 let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) freeVars
+                                     newValue = (if M.null allFreeRanks -- TODO: fold :: Monoid
                                                  then topRank
                                                  else fst $ maximum allFreeRanks
                                                 , n^.PLC.unique.coerced) -- the principal data name
@@ -129,7 +129,7 @@ compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.em
       modify (\ letRanks ->
                 let allFreeRanks = M.restrictKeys (letRanks `M.union` lamRanks) groupFreeVars
                       -- Take the maximum rank of all free vars of the whole letrec-group (excluding the vars introduced here), or TopRank if no free var deps
-                    maxRank = if M.null allFreeRanks
+                    maxRank = if M.null allFreeRanks -- TODO: fold :: Monoid
                               then topRank
                               else fst $ maximum allFreeRanks
                 in foldl (\ acc b -> case b of
