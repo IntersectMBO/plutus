@@ -33,8 +33,10 @@ library
         Language.PlutusIR.Transform.ThunkRecursions
         Language.PlutusIR.Transform.Rename
         Language.PlutusIR.Transform.NonStrict
+        Language.PlutusIR.Transform.LetFloat
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Free
         Language.PlutusIR.Analysis.Dependencies
         Language.PlutusIR.Analysis.Usages
         Language.PlutusIR.Compiler.Error
