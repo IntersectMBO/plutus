@@ -24,6 +24,7 @@ import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
 import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
+import qualified Language.PlutusIR.Transform.LetFloat as LetFloat
 import           Language.PlutusIR.Transform.Rename          ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
 
@@ -44,6 +45,7 @@ compileTerm =
     >=> (pure . ThunkRec.thunkRecursions)
     -- We need globally unique names for compiling non-strict bindings away
     >=> PLC.rename
+    >=> (pure . LetFloat.floatTerm)
     >=> NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.RecTerms
