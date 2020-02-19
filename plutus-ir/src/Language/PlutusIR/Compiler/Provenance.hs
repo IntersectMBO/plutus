@@ -25,7 +25,18 @@ data Provenance a = Original a
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   | NoProvenance
+                  | MultipleSources [Provenance a]
                   deriving (Show, Eq)
+
+-- Needed for LetFloat transformation to merge annotations
+instance Semigroup (Provenance a) where
+  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1++ps2)
+  x <> MultipleSources ps2 = MultipleSources (x:ps2)
+  MultipleSources ps1 <> x = MultipleSources (ps1++[x])
+  x <> y = MultipleSources [x,y]
+-- Needed for LetFloat transformation to merge annotations
+instance Monoid (Provenance a) where
+  mempty = NoProvenance
 
 data DatatypeComponent = Constructor
                        | ConstructorType
