@@ -9,6 +9,7 @@ module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
+import           Control.Monad                                 (void)
 import           Control.Monad.Except                          (ExceptT, runExceptT)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Control.Monad.Logger                          (LoggingT, runStderrLoggingT)
@@ -65,7 +66,7 @@ installContractTests =
               installed <- installedContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              activateContract "game"
+              void $ activateContract "game"
               --
               active <- activeContracts
               liftIO $ assertEqual "" 1 $ Set.size active

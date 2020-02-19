@@ -114,7 +114,7 @@ activateContract ::
        , MonadError SCBError m
        )
     => FilePath
-    -> m ()
+    -> m UUID
 activateContract filePath = do
     logInfoN "Finding Contract"
     contract <- liftError $ lookupContract filePath
@@ -134,8 +134,9 @@ activateContract filePath = do
     logInfoN "Storing Initial Contract State"
     void $ runCommand saveContractState ContractEventSource activeContractState
     logInfoN . render $
-        "Installed:" <+> pretty (activeContract activeContractState)
+        "Activated:" <+> pretty (activeContract activeContractState)
     logInfoN "Done"
+    pure activeContractId
 
 updateContract ::
        ( MonadLogger m

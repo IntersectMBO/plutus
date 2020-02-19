@@ -10,6 +10,7 @@ import qualified Cardano.Node.MockServer         as NodeServer
 import qualified Cardano.Wallet.Client           as WalletClient
 import qualified Cardano.Wallet.MockServer       as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
+import           Control.Monad                   (void)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import qualified Data.Aeson                      as JSON
@@ -212,7 +213,7 @@ runCliCommand MockNode = NodeServer.main NodeServer.defaultConfig
 runCliCommand WalletClient = liftIO WalletClient.main
 runCliCommand NodeClient = liftIO NodeClient.main
 runCliCommand (InstallContract path) = Core.installContract path
-runCliCommand (ActivateContract path) = Core.activateContract path
+runCliCommand (ActivateContract path) = void $ Core.activateContract path
 runCliCommand (ContractStatus uuid) = Core.reportContractStatus uuid
 runCliCommand ReportInstalledContracts = do
     logInfoN "Installed Contracts"
