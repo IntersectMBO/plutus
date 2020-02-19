@@ -83,3 +83,4 @@ instance PP.Pretty a => PP.Pretty (Provenance a) where
         TermBinding n p -> "term binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         TypeBinding n p -> "type binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         NoProvenance -> "<unknown>"
+        MultipleSources p1 -> PLC.prettyList p1
