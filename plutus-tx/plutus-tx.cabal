@@ -71,12 +71,16 @@ library
         Language.PlutusTx.IsData.TH
         Language.PlutusTx.Lift.THUtils
         Language.PlutusTx.Lift.Instances
-    build-tool-depends: doctest:doctest
+
+    -- doctest is still problematic with ghcjs
+    if(!impl(ghcjs))
+        build-tool-depends: doctest:doctest
+
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
-        th-abstraction -any,
+        th-abstraction <0.3,
         prettyprinter -any,
         text -any,
         mtl -any,
