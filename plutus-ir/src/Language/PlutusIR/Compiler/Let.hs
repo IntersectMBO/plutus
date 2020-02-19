@@ -20,6 +20,7 @@ import           Control.Monad.Trans
 import           Control.Lens                           hiding (Strict)
 
 import           Data.List
+import           Data.List.NonEmpty                     hiding (partition, reverse)
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -30,6 +31,23 @@ So putting in the definitions should mostly be a no-op, and we'll get errors if 
 It would be more elegant to somehow indicate that only one of the let-compiling passes needs
 this, but this does the job.
 Also we should pull out more stuff (e.g. see 'NonStrict' which uses unit).
+-}
+
+{- Note [Right-associative compilation of let-bindings for linear scoping]
+
+The 'foldM' function for lists is left-associative, but we need right-associative for our case, i.e.
+every right let must be wrapped/scoped by its left let
+
+An pseudocode PIR example:
+let b1 = rhs1;
+    b2 = rhs2  (b1 is visible in rhs2);
+in ...
+
+must be treated the same as let b1 = rhs in (let b2 = rhs2 in ... )
+
+Since there is no 'foldrM' in the stdlib, so we first reverse the bindings list,
+and then apply the left-associative 'foldM' on them,
+which yields the same results as doing a right-associative fold.
 -}
 
 data LetKind = RecTerms | NonRecTerms | Types
@@ -43,7 +61,8 @@ compileLets kind t = getEnclosing >>= \p ->
 compileLet :: Compiling m e a => LetKind -> PIRTerm a -> DefT SharedName (Provenance a) m (PIRTerm a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
-            NonRec -> lift $ foldM (compileNonRecBinding kind) body bs
+            -- See Note [Right-associative compilation of let-bindings for linear scoping]
+            NonRec -> lift $ foldM (compileNonRecBinding kind) body (reverse bs)
             Rec    -> compileRecBindings kind body bs
     x -> pure x
 
@@ -70,7 +89,9 @@ compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
         TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
         _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
-    compileRecTerms body binds
+    case nonEmpty binds of
+        Just tbs -> compileRecTerms body tbs
+        Nothing  -> pure body
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
 compileRecTypeBindings :: Compiling m e a => LetKind -> PIRTerm a -> [Binding TyName Name (Provenance a)] -> m (PIRTerm a)

@@ -72,8 +72,8 @@ txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
 -- | Create a 'PubKeyTxIn'.
-makePubKeyTxIn :: TxOutRef -> PubKey -> PubKeyTxIn
-makePubKeyTxIn ref pubkey = PubKeyTxIn $ TxIn ref $ ConsumePublicKeyAddress pubkey
+makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
+makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
@@ -315,8 +315,8 @@ typePubKeyTxIn
     -> m PubKeyTxIn
 typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
-        ConsumePublicKeyAddress _ -> pure ()
-        x                         -> throwError $ WrongInType x
+        ConsumePublicKeyAddress -> pure ()
+        x                       -> throwError $ WrongInType x
     pure $ PubKeyTxIn inn
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
@@ -364,6 +364,6 @@ typePubKeyTxOut
     -> m PubKeyTxOut
 typePubKeyTxOut out@TxOut{txOutType} = do
     case txOutType of
-        PayToPubKey _ -> pure ()
-        x             -> throwError $ WrongOutType x
+        PayToPubKey -> pure ()
+        x           -> throwError $ WrongOutType x
     pure $ PubKeyTxOut out

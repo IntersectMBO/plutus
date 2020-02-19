@@ -1,7 +1,7 @@
 -- | @tuple@s of various sizes and related functions.
 
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.StdLib.Meta.Data.Tuple
     ( Tuple (..)
@@ -18,15 +18,15 @@ module Language.PlutusCore.StdLib.Meta.Data.Tuple
 
 import           PlutusPrelude             (showText)
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Core
 
 import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable
 
--- | A Plutus Core tuple.
+-- | A Plutus Core (Scott-encoded) tuple.
 data Tuple term ann where
     Tuple :: TermLike term TyName Name =>
         { _tupleElementTypes :: [Type TyName ann] -- ^ The types of elements of a tuple.

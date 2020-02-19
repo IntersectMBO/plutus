@@ -42,7 +42,7 @@ import           Language.Plutus.Contract
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Ledger                                            (Address, PubKey, TxOutTx (..), ValidatorHash)
+import           Ledger                                            (Address, PubKeyHash, TxOutTx (..), ValidatorHash)
 import qualified Ledger                                            as Ledger
 import qualified Ledger.Scripts
 import           Ledger.TxId                                       (TxId)
@@ -68,15 +68,15 @@ instance ScriptType TokenAccount where
 
 type TokenAccountSchema =
     BlockchainActions
-        .\/ Endpoint "redeem" (Account, PubKey)
+        .\/ Endpoint "redeem" (Account, PubKeyHash)
         .\/ Endpoint "pay" (Account, Value)
-        .\/ Endpoint "new-account" (TokenName, PubKey)
+        .\/ Endpoint "new-account" (TokenName, PubKeyHash)
 
 type HasTokenAccountSchema s =
     ( HasBlockchainActions s
-    , HasEndpoint "redeem" (Account, PubKey) s
+    , HasEndpoint "redeem" (Account, PubKeyHash) s
     , HasEndpoint "pay" (Account, Value) s
-    , HasEndpoint "new-account" (TokenName, PubKey) s
+    , HasEndpoint "new-account" (TokenName, PubKeyHash) s
     )
 
 -- | 'transfer', 'redeem', 'pay' and 'newAccount' with endpoints.
@@ -88,7 +88,7 @@ tokenAccountContract
     => Contract s e ()
 tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
     redeem_ = do
-        (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKey) @s
+        (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKeyHash) @s
         void $ redeem destination accountOwner
         tokenAccountContract
     pay_ = do
@@ -141,12 +141,12 @@ pay inst = submitTx . payTx inst
 redeemTx
     :: ( HasUtxoAt s )
     => Account
-    -> PubKey
+    -> PubKeyHash
     -> Contract s e UnbalancedTx
 redeemTx account pk = do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
-    let pkOut = pubKeyTxOut (accountToken account) pk
+    let pkOut = pubKeyHashTxOut (accountToken account) pk
         tx = TypedTx.collectFromScript utxos inst ()
                 <> mustProduceOutput pkOut
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
@@ -160,7 +160,7 @@ redeem
      , HasWriteTx s
      , HasUtxoAt s
      )
-  => PubKey
+  => PubKeyHash
   -- ^ Where the token should go after the transaction
   -> Account
   -- ^ The token account
@@ -189,7 +189,7 @@ newAccount
        )
     => TokenName
     -- ^ Name of the token
-    -> PubKey
+    -> PubKeyHash
     -- ^ Public key of the token's initial owner
     -> Contract s e Account
 newAccount tokenName pk = do

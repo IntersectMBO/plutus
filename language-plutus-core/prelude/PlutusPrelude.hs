@@ -1,6 +1,7 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -58,7 +59,7 @@ module PlutusPrelude
     -- * Custom functions
     , (<<$>>)
     , (<<*>>)
-    , forBind
+    , mtraverse
     , foldMapM
     , reoption
     , (?)
@@ -170,8 +171,20 @@ newtype PrettyConfigIgnore a = PrettyConfigIgnore
 -- for anything that has a 'PrettyBy config' instance.
 data PrettyConfigAttach config a = PrettyConfigAttach config a
 
+-- delete these instances on extraction as library
 instance PrettyBy config a => PrettyBy config [a] where
     prettyBy config = list . fmap (prettyBy config)
+
+instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (Either a b) where
+    prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
+    prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
+
+instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (a, b) where
+    prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
+
+instance PrettyBy config Integer where
+    prettyBy _ = pretty
+-- delete until here
 
 instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
     prettyBy _ (PrettyConfigIgnore x) = pretty x
@@ -213,8 +226,8 @@ f <<*>> a = getCompose $ Compose f <*> Compose a
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
 
-forBind :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
-forBind a f = join <$> traverse f a
+mtraverse :: (Monad m, Traversable m, Applicative f) => (a -> f (m b)) -> m a -> f (m b)
+mtraverse f a = join <$> traverse f a
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b

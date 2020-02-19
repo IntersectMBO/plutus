@@ -36,7 +36,7 @@ import           Language.Plutus.Contract     hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.PlutusTx.Prelude    hiding (Semigroup(..), fold)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Address, Slot(..), PubKey (..), Validator, unitData)
+import           Ledger                       (Address, Slot(..), PubKeyHash, Validator, unitData)
 import qualified Ledger.AddressMap            as AM
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Slot                  as Slot
@@ -82,7 +82,7 @@ PlutusTx.makeLift ''VestingTranche
 data VestingParams = VestingParams {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
-    vestingOwner    :: PubKey
+    vestingOwner    :: PubKeyHash
     } deriving Generic
 
 PlutusTx.makeLift ''VestingParams
@@ -212,7 +212,7 @@ retrieveFundsC vesting payment = do
         remainingOutputs = case liveness of
                             Alive -> payIntoContract vesting remainingValue
                             Dead  -> Haskell.mempty
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) () 
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
                 <> remainingOutputs
                 <> mustBeValidIn (Interval.from nextSlot)
                 <> mustBeSignedBy (vestingOwner vesting)

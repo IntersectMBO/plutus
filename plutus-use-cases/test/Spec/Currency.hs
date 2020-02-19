@@ -34,4 +34,4 @@ w1 = Wallet 1
 theContract :: Contract BlockchainActions ContractError Currency
 theContract =
     let amounts = [("my currency", 1000), ("my token", 1)] in
-    Cur.forgeContract (walletPubKey w1) amounts
+    Cur.forgeContract (Ledger.pubKeyHash $ walletPubKey w1) amounts

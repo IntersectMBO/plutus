@@ -164,6 +164,7 @@ let
     papers = {
       unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; inherit latex; };
       system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
+      eutxo = pkgs.callPackage ./papers/eutxo { inherit latex; };
     };
 
     plutus-playground = rec {
@@ -361,7 +362,7 @@ let
 
     dev = rec {
       packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" ];
+        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" "hlint" ];
       };
 
       scripts = {
@@ -456,12 +457,18 @@ let
       withDevTools = env: env.overrideAttrs (attrs:
         { nativeBuildInputs = attrs.nativeBuildInputs ++
                               [ packages.cabal-install
+                                packages.hlint
+                                packages.stylish-haskell
+
                                 pkgs.ghcid
                                 pkgs.git
                                 pkgs.cacert
-                                pkgs.haskellPackages.hlint
-                                pkgs.haskellPackages.stylish-haskell
                                 pkgs.yarn
+                                pkgs.zlib
+                                pkgs.z3
+                                pkgs.sqlite-analyzer
+                                pkgs.sqlite-interactive
+
                                 easyPS.purs
                                 easyPS.spago
                                 easyPS.purty

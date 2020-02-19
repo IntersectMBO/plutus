@@ -1,18 +1,18 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns       #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE RankNTypes  #-}
-{-# LANGUAGE DerivingVia  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -52,38 +52,36 @@ module Ledger.Scripts(
     unitData
     ) where
 
-import qualified Prelude                                  as Haskell
+import qualified Prelude                              as Haskell
 
-import qualified Codec.CBOR.Write                         as Write
-import           Codec.Serialise                          (serialise)
-import           Codec.Serialise.Class                    (Serialise, encode)
-import           Control.Monad                            (unless)
-import           Control.Monad.Except                     (MonadError, throwError, runExcept)
-import           Control.DeepSeq                          (NFData)
-import           Crypto.Hash                              (Digest, SHA256, hash)
-import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                               as JSON
-import qualified Data.Aeson.Extras                        as JSON
-import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Functor                             (void)
-import           Data.Hashable                            (Hashable)
+import qualified Codec.CBOR.Write                     as Write
+import           Codec.Serialise                      (serialise)
+import           Codec.Serialise.Class                (Serialise, encode)
+import           Control.DeepSeq                      (NFData)
+import           Control.Monad.Except                 (MonadError, runExcept, throwError)
+import           Crypto.Hash                          (Digest, SHA256, hash)
+import           Data.Aeson                           (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                           as JSON
+import qualified Data.Aeson.Extras                    as JSON
+import qualified Data.ByteArray                       as BA
+import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Functor                         (void)
+import           Data.Hashable                        (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                             (Generic)
-import           IOTS                                     (IotsType (iotsDefinition))
-import qualified Language.PlutusCore                      as PLC
-import qualified Language.PlutusCore.Pretty               as PLC
-import qualified Language.PlutusCore.Constant.Dynamic     as PLC
-import qualified Language.PlutusCore.Evaluation.Result    as PLC
-import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
-import           Language.PlutusTx.Lift                   (liftCode)
-import           Language.PlutusTx                        (CompiledCode, getPlc, makeLift, IsData (..), Data)
+import           GHC.Generics                         (Generic)
+import           IOTS                                 (IotsType (iotsDefinition))
+import qualified Language.PlutusCore                  as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+import qualified Language.PlutusCore.Pretty           as PLC
+import           Language.PlutusTx                    (CompiledCode, Data, IsData (..), getPlc, makeLift)
+import           Language.PlutusTx.Builtins           as Builtins
+import           Language.PlutusTx.Evaluation         (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import           Language.PlutusTx.Lift               (liftCode)
 import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.Builtins               as Builtins
-import           LedgerBytes                              (LedgerBytes (..))
-import           Ledger.Orphans                           ()
+import           Ledger.Orphans                       ()
+import           LedgerBytes                          (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
@@ -158,7 +156,10 @@ fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
-data ScriptError = TypecheckError Haskell.String | EvaluationError [Haskell.String] | EvaluationException Haskell.String
+data ScriptError =
+      TypecheckError Haskell.String -- ^ Incorrect type at runtime
+    | EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
+    | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -168,9 +169,12 @@ evaluateScript checking s = do
     case checking of
       DontCheck -> Haskell.pure ()
       Typecheck -> void $ typecheckScript s
-    let (logOut, result) = evaluateCekTrace (unScript s)
-    res <- either (throwError . EvaluationException . show) Haskell.pure result
-    unless (PLC.isEvaluationSuccess res) $ throwError $ EvaluationError logOut
+    let (logOut, _tally, result) = evaluateCekTrace (unScript s)
+    case result of
+        Right _ -> Haskell.pure ()
+        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
+            InternalEvaluationError {} -> EvaluationException $ show errWithCause
+            UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
 typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())

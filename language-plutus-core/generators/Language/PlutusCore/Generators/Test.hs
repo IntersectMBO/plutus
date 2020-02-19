@@ -18,18 +18,17 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Data.Functor                                            ((<&>))
-import qualified Data.Text.IO                                            as Text
-import           Hedgehog                                                hiding (Size, Var, eval)
-import qualified Hedgehog.Gen                                            as Gen
-import           System.FilePath                                         ((</>))
+import           Data.Functor                                          ((<&>))
+import qualified Data.Text.IO                                          as Text
+import           Hedgehog                                              hiding (Size, Var, eval)
+import qualified Hedgehog.Gen                                          as Gen
+import           System.FilePath                                       ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue :: KnownType a => TermGen a -> IO (TermOf EvaluationResultDef)
@@ -71,8 +70,8 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: (Pretty err, KnownType a)
-    => (Term TyName Name () -> Either (MachineException err) EvaluationResultDef)
+    :: (Pretty internal, KnownType a)
+    => (Term TyName Name () -> Either (EvaluationException internal user) (Term TyName Name ()))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.
     -> Property

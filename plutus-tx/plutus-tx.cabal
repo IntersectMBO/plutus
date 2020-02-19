@@ -84,4 +84,5 @@ library
         plutus-ir -any,
         cborg -any,
         serialise -any,
-        language-plutus-core -any
+        language-plutus-core -any,
+        lens -any,

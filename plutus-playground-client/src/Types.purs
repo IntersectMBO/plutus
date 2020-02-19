@@ -38,7 +38,7 @@ import Halogen as H
 import Halogen.Chartist as Chartist
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Crypto (PubKey, _PubKey)
+import Ledger.Crypto (PubKey, PubKeyHash, _PubKey)
 import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
@@ -336,7 +336,7 @@ _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
 _resultBlockchain :: Lens' EvaluationResult Blockchain
 _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
 
-_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKey Wallet))
+_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKeyHash Wallet))
 _walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
 
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)

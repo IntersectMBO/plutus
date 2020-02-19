@@ -13,11 +13,11 @@ module Language.PlutusCore.Rename
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename.Internal
-import           Language.PlutusCore.Core
 
 import           Data.Functor.Identity
 

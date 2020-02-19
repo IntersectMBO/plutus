@@ -2,7 +2,6 @@ module Simulation where
 
 import API (RunResult(RunResult))
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
-import Ace.Types as Ace
 import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
 import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
 import Control.Alternative (map)
@@ -21,6 +20,8 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Tuple (Tuple(..), snd)
 import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -35,8 +36,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
 import StaticData as StaticData
-import Text.Parsing.Parser (runParser)
-import Text.Parsing.Parser.Pos (Position(..))
+import Text.Parsing.StringParser (runParser)
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
 
 paneHeader :: forall p. String -> HTML p HAction
@@ -112,6 +112,8 @@ holesPane selectedHole (Holes holes) =
   let
     kvs = Map.toUnfoldable holes
 
+    sortHoles = compare `on` (head <<< Set.toUnfoldable <<< snd)
+
     ordered = sortBy sortHoles kvs
 
     holesGroup = map (\(Tuple k v) -> displayHole selectedHole k v) ordered
@@ -123,10 +125,8 @@ holesPane selectedHole (Holes holes) =
           ]
           holesGroup
       ]
-  where
-  sortHoles = compare `on` (head <<< snd)
 
-displayHole :: forall p. Maybe String -> String -> Array MarloweHole -> HTML p HAction
+displayHole :: forall p. Maybe String -> String -> Set MarloweHole -> HTML p HAction
 displayHole selectedHole name holes =
   div [ classes ([ ClassName "btn-group" ] <> showClass) ]
     [ button
@@ -143,7 +143,7 @@ displayHole selectedHole name holes =
         [ classes ([ ClassName "dropdown-menu" ] <> showClass)
         , ariaLabelledBy ("hole-btn-" <> name)
         ]
-        (holeDropdowns holes)
+        (holeDropdowns (Set.toUnfoldable holes))
     ]
   where
   expanded = selectedHole == Just name
@@ -158,28 +158,28 @@ holeDropdowns holes = case Array.uncons holes of
   Just { head: (MarloweHole { marloweType: BigIntegerType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with an integer" ]
     ]
   Just { head: (MarloweHole { marloweType: StringType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with a string" ]
     ]
   Just { head: (MarloweHole { marloweType: ValueIdType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with a string" ]
     ]
   Just { head: (MarloweHole { marloweType: SlotType, end }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition $ holeToAcePosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition end
         ]
         [ text "Replace the hole with an integer" ]
     ]
@@ -193,8 +193,6 @@ holeDropdowns holes = case Array.uncons holes of
             [ text constructor ]
       )
       (fromFoldable $ Map.keys $ getMarloweConstructors marloweType)
-  where
-  holeToAcePosition (Position { column, line }) = Ace.Position { column, row: line }
 
 demoScriptsPane :: forall p. HTML p HAction
 demoScriptsPane =
@@ -312,7 +310,7 @@ inputDeposit ::
   BigInteger ->
   HTML p HAction
 inputDeposit isEnabled person index accountId party token value =
-  flexRow_
+  div_
     $ [ button
           [ class_ $ ClassName "composer-add-button"
           , enabled isEnabled
@@ -333,7 +331,7 @@ renderDeposit (AccountId accountNumber accountOwner) party tok money =
   , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
-  , b_ [ spanText party ]
+  , b_ [ spanText (show party) ]
   ]
 
 inputChoice :: forall p. Boolean -> Maybe PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
@@ -343,7 +341,7 @@ inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) ch
 
     errorRow = if validBounds then [] else [ text boundsError ]
   in
-    flexRow_
+    div_
       ( [ button
             [ class_ $ ClassName "composer-add-button"
             , enabled isEnabled
@@ -371,7 +369,7 @@ inputNotify ::
   Int ->
   HTML p HAction
 inputNotify isEnabled person index =
-  flexRow_
+  div_
     [ button
         [ class_ $ ClassName "composer-add-button"
         , enabled isEnabled
@@ -861,7 +859,7 @@ renderPayment :: forall p. Party -> CurrencySymbol -> TokenName -> BigInteger ->
 renderPayment party currSym tokName money =
   tr []
     [ td_
-        [ text party
+        [ text (show party)
         ]
     , td
         [ class_ $ ClassName "middle-column"
@@ -1014,7 +1012,7 @@ analysisResultPane state =
       _ -> empty
 
 displayTransactionList :: forall p. String -> HTML p HAction
-displayTransactionList transactionList = case runParser transactionList transactionInputList of
+displayTransactionList transactionList = case runParser transactionInputList transactionList of
   Right pTL ->
     ol_
       ( do
@@ -1084,7 +1082,7 @@ displayInput (INotify) =
   ]
 
 displayWarningList :: forall p. String -> HTML p HAction
-displayWarningList transactionWarnings = case runParser transactionWarnings transactionWarningList of
+displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
   Right pWL ->
     ol_
       ( do

@@ -15,13 +15,13 @@ import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
-import           Control.Exception                         (evaluate)
+import           Control.Exception                                  (evaluate)
 import           Data.IORef
-import           System.IO.Unsafe                          (unsafePerformIO)
+import           System.IO.Unsafe                                   (unsafePerformIO)
 
 -- This does not stream elements lazily. There is a version that allows to stream elements lazily,
 -- but we do not have it here because it's way too convoluted.
@@ -44,10 +44,14 @@ newtype EmitHandler r = EmitHandler
     { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
     }
 
-feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
-feedEmitHandler term (EmitHandler handler) = handler mempty term
+feedEmitHandler
+    :: DynamicBuiltinNameMeanings
+    -> Term TyName Name ()
+    -> EmitHandler r
+    -> IO r
+feedEmitHandler means term (EmitHandler handler) = handler means term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term m r -> (EmitHandler (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
@@ -60,13 +64,14 @@ withEmitTerm cont (EmitHandler handler) =
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
             dynEmitTerm = dynamicCall dynEmitName
-            dynEmitDef  = dynamicCallAssign dynEmitName emit
+            dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
     :: KnownType a
-    => Evaluator Term m
+    => AnEvaluator Term m b
+    -> DynamicBuiltinNameMeanings
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m EvaluationResultDef)
-withEmitEvaluateBy eval toTerm =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm
+    -> IO ([a], m b)
+withEmitEvaluateBy eval means inst =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst

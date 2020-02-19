@@ -4,36 +4,32 @@ module Data.BigInteger (BigInteger, fromInt, fromString) where
 
 import Data.BigInt (BigInt, toString)
 import Data.BigInt as BigInt
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Eq (genericEq)
-import Data.Generic.Rep.Ord (genericCompare)
 import Data.Integral (class Integral)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, over, over2, unwrap, wrap)
 import Data.Num (class Num, abs, negate, signum)
 import Data.Real (class Real, toRational)
-import Marlowe.Pretty (class Pretty)
 import Prelude (class CommutativeRing, class Eq, class EuclideanRing, class Ord, class Ring, class Semiring, class Show, show, add, sub, div, mul, mod, degree, (<<<), (>>>), (<$>))
-import Text.PrettyPrint.Leijen (text)
+import Text.Pretty (class Args, class Pretty, text)
 
 newtype BigInteger
   = BigInteger BigInt
 
 derive instance newtypeBigInteger :: Newtype BigInteger _
 
-derive instance genericBigInteger :: Generic BigInteger _
+derive newtype instance eqBigInteger :: Eq BigInteger
 
-instance eqBigInteger :: Eq BigInteger where
-  eq = genericEq
-
-instance ordBigInteger :: Ord BigInteger where
-  compare v = genericCompare v
+derive newtype instance ordBigInteger :: Ord BigInteger
 
 instance showBigInteger :: Show BigInteger where
   show = toString <<< unwrap
 
 instance prettyBigInteger :: Pretty BigInteger where
-  prettyFragment = text <<< show
+  pretty = text <<< show
+
+instance hasArgsBigInteger :: Args BigInteger where
+  hasArgs _ = false
+  hasNestedArgs _ = false
 
 fromInt :: Int -> BigInteger
 fromInt = BigInteger <<< BigInt.fromInt

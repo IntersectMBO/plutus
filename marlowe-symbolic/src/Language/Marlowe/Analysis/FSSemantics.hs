@@ -59,10 +59,9 @@ type SlotNumber = Integer
 type SSlotNumber = SInteger
 type SlotInterval = (SlotNumber, SlotNumber)
 type SSlotInterval = STuple SlotNumber SlotNumber
-type PubKey = Integer
 
-type Party = PubKey
-type SParty = SBV PubKey
+type Party = Integer
+type SParty = SBV Party
 
 type NumChoice = Integer
 type NumAccount = Integer
@@ -119,9 +118,6 @@ unNestChoiceId (numCho, party) = ChoiceId numCho party
 literalChoiceId :: ChoiceId -> SChoiceId
 literalChoiceId (ChoiceId c p) = sChoiceId c p
 
-newtype OracleId = OracleId PubKey
-  deriving (Eq,Ord,Show,Read)
-
 newtype ValueId = ValueId Integer
   deriving (Eq,Ord,Show,Read)
 type NValueId = Integer
@@ -145,7 +141,6 @@ data Value = AvailableMoney AccountId
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
---           | OracleValue OracleId Value
   deriving (Eq,Ord,Show,Read)
 
 data Observation = AndObs Observation Observation
@@ -159,7 +154,6 @@ data Observation = AndObs Observation Observation
                  | ValueEQ Value Value
                  | TrueObs
                  | FalseObs
---                 | OracleValueProvided OracleId
   deriving (Eq,Ord,Show,Read)
 
 type Bound = (Integer, Integer)
@@ -431,7 +425,7 @@ mkSymbolicDatatype ''ReduceResult
 data DetReduceResult = DRRContractOver
                      | DRRNoProgressNormal
                      | DRRNoProgressError
-                     | DRRProgress Contract Integer -- Integer is num of Payments
+                     | DRRProgress Contract
   deriving (Eq,Ord,Show,Read)
 
 -- Carry a step of the contract with no inputs
@@ -439,13 +433,12 @@ reduce :: SymVal a => Bounds -> SEnvironment -> SState -> Contract
        -> (SReduceResult -> DetReduceResult -> SBV a) -> SBV a
 reduce bnds _ state Close f = f sNotReduced DRRContractOver
 reduce bnds env state (Pay accId payee val nc) f =
-  ite (mon .<= 0)
-      (f (sReduced (sReduceNonPositivePay (literalAccountId accId)
+  f (ite (mon .<= 0)
+         (sReduced (sReduceNonPositivePay (literalAccountId accId)
                                           (literal $ nestPayee payee)
                                           mon)
                    sReduceNoEffect state)
-         (DRRProgress nc 0))
-      (f (sReduced noMonWarn payEffect (state `setAccount` finalAccs)) (DRRProgress nc 1))
+         (sReduced noMonWarn payEffect (state `setAccount` finalAccs))) (DRRProgress nc)
   where mon = evalValue bnds env state val
         (paidMon, newAccs) = ST.untuple $
                                withdrawMoneyFromAccount (account state) accId mon
@@ -456,17 +449,17 @@ reduce bnds env state (Pay accId payee val nc) f =
         (payEffect, finalAccs) = ST.untuple $ giveMoney newAccs payee paidMon
 reduce bnds env state (If obs cont1 cont2) f =
   ite (evalObservation bnds env state obs)
-      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont1 0))
-      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont2 0))
+      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont1))
+      (f (sReduced sReduceNoWarning sReduceNoEffect state) (DRRProgress cont2))
 reduce _ env state (When _ timeout c) f =
    ite (endSlot .< literal timeout)
        (f sNotReduced DRRNoProgressNormal)
        (ite (startSlot .>= literal timeout)
-            (f (sReduced sReduceNoWarning sReduceNoEffect state) $ DRRProgress c 0)
+            (f (sReduced sReduceNoWarning sReduceNoEffect state) $ DRRProgress c)
             (f (sReduceError sReduceAmbiguousSlotInterval) DRRNoProgressError))
   where (startSlot, endSlot) = ST.untuple $ slotInterval env
 reduce bnds env state (Let valId val cont) f =
-    f (sReduced warn sReduceNoEffect ns) (DRRProgress cont 0)
+    f (sReduced warn sReduceNoEffect ns) (DRRProgress cont)
   where
     sv = boundValues state
     evVal = evalValue bnds env state val
@@ -487,7 +480,7 @@ mkSymbolicDatatype ''ReduceAllResult
 
 data DetReduceAllResult = DRARContractOver
                         | DRARError
-                        | DRARNormal Contract Integer -- Integer is num of Payments
+                        | DRARNormal Contract
   deriving (Eq,Ord,Show,Read)
 
 -- Reduce until it cannot be reduced more
@@ -511,7 +504,7 @@ splitReduceResultReduce bnds _ _ SSNotReduced =
   ([] {- SNH -}, [] {- SNH -}, emptySState bnds 0 {- SNH -}, sReduceAmbiguousSlotInterval {- SNH -})
 splitReduceResultReduce bnds _ _ (SSReduceError terr) = ([] {- SNH -}, [] {- SNH -}, emptySState bnds 0{- SNH -}, terr)
 
-reduceAllAux bnds payNum Nothing env sta c wa ef f =
+reduceAllAux bnds Nothing env sta c wa ef f =
     reduce bnds env sta c contFunc
   where contFunc sr dr =
           let (nwa, nef, nsta, err) =
@@ -520,13 +513,13 @@ reduceAllAux bnds payNum Nothing env sta c wa ef f =
           case dr of
             DRRContractOver -> f (sReducedAll wa ef {- ToDo: extract refunds -} sta)
                                  DRARContractOver
-            DRRNoProgressNormal -> f (sReducedAll wa ef sta) $ DRARNormal c 0
+            DRRNoProgressNormal -> f (sReducedAll wa ef sta) $ DRARNormal c
             DRRNoProgressError -> f (sReduceAllError err) DRARError
-            DRRProgress nc p -> reduceAllAux bnds (payNum + p) Nothing env nsta nc nwa nef f
+            DRRProgress nc -> reduceAllAux bnds Nothing env nsta nc nwa nef f
 
 reduceAll :: SymVal a => Bounds -> SEnvironment -> SState -> Contract
           -> (SReduceAllResult -> DetReduceAllResult -> SBV a) -> SBV a
-reduceAll bnds env sta c = reduceAllAux bnds 0 Nothing env sta c [] []
+reduceAll bnds env sta c = reduceAllAux bnds Nothing env sta c [] []
 
 -- APPLY
 
@@ -554,7 +547,6 @@ data ApplyResult = Applied NApplyWarning State
 mkSymbolicDatatype ''ApplyResult
 
 data DetApplyResult = DARNormal Contract
-                                Integer -- num of Inputs
                     | DARError
 
 splitReduceAllResult :: Bounds -> SList NTransactionWarning -> SList NReduceEffect
@@ -579,7 +571,7 @@ applyCases :: SymVal a => Bounds -> SEnvironment -> SState -> SSInput -> [Case] 
 applyCases bnds env state inp@(SSIDeposit accId1 party1 mon1)
            (Case (Deposit accId2 party2 val2) nc : t) f =
   ite ((accId1 .== sAccId2) .&& (party1 .== sParty2) .&& (mon1 .== mon2))
-      (f (sApplied warning newState) (DARNormal nc 1))
+      (f (sApplied warning newState) (DARNormal nc))
       (applyCases bnds env state inp t f)
   where sAccId2 = literalAccountId accId2
         sParty2 = literal party2
@@ -593,14 +585,14 @@ applyCases bnds env state inp@(SSIDeposit accId1 party1 mon1)
 applyCases bnds env state inp@(SSIChoice choId1 cho1)
            (Case (Choice choId2 bounds2) nc : t) f =
   ite ((choId1 .== sChoId2) .&& inBounds cho1 bounds2)
-      (f (sApplied sApplyNoWarning newState) (DARNormal nc 1))
+      (f (sApplied sApplyNoWarning newState) (DARNormal nc))
       (applyCases bnds env state inp t f)
   where newState = state `setChoice`
                      (IntegerArray.insert (choiceNumber choId2) cho1 $ choice state)
         sChoId2 = literalChoiceId choId2
 applyCases bnds env state inp@SSINotify (Case (Notify obs) nc : t) f =
   ite (evalObservation bnds env state obs)
-      (f (sApplied sApplyNoWarning state) (DARNormal nc 1))
+      (f (sApplied sApplyNoWarning state) (DARNormal nc))
       (applyCases bnds env state inp t f)
 applyCases _ _ _ _ _ f = f (sApplyError sApplyNoMatch) DARError
 
@@ -620,8 +612,6 @@ data ApplyAllResult = AppliedAll [NTransactionWarning] [NReduceEffect] State
 mkSymbolicDatatype ''ApplyAllResult
 
 data DetApplyAllResult = DAARNormal Contract
-                                    Integer -- num of Payments
-                                    Integer -- num of Inputs
                        | DAARError
 
 addIfEffWa :: SList NTransactionWarning -> SSApplyWarning -> SList NTransactionWarning
@@ -631,11 +621,11 @@ addIfEffWa nwa (SSApplyNonPositiveDeposit party accId amount) =
 
 -- Apply a list of Inputs to the contract
 applyAllAux :: SymVal a => Integer
-            -> Bounds -> Integer -> Integer
+            -> Bounds
             -> SEnvironment -> SState -> Contract -> SList NInput
             -> SList NTransactionWarning -> SList NReduceEffect
             -> (SApplyAllResult -> DetApplyAllResult -> SBV a) -> SBV a
-applyAllAux n bnds numPays numInps env state c l wa ef f
+applyAllAux n bnds env state c l wa ef f
   | n >= 0 = reduceAll bnds env state c contFunReduce
   | otherwise = f (sAAReduceError sReduceAmbiguousSlotInterval) DAARError -- SNH
   where contFunReduce sr DRARError =
@@ -644,24 +634,24 @@ applyAllAux n bnds numPays numInps env state c l wa ef f
         contFunReduce sr DRARContractOver =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
           ite (SL.null l)
-              (f (sAppliedAll nwa nef nstate) $ DAARNormal Close numPays numInps)
+              (f (sAppliedAll nwa nef nstate) $ DAARNormal Close)
               (f (sAAApplyError sApplyNoMatch) DAARError)
-        contFunReduce sr (DRARNormal nc p) =
+        contFunReduce sr (DRARNormal nc) =
           let (nwa, nef, nstate, _) = ST.untuple $ splitReduceAllResultWrap bnds wa ef sr in
           ite (SL.null l)
-              (f (sAppliedAll nwa nef nstate) $ DAARNormal nc (p + numPays) numInps)
-              (apply bnds env nstate (SL.head l) nc (contFunApply (SL.tail l) nwa nef p))
-        contFunApply _ _ _ _ sr DARError =
+              (f (sAppliedAll nwa nef nstate) $ DAARNormal nc)
+              (apply bnds env nstate (SL.head l) nc (contFunApply (SL.tail l) nwa nef))
+        contFunApply _ _ _ sr DARError =
           f (symCaseApplyResult
                (\case
                   SSApplied _ _    -> sAAReduceError sReduceAmbiguousSlotInterval -- SNH
                   SSApplyError err -> sAAApplyError err) sr)
             DAARError
-        contFunApply t nwa nef np sr (DARNormal nc ni) =
+        contFunApply t nwa nef sr (DARNormal nc) =
           symCaseApplyResult
             (\case
                 SSApplied twa nst ->
-                    applyAllAux (n - 1) bnds (numPays + np) (numInps + ni)
+                    applyAllAux (n - 1) bnds
                                 env nst nc t (symCaseApplyWarning (addIfEffWa nwa) twa) nef f
                 SSApplyError err -> f (sAAApplyError err) DAARError {- SNH -}) sr
 
@@ -669,7 +659,7 @@ applyAll :: SymVal a => Bounds
          -> SEnvironment -> SState -> Contract -> SList NInput
          -> (SApplyAllResult -> DetApplyAllResult -> SBV a) -> SBV a
 applyAll bnds env state c l =
-  applyAllAux 1 bnds 0 0 env state c l [] []
+  applyAllAux 1 bnds env state c l [] []
 
 -- PROCESS
 
@@ -790,19 +780,15 @@ processApplyResult :: SymVal a => Bounds -> STransaction -> SState -> Contract
                    -> (STransactionResult -> DetTransactionResult -> SBV a)
                    -> SApplyAllResult -> DetApplyAllResult
                    -> SBV a
-processApplyResult bnds tra sta c f saar (DAARNormal ncon numPays numInps) =
+processApplyResult bnds tra sta c f saar (DAARNormal ncon) =
   symCaseApplyAllResult
     (\aar ->
      extractAppliedAll bnds aar
        (\wa ef nsta ->
 --        let sigs = getSignatures bnds numInps inps in
 --        let outcomes = getOutcomes bnds numPays numInps ef inps in
-        if c == ncon
-        then (if c /= Close
-              then f (sTransactionError sTEUselessTransaction) DTError
-              else ite (SL.null $ account sta)
-                       (f (sTransactionError sTEUselessTransaction) DTError)
-                       (f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
+        if c == ncon && c /= Close
+        then f (sTransactionError sTEUselessTransaction) DTError
         else f (sTransactionProcessed wa ef {- sigs outcomes -} nsta) (DTProcessed ncon)))
     saar
   where inps = inputs tra

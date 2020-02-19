@@ -28,7 +28,7 @@ infix 2 _—→_
 \begin{code}
 data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
   V-ƛ : ∀ (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ A t)
-  V-Λ : ∀ {K}{t : ScopedTm (T w)} → Value t → Value (Λ K t)
+  V-Λ : ∀ {K}(t : ScopedTm (T w)) → Value (Λ K t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
   V-builtin : (b : Builtin)
@@ -43,7 +43,6 @@ open import Data.Unit
 VTel : ∀{n}(w : Weirdℕ n) → Tel w → Set
 VTel w []       = ⊤
 VTel w (t ∷ ts) = Value t × VTel w ts
-
 
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
@@ -165,12 +164,8 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
   ξ-·₂ : {L M M' : ScopedTm w} → Value L → M —→ M' → L · M —→ L · M'
   ξ-·⋆ : {L L' : ScopedTm w}{A : ScopedTy n} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
-  ξ-Λ : ∀{K}{L L' : ScopedTm (T w)} → L —→ L' → Λ K L —→ Λ K L
   ξ-wrap : {A B : ScopedTy n}{L L' : ScopedTm w}
     → L —→ L' → wrap A B L —→ wrap A B L'
-
-
-
   β-ƛ : ∀{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
       → (ƛ A L) · M —→ (L [ M ])
   β-Λ : ∀{K}{L : ScopedTm (T w)}{A : ScopedTy n}
@@ -183,10 +178,8 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
               {t t' : ScopedTm w}
             → t —→ t'
             → (telB : List (ScopedTm w))
---          a proof that tel = telA ++ t ++ telB
-            → builtin b As tel
-              —→
-              builtin b As (telA ++ Data.List.[ t' ] ++ telB)
+            → tel ≡ telA ++ Data.List.[ t ] ++ telB
+            → builtin b As tel —→ builtin b As (telA ++ Data.List.[ t' ] ++ telB)
   β-builtin : {b : Builtin}
               {As : List (ScopedTy n)}
               {ts : Tel w}
@@ -217,13 +210,14 @@ data Progress {n}{i : Weirdℕ n}(t : ScopedTm i) : Set where
 data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
   done : (tel : Tel w)(vtel : VTel w tel) → TelProgress tel
   step : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA)
-   → {t t' : ScopedTm w} → t —→ t' → (telB : Tel w) → TelProgress tel
+   → {t t' : ScopedTm w} → t —→ t' → (telB : Tel w) → tel ≡ telA ++ Data.List.[ t ] ++ telB → TelProgress tel
   error : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA){t : ScopedTm w}
     → Error t → (telB : Tel w) → TelProgress tel
 \end{code}
 
 \begin{code}
-progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → (u : ScopedTm i) → Progress (t · u)
+progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → (u : ScopedTm i) → Progress (t · u)
 progress· (step p)                   u = step (ξ-·₁ p)
 progress· (done (V-ƛ A t))         u = step β-ƛ
 progress· (done (V-Λ p))           u = error E-Λ·
@@ -232,17 +226,18 @@ progress· (done (V-wrap A B t))      u = error E-wrap·
 progress· (done (V-builtin b As ts)) u = step sat-builtin
 progress· (error e)                  u = error (E-·₁ e)
 
-progress·⋆ : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → (A : ScopedTy n)
-  → Progress (t ·⋆ A)
+progress·⋆ : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → (A : ScopedTy n) → Progress (t ·⋆ A)
 progress·⋆ (step p)                   A = step (ξ-·⋆ p)
-progress·⋆ (done (V-ƛ B t))         A = error E-ƛ·⋆
-progress·⋆ (done (V-Λ p))           A = step β-Λ
+progress·⋆ (done (V-ƛ B t))           A = error E-ƛ·⋆
+progress·⋆ (done (V-Λ p))             A = step β-Λ
 progress·⋆ (done (V-con tcn))         A = error E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))  A = error E-wrap·⋆
 progress·⋆ (done (V-builtin b As ts)) A = error E-builtin·⋆
 progress·⋆ (error e)                  A = error (E-·⋆ e)
 
-progress-unwrap : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → Progress (unwrap t)
+progress-unwrap : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → Progress (unwrap t)
 progress-unwrap (step p)                   = step (ξ-unwrap p)
 progress-unwrap (done (V-ƛ A t))         = error E-ƛunwrap
 progress-unwrap (done (V-Λ p))           = error E-Λunwrap
@@ -251,23 +246,24 @@ progress-unwrap (done (V-wrap A B t))      = step β-wrap
 progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap
 progress-unwrap (error e)                  = error (E-unwrap e)
 
-progress-builtin : ∀ {n}{i : Weirdℕ n} bn → (As : List (ScopedTy n)) (tel : Tel i)
+progress-builtin : ∀ {n}{i : Weirdℕ n} bn
+  → (As : List (ScopedTy n)) (tel : Tel i)
   → TelProgress tel → Progress (builtin bn As tel)
 progress-builtin bn As tel p with arity bn N.≟ Data.List.length tel
 progress-builtin bn As tel (done .tel vtel)               | yes p =
   step (β-builtin vtel)
-progress-builtin bn As tel (step .tel telA vtelA x telB)  | yes p =
-  step (ξ-builtin vtelA x telB)
+progress-builtin bn As tel (step .tel telA vtelA x telB q)  | yes p =
+  step (ξ-builtin vtelA x telB q)
 progress-builtin bn As tel (error .tel telA vtelA x telB) | yes p =
   error (E-builtin x)
 progress-builtin bn As tel p | no ¬p = done (V-builtin bn As tel)
 
-progressTelCons : ∀{n}{i : Weirdℕ n}{t : ScopedTm i} → Progress t → {tel : Tel i}
-  → TelProgress tel → TelProgress (t ∷ tel)
-progressTelCons {t = t}(step p){tel}  q = step (t ∷ tel) [] tt p tel
+progressTelCons : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
+  → Progress t → {tel : Tel i} → TelProgress tel → TelProgress (t ∷ tel)
+progressTelCons {t = t}(step p){tel}  q = step (t ∷ tel) [] tt p tel refl
 progressTelCons (done v) (done tel vtel) = done (_ ∷ tel) (v , vtel)
-progressTelCons (done v) (step tel telA vtelA p telB) =
-  step (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB
+progressTelCons (done v) (step tel telA vtelA p telB q) =
+  step (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB (cong (_ ∷_) q)
 progressTelCons (done v) (error tel telA vtelA p telB) =
   error (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB
 progressTelCons {t = t}(error e){tel} q = error (t ∷ tel) [] tt e tel
@@ -289,17 +285,14 @@ progressTel p []        = done [] tt
 progressTel p (t ∷ tel) = progressTelCons (progress p t) (progressTel p tel)
 
 progress p (` x)             = ⊥-elim (noVar p x)
-progress p (Λ K t)         with progress p t
-progress p (Λ K t) | step  q = step (ξ-Λ q)
-progress p (Λ K t) | done  q = done (V-Λ q)
-progress p (Λ K t) | error q = error (E-Λ q)
+progress p (Λ K t)           = done (V-Λ t) 
 progress p (t ·⋆ A)          = progress·⋆ (progress p t) A
-progress p (ƛ A t)         = done (V-ƛ A t)
+progress p (ƛ A t)           = done (V-ƛ A t)
 progress p (t · u)           = progress· (progress p t) u
 progress p (con c)           = done (V-con c)
 progress p (error A)         = error (E-error A)
 progress p (builtin b As ts) = progress-builtin b As ts (progressTel p ts)
-progress p (wrap A B t)      with progress p t
+progress p (wrap A B t) with progress p t
 progress p (wrap A B t) | step  q = step (ξ-wrap q)
 progress p (wrap A B t) | done  q = done (V-wrap A B q)
 progress p (wrap A B t) | error q = error (E-wrap q)
@@ -324,5 +317,4 @@ run t (suc n) = runProg n (progress tt t)
 runProg n (step {t' = t'} p)  = run—→ p (run t' n)
 runProg n (done V)  = _ , refl , inl (just V)
 runProg n (error e) = _ , refl , inr e 
-
 \end{code}

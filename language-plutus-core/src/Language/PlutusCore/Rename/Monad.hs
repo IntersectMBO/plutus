@@ -32,7 +32,7 @@ import           Control.Monad.Reader
 -- | The monad the renamer runs in.
 newtype RenameT ren m a = RenameT
     { unRenameT :: ReaderT ren m a
-    } deriving
+    } deriving newtype
         ( Functor, Applicative, Alternative, Monad
         , MonadReader ren
         , MonadQuote
@@ -41,7 +41,7 @@ newtype RenameT ren m a = RenameT
 -- | A renaming is a mapping from old uniques to new ones.
 newtype Renaming unique = Renaming
     { unRenaming :: UniqueMap unique unique
-    } deriving (Semigroup, Monoid)
+    } deriving newtype (Semigroup, Monoid)
 
 -- | A type-level renaming.
 -- Needed for instantiating functions running over types in generic @RenameT ren m@ to

@@ -2,13 +2,13 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE DerivingVia                #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
 module LedgerBytes ( LedgerBytes (..)
@@ -18,22 +18,22 @@ module LedgerBytes ( LedgerBytes (..)
                 ) where
 
 import           Codec.Serialise
-import           Data.Aeson                 (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import           Data.Bifunctor             (bimap)
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.String                (IsString (..))
-import qualified Data.Text                  as Text
-import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow(..))
-import           Data.Word                  (Word8)
-import           GHC.Generics               (Generic)
-import           IOTS                       (IotsType (iotsDefinition))
-import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.Builtins as Builtins
+import           Data.Aeson                       (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson                       as JSON
+import qualified Data.Aeson.Extras                as JSON
+import           Data.Bifunctor                   (bimap)
+import qualified Data.ByteString.Lazy             as BSL
+import           Data.String                      (IsString (..))
+import qualified Data.Text                        as Text
+import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
+import           Data.Word                        (Word8)
+import           GHC.Generics                     (Generic)
+import           IOTS                             (IotsType (iotsDefinition))
+import qualified Language.PlutusTx                as PlutusTx
+import qualified Language.PlutusTx.Builtins       as Builtins
 import           Language.PlutusTx.Lift
-import qualified Language.PlutusTx.Prelude  as P
-import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
+import qualified Language.PlutusTx.Prelude        as P
+import           Web.HttpApiData                  (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BSL.ByteString -> LedgerBytes
 fromHex = LedgerBytes . asBSLiteral

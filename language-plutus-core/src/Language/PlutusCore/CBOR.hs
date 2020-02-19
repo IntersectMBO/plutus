@@ -248,7 +248,7 @@ instance Serialise a => Serialise (Token a)
 instance Serialise Keyword
 instance Serialise Special
 
-deriving instance Serialise Index
+deriving newtype instance Serialise Index
 
 instance Serialise ann => Serialise (DeBruijn ann) where
     encode (DeBruijn ann txt i) = encode ann <> encode txt <> encode i

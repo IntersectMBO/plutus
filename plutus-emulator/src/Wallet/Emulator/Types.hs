@@ -67,6 +67,7 @@ module Wallet.Emulator.Types(
     walletClientStates,
     index,
     chainState,
+    currentSlot,
     MonadEmulator,
     processEmulated,
     runWalletActionAndProcessPending,

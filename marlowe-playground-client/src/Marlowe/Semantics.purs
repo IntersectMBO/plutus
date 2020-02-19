@@ -19,14 +19,30 @@ import Data.Num (class Num)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Marlowe.Pretty (class Pretty, genericPretty, prettyFragment)
-import Text.PrettyPrint.Leijen (appendWithSoftbreak, text)
+import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
 
 type PubKey
   = String
 
-type Party
-  = PubKey
+data Party
+  = PK PubKey
+  | Role TokenName
+
+derive instance genericParty :: Generic Party _
+
+derive instance eqParty :: Eq Party
+
+derive instance ordParty :: Ord Party
+
+instance showParty :: Show Party where
+  show = genericShow
+
+instance prettyParty :: Pretty Party where
+  pretty = genericPretty
+
+instance hasArgsParty :: Args Party where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 type Timeout
   = Slot
@@ -53,7 +69,11 @@ instance showToken :: Show Token where
   show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
-  prettyFragment a = text (show a)
+  pretty = genericPretty
+
+instance hasArgsToken :: Args Token where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 type ChosenNum
   = BigInteger
@@ -96,8 +116,6 @@ derive instance ordSlot :: Ord Slot
 
 derive newtype instance showSlot :: Show Slot
 
-derive newtype instance prettySlot :: Pretty Slot
-
 derive newtype instance semiRingSlot :: Semiring Slot
 
 derive newtype instance ringSlot :: Ring Slot
@@ -111,6 +129,10 @@ derive newtype instance numSlot :: Num Slot
 derive newtype instance realRingSlot :: Real Slot
 
 derive newtype instance integralSlot :: Integral Slot
+
+derive newtype instance prettySlot :: Pretty Slot
+
+derive newtype instance hasArgsSlot :: Args Slot
 
 newtype Ada
   = Lovelace BigInteger
@@ -140,7 +162,7 @@ derive newtype instance realRingAda :: Real Ada
 instance commutativeRingAda :: CommutativeRing Ada
 
 data AccountId
-  = AccountId BigInteger PubKey
+  = AccountId BigInteger Party
 
 derive instance genericAccountId :: Generic AccountId _
 
@@ -152,10 +174,14 @@ instance showAccountId :: Show AccountId where
   show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
 
 instance prettyAccountId :: Pretty AccountId where
-  prettyFragment a = text (show a)
+  pretty = genericPretty
+
+instance hasArgsAccountId :: Args AccountId where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
 
 data ChoiceId
-  = ChoiceId String PubKey
+  = ChoiceId String Party
 
 derive instance genericChoiceId :: Generic ChoiceId _
 
@@ -167,9 +193,13 @@ instance showChoiceId :: Show ChoiceId where
   show (ChoiceId name owner) = "(ChoiceId " <> show name <> " " <> show owner <> ")"
 
 instance prettyChoiceId :: Pretty ChoiceId where
-  prettyFragment a = text (show a)
+  pretty = genericPretty
 
-choiceOwner :: ChoiceId -> PubKey
+instance hasArgsChoiceId :: Args ChoiceId where
+  hasArgs = genericHasArgs
+  hasNestedArgs = genericHasNestedArgs
+
+choiceOwner :: ChoiceId -> Party
 choiceOwner (ChoiceId _ owner) = owner
 
 newtype ValueId
@@ -187,7 +217,11 @@ instance showValueId :: Show ValueId where
   show (ValueId valueId) = show valueId
 
 instance prettyValueId :: Pretty ValueId where
-  prettyFragment a = text (show a)
+  pretty (ValueId valueId) = text $ show valueId
+
+instance hasArgsValueId :: Args ValueId where
+  hasArgs _ = false
+  hasNestedArgs _ = false
 
 data Value
   = AvailableMoney AccountId Token
@@ -210,7 +244,11 @@ instance showValue :: Show Value where
   show v = genericShow v
 
 instance prettyValue :: Pretty Value where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsValue :: Args Value where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 data Observation
   = AndObs Observation Observation
@@ -235,7 +273,11 @@ instance showObservation :: Show Observation where
   show o = genericShow o
 
 instance prettyObservation :: Pretty Observation where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsObservation :: Args Observation where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 validInterval :: SlotInterval -> Boolean
 validInterval (SlotInterval from to) = from <= to
@@ -275,7 +317,11 @@ instance showBound :: Show Bound where
   show = genericShow
 
 instance prettyBound :: Pretty Bound where
-  prettyFragment a = text $ show a
+  pretty v = genericPretty v
+
+instance hasArgsBound :: Args Bound where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 data Action
   = Deposit AccountId Party Token Value
@@ -293,7 +339,11 @@ instance showAction :: Show Action where
   show v = genericShow v
 
 instance prettyAction :: Pretty Action where
-  prettyFragment a = text (show a)
+  pretty v = genericPretty v
+
+instance hasArgsAction :: Args Action where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 data Payee
   = Account AccountId
@@ -309,7 +359,11 @@ instance showPayee :: Show Payee where
   show v = genericShow v
 
 instance prettyPayee :: Pretty Payee where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsPayee :: Args Payee where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 data Case
   = Case Action Contract
@@ -323,9 +377,12 @@ derive instance ordCase :: Ord Case
 instance showCase :: Show Case where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
 
--- FIXME: pretty printing is a disaster and slooooowwwww
 instance prettyCase :: Pretty Case where
-  prettyFragment (Case action contract) = appendWithSoftbreak (text "Case " <> prettyFragment action <> text " ") (prettyFragment contract)
+  pretty v = genericPretty v
+
+instance hasArgsCase :: Args Case where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 data Contract
   = Close
@@ -344,7 +401,11 @@ instance showContract :: Show Contract where
   show v = genericShow v
 
 instance prettyContract :: Pretty Contract where
-  prettyFragment a = genericPretty a
+  pretty v = genericPretty v
+
+instance hasArgsContract :: Args Contract where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
 
 newtype State
   = State
@@ -613,7 +674,7 @@ emptyState sn =
     , minSlot: sn
     }
 
-accountOwner :: AccountId -> PubKey
+accountOwner :: AccountId -> Party
 accountOwner (AccountId _ owner) = owner
 
 inBounds :: ChosenNum -> Array Bound -> Boolean

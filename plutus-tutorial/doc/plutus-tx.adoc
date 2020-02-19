@@ -181,7 +181,7 @@ functions :: CompiledCode Integer
 functions = $$(compile [|| myProgram ||])
 
 {- |
->>> pretty $ runCk $ getPlc functions -- <.>
+>>> pretty $ unsafeEvaluateCk $ toTerm $ getPlc functions -- <.>
 (con 4)
 -}
 ----
@@ -355,7 +355,7 @@ addOneToN n =
     (con 4)
   ]
 )
->>> pretty $ runCk program
+>>> pretty $ unsafeEvaluateCk $ toTerm program
 (con 5)
 -}
 ----
@@ -392,7 +392,7 @@ pastEndAt end current =
 
 {- |
 >>> let program = getPlc $ pastEndAt Never 5
->>> pretty $ runCk program
+>>> pretty $ unsafeEvaluateCk $ toTerm program
 (abs
   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
 )

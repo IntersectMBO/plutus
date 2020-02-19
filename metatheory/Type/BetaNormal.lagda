@@ -158,6 +158,9 @@ ren-embNe ρ μ1       = refl
 # Assemblies
 
 \begin{code}
+unitNf : ∀{Γ} → Γ ⊢Nf⋆ *
+unitNf = Π (ne (` Z) ⇒ ne (` Z))
+
 booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
 booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
 \end{code}

@@ -32,8 +32,6 @@ module Ledger.Validation
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
     , scriptCurrencySymbol
-    -- * Oracles
-    , OracleValue(..)
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
@@ -61,9 +59,9 @@ import qualified Prelude                   as Haskell
 
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
-import           Ledger.Crypto             (PubKey (..), Signature (..))
+import           Ledger.Crypto             (PubKey (..), PubKeyHash (..), Signature (..))
 import           Ledger.Scripts
-import           Ledger.Slot               (Slot, SlotRange)
+import           Ledger.Slot               (SlotRange)
 import           Ledger.TxId
 import           Ledger.Value              (CurrencySymbol (..), Value)
 import qualified Ledger.Value              as Value
@@ -82,7 +80,7 @@ redeemer and data scripts of all of its inputs and outputs.
 
 -- | The type of a transaction output in a pending transaction.
 data PendingTxOutType
-    = PubKeyTxOut PubKey -- ^ Pub key address
+    = PubKeyTxOut PubKeyHash -- ^ Pub key address
     | ScriptTxOut ValidatorHash DataValueHash -- ^ The hash of the validator script and the data script (see note [Script types in pending transactions])
     deriving (Generic)
 
@@ -124,7 +122,7 @@ data PendingTx' i = PendingTx
     , pendingTxItem         :: i -- ^ The item being validated against currently.
     , pendingTxValidRange   :: SlotRange -- ^ The valid range for the transaction.
     , pendingTxForgeScripts :: [MonetaryPolicyHash]
-    , pendingTxSignatures   :: [(PubKey, Signature)]
+    , pendingTxSignatories  :: [PubKeyHash]
     -- ^ Signatures provided with the transaction
     , pendingTxData         :: [(DataValueHash, DataValue)]
     , pendingTxId           :: TxId
@@ -160,36 +158,6 @@ getContinuingOutputs PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=(inp
         f PendingTxOut{pendingTxOutType=(ScriptTxOut outHsh _)} = outHsh == inpHsh
         f _                                                     = False
 
-{- Note [Oracles]
-I'm not sure how oracles are going to work eventually, so I'm going to use this
-definition for now:
-* Oracles are identified by their public key
-* An oracle can produce "observations", which are values annotated with time
-  (slot number). These observations are signed by the oracle. This means we are
-  assume a _trusted_ oracle (as opposed to services such as
-  http://www.oraclize.it/ who provide untrusted oracles). Trusting the oracle
-  makes sense when dealing with financial data: Current prices etc. are usually
-  provided by companies such as Bloomberg or Yahoo Finance, who are
-  necessarily trusted by the consumers of their data. It seems reasonable to
-  assume that similar providers will exist for Plutus, who simply sign the
-  data with a known key in the way we implemented it here.
-* To use an oracle value inside a validator script, it has to be provided as the
-  redeemer script of the transaction that consumes the output locked by the
-  validator script.
-Examples of this can be found in the
-Language.Plutus.Coordination.Contracts.Swap.swapValidator and
-Language.Plutus.Coordination.Contracts.Future.validator scripts.
--}
-
--- | @OracleValue a@ is a value observed at a time signed by
--- an oracle. See note [Oracles].
-data OracleValue a = OracleValue {
-        ovSignature :: PubKey,
-        ovSlot      :: Slot,
-        ovValue     :: a
-    }
-    deriving (Generic, Show)
-
 {- Note [Hashes in validator scripts]
 
 We need to deal with hashes of four different things in a validator script:
@@ -221,30 +189,14 @@ scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash s
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
-txSignedBy :: PendingTx' a -> PubKey -> Bool
-txSignedBy PendingTx{pendingTxSignatures=sigs, pendingTxId=txId} k =
-    let
-        signedBy' :: Signature -> Bool
-        signedBy' (Signature sig) =
-            let
-                PubKey (LedgerBytes pk) = k
-                TxId msg                = txId
-            in verifySignature pk msg sig
-
-        go :: [(PubKey, Signature)] -> Bool
-        go l = case l of
-                    (pk, sig):r ->
-                        if k == pk
-                        then  signedBy' sig
-                              || traceH "matching pub key with invalid signature" (go r)
-                        else go r
-                    []  -> False
-    in
-        go sigs
+txSignedBy :: PendingTx' a -> PubKeyHash -> Bool
+txSignedBy PendingTx{pendingTxSignatories=sigs} k = case find ((==) k) sigs of
+    Just _  -> True
+    Nothing -> False
 
 {-# INLINABLE pubKeyOutput #-}
 -- | Get the public key that locks the transaction output, if any.
-pubKeyOutput :: PendingTxOut -> Maybe PubKey
+pubKeyOutput :: PendingTxOut -> Maybe PubKeyHash
 pubKeyOutput o = case pendingTxOutType o of
     PubKeyTxOut pk -> Just pk
     _              -> Nothing
@@ -285,18 +237,18 @@ valueLockedBy ptx h =
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
-pubKeyOutputsAt :: PubKey -> PendingTx' a-> [Value]
-pubKeyOutputsAt pk p =
+pubKeyOutputsAt :: PubKeyHash -> PendingTx' a -> [Value]
+pubKeyOutputsAt pkh p =
     let flt ptxo =
             case pendingTxOutType ptxo of
-                PubKeyTxOut pk' | pk' == pk -> Just (pendingTxOutValue ptxo)
-                _                           -> Nothing
+                PubKeyTxOut pkh' | pkh' == pkh -> Just (pendingTxOutValue ptxo)
+                _                              -> Nothing
     in mapMaybe flt (pendingTxOutputs p)
 
 {-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
-valuePaidTo :: PendingTx' a-> PubKey -> Value
-valuePaidTo ptx pk = mconcat (pubKeyOutputsAt pk ptx)
+valuePaidTo :: PendingTx' a-> PubKeyHash -> Value
+valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
 
 {-# INLINABLE adaLockedBy #-}
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
@@ -351,6 +303,3 @@ makeIsData ''PendingTxIn'
 
 makeLift ''PendingTx'
 makeIsData ''PendingTx'
-
-makeLift ''OracleValue
-makeIsData ''OracleValue

@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DerivingVia         #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -18,11 +18,11 @@ import           Data.Semigroup                   (Min (..))
 import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
-import           Prelude                          hiding (until)
 import           IOTS                             (IotsType)
+import           Prelude                          hiding (until)
 
 import           Language.Plutus.Contract.Request as Req
-import           Language.Plutus.Contract.Schema  (Event (..), Input, Handlers (..), Output)
+import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Util    (foldMaybe, selectEither)
 
 import           Ledger.Slot                      (Slot)

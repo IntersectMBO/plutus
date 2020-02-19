@@ -162,8 +162,8 @@ sub⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
   → ∀ x → sub⋆ σ x ≡ sub⋆ σ' x
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
-sub⋆-cong p (Π K A)   = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
-sub⋆-cong p (ƛ K A)   = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (Π K A)     = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
+sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)

@@ -10,17 +10,18 @@ module Evaluation.DynamicBuiltins.MakeRead
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc             hiding (error)
+import           Language.PlutusCore.MkPlc                        hiding (error)
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class                (liftIO)
-import           Hedgehog                              hiding (Size, Var)
-import qualified Hedgehog.Gen                          as Gen
-import qualified Hedgehog.Range                        as Range
+import           Control.Monad.IO.Class                           (liftIO)
+import           Hedgehog                                         hiding (Size, Var)
+import qualified Hedgehog.Gen                                     as Gen
+import qualified Hedgehog.Range                                   as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -29,10 +30,10 @@ import           Test.Tasty.HUnit
 -- of a different type.
 readMakeHetero :: (KnownType a, KnownType b) => a -> EvaluationResult b
 readMakeHetero x =
-    case typecheckReadKnownCek mempty $ makeKnown x of
+    case extractEvaluationResult <$> typecheckReadKnownCek mempty (makeKnown x) of
         Left err          ->
             error $ "Type error" ++ prettyPlcCondensedErrorClassicString err
-        Right (Left err)  -> error $ "Evaluation error" ++ show err
+        Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
@@ -47,36 +48,10 @@ dynamicBuiltinRoundtrip genX = property $ do
         EvaluationFailure    -> fail "EvaluationFailure"
         EvaluationSuccess x' -> x === x'
 
-test_eitherRoundtrip :: TestTree
-test_eitherRoundtrip =
-    testProperty "eitherRoundtrip" . dynamicBuiltinRoundtrip $
-        Gen.choice [Left <$> Gen.unicode, Right <$> Gen.bool]
-
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
     testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip $
         Gen.string (Range.linear 0 20) Gen.unicode
-
-test_plcListOfStringsRoundtrip :: TestTree
-test_plcListOfStringsRoundtrip =
-    testProperty "listOfStringsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            Gen.string (Range.linear 0 10) Gen.unicode
-
-test_plcListOfPairsRoundtrip :: TestTree
-test_plcListOfPairsRoundtrip =
-    testProperty "listOfPairsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            (,) . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode <*> Gen.unicode
-
-test_plcListOfSumsRoundtrip :: TestTree
-test_plcListOfSumsRoundtrip =
-    testProperty "listOfSumsRoundtrip" . dynamicBuiltinRoundtrip $
-        fmap PlcList . Gen.list (Range.linear 0 10) $
-            Gen.choice
-                [ Left . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode
-                , Right <$> Gen.unicode
-                ]
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -90,7 +65,7 @@ test_plcListOfSumsRoundtrip =
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
             chars = map makeKnown str
             in foldr step unitval chars
@@ -108,40 +83,10 @@ test_noticeEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
             readMake 'a'
 
-test_ignoreEvaluationFailure :: TestTree
-test_ignoreEvaluationFailure =
-    testCase "ignoreEvaluationFailure" . assertBool "'EvaluationFailure' not ignored" $
-        isEvaluationSuccess $ do
-            _ <- readMake True
-            -- 'readMakeHetero' is used here instead of 'readMake' for clarity.
-            _ <- readMakeHetero @(EvaluationResult ()) @(EvaluationResult ()) EvaluationFailure
-            readMake 'a'
-
-test_delayEvaluationFailure :: TestTree
-test_delayEvaluationFailure =
-    testCase "delayEvaluationFailure" . assertBool "'EvaluationFailure' not delayed" $
-        isEvaluationSuccess $ do
-            f <- readMake $ \() -> EvaluationFailure
-            case f () of
-                EvaluationFailure    -> EvaluationSuccess ()
-                EvaluationSuccess () -> EvaluationFailure
-
-test_EvaluationFailure :: TestTree
-test_EvaluationFailure =
-    testGroup "EvaluationFailure"
-        [ test_noticeEvaluationFailure
-        , test_ignoreEvaluationFailure
-        , test_delayEvaluationFailure
-        ]
-
 test_dynamicMakeRead :: TestTree
 test_dynamicMakeRead =
     testGroup "dynamicMakeRead"
-        [ test_eitherRoundtrip
-        , test_stringRoundtrip
-        , test_plcListOfStringsRoundtrip
-        , test_plcListOfPairsRoundtrip
-        , test_plcListOfSumsRoundtrip
+        [ test_stringRoundtrip
         , test_collectChars
-        , test_EvaluationFailure
+        , test_noticeEvaluationFailure
         ]

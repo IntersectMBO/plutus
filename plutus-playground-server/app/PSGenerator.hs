@@ -55,9 +55,9 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, DataValue, MonetaryPolicy, PubKey, RedeemerValue,
-                                                             Signature, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef,
-                                                             TxOutType, Validator)
+import           Ledger                                     (Address, DataValue, MonetaryPolicy, PubKey, PubKeyHash,
+                                                             RedeemerValue, Signature, Tx, TxId, TxIn, TxInType, TxOut,
+                                                             TxOutRef, TxOutType, Validator)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
 import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
@@ -298,6 +298,7 @@ myTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(Interval A))

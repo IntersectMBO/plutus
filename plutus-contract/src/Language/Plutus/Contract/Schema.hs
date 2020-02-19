@@ -21,11 +21,11 @@ module Language.Plutus.Contract.Schema(
     , Output
     ) where
 
-import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Row.Internal
-import qualified Data.Row.Records      as Records
-import qualified Data.Row.Variants     as Variants
+import qualified Data.Row.Records          as Records
+import qualified Data.Row.Variants         as Variants
 import           Data.Text.Prettyprint.Doc
 
 import           Data.Row.Extras
@@ -75,7 +75,7 @@ deriving newtype instance Forall (Output s) Show => Show (Handlers s)
 deriving newtype instance Forall (Output s) Eq   => Eq (Handlers s)
 
 instance (Forall (Output s) Pretty) => Pretty (Handlers s) where
-  pretty (Handlers s) = 
+  pretty (Handlers s) =
     let entries = Records.eraseWithLabels @Pretty pretty s in
     hang 1 (braces (vsep (fmap (\(lbl, vl) -> lbl <> colon <+> vl) entries)))
 
@@ -91,7 +91,7 @@ initialise a =
 generalise :: forall s s'. (AllUniqueLabels (Output s'), Forall (Output s') Monoid, (Output s .// Output s') ~ (Output s')) => Handlers s -> Handlers s'
 generalise (Handlers l) = Handlers $ l .// Records.default' @Monoid @(Output s') mempty
 
---  | Given a schema 's', 'Input s' is the 'Row' type of the inputs that 
+--  | Given a schema 's', 'Input s' is the 'Row' type of the inputs that
 --    contracts with this schema accept. See [Contract Schema]
 type family Input (r :: Row *) where
   Input ('R r) = 'R (InputR r)
@@ -104,7 +104,7 @@ type family InputR (r :: [LT *]) where
     TypeError ('Text "Input requires all types to be tuples."
                 :$$: 'Text "For one, the field labelled " :<>: ShowType l :<>: 'Text " has type " :<>: ShowType t)
 
---  | Given a schema 's', 'Output s' is the 'Row' type of the outputs that 
+--  | Given a schema 's', 'Output s' is the 'Row' type of the outputs that
 --    contracts with this schema produce. See [Contract Schema]
 type family Output (r :: Row *) where
   Output ('R r) = 'R (OutputR r)

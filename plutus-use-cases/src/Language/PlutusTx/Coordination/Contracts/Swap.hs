@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -15,10 +16,12 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Slot, PubKey, Validator)
+import           Ledger                    (Slot, PubKey, PubKeyHash, Validator)
 import qualified Ledger                    as Ledger
 import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
+import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
+import           Ledger.Oracle             (Observation(..), SignedMessage)
+import qualified Ledger.Oracle             as Oracle
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
@@ -52,20 +55,27 @@ PlutusTx.makeLift ''Swap
 --   In the future we could also put the `swapMargin` value in here to implement
 --   a variable margin.
 data SwapOwners = SwapOwners {
-    swapOwnersFixedLeg :: PubKey,
-    swapOwnersFloating :: PubKey
+    swapOwnersFixedLeg :: PubKeyHash,
+    swapOwnersFloating :: PubKeyHash
     }
 
 PlutusTx.makeIsData ''SwapOwners
 PlutusTx.makeLift ''SwapOwners
 
-type SwapOracle = OracleValue Rational
+type SwapOracleMessage = SignedMessage (Observation Rational)
 
-mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
+mkValidator :: Swap -> SwapOwners -> SwapOracleMessage -> PendingTx -> Bool
 mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
-        extractVerifyAt :: OracleValue Rational -> PubKey -> Rational -> Slot -> Rational
-        extractVerifyAt = error ()
+        extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> Slot -> Rational
+        extractVerifyAt sm pk slt =
+            case Oracle.verifySignedMessageOnChain p pk sm of
+                Left _ -> traceH "checkSignatureAndDecode failed" (error ())
+                Right Observation{obsValue, obsSlot} ->
+                    if obsSlot == slt
+                        then obsValue
+                        else traceH "wrong slot" (error ())
+
         -- | Convert an [[Integer]] to a [[Rational]]
         fromInt :: Integer -> Rational
         fromInt = error ()
@@ -73,12 +83,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         adaValueIn :: Value -> Integer
         adaValueIn v = Ada.getLovelace (Ada.fromValue v)
 
-        isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
+        isPubKeyOutput :: PendingTxOut -> PubKeyHash -> Bool
         isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute
         -- the payments.
-        rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
+        rt = extractVerifyAt redeemer swapOracle swapObservationTime
 
         rtDiff :: Rational
         rtDiff = rt - swapFixedRate

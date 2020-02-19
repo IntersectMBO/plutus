@@ -2,12 +2,12 @@
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-{-# LANGUAGE DerivingVia         #-}
 module Language.Plutus.Contract.Effects.WatchAddress where
 
 import           Control.Lens                               (at, (^.))
@@ -77,7 +77,7 @@ fundsAtAddressGt
     => Address
     -> Value
     -> Contract s e AddressMap
-fundsAtAddressGt addr vl = 
+fundsAtAddressGt addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
 
 fundsAtAddressCondition
@@ -103,7 +103,7 @@ fundsAtAddressGeq
     => Address
     -> Value
     -> Contract s e AddressMap
-fundsAtAddressGeq addr vl = 
+fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 
 -- | Watch the address until the transaction with the given 'TxId' appears

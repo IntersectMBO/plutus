@@ -39,7 +39,7 @@ import           Control.Lens                   ((^.), at, folded, prism', makeC
 import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 import qualified Ledger
-import           Ledger                         (DataValue(..), PubKey, Slot, ValidatorHash, DataValueHash, scriptOutputsAt,
+import           Ledger                         (DataValue(..), PubKeyHash, Slot, ValidatorHash, DataValueHash, scriptOutputsAt,
                                                  txSignedBy, valuePaidTo, interval, TxId, TxOutTx (..))
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
@@ -102,14 +102,14 @@ makeClassyPrisms ''EscrowError
 --   defining `EscrowTarget` values in off-chain code). Sometimes we have
 --   `d = DataValueHash` (when checking the hashes in on-chain code)
 data EscrowTarget d =
-    PubKeyTarget PubKey Value
+    PubKeyTarget PubKeyHash Value
     | ScriptTarget ValidatorHash d Value
     deriving (Haskell.Functor)
 
 PlutusTx.makeLift ''EscrowTarget
 
 -- | An 'EscrowTarget' that pays the value to a public key address.
-payToPubKeyTarget :: PubKey -> Value -> EscrowTarget d
+payToPubKeyTarget :: PubKeyHash -> Value -> EscrowTarget d
 payToPubKeyTarget = PubKeyTarget
 
 -- | An 'EscrowTarget' that pays the value to a script address, with the
@@ -144,8 +144,8 @@ targetValue = \case
 -- | Create a 'Ledger.TxOut' value for the target
 mkTx :: EscrowTarget DataValue -> UnbalancedTx
 mkTx = \case
-    PubKeyTarget pk vl ->
-        Tx.payToPubKey vl pk
+    PubKeyTarget pkh vl ->
+        Tx.payToPubKeyHash vl pkh
     ScriptTarget vs ds vl ->
         Tx.payToScript
             vl
@@ -169,8 +169,8 @@ PlutusTx.makeLift ''Action
 --   poisoning the contract by adding arbitrary outputs to the script address.
 meetsTarget :: PendingTx -> EscrowTarget DataValueHash -> Bool
 meetsTarget ptx = \case
-    PubKeyTarget pk vl ->
-        valuePaidTo ptx pk `geq` vl
+    PubKeyTarget pkh vl ->
+        valuePaidTo ptx pkh `geq` vl
     ScriptTarget validatorHash dataValue vl ->
         case scriptOutputsAt validatorHash ptx of
             [(dataValue', vl')] ->
@@ -179,7 +179,7 @@ meetsTarget ptx = \case
             _ -> False
 
 {-# INLINABLE validate #-}
-validate :: EscrowParams DataValueHash -> PubKey -> Action -> PendingTx -> Bool
+validate :: EscrowParams DataValueHash -> PubKeyHash -> Action -> PendingTx -> Bool
 validate EscrowParams{escrowDeadline, escrowTargets} contributor action ptx@PendingTx{pendingTxValidRange} =
     case action of
         Redeem ->
@@ -192,17 +192,17 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action ptx@Pend
 data Escrow
 instance Scripts.ScriptType Escrow where
     type instance RedeemerType Escrow = Action
-    type instance DataType Escrow = PubKey
+    type instance DataType Escrow = PubKeyHash
 
 scriptInstance :: EscrowParams DataValue -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.dataValueHash escrow) where
-    go escrow' = 
+    go escrow' =
         Scripts.validator @Escrow
             ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode escrow')
             $$(PlutusTx.compile [|| wrap ||])
-    wrap = Scripts.wrapValidator @PubKey @Action
+    wrap = Scripts.wrapValidator @PubKeyHash @Action
 
-escrowContract 
+escrowContract
     :: (AsEscrowError e, AsContractError e)
     => EscrowParams DataValue
     -> Contract EscrowSchema e ()
@@ -245,7 +245,7 @@ pay
     -> Contract s e TxId
 pay inst escrow vl = do
     pk <- ownPubKey
-    let ds = DataValue (PlutusTx.toData pk)
+    let ds = DataValue (PlutusTx.toData $ Ledger.pubKeyHash pk)
         tx = payToScript vl (Scripts.scriptAddress inst) ds
                 <> mustBeValidIn (Ledger.interval 1 (escrowDeadline escrow))
     submitTx tx
@@ -284,9 +284,9 @@ redeem inst escrow = do
     let addr = Scripts.scriptAddress inst
     currentSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
-    let 
+    let
         valRange = Interval.to (pred $ escrowDeadline escrow)
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance escrow) Redeem 
+        tx = Typed.collectFromScript unspentOutputs (scriptInstance escrow) Redeem
                 <> foldMap mkTx (escrowTargets escrow)
                 <> mustBeValidIn valRange
     if currentSlot >= escrowDeadline escrow
@@ -325,7 +325,7 @@ refund
 refund inst escrow = do
     pk <- ownPubKey
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
-    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == Just (Ledger.dataValueHash $ DataValue (PlutusTx.toData pk))
+    let flt _ (TxOutTx _ txOut) = Ledger.txOutData txOut == (Just $ Ledger.dataValueHash $ DataValue $ PlutusTx.toData $ Ledger.pubKeyHash pk)
         tx' = Typed.collectFromScriptFilter flt unspentOutputs (scriptInstance escrow) Refund
                 <> mustBeValidIn (from (succ $ escrowDeadline escrow))
     if modifiesUtxoSet tx'
