@@ -57,6 +57,7 @@ library
         Cardano.Wallet.Mock
         Cardano.Wallet.Server
         Cardano.Wallet.Types
+        Data.Time.Units.Extra
         Plutus.SCB.App
         Plutus.SCB.Arbitrary
         Plutus.SCB.Command
@@ -110,6 +111,7 @@ library
         quickcheck-instances -any,
         random -any,
         row-types -any,
+        scientific -any,
         servant -any,
         servant-client -any,
         servant-server -any,

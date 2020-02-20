@@ -1,12 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Cardano.Wallet.Server
     ( main
+    , Config(..)
     ) where
 
 import           Cardano.Wallet.API       (API)
 import           Cardano.Wallet.Mock
+import           Cardano.Wallet.Types     (Config (..))
 import           Control.Concurrent.MVar  (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad.Except     (ExceptT)
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
@@ -19,7 +23,7 @@ import           Plutus.SCB.Arbitrary     ()
 import           Plutus.SCB.Utils         (tshow)
 import           Servant                  ((:<|>) ((:<|>)), Application, Handler (Handler), ServantErr, hoistServer,
                                            serve)
-import           Servant.Client           (mkClientEnv, parseBaseUrl)
+import           Servant.Client           (BaseUrl (baseUrlPort), mkClientEnv)
 import           Servant.Extra            (capture)
 
 ------------------------------------------------------------
@@ -47,17 +51,14 @@ app mVarState =
     (getOwnPubKey :<|> sign :<|> getWatchedAddresses :<|> startWatching) :<|>
     capture (selectCoin :<|> allocateAddress)
 
-main :: (MonadIO m, MonadLogger m) => m ()
-main = do
-    let port = 8081
+main :: (MonadIO m, MonadLogger m) => Config -> BaseUrl -> m ()
+main Config {baseUrl} nodeBaseUrl = do
+    let port = baseUrlPort baseUrl
     logInfoN $ "Starting mock wallet server on port: " <> tshow port
-    nodeClientEnv <- mkEnv "http://localhost:8082"
+    nodeClientEnv <-
+        liftIO $ do
+            nodeManager <- newManager defaultManagerSettings
+            pure $ mkClientEnv nodeManager nodeBaseUrl
     populatedState <- execStateT (syncState nodeClientEnv) initialState
     mVarState <- liftIO $ newMVar populatedState
     liftIO $ run port $ app mVarState
-  where
-    mkEnv baseUrl =
-        liftIO $ do
-            nodeManager <- newManager defaultManagerSettings
-            nodeBaseUrl <- parseBaseUrl baseUrl
-            pure $ mkClientEnv nodeManager nodeBaseUrl

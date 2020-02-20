@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Cardano.Wallet.Client where
@@ -9,9 +10,8 @@ import           Data.Function          ((&))
 import           Data.Proxy             (Proxy (Proxy))
 import           Ledger                 (Address, PubKey, Signature, Value)
 import           Ledger.AddressMap      (AddressMap)
-import           Network.HTTP.Client    (defaultManagerSettings, newManager)
 import           Servant                (NoContent)
-import           Servant.Client         (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import           Servant.Client         (ClientM, client)
 import           Servant.Extra          (left, right)
 import           Wallet.Emulator.Wallet (Wallet)
 
@@ -41,12 +41,3 @@ sign :: BSL.ByteString -> ClientM Signature
     byWalletId = api & right & right
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
-
-main :: IO ()
-main = do
-    manager <- newManager defaultManagerSettings
-    baseUrl <- parseBaseUrl "http://localhost:8081"
-    let clientEnv = mkClientEnv manager baseUrl
-        runClient = flip runClientM clientEnv
-    runClient getWallets >>= print
-    runClient (allocateAddress 5) >>= print

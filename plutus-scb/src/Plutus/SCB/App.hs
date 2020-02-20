@@ -1,13 +1,16 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 
 module Plutus.SCB.App where
 
 import qualified Cardano.Node.Client        as NodeClient
+import qualified Cardano.Node.Server        as NodeServer
 import qualified Cardano.Wallet.Client      as WalletClient
+import qualified Cardano.Wallet.Server      as WalletServer
 import           Control.Monad              (void)
 import           Control.Monad.Except       (ExceptT (ExceptT), MonadError, runExceptT, throwError)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -28,9 +31,10 @@ import           Network.HTTP.Client        (defaultManagerSettings, newManager)
 import           Plutus.SCB.Core            (Connection (Connection), ContractCommand (InitContract, UpdateContract),
                                              MonadContract, MonadEventStore, addProcessBus, dbConnect, invokeContract,
                                              refreshProjection, runCommand, toUUID)
-import           Plutus.SCB.Types           (DbConfig,
-                                             SCBError (ContractCommandError, NodeClientError, WalletClientError))
-import           Servant.Client             (ClientEnv, ClientM, ServantError, mkClientEnv, parseBaseUrl, runClientM)
+import           Plutus.SCB.Types           (Config (Config),
+                                             SCBError (ContractCommandError, NodeClientError, WalletClientError),
+                                             dbConfig, nodeServerConfig, walletServerConfig)
+import           Servant.Client             (ClientEnv, ClientM, ServantError, mkClientEnv, runClientM)
 import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process             (readProcessWithExitCode)
 import           Wallet.API                 (NodeAPI, WalletAPI, WalletDiagnostics, logMsg, ownPubKey, sign, slot,
@@ -84,18 +88,17 @@ runWalletClientM = runAppClientM walletClientEnv WalletClientError
 runNodeClientM :: ClientM a -> App a
 runNodeClientM = runAppClientM nodeClientEnv NodeClientError
 
-runApp :: DbConfig -> App a -> IO (Either SCBError a)
-runApp dbConfig (App action) =
+runApp :: Config -> App a -> IO (Either SCBError a)
+runApp Config {dbConfig, nodeServerConfig, walletServerConfig} (App action) =
     runStdoutLoggingT . filterLogger (\_ level -> level > LevelDebug) $ do
-        walletClientEnv <- mkEnv "http://localhost:8081"
-        nodeClientEnv <- mkEnv "http://localhost:8082"
+        walletClientEnv <- mkEnv (WalletServer.baseUrl walletServerConfig)
+        nodeClientEnv <- mkEnv (NodeServer.mscBaseUrl nodeServerConfig)
         dbConnection <- runReaderT dbConnect dbConfig
         runReaderT (runExceptT action) $ Env {..}
   where
     mkEnv baseUrl = do
-        nodeManager <- liftIO $ newManager defaultManagerSettings
-        nodeBaseUrl <- parseBaseUrl baseUrl
-        pure $ mkClientEnv nodeManager nodeBaseUrl
+        manager <- liftIO $ newManager defaultManagerSettings
+        pure $ mkClientEnv manager baseUrl
 
 instance (FromJSON event, ToJSON event) => MonadEventStore event App where
     refreshProjection projection =

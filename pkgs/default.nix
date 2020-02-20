@@ -54952,6 +54952,7 @@ license = stdenv.lib.licenses.asl20;
 , quickcheck-instances
 , random
 , row-types
+, scientific
 , servant
 , servant-client
 , servant-server
@@ -55015,6 +55016,7 @@ QuickCheck
 quickcheck-instances
 random
 row-types
+scientific
 servant
 servant-client
 servant-server

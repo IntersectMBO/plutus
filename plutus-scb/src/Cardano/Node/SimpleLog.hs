@@ -1,35 +1,40 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-module Cardano.Node.SimpleLog(
-  -- $simpleLog
-  SimpleLog
-  , simpleLogDebug
-  , simpleLogInfo
-  , runSimpleLog
-  ) where
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
-import           Control.Monad.Freer    (Eff, Member)
+module Cardano.Node.SimpleLog(
+    -- $simpleLog
+    SimpleLog
+    , simpleLogDebug
+    , simpleLogInfo
+    , runSimpleLog
+    ) where
+
+import           Control.Monad.Freer    (Eff, LastMember, Member, type (~>))
 import qualified Control.Monad.Freer    as Eff
 import           Control.Monad.IO.Class (MonadIO)
-import           Control.Monad.Logger   (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger   (LogLevel (..), logWithoutLoc, runStdoutLoggingT)
 import           Data.Text              (Text)
 
 -- $simpleLog
 -- A @freer-simple@ wrapper around @Control.Monad.Logger@
-
 data SimpleLog r where
-    SimpleLogInfo :: Text -> SimpleLog ()
-    SimpleLogDebug :: Text -> SimpleLog ()
+    SimpleLog :: LogLevel -> Text -> SimpleLog ()
 
 simpleLogInfo :: Member SimpleLog effs => Text -> Eff effs ()
-simpleLogInfo = Eff.send . SimpleLogInfo
+simpleLogInfo = Eff.send . SimpleLog LevelInfo
 
 simpleLogDebug :: Member SimpleLog effs => Text -> Eff effs ()
-simpleLogDebug = Eff.send . SimpleLogDebug
+simpleLogDebug = Eff.send . SimpleLog LevelDebug
 
-runSimpleLog :: (MonadLogger m, MonadIO m) => Eff '[SimpleLog, m] a -> m a
-runSimpleLog = Eff.runM . Eff.interpretM (\case
-        SimpleLogInfo t -> runStdoutLoggingT $ logInfoN t
-        SimpleLogDebug t -> runStdoutLoggingT $ logDebugN t)
+runSimpleLog ::
+       ( MonadIO m, LastMember m effs)
+    => Eff (SimpleLog ': effs) ~> Eff effs
+runSimpleLog =
+    Eff.interpretM
+        (\case
+             SimpleLog level txt ->
+                 runStdoutLoggingT $ logWithoutLoc "" level txt)

@@ -6,6 +6,8 @@
 
 module Plutus.SCB.Types where
 
+import qualified Cardano.Node.Server                as NodeServer
+import qualified Cardano.Wallet.Server              as WalletServer
 import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.Aeson                         as Aeson
 import qualified Data.Aeson.Encode.Pretty           as JSON
@@ -98,3 +100,11 @@ data DbConfig =
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+data Config =
+    Config
+        { dbConfig           :: DbConfig
+        , walletServerConfig :: WalletServer.Config
+        , nodeServerConfig   :: NodeServer.MockServerConfig
+        }
+    deriving (Show, Eq, Generic, FromJSON)

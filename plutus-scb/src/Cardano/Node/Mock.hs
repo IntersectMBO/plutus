@@ -4,15 +4,13 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Cardano.Node.Mock where
 
 import           Control.Concurrent             (threadDelay)
 import           Control.Concurrent.MVar        (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Lens                   (makeLenses, over, set, view)
+import           Control.Lens                   (over, set, view)
 import           Control.Monad                  (forever, void)
 import           Control.Monad.Freer            (Eff, Member, runM)
 import           Control.Monad.Freer.State      (State)
@@ -26,7 +24,7 @@ import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import           Data.Text.Prettyprint.Doc      (Pretty (pretty))
 import           Data.Time.Units                (Second, toMicroseconds)
-
+import           Data.Time.Units.Extra          ()
 import           Servant                        (NoContent (NoContent))
 
 import           Language.Plutus.Contract.Trace (InitialDistribution)
@@ -36,6 +34,7 @@ import qualified Ledger
 
 import           Cardano.Node.RandomTx
 import           Cardano.Node.SimpleLog
+import           Cardano.Node.Types
 
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
@@ -44,34 +43,6 @@ import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain          (ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
-
-data BlockReaperConfig =
-    BlockReaperConfig
-        { brcInterval     :: Second
-        , brcBlocksToKeep :: Int
-        }
-
-data MockServerConfig =
-    MockServerConfig
-        { mscPort                :: Int
-        , mscSlotLength          :: Second
-        -- ^ Duration of one slot
-        , mscRandomTxInterval    :: Maybe Second
-        -- ^ Time between two randomly generated transactions
-        , mscInitialDistribution :: InitialDistribution
-        -- ^ Initial distribution of funds to wallets
-        , mscBlockReaper         :: Maybe BlockReaperConfig
-        -- ^ When to discard old blocks
-        }
-
-data AppState =
-    AppState
-        { _chainState   :: ChainState
-        , _eventHistory :: [ChainEvent]
-        }
-    deriving (Show)
-
-makeLenses 'AppState
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent

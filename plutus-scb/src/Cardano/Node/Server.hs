@@ -4,10 +4,9 @@
 
 module Cardano.Node.Server
     ( main
-    , defaultConfig
+    , MockServerConfig(..)
     ) where
 
-import           Cardano.Node.API               (API)
 import           Control.Concurrent             (forkIO)
 import           Control.Concurrent.MVar        (MVar, newMVar)
 import           Control.Monad                  (void)
@@ -15,27 +14,17 @@ import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Control.Monad.Logger           (MonadLogger, logInfoN, runStdoutLoggingT)
 import           Data.Proxy                     (Proxy (Proxy))
 import qualified Language.Plutus.Contract.Trace as Trace
-
 import qualified Network.Wai.Handler.Warp       as Warp
 import           Servant                        ((:<|>) ((:<|>)), Application, hoistServer, serve)
+import           Servant.Client                 (BaseUrl (baseUrlPort))
 
+import           Cardano.Node.API               (API)
 import           Cardano.Node.Mock
 import           Cardano.Node.RandomTx          (genRandomTx)
-import           Cardano.Node.SimpleLog         ()
+import           Cardano.Node.Types
 
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
-
-defaultConfig :: MockServerConfig
-defaultConfig =
-    MockServerConfig
-        { mscPort = 8082
-        , mscSlotLength = 5
-        , mscRandomTxInterval = Just 20
-        , mscInitialDistribution = Trace.defaultDist
-        , mscBlockReaper =
-              Just BlockReaperConfig {brcInterval = 600, brcBlocksToKeep = 100}
-        }
 
 app :: MVar AppState -> Application
 app stateVar =
@@ -48,18 +37,16 @@ app stateVar =
           consumeEventHistory stateVar))
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
-main config = do
-    let MockServerConfig { mscPort
-                         , mscInitialDistribution
-                         , mscRandomTxInterval
-                         , mscBlockReaper
-                         , mscSlotLength
-                         } = config
+main MockServerConfig { mscBaseUrl
+                      , mscRandomTxInterval
+                      , mscBlockReaper
+                      , mscSlotLength
+                      } = do
     stateVar <-
         liftIO $
         newMVar
             (AppState
-                 { _chainState = initialChainState mscInitialDistribution
+                 { _chainState = initialChainState Trace.defaultDist
                  , _eventHistory = mempty
                  })
     logInfoN "Starting slot coordination thread."
@@ -79,5 +66,6 @@ main config = do
             logInfoN "Starting block reaper thread."
             void $
                 liftIO $ forkIO $ runStdoutLoggingT $ blockReaper cfg stateVar
+    let mscPort = baseUrlPort mscBaseUrl
     logInfoN $ "Starting mock node server on port: " <> tshow mscPort
     liftIO $ Warp.run mscPort $ app stateVar

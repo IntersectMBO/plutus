@@ -6,9 +6,8 @@ import           Cardano.Node.API      (API)
 import           Data.Map              (Map)
 import           Data.Proxy            (Proxy (Proxy))
 import           Ledger                (Address, Blockchain, Slot, Tx, TxOut, TxOutRef)
-import           Network.HTTP.Client   (defaultManagerSettings, newManager)
 import           Servant               ((:<|>) (..), NoContent)
-import           Servant.Client        (ClientM, client, mkClientEnv, parseBaseUrl, runClientM)
+import           Servant.Client        (ClientM, client)
 import           Wallet.Emulator.Chain (ChainEvent)
 
 healthcheck :: ClientM NoContent
@@ -29,12 +28,3 @@ consumeEventHistory :: ClientM [ChainEvent]
   where
     healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> (randomTx_ :<|> utxoAt_ :<|> blockchain_ :<|> consumeEventHistory_) =
         client (Proxy @API)
-
-main :: IO ()
-main = do
-    manager <- newManager defaultManagerSettings
-    baseUrl <- parseBaseUrl "http://localhost:8082"
-    let clientEnv = mkClientEnv manager baseUrl
-        runClient = flip runClientM clientEnv
-    putStrLn "Get slot"
-    runClient getCurrentSlot >>= print

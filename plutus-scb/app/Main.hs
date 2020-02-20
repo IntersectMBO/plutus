@@ -1,13 +1,13 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main
     ( main
     ) where
 
-import qualified Cardano.Node.Client             as NodeClient
 import qualified Cardano.Node.Server             as NodeServer
-import qualified Cardano.Wallet.Client           as WalletClient
 import qualified Cardano.Wallet.Server           as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
 import           Control.Monad                   (void)
@@ -30,6 +30,7 @@ import           Options.Applicative.Help.Pretty (int, parens, pretty, (<+>))
 import           Plutus.SCB.App                  (App, runApp)
 import qualified Plutus.SCB.App                  as App
 import qualified Plutus.SCB.Core                 as Core
+import           Plutus.SCB.Types                (Config (Config), nodeServerConfig, walletServerConfig)
 import           Plutus.SCB.Utils                (logErrorS, render)
 import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.Remote.Monitoring        as EKG
@@ -38,8 +39,6 @@ data Command
     = Migrate
     | MockNode
     | MockWallet
-    | WalletClient
-    | NodeClient
     | InstallContract FilePath
     | ActivateContract FilePath
     | ContractStatus UUID
@@ -76,14 +75,7 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser
-        (mconcat
-             [ migrationParser
-             , mockWalletParser
-             , walletClientParser
-             , mockNodeParser
-             , nodeClientParser
-             ]) <|>
+    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser]) <|>
     subparser
         (command
              "contracts"
@@ -115,13 +107,6 @@ mockNodeParser =
         (fullDesc <>
          progDesc "Run a mock version of the Cardano node API server.")
 
-nodeClientParser :: Mod CommandFields Command
-nodeClientParser =
-    command "node-client" $
-    info
-        (pure NodeClient)
-        (fullDesc <> progDesc "Run a basic query against the Cardano node API.")
-
 mockWalletParser :: Mod CommandFields Command
 mockWalletParser =
     command "wallet-server" $
@@ -129,14 +114,6 @@ mockWalletParser =
         (pure MockWallet)
         (fullDesc <>
          progDesc "Run a mock version of the Cardano wallet API server.")
-
-walletClientParser :: Mod CommandFields Command
-walletClientParser =
-    command "wallet-client" $
-    info
-        (pure WalletClient)
-        (fullDesc <>
-         progDesc "Run a basic query against the Cardano wallet API.")
 
 activateContractParser :: Mod CommandFields Command
 activateContractParser =
@@ -206,26 +183,28 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand :: Command -> App ()
-runCliCommand Migrate = App.migrate
-runCliCommand MockWallet = WalletServer.main
-runCliCommand MockNode = NodeServer.main NodeServer.defaultConfig
-runCliCommand WalletClient = liftIO WalletClient.main
-runCliCommand NodeClient = liftIO NodeClient.main
-runCliCommand (InstallContract path) = Core.installContract path
-runCliCommand (ActivateContract path) = void $ Core.activateContract path
-runCliCommand (ContractStatus uuid) = Core.reportContractStatus uuid
-runCliCommand ReportInstalledContracts = do
+runCliCommand :: Config -> Command -> App ()
+runCliCommand _ Migrate = App.migrate
+runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
+    WalletServer.main
+        walletServerConfig
+        (NodeServer.mscBaseUrl nodeServerConfig)
+runCliCommand Config {nodeServerConfig} MockNode =
+    NodeServer.main nodeServerConfig
+runCliCommand _ (InstallContract path) = Core.installContract path
+runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
+runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
+runCliCommand _ ReportInstalledContracts = do
     logInfoN "Installed Contracts"
     traverse_ (logInfoN . render) =<< Core.installedContracts
     pure ()
-runCliCommand ReportActiveContracts = do
+runCliCommand _ ReportActiveContracts = do
     logInfoN "Active Contracts"
     traverse_ (logInfoN . render) =<< Core.activeContracts
     pure ()
-runCliCommand (UpdateContract uuid endpoint payload) =
+runCliCommand _ (UpdateContract uuid endpoint payload) =
     Core.updateContract uuid endpoint payload
-runCliCommand (ReportContractHistory uuid) = do
+runCliCommand _ (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
         (\index contract ->
@@ -241,9 +220,9 @@ main = do
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
     result <-
-        do runApp config $ do
-               logInfoN $ "Running: " <> Text.pack (show cmd)
-               runCliCommand cmd
+        runApp config $ do
+            logInfoN $ "Running: " <> Text.pack (show cmd)
+            runCliCommand config cmd
     case result of
         Left err -> do
             runStdoutLoggingT $ logErrorS err
