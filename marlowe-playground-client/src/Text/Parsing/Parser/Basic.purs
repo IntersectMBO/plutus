@@ -2,12 +2,12 @@ module Text.Parsing.StringParser.Basic where
 
 import Prelude hiding (between)
 import Control.Alternative ((<|>))
-import Data.Array (foldl, last, length, many, some, (:))
+import Data.Array (foldl, many, some, (:))
 import Data.Array as Array
 import Data.Bifunctor (bimap)
 import Data.Either (Either)
 import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (drop, fromCharArray, singleton, take)
 import Data.String.CodeUnits as String
 import Text.Parsing.StringParser (ParseError, Parser(..), Pos)
@@ -70,16 +70,3 @@ replaceInPosition { start, end, string, replacement } = take start string <> rep
 
 runParser' :: forall a. Parser a -> String -> Either { error :: ParseError, pos :: Pos } a
 runParser' (Parser p) s = bimap identity _.result (p { str: s, pos: 0 })
-
-posToRowAndColumn :: String -> Pos -> { row :: Int, column :: Int }
-posToRowAndColumn text pos =
-  let
-    prefix = take pos text
-
-    lined = lines prefix
-
-    row = length lined - 1
-
-    column = String.length (fromMaybe "" (last lined))
-  in
-    { row, column }

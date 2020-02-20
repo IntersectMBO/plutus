@@ -48,7 +48,7 @@ import Language.Haskell.Interpreter (SourceCode(SourceCode), InterpreterError(Co
 import Marlowe (SPParams_)
 import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
-import Marlowe.Holes (MarloweHole(..), replaceInPositions)
+import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
@@ -59,7 +59,6 @@ import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
-import Text.Parsing.StringParser.Basic (posToRowAndColumn)
 import Text.Pretty (genericPretty, pretty)
 import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), Message, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
@@ -134,7 +133,7 @@ toEvent (MarloweHandleDragEvent _) = Nothing
 
 toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweDropScript"
 
-toEvent (MarloweMoveToPosition _) = Nothing
+toEvent (MarloweMoveToPosition _ _) = Nothing
 
 toEvent CheckAuthStatus = Nothing
 
@@ -213,11 +212,9 @@ handleAction (MarloweHandleDropEvent event) = do
   marloweEditorSetValue contents (Just 1)
   updateContractInState contents
 
-handleAction (MarloweMoveToPosition pos) = do
+handleAction (MarloweMoveToPosition row column) = do
   contents <- fromMaybe "" <$> marloweEditorGetValue
-  let
-    p = posToRowAndColumn contents pos
-  marloweEditorMoveCursorToPosition (Position p)
+  marloweEditorMoveCursorToPosition (Position { column, row })
   assign _selectedHole Nothing
 
 handleAction CheckAuthStatus = do
@@ -342,7 +339,7 @@ handleAction Undo = do
 
 handleAction (SelectHole hole) = assign _selectedHole hole
 
-handleAction (InsertHole constructor firstHole@(MarloweHole { start }) holes) = do
+handleAction (InsertHole constructor firstHole holes) = do
   mCurrContract <- marloweEditorGetValue
   case mCurrContract of
     Just currContract -> do

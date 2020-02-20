@@ -9,4 +9,6 @@ import 'ace-builds/src-min-noconflict/keybinding-vim.js';
 import 'ace-builds/src-min-noconflict/theme-monokai.js';
 import 'node-blockly/browser';
 
+import './grammar.ne';
+
 import './src/Main.purs';

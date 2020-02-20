@@ -38,7 +38,6 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 main ::
   Effect Unit
 main = do
-  -- TODO: need to get the proper url, same as the client
   window <- W.window
   location <- WW.location window
   protocol <- WL.protocol location
