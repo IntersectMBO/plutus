@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
@@ -244,7 +245,7 @@ compileMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
@@ -272,9 +273,11 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             in if poDeferErrors opts
             -- this will blow up at runtime
             then do
+                defUni <- GHC.lookupTyCon =<< thNameToGhcNameOrFail ''PLC.DefaultUni
                 tcName <- thNameToGhcNameOrFail ''CompiledCode
                 tc <- GHC.lookupTyCon tcName
-                pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
+                let args = [GHC.mkTyConTy defUni, codeTy]
+                pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc args) shown
             -- this will actually terminate compilation
             else failCompilation shown
         Right (pirP, plcP) -> do
@@ -290,19 +293,19 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 `GHC.App` bsLitPir
 
 runCompiler
-    :: (MonadReader CompileContext m, MonadState CompileState m, MonadQuote m, MonadError CompileError m, MonadIO m)
+    :: (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
-    -> m (PIRProgram, PLCProgram)
+    -> m (PIRProgram uni, PLCProgram uni)
 runCompiler opts expr = do
     let (ctx :: PIR.CompilationCtx ()) = PIR.defaultCompilationCtx & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
 
-    (pirT::PIRTerm) <- PIR.runDefT () $ compileExprWithDefs expr
+    (pirT::PIRTerm PLC.DefaultUni) <- PIR.runDefT () $ compileExprWithDefs expr
     -- We manually run a simplifier pass here before dumping/storing the PIR
-    (pirP::PIRProgram) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
+    (pirP::PIRProgram PLC.DefaultUni) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
     when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
 
-    (plcP::PLCProgram) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)
+    (plcP::PLCProgram PLC.DefaultUni) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)
     when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump

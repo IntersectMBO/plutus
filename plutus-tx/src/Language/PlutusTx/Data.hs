@@ -4,18 +4,16 @@
 {-# LANGUAGE ViewPatterns       #-}
 module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
 
-import           Prelude                      hiding (fail)
+import           Prelude                   hiding (fail)
 
-import qualified Language.PlutusCore.Universe as PLC
-
-import           Data.Bifunctor               (bimap)
-import           Data.Bitraversable           (bitraverse)
-import           Data.ByteString.Lazy         as BSL
+import           Data.Bifunctor            (bimap)
+import           Data.Bitraversable        (bitraverse)
+import           Data.ByteString.Lazy      as BSL
 
 import           Control.Monad.Fail
 
-import qualified Codec.CBOR.Term              as CBOR
-import qualified Codec.Serialise              as Serialise
+import qualified Codec.CBOR.Term           as CBOR
+import qualified Codec.Serialise           as Serialise
 
 import           Data.Text.Prettyprint.Doc
 
@@ -32,7 +30,7 @@ data Data =
     | Map [(Data, Data)]
     | List [Data]
     | I Integer
-    | B PLC.ByteString16
+    | B BSL.ByteString
     deriving stock (Show, Eq, Ord, Generic)
 
 instance Pretty Data where
@@ -63,7 +61,7 @@ viewMap (CBOR.TMap m)  = Just m
 viewMap (CBOR.TMapI m) = Just m
 viewMap _              = Nothing
 
-viewBytes :: CBOR.Term -> Maybe ByteString
+viewBytes :: CBOR.Term -> Maybe BSL.ByteString
 viewBytes (CBOR.TBytes b)  = Just (BSL.fromStrict b)
 viewBytes (CBOR.TBytesI b) = Just b
 viewBytes _                = Nothing
@@ -79,7 +77,7 @@ fromTerm :: CBOR.Term -> Either CBORToDataError Data
 fromTerm = \case
     -- See Note [Permissive decoding]
     (viewInteger -> Just i) -> pure $ I i
-    (viewBytes -> Just b) -> pure $ B $ PLC.ByteString16 b
+    (viewBytes -> Just b) -> pure $ B b
     (viewMap -> Just entries) -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
     (viewList -> Just ts) -> List <$> traverse fromTerm ts
     CBOR.TTagged i (viewList -> Just entries) -> Constr (fromIntegral i) <$> traverse fromTerm entries
@@ -88,7 +86,7 @@ fromTerm = \case
 toTerm :: Data -> CBOR.Term
 toTerm = \case
     I i -> CBOR.TInteger i
-    B b -> CBOR.TBytes $ BSL.toStrict $ PLC.unByteString16 b
+    B b -> CBOR.TBytes $ BSL.toStrict b
     Map entries -> CBOR.TMap (fmap (bimap toTerm toTerm) entries)
     List ts -> CBOR.TList (fmap toTerm ts)
     Constr i entries -> CBOR.TTagged (fromIntegral i) $ CBOR.TList $ fmap toTerm entries

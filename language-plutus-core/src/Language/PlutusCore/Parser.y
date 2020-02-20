@@ -107,7 +107,7 @@ TyName : Name { TyName $1 }
 
 Constant : integerLit { someValue (tkInt $1) }
          | naturalLit { someValue (toInteger (tkNat $1)) }
-         | byteStringLit { someValue (ByteString16 (tkBytestring $1)) }
+         | byteStringLit { someValue (tkBytestring $1) }
 
 Term : Name { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
@@ -122,7 +122,7 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
 BuiltinType : integer { mkTyBuiltin @Integer }
-            | bytestring { mkTyBuiltin @ByteString16 }
+            | bytestring { mkTyBuiltin @BSL.ByteString }
 
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

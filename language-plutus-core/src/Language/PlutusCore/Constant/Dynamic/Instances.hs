@@ -21,6 +21,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Universe
 
+import qualified Data.ByteString.Lazy                             as BSL
 import           Data.Proxy
 import qualified Data.Text                                        as Text
 import           GHC.TypeLits
@@ -67,8 +68,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer w
     makeKnown = mkConstant ()
     readKnown = unliftConstant
 
-instance (GShow uni, GEq uni, uni `Includes` ByteString16) => KnownType uni ByteString16 where
-    toTypeAst _ = mkTyBuiltin @ByteString16 ()
+instance (GShow uni, GEq uni, uni `Includes` BSL.ByteString) => KnownType uni BSL.ByteString where
+    toTypeAst _ = mkTyBuiltin @BSL.ByteString ()
     makeKnown = mkConstant ()
     readKnown = unliftConstant
 

@@ -80,20 +80,20 @@ genTypedBuiltinFail tb = fail $ fold
 
 -- | A default built-ins generator.
 genTypedBuiltinDef
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16, Monad m)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString, Monad m)
     => TypedBuiltinGenT uni m
 genTypedBuiltinDef
     = updateTypedBuiltinGen @Integer
          (Gen.integral $ Range.linearFrom 0 0 10)
     $ updateTypedBuiltinGen
-          (ByteString16 <$> genLowerBytes (Range.linear 0 10))
+          (genLowerBytes (Range.linear 0 10))
     $ updateTypedBuiltinGen Gen.bool
     $ genTypedBuiltinFail
 
 -- | A built-ins generator that doesn't produce @0 :: Integer@,
 -- so that one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
 genTypedBuiltinDivide
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16, Monad m)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString, Monad m)
     => TypedBuiltinGenT uni m
 genTypedBuiltinDivide
     = updateTypedBuiltinGen @Integer

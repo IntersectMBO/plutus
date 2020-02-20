@@ -38,6 +38,7 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Generators
 
+import qualified Data.ByteString.Lazy                     as BSL
 import           Data.List                                (genericIndex)
 import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
@@ -50,7 +51,7 @@ type TermGen uni a = Gen (TermOf uni a)
 --
 -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
 genOverapplication
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
     => TermGen uni Integer
 genOverapplication = do
     let typedInt = AsKnownType
@@ -141,7 +142,7 @@ genNaiveFib = do
 -- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
 genNatRoundtrip
-    :: forall uni. (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
+    :: forall uni. (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
     => TermGen uni Integer
 genNatRoundtrip = do
     let typedInt = AsKnownType @uni
@@ -171,7 +172,7 @@ natSum = runQuote $ do
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
     => TermGen uni Integer
 genListSum = do
     let typedInt = AsKnownType

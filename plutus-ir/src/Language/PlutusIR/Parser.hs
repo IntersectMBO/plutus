@@ -210,7 +210,7 @@ version = lexeme $ do
 
 constant :: Parser (PLC.SomeOf PLC.DefaultUni)
 constant =
-    (PLC.someValue <$> integer) <|> (PLC.someValue . PLC.ByteString16 <$> bytestring)
+    (PLC.someValue <$> integer) <|> (PLC.someValue <$> bytestring)
 
 recursivity :: Parser Recursivity
 recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
@@ -237,7 +237,7 @@ builtinType :: Parser (Type TyName PLC.DefaultUni SourcePos)
 builtinType = do
     p <- getSourcePos
     PLC.mkTyBuiltin @Integer p <$ reservedWord "integer" <|>
-        PLC.mkTyBuiltin @PLC.ByteString16 p <$ reservedWord "bytestring"
+        PLC.mkTyBuiltin @BSL.ByteString p <$ reservedWord "bytestring"
 
 appType :: Parser (Type TyName PLC.DefaultUni SourcePos)
 appType = do

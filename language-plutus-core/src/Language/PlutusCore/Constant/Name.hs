@@ -37,6 +37,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Universe
 
+import qualified Data.ByteString.Lazy                           as BSL
 import           Data.Proxy
 
 -- | A class that allows to derive a 'TypeScheme' for a builtin.
@@ -153,54 +154,54 @@ typedEqInteger = makeTypedBuiltinName EqInteger
 
 -- | Typed 'Concatenate'.
 typedConcatenate
-    :: (GShow uni, GEq uni, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16, ByteString16] ByteString16
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] BSL.ByteString
 typedConcatenate = makeTypedBuiltinName Concatenate
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[Integer, ByteString16] ByteString16
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
 typedTakeByteString = makeTypedBuiltinName TakeByteString
 
 -- | Typed 'DropByteString'.
 typedDropByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[Integer, ByteString16] ByteString16
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
 typedDropByteString = makeTypedBuiltinName DropByteString
 
 -- | Typed 'SHA2'.
 typedSHA2
-    :: (GShow uni, GEq uni, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16] ByteString16
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString] BSL.ByteString
 typedSHA2 = makeTypedBuiltinName SHA2
 
 -- | Typed 'SHA3'.
 typedSHA3
-    :: (GShow uni, GEq uni, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16] ByteString16
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString] BSL.ByteString
 typedSHA3 = makeTypedBuiltinName SHA3
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16, ByteString16, ByteString16] (EvaluationResult Bool)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
 typedVerifySignature = makeTypedBuiltinName VerifySignature
 
 -- | Typed 'EqByteString'.
 typedEqByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16, ByteString16] Bool
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedEqByteString = makeTypedBuiltinName EqByteString
 
 -- | Typed 'LtByteString'.
 typedLtByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16, ByteString16] Bool
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedLtByteString = makeTypedBuiltinName LtByteString
 
 -- | Typed 'GtByteString'.
 typedGtByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
-    => TypedBuiltinName uni '[ByteString16, ByteString16] Bool
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedGtByteString = makeTypedBuiltinName GtByteString

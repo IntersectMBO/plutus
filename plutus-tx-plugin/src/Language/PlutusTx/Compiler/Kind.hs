@@ -14,7 +14,7 @@ import qualified Kind                             as GHC
 
 import qualified Language.PlutusCore              as PLC
 
-compileKind :: Compiling m => GHC.Kind -> m (PLC.Kind ())
+compileKind :: Compiling uni m => GHC.Kind -> m (PLC.Kind ())
 compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $ case k of
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isLiftedTypeKind -> True)        -> pure $ PLC.Type ()

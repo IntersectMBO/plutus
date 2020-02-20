@@ -27,7 +27,6 @@ module Language.PlutusCore
     , GEq (..)
     , GLift (..)
     , type (<:)
-    , ByteString16 (..)
     , DefaultUni (..)
     -- * AST
     , Term (..)

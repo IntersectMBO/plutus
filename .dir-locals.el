@@ -5,5 +5,6 @@
   ("plutus-ir"                 . ((haskell-mode . ((dante-target . "plutus-ir:lib")))))
   ("plutus-ir/test"            . ((haskell-mode . ((dante-target . "plutus-ir:plutus-ir-test")))))
   ("plutus-tx"                 . ((haskell-mode . ((dante-target . "plutus-tx:lib")))))
-  ("plutus-tx/test"            . ((haskell-mode . ((dante-target . "plutus-tx:plutus-tx-test")))))
+  ("plutus-tx-plugin"          . ((haskell-mode . ((dante-target . "plutus-tx-plugin:lib")))))
+  ("plutus-tx-plugin/test"     . ((haskell-mode . ((dante-target . "plutus-tx-plugin:plutus-tx-tests")))))
 )

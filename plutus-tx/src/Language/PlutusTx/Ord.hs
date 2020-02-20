@@ -1,14 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Ord (Ord(..), Max (..), Min (..)) where
 
-import qualified Language.PlutusTx.Builtins   as Builtins
+import qualified Language.PlutusTx.Builtins  as Builtins
 import           Language.PlutusTx.Data
 import           Language.PlutusTx.Eq
 import           Language.PlutusTx.Semigroup
 
-import           Language.PlutusCore.Universe (ByteString16 (..))
-
-import           Prelude                      hiding (Eq (..), Ord (..), Semigroup (..))
+import           Prelude                     hiding (Eq (..), Ord (..), Semigroup (..))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -60,10 +58,6 @@ instance Ord Integer where
 instance Ord Builtins.ByteString where
     {-# INLINABLE compare #-}
     compare l r = if Builtins.lessThanByteString l r then LT else if Builtins.equalsByteString l r then EQ else GT
-
-instance Ord ByteString16 where
-    {-# INLINABLE compare #-}
-    compare (ByteString16 b1) (ByteString16 b2) = compare b1 b2
 
 instance Ord a => Ord [a] where
     {-# INLINABLE compare #-}

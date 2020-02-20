@@ -123,8 +123,6 @@ instance ExMemoryUsage Integer where
 instance ExMemoryUsage BSL.ByteString where
   memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
 
-deriving newtype instance ExMemoryUsage ByteString16
-
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
 

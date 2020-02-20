@@ -9,6 +9,7 @@ module Language.PlutusTx.Lift (
     safeConstCode,
     lift,
     liftProgram,
+    liftProgramDef,
     liftCode,
     constCode,
     typeCheckAgainst,
@@ -89,6 +90,10 @@ lift a = unsafely $ safeLift a
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram :: (Lift.Lift uni a, Throwable uni) => a -> PLC.Program TyName Name uni ()
 liftProgram x = PLC.Program () (PLC.defaultVersion ()) $ lift x
+
+-- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
+liftProgramDef :: Lift.Lift PLC.DefaultUni a => a -> PLC.Program TyName Name PLC.DefaultUni ()
+liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode :: (Lift.Lift uni a, Throwable uni) => a -> CompiledCode uni a

@@ -42,6 +42,7 @@ import           Language.PlutusCore.View
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Class                               (lift)
+import qualified Data.ByteString.Lazy                                    as BSL
 import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
@@ -97,12 +98,12 @@ revealUnique (Name ann name uniq) =
 -- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
+    :: (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
     => (forall a. AsKnownType uni a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
-    [ k @Integer      AsKnownType
-    , k @ByteString16 AsKnownType
-    , k @Bool         AsKnownType
+    [ k @Integer        AsKnownType
+    , k @BSL.ByteString AsKnownType
+    , k @Bool           AsKnownType
     ]
 
 -- | Generate a 'Term' along with the value it computes to,
@@ -157,7 +158,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 -- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
     :: forall uni m.
-       (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` ByteString16)
+       (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
     => TypedBuiltinGenT uni m      -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext uni       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
                                    -- Gets extended by a variable when an applied lambda is generated.
