@@ -65,7 +65,7 @@ module Wallet.API(
 
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
-import           Control.Monad.Except      (MonadError (..),ExceptT, throwError)
+import           Control.Monad.Except      (ExceptT, MonadError (..), throwError)
 import           Control.Monad.Trans.Class (lift)
 import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy      as BSL
