@@ -37,9 +37,9 @@ import qualified Language.PlutusTx.Ord      as P
 import qualified Language.PlutusTx.Builtins as Builtins
 
 import qualified GHC.Real                   as Ratio
-import           Prelude                    (Bool (True), Integer)
+import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), (*))
 
-data Ratio a = a :% a
+data Ratio a = a :% a deriving Eq
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -64,6 +64,10 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 -}
 
 type Rational = Ratio Integer
+
+instance  (Integral a)  => Ord (Ratio a)  where
+    (x:%y) <= (x':%y')  =  x * y' <= x' * y
+    (x:%y) <  (x':%y')  =  x * y' <  x' * y
 
 instance P.Eq a => P.Eq (Ratio a) where
     {-# INLINABLE (==) #-}

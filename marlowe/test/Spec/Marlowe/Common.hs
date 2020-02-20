@@ -18,11 +18,11 @@ import           Wallet                     (PubKey (..))
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map PubKey Ledger.Value }
 
 amount :: Gen Integer
-amount = integral (Range.linear (-100) 100)
+amount = integral (Range.constantFrom 0 (-100) 100)
 
 
 positiveAmount :: Gen Integer
-positiveAmount = integral (Range.linear 1 100)
+positiveAmount = integral (Range.constant 1 100)
 
 
 boundedValue :: [Party] -> [ChoiceId] -> Gen Value
