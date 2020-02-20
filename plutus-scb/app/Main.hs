@@ -31,7 +31,7 @@ import           Plutus.SCB.App                  (App, runApp)
 import qualified Plutus.SCB.App                  as App
 import qualified Plutus.SCB.Core                 as Core
 import           Plutus.SCB.Utils                (logErrorS, render)
-import           System.Exit                     (ExitCode (ExitFailure, ExitSuccess), exitWith)
+import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.Remote.Monitoring        as EKG
 
 data Command
@@ -248,4 +248,4 @@ main = do
         Left err -> do
             runStdoutLoggingT $ logErrorS err
             exitWith (ExitFailure 1)
-        Right _ -> exitWith ExitSuccess
+        Right _ -> exitSuccess
