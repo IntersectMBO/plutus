@@ -58,6 +58,7 @@ library
         iots-export -any,
         mtl -any,
         plutus-tx -any,
+        plutus-tx-plugin -any,
         plutus-contract -any,
         plutus-playground-lib -any,
         plutus-wallet-api -any,
