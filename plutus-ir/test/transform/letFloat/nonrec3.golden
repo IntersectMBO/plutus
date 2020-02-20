@@ -1,0 +1,19 @@
+[
+  (lam
+    x
+    (all a (type) (fun a a))
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl i (con integer))
+        [
+          (lam y (all b (type) (fun b b)) [ [ (builtin addInteger) y ] x ])
+          (con 1)
+        ]
+      )
+      i
+    )
+  )
+  (con 1)
+]

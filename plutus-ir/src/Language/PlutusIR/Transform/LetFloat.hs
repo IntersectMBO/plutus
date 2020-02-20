@@ -23,20 +23,6 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.IntMap as IM
 
-import Language.PlutusIR.Parser
-import Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Transform.Rename          ()
-import           Language.PlutusCore.Quote
-import Language.PlutusCore.Pretty
-import qualified Language.PlutusIR.Analysis.Dependencies as D
-import Text.Megaparsec.Pos
-
-instance Semigroup SourcePos where
-  p1 <> p2 = p1
-  
-instance Monoid SourcePos where
-  mempty = initialPos ""
-
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
 type Rank = ( Int               -- ^ the depth of the lambda dep

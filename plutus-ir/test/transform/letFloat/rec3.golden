@@ -1,0 +1,13 @@
+(let
+  (rec)
+  (termbind
+    (strict) (vardecl j (con integer)) [ [ (builtin addInteger) (con 3) ] j ]
+  )
+  (let
+    (rec)
+    (termbind
+      (strict) (vardecl k (con integer)) [ [ (builtin addInteger) (con 3) ] j ]
+    )
+    [ [ (builtin addInteger) (con 5) ] j ]
+  )
+)
