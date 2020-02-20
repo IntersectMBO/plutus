@@ -6,13 +6,13 @@ import           TestLib
 
 import           Language.PlutusCore.Quote
 
-import           Language.PlutusIR.Parser
-import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
-import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
-import qualified Language.PlutusIR.Transform.LetFloat as LetFloat
 import qualified Language.PlutusCore                         as PLC
+import           Language.PlutusIR.Parser
+import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
+import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import           Language.PlutusIR.Transform.Rename          ()
-import Text.Megaparsec.Pos
+import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
+import           Text.Megaparsec.Pos
 
 transform :: TestNested
 transform = testNested "transform" [

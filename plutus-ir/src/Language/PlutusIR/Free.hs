@@ -1,16 +1,16 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase       #-}
 
 module Language.PlutusIR.Free (fTerm, fType) where
 
-import Language.PlutusIR
+import           Language.PlutusIR
 
-import qualified Language.PlutusCore                as PLC
-import qualified Language.PlutusCore.Name        as PLC
+import qualified Language.PlutusCore      as PLC
+import qualified Language.PlutusCore.Name as PLC
 
 import           Control.Lens
 
-import qualified Data.Set as S
+import qualified Data.Set                 as S
 
 -- | Given a term, it returns a set of all the FREE variables inside that term (i.e. not declared/scoped inside the term).
 -- TODO: refactor using recursion-schemes (or usingtermSubterms, termSubtypes can be used and lens + fold), see 'language-plutus-core/src/Language/PlutusCore/Subst.hs'

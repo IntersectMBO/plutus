@@ -1,27 +1,27 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE LambdaCase       #-}
 module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
-import Language.PlutusIR
-import Language.PlutusIR.Free
-import Language.PlutusIR.Analysis.Dependencies
+import           Language.PlutusIR
+import           Language.PlutusIR.Analysis.Dependencies
+import           Language.PlutusIR.Free
 
-import Control.Monad.RWS
-import Control.Monad.State
 import           Control.Lens
-import Data.Foldable (traverse_)
+import           Control.Monad.RWS
+import           Control.Monad.State
+import           Data.Foldable                           (traverse_)
 
-import qualified Language.PlutusCore                as PLC
-import qualified Language.PlutusCore.Name        as PLC
+import qualified Language.PlutusCore                     as PLC
+import qualified Language.PlutusCore.Name                as PLC
 
-import qualified Algebra.Graph.AdjacencyMap           as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm           as AM
-import qualified Algebra.Graph.NonEmpty.AdjacencyMap as AMN (vertexSet)
+import qualified Algebra.Graph.AdjacencyMap              as AM
+import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
+import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN (vertexSet)
 
-import qualified Data.Set as S
-import qualified Data.Map as M
-import qualified Data.IntMap as IM
+import qualified Data.IntMap                             as IM
+import qualified Data.Map                                as M
+import qualified Data.Set                                as S
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
@@ -144,7 +144,7 @@ compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.em
     x -> traverse_ compRanks' (x ^.. termSubterms)
 
   withLam n = local (\ ctx ->  ( case ctx of
-                                   [] -> 1 -- depth of toplevel lambda
+                                   []      -> 1 -- depth of toplevel lambda
                                    (d,_):_ -> d+1 -- increase depth
                                , n^.PLC.unique.coerced) : ctx)
 
@@ -169,7 +169,7 @@ floatTerm pir =
         let tBody' = visitTerm curDepth restDepthTable tBody
         in case M.lookup u lams_lets of
              Just lets -> wrapLets lets curDepth restDepthTable tBody'
-             _ -> tBody'
+             _         -> tBody'
     | otherwise = error "just for completion"
 
   -- TODO: we can transform easily the above visits to a Reader CurDepth
