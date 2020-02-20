@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE RecordWildCards     #-}
@@ -13,6 +14,7 @@ module Language.PlutusCore.Gen.Type
   , checkClosedTypeG
   , toKind
   , fromKind
+  , normalizeTypeG
   ) where
 
 import           Language.PlutusCore
@@ -214,3 +216,54 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
     kindOf' :: S n -> KindG
     kindOf' FZ = k
     kindOf' (FS i) = kindOf i
+
+
+-- * Normalising
+
+-- |Extend renamings.
+extendRen :: (n -> m) -> S n -> S m
+extendRen r FZ     = FZ
+extendRen r (FS i) = FS (r i)
+
+-- |Simultaneous renaming of variables in generated types.
+renameTypeG :: (n -> m) -> TypeG n -> TypeG m
+renameTypeG r (TyVarG i)             = TyVarG (r i)
+renameTypeG r (TyFunG ty1 ty2)       = TyFunG (renameTypeG r ty1) (renameTypeG r ty2)
+renameTypeG r (TyIFixG ty1 k ty2)    = TyIFixG (renameTypeG r ty1) k (renameTypeG r ty2)
+renameTypeG r (TyForallG k ty)       = TyForallG k (renameTypeG (extendRen r) ty)
+renameTypeG _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
+renameTypeG r (TyLamG ty)            = TyLamG (renameTypeG (extendRen r) ty)
+renameTypeG r (TyAppG ty1 ty2 k)     = TyAppG (renameTypeG r ty1) (renameTypeG r ty2) k
+
+-- |Extend substitutions.
+extendSub :: (n -> TypeG m) -> S n -> TypeG (S m)
+extendSub s FZ     = TyVarG FZ
+extendSub s (FS i) = renameTypeG FS (s i)
+
+-- |Simultaneous substitution of variables in generated types.
+substTypeG :: (n -> TypeG m) -> TypeG n -> TypeG m
+substTypeG s (TyVarG i)             = s i
+substTypeG s (TyFunG ty1 ty2)       = TyFunG (substTypeG s ty1) (substTypeG s ty2)
+substTypeG s (TyIFixG ty1 k ty2)    = TyIFixG (substTypeG s ty1) k (substTypeG s ty2)
+substTypeG s (TyForallG k ty)       = TyForallG k (substTypeG (extendSub s) ty)
+substTypeG _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
+substTypeG s (TyLamG ty)            = TyLamG (substTypeG (extendSub s) ty)
+substTypeG s (TyAppG ty1 ty2 k)     = TyAppG (substTypeG s ty1) (substTypeG s ty2) k
+
+-- |Reduce a generated type by a single step, or fail.
+stepTypeG :: TypeG n -> Maybe (TypeG n)
+stepTypeG (TyVarG _)                  = empty
+stepTypeG (TyFunG ty1 ty2)            = (TyFunG <$> stepTypeG ty1 <*> pure ty2)
+                                    <|> (TyFunG <$> pure ty1 <*> stepTypeG ty2)
+stepTypeG (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTypeG ty1 <*> pure k <*> pure ty2)
+                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTypeG ty2)
+stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
+stepTypeG (TyBuiltinG _)              = empty
+stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
+stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (substTypeG (\case FZ -> ty2; FS i -> TyVarG i) ty1)
+stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
+                                    <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
+
+-- |Normalise a generated type.
+normalizeTypeG :: TypeG n -> TypeG n
+normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
