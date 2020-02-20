@@ -6,9 +6,9 @@ module Main
     ) where
 
 import qualified Cardano.Node.Client             as NodeClient
-import qualified Cardano.Node.MockServer         as NodeServer
+import qualified Cardano.Node.Server             as NodeServer
 import qualified Cardano.Wallet.Client           as WalletClient
-import qualified Cardano.Wallet.MockServer       as WalletServer
+import qualified Cardano.Wallet.Server           as WalletServer
 import           Control.Lens.Indexed            (itraverse_)
 import           Control.Monad                   (void)
 import           Control.Monad.IO.Class          (liftIO)

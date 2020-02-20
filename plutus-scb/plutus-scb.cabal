@@ -47,13 +47,15 @@ library
     exposed-modules:
         Cardano.Node.API
         Cardano.Node.Client
+        Cardano.Node.Mock
         Cardano.Node.RandomTx
-        Cardano.Node.MockServer
+        Cardano.Node.Server
         Cardano.Node.SimpleLog
         Cardano.Node.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
-        Cardano.Wallet.MockServer
+        Cardano.Wallet.Mock
+        Cardano.Wallet.Server
         Cardano.Wallet.Types
         Plutus.SCB.App
         Plutus.SCB.Arbitrary

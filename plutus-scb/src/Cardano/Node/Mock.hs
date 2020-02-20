@@ -8,37 +8,28 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Cardano.Node.MockServer
-    ( MockServerConfig(..)
-    , defaultConfig
-    , main
-    ) where
+module Cardano.Node.Mock where
 
-import           Cardano.Node.API               (API)
-import           Control.Concurrent             (forkIO, threadDelay)
-import           Control.Concurrent.MVar        (MVar, modifyMVar_, newMVar, putMVar, takeMVar)
+import           Control.Concurrent             (threadDelay)
+import           Control.Concurrent.MVar        (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                   (makeLenses, over, set, view)
 import           Control.Monad                  (forever, void)
-import           Control.Monad.Freer            (Eff, Member)
+import           Control.Monad.Freer            (Eff, Member, runM)
 import           Control.Monad.Freer.State      (State)
 import qualified Control.Monad.Freer.State      as Eff
 import           Control.Monad.Freer.Writer     (Writer)
 import qualified Control.Monad.Freer.Writer     as Eff
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger           (MonadLogger, logDebugN)
 import           Data.Foldable                  (traverse_)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
-import           Data.Proxy                     (Proxy (Proxy))
 import           Data.Text.Prettyprint.Doc      (Pretty (pretty))
 import           Data.Time.Units                (Second, toMicroseconds)
 
-import qualified Network.Wai.Handler.Warp       as Warp
-import           Servant                        ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer,
-                                                 serve)
+import           Servant                        (NoContent (NoContent))
 
 import           Language.Plutus.Contract.Trace (InitialDistribution)
-import qualified Language.Plutus.Contract.Trace as Trace
 
 import           Ledger                         (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
@@ -71,17 +62,6 @@ data MockServerConfig =
         -- ^ Initial distribution of funds to wallets
         , mscBlockReaper         :: Maybe BlockReaperConfig
         -- ^ When to discard old blocks
-        }
-
-defaultConfig :: MockServerConfig
-defaultConfig =
-    MockServerConfig
-        { mscPort = 8082
-        , mscSlotLength = 5
-        , mscRandomTxInterval = Just 20
-        , mscInitialDistribution = Trace.defaultDist
-        , mscBlockReaper =
-              Just BlockReaperConfig {brcInterval = 600, brcBlocksToKeep = 100}
         }
 
 data AppState =
@@ -139,7 +119,7 @@ type NodeServerEffects m
 
 ------------------------------------------------------------
 runChainEffects ::
-       (MonadIO m, MonadLogger m)
+       MonadIO m
     => MVar AppState
     -> Eff (NodeServerEffects m) a
     -> m ([ChainEvent], a)
@@ -147,6 +127,7 @@ runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
     let oldChainState = view chainState oldState
     ((a, newChainState), events) <-
+        runM $
         runSimpleLog $
         Eff.runWriter $
         Eff.runState oldChainState $ Chain.handleChain $ runGenRandomTx eff
@@ -196,51 +177,6 @@ blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} stateVar =
                 stateVar
                 (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
-
-app :: MVar AppState -> Application
-app stateVar =
-    serve (Proxy @API) $
-    hoistServer
-        (Proxy @API)
-        (runStdoutLoggingT . processChainEffects stateVar)
-        (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
-         (genRandomTx :<|> utxoAt :<|> blockchain :<|>
-          consumeEventHistory stateVar))
-
-main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
-main config = do
-    let MockServerConfig { mscPort
-                         , mscInitialDistribution
-                         , mscRandomTxInterval
-                         , mscBlockReaper
-                         , mscSlotLength
-                         } = config
-    stateVar <-
-        liftIO $
-        newMVar
-            (AppState
-                 { _chainState = initialChainState mscInitialDistribution
-                 , _eventHistory = mempty
-                 })
-    logInfoN "Starting slot coordination thread."
-    void $
-        liftIO $
-        forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength stateVar
-    case mscRandomTxInterval of
-        Nothing -> logInfoN "No random transactions will be generated."
-        Just i -> do
-            logInfoN "Starting transaction generator thread."
-            void $
-                liftIO $
-                forkIO $ runStdoutLoggingT $ transactionGenerator i stateVar
-    case mscBlockReaper of
-        Nothing -> logInfoN "Old blocks will be kept in memory forever"
-        Just cfg -> do
-            logInfoN "Starting block reaper thread."
-            void $
-                liftIO $ forkIO $ runStdoutLoggingT $ blockReaper cfg stateVar
-    logInfoN $ "Starting mock node server on port: " <> tshow mscPort
-    liftIO $ Warp.run mscPort $ app stateVar
 
 initialChainState :: InitialDistribution -> ChainState
 initialChainState =

@@ -5,34 +5,24 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Cardano.Wallet.MockServer
-    ( main
-    ) where
+module Cardano.Wallet.Mock where
 
 import qualified Cardano.Node.Client            as NodeClient
-import           Cardano.Wallet.API             (API)
 import           Cardano.Wallet.Types           (WalletId)
-import           Control.Concurrent.MVar        (MVar, newMVar, putMVar, takeMVar)
 import           Control.Lens                   (makeLenses, modifying, set, use, view)
-import           Control.Monad.Except           (ExceptT)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
-import           Control.Monad.State            (MonadState, StateT,  execStateT, get, put, runStateT)
+import           Control.Monad.Logger           (MonadLogger, logInfoN)
+import           Control.Monad.State            (MonadState, get, put)
 import qualified Data.ByteString.Lazy           as BSL
-import           Data.Proxy                     (Proxy (Proxy))
 import           Language.Plutus.Contract.Trace (allWallets)
 import           Ledger                         (Address, Blockchain, PubKey, Signature, Value)
 import           Ledger.AddressMap              (AddressMap, addAddress)
 import qualified Ledger.AddressMap              as AddressMap
 import qualified Ledger.Crypto                  as Crypto
-import           Network.HTTP.Client            (defaultManagerSettings, newManager)
-import           Network.Wai.Handler.Warp       (run)
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
-import           Servant                        ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (NoContent),
-                                                 ServantErr, hoistServer, serve)
-import           Servant.Client                 (ClientEnv, ServantError, mkClientEnv, parseBaseUrl, runClientM)
-import           Servant.Extra                  (capture)
+import           Servant                        (NoContent (NoContent))
+import           Servant.Client                 (ClientEnv, ServantError, runClientM)
 import           Test.QuickCheck                (arbitrary, generate)
 import           Wallet.Emulator.Wallet         (Wallet (Wallet))
 import qualified Wallet.Emulator.Wallet         as EM
@@ -119,43 +109,3 @@ syncState nodeClientEnv = do
                         blockchain
                 newState = set watchedAddresses newAddressMap oldState
             put newState
-
-------------------------------------------------------------
--- | Run all handlers, affecting a single, global 'MVar State'.
---
--- Note this code is pretty simplistic, as it makes every handler
--- block on access to a single, global 'MVar'.  We could do something
--- smarter, but I don't think it matters as this is only a mock.
-asHandler ::
-       MVar State
-    -> LoggingT (StateT State (ExceptT ServantErr IO)) a
-    -> Handler a
-asHandler mVarState action =
-    Handler
-        (do oldState <- liftIO $ takeMVar mVarState
-            (result, newState) <- runStateT (runStderrLoggingT action) oldState
-            liftIO $ putMVar mVarState newState
-            pure result)
-
-app :: MVar State -> Application
-app mVarState =
-    serve (Proxy @API) $
-    hoistServer (Proxy @API) (asHandler mVarState) $
-    wallets :<|>
-    (getOwnPubKey :<|> sign :<|> getWatchedAddresses :<|> startWatching) :<|>
-    capture (selectCoin :<|> allocateAddress)
-
-main :: (MonadIO m, MonadLogger m) => m ()
-main = do
-    let port = 8081
-    logInfoN $ "Starting mock wallet server on port: " <> tshow port
-    nodeClientEnv <- mkEnv "http://localhost:8082"
-    populatedState <- execStateT (syncState nodeClientEnv) initialState
-    mVarState <- liftIO $ newMVar populatedState
-    liftIO $ run port $ app mVarState
-  where
-    mkEnv baseUrl =
-        liftIO $ do
-            nodeManager <- newManager defaultManagerSettings
-            nodeBaseUrl <- parseBaseUrl baseUrl
-            pure $ mkClientEnv nodeManager nodeBaseUrl
