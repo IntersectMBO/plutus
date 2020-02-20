@@ -21,6 +21,7 @@ import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN (vertexSet)
 
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
+import           Data.Maybe                              (fromJust)
 import qualified Data.Set                                as S
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
@@ -192,7 +193,7 @@ floatTerm pir =
 
   -- take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
-  Just topSortedSccs = AM.topSort $ AM.scc reducedDepGraph
+  topSortedSccs = fromJust $ AM.topSort $ AM.scc reducedDepGraph -- TODO: is this fromJust safe here?
 
   -- | Tries to wrap a given term with newly-generated Let expression(s), essentially floating some Let-Rhses.
   -- The given set of lets is not sorted w.r.t. linear scoping, so this function uses the 'topSortedSccs' of the dependency graph,

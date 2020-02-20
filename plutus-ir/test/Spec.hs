@@ -36,7 +36,7 @@ import           Text.Megaparsec.Pos
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance (Pretty a, Typeable a) => GetProgram (Term TyName Name a) where
+instance (Pretty a, Typeable a, Monoid a) => GetProgram (Term TyName Name a) where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
 instance Pretty SourcePos where
@@ -49,7 +49,7 @@ asIfThrown
     -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck :: Bool -> Term TyName Name a -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
+compileAndMaybeTypecheck :: Monoid a => Bool -> Term TyName Name a -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT defaultCompilationCtx $ runQuoteT $ do
     compiled <- compileTerm pir
     when doTypecheck $ void $ PLC.inferType PLC.defOffChainConfig compiled

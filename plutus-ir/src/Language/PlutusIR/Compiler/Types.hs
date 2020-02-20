@@ -77,7 +77,7 @@ unwrap p r t = case r of
 type PIRTerm a = PIR.Term PIR.TyName PIR.Name (Provenance a)
 type PIRType a = PIR.Type PIR.TyName (Provenance a)
 
-type Compiling m e a = (Monad m, MonadReader (CompilationCtx a) m, AsError e (Provenance a), Monoid (Provenance a), MonadError e m, MonadQuote m)
+type Compiling m e a = (Monad m, MonadReader (CompilationCtx a) m, AsError e (Provenance a), Monoid a, MonadError e m, MonadQuote m)
 
 type TermDef tyname name a = PLC.Def (PLC.VarDecl tyname name a) (PIR.Term tyname name a)
 
