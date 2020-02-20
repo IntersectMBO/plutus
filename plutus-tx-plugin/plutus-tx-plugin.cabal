@@ -35,6 +35,11 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+flag ghcjs-plugin
+  description: build the plugin for GHCJS instead of GHC
+  default:     False
+  manual:      True
+
 library
     import: lang
     hs-source-dirs: src
@@ -59,7 +64,6 @@ library
         bytestring -any,
         containers -any,
         extra -any,
-        ghc >=8.6 && <8.7,
         language-plutus-core -any,
         lens -any,
         mtl -any,
@@ -70,6 +74,19 @@ library
         text -any,
         transformers -any,
         plutus-tx -any,
+
+    -- ghcjs doesn't have a complete ghc library. for now we
+    -- build with a "stub" ghc library that has just enough
+    -- to make the plugin build
+    if(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-ghc-stub
+    else
+        if(flag(ghcjs-plugin))
+            -- `ghc-api-ghcjs' will be changed to `ghcjs' for the new
+            -- emscripten builds
+            build-depends: ghc-api-ghcjs >=8.6 && <8.7
+        else
+            build-depends: ghc >=8.6 && <8.7
 
 test-suite plutus-tx-tests
     type: exitcode-stdio-1.0

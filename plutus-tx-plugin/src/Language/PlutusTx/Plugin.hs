@@ -9,7 +9,7 @@
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
-module Language.PlutusTx.Plugin (plugin, plc) where
+module Language.PlutusTx.Plugin (plugin, plc, mkCompiledCode) where
 
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Compiler.Builtins
