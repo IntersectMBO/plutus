@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Crypto(
     PubKey(..)
     , PubKeyHash(..)

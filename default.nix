@@ -25,12 +25,13 @@
 ########################################################################
 
 { system ? builtins.currentSystem
-, crossSystem ? builtins.currentSystem
+, crossSystem ? null
  # The nixpkgs configuration file
 , config ? { allowUnfreePredicate = (import ./lib.nix {}).unfreePredicate; }
 
+, sourcesOverride ? {}
 # Use a pinned version nixpkgs.
-, pkgs ? (import ./lib.nix { inherit config system; }).pkgs
+, pkgs ? import ./nix { inherit system crossSystem config sourcesOverride; }
 
 # Disable running of tests for all local packages.
 , forceDontCheck ? false
@@ -63,9 +64,16 @@ with pkgs.lib;
 
 let
   localLib = import ./lib.nix { inherit config system; } ;
-  src = localLib.iohkNix.cleanSourceHaskell ./.;
+  src = pkgs.haskell-nix.cleanSourceHaskell { src = ./.; };
   latex = pkgs.callPackage ./nix/latex.nix {};
   sources = import ./nix/sources.nix;
+  # This one doesn't work, not sure why, can't find buildGHC at some point
+  #pkgsMusl = pkgs.pkgsMusl;
+  pkgsMusl = import ./nix {
+    inherit system config sourcesOverride;
+    crossSystem = systems.examples.musl64;
+    overlays = [ (import ./nix/overlays/musl.nix) ];
+  };
 
   # easy-purescript-nix has some kind of wacky internal IFD
   # usage that breaks the logic that makes source fetchers
@@ -78,8 +86,6 @@ let
   # script on Darwin.
   easyPS = pkgs.callPackage sources.easy-purescript-nix {};
 
-  purty = pkgs.callPackage ./purty { };
-
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -89,47 +95,26 @@ let
 
     # set-git-rev is a function that can be called on a haskellPackages package to inject the git revision post-compile
     set-git-rev = self.callPackage ./scripts/set-git-rev {
-      inherit (self.haskellPackages) ghc;
+      inherit (self.haskellPackages) ghcWithPackages;
       inherit git-rev;
     };
 
-    # This is the stackage LTS plus overrides, plus the plutus
-    # packages.
-    haskellPackages = let
-      errorOverlay = import ./nix/overlays/force-error.nix {
-        inherit pkgs;
-        filter = localLib.isPlutus;
-      };
-      customOverlays = optional forceError errorOverlay;
-      # We can pass an evaluated version of our packages into
-      # iohk-nix, and then we can also get out the compiler
-      # so we make sure it uses the same one.
-      pkgsGenerated = import ./pkgs { inherit pkgs; };
-    in self.callPackage localLib.iohkNix.haskellPackages {
-      inherit forceDontCheck enableProfiling
-      enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      customOverlays pkgsGenerated;
-      # Broken on vanilla 19.09, require the IOHK fork. Will be abandoned when
-      # we go to haskell.nix anyway.
-      enablePhaseMetrics = false;
-      enableSplitCheck = false;
+    haskellPackages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
+    projectPackages = pkgs.haskell-nix.haskellLib.selectProjectPackages haskellPackages;
+    haskellPackagesMusl = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
 
-      filter = localLib.isPlutus;
-      requiredOverlay = ./nix/overlays/haskell-overrides.nix;
-    };
-
-    localPackages = localLib.getPackages {
-      inherit (self) haskellPackages; filter = localLib.isPlutus;
-    };
+    # Extra Haskell packages which we use but aren't part of the main project
+    # definition.
+    extraHaskellPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; };
 
     tests = {
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
-      stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
-        inherit (self.haskellPackages) stylish-haskell;
+      stylishHaskell = pkgs.callPackage ./nix/tests/stylish-haskell.nix {
+        stylish-haskell = dev.packages.stylish-haskell;
         inherit src;
       };
       purty = pkgs.callPackage ./nix/tests/purty.nix {
-        inherit (self.haskellPackages) purty;
+        purty = dev.packages.purty;
         inherit src;
       };
     };
@@ -145,13 +130,11 @@ let
       extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine { inherit latex; };
 
-      public-combined-haddock = let
+      combined-haddock = let
         haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
-        publicPackages = localLib.getPackages {
-          inherit (self) haskellPackages; filter = localLib.isPublicPlutus;
-        };
+        toHaddock = pkgs.haskell-nix.haskellLib.collectComponents' "library" projectPackages;
         in haddock-combine {
-          hspkgs = builtins.attrValues publicPackages;
+          hspkgs = builtins.attrValues toHaddock;
           prologue = pkgs.writeTextFile {
             name = "prologue";
             text = "Combined documentation for all the public Plutus libraries.";
@@ -168,13 +151,13 @@ let
     };
 
     plutus-playground = rec {
-      playground-exe = set-git-rev haskellPackages.plutus-playground-server;
+      playground-exe = set-git-rev haskellPackages.plutus-playground-server.components.exes.plutus-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
-          playground-exe
-          haskellPackages.plutus-playground-lib
-          haskellPackages.plutus-use-cases
+          ps.plutus-playground-server
+          ps.plutus-playground-lib
+          ps.plutus-use-cases
         ]);
       in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -211,12 +194,12 @@ let
     };
 
     marlowe-playground = rec {
-      playground-exe = set-git-rev haskellPackages.marlowe-playground-server;
+      playground-exe = set-git-rev haskellPackages.marlowe-playground-server.components.exes.marlowe-playground-server;
       server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
-          haskellPackages.marlowe
-          playground-exe
+          ps.marlowe
+          ps.marlowe-playground-server
         ]);
       in pkgs.runCommand "marlowe-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
         # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -282,14 +265,14 @@ let
         contents =
           let runtimeGhc =
                 haskellPackages.ghcWithPackages (ps: [
-                  haskellPackages.language-plutus-core
-                  haskellPackages.plutus-emulator
-                  haskellPackages.plutus-wallet-api
-                  haskellPackages.plutus-tx
-                  haskellPackages.plutus-tx-plugin
-                  haskellPackages.plutus-use-cases
-                  haskellPackages.plutus-ir
-                  haskellPackages.plutus-contract
+                  ps.language-plutus-core
+                  ps.plutus-emulator
+                  ps.plutus-wallet-api
+                  ps.plutus-tx
+                  ps.plutus-tx-plugin
+                  ps.plutus-use-cases
+                  ps.plutus-ir
+                  ps.plutus-contract
                 ]);
           in  [
                 runtimeGhc
@@ -297,7 +280,7 @@ let
                 pkgs.coreutils
                 pkgs.bash
                 pkgs.git # needed by cabal-install
-                haskellPackages.cabal-install
+                dev.packages.cabal-install
               ];
         config = {
           Cmd = ["bash"];
@@ -305,70 +288,45 @@ let
       };
     };
 
-    plutus-contract = rec {
-
-      # justStaticExecutables results in a much smaller docker image
-      # (16MB vs 588MB)
-      static = pkgs.haskell.lib.justStaticExecutables;
-
-      pid1 =  static haskellPackages.pid1;
-      contract = static haskellPackages.plutus-contract;
-
-      docker = pkgs.dockerTools.buildImage {
-          name = "plutus-contract";
-          contents = [pid1 contract];
-          config = {
-            Entrypoint = ["/bin/pid1"];
-            Cmd = ["/bin/contract-guessing-game"];
-            ExposedPorts = {
-              "8080/tcp" = {};
-          };
-        };
-      };
-    };
-
     agdaPackages = rec {
-      Agda = haskellPackages.Agda;
-      # Override the agda builder code from nixpkgs to use our versions of Agda and Haskell.
-      # The Agda version is from our package set, and is newer than the one in nixpkgs.
-      agda = pkgs.agda.override { inherit Agda; };
+      # We can use Agda from nixpkgs for the moment, we may need to change this again
+      # if we want to move to a more recent version.
+      Agda = pkgs.haskellPackages.Agda;
+      agda = pkgs.agda;
 
       # We also rely on a newer version of the stdlib
-      AgdaStdlib = (pkgs.AgdaStdlib.override {
-        # Need to override the builder arguments
-        inherit agda; ghcWithPackages = haskellPackages.ghcWithPackages;
-      }).overrideAttrs (oldAttrs: rec {
+      AgdaStdlib = pkgs.AgdaStdlib.overrideAttrs (oldAttrs: rec {
         # Need to override the source this way
         name = "agda-stdlib-${version}";
         version = "1.2";
         src = sources.agda-stdlib;
+        # Marked as broken on darwin in our nixpkgs, but not actually broken,
+        # fixed in https://github.com/NixOS/nixpkgs/pull/76485 but we don't have that yet
+        meta = oldAttrs.meta // { broken = false; };
       });
     };
 
-    marlowe-symbolic-lambda =
-      let
-        staticHaskellOverlay = import ./nix/overlays/static-haskell.nix { inherit pkgs; };
-        # We must use musl because glibc can't do static linking properly
-        muslHaskellPackages = (haskellPackages.override (old: {
-          pkgsGenerated = pkgs.pkgsMusl.callPackage ./pkgs {};
-          customOverlays = old.customOverlays ++ [ staticHaskellOverlay ];
-        }));
-      in pkgs.pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = muslHaskellPackages; };
+    marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskellPackagesMusl; };
 
     metatheory = import ./metatheory {
       inherit (agdaPackages) agda AgdaStdlib;
-      inherit (localLib.iohkNix) cleanSourceHaskell;
-      inherit pkgs haskellPackages;
+      inherit (pkgs.haskell-nix) cleanSourceHaskell;
+      inherit (pkgs) lib;
     };
 
     dev = rec {
-      packages = localLib.getPackages {
-        inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "stylish-haskell" "purty" "hlint" ];
+      packages = {
+        cabal-install = extraHaskellPackages.cabal-install.components.exes.cabal;
+        stylish-haskell = extraHaskellPackages.stylish-haskell.components.exes.stylish-haskell;
+        hlint = extraHaskellPackages.hlint.components.exes.hlint;
+        purty = extraHaskellPackages.purty.components.exes.purty;
+        purs = easyPS.purs;
+        spago = easyPS.spago;
       };
 
-      scripts = {
-        inherit (localLib) regeneratePackages;
+      haskellNixRoots = pkgs.haskell-nix.haskellNixRoots;
 
+      scripts = {
         fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
           #!${pkgs.runtimeShell}
 
@@ -454,27 +412,6 @@ let
           echo Done
         '';
       };
-
-      withDevTools = env: env.overrideAttrs (attrs:
-        { nativeBuildInputs = attrs.nativeBuildInputs ++
-                              [ packages.cabal-install
-                                packages.hlint
-                                packages.stylish-haskell
-
-                                pkgs.ghcid
-                                pkgs.git
-                                pkgs.cacert
-                                pkgs.yarn
-                                pkgs.zlib
-                                pkgs.z3
-                                pkgs.sqlite-analyzer
-                                pkgs.sqlite-interactive
-
-                                easyPS.purs
-                                easyPS.spago
-                                easyPS.purty
-                              ];
-        });
     };
   });
 
