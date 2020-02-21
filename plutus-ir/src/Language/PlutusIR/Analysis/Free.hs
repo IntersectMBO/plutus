@@ -1,21 +1,23 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 
-module Language.PlutusIR.Free (fTerm, fType) where
+module Language.PlutusIR.Analysis.Free (fTerm, fType) where
 
 import           Language.PlutusIR
 
-import qualified Language.PlutusCore      as PLC
-import qualified Language.PlutusCore.Name as PLC
+import qualified Language.PlutusCore       as PLC
+import qualified Language.PlutusCore.Name  as PLC
+
+import           Language.PlutusCore.Subst (ftvTy)
 
 import           Control.Lens
 
-import qualified Data.Set                 as S
+import qualified Data.Set                  as S
 
 -- | Given a term, it returns a set of all the FREE variables inside that term (i.e. not declared/scoped inside the term).
 -- TODO: refactor using recursion-schemes (or usingtermSubterms, termSubtypes can be used and lens + fold), see 'language-plutus-core/src/Language/PlutusCore/Subst.hs'
 fTerm ::
-  (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+  (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
   => Term tyname name a -> S.Set PLC.Unique
 fTerm = \case
   Var _ x -> S.singleton $ x ^. PLC.unique . coerced
@@ -73,17 +75,6 @@ fTerm = \case
   _ -> S.empty
 
 
-fType :: (PLC.HasUnique (tyname a) PLC.TypeUnique)
+fType :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
   => Type tyname a -> S.Set PLC.Unique
-fType = \case
-  -- occurences
-  TyVar _ n -> S.singleton $ n ^. PLC.unique . coerced
-  TyForall _ n _k ty -> S.insert (n ^. PLC.unique . coerced) $ fType ty
-
-  -- introduction of type, thus ignore sub-occurrences
-  TyLam _ n _k ty -> S.delete (n ^. PLC.unique . coerced) $ fType ty
-
-  TyFun _ ty1 ty2 -> S.union (fType ty1) (fType ty2)
-  TyIFix _ ty1 ty2 -> S.union (fType ty1) (fType ty2)
-  TyApp _ ty1 ty2 -> S.union (fType ty1) (fType ty2)
-  TyBuiltin _ _ -> S.empty
+fType = S.map (^. PLC.unique . coerced) . ftvTy

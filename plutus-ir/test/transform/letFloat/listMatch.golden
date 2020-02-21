@@ -1,1 +1,44 @@
-ParseErrorBundle {bundleErrors = TrivialError 88 (Just (Tokens ('x' :| ""))) (fromList [Tokens (')' :| "")]) :| [], bundlePosState = PosState {pstateInput = "[(lam x (con integer)\n(let (rec)\n  (termbind (strict) (vardecl j (con integer)) (con 3) x)\n  (datatypebind\n    (datatype\n      (tyvardecl List (fun (type) (type)))\n      (tyvardecl a (type))\n      match_List\n      (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))\n    )\n  )\n  [\n    [\n      {\n        [{match_List (all a (type) (fun a a))} {Nil (all a (type) (fun a a))}]\n        (all a (type) (fun a a))\n      }\n      (abs a (type) (lam x a x))\n    ]\n    (lam head (all a (type) (fun a a))\n      (lam tail [List (all a (type) (fun a a))] head)\n    )\n  ]\n)\n) (con 1)]", pstateOffset = 0, pstateSourcePos = SourcePos {sourceName = "listMatch", sourceLine = Pos 1, sourceColumn = Pos 1}, pstateTabWidth = Pos 8, pstateLinePrefix = ""}}
+[
+  (lam
+    x
+    (con integer)
+    (let
+      (rec)
+      (termbind
+        (strict)
+        (vardecl j (con integer))
+        [ [ (builtin addInteger) (con 3) ] x ]
+      )
+      (let
+        (rec)
+        (datatypebind
+          (datatype
+            (tyvardecl List (fun (type) (type)))
+            (tyvardecl a (type))
+            match_List
+            (vardecl Nil [List a])
+            (vardecl Cons (fun a (fun [List a] [List a])))
+          )
+        )
+        [
+          [
+            {
+              [
+                { match_List (all a (type) (fun a a)) }
+                { Nil (all a (type) (fun a a)) }
+              ]
+              (all a (type) (fun a a))
+            }
+            (abs a (type) (lam x a x))
+          ]
+          (lam
+            head
+            (all a (type) (fun a a))
+            (lam tail [List (all a (type) (fun a a))] head)
+          )
+        ]
+      )
+    )
+  )
+  (con 1)
+]

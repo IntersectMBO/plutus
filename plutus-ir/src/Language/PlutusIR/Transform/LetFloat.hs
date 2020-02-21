@@ -5,7 +5,7 @@ module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Analysis.Dependencies
-import           Language.PlutusIR.Free
+import           Language.PlutusIR.Analysis.Free
 
 import           Control.Lens
 import           Control.Monad.RWS
@@ -21,7 +21,7 @@ import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN (vertexSet)
 
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
-import           Data.Maybe                              (fromJust)
+import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
@@ -73,7 +73,7 @@ removeLets = flip runState M.empty . removeLets'
          t -> termSubterms removeLets' t
 
 -- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
-compRanks ::  (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+compRanks ::  (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
               => Term tyname name a -> RankData
 compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.empty
  where
@@ -150,7 +150,7 @@ compRanks pir = fst $ execRWS (compRanks' pir :: RWS Ctx () RankData ()) [] M.em
                                , n^.PLC.unique.coerced) : ctx)
 
 
-floatTerm :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
+floatTerm :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
           => Term tyname name a -> Term tyname name a
 floatTerm pir =
   let depthData = toDepthData $ compRanks pir -- run the first pass
@@ -193,7 +193,7 @@ floatTerm pir =
 
   -- take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
-  topSortedSccs = fromJust $ AM.topSort $ AM.scc reducedDepGraph -- TODO: is this fromJust safe here?
+  topSortedSccs = fromMaybe (error "Cycle detected in the depgraph. This should not happen in the first place.") $ AM.topSort $ AM.scc reducedDepGraph
 
   -- | Tries to wrap a given term with newly-generated Let expression(s), essentially floating some Let-Rhses.
   -- The given set of lets is not sorted w.r.t. linear scoping, so this function uses the 'topSortedSccs' of the dependency graph,
