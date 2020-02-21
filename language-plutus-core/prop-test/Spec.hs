@@ -23,18 +23,18 @@ tests :: TestTree
 tests = testGroup "all tests"
   [ testGroup "types"
     [ testCase "kind checker for generated types is sound" $
-        testTyProp depth kind prop_checkKindCorrect
+        testTyProp depth kind prop_checkKindSound
     , testCase "normalization preserves kinds" $
         testTyProp depth kind prop_normalizePreservesKind
     , testCase "normalization for generated types is sound" $
-        testTyProp depth kind prop_normalizeTypeCorrect
+        testTyProp depth kind prop_normalizeTypeSound
     ]
   ]
 
 
 -- |Property: Kind checker for generated types is sound.
-prop_checkKindCorrect :: TyProp
-prop_checkKindCorrect _ _ k tyQ = isSafe $ do
+prop_checkKindSound :: TyProp
+prop_checkKindSound _ _ k tyQ = isSafe $ do
   ty <- liftQuote tyQ
   checkKind defOffChainConfig () ty k
 
@@ -46,8 +46,8 @@ prop_normalizePreservesKind _ _ k tyQ = isSafe $ do
   checkKind defOffChainConfig () ty' k
 
 -- |Property: Normalisation for generated types is sound.
-prop_normalizeTypeCorrect :: TyProp
-prop_normalizeTypeCorrect kG tyG _ tyQ = eitherToCool . getResult $ do
+prop_normalizeTypeSound :: TyProp
+prop_normalizeTypeSound kG tyG _ tyQ = eitherToCool . getResult $ do
   ty1 <- unNormalized <$> (normalizeTypeFull =<< liftQuote tyQ)
   ty2 <- toClosedType kG (normalizeTypeG tyG)
   return (ty1 == ty2)
