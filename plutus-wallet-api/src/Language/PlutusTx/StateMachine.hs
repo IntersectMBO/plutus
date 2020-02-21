@@ -41,14 +41,14 @@ instance ScriptType (StateMachine s i) where
     type instance RedeemerType (StateMachine s i) = i
     type instance DataType (StateMachine s i) = s
 
-data StateMachineInstance uni s i = StateMachineInstance {
+data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
     stateMachine :: StateMachine s i,
     -- | The validator code for this state machine.
-    validatorInstance :: ScriptInstance uni (StateMachine s i)
+    validatorInstance :: ScriptInstance (StateMachine s i)
     }
 
-machineAddress :: StateMachineInstance uni s i -> Address
+machineAddress :: StateMachineInstance s i -> Address
 machineAddress = scriptAddress . validatorInstance
 
 {-# INLINABLE mkValidator #-}

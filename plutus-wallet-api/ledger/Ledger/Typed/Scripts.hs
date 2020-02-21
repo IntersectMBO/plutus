@@ -3,7 +3,6 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -28,9 +27,6 @@ import qualified Ledger.Address            as Addr
 import           Ledger.Scripts
 import qualified Ledger.Validation         as Validation
 
-import qualified Language.PlutusCore       as PLC
-
-import           Codec.Serialise           (Serialise)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Kind
 import           GHC.Generics              (Generic)
@@ -54,31 +50,30 @@ type WrappedValidatorType = Data -> Data -> Data -> ()
 type WrappedMonetaryPolicyType = Data -> ()
 
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
-data ScriptInstance uni (a :: Type) =
+data ScriptInstance (a :: Type) =
     Validator
-        { instanceScript  :: Validator uni
+        { instanceScript  :: Validator
         , instanceAddress :: Addr.Address
         }
     deriving (Generic, ToJSON, FromJSON)
 
 -- | The 'ScriptInstance' of a validator script and its wrapper.
-validator
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni (ValidatorType a)
+validator ::
+    CompiledCode (ValidatorType a)
     -- ^ Validator script (compiled)
-    -> CompiledCode uni (ValidatorType a -> WrappedValidatorType)
+    -> CompiledCode (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
-    -> ScriptInstance uni a
+    -> ScriptInstance a
 validator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
     in Validator val (Addr.scriptAddress val)
 
 -- | Get the address for a script instance.
-scriptAddress :: ScriptInstance uni a -> Addr.Address
+scriptAddress :: ScriptInstance a -> Addr.Address
 scriptAddress = instanceAddress
 
 -- | Get the validator script for a script instance.
-validatorScript :: ScriptInstance uni a -> Validator uni
+validatorScript :: ScriptInstance a -> Validator
 validatorScript = instanceScript
 
 {- Note [Scripts returning Bool]

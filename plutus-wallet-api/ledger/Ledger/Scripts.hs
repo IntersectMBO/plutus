@@ -1,21 +1,18 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE ViewPatterns          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingVia         #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -75,10 +72,9 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                         (Generic)
 import           IOTS                                 (IotsType (iotsDefinition))
-import qualified Language.PlutusCore                             as PLC
-import qualified Language.PlutusCore.Constant.Dynamic            as PLC
-import qualified Language.PlutusCore.Pretty                      as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.ExMemory as PLC
+import qualified Language.PlutusCore                  as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+import qualified Language.PlutusCore.Pretty           as PLC
 import           Language.PlutusTx                    (CompiledCode, Data, IsData (..), getPlc, makeLift)
 import           Language.PlutusTx.Builtins           as Builtins
 import           Language.PlutusTx.Evaluation         (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
@@ -90,11 +86,11 @@ import           LedgerBytes                          (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
 -- Note: the program inside the 'Script' should have normalized types.
-newtype Script uni = Script { unScript :: PLC.Program PLC.TyName PLC.Name uni () }
+newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
   deriving stock Generic
   deriving newtype (Serialise)
 
-instance IotsType (Script uni) where
+instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
 
 {- Note [Normalized types in Scripts]
@@ -125,39 +121,39 @@ in `Script`, but that led to a lot of deserializing and reserializing in `applyP
 Here we have to serialize when we do `Eq` or `Ord` operations, but this happens comparatively
 infrequently (I believe).
 -}
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Eq (Script uni) where
+instance Eq Script where
     {-# INLINABLE (==) #-}
     a == b = serialise a == serialise b
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Haskell.Eq (Script uni) where
+instance Haskell.Eq Script where
     a == b = serialise a == serialise b
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Ord (Script uni) where
+instance Ord Script where
     {-# INLINABLE compare #-}
     a `compare` b = serialise a `compare` serialise b
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Haskell.Ord (Script uni) where
+instance Haskell.Ord Script where
     a `compare` b = serialise a `compare` serialise b
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` NFData) => NFData (Script uni)
+instance NFData Script
 
 data Checking = Typecheck | DontCheck
 
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
 -- proportional to the serialized size of the script.
-scriptSize :: Script uni -> Integer
+scriptSize :: Script -> Integer
 scriptSize (Script s) = PLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => CompiledCode uni a -> Script uni
+fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: PLC.Program PLC.TyName PLC.Name uni () -> Script uni
+fromPlc :: PLC.Program PLC.TyName PLC.Name () -> Script
 fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
-applyScript :: Script uni -> Script uni -> Script uni
+applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
 
 data ScriptError =
@@ -168,13 +164,7 @@ data ScriptError =
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Evaluate a script, returning the trace log.
-evaluateScript
-    :: forall uni m .
-       ( MonadError ScriptError m
-       , PLC.GShow uni, uni `PLC.Everywhere` Pretty
-       , PLC.GEq uni, PLC.DefaultUni PLC.<: uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.ExMemoryUsage
-       )
-    => Checking -> Script uni -> m [Haskell.String]
+evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
     case checking of
       DontCheck -> Haskell.pure ()
@@ -187,17 +177,11 @@ evaluateScript checking s = do
             UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
-typecheckScript
-    :: forall uni m .
-       ( MonadError ScriptError m
-       , PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni
-       , PLC.Closed uni, uni `PLC.Everywhere` Pretty
-       )
-    => Script uni -> m (PLC.Type PLC.TyName uni ())
+typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
 typecheckScript (unScript -> p) =
     either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure act
       where
-        act :: Either (PLC.Error uni ()) (PLC.Type PLC.TyName uni ())
+        act :: Either (PLC.Error ()) (PLC.Type PLC.TyName ())
         act = runExcept $ PLC.runQuoteT $ do
             types <- PLC.getStringBuiltinTypes ()
             -- We should be normalized, so we can use the on-chain config
@@ -206,10 +190,10 @@ typecheckScript (unScript -> p) =
             let config = PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => ToJSON (Script uni) where
+instance ToJSON Script where
     toJSON = JSON.String . JSON.encodeSerialise
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => FromJSON (Script uni) where
+instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
 
 instance ToJSON Data where
@@ -218,40 +202,36 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni (Data -> Data -> Data -> ()) -> Validator uni
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
-unValidatorScript :: Validator uni -> Script uni
+unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni (Data -> ()) -> MonetaryPolicy uni
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
-unMonetaryPolicyScript :: MonetaryPolicy uni -> Script uni
+unMonetaryPolicyScript :: MonetaryPolicy -> Script
 unMonetaryPolicyScript = getMonetaryPolicy
 
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
-newtype Validator uni = Validator { getValidator :: Script uni }
+newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
-  deriving Pretty via (PrettyShow (Validator uni))
+  deriving Pretty via (PrettyShow Validator)
 
-instance Show (Validator uni) where
+instance Show Validator where
     show = const "Validator { <script> }"
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => BA.ByteArrayAccess (Validator uni) where
+instance BA.ByteArrayAccess Validator where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
 -- | 'DataValue' is a wrapper around 'Data' values which are used as data in transaction outputs.
-newtype DataValue = DataValue { getDataScript :: Data }
+newtype DataValue = DataValue { getDataScript :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
@@ -279,16 +259,16 @@ instance BA.ByteArrayAccess RedeemerValue where
         BA.withByteArray . Write.toStrictByteString . encode
 
 -- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
-newtype MonetaryPolicy uni = MonetaryPolicy { getMonetaryPolicy :: Script uni }
+newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
-  deriving Pretty via (PrettyShow (MonetaryPolicy uni))
+  deriving Pretty via (PrettyShow MonetaryPolicy)
 
-instance Show (MonetaryPolicy uni) where
+instance Show MonetaryPolicy where
     show = const "MonetaryPolicy { <script> }"
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => BA.ByteArrayAccess (MonetaryPolicy uni) where
+instance BA.ByteArrayAccess MonetaryPolicy where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -344,17 +324,13 @@ dataValueHash = DataValueHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 redeemerHash :: RedeemerValue -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-validatorHash
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => Validator uni -> ValidatorHash
+validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     h' :: Digest SHA256 = hash h
     e = encode vl
 
-monetaryPolicyHash
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => MonetaryPolicy uni -> MonetaryPolicyHash
+monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
 monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     h' :: Digest SHA256 = hash h
@@ -371,7 +347,7 @@ runScript
     :: (MonadError ScriptError m)
     => Checking
     -> ValidationData
-    -> Validator PLC.DefaultUni
+    -> Validator
     -> DataValue
     -> RedeemerValue
     -> m [Haskell.String]
@@ -384,7 +360,7 @@ runMonetaryPolicyScript
     :: (MonadError ScriptError m)
     => Checking
     -> ValidationData
-    -> MonetaryPolicy PLC.DefaultUni
+    -> MonetaryPolicy
     -> m [Haskell.String]
 runMonetaryPolicyScript checking (ValidationData valData) (MonetaryPolicy validator) = do
     let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)

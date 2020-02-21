@@ -31,17 +31,17 @@ import           Ledger.Value   (Value)
 
 -- | A block on the blockchain. This is just a list of transactions which
 -- successfully validate following on from the chain so far.
-type Block uni = [Tx uni]
+type Block = [Tx]
 -- | A blockchain, which is just a list of blocks, starting with the newest.
-type Blockchain uni = [Block uni]
+type Blockchain = [Block]
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
-transaction :: Blockchain uni -> TxId -> Maybe (Tx uni)
+transaction :: Blockchain -> TxId -> Maybe Tx
 transaction bc tid = listToMaybe $ filter p  $ join bc where
     p tx = tid == txId tx
 
 -- | Determine the unspent output that an input refers to
-out :: Blockchain uni -> TxOutRef -> Maybe TxOut
+out :: Blockchain -> TxOutRef -> Maybe TxOut
 out bc o = do
     t <- transaction bc (txOutRefId o)
     let i = txOutRefIdx o
@@ -50,17 +50,17 @@ out bc o = do
         else Just $ txOutputs t !! fromIntegral i
 
 -- | Determine the unspent value that a transaction output refers to.
-value :: Blockchain uni -> TxOutRef -> Maybe Value
+value :: Blockchain -> TxOutRef -> Maybe Value
 value bc o = txOutValue <$> out bc o
 
 -- | Determine the data script that a transaction output refers to.
-dataTxo :: Blockchain uni -> TxOutRef -> Maybe DataValueHash
+dataTxo :: Blockchain -> TxOutRef -> Maybe DataValueHash
 dataTxo bc o = txOutData =<< out bc o
 
 -- | Determine the public key that locks a transaction output, if there is one.
-pubKeyTxo :: Blockchain uni -> TxOutRef -> Maybe PubKeyHash
+pubKeyTxo :: Blockchain -> TxOutRef -> Maybe PubKeyHash
 pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent transaction outputs of the ledger as a whole.
-unspentOutputs :: Blockchain uni -> Map TxOutRef TxOut
+unspentOutputs :: Blockchain -> Map TxOutRef TxOut
 unspentOutputs = foldr updateUtxo Map.empty . join

@@ -1,6 +1,5 @@
 -- Why is it needed here, but not in 'Universe.hs'?
 {-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE TypeOperators      #-}
 
 module Language.PlutusCore
     (
@@ -209,14 +208,13 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsNormCheckError e TyName Name uni a,
-        AsTypeError e uni a,
+    :: (AsNormCheckError e TyName Name DefaultUni a,
+        AsTypeError e DefaultUni a,
         MonadError e m,
-        MonadQuote m,
-        GShow uni, GEq uni, DefaultUni <: uni)
-    => TypeCheckConfig uni
-    -> Program TyName Name uni a
-    -> m (Normalized (Type TyName uni ()))
+        MonadQuote m)
+    => TypeCheckConfig DefaultUni
+    -> Program TyName Name DefaultUni a
+    -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)

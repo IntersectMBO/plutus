@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Wallet.Generators(
     -- * Mockchain
@@ -32,7 +31,6 @@ module Wallet.Generators(
     signAll
     ) where
 
-import           Codec.Serialise           (Serialise)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold, foldl')
@@ -50,13 +48,11 @@ import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
 import qualified Ledger.Value              as Value
 
-import qualified Language.PlutusCore       as PLC
-
 import           Ledger
 import qualified Wallet.API                as W
 
 -- | Attach signatures of all known private keys to a transaction.
-signAll :: Tx uni -> Tx uni
+signAll :: Tx -> Tx
 signAll tx = foldl' (flip addSignature) tx knownPrivateKeys
 
 -- | The parameters for the generators in this module.
@@ -91,21 +87,21 @@ constantFee = FeeEstimator . const . const
 --   To avoid having to rely on functions from the implementation of
 --   plutus-wallet-api (in particular, 'Ledger.Tx.unspentOutputs') we note the
 --   unspent outputs of the chain when it is first created.
-data Mockchain uni = Mockchain {
-    mockchainInitialBlock :: Block uni,
+data Mockchain = Mockchain {
+    mockchainInitialBlock :: Block,
     mockchainUtxo         :: Map TxOutRef TxOut
     } deriving Show
 
 -- | The empty mockchain.
-emptyChain :: Mockchain uni
+emptyChain :: Mockchain
 emptyChain = Mockchain [] Map.empty
 
 -- | Generate a mockchain.
 --
 --   TODO: Generate more than 1 txn
-genMockchain' :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+genMockchain' :: MonadGen m
     => GeneratorModel
-    -> m (Mockchain uni)
+    -> m Mockchain
 genMockchain' gm = do
     let (txn, ot) = genInitialTransaction gm
         tid = txId txn
@@ -116,14 +112,14 @@ genMockchain' gm = do
 
 -- | Generate a mockchain using the default 'GeneratorModel'.
 --
-genMockchain :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise) => m (Mockchain uni)
+genMockchain :: MonadGen m => m Mockchain
 genMockchain = genMockchain' generatorModel
 
 -- | A transaction with no inputs that forges some value (to be used at the
 --   beginning of a blockchain).
-genInitialTransaction :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => GeneratorModel
-    -> (Tx uni, [TxOut])
+genInitialTransaction ::
+       GeneratorModel
+    -> (Tx, [TxOut])
 genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
@@ -137,19 +133,19 @@ genInitialTransaction GeneratorModel{..} =
 -- | Generate a valid transaction, using the unspent outputs provided.
 --   Fails if the there are no unspent outputs, or if the total value
 --   of the unspent outputs is smaller than the minimum fee (1).
-genValidTransaction :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => Mockchain uni
-    -> m (Tx uni)
+genValidTransaction :: MonadGen m
+    => Mockchain
+    -> m Tx
 genValidTransaction = genValidTransaction' generatorModel (constantFee 1)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
 --   Fails if the there are no unspent outputs, or if the total value
 --   of the unspent outputs is smaller than the estimated fee.
-genValidTransaction' :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+genValidTransaction' :: MonadGen m
     => GeneratorModel
     -> FeeEstimator
-    -> Mockchain uni
-    -> m (Tx uni)
+    -> Mockchain
+    -> m Tx
 genValidTransaction' g f (Mockchain _ ops) = do
     -- Take a random number of UTXO from the input
     nUtxo <- if Map.null ops
@@ -160,18 +156,18 @@ genValidTransaction' g f (Mockchain _ ops) = do
         totalVal = foldl' (+) 0 $ map (Ada.fromValue . txOutValue . snd) inUTXO
     genValidTransactionSpending' g f ins totalVal
 
-genValidTransactionSpending :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => Set.Set (TxIn uni)
+genValidTransactionSpending :: MonadGen m
+    => Set.Set TxIn
     -> Ada
-    -> m (Tx uni)
+    -> m Tx
 genValidTransactionSpending = genValidTransactionSpending' generatorModel (constantFee 1)
 
-genValidTransactionSpending' :: (MonadGen m, PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+genValidTransactionSpending' :: MonadGen m
     => GeneratorModel
     -> FeeEstimator
-    -> Set.Set (TxIn uni)
+    -> Set.Set TxIn
     -> Ada
-    -> m (Tx uni)
+    -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
     let fee = estimateFee f (fromIntegral $ length ins) 3
         numOut = Set.size $ gmPubKeys g
@@ -239,16 +235,13 @@ genValueNonNegative = genValue' $ fromIntegral <$> Range.linear @Int 0 maxBound
 
 -- | Assert that a transaction is valid in a chain.
 assertValid :: (MonadTest m, HasCallStack)
-    => Tx PLC.DefaultUni
-    -> Mockchain PLC.DefaultUni
+    => Tx
+    -> Mockchain
     -> m ()
 assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
 
 -- | Validate a transaction in a mockchain.
-validateMockchain ::
-       Mockchain PLC.DefaultUni
-    -> Tx PLC.DefaultUni
-    -> Maybe (Index.ValidationError PLC.DefaultUni)
+validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
     h      = 1
     idx    = Index.initialise [blck]

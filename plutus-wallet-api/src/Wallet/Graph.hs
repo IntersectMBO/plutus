@@ -92,7 +92,7 @@ graph lnks = FlowGraph {..}
     flowGraphNodes = nub $ fmap flowLinkSource lnks ++ fmap flowLinkTarget lnks
 
 -- | Compute the 'FlowLink's for a 'Blockchain' given a set of known 'PubKey's.
-txnFlows :: [PubKey] -> Blockchain uni -> [FlowLink]
+txnFlows :: [PubKey] -> Blockchain -> [FlowLink]
 txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
   where
     bc' = foldMap (\(blockNum, txns) -> fmap (\(blockIdx, txn) -> (UtxoLocation blockNum blockIdx, txn)) txns) $ zipWithIndex $ zipWithIndex <$> reverse bc
@@ -106,7 +106,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
     utxos = fmap fst $ Map.toList $ unspentOutputs bc
     utxoLinks = uncurry (flow Nothing) <$> zip (utxoTargets <$> utxos) utxos
 
-    extract :: (UtxoLocation, Tx uni) -> [Maybe FlowLink]
+    extract :: (UtxoLocation, Tx) -> [Maybe FlowLink]
     extract (loc, tx) =
       let targetRef = mkRef $ txId tx in
       fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ txInputs tx)
@@ -129,7 +129,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
     zipWithIndex = zip [1..]
 
 -- | Annotate the 'TxOutRef's produced by a transaction with the location of the transaction.
-outRefsWithLoc :: UtxoLocation -> Tx uni -> [(TxOutRef, UtxoLocation)]
+outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef, UtxoLocation)]
 outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
 
 -- | Create a 'TxRef' from a 'TxOutRef'.
