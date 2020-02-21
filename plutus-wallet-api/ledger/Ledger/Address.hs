@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 module Ledger.Address (
     Address (..),
     pubKeyAddress,
@@ -15,6 +16,8 @@ import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
+
+import qualified Language.PlutusCore       as PLC
 
 import           Ledger.Crypto
 import           Ledger.Orphans            ()
@@ -35,7 +38,7 @@ pubKeyAddress :: PubKey -> Address
 pubKeyAddress pk = PubKeyAddress $ pubKeyHash pk
 
 -- | The address that should be used by a transaction output locked by the given validator script.
-scriptAddress :: Validator -> Address
+scriptAddress :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Validator uni -> Address
 scriptAddress = ScriptAddress . validatorHash
 
 -- | The address that should be used by a transaction output locked by the given validator script hash.

@@ -1,15 +1,17 @@
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -57,6 +59,8 @@ import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 import qualified Prelude                   as Haskell
 
+import qualified Language.PlutusCore       as PLC
+
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
 import           Ledger.Crypto             (PubKey (..), PubKeyHash (..), Signature (..))
@@ -66,6 +70,8 @@ import           Ledger.TxId
 import           Ledger.Value              (CurrencySymbol (..), Value)
 import qualified Ledger.Value              as Value
 import           LedgerBytes               (LedgerBytes (..))
+
+import           Codec.Serialise           (Serialise)
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of
@@ -184,7 +190,9 @@ them from the correct types in Haskell, and for comparing them (in
 
 {-# INLINABLE scriptCurrencySymbol #-}
 -- | The 'CurrencySymbol' of a 'MonetaryPolicy'
-scriptCurrencySymbol :: MonetaryPolicy -> CurrencySymbol
+scriptCurrencySymbol
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+    => MonetaryPolicy uni -> CurrencySymbol
 scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}

@@ -25,7 +25,7 @@ common lang
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
     other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
-                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MultiParamTypeClasses, TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
                       ExistentialQuantification
@@ -87,6 +87,7 @@ library
         lens -any,
         memory -any,
         mtl -any,
+        language-plutus-core -any,
         plutus-tx -any,
         plutus-ledger -any,
         serialise -any,

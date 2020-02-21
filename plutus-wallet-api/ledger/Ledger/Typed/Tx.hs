@@ -47,32 +47,33 @@ import qualified Data.Map                   as Map
 import           Data.Proxy
 import qualified Data.Set                   as Set
 
+import           Codec.Serialise            (Serialise)
 import           Control.Monad.Except
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
-data TypedScriptTxIn a = TypedScriptTxIn { tyTxInTxIn :: TxIn, tyTxInOutRef :: TypedScriptTxOutRef a }
+data TypedScriptTxIn uni a = TypedScriptTxIn { tyTxInTxIn :: TxIn uni, tyTxInOutRef :: TypedScriptTxOutRef a }
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
-    :: forall inn
+    :: forall inn uni
     . (IsData (RedeemerType inn), IsData (DataType inn))
-    => ScriptInstance inn
+    => ScriptInstance uni inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
-    -> TypedScriptTxIn inn
+    -> TypedScriptTxIn uni inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
         rs = RedeemerValue (toData r)
         ds = DataValue (toData d)
         txInType = ConsumeScriptAddress vs rs ds
-    in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
+    in TypedScriptTxIn @uni @inn (TxIn ref txInType) tyRef
 
-txInValue :: TypedScriptTxIn a -> Value.Value
+txInValue :: TypedScriptTxIn uni a -> Value.Value
 txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
 
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
-newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
+newtype PubKeyTxIn uni = PubKeyTxIn { unPubKeyTxIn :: TxIn uni }
 -- | Create a 'PubKeyTxIn'.
-makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
+makePubKeyTxIn :: TxOutRef -> PubKeyTxIn uni
 makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
@@ -80,9 +81,9 @@ data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut
 
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
-    :: forall out
+    :: forall out uni
     . (IsData (DataType out))
-    => ScriptInstance out
+    => ScriptInstance uni out
     -> DataType out
     -> Value.Value
     -> TypedScriptTxOut out
@@ -102,17 +103,17 @@ makePubKeyTxOut value pubKey = PubKeyTxOut $ pubKeyTxOut value pubKey
 -- | A typed transaction, tagged by two phantom types: a list of connection types for the outputs,
 -- and a list of connection types for the inputs. The script outputs and inputs must have the correct
 -- corresponding types.
-data TypedTx (ins :: [Type]) (outs :: [Type]) = TypedTx {
-    tyTxTypedTxIns   :: HListF TypedScriptTxIn ins,
-    tyTxPubKeyTxIns  :: [PubKeyTxIn],
+data TypedTx uni (ins :: [Type]) (outs :: [Type]) = TypedTx {
+    tyTxTypedTxIns   :: HListF (TypedScriptTxIn uni) ins,
+    tyTxPubKeyTxIns  :: [PubKeyTxIn uni],
     tyTxTypedTxOuts  :: HListF TypedScriptTxOut outs,
     tyTxPubKeyTxOuts :: [PubKeyTxOut],
     tyTxForge        :: !Value.Value,
     tyTxValidRange   :: !SlotRange,
-    tyTxForgeScripts :: Set.Set MonetaryPolicy
+    tyTxForgeScripts :: Set.Set (MonetaryPolicy uni)
     }
 
-baseTx :: TypedTx '[] '[]
+baseTx :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => TypedTx uni '[] '[]
 baseTx = TypedTx {
     tyTxTypedTxIns = HNilF,
     tyTxPubKeyTxIns = [],
@@ -129,10 +130,10 @@ baseTx = TypedTx {
 -- inputs yet. Otherwise those inputs would need to change to take the new data script as
 -- an argument.
 addTypedTxOut
-    :: forall ins outs newOut
+    :: forall ins outs newOut uni
     . TypedScriptTxOut newOut
-    -> TypedTx ins outs
-    -> TypedTx ins (newOut ': outs)
+    -> TypedTx uni ins outs
+    -> TypedTx uni ins (newOut ': outs)
 -- We're changing the type so we can't use record update syntax :'(
 addTypedTxOut out TypedTx {
     tyTxTypedTxOuts,
@@ -152,10 +153,10 @@ addTypedTxOut out TypedTx {
 
 -- | Adds a 'TypedScriptTxIn' to a 'TypedTx'.
 addTypedTxIn
-    :: forall ins outs newIn
-    . TypedScriptTxIn newIn
-    -> TypedTx ins outs
-    -> TypedTx (newIn ': ins) outs
+    :: forall ins outs newIn uni
+    . TypedScriptTxIn uni newIn
+    -> TypedTx uni ins outs
+    -> TypedTx uni (newIn ': ins) outs
 -- We're changing the type so we can't use record update syntax :'(
 addTypedTxIn inn TypedTx {
     tyTxTypedTxOuts,
@@ -176,42 +177,43 @@ addTypedTxIn inn TypedTx {
 -- | A wrapper around a 'TypedTx' that hides the input list type as an existential parameter.
 -- This allows us to perform some operations more easily by not caring about the input connection
 -- types, see 'addSomeTypedTxIn' particularly.
-data TypedTxSomeIns (outs :: [Type]) = forall ins . TypedTxSomeIns (TypedTx ins outs)
+data TypedTxSomeIns uni (outs :: [Type]) = forall ins . TypedTxSomeIns (TypedTx uni ins outs)
 
 -- | Add a 'TypedScriptTxIn' to a 'TypedTxSomeIns'. Note that we do not have to track
 -- the input connection types explicitly.
 addSomeTypedTxIn
-    :: forall (outs :: [Type]) (newIn :: *)
-    . TypedScriptTxIn newIn
-    -> TypedTxSomeIns outs
-    -> TypedTxSomeIns outs
+    :: forall (outs :: [Type]) (newIn :: *) uni
+    . TypedScriptTxIn uni newIn
+    -> TypedTxSomeIns uni outs
+    -> TypedTxSomeIns uni outs
 addSomeTypedTxIn inn (TypedTxSomeIns tx) = TypedTxSomeIns $ addTypedTxIn inn tx
 
 -- | Adds many homogeneous 'TypedScriptTxIn' to a 'TypedTx'.
 addManyTypedTxIns
-    :: forall (ins :: [Type]) (outs :: [Type]) (newIn :: Type)
-    . [TypedScriptTxIn newIn]
-    -> TypedTx ins outs
-    -> TypedTxSomeIns outs
+    :: forall (ins :: [Type]) (outs :: [Type]) (newIn :: Type) uni
+    . [TypedScriptTxIn uni newIn]
+    -> TypedTx uni ins outs
+    -> TypedTxSomeIns uni outs
 addManyTypedTxIns ins tx = foldl' (\someTx inn -> addSomeTypedTxIn inn someTx) (TypedTxSomeIns tx) ins
 
 -- | A wrapper around a 'TypedTx' that hides the output list type as an existential parameter.
-data TypedTxSomeOuts (ins :: [Type]) = forall outs . TypedTxSomeOuts (TypedTx ins outs)
+data TypedTxSomeOuts uni (ins :: [Type]) = forall outs . TypedTxSomeOuts (TypedTx uni ins outs)
 
 -- | Add a 'TypedScriptTxOut' to a 'TypedTxSomeOuts'. Note that we do not have to track
 -- the output connection types explicitly.
 addSomeTypedTxOut
-    :: forall (ins :: [Type]) (newOut :: *)
+    :: forall (ins :: [Type]) (newOut :: *) uni
     . TypedScriptTxOut newOut
-    -> TypedTxSomeOuts ins
-    -> TypedTxSomeOuts ins
+    -> TypedTxSomeOuts uni ins
+    -> TypedTxSomeOuts uni ins
 addSomeTypedTxOut out (TypedTxSomeOuts tx) = TypedTxSomeOuts $ addTypedTxOut out tx
 
 -- | Convert a 'TypedTx' to a 'Tx'.
 toUntypedTx
-    :: forall (ins :: [Type]) (outs :: [Type])
-    . TypedTx ins outs
-    -> Tx
+    :: forall (ins :: [Type]) (outs :: [Type]) uni
+    . (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+    => TypedTx uni ins outs
+    -> Tx uni
 toUntypedTx TypedTx{
     tyTxTypedTxOuts,
     tyTxPubKeyTxOuts,
@@ -235,10 +237,10 @@ toUntypedTx TypedTx{
 -- TODO: these could be in a separate module
 
 -- | An error we can get while trying to type an existing transaction part.
-data ConnectionError =
+data ConnectionError uni =
     WrongValidatorAddress Address Address
     | WrongOutType TxOutType
-    | WrongInType TxInType
+    | WrongInType (TxInType uni)
     | WrongValidatorType String
     | WrongRedeemerType
     | WrongDataType
@@ -247,28 +249,27 @@ data ConnectionError =
     deriving (Show, Eq, Ord)
 
 -- | Checks that the given validator hash is consistent with the actual validator.
-checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()
+checkValidatorAddress :: forall a uni m . (MonadError (ConnectionError uni) m) => ScriptInstance uni a -> Address -> m ()
 checkValidatorAddress ct actualAddr = do
     let expectedAddr = scriptAddress ct
     unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
 
 -- | Checks that the given validator script has the right type.
 checkValidatorScript
-    :: forall a m
-    . (MonadError ConnectionError m)
-    => ScriptInstance a
-    -> Validator
-    -> m (CompiledCode WrappedValidatorType)
+    :: forall a uni m . (MonadError (ConnectionError PLC.DefaultUni) m, uni ~ PLC.DefaultUni)
+    => ScriptInstance uni a
+    -> Validator uni
+    -> m (CompiledCode uni WrappedValidatorType)
 checkValidatorScript _ (unValidatorScript -> (Script prog)) =
-    case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
+    case PLC.runQuote $ runExceptT @(PIR.Error PLC.DefaultUni (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
         Right code -> pure code
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 
 -- | Checks that the given redeemer script has the right type.
 checkRedeemerValue
-    :: forall inn m
-    . (IsData (RedeemerType inn), MonadError ConnectionError m)
-    => ScriptInstance inn
+    :: forall inn uni m
+    . (IsData (RedeemerType inn), MonadError (ConnectionError uni) m)
+    => ScriptInstance uni inn
     -> RedeemerValue
     -> m (RedeemerType inn)
 checkRedeemerValue _ (RedeemerValue d) =
@@ -278,8 +279,8 @@ checkRedeemerValue _ (RedeemerValue d) =
 
 -- | Checks that the given data script has the right type.
 checkDataScript
-    :: forall a m . (IsData (DataType a), MonadError ConnectionError m)
-    => ScriptInstance a
+    :: forall a uni m . (IsData (DataType a), MonadError (ConnectionError uni) m)
+    => ScriptInstance uni a
     -> DataValue
     -> m (DataType a)
 checkDataScript _ (DataValue d) =
@@ -289,14 +290,15 @@ checkDataScript _ (DataValue d) =
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
-    :: forall inn m
+    :: forall inn uni m
     . ( IsData (RedeemerType inn)
       , IsData (DataType inn)
-      , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance inn
-    -> TxIn
-    -> m (TypedScriptTxIn inn)
+      , MonadError (ConnectionError uni) m
+      , uni ~ PLC.DefaultUni)
+    => (TxOutRef -> Maybe (TxOutTx uni))
+    -> ScriptInstance uni inn
+    -> TxIn uni
+    -> m (TypedScriptTxIn uni inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
     (vs, rs, ds) <- case txInType of
         ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
@@ -309,10 +311,10 @@ typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
 
 -- | Create a 'PubKeyTxIn' from an existing 'TxIn' by checking that it has the right payment type.
 typePubKeyTxIn
-    :: forall m
-    . (MonadError ConnectionError m)
-    => TxIn
-    -> m PubKeyTxIn
+    :: forall uni m
+    . (MonadError (ConnectionError uni) m)
+    => TxIn uni
+    -> m (PubKeyTxIn uni)
 typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
         ConsumePublicKeyAddress -> pure ()
@@ -321,11 +323,11 @@ typePubKeyTxIn inn@TxIn{txInType} = do
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
 typeScriptTxOut
-    :: forall out m
+    :: forall out uni m
     . ( IsData (DataType out)
-      , MonadError ConnectionError m)
-    => ScriptInstance out
-    -> TxOutTx
+      , MonadError (ConnectionError uni) m)
+    => ScriptInstance uni out
+    -> TxOutTx uni
     -> m (TypedScriptTxOut out)
 typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutType}} = do
     dsh <- case txOutType of
@@ -342,11 +344,11 @@ typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValu
 -- need to cross-reference against the validator script and be able to look up the 'TxOut' to which this
 -- reference points.
 typeScriptTxOutRef
-    :: forall out m
+    :: forall out uni m
     . ( IsData (DataType out)
-      , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance out
+      , MonadError (ConnectionError uni) m)
+    => (TxOutRef -> Maybe (TxOutTx uni))
+    -> ScriptInstance uni out
     -> TxOutRef
     -> m (TypedScriptTxOutRef out)
 typeScriptTxOutRef lookupRef ct ref = do
@@ -358,8 +360,8 @@ typeScriptTxOutRef lookupRef ct ref = do
 
 -- | Create a 'PubKeyTxOUt' from an existing 'TxOut' by checking that it has the right payment type.
 typePubKeyTxOut
-    :: forall m
-    . (MonadError ConnectionError m)
+    :: forall uni m
+    . (MonadError (ConnectionError uni) m)
     => TxOut
     -> m PubKeyTxOut
 typePubKeyTxOut out@TxOut{txOutType} = do

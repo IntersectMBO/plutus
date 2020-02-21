@@ -1,12 +1,14 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Tx(
     -- * Transactions
@@ -76,6 +78,8 @@ import           IOTS                      (IotsType)
 
 import           Language.PlutusTx.Lattice
 
+import qualified Language.PlutusCore       as PLC
+
 import           Ledger.Address
 import           Ledger.Crypto
 import           Ledger.Orphans            ()
@@ -109,8 +113,8 @@ especially because we only need one direction (to binary).
 -}
 
 -- | A transaction, including witnesses for its inputs.
-data Tx = Tx {
-    txInputs       :: Set.Set TxIn,
+data Tx uni = Tx {
+    txInputs       :: Set.Set (TxIn uni),
     -- ^ The inputs to this transaction.
     txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
@@ -120,7 +124,7 @@ data Tx = Tx {
     -- ^ The fee for this transaction.
     txValidRange   :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    txForgeScripts :: Set.Set MonetaryPolicy,
+    txForgeScripts :: Set.Set (MonetaryPolicy uni),
     -- ^ The scripts that must be run to check forging conditions.
     txSignatures   :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
@@ -129,7 +133,7 @@ data Tx = Tx {
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
-instance Pretty Tx where
+instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Pretty (Tx uni) where
     pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txForgeScripts, txSignatures} =
         let renderOutput TxOut{txOutAddress, txOutValue} =
                 hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
@@ -152,7 +156,7 @@ instance Pretty Tx where
             txid = txId t
         in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
 
-instance Semigroup Tx where
+instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Semigroup (Tx uni) where
     tx1 <> tx2 = Tx {
         txInputs = txInputs tx1 <> txInputs tx2,
         txOutputs = txOutputs tx1 <> txOutputs tx2,
@@ -164,54 +168,54 @@ instance Semigroup Tx where
         txData = txData tx1 <> txData tx2
         }
 
-instance Monoid Tx where
+instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => Monoid (Tx uni) where
     mempty = Tx mempty mempty mempty mempty top mempty mempty mempty
 
-instance BA.ByteArrayAccess Tx where
+instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => BA.ByteArrayAccess (Tx uni) where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | The inputs of a transaction.
-inputs :: Lens' Tx (Set.Set TxIn)
+inputs :: Lens' (Tx uni) (Set.Set (TxIn uni))
 inputs = lens g s where
     g = txInputs
     s tx i = tx { txInputs = i }
 
 -- | The outputs of a transaction.
-outputs :: Lens' Tx [TxOut]
+outputs :: Lens' (Tx uni) [TxOut]
 outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
 
 -- | The validity range of a transaction.
-validRange :: Lens' Tx SlotRange
+validRange :: Lens' (Tx uni) SlotRange
 validRange = lens g s where
     g = txValidRange
     s tx o = tx { txValidRange = o }
 
-signatures :: Lens' Tx (Map PubKey Signature)
+signatures :: Lens' (Tx uni) (Map PubKey Signature)
 signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
 
-forgeScripts :: Lens' Tx (Set.Set MonetaryPolicy)
+forgeScripts :: Lens' (Tx uni) (Set.Set (MonetaryPolicy uni))
 forgeScripts = lens g s where
     g = txForgeScripts
     s tx fs = tx { txForgeScripts = fs }
 
-dataWitnesses :: Lens' Tx (Map DataValueHash DataValue)
+dataWitnesses :: Lens' (Tx uni) (Map DataValueHash DataValue)
 dataWitnesses = lens g s where
     g = txData
     s tx dat = tx { txData = dat }
 
-lookupSignature :: PubKey -> Tx -> Maybe Signature
+lookupSignature :: PubKey -> Tx uni -> Maybe Signature
 lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
 
-lookupData :: Tx -> DataValueHash -> Maybe DataValue
+lookupData :: Tx uni -> DataValueHash -> Maybe DataValue
 lookupData Tx{txData} h = Map.lookup h txData
 
 -- | Check that all values in a transaction are non-negative.
-validValuesTx :: Tx -> Bool
+validValuesTx :: Tx uni -> Bool
 validValuesTx Tx{..}
   = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && nonNegative txFee
     where
@@ -229,12 +233,12 @@ data TxStripped = TxStripped {
     -- ^ The fee for this transaction.
     } deriving (Show, Eq, Generic, Serialise)
 
-strip :: Tx -> TxStripped
+strip :: Tx uni -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
     i = Set.map txInRef txInputs
 
 -- | Compute the id of a transaction.
-txId :: Tx -> TxId
+txId :: Tx uni -> TxId
 -- Double hash of a transaction, excluding its witnesses.
 txId tx = TxId $ BSL.fromStrict $ BA.convert h' where
     h :: Digest SHA256
@@ -257,49 +261,49 @@ instance Pretty TxOutRef where
 
 
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
-txOutRefs :: Tx -> [(TxOut, TxOutRef)]
+txOutRefs :: Tx uni -> [(TxOut, TxOutRef)]
 txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
     mkOut (i, o) = (o, TxOutRef (txId t) i)
 
 -- | The type of a transaction input.
-data TxInType =
+data TxInType uni =
       -- TODO: these should all be hashes, with the validators and data segregated to the side
-      ConsumeScriptAddress !Validator !RedeemerValue !DataValue -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
+      ConsumeScriptAddress !(Validator uni) !RedeemerValue !DataValue -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
-data TxIn = TxIn {
+data TxIn uni = TxIn {
     txInRef  :: !TxOutRef,
-    txInType :: !TxInType
+    txInType :: !(TxInType uni)
     }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, IotsType, ToJSON, FromJSON)
 
 -- | The 'TxOutRef' spent by a transaction input.
-inRef :: Lens TxIn TxIn TxOutRef TxOutRef
+inRef :: Lens (TxIn uni) (TxIn uni) TxOutRef TxOutRef
 inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
 -- | The type of a transaction input.
-inType :: Lens' TxIn TxInType
+inType :: Lens' (TxIn uni) (TxInType uni)
 inType = lens txInType s where
     s txi t = txi { txInType = t }
 
 -- | Validator, redeemer, and data scripts of a transaction input that spends a
 --   "pay to script" output.
-inScripts :: TxIn -> Maybe (Validator, RedeemerValue, DataValue)
+inScripts :: TxIn uni -> Maybe (Validator uni, RedeemerValue, DataValue)
 inScripts TxIn{ txInType = t } = case t of
     ConsumeScriptAddress v r d -> Just (v, r, d)
     ConsumePublicKeyAddress    -> Nothing
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
-pubKeyTxIn :: TxOutRef -> TxIn
+pubKeyTxIn :: TxOutRef -> TxIn uni
 pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> Validator -> RedeemerValue -> DataValue -> TxIn
+scriptTxIn :: TxOutRef -> Validator uni -> RedeemerValue -> DataValue -> TxIn uni
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | The type of a transaction output.
@@ -362,11 +366,11 @@ isPayToScriptOut = isJust . txOutData
 
 -- | A 'TxOut' along with the 'Tx' it comes from, which may have additional information e.g.
 -- the full data script that goes with the 'TxOut'.
-data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
+data TxOutTx uni = TxOutTx { txOutTxTx :: Tx uni, txOutTxOut :: TxOut }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
-txOutTxData :: TxOutTx -> Maybe DataValue
+txOutTxData :: TxOutTx uni -> Maybe DataValue
 txOutTxData (TxOutTx tx out) = txOutData out >>= lookupData tx
 
 -- | Create a transaction output locked by a validator script hash
@@ -376,7 +380,9 @@ scriptTxOut' v a ds = TxOut a v tp where
     tp = PayToScript (dataValueHash ds)
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
-scriptTxOut :: Value -> Validator -> DataValue -> TxOut
+scriptTxOut
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
+    => Value -> Validator uni -> DataValue -> TxOut
 scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
 
 -- | Create a transaction output locked by a public key.
@@ -388,24 +394,24 @@ pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
 pubKeyHashTxOut v pkh = TxOut (PubKeyAddress pkh) v PayToPubKey
 
 -- | The unspent outputs of a transaction.
-unspentOutputsTx :: Tx -> Map TxOutRef TxOut
+unspentOutputsTx :: Tx uni -> Map TxOutRef TxOut
 unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
     f (idx, o) = (TxOutRef (txId t) idx, o)
 
 -- | The transaction output references consumed by a transaction.
-spentOutputs :: Tx -> Set.Set TxOutRef
+spentOutputs :: Tx uni -> Set.Set TxOutRef
 spentOutputs = Set.map txInRef . txInputs
 
 -- | Update a map of unspent transaction outputs and signatures based on the inputs
 --   and outputs of a transaction.
-updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
+updateUtxo :: Tx uni -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
     outs = unspentOutputsTx t
 
 -- | Sign the transaction with a 'PrivateKey' and add the signature to the
 --   transaction's list of signatures.
-addSignature :: PrivateKey -> Tx -> Tx
+addSignature :: PrivateKey -> Tx uni -> Tx uni
 addSignature privK tx = tx & signatures . at pubK ?~ sig where
     sig = signTx (txId tx) privK
     pubK = toPublicKey privK

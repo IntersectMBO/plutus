@@ -7,18 +7,22 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- needed for makeClassyPrisms
 {-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 module Wallet.Typed.StateMachine where
 
+import           Codec.Serialise                (Serialise)
 import           Control.Lens
 import           Control.Monad
 import           Data.Either                    (rights)
 import qualified Data.Map                       as Map
 import           Data.Maybe                     (fromMaybe)
 import qualified Data.Text                      as T
+
+import qualified Language.PlutusCore            as PLC
 
 import qualified Language.PlutusTx              as PlutusTx
 import qualified Language.PlutusTx.StateMachine as SM
@@ -34,14 +38,14 @@ data SMError s i = InvalidTransition s i
 makeClassyPrisms ''SMError
 
 type OnChainState s i = (Typed.TypedScriptTxOut (SM.StateMachine s i), Typed.TypedScriptTxOutRef (SM.StateMachine s i))
-type SteppingTx s i = Typed.TypedTx '[SM.StateMachine s i] '[SM.StateMachine s i]
-type HaltingTx s i = Typed.TypedTx '[SM.StateMachine s i] '[]
+type SteppingTx uni s i = Typed.TypedTx uni '[SM.StateMachine s i] '[SM.StateMachine s i]
+type HaltingTx uni s i = Typed.TypedTx uni '[SM.StateMachine s i] '[]
 
 getStates
-    :: forall s i
+    :: forall s i uni
     . (PlutusTx.IsData s)
-    => SM.StateMachineInstance s i
-    -> AddressMap
+    => SM.StateMachineInstance uni s i
+    -> AddressMap uni
     -> [OnChainState s i]
 getStates (SM.StateMachineInstance _ si) am =
     let refMap = fromMaybe Map.empty $ am ^. at (Scripts.scriptAddress si)
@@ -52,15 +56,17 @@ getStates (SM.StateMachineInstance _ si) am =
     in rights $ fmap lkp $ Map.toList refMap
 
 mkInitialise
-    :: forall s i m
-    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s)
-    => SM.StateMachineInstance s i
+    :: forall s i uni m
+    . ( WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s
+      , PLC.Closed uni, uni `PLC.Everywhere` Serialise
+      )
+    => SM.StateMachineInstance uni s i
     -- ^ Signatories and required signatures
     -> s
     -- ^ Initial state.
     -> Value
     -- ^ The funds we want to lock.
-    -> m (Typed.TypedTx '[] '[SM.StateMachine s i], s)
+    -> m (Typed.TypedTx uni '[] '[SM.StateMachine s i], s)
     -- ^ The initalizing transaction and the initial state of the contract.
 mkInitialise (SM.StateMachineInstance _ si) state vl = do
     tx <- WAPITyped.makeScriptPayment si WAPI.defaultSlotRange vl state
@@ -73,9 +79,11 @@ mkInitialise (SM.StateMachineInstance _ si) state vl = do
 --   containing the new state.
 --
 mkStep
-    :: forall s i m
-    . (WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
-    => SM.StateMachineInstance s i
+    :: forall s i uni m
+    . ( WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i
+      , PLC.Closed uni, uni `PLC.Everywhere` Serialise
+      )
+    => SM.StateMachineInstance uni s i
     -- ^ The parameters of the contract instance
     -> s
     -- ^ Current state of the instance
@@ -83,7 +91,7 @@ mkStep
     -- ^ Input to be applied to the contract
     -> (Value -> Value)
     -- ^ Function determining how much of the total incoming value to the outgoing script output.
-    -> m (Typed.TypedTxSomeIns '[SM.StateMachine s i], s)
+    -> m (Typed.TypedTxSomeIns uni '[SM.StateMachine s i], s)
     -- ^ The advancing transaction, which consumes all the outputs at the script address, and the new state after applying the input
 mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState input valueAllocator = do
     newState <- case step currentState input of
@@ -102,7 +110,7 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
     let totalVal = foldMap Typed.txInValue typedIns
         output = Typed.makeTypedScriptTxOut si dataValue (valueAllocator totalVal)
         txWithOuts = Typed.addTypedTxOut output Typed.baseTx
-        fullTx :: Typed.TypedTxSomeIns '[SM.StateMachine s i]
+        fullTx :: Typed.TypedTxSomeIns uni '[SM.StateMachine s i]
         fullTx = Typed.addManyTypedTxIns typedIns txWithOuts
 
     pure (fullTx, newState)
@@ -112,15 +120,17 @@ mkStep (SM.StateMachineInstance (SM.StateMachine step _ _) si) currentState inpu
 --   The transaction will have no ongoing script output.
 --
 mkHalt
-    :: forall s i m
-    . (Show s, WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i)
-    => SM.StateMachineInstance s i
+    :: forall s i uni m
+    . ( Show s, WAPI.WalletAPI m, WAPI.WalletDiagnostics m, PlutusTx.IsData s, PlutusTx.IsData i
+      , PLC.Closed uni, uni `PLC.Everywhere` Serialise
+      )
+    => SM.StateMachineInstance uni s i
     -- ^ The parameters of the contract instance
     -> s
     -- ^ Current state of the instance
     -> i
     -- ^ Input to be applied to the contract
-    -> m (Typed.TypedTxSomeIns '[], s)
+    -> m (Typed.TypedTxSomeIns uni '[], s)
     -- ^ The advancing transaction, which consumes all the outputs at the script address.
 mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si) currentState input = do
     newState <- case step currentState input of
@@ -135,7 +145,7 @@ mkHalt (SM.StateMachineInstance (SM.StateMachine step _ final) si) currentState 
     -- We'd try and advance both to the new state in one transaction, and validation of the second one
     -- would fail.
     typedIns <- WAPITyped.spendScriptOutputs si redeemer
-    let fullTx :: Typed.TypedTxSomeIns '[]
+    let fullTx :: Typed.TypedTxSomeIns uni '[]
         fullTx = Typed.addManyTypedTxIns typedIns Typed.baseTx
 
     pure (fullTx, newState)
