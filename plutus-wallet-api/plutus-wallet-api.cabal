@@ -23,9 +23,9 @@ common lang
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
-    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
-                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                        DeriveTraversable MultiParamTypeClasses FlexibleContexts
+    other-extensions: DeriveAnyClass FlexibleInstances
+                      TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
                       ExistentialQuantification

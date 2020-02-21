@@ -7,4 +7,6 @@
   ("plutus-tx"                 . ((haskell-mode . ((dante-target . "plutus-tx:lib")))))
   ("plutus-tx-plugin"          . ((haskell-mode . ((dante-target . "plutus-tx-plugin:lib")))))
   ("plutus-tx-plugin/test"     . ((haskell-mode . ((dante-target . "plutus-tx-plugin:plutus-tx-tests")))))
+  ("plutus-wallet-api"         . ((haskell-mode . ((dante-target . "plutus-wallet-api")))))
+  ("plutus-emulator"           . ((haskell-mode . ((dante-target . "plutus-emulator:lib")))))
 )
