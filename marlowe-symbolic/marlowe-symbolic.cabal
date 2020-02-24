@@ -25,6 +25,7 @@ library
                         marlowe,
                         containers,
                         sbv >= 8.4,
+                        plutus-tx,
                         plutus-wallet-api,
                         process,
                         servant,

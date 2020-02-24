@@ -13,6 +13,7 @@ import qualified Data.SBV.Tuple             as ST
 import           Data.Set                   (Set)
 import qualified Data.Set                   as S
 import           Language.Marlowe.Semantics
+import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger                     (Slot (..))
 
 data SymInput = SymDeposit AccountId Party Token SInteger
@@ -27,18 +28,49 @@ data SymState = SymState { lowSlot        :: SInteger
                          , symChoices     :: Map ChoiceId SInteger
                          , symBoundValues :: Map ValueId SInteger
                          }
+generateSymbolicInterval :: Maybe Integer -> Symbolic (SInteger, SInteger)
+generateSymbolicInterval Nothing =
+  do hs <- sInteger_
+     ls <- sInteger_
+     constrain (ls .<= hs)
+     return (ls, hs)
+generateSymbolicInterval (Just ms) =
+  do i@(ls, _) <- generateSymbolicInterval Nothing
+     constrain (ls .>= literal ms)
+     return i
 
-emptySymState :: [(SInteger, SInteger, SInteger, SInteger)] -> Symbolic SymState
-emptySymState pt = do hs <- sInteger_
-                      ls <- sInteger_
-                      constrain (ls .<= hs)
-                      return $ SymState { lowSlot = ls
-                                        , highSlot = hs
-                                        , traces = []
-                                        , paramTrace = pt
-                                        , symAccounts = M.empty
-                                        , symChoices = M.empty
-                                        , symBoundValues = M.empty }
+foldAssocMapWithKey :: (a -> k -> b -> a) -> a -> AssocMap.Map k b -> a
+foldAssocMapWithKey f acc = foldl' decF acc . AssocMap.toList
+  where decF a (k, v) = f a k v
+
+toSymItem :: Ord k => SymVal v => Map k (SBV v) -> k -> v -> Map k (SBV v)
+toSymItem acc k v = M.insert k (literal v) acc
+
+toSymMap :: Ord k => SymVal v => AssocMap.Map k v -> Map k (SBV v)
+toSymMap = foldAssocMapWithKey toSymItem M.empty
+
+emptySymState :: [(SInteger, SInteger, SInteger, SInteger)] -> Maybe State
+              -> Symbolic SymState
+emptySymState pt Nothing = do (ls, hs) <- generateSymbolicInterval Nothing
+                              return $ SymState { lowSlot = ls
+                                                , highSlot = hs
+                                                , traces = []
+                                                , paramTrace = pt
+                                                , symAccounts = M.empty
+                                                , symChoices = M.empty
+                                                , symBoundValues = M.empty }
+emptySymState pt (Just State { accounts = accs
+                             , choices = cho
+                             , boundValues = bVal
+                             , minSlot = ms }) =
+  do (ls, hs) <- generateSymbolicInterval (Just (getSlot ms))
+     return $ SymState { lowSlot = ls
+                       , highSlot = hs
+                       , traces = []
+                       , paramTrace = pt
+                       , symAccounts = toSymMap accs
+                       , symChoices = toSymMap cho
+                       , symBoundValues = toSymMap bVal }
 
 getSymValFrom :: Maybe SymInput -> SInteger
 getSymValFrom Nothing                       = 0
@@ -257,9 +289,10 @@ countWhensCaseList :: [Case Contract] -> Integer
 countWhensCaseList (Case uu c : tail) = max (countWhens c) (countWhensCaseList tail)
 countWhensCaseList []                 = 0
 
-wrapper :: Contract -> [(SInteger, SInteger, SInteger, SInteger)] -> Symbolic SBool
-wrapper c st = do ess <- emptySymState st
-                  isValidAndFailsAux c ess
+wrapper :: Contract -> [(SInteger, SInteger, SInteger, SInteger)] -> Maybe State
+        -> Symbolic SBool
+wrapper c st maybeState = do ess <- emptySymState st maybeState
+                             isValidAndFailsAux c ess
 
 generateLabelsAux :: Integer -> Integer -> [String]
 generateLabelsAux n m
@@ -338,36 +371,45 @@ executeAndInterpret sta ((l, h, v, b):t) cont
                                               , txInputs = inputs
                                               }
 
-interpretResult :: [(Integer, Integer, Integer, Integer)] -> Contract
+interpretResult :: [(Integer, Integer, Integer, Integer)] -> Contract -> Maybe State
                 -> (Slot, [TransactionInput], [TransactionWarning])
-interpretResult [] _ = error "Empty result"
-interpretResult t@((l, h, v, b):_) c = (Slot l, tin, twa)
+interpretResult [] _ _ = error "Empty result"
+interpretResult t@((l, h, v, b):_) c maybeState = (Slot l, tin, twa)
    where (tin, twa) = foldl' (\(accInp, accWarn) (elemInp, elemWarn) ->
                                  (accInp ++ elemInp, accWarn ++ elemWarn)) ([], []) $
-                             executeAndInterpret (emptyState (Slot l)) t c
+                             executeAndInterpret initialState t c
+         initialState = case maybeState of
+                          Nothing -> emptyState (Slot l)
+                          Just x  -> x
 
-extractCounterExample :: SMTModel -> Contract -> [String]
+extractCounterExample :: SMTModel -> Contract -> Maybe State -> [String]
                       -> (Slot, [TransactionInput], [TransactionWarning])
-extractCounterExample smtModel cont maps = interpretedResult
+extractCounterExample smtModel cont maybeState maps = interpretedResult
   where assocs = map (\(a, b) -> (a, fromCV b :: Integer)) $ modelAssocs smtModel
         counterExample = groupResult maps (M.fromList assocs)
-        interpretedResult = interpretResult (reverse counterExample) cont
+        interpretedResult = interpretResult (reverse counterExample) cont maybeState
 
-warningsTrace :: Contract
+warningsTraceWithState :: Contract
+              -> Maybe State
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-warningsTrace con =
+warningsTraceWithState con maybeState =
     do thmRes@(ThmResult result) <- satCommand
        return (case result of
                  Unsatisfiable _ _ -> Right Nothing
                  Satisfiable _ smtModel ->
-                    Right (Just (extractCounterExample smtModel con params))
+                    Right (Just (extractCounterExample smtModel con maybeState params))
                  _ -> Left thmRes)
   where maxActs = 1 + countWhens con
         params = generateLabels maxActs
         property = do v <- generateParameters params
-                      r <- wrapper con v
+                      r <- wrapper con v maybeState
                       return (sNot r)
         satCommand = proveWith z3 property
+
+warningsTrace :: Contract
+              -> IO (Either ThmResult
+                            (Maybe (Slot, [TransactionInput], [TransactionWarning])))
+warningsTrace con = warningsTraceWithState con Nothing
 
 
