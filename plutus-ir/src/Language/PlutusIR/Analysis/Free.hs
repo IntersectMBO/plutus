@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Functions for computing the free (type-)variables of a PIR term or type.
-module Language.PlutusIR.Analysis.Free (fTerm, fType) where
+module Language.PlutusIR.Analysis.Free (fTerm, fType, fVarDecl, fBinding) where
 
 import           Language.PlutusIR
 
@@ -103,23 +103,19 @@ fTerm = \case
         newFreeSet = (fBinding b S.\\ accLinearScope) <> accFreeSet
     in (newScope, newFreeSet)
 
-  fBinding ::  Binding tyname name a -> S.Set PLC.Unique
-  fBinding = \case
-    TermBind _ _ (VarDecl _ _ ty) tRhs -> fType ty <> fTerm tRhs
-    DatatypeBind _ (Datatype _ _ _ _ constrs) -> foldMap fVarDecl constrs
-    TypeBind _ (TyVarDecl _ _ _k) tyRhs -> fType tyRhs
-
-  fVarDecl :: VarDecl tyname name a -> S.Set PLC.Unique
-  fVarDecl (VarDecl _ _ ty) = fType ty
-
-  bindingIds :: Binding tyname name a -> S.Set PLC.Unique
-  bindingIds = \case
-    TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-    DatatypeBind _ dt -> datatypeIds dt
-    TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-
 -- | Given a PIR type, it returns the free type variables of that type.
 -- See Note: [PIR Free variables]
 fType :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
-  => Type tyname a -> S.Set PLC.Unique
+      => Type tyname a -> S.Set PLC.Unique
 fType = S.map (^. PLC.unique . coerced) . ftvTy
+
+fVarDecl :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
+         => VarDecl tyname name a -> S.Set PLC.Unique
+fVarDecl (VarDecl _ _ ty) = fType ty
+
+fBinding :: (Ord (tyname a), PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+         => Binding tyname name a -> S.Set PLC.Unique
+fBinding = \case
+    TermBind _ _ (VarDecl _ _ ty) tRhs -> fType ty <> fTerm tRhs
+    DatatypeBind _ (Datatype _ _ _ _ constrs) -> foldMap fVarDecl constrs
+    TypeBind _ (TyVarDecl _ _ _k) tyRhs -> fType tyRhs

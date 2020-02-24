@@ -23,6 +23,7 @@ module Language.PlutusIR (
     Binding (..),
     bindingSubterms,
     bindingSubtypes,
+    bindingIds,
     Term (..),
     termSubterms,
     termSubtypes,
@@ -132,6 +133,13 @@ bindingSubtypes f = \case
     TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
     TypeBind a d ty -> TypeBind a d <$> f ty
+
+bindingIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> S.Set PLC.Unique
+bindingIds = \case
+  TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
+  DatatypeBind _ dt -> datatypeIds dt
+  TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
+
 
 -- Terms
 
