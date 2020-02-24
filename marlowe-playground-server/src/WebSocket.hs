@@ -23,8 +23,8 @@ import           Network.WebSockets              (WebSocketsData)
 import           Network.WebSockets.Connection   (Connection, PendingConnection, acceptRequest, forkPingThread,
                                                   receiveData)
 
-newtype WebSocketRequestMessage
-    = CheckForWarnings String
+data WebSocketRequestMessage
+    = CheckForWarnings String String
     deriving (Generic, ToJSON, FromJSON)
 
 data WebSocketResponseMessage

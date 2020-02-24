@@ -13,13 +13,14 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
-import Data.Array (catMaybes, delete, snoc)
+import Data.Array (catMaybes, delete, intercalate, snoc)
 import Data.Array as Array
 import Data.Either (Either(..), note)
 import Data.Function (flip)
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (_Just, assign, modifying, over, preview, use, view)
 import Data.List.NonEmpty as NEL
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -51,16 +52,16 @@ import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
-import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
+import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
 import MonadApp (haskellEditorHandleAction, class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success, isLoading, isSuccess)
-import Prelude (Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
+import Prelude (class Show, Unit, add, bind, const, discard, not, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (simulationPane)
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), Message, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), Message, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _editorPreferences, _gistUrl, _haskellEditorSlot, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _slot, _state, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 mkInitialState :: Editor.Preferences -> FrontendState
@@ -119,6 +120,46 @@ analyticsTracking action = do
   case toEvent action of
     Nothing -> pure unit
     Just event -> trackEvent event
+
+-- | Patch so that result can be read by Read in Haskell 
+showAccountsTupleForHaskell ::
+  forall k k2 v.
+  Show k =>
+  Show k2 =>
+  Show v =>
+  Tuple (Tuple k k2) v -> String
+showAccountsTupleForHaskell (Tuple (Tuple k k2) v) = "((" <> show k <> "," <> show k2 <> ")," <> show v <> ")"
+
+-- | Patch so that result can be read by Read in Haskell 
+showTupleForHaskell :: forall k v. Show k => Show v => Tuple k v -> String
+showTupleForHaskell (Tuple k v) = "(" <> show k <> "," <> show v <> ")"
+
+-- | Patch so that result can be read by Read in Haskell 
+showAccountsMapForHaskell :: forall k k2 v. Show k => Show k2 => Show v => Map (Tuple k k2) v -> String
+showAccountsMapForHaskell m = "fromList [" <> intercalate "," (map showAccountsTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
+
+-- | Patch so that result can be read by Read in Haskell 
+showMapForHaskell :: forall k v. Show k => Show v => Map k v -> String
+showMapForHaskell m = "fromList [" <> intercalate "," (map showTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
+
+-- | Patch so that result can be read by Read in Haskell 
+showStateForHaskell :: State -> String
+showStateForHaskell ( State
+    { accounts
+  , choices
+  , boundValues
+  , minSlot
+  }
+) =
+  "State {accounts = "
+    <> showAccountsMapForHaskell accounts
+    <> ", choices = "
+    <> showMapForHaskell choices
+    <> ", boundValues = "
+    <> showMapForHaskell boundValues
+    <> ", minSlot = "
+    <> show minSlot
+    <> "}"
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -380,10 +421,11 @@ handleAction SetBlocklyCode =
 
 handleAction AnalyseContract = do
   currContract <- use _currentContract
+  currState <- use (_currentMarloweState <<< _state)
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (show contract)
+      checkContractForWarnings (show contract) (showStateForHaskell currState)
       assign _analysisState Loading
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit

@@ -237,7 +237,7 @@ data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
-  deriving stock (Show)
+  deriving stock (Show,Read)
 
 
 {-| Execution environment. Contains a slot interval of a transaction.
@@ -688,8 +688,8 @@ validateInputWitness pendingTx rolesCurrency input =
 
 
 validateInputs :: MarloweParams -> PendingTx -> [Input] -> Bool
-validateInputs MarloweParams{..} pendingTx inputs =
-    all (validateInputWitness pendingTx rolesCurrency) inputs
+validateInputs MarloweParams{..} pendingTx =
+    all (validateInputWitness pendingTx rolesCurrency)
 
 
 -- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@

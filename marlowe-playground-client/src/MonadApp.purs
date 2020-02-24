@@ -80,7 +80,7 @@ class
   postContractHaskell :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
   resizeBlockly :: m (Maybe Unit)
   setBlocklyCode :: String -> m Unit
-  checkContractForWarnings :: String -> m Unit
+  checkContractForWarnings :: String -> String -> m Unit
 
 newtype HalogenApp m a
   = HalogenApp (HalogenM FrontendState HAction ChildSlots Message m a)
@@ -160,9 +160,9 @@ instance monadAppHalogenApp ::
   postContractHaskell source = runAjax $ Server.postContractHaskell source
   resizeBlockly = wrap $ query _blocklySlot unit (Resize unit)
   setBlocklyCode source = wrap $ void $ query _blocklySlot unit (SetCode source unit)
-  checkContractForWarnings contract = do
+  checkContractForWarnings contract state = do
     let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings contract
+      msgString = unsafeStringify <<< encode $ CheckForWarnings contract state
     wrap $ raise (WebsocketMessage msgString)
 
 -- I don't quite understand why but if you try to use MonadApp methods in HalogenApp methods you

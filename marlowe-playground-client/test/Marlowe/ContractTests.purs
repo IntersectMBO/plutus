@@ -70,7 +70,7 @@ instance monadAppState :: MonadApp MockApp where
   postContractHaskell _ = pure Loading
   resizeBlockly = pure Nothing
   setBlocklyCode _ = pure unit
-  checkContractForWarnings _ = pure unit
+  checkContractForWarnings _ _ = pure unit
 
 updateContractInStateImpl :: String -> MockApp Unit
 updateContractInStateImpl contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
