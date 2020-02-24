@@ -28,12 +28,13 @@ import           Control.Applicative         ((<|>))
 import           Control.Monad               (void)
 import qualified Data.ByteString.Lazy.Char8  as C
 import           IOTS                        (IotsType)
-import           Language.Plutus.Contract.Tx
+import Language.Plutus.Contract
 import qualified Language.PlutusTx           as PlutusTx
 import           Language.PlutusTx.Prelude   hiding (pure, (<$>))
-import           Ledger                      (Address, DataValue (DataValue), PendingTx, RedeemerValue (RedeemerValue),
-                                              Validator, Value, mkValidatorScript, scriptAddress)
-import           Ledger.Typed.Scripts        (wrapValidator)
+import           Ledger                      (Address, PendingTx,
+                                              Validator, Value, scriptAddress)
+import qualified Ledger.Constraints as Constraints
+import qualified Ledger.Typed.Scripts as Scripts
 import           Playground.Contract
 import qualified Prelude
 
@@ -52,26 +53,34 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
+data Game
+instance Scripts.ScriptType Game where
+    type instance RedeemerType Game = ClearString
+    type instance DataType Game = HashedString
+
+gameInstance :: Scripts.ScriptInstance Game
+gameInstance = Scripts.validator @Game
+    $$(PlutusTx.compile [|| validateGuess ||])
+    $$(PlutusTx.compile [|| wrap ||]) where
+        wrap = Scripts.wrapValidator @HashedString @ClearString
+
+-- create a data script for the guessing game by hashing the string
+-- and lifting the hash to its on-chain representation
+hashString :: String -> HashedString
+hashString = HashedString . sha2_256 . C.pack
+
+-- create a redeemer script for the guessing game by lifting the
+-- string to its on-chain representation
+clearString :: String -> ClearString
+clearString = ClearString . C.pack
+
 -- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.
 gameValidator :: Validator
-gameValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
-    where validator = wrapValidator validateGuess
-
--- create a data script for the guessing game by hashing the string
--- and lifting the hash to its on-chain representation
-gameDataScript :: String -> DataValue
-gameDataScript =
-    Ledger.DataValue . PlutusTx.toData . HashedString . sha2_256 . C.pack
-
--- create a redeemer script for the guessing game by lifting the
--- string to its on-chain representation
-gameRedeemerValue :: String -> RedeemerValue
-gameRedeemerValue =
-    Ledger.RedeemerValue . PlutusTx.toData . ClearString . C.pack
+gameValidator = Scripts.validatorScript gameInstance
 
 -- | The address of the game (the hash of its validator script)
 gameAddress :: Address
@@ -96,19 +105,17 @@ newtype GuessParams = GuessParams
 lock :: AsContractError e => Contract GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
-    let
-        dataValue = gameDataScript secret
-        tx         = payToScript amt gameAddress dataValue
-    void (submitTx tx)
+    let tx         = Constraints.mustPayToTheScript (hashString secret) amt
+    void (submitTxConstraints gameInstance tx)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
 guess :: AsContractError e => Contract GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     unspentOutputs <- utxoAt gameAddress
-    let redeemer = gameRedeemerValue theGuess
-        tx       = collectFromScript unspentOutputs gameValidator redeemer
-    void (submitTx tx)
+    let redeemer = clearString theGuess
+        tx       = collectFromScript unspentOutputs redeemer
+    void (submitTxConstraintsSpending gameInstance unspentOutputs tx)
 
 game :: AsContractError e => Contract GameSchema e ()
 game = lock <|> guess

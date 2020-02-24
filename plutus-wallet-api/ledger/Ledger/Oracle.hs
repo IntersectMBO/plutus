@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -16,10 +17,11 @@ module Ledger.Oracle(
   -- * Checking signed messages
   , SignedMessageCheckError(..)
   , checkSignature
-  , checkHashOnChain
+  , checkHashConstraints
   , checkHashOffChain
   , verifySignedMessageOffChain
   , verifySignedMessageOnChain
+  , verifySignedMessageConstraints
   -- * Signing messages
   , signMessage
   , signObservation
@@ -31,13 +33,14 @@ import           GHC.Generics              (Generic)
 import           Language.PlutusTx
 import           Language.PlutusTx.Prelude
 
+import           Ledger.Constraints        (TxConstraints)
+import qualified Ledger.Constraints        as Constraints
 import           Ledger.Crypto             (PrivateKey, PubKey (..), Signature (..))
 import qualified Ledger.Crypto             as Crypto
 import           Ledger.Scripts            (DataValue (..), DataValueHash (..))
 import qualified Ledger.Scripts            as Scripts
 import           Ledger.Slot               (Slot)
-import           Ledger.Validation         (PendingTx')
-import qualified Ledger.Validation         as V
+import           Ledger.Validation         (PendingTx)
 import           LedgerBytes
 
 import qualified Prelude                   as Haskell
@@ -56,9 +59,10 @@ import qualified Prelude                   as Haskell
 --    message 'o' as a data value. This is because we can't hash anything in
 --    on-chain code, and therefore have to rely on the node to do it for us
 --    via the pending transaction's map of data value hashes to data values.
+--    (The constraints resolution mechanism takes care of including the message)
 --  * The contract then calls 'checkSignature' to check the signature, and
---    'checkHashOnChain' to ensure that the signed hash is really the hash of
---    the data value.
+--    produces a constraint ensuring that the signed hash is really the hash
+--    of the data value.
 
 -- | A value that was observed at a specific point in time
 data Observation a = Observation
@@ -113,36 +117,53 @@ checkSignature dataValueHash pubKey signature_ =
         then Right ()
         else Left $ SignatureMismatch signature_ pubKey dataValueHash
 
-{-# INLINABLE checkHashOnChain #-}
--- | Verify the hash of a data value and extract the contents of the
---   message from the pending transaction. In off-chain code, where there is no
---   'PendingTx' value, 'checkHashOffChain' can be used instead of this.
-checkHashOnChain ::
-  ( IsData a )
-  => PendingTx' b
-  -- ^ The transaction that contains the message as a data value
-  -> SignedMessage a
-  -- ^ The signed message
-  -> Either SignedMessageCheckError a
-checkHashOnChain ptx SignedMessage{osmMessageHash, osmData=DataValue dt} = do
-    DataValue dt' <- maybe (traceH "DataValueMissing" $ Left $ DataValueMissing osmMessageHash) pure (V.findData osmMessageHash ptx)
-    unless (dt == dt') (traceH "DataNotEqualToExpected" $ Left DataNotEqualToExpected)
-    maybe (traceH "DecodingError" $ Left DecodingError) pure (fromData dt')
+{-# INLINABLE checkHashConstraints #-}
+-- | Extrat the contents of the message and produce a constraint that checks
+--   that the hash is correct. In off-chain code, where we check the hash
+--   straightforwardly, 'checkHashOffChain' can be used instead of this.
+checkHashConstraints ::
+    ( IsData a )
+    => SignedMessage a
+    -- ^ The signed message
+    -> Either SignedMessageCheckError (a, TxConstraints i o)
+checkHashConstraints SignedMessage{osmMessageHash, osmData=DataValue dt} =
+    maybe
+        (traceH "DecodingError" $ Left DecodingError)
+        (\a -> pure (a, Constraints.mustHashDataValue osmMessageHash (DataValue dt)))
+        (fromData dt)
+
+{-# INLINABLE verifySignedMessageConstraints #-}
+-- | Check the signature on a 'SignedMessage' and extract the contents of the
+--   message, producing a 'TxConstraint' value that ensures the hashes match
+--   up.
+verifySignedMessageConstraints ::
+    ( IsData a)
+    => PubKey
+    -> SignedMessage a
+    -> Either SignedMessageCheckError (a, TxConstraints i o)
+verifySignedMessageConstraints pk s@SignedMessage{osmSignature, osmMessageHash} =
+    checkSignature osmMessageHash pk osmSignature
+    >> checkHashConstraints s
 
 {-# INLINABLE verifySignedMessageOnChain #-}
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
---   message, using the pending transaction in lieu of a hash function.
+--   message, using the pending transaction in lieu of a hash function. See
+--   'verifySignedMessageConstraints' for a version that does not require a
+--   'PendingTx' value.
 verifySignedMessageOnChain ::
     ( IsData a)
-    => PendingTx' b
+    => PendingTx
     -> PubKey
     -> SignedMessage a
     -> Either SignedMessageCheckError a
-verifySignedMessageOnChain ptx pk s@SignedMessage{osmSignature, osmMessageHash} =
+verifySignedMessageOnChain ptx pk s@SignedMessage{osmSignature, osmMessageHash} = do
     checkSignature osmMessageHash pk osmSignature
-    >> checkHashOnChain ptx s
+    (a, constraints) <- checkHashConstraints s
+    unless (Constraints.checkPendingTx @() @() constraints ptx)
+        (Left $ DataValueMissing osmMessageHash)
+    pure a
 
--- | The off-chain version of 'checkHashOnChain', using the hash function
+-- | The off-chain version of 'checkHashConstraints', using the hash function
 --   directly instead of obtaining the hash from a 'PendingTx' value
 checkHashOffChain ::
     ( IsData a )

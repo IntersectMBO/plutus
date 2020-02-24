@@ -26,6 +26,7 @@ import qualified Data.Text                          as T
 import           Language.Plutus.Contract.Resumable
 import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
 import qualified Language.Plutus.Contract.Schema    as Events
+import           Ledger.Constraints.OffChain        (MkTxError)
 
 import qualified Language.PlutusTx.Applicative      as PlutusTx
 import qualified Language.PlutusTx.Functor          as PlutusTx
@@ -50,6 +51,7 @@ data ContractError =
     WalletError WalletAPIError
     | EmulatorAssertionError AssertionError
     | OtherError T.Text
+    | ConstraintResolutionError MkTxError
     deriving (Show, Eq)
 makeClassyPrisms ''ContractError
 

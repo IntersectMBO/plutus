@@ -19,9 +19,9 @@ import           Language.PlutusTx.Prelude
 import           Ledger                    (Slot, PubKey, PubKeyHash, Validator)
 import qualified Ledger                    as Ledger
 import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
 import           Ledger.Oracle             (Observation(..), SignedMessage)
 import qualified Ledger.Oracle             as Oracle
+import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), TxOut(..))
 import qualified Ledger.Validation         as Validation
 import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
@@ -83,7 +83,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         adaValueIn :: Value -> Integer
         adaValueIn v = Ada.getLovelace (Ada.fromValue v)
 
-        isPubKeyOutput :: PendingTxOut -> PubKeyHash -> Bool
+        isPubKeyOutput :: TxOut -> PubKeyHash -> Bool
         isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute
@@ -146,12 +146,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- between fixed and floating payment
 
         -- True if the output is the payment of the fixed leg.
-        ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn v <= fixedRemainder
+        ol1 :: TxOut -> Bool
+        ol1 o@(TxOut{txOutValue}) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn txOutValue <= fixedRemainder
 
         -- True if the output is the payment of the floating leg.
-        ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFloating && adaValueIn v <= floatRemainder
+        ol2 :: TxOut -> Bool
+        ol2 o@(TxOut{txOutValue}) = isPubKeyOutput o swapOwnersFloating && adaValueIn txOutValue <= floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is

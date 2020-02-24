@@ -46,6 +46,7 @@ library
         Language.Plutus.Contract.Effects.WatchAddress
         Language.Plutus.Contract.Effects.WriteTx
         Language.Plutus.Contract.Request
+        Language.Plutus.Contract.Constraints
         Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Trace
         Language.Plutus.Contract.Record

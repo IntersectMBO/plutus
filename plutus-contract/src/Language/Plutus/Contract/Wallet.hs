@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
--- | Balance  `UnbalancedTx` values using the
+-- | Turn 'UnbalancedTx' values into transactions using the
 --   wallet API.
 module Language.Plutus.Contract.Wallet(
       balanceWallet
@@ -25,13 +26,11 @@ import           Data.Maybe                  (fromMaybe)
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
 import           Data.Text.Prettyprint.Doc   (Pretty (..))
-import           Language.Plutus.Contract.Tx (UnbalancedTx)
-import qualified Language.Plutus.Contract.Tx as T
-import qualified Language.PlutusTx.Numeric   as N
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
 import qualified Ledger.AddressMap           as AM
-import           Ledger.Tx                   (Tx, TxOut, TxOutRef)
+import           Ledger.Constraints.OffChain (UnbalancedTx (..))
+import           Ledger.Tx                   (Tx (..), TxOut, TxOutRef)
 import qualified Ledger.Tx                   as Tx
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
@@ -40,14 +39,51 @@ import qualified Wallet.API                  as WAPI
 import           Wallet.Emulator             (Wallet)
 import qualified Wallet.Emulator             as E
 
+{- Note [Submitting transactions from Plutus contracts]
+
+'UnbalancedTx' is the type of transactions that meet some set of constraints
+(produced by 'Ledger.Constraints.OffChain.mkTx'), but can't be submitted to
+the ledger yet because they may not be balanced and they lack signatures and
+fee payments. To turn an 'UnbalancedTx' value into a valid transaction that can
+be submitted to the network, the contract backend needs to
+
+* Balance it.
+  If the total value of 'txInputs' + the 'txForge' field is
+  greater than the total value of 'txOutputs', then one or more public key
+  outputs need to be added. How many and what addresses they are is up
+  to the wallet (probably configurable).
+  If the total balance 'txInputs' + the 'txForge' field is less than
+  the total value of 'txOutputs', then one or more public key inputs need
+  to be added (and potentially some outputs for the change).
+
+* Compute fees.
+  Once the final size of the transaction is known, the fees for the transaction
+  can be computed. The transaction fee needs to be paid for with additional
+  inputs so I assume that this step and the previous step will be combined.
+
+  Also note that even if the 'UnbalancedTx' that we get from the contract
+  endpoint happens to be balanced already, we still need to add fees to it. So
+  we can't skip the balancing & fee computation step.
+
+  Balancing and coin selection will eventually be performed by the wallet
+  backend.
+
+* Sign it.
+  The signing process needs to provide signatures for all public key
+  inputs in the balanced transaction, and for all public keys in the
+  'unBalancedTxRequiredSignatories' field.
+
+-}
+
 -- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
---   [Unbalanced transactions].
+--   [Submitting transactions from Plutus contracts].
 balanceWallet
     :: (WAPI.MonadWallet m)
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
-    WAPI.logMsg $ "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
+    WAPI.logMsg $
+        "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- WAPI.ownPubKey
     addr <- WAPI.watchedAddresses
     let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)
@@ -86,16 +122,14 @@ balanceTx
     -> UnbalancedTx
     -- ^ The unbalanced transaction
     -> m Tx
-balanceTx utxo pk utx = do
-    let tx0 = T.toLedgerTx utx
-        tx = addMissingValueMoved pk (T.valueMoved utx) tx0
-    (neg, pos) <- Value.split <$> computeBalance tx
+balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
+    (neg, pos) <- Value.split <$> computeBalance unBalancedTxTx
 
     tx' <- if Value.isZero pos
-           then pure tx
+           then pure unBalancedTxTx
            else do
                    WAPI.logMsg $ "Adding public key output for " <> fromString (show pos)
-                   pure $ addOutputs pk pos tx
+                   pure $ addOutputs pk pos unBalancedTxTx
 
     if Value.isZero neg
     then pure tx'
@@ -131,21 +165,11 @@ addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
 
-addMissingValueMoved :: PubKey -> Value -> Tx -> Tx
-addMissingValueMoved pk vl tx =
-    let total = foldMap (view Tx.outValue) (view Tx.outputs tx)
-        -- 'missing' is everything that's in
-        -- 'vl' but not in 'total'
-        (_, missing) = Value.split (vl N.- total)
-    in if Value.isZero missing
-       then tx
-       else addOutputs pk missing tx
-
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
 handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
-    balanceWallet utx >>= addSignatures p (T.requiredSignatories utx) >>= WAPI.signTxAndSubmit
+    balanceWallet utx >>= addSignatures p (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit
 
 -- | The signing process gets a finished transaction and a list of public keys,
 --   and signs the transaction with the corresponding private keys.

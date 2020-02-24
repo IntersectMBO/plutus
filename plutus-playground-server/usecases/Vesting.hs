@@ -14,27 +14,27 @@ module Vesting where
 -- Vesting scheme as a PLC contract
 import           Control.Monad                     (void, when)
 import           Control.Monad.Except              (throwError)
-import           Data.Foldable                     (fold)
+import qualified Data.Map as Map
 import qualified Data.Text                         as T
 
 import           GHC.Generics                      (Generic)
 import           Language.Plutus.Contract          hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
+import Ledger.Constraints (TxConstraints, mustPayToTheScript, mustValidateIn, mustBeSignedBy)
 import           Language.PlutusTx.Prelude         hiding (Semigroup(..), fold)
 import           Ledger                            (Address, PubKeyHash, pubKeyHash, Slot (Slot),
-                                                    Validator, unitData)
+                                                    Validator)
 import qualified Ledger.Ada                        as Ada
-import qualified Ledger.AddressMap                 as AM
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Slot                       as Slot
+import qualified Ledger.Tx as Tx
 import qualified Ledger.Typed.Scripts              as Scripts
 import           Ledger.Validation                 (PendingTx, PendingTx' (PendingTx, pendingTxValidRange))
 import qualified Ledger.Validation                 as Validation
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import           Playground.Contract
-import qualified Prelude                           as Haskell
 import           Prelude                           (Semigroup(..))
 import           Wallet.Emulator.Types             (walletPubKey)
 
@@ -156,8 +156,8 @@ vestingContract vesting = vest <|> retrieve
             Alive -> retrieve
             Dead  -> pure ()
 
-payIntoContract :: VestingParams -> Value -> UnbalancedTx
-payIntoContract vp value = payToScript value (contractAddress vp) unitData
+payIntoContract :: Value -> TxConstraints () ()
+payIntoContract value = mustPayToTheScript () value
 
 vestFundsC
     :: ( HasWriteTx s
@@ -165,8 +165,8 @@ vestFundsC
     => VestingParams
     -> Contract s T.Text ()
 vestFundsC vesting = do
-    let tx = payIntoContract vesting (totalAmount vesting)
-    void $ submitTx tx
+    let tx = payIntoContract (totalAmount vesting)
+    void $ submitTxConstraints (scriptInstance vesting) tx
 
 data Liveness = Alive | Dead
 
@@ -179,11 +179,12 @@ retrieveFundsC
     -> Value
     -> Contract s T.Text Liveness
 retrieveFundsC vesting payment = do
-    let addr = contractAddress vesting
+    let inst = scriptInstance vesting
+        addr = Scripts.scriptAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let
-        currentlyLocked = fold (AM.values unspentOutputs)
+        currentlyLocked = foldMap (Validation.txOutValue . Tx.txOutTxOut . snd) (Map.toList unspentOutputs)
         remainingValue = currentlyLocked - payment
         mustRemainLocked = totalAmount vesting - availableAt vesting nextSlot
         maxPayment = currentlyLocked - mustRemainLocked
@@ -202,16 +203,16 @@ retrieveFundsC vesting payment = do
 
     let liveness = if remainingValue `Value.gt` mempty then Alive else Dead
         remainingOutputs = case liveness of
-                            Alive -> payIntoContract vesting remainingValue
-                            Dead  -> Haskell.mempty
-        tx = Typed.collectFromScript unspentOutputs (scriptInstance vesting) ()
+                            Alive -> payIntoContract remainingValue
+                            Dead  -> mempty
+        tx = Typed.collectFromScript unspentOutputs ()
                 <> remainingOutputs
-                <> mustBeValidIn (Interval.from nextSlot)
+                <> mustValidateIn (Interval.from nextSlot)
                 <> mustBeSignedBy (vestingOwner vesting)
                 -- we don't need to add a pubkey output for 'vestingOwner' here
                 -- because this will be done by the wallet when it balances the
                 -- transaction.
-    void $ submitTx tx
+    void $ submitTxConstraintsSpending inst unspentOutputs tx
     return liveness
 
 endpoints :: Contract VestingSchema T.Text ()

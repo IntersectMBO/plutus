@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE DataKinds        #-}
@@ -26,7 +27,7 @@ tests =
     testGroup "state machine tests"
     [ checkPredicate @GameStateMachineSchema "run a successful game trace"
         G.contract
-        (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> G.gameTokenVal)
+        (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
         /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         successTrace
@@ -35,21 +36,21 @@ tests =
         G.contract
         (walletFundsChange w2 (Ada.lovelaceValueOf 3)
         /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> G.gameTokenVal))
+        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> gameTokenVal))
         ( successTrace
-        >> payToWallet w2 w1 G.gameTokenVal 
+        >> payToWallet w2 w1 gameTokenVal 
         >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
         >> handleBlockchainEvents w1
         )
 
     , checkPredicate @GameStateMachineSchema "run a failed trace"
         G.contract
-        (walletFundsChange w2 G.gameTokenVal
+        (walletFundsChange w2 gameTokenVal
         /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         ( callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
         >> handleBlockchainEvents w1
-        >> payToWallet w1 w2 G.gameTokenVal
+        >> payToWallet w1 w2 gameTokenVal
         >> callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
         >> handleBlockchainEvents w2)
 
@@ -57,7 +58,7 @@ tests =
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
     , HUnit.testCase "script size is reasonable" 
-        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 35000)
+        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 46000)
 
     ]
 
@@ -77,6 +78,12 @@ successTrace :: MonadEmulator (TraceError e) m => ContractTrace GameStateMachine
 successTrace = do
     callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
     handleBlockchainEvents w1
-    payToWallet w1 w2 G.gameTokenVal
+    handleBlockchainEvents w1
+    payToWallet w1 w2 gameTokenVal
     callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     handleBlockchainEvents w2
+
+gameTokenVal :: Value
+gameTokenVal = 
+    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    in G.token sym "guess"
