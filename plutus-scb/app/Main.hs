@@ -7,33 +7,32 @@ module Main
     ( main
     ) where
 
-import qualified Cardano.Node.Server             as NodeServer
-import qualified Cardano.Wallet.Server           as WalletServer
-import           Control.Lens.Indexed            (itraverse_)
-import           Control.Monad                   (void)
-import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
-import qualified Data.Aeson                      as JSON
-import qualified Data.ByteString.Lazy.Char8      as BS8
-import           Data.Foldable                   (traverse_)
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import           Data.UUID                       (UUID)
-import           Data.Yaml                       (decodeFileThrow)
-import           Git                             (gitRev)
-import           Options.Applicative             (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                                  disambiguate, eitherReader, fullDesc, help, helper, idm, info,
-                                                  infoOption, long, metavar, option, optional, prefs, progDesc, short,
-                                                  showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
-                                                  subparser, value, (<|>))
-import           Options.Applicative.Help.Pretty (int, parens, pretty, (<+>))
-import           Plutus.SCB.App                  (App, runApp)
-import qualified Plutus.SCB.App                  as App
-import qualified Plutus.SCB.Core                 as Core
-import           Plutus.SCB.Types                (Config (Config), nodeServerConfig, walletServerConfig)
-import           Plutus.SCB.Utils                (logErrorS, render)
-import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
-import qualified System.Remote.Monitoring        as EKG
+import qualified Cardano.Node.Server        as NodeServer
+import qualified Cardano.Wallet.Server      as WalletServer
+import           Control.Lens.Indexed       (itraverse_)
+import           Control.Monad              (void)
+import           Control.Monad.IO.Class     (liftIO)
+import           Control.Monad.Logger       (logInfoN, runStdoutLoggingT)
+import qualified Data.Aeson                 as JSON
+import qualified Data.ByteString.Lazy.Char8 as BS8
+import           Data.Foldable              (traverse_)
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import           Data.Text.Prettyprint.Doc  (parens, pretty, (<+>))
+import           Data.UUID                  (UUID)
+import           Data.Yaml                  (decodeFileThrow)
+import           Git                        (gitRev)
+import           Options.Applicative        (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                             disambiguate, eitherReader, fullDesc, help, helper, idm, info, infoOption,
+                                             long, metavar, option, optional, prefs, progDesc, short, showHelpOnEmpty,
+                                             showHelpOnError, str, strArgument, strOption, subparser, value, (<|>))
+import           Plutus.SCB.App             (App, runApp)
+import qualified Plutus.SCB.App             as App
+import qualified Plutus.SCB.Core            as Core
+import           Plutus.SCB.Types           (Config (Config), nodeServerConfig, walletServerConfig)
+import           Plutus.SCB.Utils           (logErrorS, render)
+import           System.Exit                (ExitCode (ExitFailure), exitSuccess, exitWith)
+import qualified System.Remote.Monitoring   as EKG
 
 data Command
     = Migrate
@@ -46,6 +45,7 @@ data Command
     | ReportContractHistory UUID
     | ReportInstalledContracts
     | ReportActiveContracts
+    | ReportTxHistory
     deriving (Show, Eq)
 
 versionOption :: Parser (a -> a)
@@ -86,6 +86,7 @@ commandParser =
                             , reportInstalledContractsParser
                             , activateContractParser
                             , reportActiveContractsParser
+                            , reportTxHistoryParser
                             , updateContractParser
                             , contractStatusParser
                             , reportContractHistoryParser
@@ -164,6 +165,13 @@ reportActiveContractsParser =
         (pure ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
 
+reportTxHistoryParser :: Mod CommandFields Command
+reportTxHistoryParser =
+    command "tx" $
+    info
+        (pure ReportTxHistory)
+        (fullDesc <> progDesc "Show all submitted transactions.")
+
 updateContractParser :: Mod CommandFields Command
 updateContractParser =
     command "update" $
@@ -196,19 +204,20 @@ runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
 runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
 runCliCommand _ ReportInstalledContracts = do
     logInfoN "Installed Contracts"
-    traverse_ (logInfoN . render) =<< Core.installedContracts
-    pure ()
+    traverse_ (logInfoN . render . pretty) =<< Core.installedContracts
 runCliCommand _ ReportActiveContracts = do
     logInfoN "Active Contracts"
-    traverse_ (logInfoN . render) =<< Core.activeContracts
-    pure ()
+    traverse_ (logInfoN . render . pretty) =<< Core.activeContracts
+runCliCommand _ ReportTxHistory = do
+    logInfoN "Transaction History"
+    traverse_ (logInfoN . render . pretty) =<< Core.txHistory
 runCliCommand _ (UpdateContract uuid endpoint payload) =
     Core.updateContract uuid endpoint payload
 runCliCommand _ (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
         (\index contract ->
-             logInfoN $ render (parens (int index) <+> pretty contract)) =<<
+             logInfoN $ render (parens (pretty index) <+> pretty contract)) =<<
         Core.activeContractHistory uuid
 
 main :: IO ()

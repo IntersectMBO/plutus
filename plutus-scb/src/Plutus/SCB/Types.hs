@@ -13,10 +13,10 @@ import qualified Data.Aeson                         as Aeson
 import qualified Data.Aeson.Encode.Pretty           as JSON
 import qualified Data.ByteString.Lazy.Char8         as BS8
 import           Data.Text                          (Text)
+import           Data.Text.Prettyprint.Doc          (Pretty, indent, pretty, vsep, (<+>))
 import           Data.UUID                          (UUID)
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.Resumable (ResumableError)
-import           Options.Applicative.Help.Pretty    (Pretty, indent, pretty, string, text, vsep, (<+>))
 import           Servant.Client                     (ServantError)
 import           Wallet.API                         (WalletAPIError)
 
@@ -28,7 +28,7 @@ newtype Contract =
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty Contract where
-    pretty Contract {contractPath} = "Path:" <+> text contractPath
+    pretty Contract {contractPath} = "Path:" <+> pretty contractPath
 
 data ActiveContract =
     ActiveContract
@@ -41,8 +41,8 @@ data ActiveContract =
 instance Pretty ActiveContract where
     pretty ActiveContract {activeContractId, activeContractPath} =
         vsep
-            [ "UUID:" <+> text (show activeContractId)
-            , "Path:" <+> text activeContractPath
+            [ "UUID:" <+> pretty (show activeContractId)
+            , "Path:" <+> pretty activeContractPath
             ]
 
 data SCBError
@@ -69,9 +69,9 @@ instance Pretty PartiallyDecodedResponse where
     pretty PartiallyDecodedResponse {newState, hooks} =
         vsep
             [ "State:"
-            , indent 2 $ string $ BS8.unpack $ JSON.encodePretty newState
+            , indent 2 $ pretty $ BS8.unpack $ JSON.encodePretty newState
             , "Hooks:"
-            , indent 2 $ string $ BS8.unpack $ JSON.encodePretty hooks
+            , indent 2 $ pretty $ BS8.unpack $ JSON.encodePretty hooks
             ]
 
 data ActiveContractState =

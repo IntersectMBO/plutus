@@ -11,12 +11,13 @@ module Plutus.SCB.Utils
     , liftLocalReader
     ) where
 
-import           Control.Monad.Except            (MonadError, throwError)
-import           Control.Monad.Logger            (MonadLogger, logDebugN, logErrorN, logInfoN)
-import           Control.Monad.Reader            (MonadReader, ReaderT, asks, runReaderT)
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import           Options.Applicative.Help.Pretty (Pretty, displayS, pretty, renderPretty)
+import           Control.Monad.Except                  (MonadError, throwError)
+import           Control.Monad.Logger                  (MonadLogger, logDebugN, logErrorN, logInfoN)
+import           Control.Monad.Reader                  (MonadReader, ReaderT, asks, runReaderT)
+import           Data.Text                             (Text)
+import qualified Data.Text                             as Text
+import           Data.Text.Prettyprint.Doc             (Doc, defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 
 -- | 'unfold' in a monadic context. Invaluable for "keep doing this
 -- until it says it has no more data" operations.
@@ -41,8 +42,8 @@ logErrorS = logErrorN . tshow
 tshow :: Show a => a -> Text
 tshow = Text.pack . show
 
-render :: Pretty a => a -> Text
-render x = Text.pack $ displayS (renderPretty 0.4 80 (pretty x)) ""
+render :: Doc ann -> Text
+render = renderStrict . layoutPretty defaultLayoutOptions
 
 -- | This is a lot like the 'ExceptT' constructor, except it doesn't
 -- force you to accept a specific monad.

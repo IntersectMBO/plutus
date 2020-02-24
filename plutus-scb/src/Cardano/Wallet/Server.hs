@@ -8,6 +8,7 @@ module Cardano.Wallet.Server
     , Config(..)
     ) where
 
+import qualified Cardano.Node.Client      as NodeClient
 import           Cardano.Wallet.API       (API)
 import           Cardano.Wallet.Mock
 import           Cardano.Wallet.Types     (Config (..))
@@ -23,7 +24,7 @@ import           Plutus.SCB.Arbitrary     ()
 import           Plutus.SCB.Utils         (tshow)
 import           Servant                  ((:<|>) ((:<|>)), Application, Handler (Handler), ServantErr, hoistServer,
                                            serve)
-import           Servant.Client           (BaseUrl (baseUrlPort), mkClientEnv)
+import           Servant.Client           (BaseUrl (baseUrlPort), mkClientEnv, runClientM)
 import           Servant.Extra            (capture)
 
 ------------------------------------------------------------
@@ -59,6 +60,7 @@ main Config {baseUrl} nodeBaseUrl = do
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
             pure $ mkClientEnv nodeManager nodeBaseUrl
-    populatedState <- execStateT (syncState nodeClientEnv) initialState
+    let getBlockchain = liftIO $ runClientM NodeClient.blockchain nodeClientEnv
+    populatedState <- execStateT (syncState getBlockchain) initialState
     mVarState <- liftIO $ newMVar populatedState
     liftIO $ run port $ app mVarState

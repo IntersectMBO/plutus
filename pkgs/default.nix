@@ -55044,6 +55044,7 @@ optparse-applicative
 playground-common
 plutus-use-cases
 plutus-wallet-api
+prettyprinter
 text
 unliftio-core
 uuid
@@ -55057,6 +55058,7 @@ containers
 eventful-core
 eventful-memory
 freer-simple
+lens
 monad-logger
 mtl
 plutus-contract
@@ -55064,6 +55066,7 @@ plutus-use-cases
 plutus-wallet-api
 QuickCheck
 quickcheck-instances
+servant-client
 tasty
 tasty-hunit
 tasty-quickcheck

@@ -50,13 +50,14 @@ library
         Cardano.Node.Mock
         Cardano.Node.RandomTx
         Cardano.Node.Server
-        Cardano.Node.SimpleLog
         Cardano.Node.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
         Cardano.Wallet.Mock
         Cardano.Wallet.Server
         Cardano.Wallet.Types
+        Control.Monad.Freer.Extra.Log
+        Control.Monad.Freer.Extra.State
         Data.Time.Units.Extra
         Plutus.SCB.App
         Plutus.SCB.Arbitrary
@@ -151,6 +152,7 @@ executable plutus-scb
         playground-common -any,
         plutus-scb -any,
         plutus-wallet-api -any,
+        prettyprinter >=1.1.0.1,
         text -any,
         unliftio-core -any,
         uuid -any,
@@ -177,6 +179,7 @@ test-suite plutus-scb-test
     other-modules:
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
+        Plutus.SCB.TestApp
 
     build-depends:
         QuickCheck -any,
@@ -187,6 +190,7 @@ test-suite plutus-scb-test
         eventful-core -any,
         eventful-memory -any,
         freer-simple -any,
+        lens -any,
         monad-logger -any,
         mtl -any,
         plutus-contract -any,
@@ -194,6 +198,7 @@ test-suite plutus-scb-test
         plutus-use-cases -any,
         plutus-wallet-api -any,
         quickcheck-instances -any,
+        servant-client -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any,

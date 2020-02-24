@@ -7,24 +7,23 @@ module Cardano.Node.Server
     , MockServerConfig(..)
     ) where
 
-import           Control.Concurrent             (forkIO)
-import           Control.Concurrent.MVar        (MVar, newMVar)
-import           Control.Monad                  (void)
-import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (MonadLogger, logInfoN, runStdoutLoggingT)
-import           Data.Proxy                     (Proxy (Proxy))
-import qualified Language.Plutus.Contract.Trace as Trace
-import qualified Network.Wai.Handler.Warp       as Warp
-import           Servant                        ((:<|>) ((:<|>)), Application, hoistServer, serve)
-import           Servant.Client                 (BaseUrl (baseUrlPort))
+import           Control.Concurrent       (forkIO)
+import           Control.Concurrent.MVar  (MVar, newMVar)
+import           Control.Monad            (void)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Control.Monad.Logger     (MonadLogger, logInfoN, runStdoutLoggingT)
+import           Data.Proxy               (Proxy (Proxy))
+import qualified Network.Wai.Handler.Warp as Warp
+import           Servant                  ((:<|>) ((:<|>)), Application, hoistServer, serve)
+import           Servant.Client           (BaseUrl (baseUrlPort))
 
-import           Cardano.Node.API               (API)
+import           Cardano.Node.API         (API)
 import           Cardano.Node.Mock
-import           Cardano.Node.RandomTx          (genRandomTx)
+import           Cardano.Node.RandomTx    (genRandomTx)
 import           Cardano.Node.Types
 
-import           Plutus.SCB.Arbitrary           ()
-import           Plutus.SCB.Utils               (tshow)
+import           Plutus.SCB.Arbitrary     ()
+import           Plutus.SCB.Utils         (tshow)
 
 app :: MVar AppState -> Application
 app stateVar =
@@ -42,13 +41,7 @@ main MockServerConfig { mscBaseUrl
                       , mscBlockReaper
                       , mscSlotLength
                       } = do
-    stateVar <-
-        liftIO $
-        newMVar
-            (AppState
-                 { _chainState = initialChainState Trace.defaultDist
-                 , _eventHistory = mempty
-                 })
+    stateVar <- liftIO $ newMVar initialAppState
     logInfoN "Starting slot coordination thread."
     void $
         liftIO $

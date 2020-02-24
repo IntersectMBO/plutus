@@ -8,41 +8,38 @@
 
 module Cardano.Node.Mock where
 
-import           Control.Concurrent             (threadDelay)
-import           Control.Concurrent.MVar        (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Lens                   (over, set, view)
-import           Control.Monad                  (forever, void)
-import           Control.Monad.Freer            (Eff, Member, runM)
-import           Control.Monad.Freer.State      (State)
-import qualified Control.Monad.Freer.State      as Eff
-import           Control.Monad.Freer.Writer     (Writer)
-import qualified Control.Monad.Freer.Writer     as Eff
-import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (MonadLogger, logDebugN)
-import           Data.Foldable                  (traverse_)
-import           Data.Map                       (Map)
-import qualified Data.Map                       as Map
-import           Data.Text.Prettyprint.Doc      (Pretty (pretty))
-import           Data.Time.Units                (Second, toMicroseconds)
-import           Data.Time.Units.Extra          ()
-import           Servant                        (NoContent (NoContent))
+import           Control.Concurrent            (threadDelay)
+import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
+import           Control.Lens                  (over, set, view)
+import           Control.Monad                 (forever, void)
+import           Control.Monad.Freer           (Eff, Member, runM)
+import           Control.Monad.Freer.State     (State)
+import qualified Control.Monad.Freer.State     as Eff
+import           Control.Monad.Freer.Writer    (Writer)
+import qualified Control.Monad.Freer.Writer    as Eff
+import           Control.Monad.IO.Class        (MonadIO, liftIO)
+import           Control.Monad.Logger          (MonadLogger, logDebugN)
+import           Data.Foldable                 (traverse_)
+import           Data.Map                      (Map)
+import qualified Data.Map                      as Map
+import           Data.Text.Prettyprint.Doc     (Pretty (pretty))
+import           Data.Time.Units               (Second, toMicroseconds)
+import           Data.Time.Units.Extra         ()
+import           Servant                       (NoContent (NoContent))
 
-import           Language.Plutus.Contract.Trace (InitialDistribution)
-
-import           Ledger                         (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
+import           Ledger                        (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
 import           Cardano.Node.RandomTx
-import           Cardano.Node.SimpleLog
 import           Cardano.Node.Types
+import           Control.Monad.Freer.Extra.Log
 
-import           Plutus.SCB.Arbitrary           ()
-import           Plutus.SCB.Utils               (tshow)
+import           Plutus.SCB.Arbitrary          ()
+import           Plutus.SCB.Utils              (tshow)
 
-import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainEffect, ChainEvent, ChainState)
-import qualified Wallet.Emulator.Chain          as Chain
-import qualified Wallet.Emulator.MultiAgent     as MultiAgent
+import qualified Wallet.Emulator               as EM
+import           Wallet.Emulator.Chain         (ChainEffect, ChainEvent, ChainState)
+import qualified Wallet.Emulator.Chain         as Chain
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
@@ -50,9 +47,9 @@ healthcheck = pure NoContent
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
-addBlock :: (Member SimpleLog effs, Member ChainEffect effs) => Eff effs ()
+addBlock :: (Member Log effs, Member ChainEffect effs) => Eff effs ()
 addBlock = do
-    simpleLogInfo "Adding slot"
+    logInfo "Adding slot"
     void Chain.processBlock
 
 blockchain :: Member (State ChainState) effs => Eff effs Blockchain
@@ -75,31 +72,27 @@ consumeEventHistory stateVar =
         putMVar stateVar newState
         pure events
 
-addTx ::
-       (Member SimpleLog effs, Member ChainEffect effs)
-    => Tx
-    -> Eff effs NoContent
+addTx :: (Member Log effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
 addTx tx = do
-    simpleLogInfo $ "Adding tx " <> tshow (Ledger.txId tx)
-    simpleLogDebug $ tshow (pretty tx)
+    logInfo $ "Adding tx " <> tshow (Ledger.txId tx)
+    logDebug $ tshow (pretty tx)
     Chain.queueTx tx
     pure NoContent
 
 type NodeServerEffects m
-     = '[ GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], SimpleLog, m]
+     = '[ GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], Log, m]
 
 ------------------------------------------------------------
 runChainEffects ::
-       MonadIO m
-    => MVar AppState
-    -> Eff (NodeServerEffects m) a
-    -> m ([ChainEvent], a)
+     MVar AppState
+    -> Eff (NodeServerEffects IO) a
+    -> IO ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
     let oldChainState = view chainState oldState
-    ((a, newChainState), events) <-
+    ((a, newChainState), events) <- liftIO $
         runM $
-        runSimpleLog $
+        runStderrLog $
         Eff.runWriter $
         Eff.runState oldChainState $ Chain.handleChain $ runGenRandomTx eff
     let newState = set chainState newChainState oldState
@@ -109,10 +102,10 @@ runChainEffects stateVar eff = do
 processChainEffects ::
        (MonadIO m, MonadLogger m)
     => MVar AppState
-    -> Eff (NodeServerEffects m) a
+    -> Eff (NodeServerEffects IO) a
     -> m a
 processChainEffects stateVar eff = do
-    (events, result) <- runChainEffects stateVar eff
+    (events, result) <- liftIO $ runChainEffects stateVar eff
     traverse_ (\event -> logDebugN $ "Event: " <> tshow (pretty event)) events
     liftIO $
         modifyMVar_
@@ -148,8 +141,3 @@ blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} stateVar =
                 stateVar
                 (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
-
-initialChainState :: InitialDistribution -> ChainState
-initialChainState =
-    view EM.chainState .
-    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey

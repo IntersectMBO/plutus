@@ -7,7 +7,6 @@
 
 module Cardano.Wallet.Mock where
 
-import qualified Cardano.Node.Client            as NodeClient
 import           Cardano.Wallet.Types           (WalletId)
 import           Control.Lens                   (makeLenses, modifying, set, use, view)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
@@ -22,7 +21,7 @@ import qualified Ledger.Crypto                  as Crypto
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
 import           Servant                        (NoContent (NoContent))
-import           Servant.Client                 (ClientEnv, ServantError, runClientM)
+import           Servant.Client                 (ServantError)
 import           Test.QuickCheck                (arbitrary, generate)
 import           Wallet.Emulator.Wallet         (Wallet (Wallet))
 import qualified Wallet.Emulator.Wallet         as EM
@@ -89,11 +88,10 @@ sign bs = do
 ------------------------------------------------------------
 -- | Synchronise the initial state.
 -- At the moment, this means, "as the node for UTXOs at all our watched addresses.
-syncState :: (MonadIO m, MonadState State m) => ClientEnv -> m ()
-syncState nodeClientEnv = do
+syncState :: (MonadState State m) => m (Either ServantError Blockchain) -> m ()
+syncState nodeClient = do
     oldState <- get
-    result :: Either ServantError Blockchain <-
-        liftIO $ runClientM NodeClient.blockchain nodeClientEnv
+    result <- nodeClient
     case result of
         Left err -> error $ show err
         Right blockchain -> do

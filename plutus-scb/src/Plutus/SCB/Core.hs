@@ -17,6 +17,8 @@ module Plutus.SCB.Core
     , installedContracts
     , installedContractsProjection
     , activeContracts
+    , txHistory
+    , txHistoryProjection
     , activeContractsProjection
     , activeContractHistory
     , Connection(Connection)
@@ -52,6 +54,7 @@ import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
 import           Data.Text                                  (Text)
 import qualified Data.Text                                  as Text
+import           Data.Text.Prettyprint.Doc                  (pretty, (<+>))
 import qualified Data.UUID                                  as UUID
 import           Database.Persist.Sqlite                    (ConnectionPool, createSqlitePoolFromInfo,
                                                              mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
@@ -73,10 +76,9 @@ import qualified Language.Plutus.Contract                   as Contract
 import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
 import qualified Language.Plutus.Contract.Wallet            as Wallet
 import qualified Ledger
-import           Options.Applicative.Help.Pretty            (pretty, (<+>))
 import           Plutus.SCB.Command                         (installCommand, saveBalancedTx, saveBalancedTxResult,
                                                              saveContractState)
-import           Plutus.SCB.Events                          (ChainEvent (UserEvent),
+import           Plutus.SCB.Events                          (ChainEvent (NodeEvent, UserEvent), NodeEvent (SubmittedTx),
                                                              UserEvent (ContractStateTransition, InstallContract))
 import           Plutus.SCB.Query                           (latestContractStatus, monoidProjection, nullProjection,
                                                              setProjection)
@@ -236,10 +238,10 @@ handleOwnPubKeyHook response = do
 
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
-submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.TxId
+submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.Tx
 submitTxn txn = do
     WAPI.submitTxn txn
-    pure $ Ledger.txId txn
+    pure txn
 
 txKeyParser :: JSON.Value -> Parser [Contract.UnbalancedTx]
 txKeyParser = withObject "tx key" $ \o -> o .: "tx"
@@ -255,7 +257,7 @@ reportContractStatus ::
 reportContractStatus uuid = do
     logInfoN "Finding Contract"
     statuses <- runGlobalQuery latestContractStatus
-    logInfoN $ render $ Map.lookup uuid statuses
+    logInfoN $ render $ pretty $ Map.lookup uuid statuses
 
 lookupContract ::
        MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
@@ -320,6 +322,16 @@ activeContractsProjection = projectionMapMaybe contractPaths setProjection
     contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         Just $ activeContract state
     contractPaths _ = Nothing
+
+txHistory :: MonadEventStore ChainEvent m => m [Ledger.Tx]
+txHistory = runGlobalQuery txHistoryProjection
+
+txHistoryProjection ::
+       Projection [Ledger.Tx] (StreamEvent key position ChainEvent)
+txHistoryProjection = projectionMapMaybe submittedTxs monoidProjection
+  where
+    submittedTxs (StreamEvent _ _ (NodeEvent (SubmittedTx tx))) = Just [tx]
+    submittedTxs _                                              = Nothing
 
 activeContractHistory ::
        MonadEventStore ChainEvent m => UUID -> m [ActiveContractState]

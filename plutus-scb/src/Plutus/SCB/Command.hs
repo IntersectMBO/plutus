@@ -46,12 +46,12 @@ saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
     aggregateProjection = nullProjection
     aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
 
-saveBalancedTxResult :: Aggregate () ChainEvent Ledger.TxId
+saveBalancedTxResult :: Aggregate () ChainEvent Ledger.Tx
 saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
   where
     aggregateProjection = nullProjection
-    aggregateCommandHandler _ txId =
-        [Events.NodeEvent $ Events.SubmittedTx txId]
+    aggregateCommandHandler _ tx =
+        [Events.NodeEvent $ Events.SubmittedTx tx]
 
 saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =

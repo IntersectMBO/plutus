@@ -19,17 +19,17 @@ module Plutus.SCB.Query
     , latestContractStatus
     ) where
 
-import           Data.Map.Strict                 (Map)
-import qualified Data.Map.Strict                 as Map
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
-import           Data.UUID                       (UUID)
-import           Eventful                        (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
-                                                  VersionedStreamEvent, projectionEventHandler, projectionSeed,
-                                                  streamProjectionState)
-import           Options.Applicative.Help.Pretty (Pretty, pretty)
-import           Plutus.SCB.Events               (ChainEvent (UserEvent), UserEvent (ContractStateTransition))
-import           Plutus.SCB.Types                (ActiveContractState, activeContract, activeContractId)
+import           Data.Map.Strict           (Map)
+import qualified Data.Map.Strict           as Map
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           Data.Text.Prettyprint.Doc (Pretty, pretty)
+import           Data.UUID                 (UUID)
+import           Eventful                  (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
+                                            VersionedStreamEvent, projectionEventHandler, projectionSeed,
+                                            streamProjectionState)
+import           Plutus.SCB.Events         (ChainEvent (UserEvent), UserEvent (ContractStateTransition))
+import           Plutus.SCB.Types          (ActiveContractState, activeContract, activeContractId)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
