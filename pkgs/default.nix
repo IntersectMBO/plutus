@@ -41891,6 +41891,8 @@ license = stdenv.lib.licenses.bsd3;
 , deepseq
 , dependent-map
 , dependent-sum
+, dependent-sum-template
+, deriving-compat
 , filepath
 , happy
 , hashable
@@ -41912,6 +41914,7 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-hunit
 , template-haskell
 , text
+, th-lift
 , th-lift-instances
 , transformers
 , tuple
@@ -41937,6 +41940,8 @@ cryptonite
 deepseq
 dependent-map
 dependent-sum
+dependent-sum-template
+deriving-compat
 filepath
 hashable
 hedgehog
@@ -41954,9 +41959,9 @@ tasty
 tasty-golden
 template-haskell
 text
+th-lift
 th-lift-instances
 transformers
-tuple
 ];
 libraryToolDepends = [
 alex
@@ -41973,6 +41978,7 @@ bytestring
 containers
 filepath
 hedgehog
+lens
 mmorph
 mtl
 prettyprinter
@@ -55075,6 +55081,7 @@ license = stdenv.lib.licenses.asl20;
 , containers
 , doctest
 , language-plutus-core
+, lens
 , mtl
 , plutus-ir
 , prettyprinter
@@ -55095,6 +55102,7 @@ bytestring
 cborg
 containers
 language-plutus-core
+lens
 mtl
 plutus-ir
 prettyprinter
@@ -55164,10 +55172,12 @@ bytestring
 hedgehog
 integer-gmp
 language-plutus-core
+lens
 mtl
 plutus-ir
 plutus-tx
 prettyprinter
+serialise
 tasty
 tasty-hedgehog
 tasty-hunit
@@ -62947,20 +62957,20 @@ license = stdenv.lib.licenses.bsd3;
 , integer-gmp
 , stdenv
 , unordered-containers
-, vector
 }:
 mkDerivation {
 
 pname = "semirings";
-version = "0.2.1.1";
-sha256 = "576a5b09e8b0045e13fab04f5a53eaead69c5b0bca99e3cdfff88be90cc64868";
+version = "0.4.2";
+sha256 = "b2748b4309b780e5a4473a31ad69bed2f04ddc5d03ef099501bb260d535ccc2d";
+revision = "1";
+editedCabalFile = "1wrkcfblq3j2688xg8f1ial05sijkssmdm2rv9sw6jfxiays60vq";
 libraryHaskellDepends = [
 base
 containers
 hashable
 integer-gmp
 unordered-containers
-vector
 ];
 doHaddock = false;
 doCheck = false;
