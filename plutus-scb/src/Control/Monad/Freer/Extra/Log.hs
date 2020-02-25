@@ -5,9 +5,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Control.Monad.Freer.Extra.Log
+module Control.Monad.Freer.Extra.Log(
     -- $log
-    ( Log(..)
+      Log(..)
     , logDebug
     , logInfo
     , runStderrLog
