@@ -8,14 +8,14 @@ import           Cardano.Wallet.Types   (WalletId)
 import           Control.Lens
 import           Data.Function          ((&))
 import           Data.Proxy             (Proxy (Proxy))
-import           Ledger                 (Address, PubKey, Value, pubKeyAddress)
+import           Ledger                 (Address, PubKey, TxOutRef, Value, pubKeyAddress)
 import           Ledger.AddressMap      (AddressMap, UtxoMap, fundsAt)
 import           Servant                (NoContent)
 import           Servant.Client         (ClientM, client)
 import           Servant.Extra          (left, right)
 import           Wallet.Emulator.Wallet (Wallet)
 
-selectCoins :: WalletId -> Value -> ClientM ([Value], Value)
+selectCoins :: WalletId -> Value -> ClientM ([(TxOutRef, Value)], Value)
 allocateAddress :: WalletId -> ClientM PubKey
 getWatchedAddresses :: ClientM AddressMap
 getWallets :: ClientM [Wallet]

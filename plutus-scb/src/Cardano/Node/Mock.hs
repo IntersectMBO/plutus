@@ -21,14 +21,13 @@ import qualified Control.Monad.Freer.Writer    as Eff
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.Logger          (MonadLogger, logDebugN)
 import           Data.Foldable                 (traverse_)
-import           Data.Map                      (Map)
-import qualified Data.Map                      as Map
+import           Data.List                     (genericDrop)
 import           Data.Text.Prettyprint.Doc     (Pretty (pretty))
 import           Data.Time.Units               (Second, toMicroseconds)
 import           Data.Time.Units.Extra         ()
 import           Servant                       (NoContent (NoContent))
 
-import           Ledger                        (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
+import           Ledger                        (Block, Slot (Slot), Tx)
 import qualified Ledger
 
 import           Cardano.Node.Follower         (NodeFollowerEffect, handleNodeFollower)
@@ -54,16 +53,14 @@ addBlock = do
     logInfo "Adding slot"
     void Chain.processBlock
 
-blockchain :: Member (State ChainState) effs => Eff effs Blockchain
-blockchain = Eff.gets (view EM.chainNewestFirst)
-
-utxoAt ::
-       (Member (State ChainState) effs)
-    => Address
-    -> Eff effs (Map TxOutRef TxOut)
-utxoAt addr = do
-    UtxoIndex idx <- Eff.gets (view EM.index)
-    pure $ Map.filter (\TxOut {txOutAddress} -> txOutAddress == addr) idx
+getBlocksSince ::
+       (Member ChainEffect effs, Member (State ChainState) effs)
+    => Slot
+    -> Eff effs [Block]
+getBlocksSince (Slot slotNumber) = do
+    void Chain.processBlock
+    chainNewestFirst <- Eff.gets (view EM.chainNewestFirst)
+    pure $ genericDrop slotNumber $ reverse chainNewestFirst
 
 consumeEventHistory :: MonadIO m => MVar AppState -> m [ChainEvent]
 consumeEventHistory stateVar =
@@ -86,9 +83,7 @@ type NodeServerEffects m
 
 ------------------------------------------------------------
 runChainEffects ::
-     MVar AppState
-    -> Eff (NodeServerEffects IO) a
-    -> IO ([ChainEvent], a)
+       MVar AppState -> Eff (NodeServerEffects IO) a -> IO ([ChainEvent], a)
 runChainEffects stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
