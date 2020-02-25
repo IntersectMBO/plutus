@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Functions for computing the free (type-)variables of a PIR term or type.
 module Language.PlutusIR.Analysis.Free (fTerm, fType, fVarDecl, fBinding) where
