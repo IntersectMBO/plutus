@@ -201,6 +201,7 @@ test-suite plutus-scb-test
         plutus-scb -any,
         plutus-use-cases -any,
         plutus-wallet-api -any,
+        plutus-emulator -any,
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,
