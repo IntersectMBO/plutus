@@ -10,7 +10,7 @@ open import Data.Integer using (ℤ;-_;+≤+;-≤+;-≤-;_<_;_>_;_≤?_;_<?_;_�
 open import Data.Bool using (Bool)
 open import Data.Product
 open import Relation.Binary
-open import Data.Nat using (ℕ;_*_;z≤n;s≤s;zero;suc) 
+open import Data.Nat using (ℕ;_*_;z≤n;s≤s;zero;suc)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Function
@@ -100,8 +100,7 @@ i ≥? j = j ≤? i
 ## Type constants
 
 We have three base types referred to as type constants, integer,
-bytestring, and size, size is used to limit the size of integers and
-bytestrings
+bytestring and string.
 
 \begin{code}
 data TyCon : Set where
@@ -110,5 +109,5 @@ data TyCon : Set where
   string     : TyCon
 
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString) #-}
+{-# COMPILE GHC TyCon = data SomeIn DefaultUni (Some (In DefaultUniInteger) | Some (In DefaultUniByteString) | Some (In DefaultUniString)) #-}
 \end{code}
