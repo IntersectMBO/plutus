@@ -22,6 +22,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                             as BSL
+import           Data.Char
 import           Data.Proxy
 import qualified Data.Text                                        as Text
 import           GHC.TypeLits
@@ -73,10 +74,11 @@ instance (GShow uni, GEq uni, uni `Includes` BSL.ByteString) => KnownType uni BS
     makeKnown = mkConstant ()
     readKnown = unliftConstant
 
-instance (GShow uni, GEq uni, uni `Includes` Char) => KnownType uni Char where
-    toTypeAst _ = mkTyBuiltin @Char ()
-    makeKnown = mkConstant ()
-    readKnown = unliftConstant
+-- Encode 'Char' from Haskell as @integer@ from PLC.
+instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Char where
+    toTypeAst _ = mkTyBuiltin @Integer ()
+    makeKnown = mkConstant @Integer () . fromIntegral . ord
+    readKnown eval term = chr . fromIntegral @Integer <$> unliftConstant eval term
 
 instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
     toTypeAst _ = mkTyBuiltin @String ()

@@ -30,7 +30,7 @@ dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
 dynamicCharToStringMeaning
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Char)
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
     => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 1 1) where
     sch =
@@ -38,7 +38,7 @@ dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 
         TypeSchemeResult (Proxy @String)
 
 dynamicCharToStringDefinition
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Char)
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
     => DynamicBuiltinNameDefinition uni
 dynamicCharToStringDefinition =
     DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning

@@ -32,7 +32,7 @@ import           Control.Exception
 import           System.IO.Unsafe
 
 stringBuiltins
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Char)
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
     => DynamicBuiltinNameMeanings uni
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition

@@ -15,7 +15,7 @@ import           Control.Monad.Except
 
 getStringBuiltinTypes
     :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String, uni `Includes` Char
+       , GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String
        )
     => ann -> m (DynamicBuiltinNameTypes uni)
 getStringBuiltinTypes ann =

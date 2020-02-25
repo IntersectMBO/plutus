@@ -43,6 +43,8 @@ import qualified Language.Plutus.Contract.Tx       as Tx
 import           Language.PlutusTx.Prelude         hiding (check, Applicative (..), (<>))
 import qualified Prelude as Haskell
 
+import qualified Language.PlutusCore.Universe as PLC
+
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
 --   m people, requiring the consent of n people for any payments.
@@ -227,7 +229,7 @@ final _ = False
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ StateMachine step (check p) final
 
-validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
+validatorCode :: Params -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
 type MultiSigSym = StateMachine State Input
