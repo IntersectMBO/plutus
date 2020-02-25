@@ -108,10 +108,11 @@ data TyCon : Set where
   bytestring : TyCon
   string     : TyCon
 
-{-# FOREIGN GHC import Language.PlutusCore #-}
-{-# FOREIGN GHC type TypeBuiltin = SomeIn DefaultUni #-}
-{-# COMPILE GHC TyCon = TypeBuiltin #-}
-{-# COMPILE GHC integer    = Some (In DefaultUniInteger)    #-}
-{-# COMPILE GHC bytestring = Some (In DefaultUniByteString) #-}
-{-# COMPILE GHC string     = Some (In DefaultUniString)     #-}
+{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}               #-}
+{-# FOREIGN GHC import Language.PlutusCore                            #-}
+{-# FOREIGN GHC type TypeBuiltin = SomeIn DefaultUni                  #-}
+{-# FOREIGN GHC pattern TyInteger    = Some (In DefaultUniInteger)    #-}
+{-# FOREIGN GHC pattern TyByteString = Some (In DefaultUniByteString) #-}
+{-# FOREIGN GHC pattern TyString     = Some (In DefaultUniString)     #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString) #-}
 \end{code}

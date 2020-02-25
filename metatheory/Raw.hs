@@ -28,7 +28,10 @@ data RType = RTyVar Integer
            | RTyMu RType RType
            deriving Show
 
-type RConstant = SomeOf DefaultUni
+data RConstant = RConInt Integer
+               | RConBS BSL.ByteString
+               | RConStr T.Text
+               deriving Show
 
 data RTerm = RVar Integer
            | RTLambda RKind RTerm
@@ -61,6 +64,11 @@ convT (TyApp _ _A _B)          = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)          = RTyCon b
 convT (TyIFix _ a b)           = RTyMu (convT a) (convT b)
 
+convC :: SomeOf DefaultUni -> RConstant
+convC (Some (Of DefaultUniInteger    i)) = RConInt i
+convC (Some (Of DefaultUniByteString b)) = RConBS b
+convC (Some (Of DefaultUniString     s)) = RConStr (T.pack s)
+
 conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
 conv (Var _ x)                        =
   RVar (unIndex (dbnIndex x))
@@ -70,7 +78,7 @@ conv (LamAbs _ _ _A t)                = RLambda (convT _A) (conv t)
 conv (Apply _ t u)                    = RApp (conv t) (conv u)
 conv (Builtin _ (BuiltinName _ b))    = RBuiltin b
 conv (Builtin _ (DynBuiltinName _ b)) = undefined
-conv (Constant _ c)                   = RCon c
+conv (Constant _ c)                   = RCon (convC c)
 conv (Unwrap _ t)                     = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t)              = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)                     = RError (convT _A)
@@ -98,6 +106,11 @@ unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
 unconvT i (RTyCon c)        = TyBuiltin () c
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 
+unconvC :: RConstant -> SomeOf DefaultUni
+unconvC (RConInt i) = Some (Of DefaultUniInteger    i)
+unconvC (RConBS b)  = Some (Of DefaultUniByteString b)
+unconvC (RConStr s) = Some (Of DefaultUniString     $ T.unpack s)
+
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
 tynames = ['A' .. 'Z']
@@ -110,7 +123,7 @@ unconv tyi tmi (RTLambda k tm)   = TyAbs () (TyDeBruijn (varTy (tyi+1))) (unconv
 unconv tyi tmi (RTApp t ty)      = TyInst () (unconv tyi tmi t) (unconvT tyi ty)
 unconv tyi tmi (RLambda ty tm)   = LamAbs () (varTm (tmi+1)) (unconvT tyi ty) (unconv tyi (tmi+1) tm)
 unconv tyi tmi (RApp t u)        = Apply () (unconv tyi tmi t) (unconv tyi tmi u)
-unconv tyi tmi (RCon c)          = Constant () c
+unconv tyi tmi (RCon c)          = Constant () (unconvC c)
 unconv tyi tmi (RError ty)       = Error () (unconvT tyi ty)
 unconv tyi tmi (RBuiltin b)      = Builtin () (BuiltinName () b)
 unconv tyi tmi (RWrap tyA tyB t) = IWrap () (unconvT tyi tyA) (unconvT tyi tyB) (unconv tyi tmi t)

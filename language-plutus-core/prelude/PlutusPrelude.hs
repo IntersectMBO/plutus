@@ -132,6 +132,8 @@ import           Data.Functor.Compose
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
 
+-- | A newtype wrapper around @a@ whose point is to provide a 'Show' instance
+-- for anything that has a 'Pretty' instance.
 newtype APretty a = APretty
     { unAPretty :: a
     } deriving (Eq)
@@ -169,7 +171,7 @@ class PrettyBy config a where
     default prettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
     prettyBy = defaultPrettyBy
 
--- | A newtype wrapper around @a@ which point is to provide a 'PrettyBy config' instance
+-- | A newtype wrapper around @a@ whose point is to provide a 'PrettyBy config' instance
 -- for anything that has a 'Pretty' instance.
 newtype PrettyConfigIgnore a = PrettyConfigIgnore
     { unPrettyConfigIgnore :: a
