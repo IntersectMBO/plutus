@@ -3,23 +3,29 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module Plutus.SCB.Types where
 
-import qualified Cardano.ChainIndex.Types           as ChainIndex
-import qualified Cardano.Node.Server                as NodeServer
-import qualified Cardano.Wallet.Server              as WalletServer
-import           Data.Aeson                         (FromJSON, ToJSON)
-import qualified Data.Aeson                         as Aeson
-import qualified Data.Aeson.Encode.Pretty           as JSON
-import qualified Data.ByteString.Lazy.Char8         as BS8
-import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty, indent, pretty, vsep, (<+>))
-import           Data.UUID                          (UUID)
-import           GHC.Generics                       (Generic)
-import           Language.Plutus.Contract.Resumable (ResumableError)
-import           Servant.Client                     (ServantError)
-import           Wallet.API                         (WalletAPIError)
+import qualified Cardano.ChainIndex.Types                   as ChainIndex
+import qualified Cardano.Node.Server                        as NodeServer
+import qualified Cardano.Wallet.Server                      as WalletServer
+import           Control.Lens.TH                            (makePrisms)
+import           Data.Aeson                                 (FromJSON, ToJSON)
+import qualified Data.Aeson                                 as Aeson
+import qualified Data.Aeson.Encode.Pretty                   as JSON
+import qualified Data.ByteString.Lazy.Char8                 as BS8
+import           Data.Text                                  (Text)
+import           Data.Text.Prettyprint.Doc                  (Pretty, indent, pretty, vsep, (<+>))
+import           Data.UUID                                  (UUID)
+import qualified Data.UUID                                  as UUID
+import           GHC.Generics                               (Generic)
+import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
+import           Language.Plutus.Contract.Resumable         (ResumableError)
+import           Ledger.Address                             (Address)
+import           Ledger.Constraints                         (UnbalancedTx)
+import           Servant.Client                             (ServantError)
+import           Wallet.API                                 (WalletAPIError)
 
 newtype Contract =
     Contract
@@ -56,6 +62,12 @@ data SCBError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
     | OtherError Text
+    deriving (Show, Eq)
+
+data ContractHook
+    = UtxoAtHook Address
+    | TxHook UnbalancedTx
+    | OwnPubKeyHook OwnPubKeyRequest
     deriving (Show, Eq)
 
 data PartiallyDecodedResponse =
@@ -110,3 +122,18 @@ data Config =
         , chainIndexConfig   :: ChainIndex.ChainIndexConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
+
+data Source
+    = ContractEventSource
+    | WalletEventSource
+    | UserEventSource
+    | NodeEventSource
+    deriving (Show, Eq)
+
+toUUID :: Source -> UUID
+toUUID ContractEventSource = UUID.fromWords 0 0 0 1
+toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
+toUUID UserEventSource     = UUID.fromWords 0 0 0 3
+toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
+
+makePrisms ''SCBError

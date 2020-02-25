@@ -23,11 +23,13 @@ module Plutus.SCB.Command
     , saveBalancedTx
     , saveBalancedTxResult
     , saveContractState
+    , saveBlock
     ) where
 
 import           Eventful          (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
-import           Plutus.SCB.Events (ChainEvent (UserEvent), UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Events (ChainEvent (NodeEvent, UserEvent), NodeEvent (BlockAdded),
+                                    UserEvent (ContractStateTransition, InstallContract))
 import qualified Plutus.SCB.Events as Events
 import           Plutus.SCB.Query  (nullProjection)
 import           Plutus.SCB.Types  (ActiveContractState, Contract)
@@ -50,8 +52,7 @@ saveBalancedTxResult :: Aggregate () ChainEvent Ledger.Tx
 saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
   where
     aggregateProjection = nullProjection
-    aggregateCommandHandler _ tx =
-        [Events.NodeEvent $ Events.SubmittedTx tx]
+    aggregateCommandHandler _ tx = [Events.NodeEvent $ Events.SubmittedTx tx]
 
 saveContractState :: Aggregate () ChainEvent ActiveContractState
 saveContractState =
@@ -59,3 +60,9 @@ saveContractState =
   where
     aggregateCommandHandler _ state =
         [UserEvent $ ContractStateTransition state]
+
+saveBlock :: Aggregate () ChainEvent [Ledger.Tx]
+saveBlock =
+    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
+  where
+    aggregateCommandHandler _ state = [NodeEvent $ BlockAdded state]

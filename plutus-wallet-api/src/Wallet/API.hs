@@ -27,6 +27,7 @@ module Wallet.API(
     createTxAndSubmit,
     signTxAndSubmit,
     signTxAndSubmit_,
+    signWithOwnPublicKey,
     payToScript,
     payToScript_,
     payToPublicKey,
@@ -326,6 +327,12 @@ createTxAndSubmit range ins outs datas = do
             , txData = Map.fromList $ fmap (\ds -> (datumHash ds, ds)) datas
             }
     signTxAndSubmit $ tx { txFee = minFee tx }
+
+-- | Add the signature of the user's public key to the transaction
+signWithOwnPublicKey :: (WalletAPI m, SigningProcessAPI m) => Tx -> m Tx
+signWithOwnPublicKey t = do
+    pk <- ownPubKey
+    addSignatures [pubKeyHash pk] t
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
