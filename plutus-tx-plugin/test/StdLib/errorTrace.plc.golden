@@ -27,7 +27,7 @@
           (nonrec)
           (termbind
             (strict)
-            (vardecl charToString (fun (con char) (con string)))
+            (vardecl charToString (fun (con integer) (con string)))
             (builtin charToString)
           )
           (let
@@ -44,25 +44,27 @@
                 (rec)
                 (termbind
                   (strict)
-                  (vardecl toPlutusString (fun [List (con char)] (con string)))
+                  (vardecl
+                    toPlutusString (fun [List (con integer)] (con string))
+                  )
                   (lam
                     str
-                    [List (con char)]
+                    [List (con integer)]
                     [
                       [
                         [
                           {
-                            [ { Nil_match (con char) } str ]
+                            [ { Nil_match (con integer) } str ]
                             (fun Unit (con string))
                           }
                           (lam thunk Unit emptyString)
                         ]
                         (lam
                           c
-                          (con char)
+                          (con integer)
                           (lam
                             rest
-                            [List (con char)]
+                            [List (con integer)]
                             (lam
                               thunk
                               Unit
@@ -97,19 +99,19 @@
                     (termbind
                       (strict)
                       (vardecl
-                        traceErrorH (all a (type) (fun [List (con char)] a))
+                        traceErrorH (all a (type) (fun [List (con integer)] a))
                       )
                       (abs
                         a
                         (type)
                         (lam
                           str
-                          [List (con char)]
+                          [List (con integer)]
                           [ { error a } [ trace [ toPlutusString str ] ] ]
                         )
                       )
                     )
-                    [ { traceErrorH (con integer) } { Nil (con char) } ]
+                    [ { traceErrorH (con integer) } { Nil (con integer) } ]
                   )
                 )
               )
