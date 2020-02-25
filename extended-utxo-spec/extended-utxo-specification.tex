@@ -320,7 +320,9 @@ For two types $K$ and $V$ where $V$ is a monoid, $\FinSup{K}{V}$ denotes the typ
 function $\support : \FinSup{K}{V} \rightarrow \FinSet{K}$ such that
 $k \in \support(f) \Leftrightarrow f(k) \neq 0$.
 
-Equality on finitely-supported functions is defined as pointwise equality.
+Equality on finitely-supported functions is defined as pointwise equality. Similarly,
+if $V$ has a partial order, then a partial order on finitely-supported functions
+is also defined pointwise.
 
 If the type $M$ is a monoid then we define the sum of two finitely-supported
 functions
@@ -1054,6 +1056,9 @@ equivalent to checking pointwise equality only over the union of $\support(f)$
 and $\support(g)$; or similarly over the union of a weak support of $f$ and of
 $g$. In particular, for finitely-supported functions represented as maps, we can
 check pointwise equality over the union of their domains.
+
+The same applies to checking partial ordering pointwise, which can similarly
+be done over the union of the weak support.
 
 \note{The Basic UTXO model: Outputs and scripts.}
 \label{note:basic-utxo}
