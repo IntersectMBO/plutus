@@ -109,5 +109,6 @@ data TyCon : Set where
   string     : TyCon
 
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC TyCon = data SomeIn DefaultUni (Some (In DefaultUniInteger) | Some (In DefaultUniByteString) | Some (In DefaultUniString)) #-}
+{-# FOREIGN GHC TypeBuiltin = type SomeIn DefaultUni #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (Some (In DefaultUniInteger) | Some (In DefaultUniByteString) | Some (In DefaultUniString)) #-}
 \end{code}
