@@ -36,10 +36,10 @@ import           Language.PlutusCore.Universe
 
 import           Control.Lens
 import           Data.Hashable
-import           Data.Text                  (Text)
-import           GHC.Exts                   (Constraint)
-import           Instances.TH.Lift          ()
-import           Language.Haskell.TH.Syntax (Lift)
+import           Data.Text                    (Text)
+import           GHC.Exts                     (Constraint)
+import           Instances.TH.Lift            ()
+import           Language.Haskell.TH.Syntax   (Lift)
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
