@@ -10,7 +10,7 @@ import           Weigh
 main :: IO ()
 main = do
     ~(f, g) <- evalFiles
-    let processor :: BSL.ByteString -> Either (Error AlexPosn) (Term TyName Name ())
+    let processor :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) (Term TyName Name DefaultUni ())
         processor contents = toTerm . void <$> runQuoteT (parseScoped contents)
         f' = processor f
         g' = processor g
