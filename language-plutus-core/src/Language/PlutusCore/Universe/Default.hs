@@ -21,6 +21,10 @@ import           Data.GADT.Compare.TH
 import           Data.Text.Prettyprint.Doc
 import           Language.Haskell.TH.Syntax
 
+-- | We want to pretty-print constants of built-in types in a particular way.
+-- Ideally, that should mean that either we have a particular class for constants pretty-printing
+-- or we use a newtype to wrap the types in, so that they can be assigned a fancy 'Pretty' instance.
+-- But for now we just hardcode an instance for 'ByteString'.
 instance Pretty BSL.ByteString where
     pretty = prettyBytes
 

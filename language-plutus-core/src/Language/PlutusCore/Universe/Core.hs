@@ -228,7 +228,7 @@ We should be able to use the same strategy for every type class @X@ when a @make
 -- | A wrapper that allows to provide a 'Lift' instance for any @f@ implementing 'GLift'.
 newtype AG f a = AG (f a)
 
-$(return [])  -- Staged restriction.
+$(return [])  -- Stage restriction.
 
 -------------------- 'Show' / 'GShow'
 

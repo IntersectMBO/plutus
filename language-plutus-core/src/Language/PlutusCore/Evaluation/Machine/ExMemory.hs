@@ -111,7 +111,7 @@ instance ExMemoryUsage (Some (In uni)) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Of uni)) where
-  -- TODO this is just to match uo with existing golden tests. We probably need to account for @uni@ as well.
+  -- TODO this is just to match up with existing golden tests. We probably need to account for @uni@ as well.
   memoryUsage (Some (Of uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
 
 instance ExMemoryUsage () where
