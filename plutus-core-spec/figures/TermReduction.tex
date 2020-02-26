@@ -15,12 +15,12 @@
                        &   &     & \inWrapRightFrame{A}{B}            & \textrm{right wrap}\\
                        &   &     & \inUnwrapFrame{}                        & \textrm{unwrap}\\
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
-                       &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
-                       &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
-                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+                       &   &     & \inAppLeftFrame{M}                      & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}                     & \textrm{right application}\\
+                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin application}\\
     \end{array}\]
     \caption{Grammar of Reduction Frames}
-    \label{fig:reduction_frames}
+    \label{fig:reduction-frames}
 \end{subfigure}
 
 
@@ -55,10 +55,9 @@
     %\end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' = \error{B}\)}
+        \AxiomC{\(\step{M}{\error{B}}\)}
         \AxiomC{\(\ctxsubst{f}{M} : A\)}
-        \TrinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}

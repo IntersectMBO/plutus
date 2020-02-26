@@ -1,0 +1,66 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+%% ---------------- Term reduction ---------------- %%
+
+%% ---------------- Grammar of Reduction Frames ---------------- %%
+\begin{figure}[H]
+\begin{subfigure}[c]{\linewidth}
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}             & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}               & \textrm{right application }\\
+                       &   &     & \inBuiltinU{bn}{V^*}{\_}{M^*}     & \textrm{builtin application}\\
+                       &   &     & \inDelayFrame                     & \textrm{delay}\\
+                       &   &     & \inForceFrame                     & \textrm{force}\\
+    \end{array}\]
+    \caption{Grammar of Untyped Reduction Frames}
+    \label{fig:untyped-reduction-frames}
+\end{subfigure}
+
+
+%% ---------------- Reduction via Contextual Dynamics ---------------- %%
+
+\begin{subfigure}[c]{\linewidth}
+    \judgmentdef{\(\step{M}{M'}\)}{Term $M$ reduces in one step to term $M'$}
+
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\app{\lam{x}{A}{M}}{V}}{\subst{V}{x}{M}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins} \red{(REALLY?)}}
+        \UnaryInfC{\(\step{\builtinU{bn}{\repetition{V}}}{U}\)}
+    \end{prooftree}
+
+    %\begin{prooftree}
+    %    \AxiomC{\(\typeStep{A}{A'}\)}
+    %    \UnaryInfC{\(\step{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
+    %\end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\ctxsubst{f}{\force{\delay{M}}}}{\ctxsubst{f}{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{\errorU}\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\errorU}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' \not= \errorU\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+    \end{prooftree}
+
+    \caption{Reduction via Contextual Dynamics}
+    \label{fig:untyped-reduction}
+\end{subfigure}
+\caption{Term Reduction for Untyped Plutus Core}
+\label{fig:untyped-term-reduction}
+\end{figure}
+
+\end{document}

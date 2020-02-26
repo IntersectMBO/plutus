@@ -1,0 +1,57 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+
+\begin{figure}[H]
+\begin{subfigure}[c]{\linewidth}
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Stack} & s      & ::= & \cdot                             & \textrm{empty stack}\\
+                       &        &     & s,f                               & \textrm{stack with frame $f$ at top}\\
+        \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
+                       &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
+                       &        &     & \square V                         & \textrm{halt and return a value}\\
+                       &        &     & \ckerror{}                        & \textrm{throw an error}
+    \end{array}\]
+
+    \captionof{figure}{Grammar of Untyped CK Machine States}
+    \label{fig:untyped-ck-frames}
+\end{subfigure}
+
+
+\begin{subfigure}[c]{\linewidth}
+    \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine takes one step from state $\sigma$ to state $\sigma'$}
+
+%% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
+\hspace{-1cm}\begin{minipage}{\linewidth}
+% To stop "bn computes to ...'' going over the edge of the page
+\begin{alignat*}{2}
+        \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
+        \cksteps{\ckforward{s&}{\lamU{x}{M}}&} {&\ckbackward{s}{\lamU{x}{M}}}\\
+        \cksteps{\ckforward{s&}{\delay{M}}&} {&\ckbackward{s}{\delay{M}}}\\
+        \cksteps{\ckforward{s&}{\force{M}}&} {&\ckforward{s, \inForceFrame{}}{M}}\\
+        \cksteps{\ckforward{s&}{\appU{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}}
+        \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins} }) \ \red{(*)}\\
+       \cksteps{\ckforward{s&}{\builtinU{bn}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltinU{bn}{}{\_}{\repetition{M}}}{M}}\\
+       \cksteps{\ckforward{s&}{\errorU}&} {&\ckerror{}}\\
+       \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
+        \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
+        \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
+        \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
+        \cksteps{\ckbackward{s, \inForceFrame{}&}{\delay{M}}&} {&\ckforward{s}{M}}\\
+        \cksteps{\ckbackward{s, \inBuiltinU{bn}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}}
+          \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
+          \cksteps{\ckbackward{s, \inBuiltinU{bn}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&}
+                  {&\ckforward{s, \inBuiltinU{bn}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
+    \end{alignat*}
+\end{minipage}
+    \caption{Untyped CK Machine Transitions}
+    \label{fig:untyped-ck-transitions}
+\end{subfigure}
+\caption{Untyped CK machine}
+\label{fig:untyped-ck-machine}
+\end{figure}
+
+\end{document}

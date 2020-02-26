@@ -93,7 +93,15 @@
 \newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
 \newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
 
+%% Extra untyped terms
+\newcommand{\lamU}[2]{\construct{\keyword{lam} ~ #1 ~ #2        }}
+\newcommand{\appU}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\errorU}{\construct{\keyword{error}}}
+\newcommand{\builtinU}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
+\newcommand{\delay}[1]{\construct{\keyword{delay} ~ #1}}
+\newcommand{\force}[1]{\construct{\keyword{force} ~ #1}}
 
+\newcommand{\erase}[1]{\llbracket#1\rrbracket}
 
 %%%  Type Grammar
 
@@ -173,6 +181,11 @@
 \newcommand{\inUnwrapFrame}{\unwrap{\_}}
 \newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
 \newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
+
+% Extra frames for untyped term normalisation
+\newcommand{\inDelayFrame}{\delay{\_}}
+\newcommand{\inForceFrame}{\force{\_}}
+\newcommand{\inBuiltinU}[4]{\builtinU{#1}{#2 #3 #4}}
 
 % These are for use inside listings and $...$.  If you just use
 % \textit in listings it uses the italic tt font and the spacing
@@ -1026,6 +1039,81 @@ recursion using an \verb|ifix|-based analogue of the $Z$ combinator).
 % I was going to add the factorial function, but \verb|plc example -s
 % factorial| gives you something 399 lines long, thanks
 % to \verb|ifix|.
+
+\section{Untyped Plutus Core}
+For code transmission and on-chain execution it is important to have
+small programs.  In this section we define an untyped version of
+Plutus Core together with a type erasure function converting typed
+Plutus Core terms to untyped ones.
+
+\subfile{figures/UntypedGrammar}
+
+\subsection{Notes}
+The grammar is essentially that of typed Plutus Core with all types
+and type-related operations discarded.  However, we require two new
+items: \texttt{delay} and \texttt{force}. These are needed because
+type-level abstraction (\texttt{abs}) and application (\texttt{\{\}})
+have a computational effect.  The body of a type abstraction will not
+be executed until the type is instantiated;  thus we cannot just
+replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
+immediately.  As we will see below,  \texttt{delay} and \texttt{force}
+are used to preserve the effects of type abstraction and instantiation.
+
+\noindent{\color{red} [kwxm] The introduction of \texttt{delay}
+and \texttt{force} may be controversial since $\delay{M}$ can be
+implemented as $\lamU{u}{M}$ and $\force{M}$ as
+$\appU{M}{\lamU{x}{x}}$.  However, doing this has a cost in code size.
+Experiments show that adding \texttt{delay} and \texttt{force}
+increases the size of compressed validators by about 10\%, but using
+$\lamU{u}{M}$ and $\appU{M}{\lamU{x}{x}}$ increases sizes by about
+20\%.  A third option is to introduce a global variable $u$ of
+type \texttt{unit} and replace $\force{M}$ with $\appU{M}{u}$: this
+only increases sizes by about 12\%, but complicates specification
+because programs have to be wrapped in an expression binding $u$ (and
+maybe the CEK machine has to start with an environment binding $u$ to
+$\lamU{x}{x}$).  Another option would be to extend the grammar with a
+unit term, but then it would be tempting to add terms
+for \texttt{true}, \texttt{false}, and so on.
+
+It's possible that in actual validator code (especially after type
+normalisation), \texttt{delay} and \texttt{force} will typically appear in
+expressions of the form $\force{\delay{e}}$, which could immediately
+be replaced by $e$ alone, and then using $\lamU{x}{x}$ might not cause
+so much overhead. I'll look into this.  }
+
+\subsection{Type erasure}
+Figure~\ref{fig:type-erasure} defines a type erasure operation which
+converts a typed Plutus Core term $M$ into an untyped one
+$\erase{M}$\redfootnote{I'm not wedded to this particular notation for
+erasure, but it doesn't look too bad.}.  We extend this to sequences of
+terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
+$\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
+$P$ we use $\erase{P}$ to denote the untyped program with the same
+version whose body is the erasure of the body of $P$. The erasure operation
+preserves semantics in an appropriate sense.
+
+\subfile{figures/TypeErasure}
+
+\subsection{Term Reduction}
+Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics for untyped
+Plutus Core, analogously to Figure~\ref{fig:term-reduction}.
+
+\subfile{figures/UntypedTermReduction}
+
+\subsection{An abstract machine for evaluating Untyped Plutus Core programs}
+Figure~\ref{fig:untyped-ck-machine} describes a modified version of
+the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untype Plutus
+Core programs.
+\subfile{figures/UntypedCkMachine}
+
+\noindent\red{I don't remember exactly what's going on, but I think
+the rule marked $(*)$ is there to deal with polymorphic constants, of which
+we don't currently have any.  We already have $\con{\ldots}$ for
+built-in constants, so I'm not sure why we have zero-argument built-in
+functions.  I'll have to think about this and consult Roman about
+what's going to happen in future.  Eventually I'll either remove that rule
+(and zero-argument builtins elsewhere) or replace it with a suitable untyped
+version.}
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}

@@ -1,0 +1,31 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+\begin{minipage}{\linewidth}
+    \centering
+    \[\begin{array}{rlr}
+       \erase{x}                      &= x                            & \textrm{variable}\\
+       \erase{\con{cn}}               &= \con{cn}                     & \textrm{constant}\\
+       \erase{\abs{\alpha}{K}{M}}     &= \delay{\erase{M}}            & \textrm{type abstraction}\\
+       \erase{\inst{M}{A}}            &= \force{\erase{M}}            & \textrm{type instantiation}\\
+       \erase{\iwrap{A}{B}{M}}        &= \erase{M}                    & \textrm{fix type's wrap}\\
+       \erase{\unwrap{M}}             &= \erase{M}                    & \textrm{fix type's unwrap}\\
+       \erase{\lam{x}{A}{M}}          &= \lamU{x}{\erase{M}}          & \textrm{$\lambda$ abstraction}\\
+       \erase{\app{M}{N}}             &= \appU{\erase{M}}{\erase{N}}  & \textrm{function application}\\
+       \erase{\builtin{bn}{A^*}{M^*}} &= \builtinU{bn}{\erase{M^*}}    & \textrm{builtin}\\
+       \erase{\error{A}}              &= \errorU{}                    & \textrm{error}\\
+%       \\
+%       \erase{\con{cn}}               &= \con{cn}                     & \textrm{constant}\\
+%       \erase{\abs{\alpha}{K}{M}}     &= \delay{\erase{M}}            & \textrm{type abstraction}\\
+%       \erase{\iwrap{\alpha}{A}{V}}   &= \erase{V}                    & \textrm{fix type's wrap}\\
+%       \erase{\lam{x}{A}{M}}          &= \lamU{x}{\erase{M}}          & \textrm{$\lambda$ abstraction}\\
+       \\
+        \erase{\version{v}{M}}        &= \version{v}{\erase{M}}       & \textrm{versioned program}\\
+
+    \end{array}\]
+    \captionof{figure}{Type Erasure for Plutus Core Terms and Programs}
+    \label{fig:type-erasure}
+\end{minipage}
+
+\end{document}
