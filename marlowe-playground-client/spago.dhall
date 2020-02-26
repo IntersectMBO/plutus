@@ -35,5 +35,6 @@ You can edit this file as you like.
     , "test/**/*.purs"
     , "generated/**/*.purs"
     , "../web-common/src/**/*.purs"
+    , "../playground-common/src/**/*.purs"
     ]
 }

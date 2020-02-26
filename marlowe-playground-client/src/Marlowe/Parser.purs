@@ -7,20 +7,134 @@ import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either)
+import Data.Either (Either(..))
+import Data.Function.Uncurried (Fn5, runFn5)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
-import Prelude (bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
-import Text.Parsing.StringParser (Parser(..), fail, runParser)
+import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
+import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
 import Text.Parsing.StringParser.Combinators (between, choice, sepBy)
 import Type.Proxy (Proxy(..))
+
+type HelperFunctions a
+  = { mkHole :: String -> { row :: Pos, column :: Pos } -> Term a
+    , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
+    , mkBigInteger :: Int -> BigInteger
+    , mkClose :: Contract
+    , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> Term Slot -> Term Contract -> Contract
+    , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
+    , mkLet :: Term ValueId -> Term Value -> Term Contract -> Contract
+    , mkCase :: Term Action -> Term Contract -> Case
+    , mkBound :: Term BigInteger -> Term BigInteger -> Bound
+    , mkDeposit :: Term AccountId -> Term Party -> Term Token -> Term Value -> Action
+    , mkChoice :: Term ChoiceId -> Array (Term Bound) -> Action
+    , mkNotify :: Term Observation -> Action
+    , mkChoiceId :: Term String -> Term Party -> ChoiceId
+    , mkValueId :: String -> ValueId
+    , mkAccountId :: Term BigInteger -> Term Party -> AccountId
+    , mkToken :: Term String -> Term String -> Token
+    , mkPK :: Term String -> Party
+    , mkRole :: Term String -> Party
+    , mkAccount :: Term AccountId -> Payee
+    , mkParty :: Term Party -> Payee
+    , mkAndObs :: Term Observation -> Term Observation -> Observation
+    , mkOrObs :: Term Observation -> Term Observation -> Observation
+    , mkNotObs :: Term Observation -> Observation
+    , mkChoseSomething :: Term ChoiceId -> Observation
+    , mkValueGE :: Term Value -> Term Value -> Observation
+    , mkValueGT :: Term Value -> Term Value -> Observation
+    , mkValueLT :: Term Value -> Term Value -> Observation
+    , mkValueLE :: Term Value -> Term Value -> Observation
+    , mkValueEQ :: Term Value -> Term Value -> Observation
+    , mkTrueObs :: Observation
+    , mkFalseObs :: Observation
+    , mkAvailableMoney :: Term AccountId -> Term Token -> Value
+    , mkConstant :: Term BigInteger -> Value
+    , mkNegValue :: Term Value -> Value
+    , mkAddValue :: Term Value -> Term Value -> Value
+    , mkSubValue :: Term Value -> Term Value -> Value
+    , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
+    , mkSlotIntervalStart :: Value
+    , mkSlotIntervalEnd :: Value
+    , mkUseValue :: Term ValueId -> Value
+    }
+
+helperFunctions :: forall a. HelperFunctions a
+helperFunctions =
+  { mkHole: mkHole
+  , mkTerm: Term
+  , mkBigInteger: BigInteger.fromInt
+  , mkClose: Close
+  , mkPay: Pay
+  , mkWhen: When
+  , mkIf: If
+  , mkLet: Let
+  , mkCase: Case
+  , mkBound: Bound
+  , mkDeposit: Deposit
+  , mkChoice: Choice
+  , mkNotify: Notify
+  , mkChoiceId: ChoiceId
+  , mkValueId: ValueId
+  , mkAccountId: AccountId
+  , mkToken: Token
+  , mkPK: PK
+  , mkRole: Role
+  , mkAccount: Account
+  , mkParty: Party
+  , mkAndObs: AndObs
+  , mkOrObs: OrObs
+  , mkNotObs: NotObs
+  , mkChoseSomething: ChoseSomething
+  , mkValueGE: ValueGE
+  , mkValueGT: ValueGT
+  , mkValueLT: ValueLT
+  , mkValueLE: ValueLE
+  , mkValueEQ: ValueEQ
+  , mkTrueObs: TrueObs
+  , mkFalseObs: FalseObs
+  , mkAvailableMoney: AvailableMoney
+  , mkConstant: Constant
+  , mkNegValue: NegValue
+  , mkAddValue: AddValue
+  , mkSubValue: SubValue
+  , mkChoiceValue: ChoiceValue
+  , mkSlotIntervalStart: SlotIntervalStart
+  , mkSlotIntervalEnd: SlotIntervalEnd
+  , mkUseValue: UseValue
+  }
+
+data ContractParseError
+  = EmptyInput
+  | ContractParseError { message :: String, row :: Int, column :: Int, token :: String }
+
+derive instance genericContractParseError :: Generic ContractParseError _
+
+instance showContractParseError :: Show ContractParseError where
+  show e = genericShow e
+
+foreign import parse_ ::
+  forall a.
+  Fn5
+    (Either ContractParseError (Term Contract))
+    ({ message :: String, row :: Int, column :: Int, token :: String } -> Either ContractParseError (Term Contract))
+    (Term Contract -> Either ContractParseError (Term Contract))
+    (HelperFunctions a)
+    String
+    (Either ContractParseError (Term Contract))
+
+parseContract :: String -> Either ContractParseError (Term Contract)
+parseContract = runFn5 parse_ (Left EmptyInput) (Left <<< ContractParseError) Right helperFunctions
 
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser (parens p <|> p)
@@ -44,7 +158,8 @@ hole =
       start = suffix.pos - (length name) - 1
 
       end = suffix.pos
-    pure { result: Hole name Proxy start end, suffix }
+    -- FIXME: this position info is incorrect
+    pure { result: Hole name Proxy { row: start, column: end }, suffix }
   where
   nameChars = alphaNum <|> char '_'
 
@@ -56,7 +171,8 @@ term' (Parser p) =
       start = pos
 
       end = suffix.pos
-    pure { result: Term result start end, suffix }
+    -- FIXME: this position info is incorrect
+    pure { result: Term result { row: start, column: end }, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)

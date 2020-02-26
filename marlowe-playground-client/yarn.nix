@@ -1586,6 +1586,14 @@
       };
     }
     {
+      name = "discontinuous_range___discontinuous_range_1.0.0.tgz";
+      path = fetchurl {
+        name = "discontinuous_range___discontinuous_range_1.0.0.tgz";
+        url  = "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz";
+        sha1 = "e38331f0844bba49b9a9cb71c771585aab1bc65a";
+      };
+    }
+    {
       name = "dns_equal___dns_equal_1.0.0.tgz";
       path = fetchurl {
         name = "dns_equal___dns_equal_1.0.0.tgz";
@@ -3682,6 +3690,14 @@
       };
     }
     {
+      name = "moo___moo_0.5.1.tgz";
+      path = fetchurl {
+        name = "moo___moo_0.5.1.tgz";
+        url  = "https://registry.yarnpkg.com/moo/-/moo-0.5.1.tgz";
+        sha1 = "7aae7f384b9b09f620b6abf6f74ebbcd1b65dbc4";
+      };
+    }
+    {
       name = "move_concurrently___move_concurrently_1.0.1.tgz";
       path = fetchurl {
         name = "move_concurrently___move_concurrently_1.0.1.tgz";
@@ -3751,6 +3767,22 @@
         name = "nanomatch___nanomatch_1.2.13.tgz";
         url  = "https://registry.yarnpkg.com/nanomatch/-/nanomatch-1.2.13.tgz";
         sha1 = "b87a8aa4fc0de8fe6be88895b38983ff265bd119";
+      };
+    }
+    {
+      name = "https___github.com_shmish111_nearley_webpack_loader_archive_master.tar.gz";
+      path = fetchurl {
+        name = "https___github.com_shmish111_nearley_webpack_loader_archive_master.tar.gz";
+        url  = "https://github.com/shmish111/nearley-webpack-loader/archive/master.tar.gz";
+        sha1 = "f7e80853852229971ae0ded75cdae2a078908529";
+      };
+    }
+    {
+      name = "nearley___nearley_2.19.1.tgz";
+      path = fetchurl {
+        name = "nearley___nearley_2.19.1.tgz";
+        url  = "https://registry.yarnpkg.com/nearley/-/nearley-2.19.1.tgz";
+        sha1 = "4af4006e16645ff800e9f993c3af039857d9dbdc";
       };
     }
     {
@@ -4658,6 +4690,22 @@
       };
     }
     {
+      name = "railroad_diagrams___railroad_diagrams_1.0.0.tgz";
+      path = fetchurl {
+        name = "railroad_diagrams___railroad_diagrams_1.0.0.tgz";
+        url  = "https://registry.yarnpkg.com/railroad-diagrams/-/railroad-diagrams-1.0.0.tgz";
+        sha1 = "eb7e6267548ddedfb899c1b90e57374559cddb7e";
+      };
+    }
+    {
+      name = "randexp___randexp_0.4.6.tgz";
+      path = fetchurl {
+        name = "randexp___randexp_0.4.6.tgz";
+        url  = "https://registry.yarnpkg.com/randexp/-/randexp-0.4.6.tgz";
+        sha1 = "e986ad5e5e31dae13ddd6f7b3019aa7c87f60ca3";
+      };
+    }
+    {
       name = "randombytes___randombytes_2.1.0.tgz";
       path = fetchurl {
         name = "randombytes___randombytes_2.1.0.tgz";
@@ -5063,6 +5111,14 @@
         name = "semver___semver_5.6.0.tgz";
         url  = "https://registry.yarnpkg.com/semver/-/semver-5.6.0.tgz";
         sha1 = "7e74256fbaa49c75aa7c7a205cc22799cac80004";
+      };
+    }
+    {
+      name = "semver___semver_5.7.1.tgz";
+      path = fetchurl {
+        name = "semver___semver_5.7.1.tgz";
+        url  = "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz";
+        sha1 = "a954f931aeba508d307bbf069eff0c01c96116f7";
       };
     }
     {
@@ -6039,6 +6095,14 @@
         name = "webpack_log___webpack_log_2.0.0.tgz";
         url  = "https://registry.yarnpkg.com/webpack-log/-/webpack-log-2.0.0.tgz";
         sha1 = "5b7928e0637593f119d32f6227c1e0ac31e1b47f";
+      };
+    }
+    {
+      name = "webpack_node_externals___webpack_node_externals_1.7.2.tgz";
+      path = fetchurl {
+        name = "webpack_node_externals___webpack_node_externals_1.7.2.tgz";
+        url  = "https://registry.yarnpkg.com/webpack-node-externals/-/webpack-node-externals-1.7.2.tgz";
+        sha1 = "6e1ee79ac67c070402ba700ef033a9b8d52ac4e3";
       };
     }
     {

@@ -10,7 +10,7 @@ import Auth (AuthStatus)
 import Control.Monad.Except (class MonadTrans, ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State (class MonadState)
-import Data.Array (fold, fromFoldable)
+import Data.Array (fold, fromFoldable, take)
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -24,6 +24,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as Set
+import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -40,14 +41,13 @@ import Marlowe as Server
 import Marlowe.Holes (Holes(..), MarloweHole(..), fromTerm)
 import Marlowe.Linter (Position, lint)
 import Marlowe.Linter as L
-import Marlowe.Parser (parseTerm, contract)
+import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Party(..), PubKey, SlotInterval(..), TransactionInput(..), TransactionOutput(..), computeTransaction, extractRequiredActionsWithTxs, moneyInContract)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
-import Text.Parsing.StringParser (ParseError, Pos)
-import Text.Parsing.StringParser.Basic (posToRowAndColumn, runParser')
+import Text.Parsing.StringParser.Basic (lines)
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, Message(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
@@ -122,11 +122,14 @@ instance monadAppHalogenApp ::
   marloweEditorGetValue = withMarloweEditor $ liftEffect <<< AceEditor.getValue
   marloweEditorHandleAction action = void $ withMarloweEditor (Editor.handleAction marloweBufferLocalStorageKey action)
   marloweEditorSetAnnotations annotations =
-    void
-      $ withMarloweEditor \editor ->
-          liftEffect do
-            session <- AceEditor.getSession editor
-            Session.setAnnotations annotations session
+    let
+      changeIndex { column, row, text, "type": t } = { column, row: row - 1, text, "type": t }
+    in
+      void
+        $ withMarloweEditor \editor ->
+            liftEffect do
+              session <- AceEditor.getSession editor
+              Session.setAnnotations (map changeIndex annotations) session
   marloweEditorMoveCursorToPosition (Ace.Position { column, row }) = do
     void $ withMarloweEditor $ liftEffect <<< AceEditor.focus
     void $ withMarloweEditor $ liftEffect <<< AceEditor.navigateTo (row - 1) (column - 1)
@@ -228,7 +231,7 @@ withMarloweEditor ::
 withMarloweEditor = HalogenApp <<< Editor.withEditor _marloweEditorSlot unit
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = case runParser' (parseTerm contract) text of
+updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
     let
       lintResult = lint parsedContract
@@ -258,25 +261,17 @@ updateContractInStateP text state = case runParser' (parseTerm contract) text of
   Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
 
 warningToAnnotation :: String -> String -> Position -> Annotation
-warningToAnnotation str text { start, end } =
-  let
-    { column, row } = posToRowAndColumn str start
-  in
-    { column, row, text, "type": "warning" }
+warningToAnnotation str text { row, column } = { column, row, text, "type": "warning" }
 
 holeToAnnotation :: String -> MarloweHole -> Annotation
-holeToAnnotation str (MarloweHole { name, marloweType, start }) =
-  let
-    { column, row } = posToRowAndColumn str start
-  in
-    { column, row, text: "Found hole ?" <> name, "type": "warning" }
+holeToAnnotation str (MarloweHole { name, marloweType, row, column }) = { column, row, text: "Found hole ?" <> name, "type": "warning" }
 
-errorToAnnotation :: String -> { error :: ParseError, pos :: Pos } -> Annotation
-errorToAnnotation str { error, pos } =
-  let
-    { column, row } = posToRowAndColumn str pos
+errorToAnnotation :: String -> ContractParseError -> Annotation
+errorToAnnotation str EmptyInput = { column: 0, row: 0, text: "No input provided", "type": "error" }
 
-    msg = show error
+errorToAnnotation str (ContractParseError { row, column, message, token }) =
+  let
+    msg = unlines $ take 4 $ lines message
   in
     { column, row, text: msg, "type": "error" }
 

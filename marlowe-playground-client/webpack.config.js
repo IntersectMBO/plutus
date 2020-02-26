@@ -10,14 +10,14 @@ const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-
 const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
-      isWebpackDevServer || !isWatch ? [] : [
-          function(){
-              this.plugin('done', function(stats){
-                  process.stderr.write(stats.toString('errors-only'));
-              });
-          }
-      ]
-;
+    isWebpackDevServer || !isWatch ? [] : [
+        function () {
+            this.plugin('done', function (stats) {
+                process.stderr.write(stats.toString('errors-only'));
+            });
+        }
+    ]
+    ;
 
 module.exports = {
     devtool: 'eval-source-map',
@@ -46,6 +46,13 @@ module.exports = {
         rules: [
             { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=10000&mimetype=application/font-woff" },
             { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
+            {
+                test: /\.ne$/,
+                loader: 'nearley-webpack-loader',
+                options: {
+                    baseDir: '.'
+                }
+            },
             {
                 test: /\.purs$/,
                 use: [
@@ -88,7 +95,17 @@ module.exports = {
         modules: [
             'node_modules'
         ],
-        extensions: [ '.purs', '.js']
+        alias: {
+            grammar: path.resolve(__dirname, './grammar.ne')
+        },
+        extensions: ['.purs', '.js']
+    },
+
+    resolveLoader: {
+        modules: [
+            'node_modules',
+            path.resolve(__dirname, '.')
+        ]
     },
 
     plugins: [

@@ -155,31 +155,31 @@ displayHole selectedHole name holes =
 holeDropdowns :: forall p. Array MarloweHole -> Array (HTML p HAction)
 holeDropdowns holes = case Array.uncons holes of
   Nothing -> mempty
-  Just { head: (MarloweHole { marloweType: BigIntegerType, end }) } ->
+  Just { head: (MarloweHole { marloweType: BigIntegerType, row, column }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition row column
         ]
         [ text "Replace the hole with an integer" ]
     ]
-  Just { head: (MarloweHole { marloweType: StringType, end }) } ->
+  Just { head: (MarloweHole { marloweType: StringType, row, column }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition row column
         ]
         [ text "Replace the hole with a string" ]
     ]
-  Just { head: (MarloweHole { marloweType: ValueIdType, end }) } ->
+  Just { head: (MarloweHole { marloweType: ValueIdType, row, column }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition row column
         ]
         [ text "Replace the hole with a string" ]
     ]
-  Just { head: (MarloweHole { marloweType: SlotType, end }) } ->
+  Just { head: (MarloweHole { marloweType: SlotType, row, column }) } ->
     [ div
         [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition end
+        , onClick $ const $ Just $ MarloweMoveToPosition row column
         ]
         [ text "Replace the hole with an integer" ]
     ]

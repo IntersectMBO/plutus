@@ -50,7 +50,7 @@ data HAction
   = MarloweHandleEditorMessage AceMessage
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
-  | MarloweMoveToPosition Pos
+  | MarloweMoveToPosition Pos Pos
   | HaskellEditorAction Editor.Action
   -- Gist support.
   | CheckAuthStatus
