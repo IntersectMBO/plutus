@@ -27,7 +27,7 @@ module Ledger.Typed.Scripts(
     , Any
     ) where
 
-import qualified Language.PlutusCore       as PLC
+import qualified Language.PlutusCore             as PLC
 
 import           Language.PlutusTx
 
