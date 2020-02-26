@@ -1,8 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import           Language.PlutusIR
@@ -22,7 +19,6 @@ import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
 
 import           Data.Foldable                           (fold)
-import           Data.Function                           (on)
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
@@ -30,27 +26,30 @@ import qualified Data.Set                                as S
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
-data Rank = LamDep { _depth :: Int, _name :: PLC.Unique }
-          deriving Eq
-makeLenses ''Rank
+data Rank = Top
+          | LamDep Int PLC.Unique
 
--- TODO: Getter for Top
---
+depth :: Getting r Rank Int
+depth  = to $ \case
+  Top -> 0
+  LamDep d _ -> d
 
-instance Ord Rank where
-  compare = compare `on` _depth
+name :: Getting r Rank PLC.Unique
+name  = to $ \case
+  LamDep _ n -> n
+  _ -> PLC.Unique {PLC.unUnique = -1} -- error  "partial: Top does not have name"
 
--- acts as Data.Semigroup.Max
+-- acts like a Data.Semigroup.Max
 instance Semigroup Rank where
-  r1 <> r2 = max r1 r2
+  r1 <> r2 = case compare (r1^.depth) (r2^.depth) of
+               GT -> r1
+               _ -> r2
 
 instance Monoid Rank where
-  mempty = LamDep { _depth = 0                              -- depth starts counting from 0
-                  , _name = PLC.Unique { PLC.unUnique = -1} -- dummy name
-                  }
+  mempty = Top
 
 -- | During the first pass of the AST, a reader context holds the current in-scope stack of lambdas, as "potential ranks" for consideration.
-type Ctx' = (RankData, Int) -- the enclosing lambdas in scope that surround a let
+type Ctx = (RankData, Int) -- the enclosing lambdas in scope that surround a let
 
 -- | During the first pass of the AST, we accumulate into a state the minimum rank of each lets encountered.
 type RankData = M.Map
@@ -60,10 +59,10 @@ type RankData = M.Map
                  )
 
 -- | During the second pass of the AST, we transform the 'RankData' to an assoc. list of depth=>lambda=>{let_unique} mappings left to process. This assoc. list is sorted by depth for easier code generation.
-type DepthData = IM.IntMap         -- ^ the depth
+type DepthData = IM.IntMap -- ^ the depth (starting from 0, which is Top)
                     (M.Map       -- ^ a mapping of lambdanames belonging to this depth => letidentifiers to float
-                      PLC.Unique    -- ^ a lambda name
-                      (S.Set PLC.Unique)  -- ^ the let bindings that should be floated/placed under this lambda
+                      PLC.Unique    -- ^ a lambda name or Top's name (i.e. Unique(-1))
+                      (S.Set PLC.Unique) -- ^ the let bindings that should be floated/placed under this lambda
                     )
 
 -- | A simple table holding a let-introduced identifier to its RHS.
@@ -106,7 +105,7 @@ p1Term pir = runReader (goTerm pir) (M.empty, 0)
   where
 
     goTerm :: Term tyname name a
-        -> Reader Ctx' RankData
+        -> Reader Ctx RankData
     goTerm = \case
       LamAbs _ n _ tBody  -> goBody n tBody
       TyAbs _ n _ tBody   -> goBody n tBody
@@ -123,22 +122,20 @@ p1Term pir = runReader (goTerm pir) (M.empty, 0)
       -- "ground" terms (terms that do not contain other terms)
       _ -> asks fst -- propagate the ctx's rankdata back upwards as the return value
 
-    goBody :: PLC.HasUnique b b' => b -> Term tyname name a -> Reader Ctx' RankData
+    goBody :: PLC.HasUnique b b' => b -> Term tyname name a -> Reader Ctx RankData
     goBody n tBody =
       let lamName= n^.PLC.unique.coerced
       in M.delete lamName -- we don't care about lambdas in RankData
          <$> (local (\ (rd,depth1) ->
                         let newDepth = depth1+1
-                            newRank = LamDep { _depth = newDepth
-                                             , _name = n^.PLC.unique.coerced
-                                             }
+                            newRank = LamDep newDepth lamName
                         in (M.insert lamName (newRank,lamName) rd, newDepth)
                     ) $ goTerm tBody)
 
     goLet :: Recursivity
           -> [Binding tyname name a]
           -> Term tyname name a
-          -> Reader Ctx' RankData
+          -> Reader Ctx RankData
     goLet NonRec [] tIn = goTerm tIn
     goLet NonRec (b:bs) tIn = do
       (scope, _) <- ask
@@ -184,11 +181,11 @@ floatTerm pir = floatBody mempty depthData pirClean
       t -> over termSubterms (visitTerm curRank remInfo) t -- descend
     where
       floatAbs :: PLC.HasUnique b _c => b -> Term tyname name a -> Term tyname name a
-      floatAbs n tBody = floatBody (depth+~1 $ name.~(n ^. PLC.unique . coerced) $ curRank) remInfo tBody
-
+      floatAbs n tBody =
+        let newRank = LamDep (curRank^.depth+1) (n ^. PLC.unique . coerced)
+        in floatBody newRank remInfo tBody
 
   -- Special case of 'visitTerm' where we visit a lambda or a Lambda body
-  -- TODO: maybe change this to IntMap.foldl
   floatBody _  [] tBody = tBody -- no lets are left to float, do not descend
   floatBody curRank depthTable@((searchingForDepth, lams_lets):restDepthTable) tBody
     | curRank^.depth < searchingForDepth = visitTerm curRank depthTable tBody
@@ -199,12 +196,10 @@ floatTerm pir = floatBody mempty depthData pirClean
              _         -> tBody'
     | otherwise = error "just for completion"
 
-  -- TODO: we can transform easily the above visits to a Reader CurDepth
   -- TODO: using the above pure/local way has the disadvantage that we visit a bit more than we need. To fix this we can use State DepthDataRemaining instead.
 
-
   (pirClean :: Term tyname name a,
-   letTable :: RhsTable tyname name a) = removeLets pir
+   rhsTable :: RhsTable tyname name a) = removeLets pir
 
   -- the dependency graph (as the one used by the deadcode elimination)
   -- but w/ot root node and only uses the name of the var (PLC.Unique) as the node id
@@ -219,7 +214,7 @@ floatTerm pir = floatBody mempty depthData pirClean
                               case b of
                                 DatatypeBind _ dt -> let princ = bindingUnique b
                                                      in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph $ datatypeIds dt
-                                _ -> accGraph) depGraph letTable
+                                _ -> accGraph) depGraph rhsTable
 
   -- take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
@@ -242,8 +237,8 @@ floatTerm pir = floatBody mempty depthData pirClean
              let vs = AMN.vertexSet dcc
              in if vs `S.isSubsetOf` lets -- mandatory check to see if this scc belongs to this rank
                 then
-                  let newBindings = fmap (\ v -> over bindingSubterms (visitTerm curRank restDepthTable) ((letTable M.! v)^._3)) $ S.toList vs
-                      (mAnn, mRecurs) = foldMap (\ v -> let b = letTable M.! v in (b^._1,b^._2)) vs
+                  let newBindings = fmap (\ v -> over bindingSubterms (visitTerm curRank restDepthTable) ((rhsTable M.! v)^._3)) $ S.toList vs
+                      (mAnn, mRecurs) = foldMap (\ v -> let b = rhsTable M.! v in (b^._1,b^._2)) vs
                   in case acc of
                        Let accAnn NonRec accBs accIn | mRecurs == NonRec ->
                          -- merge current let-group with previous let-group if both groups' recursivity is nonrec
@@ -260,12 +255,12 @@ floatTerm pir = floatBody mempty depthData pirClean
 ----------
 
 toDepthData :: RankData -> DepthData
-toDepthData = M.foldr (\ (LamDep lamDepth lamName, letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) lamDepth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
+toDepthData = M.foldr (\ (dep, letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) (dep^.depth) (M.singleton (dep^.name) (S.singleton letNamePrinc)) acc) IM.empty
 
 -- | Returns a single 'Unique' for a particular binding.
 -- We need this because datatypebinds introduce multiple identifiers, but we need only one as a key of our 'RhsTable',etc. See also: 'datatypeIdentifiers'
 --
--- TODO: maybe remove this boilerplate by having a lens "unique" for a Binding
+-- TODO: Getter for a lens "unique" for a Binding
 bindingUnique :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> PLC.Unique
 bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
