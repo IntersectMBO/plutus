@@ -29,76 +29,154 @@ of the contract.  By modifying the testing code slightly I was able to
 insert code to carry out Merklisation experiments on applied
 validators.
 
-### Methodology
+#### Basic Validator Sizes
+For reference, the table below shows the sizes of the on-chain validators for the 
+various Plutus sample contracts and also for the Marlowe interpreter (which is implemented 
+as a single Plutus contract).  For each contract, the table shows 
+   * The size of the serialised version of the full AST in its original form
+   * The size of the serialised version of the minimised typed AST
+   * The size of the serialised version of the minimised type-erased AST
+
+Here "minimised" means that the names in the AST have been replaced with integer de Bruijn indices. 
+
+The sizes of the full AST differ from those shown in earlier documents.  There are (at least) four reasons for this.
+   * Recall that every node in the AST contains an annotation field, which is the Haskell unit value
+     at the point when validators are ready for transmission to the chain.  In some of the earlier
+     experiments, these were included in the serialisation, adding and extra byte for every 
+     node (both terms and types) in the AST.  Unit annotations have been omitted from all of the
+     serialised ASTs here.
+   * For the purposes of the earlier experiments I exported validator code from 
+     each contract.  The exported validator code wasn't always exactly the same 
+     as the validator in the contract (sometimes parameters are required to construct 
+     the actual validator which aren't statically available in the contract).
+   * The validator has to be extended to include extra code, for example for 
+     decoding `Data` objects.
+   * Types are normalised in on-chain code.  It looks as if this typically 
+     _reduces_ the size of the code, mainly because type instantiations are 
+     removed (type variables are replaced with actual types in the bodies of abstractions).
+
+Some of the contracts below have multiple validators.  This is because the tests sometimes
+involve multiple transactions.  Repeated transactions (eg, pay to a public key) have been
+removed, but validators of different sizes for a single test have been retained.
+
+| Contract | Compression | Full AST | Typed, minimised | Untyped, minimised |
+| :------- | :---------- | -------: | ---------------: | -----------------: |
+| Crowdfunding | Uncompressed | 165312 | 53091 | 13489 | 
+| | Compressed | 33243 | 12788 | 3591 | 
+| Currency | Uncompressed | 122942 | 40909 | 10822 | 
+| | Compressed | 24677 | 10831 | 3033 | 
+| Escrow | Uncompressed | 173698 | 55570 | 14654 | 
+| | Compressed | 33452 | 13565 | 4005 | 
+| Future (1) | Uncompressed | 122930 | 40897 | 10810 | 
+| | Compressed | 24668 | 10814 | 3018 | 
+| Future (2) | Uncompressed | 174401 | 55840 | 14840 | 
+| | Compressed | 33606 | 13739 | 4167 | 
+| Future (3) | Uncompressed | 249530 | 83850 | 22849 | 
+| | Compressed | 47798 | 20633 | 5974 | 
+| Game | Uncompressed | 78864 | 24069 | 6624 | 
+| | Compressed | 15043 | 7457 | 2111 | 
+| Game state machine | Uncompressed | 171856 | 58452 | 16527 | 
+| | Compressed | 33994 | 14280 | 4160 | 
+| Multisig | Uncompressed | 92399 | 28749 | 8411 | 
+| | Compressed | 18528 | 8681 | 2749 | 
+| Multisig state machine | Uncompressed | 238219 | 81118 | 23385 | 
+| | Compressed | 47516 | 20692 | 6176 | 
+| Pubkey | Uncompressed | 84645 | 26496 | 7608 | 
+| | Compressed | 16595 | 8106 | 2426 | 
+| Token account (1) | Uncompressed | 122847 | 40869 | 10797 | 
+| | Compressed | 24666 | 10811 | 3016 | 
+| Token account (2) | Uncompressed | 134609 | 43786 | 9920 | 
+| | Compressed | 27513 | 10426 | 2698 | 
+| Vesting | Uncompressed | 172463 | 55413 | 13851 | 
+| | Compressed | 34236 | 13131 | 3672 | 
+| Marlowe interpreter | Uncompressed | 409249 | 122402 | 36328 | 
+| | Compressed | 73825 | 28247 | 9360 | 
+
+
+### Merklisation
+
+This section includes figures for Merklised versions of the above validators, 
+based on actual executions of the Plutus and Marlowe contract tests.  These 
+execute multiple contract scenarios, which typically lead to different 
+execution paths in the validators (eg, the crowdfunding example has a test
+in which the target is met and the donations are collected by the organiser,
+and another in which the target is not met and the donations are reclaimed 
+by the donors; other properties are checked as well, including not being able to collect
+too early or too late).  The figures which occur later are all for ASTs from which types
+have been erased because the results in [Merklisation-notes.md](./Merklisation-notes.md)
+(and other experimental results
+which have not been included here) show that Merklising types always leads to validators 
+which are substantially larger than type-erased ones.  
+
+#### Methodology
 
 To perform Merklisation based on execution paths, I used a modified
 version of the CEK machine which executes a Plutus Core program and
-records which AST nodes are evaluated; a subsequent phase traverses
-the AST and uses this information to replace unused nodes with their
-Merkle hashes (using a new AST node type called `Prune` which contains
-the hash of the deleted subtree).
+records which AST nodes are evaluated.  This was used to execute the 
+_applied_ validators in the use-case tests, and the information obtained was 
+used to replace unused nodes in the AST of the _unapplied_ validator
+with their Merkle hashes (using a new AST node type called `Prune` 
+which contains the hash of the deleted subtree).  This strategy 
+reflects what would happen in practice: a (deterministic) validator
+would be applied to its expected arguments and evaluated off-chain 
+to determine which parts of the AST are actually required, and 
+then a Merklised version of the validator would be transmitted for
+on-chain evaluation.
 
-### Validator sizes
+#### Merklisation thresholds
+Experimentation showed that Merklising every unused term was a bad idea.
+Merklised types and terms take up 34 bytes when serialised (two header bytes
+and a 32-byte hash), and so Merklising everything can increase the size 
+of the validator substantially (increasing the size of the uncompressed serialised validator 
+by 20-100% and the size of the compressed version by 100-240%).  
+I carried out some experiments where only nodes whose serialised size 
+would be greater than a given threshold were
+Merklised, and varied the threshold to see which size gave a maximal reduction
+in serialised sizes.  I did this for every transaction in every test (both Plutus and Marlowe).
 
-The sizes of the validators that we'll see later differ from the sizes
-seen in other documents.  There are two reason for this:
+Graphs of the results for one validation of the Plutus escrow contract and one validation of the 
+Marlowe zero coupon contract are shown below.  All of the other results showed a broadly similar pattern
+(but note the differing horizontal scales here).
 
-   * The size of the applied validator includes the sizes of its arguments, 
-     and these can be quite large. For the sample contracts the sizes are 
-     typically as follows:
-      * Data value:  2200-2400 nodes, 27-30 kilobytes in serialised form
-      * Redeemer: similar to the data value
-      * `PendingTx`: 2800-36000 nodes, 36-46 kilobytes 
-   * Even before validation, the size of the validator changes, so caution 
-     is required when comparing the results reported here with results in 
-     other documents.   For example, the off-chain validator for the Game 
-     example has 13273 nodes and is 90960 bytes long when serialised, but 
-     the on-chain validator has 13779 nodes and is 99973 bytes long (and 
-     some other contracts have much bigger discrepancies).  There are (at least) 
-     three reasons for the difference:
-      * For the purposes of the earlier experiments I exported validator code from 
-        each contract.  The exported validator code wasn't always exactly the same 
-        as the validator in the contract (sometimes parameters are required to construct 
-        the actual validator which aren't statically available in the contract).
-      * The validator has to be extended to include extra code, for example for 
-        decoding `Data` objects.
-      * Types are normalised in on-chain code.  It looks as if this typically 
-        _reduces_ the size of the code, mainly because type instantiations are 
-        removed (type variables are replaced with actual types in the bodies of abstractions).
+![Merklisation statistics for an execution of the Escrow validator](./Escrow1.png)
+
+![Merklisation statistics for an execution of the Marlow zero coupon bond validator](./Zerocoupon1.png)
+
+For uncompressed validators, Merklisation was most effective with a threshold of about 34
+bytes, as might be expected.  For compressed validators, a larger threshold is more effective.
+For the zero coupon example above, with a threshold of 34, the compressed serialised AST took up 8852 bytes;
+the minimal size (8149 bytes) occurred for thresholds between 128 and 143, and then the size
+increased to a maximum of 9360 for large thresholds where nothing was Merklised at all.
+
+When all of the validators were examined, it turned out that the
+uncompressed validator was always smallest with a threshold of 34 (and
+nearby values). The minimal size of the compressed version occurred at
+different thresholds, but a threshold of 150 always gave something
+less than 50 bytes larger than the optimal one.  The figures in the
+next section use these thresholds in order to get Merklisation results
+close to the best possible so that we can see how well Merklisation
+performs in comparison with doing no Merklisation at all.
 
 ### Results
+The table below shows various numbers for the validators appearing in the tests.  As an experiment
+I also measured what happened when unused nodes were discarded completely and replaced with the `Error` term.
+The columns are as follows
 
-I modified the `plutus-use-cases` test to analyse all of the
-validators.  Some of the analysis involved "minimising" the
-validators, by which I mean applying the transformations in the
-second-last column of the table in the [type erasure document](./Erasure.md): 
-removing all kinds, types, and type-related
-information from the AST; removing all textual names; and replacing
-unique identifiers in names with de Bruijn indices.  The serialised
-versions still included unit annotations, so could be made slightly
-smaller.
+  1. The contract name
+  2. The number of bytes in the serialised version of the full typed validator
+  3. The number of term nodes in the validator
+  4. The number of term nodes actually used during execution
+  5. The number of bytes in the serialised un-Merklised minimised validator
+  6. The number of bytes in the serialised Merklised minimised validator (Merklissation threshold 34)
+  7. The number of bytes in the serialised minimised validator after all unused nodes were replaced with `Error`
+  8. The number of bytes in the compressed serialised un-Merklised minimised validator
+  9. The number of bytes in the compressed serialised Merklised minimised validator (Merklisation threshold of 150)
+ 10. The number of bytes in the compressed serialised minimised validator with unused nodes replaced with `Error` 
 
-The information collected (and summarised in the table below) was as follows:
-
-  * The number of term nodes in the applied validator
-  * The number of term nodes actually used
-  * The number of bytes in the serialised version of the unaltered validator
-  * The number of bytes in the serialised minimised version of the validator
-  * The number of bytes in the serialised Merklised validator. 
-    Three different strategies for Merklisation of types were used:
-      * All types were replaced by Merkle hashes
-      * Types were only replaced by Merkle hashes if their serialised versions took up more than 32 bytes
-      * Types were left unchanged, with no type-level Merkle hashes
-      * Another strategy would have been to intern types in a separate table 
-        (probably included in PLC `Program` objects), but this would have 
-        required major changes to the Plutus codebase, so I didn't attempt to do it.
-  * Finally, the Merklised version of the validator was minimised and serialised, 
-    and the size measured (the type-Merklisation strategy doesn't affect this number, 
-    since all types are discarded during minimisation).
-
-The table also contains figures showing the sizes of the various
-versions of the validators after serialisation and compression (using
-gzip with maximum compression).
+All validators concerned were converted into an untyped AST and then names were replaced with
+de Bruijn indices, since (as we have already seen) this reduces the size of the AST substantially
+but still gives us an executable validator (although we would need to undo the de Bruijn transformation
+to execute the code on the CEK machine).
 
 Certain validators reappeared numerous times during the tests, so I've
 removed duplicates.  The compressed sizes of identically-sized
@@ -115,221 +193,138 @@ to scripts in addition to the main validator).
 Here are the results (if the table's too wide for the page you can click on
 it and use the left and right arrow keys to scroll it horizontally).
 
-| Term nodes | Used nodes | Unmerklised, serialised | Unmerklised, minimised, serialised | All types Merklised | Big types Merklised | No types Merklised | Merklised, minimised |
-| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:  |
-|  **Crowdfunding** | | | | | | | |
-| 10539| 7297 | 307807 | 24444 | 175130 | 140947 | 219398 | 31721 | 
-|      | Compressed: | 40592 | 4519 | 68520 | 54805 | 42577 | 14980 |
-| 10248 | 5438 | 303010 | 23523 | 138620 | 111870 | 179984 | 27986 | 
-|      | Compressed: | 40386 | 4350 | 54163 | 44821 | 36082 | 14903 |
-| 10539 | 7297 | 307807 | 24444 | 175130 | 140947 | 219398 | 31721 | 
-|      | Compressed: | 40592 | 4519 | 68520 | 54805 | 42577 | 14980 |
-|  **Currency** | | | | | | | |
-| 8615| 6888 | 254083 | 20145 | 157259 | 124385 | 192758 | 28415 | 
-|      | Compressed: | 31519 | 3778 | 56046 | 44702 | 34728 | 12562 |
-| 6282 | 4487 | 203384 | 15079 | 111008 | 90258 | 142785 | 22593 | 
-|      | Compressed: | 23113 | 3128 | 37339 | 30790 | 25867 | 11327 |
-|  **Escrow** | | | | | | | |
-| 11102| 6816 | 316769 | 25961 | 165305 | 134033 | 213226 | 30450 | 
-|      | Compressed: | 40753 | 4867 | 64765 | 52572 | 41140 | 15008 |
-| 11328 | 7048 | 320492 | 26632 | 169148 | 137843 | 216952 | 31101 | 
-|      | Compressed: | 40830 | 4919 | 64813 | 52623 | 41230 | 15028 |
-| 10876 | 5225 | 313046 | 25290 | 133998 | 108641 | 177588 | 27431 | 
-|      | Compressed: | 40561 | 4735 | 52052 | 43533 | 35253 | 14913 |
-|  **Future** | | | | | | | |
-| 8615| 6888 | 254047 | 20109 | 157223 | 124349 | 192722 | 28379 | 
-|      | Compressed: | 31494 | 3763 | 56030 | 44683 | 34706 | 12543 |
-| 6282 | 4487 | 203360 | 15055 | 110984 | 90234 | 142761 | 22569 | 
-|      | Compressed: | 23097 | 3118 | 37324 | 30777 | 25851 | 11313 |
-| 11526 | 7485 | 323963 | 27315 | 178434 | 145728 | 226496 | 32798 | 
-|      | Compressed: | 41068 | 5048 | 66016 | 53774 | 42597 | 15601 |
-| 11453 | 7412 | 322794 | 27107 | 177239 | 144533 | 225327 | 32590 | 
-|      | Compressed: | 41054 | 5042 | 66005 | 53764 | 42595 | 15595 |
-| 16839 | 9516 | 423404 | 39821 | 231972 | 190042 | 308449 | 42634 | 
-|      | Compressed: | 55891 | 7000 | 88244 | 71923 | 57339 | 21164 |
-| 16472 | 8939 | 417425 | 38936 | 220702 | 180393 | 300006 | 40155 | 
-|      | Compressed: | 55859 | 6953 | 86185 | 70198 | 55708 | 20111 |
-|      | Compressed: | 55851 | 6946 | 86183 | 70194 | 55703 | 20107 |
-|  **Game** | | | | | | | |
-| 5396| 3843 | 190850 | 12708 | 98439 | 79382 | 128427 | 20678 | 
-|      | Compressed: | 21369 | 2814 | 33947 | 28108 | 23575 | 10895 |
-| 5396 | 3848 | 190850 | 12708 | 98541 | 79406 | 128451 | 20652 | 
-|      | Compressed: | 21369 | 2812 | 34003 | 28127 | 23593 | 10897 |
-|  **Game state machine** | | | | | | | |
-| 12174| 6763 | 316653 | 28951 | 167208 | 134955 | 216000 | 31648 | 
-|      | Compressed: | 41371 | 5083 | 64101 | 52073 | 41563 | 16032 |
-| 12416 | 8131 | 320652 | 29624 | 195061 | 157358 | 249763 | 34669 | 
-|      | Compressed: | 41518 | 5209 | 72191 | 57942 | 46130 | 16193 |
-| 12709 | 8431 | 325444 | 30428 | 199974 | 162238 | 254533 | 35421 | 
-|      | Compressed: | 41615 | 5277 | 72230 | 57986 | 46164 | 16197 |
-| 12416 | 5870 | 320651 | 29623 | 146844 | 120052 | 199578 | 29880 | 
-|      | Compressed: | 41520 | 5209 | 52349 | 43665 | 37753 | 15631 |
-|  **Multisig** | | | | | | | |
-| 6472| 4724 | 208797 | 15534 | 116175 | 92682 | 148619 | 23059 | 
-|      | Compressed: | 25027 | 3417 | 41331 | 33573 | 27388 | 11590 |
-| 6496 | 4677 | 209252 | 15688 | 115574 | 92541 | 148470 | 23283 | 
-|      | Compressed: | 25142 | 3496 | 41131 | 33639 | 27667 | 11826 |
-|  **Multisig state machine** | | | | | | | |
-| 16787| 9130 | 403721 | 39660 | 224930 | 181296 | 291423 | 41606 | 
-|      | Compressed: | 55584 | 7096 | 87637 | 70558 | 56403 | 20674 |
-| 16809 | 9600 | 404135 | 39775 | 233918 | 187531 | 292849 | 43502 | 
-|      | Compressed: | 55660 | 7105 | 90700 | 72965 | 57630 | 21409 |
-| 16823 | 9631 | 404397 | 39875 | 234429 | 187955 | 293269 | 43612 | 
-|      | Compressed: | 55626 | 7114 | 90695 | 72960 | 57622 | 21398 |
-| 16837 | 9645 | 404659 | 39975 | 234695 | 188221 | 293531 | 43712 | 
-|      | Compressed: | 55711 | 7116 | 90705 | 72966 | 57667 | 21402 |
-| 16811 | 9814 | 404176 | 39815 | 236739 | 190290 | 295266 | 42857 | 
-|      | Compressed: | 55633 | 7110 | 93771 | 75268 | 58906 | 21049 |
-| 16804 | 6755 | 404045 | 39765 | 170978 | 139101 | 226863 | 35188 | 
-|      | Compressed: | 55630 | 7113 | 66437 | 55175 | 46374 | 19083 |
-| 16636 | 8638 | 401297 | 39327 | 211481 | 171100 | 272917 | 38728 | 
-|      | Compressed: | 55554 | 7056 | 85620 | 69217 | 53768 | 19373 |
-|  **Pubkey** | | | | | | | |
-| 5994| 4199 | 198673 | 14187 | 106193 | 85443 | 138074 | 21701 | 
-|      | Compressed: | 22942 | 3002 | 37186 | 30637 | 25204 | 11211 |
-|  **Token account** | | | | | | | |
-| 8556| 6785 | 253227 | 19976 | 155710 | 123150 | 191524 | 28368 | 
-|      | Compressed: | 31486 | 3754 | 55991 | 44741 | 34815 | 12714 |
-| 6234 | 4439 | 202646 | 14945 | 110254 | 89504 | 142047 | 22459 | 
-|      | Compressed: | 23087 | 3111 | 37317 | 30768 | 25844 | 11307 |
-| 8142 | 6371 | 267998 | 18555 | 152109 | 123325 | 196041 | 27671 | 
-|      | Compressed: | 34332 | 3412 | 59361 | 47704 | 36842 | 13173 |
-|  **Vesting** | | | | | | | |
-| 10666 | 7680 | 314175 | 24437 | 183161 | 146899 | 230861 | 31956 | 
-|      | Compressed: | 41427 | 4384 | 71787 | 57129 | 43523 | 14834 |
-| 10548 | 7426 | 312217 | 24074 | 178471 | 143053 | 226803 | 31214 | 
-|      | Compressed: | 41396 | 4359 | 71205 | 56677 | 42645 | 14658 |
 
-### Remarks
+| Validator | Full AST | Total term nodes | Used term nodes| Minimised, un-Merklised | Minimised, Merklised | Minimised, unused nodes discarded | Mininimised, un-Merklised, compressed | Mininimised, Merklised, compressed | Mininimised, unused nodes discarded, compressed |
+| :---- | ----: | ----: | ----: | ---: | ---: | ----: | ----: | ----: | ----: |
+  **Crowdfunding**
+| | 165312 | 9329 | 6261 | 13489 | 11835 | 9041 | 3591 | 3577 | 2452 | 
+| | 165312 | 9329 | 4693 | 13489 | 10136 | 7034 | 3591 | 3439 | 2084 | 
+  **Currency**
+| | 122942 | 7412 | 5851 | 10822 | 10429 | 8656 | 3033 | 3077 | 2369 | 
+  **Escrow**
+| | 173698 | 9957 | 5845 | 14654 | 11336 | 8472 | 4005 | 3612 | 2395 | 
+| | 173698 | 9957 | 5851 | 14654 | 11336 | 8481 | 4005 | 3612 | 2396 | 
+| | 173698 | 9957 | 4480 | 14654 | 9827 | 6735 | 4005 | 3488 | 2066 | 
+  **Futures**
+| (1) | 122930 | 7412 | 5851 | 10810 | 10417 | 8644 | 3018 | 3064 | 2353 | 
+| (2) | 174401 | 9993 | 6126 | 14840 | 11903 | 9051 | 4167 | 3830 | 2682 | 
+| (3) | 249530 | 15220 | 7981 | 22849 | 16078 | 11756 | 5974 | 5064 | 3220 | 
+| | 249530 | 15220 | 7771 | 22849 | 15921 | 11449 | 5974 | 5174 | 3165 | 
+| | 249530 | 15220 | 7671 | 22849 | 15807 | 11239 | 5974 | 4987 | 3051 | 
+  **Game**
+| | 78864 | 4487 | 3116 | 6624 | 6340 | 4737 | 2111 | 2121 | 1493 | 
+| | 78864 | 4487 | 3121 | 6624 | 6340 | 4742 | 2111 | 2121 | 1496 | 
+  **Game state machine**
+| | 171856 | 11039 | 5752 | 16527 | 11562 | 8441 | 4160 | 3817 | 2339 | 
+| | 171856 | 11039 | 6858 | 16527 | 12602 | 9921 | 4160 | 3775 | 2619 | 
+| | 171856 | 11039 | 6865 | 16527 | 12602 | 9932 | 4160 | 3775 | 2620 | 
+| | 171856 | 11039 | 4597 | 16527 | 10079 | 6966 | 4160 | 3390 | 1997 | 
+  **Multisig**
+| | 92399 | 5533 | 3951 | 8411 | 7792 | 6144 | 2749 | 2697 | 2040 | 
+| | 92399 | 5533 | 3880 | 8411 | 7782 | 6034 | 2749 | 2697 | 2009 | 
+  **Multisig state machine**
+| | 238219 | 15554 | 7981 | 23385 | 16074 | 11754 | 6176 | 5211 | 3215 | 
+| | 238219 | 15554 | 8449 | 23385 | 16902 | 12454 | 6176 | 5456 | 3395 | 
+| | 238219 | 15554 | 8466 | 23385 | 16897 | 12483 | 6176 | 5456 | 3404 | 
+| | 238219 | 15554 | 8682 | 23385 | 17011 | 12699 | 6176 | 5499 | 3434 | 
+| | 238219 | 15554 | 5630 | 23385 | 13563 | 8680 | 6176 | 4993 | 2583 | 
+| | 238219 | 15554 | 7681 | 23385 | 15894 | 11246 | 6176 | 5253 | 3075 | 
+  **Pubkey**
+| | 84645 | 5079 | 3450 | 7608 | 6980 | 5269 | 2426 | 2387 | 1678 | 
+  **Token account**
+| (1) | 122847 | 7401 | 5796 | 10797 | 10404 | 8578 | 3016 | 3061 | 2342 | 
+| (2) | 134609 | 7007 | 5402 | 9920 | 9633 | 7701 | 2698 | 2704 | 2082 | 
+  **Vesting**
+| | 172463 | 9626 | 6806 | 13851 | 12330 | 9786 | 3672 | 3669 | 2675 | 
+| | 172463 | 9626 | 6670 | 13851 | 12187 | 9566 | 3672 | 3668 | 2600 | 
+  **Marlowe Zero Coupon Bond**
+| | 409249 | 23142 | 11595 | 36328 | 24530 | 17489 | 9360 | 8227 | 4686 | 
+| | 409249 | 23142 | 10548 | 36328 | 22520 | 15825 | 9360 | 7616 | 4197 | 
+  **Marlowe Trust Fund**
+| | 409249 | 23142 | 12021 | 36328 | 25628 | 18344 | 9360 | 8736 | 4942 | 
+| | 409249 | 23142 | 10708 | 36328 | 23009 | 16056 | 9360 | 7645 | 4208 | 
 
-The results of Merklisation are rather disappointing.  For example, in
-the first line of the table we see that the validator has 10539 term
-nodes and only 7297 of those are used during evaluation. This suggests
-that Merklising away the unused nodes would save about 30% for the
-term nodes alone, with additional savings from type nodes.  This is
-indeed the case: the original AST serialises to 307807 bytes and the
-Merklised versions serialise to 175130, 140947, and 219398 bytes
-(depending on the type-Merklisation strategy); however the Merklised
-versions are much less compressible: the unaltered validator
-compresses to 40592 bytes, but the compressed sizes of the Merklised
-ones are all larger: 68520, 54805, and 42577 bytes.
+### Comments
+* On average, only 60% of the AST nodes in the validators are used during
+  evaluation; 21%-64% are unused.
 
-The difference is even more noticeable for the minimised versions: if
-we minimise the original validator and then compress it we get
-something 4519 bytes long (less than 1.5% of the size of the
-uncompressed unminimised validator), but if we Merklise, minimise, and
-then compress then we get something 14980 bytes long.  This is
-presumably because the hashes introduced by Merklisation are highly
-incompressible, which might be expected on information-theoretic
-grounds.  The Merklised validator in this case contains 418 hashes in
-term nodes, each occupying 32 bytes.  In total this is 13376 bytes,
-which is of the same order of magnitude as the difference between the
-compressed versions of the Merklised and un-Merklised validators
-(10461 bytes).
+* Merklisation reduces the size of the AST accordingly, but the
+  Merklised syntax trees are always significantly larger than what we
+  get if we compress without minimising (typically at least 3 times
+  the size).
 
-These patterns are repeated throughout the results.  Every Merklised
-validator contains 300-600 hashed terms (these numbers aren't shown in
-the table), and probably because of this the compressed versions of
-the minimised Merklised validators are uniformly on the order of 10K
-larger than the un-Merklised versions.  If you look at the figures for
-the Merklised versions, the compressed sizes vary inversely with the
-uncompressed sizes, even when we try to be careful about not
-Merklising small types.  The earlier suggestion of interning types
-might solve this problem, although I didn't try that because it would
-have required quite a lot of work.
+*  If we're careful about the Merklisation threshold, we can get
+   compressed Merklised ASTs which are smaller than the compressed un-Merklised ASTs.
+   * The compressed Merlkised ASTs are 80%-101% of the size of the un-Merklised ones, with a mean of about 91%.
 
-[Update] The numbers above are all for applied validators.  Rather
-belatedly, I now realise that what I should probably have done was to
-determine which validator nodes are unused when the validator is
-applied to specific arguments, then Merklise those away in the
-unapplied validator (since what we care about is probably the
-transporation cost of the unapplied validator). I think the machinery
-I've implemented would be able to do that, but it'd take some time to
-set up and to carry out the experiments.  I can do that, but I don't
-think it'll change the results significantly.
+* If we just discard all of the unused nodes then we get proportionate size reductions  
 
-### Update: being more careful about what we Merklise
-
-It wasn't initially clear why Merklisation seems to be ineffective in
-the table above, but closer inspection of the data showed that a large
-number of small terms were being Merklised. For example, for the first
-entry in the table (the Crowdfunding validator), 418 AST nodes were
-being Merklised, but 286 of these had 10 or fewer subnodes and only 31
-had 70 or more subnodes.  In an effort to avoid Merklisation of small
-terms I added a threshold to the Merklisation process so that only
-nodes whose serialised form was greater than the threshold would be
-Merklised.  The table below shows the effect of varying this
-threshold. I've only included figures for the first entry from the
-earlier table, but the behaviour appears to be similar for the other
-examples.  Merklised AST nodes serialise to 36 bytes, so there's a
-special entry for that threshold in the table.  For completeness the
-table still contains data for different type-Merklisation strategies,
-but it's probably best to look at the last two columns: "No types
-Merklised", where the variations are purely due to term Merklisation
-and "Merklised, minimised", where terms are Merklised but types are
-discarded and names are replaced with de Bruijn indices with no
-extraneous data.
-
-Recall that the validator contained 10539 term nodes, of which only
-7297 were used in that particular run.  When serialised the
-um-Merklised validator takes up 307807 bytes, compressing to 40592;
-when minimised and serialised it takes up 24444 bytes, compressing to
-4519.
-
-
-| Merklisation Threshold | Merklised nodes | All types Merklised |  Big types Merklised |  No types Merklised | Merklised, minimised | 
-| ---: | ---: | ---: | ---: | ---: |---: |
-| 0       | 418 | 175130 | 140947 | 219398 | 31721 | 
-| | (compressed) |  68520 | 54805 | 42577 | 14980 |
-| 36      | 319  | 173560 | 139377 | 217828 | 28660 | 
-| | (compressed) | 66374 | 52629 | 40202 | 12416 |
-| 50      | 244  | 174022 | 139839 | 218290 | 26328 | 
-| | (compressed) | 65658 | 51844 | 39340 | 11567 |
-| 100     | 123  | 177865 | 143682 | 222133 | 22927 | 
-| | (compressed) | 62611 | 48595 | 35826 | 7759 |
-| 150     | 81   | 181310 | 147127 | 225578 | 21929 | 
-| | (compressed) | 62081 | 47965 | 35057 | 6431 |
-| 200     | 64   | 183586 | 149403 | 227854 | 21755 | 
-| | (compressed) | 62120 | 47928 | 34901 | 5908 |
-| 250     | 50   | 186070 | 151887 | 230338 | 21564 | 
-| | (compressed) | 62290 | 48014 | 34947 | 5592 |
-| 300     | 45   | 187206 | 153023 | 231474 | 21613 | 
-| | (compressed) | 62380 | 48027 | 34955 | 5449 |
-| 350     | 42   | 188115 | 153932 | 232383 | 21684 | 
-| | (compressed) | 62446 | 48043 | 34939 | 5381 |
-| 400     | 36   | 190208 | 156025 | 234476 | 21827 | 
-| | (compressed) | 62719 | 48234 | 35038 | 5236 |
-| 450     | 35   | 190612 | 156429 | 234880 | 21897 | 
-| | (compressed) | 62810 | 48306 | 35081 | 5222 |
-| 500     | 33   |  191488 | 157305 | 235756 | 22016 | 
-| | (compressed) | 62922 | 48407 | 35175 | 5189 |
-
-As you'd expect, the smallest serialised sizes occur when the
-Merklisation threshold is 36, the point at which the serialised forms
-of Merklised terms are the same size as their un-Merklised versions;
-however, after that point (fewer terms Merklised) serialised sizes
-increase but compressed sizes _decrease_.  I suspect that this is
-because different terms often have similar subterms (except perhaps
-for identifiers in names) and that this is favourable for compression.
-When terms are Merklised, any differences change the hash completely
-and reduces compressibility.
-
-Note also that that though introducing a threshold for Merklisation
-improves its effectiveness, it also introduces a lot of extra
-computation into the procedure for calculating Merkle hashes.  For
-every node that we may need to Merklise we have to serialise it first
-and see how big the result is before deciding whether to proceed with
-Merklisation, which is already expensive.
-
+##### Remark
+The results here are slightly inaccurate because they're based on a
+version of Plutus Core with the value restriction, and the
+type-erasure procedure discards all types and type-related operations.
+We have recently removed the value restriction from Plutus Core,
+meaning that type abstraction and instantiation now effect
+computation: in a type-level abstraction`Λt.e`, the body `e` is now
+allowed to be a non-value, and it will not compute until the type
+variable `t` is instantiated.  If we decide to use untyped ASTs then
+this behaviour will have to be preserved.  I tried some experiments,
+firstly replacing `tyAbs` and `tyInst` by new operations `delay` and
+`force`, and then replacing `tyAbs` by a term-level lambda abstraction
+over a unit variable and `tyInst` by a term-level application to a
+variable of type `unit`.  The first approach increased the sizes of
+compressed miminised validators by about 10% and the second by about
+12%; for uncompressed validators the figures were 13% and 35%.
 
 ## Overall conclusions
 
-Merklisation doesn't seem to be very effective for Plutus Core.  On
-the other hand, we can save a lot of space by removing extraneous
-information from ASTs and then compressing their serialised forms.
+  * Type information takes up a great deal of space in Plutus Core ASTs
+(typically of the order of 70% of the serialised AST); discarding types
+  makes things much smaller.
 
-Type information takes up a great deal of space in Plutus Core ASTs
-(typically of the order of 70% of the serialised AST), but we might be
-able to mitigate this by interning types in a separate table; with the
-exception of discarding types altogether, other strategies were not 
-very effective.
+ * Type-erased validators can be made much smaller by performing some simple 
+    transformations on the AST (not serialising unit annotations, replacing names
+    with de Bruijn indices and discarding textual names).
+  * These transformations make the AST representation very sparse and thus very amenable to compression.  We're reluctant to do on-chain decompression, but if the space reduction is significant enough we may wish to reconsider this.
+  * Merklisation doesn't seem to be very effective (especailly in conjunction with compression), 
+    probably because Merklised nodes are replaced with large incompressible hashes.
+    * The maximum size reductions from Merklisation are only about an extra 10-20% for compressed validators.
+    * To get optimal Merklisation, we have to introduce a threshold below which some unused nodes are retained. 
+    * If you don't Merklise everything that's unused, you lose the privacy
+      advantages that are sometimes put forward as a positive feature of Merklisation.
+    * Computing Merkle hashes is expensive: I estimate that they
+      require about 10 times more cryptographic operations than
+      straightforward hashing of a serialised AST.
+
+* Discarding unused nodes entirely does save a lot of space, and
+  retains the privacy aspects of full Merklisation.  However, doing
+  this will change validator hashes, which we probably don't want.
+
+ 
+### Questions
+
+* If we use any of these techniques, what will be the definitive
+  version of a script?  It seems likely that we won't want to have
+  typed Plutus Core on chain, so the untyped version may have to be
+  canonical.  However, one could easily check off chain that a typed
+  AST typechecks successfully and that the hash of the erased version
+  corresponds to the hash of the on-chain validator.  Would it make
+  sense to do this kind of thing? (I'm not very clear on how
+  validators will be distributed, and who will get to see what on- and
+  off-chain).
+
+* Would it still make sense to use Merklisation off-chain for privacy?
+  If someone wants to convince you that a partial validator AST is
+  correct they could publish a Merkle hash along with the standard
+  hash of the validator, and then they could provide you with a fully
+  Merklised AST off-chain and publish a version with Merklised nodes
+  discarded on the chain.  It would be easy to check that the Merkle
+  hash of the off-chain Merklised validator is the same as the Merkle
+  hash of the full validator and that if you discard the hashes from
+  the off-chain version you get the thing that's been put on the
+  chain.  This would allow you to have small partial validators on
+  chain and check off-chain that they correspond to the full
+  validator. The logistics might be rather complicated (or even
+  infeasible) though, and again you have the issue that the (normal)
+  hash of the validator changes when you throw part of it away.
+

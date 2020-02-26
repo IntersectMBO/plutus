@@ -40,6 +40,7 @@ stack.yaml.lock
 # Nix
 result*
 pkgs/.cabal
+pkgs/.cache
 pkgs/.stack
 
 # Editor files

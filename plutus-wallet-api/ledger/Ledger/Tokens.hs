@@ -26,9 +26,9 @@ token symbol name = Value.singleton symbol name 1
 {-# INLINABLE outputsWith #-}
 -- | The outputs of the 'PendingTx' that carry a non-zero amount of the currency
 --   defined by the 'CurrencySymbol' and the 'TokenName'.
-outputsWith :: PendingTx -> CurrencySymbol -> TokenName -> [PendingTxOut]
+outputsWith :: PendingTx -> CurrencySymbol -> TokenName -> [TxOut]
 outputsWith PendingTx{pendingTxOutputs} symbol name =
-    filter (\output -> token symbol name  `leq` pendingTxOutValue output) pendingTxOutputs
+    filter (\output -> token symbol name  `leq` txOutValue output) pendingTxOutputs
 
 {-# INLINABLE paidTo #-}
 -- | The total 'Value' paid by the pending transaction to outputs
@@ -36,4 +36,4 @@ outputsWith PendingTx{pendingTxOutputs} symbol name =
 --   & token
 paidTo :: PendingTx -> CurrencySymbol -> TokenName -> Value
 paidTo ptx symbol name =
-    foldMap pendingTxOutValue (outputsWith ptx symbol name)
+    foldMap txOutValue (outputsWith ptx symbol name)

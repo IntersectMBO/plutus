@@ -13,14 +13,15 @@ import           Control.Monad.Error.Lens
 import           Test.Tasty
 
 import           Language.Plutus.Contract              as Con
-import           Language.Plutus.Contract.Tx           as Tx
 import           Language.Plutus.Contract.Test
 import           Language.Plutus.Contract.Util         (loopM)
 import           Language.PlutusTx.Lattice
 import qualified Language.PlutusTx                     as PlutusTx
 import           Ledger                                (Address)
+import qualified Ledger.Constraints                    as Constraints
 import qualified Ledger                                as Ledger
 import qualified Ledger.Ada                            as Ada
+import qualified Ledger.Crypto                         as Crypto
 import           Prelude                               hiding (not)
 import qualified Wallet.Emulator                       as EM
 
@@ -104,7 +105,7 @@ tests =
             (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
             (handleBlockchainEvents w1 >> addBlocks 1)
 
-        , let smallTx = mustProduceOutput (Tx.pubKeyTxOut (Ada.lovelaceValueOf 10) (walletPubKey (Wallet 2)))
+        , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
           in cp "handle several blockchain events"
                 (submitTx smallTx >> submitTx smallTx)
                 (assertDone w1 (const True) "all blockchain events should be processed"
@@ -149,7 +150,7 @@ tests =
             (handleBlockchainEvents w2)
 
         , cp "await tx confirmed"
-            (let t = payToPubKey (Ada.lovelaceValueOf 10) (walletPubKey w2) 
+            (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2)  (Ada.lovelaceValueOf 10) 
              in submitTx t >>= awaitTxConfirmed)
             (assertDone w1 (const True) "should be done"
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))

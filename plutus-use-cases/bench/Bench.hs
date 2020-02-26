@@ -212,22 +212,22 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
-            , MS.validator msScen1of1
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
             , unitData
             , unitRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.validator msScen1of2
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of2
             , unitData
             , unitRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.validator msScen2of2
+            , Scripts.validatorScript $ MS.scriptInstance msScen2of2
             , unitData
             , unitRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
-            , MS.validator msScen1of1
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
             , unitData
             , unitRedeemer)
     ]
@@ -278,9 +278,9 @@ mockPendingTx = PendingTx
     , pendingTxFee = PlutusTx.zero
     , pendingTxForge = PlutusTx.zero
     , pendingTxItem = PendingTxIn
-        { pendingTxInRef = PendingTxOutRef
-            { pendingTxOutRefId = TxId P.emptyByteString
-            , pendingTxOutRefIdx = 0
+        { pendingTxInRef = TxOutRef
+            { txOutRefId = TxId P.emptyByteString
+            , txOutRefIdx = 0
             }
         , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DataValueHash "")
         , pendingTxInValue = PlutusTx.zero
@@ -297,7 +297,7 @@ scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
     let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
     bench "token account" $ nf Scripts.validatorScript si
-    , bench "public key" $ nf PK.pkValidator (pubKeyHash $ walletPubKey $ Wallet 2)
+    , bench "public key" $ nf (Scripts.validatorScript . PK.scriptInstance) (pubKeyHash $ walletPubKey $ Wallet 2)
     , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
     ]
 

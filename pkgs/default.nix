@@ -54920,42 +54920,61 @@ license = stdenv.lib.licenses.asl20;
 ({
   mkDerivation
 , aeson
+, aeson-pretty
 , async
 , base
 , bytestring
 , containers
+, directory
 , ekg
+, errors
 , eventful-core
 , eventful-memory
 , eventful-sql-common
 , eventful-sqlite
+, freer-simple
 , generic-arbitrary
+, hedgehog
+, http-client
 , iots-export
 , lens
 , monad-logger
 , mtl
+, mwc-random
 , optparse-applicative
+, persistent
 , persistent-sqlite
 , playground-common
 , plutus-contract
 , plutus-emulator
 , plutus-tx
 , plutus-tx-plugin
+, plutus-use-cases
 , plutus-wallet-api
 , prettyprinter
+, primitive
+, process
 , QuickCheck
 , quickcheck-instances
 , random
+, row-types
+, scientific
+, servant
+, servant-client
+, servant-server
 , stdenv
 , stm
 , tasty
+, tasty-hunit
 , tasty-quickcheck
 , text
+, time-units
 , transformers
 , unliftio-core
 , unordered-containers
 , uuid
 , vector
+, warp
 , yaml
 }:
 mkDerivation {
@@ -54967,59 +54986,97 @@ isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
 aeson
+aeson-pretty
 async
 base
 bytestring
 containers
+directory
+errors
 eventful-core
 eventful-memory
 eventful-sql-common
 eventful-sqlite
+freer-simple
 generic-arbitrary
+hedgehog
+http-client
 iots-export
 lens
 monad-logger
 mtl
+mwc-random
 optparse-applicative
+persistent
 persistent-sqlite
+playground-common
 plutus-contract
 plutus-emulator
 plutus-tx
 plutus-tx-plugin
 plutus-wallet-api
 prettyprinter
+primitive
+process
 QuickCheck
 quickcheck-instances
 random
+row-types
+scientific
+servant
+servant-client
+servant-server
 stm
 text
+time-units
 transformers
 unliftio-core
 unordered-containers
 uuid
 vector
+warp
 yaml
 ];
 executableHaskellDepends = [
+aeson
 base
+bytestring
 ekg
+freer-simple
+lens
 monad-logger
 mtl
 optparse-applicative
 playground-common
+plutus-use-cases
+plutus-wallet-api
+prettyprinter
 text
 unliftio-core
+uuid
 yaml
 ];
 testHaskellDepends = [
+aeson
+aeson-pretty
 base
+containers
 eventful-core
 eventful-memory
+freer-simple
+lens
+monad-logger
+mtl
+plutus-contract
+plutus-use-cases
 plutus-wallet-api
 QuickCheck
 quickcheck-instances
+servant-client
 tasty
+tasty-hunit
 tasty-quickcheck
+text
 transformers
 ];
 doHaddock = false;
@@ -55313,6 +55370,7 @@ license = stdenv.lib.licenses.asl20;
 , operational
 , plutus-ir
 , plutus-tx
+, plutus-tx-plugin
 , prettyprinter
 , recursion-schemes
 , serialise
@@ -55354,6 +55412,7 @@ newtype-generics
 operational
 plutus-ir
 plutus-tx
+plutus-tx-plugin
 prettyprinter
 recursion-schemes
 serialise

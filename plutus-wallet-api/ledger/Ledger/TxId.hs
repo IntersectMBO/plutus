@@ -22,10 +22,10 @@ import           LedgerBytes               (LedgerBytes (..))
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BSL.ByteString }
-    deriving (Eq, Ord, Generic, Show)
+    deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
-    deriving (Pretty) via LedgerBytes
+    deriving (Pretty, Show) via LedgerBytes
 
 PlutusTx.makeLift ''TxId
 PlutusTx.makeIsData ''TxId

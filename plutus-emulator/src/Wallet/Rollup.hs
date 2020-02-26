@@ -8,7 +8,7 @@ module Wallet.Rollup
     ( doAnnotateBlockchain
     ) where
 
-import           Control.Lens             (assign, ifoldr, makeLenses, over, use)
+import           Control.Lens             (assign, ifoldr, makeLenses, over, use, view)
 import           Control.Lens.Combinators (itraverse)
 import           Control.Monad.Except     (MonadError, throwError)
 import           Control.Monad.State      (StateT, evalStateT)
@@ -21,7 +21,7 @@ import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 import           Language.PlutusTx.Monoid (inv)
 import           Ledger                   (Tx (Tx), TxId (TxId), TxIn (TxIn), TxOut (TxOut), Value, getTxId, outValue,
-                                           txInRef, txInputs, txOutRefId, txOutRefIdx, txOutValue, txOutputs)
+                                           txInRef, txOutRefId, txOutRefIdx, txOutValue, txOutputs)
 import qualified Ledger.Tx                as Tx
 import           Wallet.Rollup.Types      (AnnotatedTx (AnnotatedTx), BeneficialOwner,
                                            DereferencedInput (DereferencedInput, refersTo), SequenceId (SequenceId),
@@ -54,7 +54,7 @@ txInputKey TxIn {txInRef} =
 
 annotateTransaction ::
        MonadError Text m => SequenceId -> Tx -> StateT Rollup m AnnotatedTx
-annotateTransaction sequenceId tx@Tx {txInputs, txOutputs} = do
+annotateTransaction sequenceId tx@Tx {txOutputs} = do
     cPreviousOutputs <- use previousOutputs
     cRollingBalances <- use rollingBalances
     dereferencedInputs <-
@@ -68,7 +68,7 @@ annotateTransaction sequenceId tx@Tx {txInputs, txOutputs} = do
                              Text.pack $
                              "Could not find referenced transaction: " <>
                              show key)
-            (Set.toList txInputs)
+            (Set.toList $ view Tx.inputs tx)
     let txIdOf@(TxId txId) = Tx.txId tx
         newOutputs =
             ifoldr

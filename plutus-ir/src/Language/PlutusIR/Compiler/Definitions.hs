@@ -19,8 +19,10 @@ module Language.PlutusIR.Compiler.Definitions (DefT
                                               , defineType
                                               , defineDatatype
                                               , recordAlias
-                                              , lookupType
                                               , lookupTerm
+                                              , lookupOrDefineTerm
+                                              , lookupType
+                                              , lookupOrDefineType
                                               , lookupConstructors
                                               , lookupDestructor) where
 
@@ -137,6 +139,23 @@ defineDatatype name def deps = liftDef $ DefT $ modify $ over datatypeDefs $ Map
 recordAlias :: forall key uni ann m . MonadDefs key uni ann m => key -> m ()
 recordAlias name = liftDef @key @uni @ann $ DefT $ modify $ over aliases (Set.insert name)
 
+lookupTerm :: (MonadDefs key uni ann m) => ann -> key -> m (Maybe (Term TyName Name uni ann))
+lookupTerm x name = do
+    DefState{_termDefs=ds,_aliases=as} <- liftDef $ DefT get
+    pure $ case Map.lookup name ds of
+        Just (def, _) | not (Set.member name as) -> Just $ mkVar x $ PLC.defVar def
+        _                                        -> Nothing
+
+lookupOrDefineTerm :: (MonadDefs key uni ann m) => ann -> key -> m (TermDefWithStrictness uni ann, Set.Set key) -> m (Term TyName Name uni ann)
+lookupOrDefineTerm x name mdef = do
+    mTerm <- lookupTerm x name
+    case mTerm of
+        Just t -> pure t
+        Nothing -> do
+            (def, deps) <- mdef
+            defineTerm name def deps
+            pure $ mkVar x $ PLC.defVar def
+
 lookupType :: (MonadDefs key uni ann m) => ann -> key -> m (Maybe (Type TyName uni ann))
 lookupType x name = do
     DefState{_typeDefs=tys, _datatypeDefs=dtys, _aliases=as} <- liftDef $ DefT get
@@ -146,12 +165,15 @@ lookupType x name = do
             Just (def, _) -> Just $ mkTyVar x $ PLC.defVar def
             Nothing       -> Nothing
 
-lookupTerm :: (MonadDefs key uni ann m) => ann -> key -> m (Maybe (Term TyName Name uni ann))
-lookupTerm x name = do
-    DefState{_termDefs=ds,_aliases=as} <- liftDef $ DefT get
-    pure $ case Map.lookup name ds of
-        Just (def, _) | not (Set.member name as) -> Just $ mkVar x $ PLC.defVar def
-        _                                        -> Nothing
+lookupOrDefineType :: (MonadDefs key uni ann m) => ann -> key -> m (TypeDef TyName uni ann, Set.Set key) -> m (Type TyName uni ann)
+lookupOrDefineType x name mdef = do
+    mTy <- lookupType x name
+    case mTy of
+        Just ty -> pure ty
+        Nothing -> do
+            (def, deps) <- mdef
+            defineType name def deps
+            pure $ mkTyVar x $ PLC.defVar def
 
 lookupConstructors :: (MonadDefs key uni ann m) => ann -> key -> m (Maybe [Term TyName Name uni ann])
 lookupConstructors x name = do

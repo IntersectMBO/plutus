@@ -34,16 +34,17 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
 
 import           Control.Lens
 import           Control.Monad                                     (void)
-import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (fromMaybe)
+import           Control.Monad.Error.Lens
 import           Data.Text.Prettyprint.Doc
 
 import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Constraints
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
 import           Ledger                                            (Address, PubKeyHash, TxOutTx (..), ValidatorHash)
 import qualified Ledger                                            as Ledger
+import qualified Ledger.Constraints                                as Constraints
 import qualified Ledger.Scripts
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Typed.Scripts                              (ScriptType (..))
@@ -128,31 +129,38 @@ validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptI
 -- | A transaction that pays the given value to the account
 payTx
     ::
-    Scripts.ScriptInstance TokenAccount
-    -> Value
-    -> UnbalancedTx
-payTx inst vl = payToScript vl (Scripts.scriptAddress inst) Ledger.Scripts.unitData
+    Value
+    -> TxConstraints (Scripts.RedeemerType TokenAccount) (Scripts.DataType TokenAccount)
+payTx vl = Constraints.mustPayToTheScript () vl
 
 -- | Pay some money to the given token account
-pay :: (AsContractError e, HasWriteTx s) => Scripts.ScriptInstance TokenAccount -> Value -> Contract s e TxId
-pay inst = submitTx . payTx inst
+pay 
+    :: ( AsContractError e
+       , HasWriteTx s )
+    => Scripts.ScriptInstance TokenAccount
+    -> Value
+    -> Contract s e TxId
+pay inst = submitTxConstraints inst . payTx
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
-    :: ( HasUtxoAt s )
+    :: ( HasUtxoAt s 
+       , AsContractError e
+       )
     => Account
     -> PubKeyHash
     -> Contract s e UnbalancedTx
 redeemTx account pk = do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
-    let pkOut = pubKeyHashTxOut (accountToken account) pk
-        tx = TypedTx.collectFromScript utxos inst ()
-                <> mustProduceOutput pkOut
+    let tx = TypedTx.collectFromScript utxos ()
+                <> Constraints.mustPayToPubKey pk (accountToken account)
+        lookups = Constraints.scriptInstanceLookups inst
+                <> Constraints.unspentOutputs utxos
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
-    --       Or perhaps add a field 'requiredTokens' to 'UnbalancedTx' and let the
+    --       Or perhaps add a field 'requiredTokens' to 'LedgerTxConstraints' and let the
     --       balancing mechanism take care of providing the token.
-    pure tx
+    either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
@@ -165,7 +173,7 @@ redeem
   -> Account
   -- ^ The token account
   -> Contract s e TxId
-redeem pk account = redeemTx account pk >>= submitTx
+redeem pk account = redeemTx account pk >>= submitUnbalancedTx
 
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@
@@ -177,8 +185,7 @@ balance account = do
     utxos <- utxoAt (address account)
     let inner =
             foldMap (view Ledger.outValue . Ledger.txOutTxOut)
-            $ fromMaybe Map.empty
-            $ utxos ^. at (address account)
+            $ utxos
     pure inner
 
 -- | Create a new token and return its 'Account' information.

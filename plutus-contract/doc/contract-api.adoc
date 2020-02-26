@@ -19,7 +19,7 @@ When you have a `PlutusContract` you can compile it to a contract bundle (a form
 module ContractAPI where
 import           Control.Monad               (void)
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Tx (UnbalancedTx)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Crypto               (PubKey)
 import           Ledger.Slot                 (Slot)
@@ -66,7 +66,7 @@ The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Co
 
 === Transactions
 
-Contracts write transactions using `submitTx {2c} (HasWriteTx s, AsContractError e) => UnbalancedTx -> Contract s e TxId`. The transactions produced that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed).
+Contracts write transactions using `submitTx {2c} (HasWriteTx s, AsContractError e) => UnbalancedTx -> Contract s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
 
 === Endpoints
 
@@ -122,7 +122,7 @@ mkTx = undefined
 spend :: (AsContractError e, HasBlockchainActions s) => Contract s e ()
 spend = do -- <1>
     (ins, pk) <- collectRec
-    void (submitTx (mkTx ins pk))
+    void (submitUnbalancedTx (mkTx ins pk))
 ----
 <1> We use Haskell's do notation to signal the start of a sequence of actions
 

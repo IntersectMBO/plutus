@@ -19,6 +19,7 @@ xref:02-validator-scripts#validator-scripts[before]:
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}

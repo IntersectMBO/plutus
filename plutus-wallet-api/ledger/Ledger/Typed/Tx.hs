@@ -1,11 +1,14 @@
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE DerivingStrategies        #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NamedFieldPuns            #-}
+{-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE PolyKinds                 #-}
 {-# LANGUAGE Rank2Types                #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
@@ -14,43 +17,52 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
--- | Typed transactions. This module defines typed versions of various ledger types. The ultimate
--- goal is to make sure that the script types attached to inputs and outputs line up, to avoid
--- type errors at validation time.
+-- | Typed transaction inputs and outputs. This module defines typed versions
+--   of various ledger types. The ultimate goal is to make sure that the script
+--   types attached to inputs and outputs line up, to avoid type errors at
+--   validation time.
 module Ledger.Typed.Tx where
 
 import           Ledger.Address             hiding (scriptAddress)
 import           Ledger.Crypto
-import qualified Ledger.Interval            as Interval
 import           Ledger.Scripts
-import           Ledger.Slot
 import           Ledger.Tx
 import           Ledger.TxId
 import           Ledger.Typed.Scripts
 import qualified Ledger.Value               as Value
-
-import           Ledger.Typed.TypeUtils
 
 import qualified Language.PlutusCore        as PLC
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           Language.PlutusTx
 import           Language.PlutusTx.Lift     as Lift
-import           Language.PlutusTx.Numeric
 
 import qualified Language.PlutusIR.Compiler as PIR
 
-import           Data.Coerce
-import           Data.Kind
-import           Data.List                  (foldl')
-import qualified Data.Map                   as Map
+import           Data.Aeson                 (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
+import           Data.Aeson.Types           (typeMismatch)
 import           Data.Proxy
-import qualified Data.Set                   as Set
+import           GHC.Generics               (Generic)
 
 import           Control.Monad.Except
 
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 data TypedScriptTxIn a = TypedScriptTxIn { tyTxInTxIn :: TxIn, tyTxInOutRef :: TypedScriptTxOutRef a }
+
+instance Eq (DataType a) => Eq (TypedScriptTxIn a) where
+    l == r =
+        tyTxInTxIn l == tyTxInTxIn r
+        && tyTxInOutRef l == tyTxInOutRef r
+
+instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxIn a) where
+    parseJSON (Object v) =
+        TypedScriptTxIn <$> v .: "tyTxInTxIn" <*> v .: "tyTxInOutRef"
+    parseJSON invalid = typeMismatch "Object" invalid
+
+instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxIn a) where
+    toJSON TypedScriptTxIn{tyTxInTxIn, tyTxInOutRef} =
+        object ["tyTxInTxIn" .= tyTxInTxIn, "tyTxInOutRef" .= tyTxInOutRef]
+
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn
@@ -71,12 +83,29 @@ txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
 
 -- | A public-key 'TxIn'. We need this to be sure that it is not a script input.
 newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
+    deriving stock (Eq, Generic)
+    deriving newtype (FromJSON, ToJSON)
+
 -- | Create a 'PubKeyTxIn'.
 makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
 makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
+
+instance Eq (DataType a) => Eq (TypedScriptTxOut a) where
+    l == r =
+        tyTxOutTxOut l == tyTxOutTxOut r
+        && tyTxOutData l == tyTxOutData r
+
+instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxOut a) where
+    parseJSON (Object v) =
+        TypedScriptTxOut <$> v .: "tyTxOutTxOut" <*> v .: "tyTxOutData"
+    parseJSON invalid = typeMismatch "Object" invalid
+
+instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxOut a) where
+    toJSON TypedScriptTxOut{tyTxOutTxOut, tyTxOutData} =
+        object ["tyTxOutTxOut" .= tyTxOutTxOut, "tyTxOutData" .= tyTxOutData]
 
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
@@ -93,146 +122,28 @@ makeTypedScriptTxOut ct d value =
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
 
+instance Eq (DataType a) => Eq (TypedScriptTxOutRef a) where
+    l == r =
+        tyTxOutRefRef l == tyTxOutRefRef r
+        && tyTxOutRefOut l == tyTxOutRefOut r
+
+instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxOutRef a) where
+    parseJSON (Object v) =
+        TypedScriptTxOutRef <$> v .: "tyTxOutRefRef" <*> v .: "tyTxOutRefOut"
+    parseJSON invalid = typeMismatch "Object" invalid
+
+instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxOutRef a) where
+    toJSON TypedScriptTxOutRef{tyTxOutRefRef, tyTxOutRefOut} =
+        object ["tyTxOutRefRef" .= tyTxOutRefRef, "tyTxOutRefOut" .= tyTxOutRefOut]
+
 -- | A public-key 'TxOut'. We need this to be sure that it is not a script output.
 newtype PubKeyTxOut = PubKeyTxOut { unPubKeyTxOut :: TxOut }
+    deriving stock (Eq, Generic)
+    deriving newtype (FromJSON, ToJSON)
+
 -- | Create a 'PubKeyTxOut'.
 makePubKeyTxOut :: Value.Value -> PubKey -> PubKeyTxOut
 makePubKeyTxOut value pubKey = PubKeyTxOut $ pubKeyTxOut value pubKey
-
--- | A typed transaction, tagged by two phantom types: a list of connection types for the outputs,
--- and a list of connection types for the inputs. The script outputs and inputs must have the correct
--- corresponding types.
-data TypedTx (ins :: [Type]) (outs :: [Type]) = TypedTx {
-    tyTxTypedTxIns   :: HListF TypedScriptTxIn ins,
-    tyTxPubKeyTxIns  :: [PubKeyTxIn],
-    tyTxTypedTxOuts  :: HListF TypedScriptTxOut outs,
-    tyTxPubKeyTxOuts :: [PubKeyTxOut],
-    tyTxForge        :: !Value.Value,
-    tyTxValidRange   :: !SlotRange,
-    tyTxForgeScripts :: Set.Set MonetaryPolicy
-    }
-
-baseTx :: TypedTx '[] '[]
-baseTx = TypedTx {
-    tyTxTypedTxIns = HNilF,
-    tyTxPubKeyTxIns = [],
-    tyTxTypedTxOuts = HNilF,
-    tyTxPubKeyTxOuts = [],
-    tyTxForge = mempty,
-    tyTxValidRange = Interval.always,
-    tyTxForgeScripts = mempty
-    }
-
--- | Adds a 'TypedScriptTxOut' to a 'TypedTx'.
---
--- Adding a new typed transaction output is only safe if there are no typed transaction
--- inputs yet. Otherwise those inputs would need to change to take the new data script as
--- an argument.
-addTypedTxOut
-    :: forall ins outs newOut
-    . TypedScriptTxOut newOut
-    -> TypedTx ins outs
-    -> TypedTx ins (newOut ': outs)
--- We're changing the type so we can't use record update syntax :'(
-addTypedTxOut out TypedTx {
-    tyTxTypedTxOuts,
-    tyTxPubKeyTxOuts,
-    tyTxTypedTxIns,
-    tyTxPubKeyTxIns,
-    tyTxForge,
-    tyTxValidRange,
-    tyTxForgeScripts } = TypedTx {
-      tyTxTypedTxOuts=HConsF out tyTxTypedTxOuts,
-      tyTxPubKeyTxOuts,
-      tyTxTypedTxIns,
-      tyTxPubKeyTxIns,
-      tyTxForge,
-      tyTxValidRange,
-      tyTxForgeScripts }
-
--- | Adds a 'TypedScriptTxIn' to a 'TypedTx'.
-addTypedTxIn
-    :: forall ins outs newIn
-    . TypedScriptTxIn newIn
-    -> TypedTx ins outs
-    -> TypedTx (newIn ': ins) outs
--- We're changing the type so we can't use record update syntax :'(
-addTypedTxIn inn TypedTx {
-    tyTxTypedTxOuts,
-    tyTxPubKeyTxOuts,
-    tyTxTypedTxIns,
-    tyTxPubKeyTxIns,
-    tyTxForge,
-    tyTxValidRange,
-    tyTxForgeScripts } = TypedTx {
-      tyTxTypedTxOuts,
-      tyTxPubKeyTxOuts,
-      tyTxTypedTxIns=HConsF inn tyTxTypedTxIns,
-      tyTxPubKeyTxIns,
-      tyTxForge,
-      tyTxValidRange,
-      tyTxForgeScripts }
-
--- | A wrapper around a 'TypedTx' that hides the input list type as an existential parameter.
--- This allows us to perform some operations more easily by not caring about the input connection
--- types, see 'addSomeTypedTxIn' particularly.
-data TypedTxSomeIns (outs :: [Type]) = forall ins . TypedTxSomeIns (TypedTx ins outs)
-
--- | Add a 'TypedScriptTxIn' to a 'TypedTxSomeIns'. Note that we do not have to track
--- the input connection types explicitly.
-addSomeTypedTxIn
-    :: forall (outs :: [Type]) (newIn :: *)
-    . TypedScriptTxIn newIn
-    -> TypedTxSomeIns outs
-    -> TypedTxSomeIns outs
-addSomeTypedTxIn inn (TypedTxSomeIns tx) = TypedTxSomeIns $ addTypedTxIn inn tx
-
--- | Adds many homogeneous 'TypedScriptTxIn' to a 'TypedTx'.
-addManyTypedTxIns
-    :: forall (ins :: [Type]) (outs :: [Type]) (newIn :: Type)
-    . [TypedScriptTxIn newIn]
-    -> TypedTx ins outs
-    -> TypedTxSomeIns outs
-addManyTypedTxIns ins tx = foldl' (\someTx inn -> addSomeTypedTxIn inn someTx) (TypedTxSomeIns tx) ins
-
--- | A wrapper around a 'TypedTx' that hides the output list type as an existential parameter.
-data TypedTxSomeOuts (ins :: [Type]) = forall outs . TypedTxSomeOuts (TypedTx ins outs)
-
--- | Add a 'TypedScriptTxOut' to a 'TypedTxSomeOuts'. Note that we do not have to track
--- the output connection types explicitly.
-addSomeTypedTxOut
-    :: forall (ins :: [Type]) (newOut :: *)
-    . TypedScriptTxOut newOut
-    -> TypedTxSomeOuts ins
-    -> TypedTxSomeOuts ins
-addSomeTypedTxOut out (TypedTxSomeOuts tx) = TypedTxSomeOuts $ addTypedTxOut out tx
-
--- | Convert a 'TypedTx' to a 'Tx'.
-toUntypedTx
-    :: forall (ins :: [Type]) (outs :: [Type])
-    . TypedTx ins outs
-    -> Tx
-toUntypedTx TypedTx{
-    tyTxTypedTxOuts,
-    tyTxPubKeyTxOuts,
-    tyTxTypedTxIns,
-    tyTxPubKeyTxIns,
-    tyTxForge,
-    tyTxValidRange,
-    tyTxForgeScripts } = Tx {
-    txOutputs = hfOut tyTxOutTxOut tyTxTypedTxOuts ++ coerce tyTxPubKeyTxOuts,
-    txInputs = Set.fromList (hfOut tyTxInTxIn tyTxTypedTxIns ++ coerce tyTxPubKeyTxIns),
-    txForge = tyTxForge,
-    txFee = zero,
-    txValidRange = tyTxValidRange,
-    txSignatures = mempty,
-    txForgeScripts = tyTxForgeScripts,
-    txData = Map.fromList $ hfOut dsEntry tyTxTypedTxOuts}
-    where
-        dsEntry TypedScriptTxOut{tyTxOutData=d} = let ds = DataValue $ toData d in (dataValueHash ds, ds)
-
--- Checking
--- TODO: these could be in a separate module
 
 -- | An error we can get while trying to type an existing transaction part.
 data ConnectionError =

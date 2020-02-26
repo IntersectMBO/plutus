@@ -91,7 +91,11 @@ type TermDef tyname name uni a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Te
 
 -- | We generate some shared definitions compilation, this datatype
 -- defines the "keys" for those definitions.
-data SharedName = FixpointCombinator Integer deriving (Show, Eq, Ord)
+data SharedName =
+    FixpointCombinator Integer
+    | FixBy
+    deriving (Show, Eq, Ord)
 
 toProgramName :: SharedName -> Quote (PLC.Name ())
 toProgramName (FixpointCombinator n) = freshName () ("fix" <> T.pack (show n))
+toProgramName FixBy                  = freshName () "fixBy"

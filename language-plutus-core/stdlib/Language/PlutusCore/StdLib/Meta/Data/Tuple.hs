@@ -26,7 +26,7 @@ import           Language.PlutusCore.Quote
 import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable
 
--- | A Plutus Core tuple.
+-- | A Plutus Core (Scott-encoded) tuple.
 data Tuple term uni ann where
     Tuple :: TermLike term TyName Name uni =>
         { _tupleElementTypes :: [Type TyName uni ann] -- ^ The types of elements of a tuple.
