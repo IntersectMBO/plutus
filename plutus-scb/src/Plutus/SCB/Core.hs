@@ -445,7 +445,7 @@ data Source
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
-toUUID ContractEventSource = UUID.fromWords 0 0 0 2
+toUUID ContractEventSource = UUID.fromWords 0 0 0 1
 toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
 toUUID UserEventSource     = UUID.fromWords 0 0 0 3
 toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
