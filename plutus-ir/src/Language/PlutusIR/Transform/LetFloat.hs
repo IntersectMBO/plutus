@@ -10,6 +10,7 @@ import           Language.PlutusIR.Analysis.Dependencies
 import           Language.PlutusIR.Analysis.Free
 
 import           Control.Lens
+import           Control.Monad.Reader
 import           Control.Monad.RWS
 import           Control.Monad.State
 
@@ -21,11 +22,11 @@ import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
 
 import           Data.Foldable                           (fold)
+import           Data.Function                           (on)
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
-import Data.Function (on)
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
@@ -49,7 +50,7 @@ instance Monoid Rank where
                   }
 
 -- | During the first pass of the AST, a reader context holds the current in-scope stack of lambdas, as "potential ranks" for consideration.
-type Ctx = [Rank] -- the enclosing lambdas in scope that surround a let
+type Ctx' = (RankData, Int) -- the enclosing lambdas in scope that surround a let
 
 -- | During the first pass of the AST, we accumulate into a state the minimum rank of each lets encountered.
 type RankData = M.Map
@@ -96,76 +97,78 @@ removeLets = flip runState M.empty . go
            go tIn
          t -> termSubterms go t
 
--- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
-pass1Term ::  forall name tyname a
+-- | First-pass: Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
+p1Term ::  forall name tyname a
            . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
           => Term tyname name a -> RankData
-pass1Term pir = fst $ execRWS (pass1Term' pir) [] M.empty
- where
+p1Term pir = runReader (goTerm pir) (M.empty, 0)
 
-  -- TODO: rename goTerm, etc
+  where
 
-  pass1Term' :: Term tyname name a
-             -> RWS Ctx () RankData ()
-  pass1Term' = \case
-    -- overrides termSubterms for small&big Lambda, and Let (nonrec,rec)
+    goTerm :: Term tyname name a
+        -> Reader Ctx' RankData
+    goTerm = \case
+      LamAbs _ n _ tBody  -> goBody n tBody
+      TyAbs _ n _ tBody   -> goBody n tBody
 
-    LamAbs _ n _ tBody  -> pass1Body n tBody
-    TyAbs _ n _ tBody   -> pass1Body n tBody
+      Let _ NonRec bs tIn -> goLet NonRec bs tIn
+      Let _ Rec bs tIn    -> goLet Rec bs tIn
 
-    Let _ NonRec bs tIn -> pass1Let NonRec bs tIn
-    Let _ Rec bs tIn    -> pass1Let Rec bs tIn
+      -- recurse and then accumulate the return values
+      Apply _ t1 t2 -> (<>) <$> goTerm t1 <*> goTerm t2
+      TyInst _ t _ -> goTerm t
+      IWrap _ _ _ t -> goTerm t
+      Unwrap _ t -> goTerm t
 
-    x                   -> forM_ (x ^.. termSubterms) pass1Term'
+      -- "ground" terms (terms that do not contain other terms)
+      _ -> asks fst -- propagate the ctx's rankdata back upwards as the return value
 
-  pass1Body :: PLC.HasUnique b _c => b -> Term tyname name a -> RWS Ctx () RankData ()
-  pass1Body n tBody =
-    -- adds lambda/Lambda to reader-scope
-    local (\ ctx ->  LamDep { _depth = (case ctx of
-                                         []  -> mempty
-                                         h:_ -> h) ^.depth+1   -- increase depth by 1 compare to outer scope
-                            , _name = n^.PLC.unique.coerced
-                            } : ctx
-          )
-    $ pass1Term' tBody
+    goBody :: PLC.HasUnique b b' => b -> Term tyname name a -> Reader Ctx' RankData
+    goBody n tBody =
+      let lamName= n^.PLC.unique.coerced
+      in M.delete lamName -- we don't care about lambdas in RankData
+         <$> (local (\ (rd,depth1) ->
+                        let newDepth = depth1+1
+                            newRank = LamDep { _depth = newDepth
+                                             , _name = n^.PLC.unique.coerced
+                                             }
+                        in (M.insert lamName (newRank,lamName) rd, newDepth)
+                    ) $ goTerm tBody)
 
-  pass1Let :: Recursivity
+    goLet :: Recursivity
           -> [Binding tyname name a]
           -> Term tyname name a
-          -> RWS Ctx () RankData ()
+          -> Reader Ctx' RankData
+    goLet NonRec [] tIn = goTerm tIn
+    goLet NonRec (b:bs) tIn = do
+      (scope, _) <- ask
+      let freeVars = fBinding b -- this means that we see each binding individually, not at the whole let level
+          freeRanks = fmap fst $ M.restrictKeys scope freeVars
+          maxRank = fold freeRanks --shared for all bindings of Rec
+          newScope = M.insert (bindingUnique b) (maxRank, (bindingUnique b)) scope
 
-  -- TODO: change it to remove State and return Data
+      resHead <- mconcat <$> forM (b^..bindingSubterms) goTerm
 
-  pass1Let recurs bs tIn = do
-    -- visit all binding subterms
-    forM_ (bs^..traverse.bindingSubterms) pass1Term'
+      resRest <- local (\(_,d)->(newScope, d)) $ goLet NonRec bs tIn -- recurse
 
-    case recurs of
-      -- in nonrec, every rhs has its own FreeSet
-      NonRec -> forM_ bs $ \b ->
-                             let freeVars = fBinding b -- this means that we see each binding individually, not at the whole let level
-                                 princ = bindingUnique b
-                                 us = bindingIds b
-                             in recordRanks freeVars princ us
+      pure $ resHead <> resRest
 
-      -- in rec, all rhs'es share the same FreeSet
-      Rec -> let freeVars = foldMap fBinding bs S.\\ foldMap bindingIds bs
-             in forM_ bs $ \ b ->
-                             let princ = bindingUnique b
-                                 us = bindingIds b
-                             in recordRanks freeVars princ us
-    -- finally, visit the in-term
-    pass1Term' tIn
 
-  -- helper to record a rank for each of the identifiers introduced  by the binding
-  recordRanks :: S.Set PLC.Unique -> PLC.Unique -> S.Set PLC.Unique -> RWS Ctx () RankData ()
-  recordRanks freeVars princ us = do
-    lamRanks <- M.fromList . map (\ l -> (l^.name, l)) <$> ask
-    modify $ \letRanks ->
-     let freeRanks = M.restrictKeys (fmap fst letRanks <> lamRanks) freeVars
-         -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-         maxRank = fold freeRanks
-     in foldr (\ i -> M.insert i (maxRank, princ)) letRanks us
+    goLet Rec bs tIn = do
+      (scope, _) <- ask
+
+      let freeVars = foldMap fBinding bs S.\\ foldMap bindingIds bs
+          freeRanks = fmap fst $ M.restrictKeys scope freeVars
+          -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
+          maxRank = fold freeRanks --shared for all bindings of Rec
+          newScope = foldr (\ b -> M.insert (bindingUnique b) (maxRank, (bindingUnique b))) scope bs
+
+      resBs <- mconcat <$> forM (bs^..traverse.bindingSubterms)
+                           (local (\(_,d)->(newScope, d)) . goTerm)
+
+      resIn <- local (\(_,d)->(newScope, d)) $ goTerm tIn
+
+      pure $ resBs <> resIn
 
 
 floatTerm :: forall name tyname a.
@@ -173,7 +176,7 @@ floatTerm :: forall name tyname a.
              => Term tyname name a -> Term tyname name a
 floatTerm pir = floatBody mempty depthData pirClean
  where
-  depthData = IM.toAscList $ toDepthData $ pass1Term pir -- run the first pass
+  depthData = IM.toAscList $ toDepthData $ p1Term pir -- run the first pass
   -- Visiting a term to apply the float transformation
   visitTerm curRank remInfo = \case
       LamAbs a n ty tBody -> LamAbs a n ty (floatAbs n tBody)
