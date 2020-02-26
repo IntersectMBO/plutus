@@ -25,12 +25,19 @@ import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
+import Data.Function (on)
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
 data Rank = LamDep { _depth :: Int, _name :: PLC.Unique }
-          deriving (Eq, Ord)
+          deriving Eq
 makeLenses ''Rank
+
+-- TODO: Getter for Top
+--
+
+instance Ord Rank where
+  compare = compare `on` _depth
 
 -- acts as Data.Semigroup.Max
 instance Semigroup Rank where
@@ -50,13 +57,13 @@ type RankData = M.Map
                  ( Rank-- ^ the minimum rank for this let binding, i.e. where this identifier can topmost/highest float upwards to
                  , PLC.Unique   -- ^ a principal name for this binding, used only because a let-Datatype-bind can introduce multiple identifiers
                  )
+
 -- | During the second pass of the AST, we transform the 'RankData' to an assoc. list of depth=>lambda=>{let_unique} mappings left to process. This assoc. list is sorted by depth for easier code generation.
-type DepthData = [(Int,         -- ^ the depth
-                    M.Map       -- ^ a mapping of lambdanames belonging to this depth => letidentifiers to float
+type DepthData = IM.IntMap         -- ^ the depth
+                    (M.Map       -- ^ a mapping of lambdanames belonging to this depth => letidentifiers to float
                       PLC.Unique    -- ^ a lambda name
                       (S.Set PLC.Unique)  -- ^ the let bindings that should be floated/placed under this lambda
-                  )
-                 ]
+                    )
 
 -- | A simple table holding a let-introduced identifier to its RHS.
 --
@@ -77,17 +84,17 @@ removeLets :: forall name tyname a
             . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
            => Term tyname name a
            -> (Term tyname name a, RhsTable tyname name a)
-removeLets = flip runState M.empty . removeLets'
+removeLets = flip runState M.empty . go
  where
-   removeLets' :: Term tyname name a -> State (RhsTable tyname name a) (Term tyname name a)
-   removeLets' = \case
+   go :: Term tyname name a -> State (RhsTable tyname name a) (Term tyname name a)
+   go = \case
          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
          Let a r bs tIn -> do
            forM_ bs $ \ b -> do
-                               b' <- bindingSubterms removeLets' b
+                               b' <- bindingSubterms go b
                                modify (M.insert (bindingUnique b') (a, r, b'))
-           removeLets' tIn
-         t -> termSubterms removeLets' t
+           go tIn
+         t -> termSubterms go t
 
 -- | Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding rank.
 pass1Term ::  forall name tyname a
@@ -95,6 +102,9 @@ pass1Term ::  forall name tyname a
           => Term tyname name a -> RankData
 pass1Term pir = fst $ execRWS (pass1Term' pir) [] M.empty
  where
+
+  -- TODO: rename goTerm, etc
+
   pass1Term' :: Term tyname name a
              -> RWS Ctx () RankData ()
   pass1Term' = \case
@@ -123,6 +133,9 @@ pass1Term pir = fst $ execRWS (pass1Term' pir) [] M.empty
           -> [Binding tyname name a]
           -> Term tyname name a
           -> RWS Ctx () RankData ()
+
+  -- TODO: change it to remove State and return Data
+
   pass1Let recurs bs tIn = do
     -- visit all binding subterms
     forM_ (bs^..traverse.bindingSubterms) pass1Term'
@@ -151,8 +164,8 @@ pass1Term pir = fst $ execRWS (pass1Term' pir) [] M.empty
     modify $ \letRanks ->
      let freeRanks = M.restrictKeys (fmap fst letRanks <> lamRanks) freeVars
          -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-         rank = fold freeRanks
-     in foldr (\ i -> M.insert i (rank, princ)) letRanks us
+         maxRank = fold freeRanks
+     in foldr (\ i -> M.insert i (maxRank, princ)) letRanks us
 
 
 floatTerm :: forall name tyname a.
@@ -160,7 +173,7 @@ floatTerm :: forall name tyname a.
              => Term tyname name a -> Term tyname name a
 floatTerm pir = floatBody mempty depthData pirClean
  where
-  depthData = toDepthData $ pass1Term pir -- run the first pass
+  depthData = IM.toAscList $ toDepthData $ pass1Term pir -- run the first pass
   -- Visiting a term to apply the float transformation
   visitTerm curRank remInfo = \case
       LamAbs a n ty tBody -> LamAbs a n ty (floatAbs n tBody)
@@ -172,6 +185,7 @@ floatTerm pir = floatBody mempty depthData pirClean
 
 
   -- Special case of 'visitTerm' where we visit a lambda or a Lambda body
+  -- TODO: maybe change this to IntMap.foldl
   floatBody _  [] tBody = tBody -- no lets are left to float, do not descend
   floatBody curRank depthTable@((searchingForDepth, lams_lets):restDepthTable) tBody
     | curRank^.depth < searchingForDepth = visitTerm curRank depthTable tBody
@@ -243,7 +257,7 @@ floatTerm pir = floatBody mempty depthData pirClean
 ----------
 
 toDepthData :: RankData -> DepthData
-toDepthData = IM.toAscList . M.foldr (\ (LamDep lamDepth lamName, letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) lamDepth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
+toDepthData = M.foldr (\ (LamDep lamDepth lamName, letNamePrinc) acc -> IM.insertWith (M.unionWith S.union) lamDepth (M.singleton lamName (S.singleton letNamePrinc)) acc) IM.empty
 
 -- | Returns a single 'Unique' for a particular binding.
 -- We need this because datatypebinds introduce multiple identifiers, but we need only one as a key of our 'RhsTable',etc. See also: 'datatypeIdentifiers'
