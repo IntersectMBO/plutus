@@ -77,7 +77,7 @@ module PlutusPrelude
     , indent
     -- * Pretty-printing
     , Pretty (..)
-    , APretty (..)
+    , ShowPretty (..)
     , DefaultPrettyBy (..)
     , PrettyBy (..)
     , PrettyConfigIgnore (..)
@@ -134,12 +134,12 @@ infixl 4 <<$>>, <<*>>
 
 -- | A newtype wrapper around @a@ whose point is to provide a 'Show' instance
 -- for anything that has a 'Pretty' instance.
-newtype APretty a = APretty
-    { unAPretty :: a
+newtype ShowPretty a = ShowPretty
+    { unShowPretty :: a
     } deriving (Eq)
 
-instance Pretty a => Show (APretty a) where
-    show = prettyString . unAPretty
+instance Pretty a => Show (ShowPretty a) where
+    show = prettyString . unShowPretty
 
 -- | This class is used in order to provide default implementations of 'PrettyBy' for
 -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,

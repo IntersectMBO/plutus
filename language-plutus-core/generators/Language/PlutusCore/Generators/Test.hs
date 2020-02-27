@@ -16,7 +16,7 @@ module Language.PlutusCore.Generators.Test
     , propEvaluate
     ) where
 
-import           PlutusPrelude                                         (APretty (..))
+import           PlutusPrelude                                         (ShowPretty (..))
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
@@ -93,5 +93,5 @@ propEvaluate eval genTermOfTbv = withTests 200 . property $ do
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             -- We know that these two are distinct, but there is no nice way we
             -- can report this via 'hedgehog' except by comparing them here again.
-            APretty expected === APretty actual
+            ShowPretty expected === ShowPretty actual
         Right _                                            -> return ()

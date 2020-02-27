@@ -32,6 +32,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Exception
 import           Data.Coerce
+import qualified Data.Kind                                          as GHC (Type)
 import           Data.Proxy
 import qualified Data.Text                                          as Text
 import           GHC.TypeLits
@@ -63,7 +64,7 @@ to evaluate.
 -}
 
 -- Well that's ugly.
-newtype OnChain (names :: [Symbol]) f (tyname :: * -> *) (name :: * -> *) (uni :: * -> *) ann = OnChain
+newtype OnChain (names :: [Symbol]) f (tyname :: GHC.Type -> GHC.Type) (name :: GHC.Type -> GHC.Type) (uni :: GHC.Type -> GHC.Type) ann = OnChain
     { unOnChain :: f tyname name uni ann
     }
 

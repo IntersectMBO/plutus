@@ -47,6 +47,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import qualified Data.Kind                                          as GHC (Type)
 import           Data.Map                                           (Map)
 import           Data.Proxy
 import           Data.String
@@ -55,10 +56,9 @@ import           GHC.TypeLits
 infixr 9 `TypeSchemeArrow`
 
 -- | Type schemes of primitive operations.
--- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
--- @r@ is the resulting type in @a@, e.g. the resulting type in
--- @ByteString -> Size -> Integer@ is @Integer@.
-data TypeScheme uni (as :: [*]) r where
+-- @as@ is a list of types of arguments, @r@ is the resulting type.
+-- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme uni [Char, Bool] Integer@.
+data TypeScheme uni (as :: [GHC.Type]) r where
     TypeSchemeResult
         :: KnownType uni r => Proxy r -> TypeScheme uni '[] r
     TypeSchemeArrow
@@ -92,6 +92,12 @@ data TypeScheme uni (as :: [*]) r where
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName uni as r = TypedBuiltinName BuiltinName (TypeScheme uni as r)
 
+-- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
+--
+-- >>> :set -XDataKinds
+-- >>> :kind! FoldArgs [Char, Bool] Integer
+-- FoldArgs [Char, Bool] Integer :: *
+-- = Char -> Bool -> Integer
 type family FoldArgs as r where
     FoldArgs '[]       r = r
     FoldArgs (a ': as) r = a -> FoldArgs as r
@@ -315,12 +321,13 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
 unliftConstant
     :: forall a m uni err.
        ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
-       , GShow uni, GEq uni, uni `Includes` a)
+       , GShow uni, GEq uni, uni `Includes` a
+       )
     => Evaluator Term uni m -> Term TyName Name uni () -> m a
 unliftConstant eval term = do
     res <- eval mempty term
     case res of
-        Constant () (Some (Of uniAct x)) -> do
+        Constant () (Some (ValueOf uniAct x)) -> do
             let uniExp = knownUni @uni @a
             case uniAct `geq` uniExp of
                 Just Refl -> pure x

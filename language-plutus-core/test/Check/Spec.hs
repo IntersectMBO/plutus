@@ -84,7 +84,7 @@ propRenameCheck :: Property
 propRenameCheck = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     renamed <- runQuoteT $ rename prog
-    annotateShow $ APretty renamed
+    annotateShow $ ShowPretty renamed
     Hedgehog.evalExceptT $ checkUniques renamed
         where
             checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name uni a -> m ()

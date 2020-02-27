@@ -14,10 +14,8 @@ module Language.PlutusCore
     , parseType
     -- * Universe
     , Some (..)
-    , In (..)
-    , Of (..)
-    , SomeIn
-    , SomeOf
+    , TypeIn (..)
+    , ValueOf (..)
     , someValue
     , Includes (..)
     , Closed (..)
@@ -25,6 +23,8 @@ module Language.PlutusCore
     , GShow (..)
     , show
     , GEq (..)
+    , deriveGEq
+    , Lift
     , GLift (..)
     , type (<:)
     , DefaultUni (..)

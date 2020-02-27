@@ -24,7 +24,7 @@ data RType = RTyVar Integer
            | RTyPi RKind RType
            | RTyLambda RKind RType
            | RTyApp RType RType
-           | RTyCon (SomeIn DefaultUni)
+           | RTyCon (Some (TypeIn DefaultUni))
            | RTyMu RType RType
            deriving Show
 
@@ -64,10 +64,10 @@ convT (TyApp _ _A _B)          = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin _ b)          = RTyCon b
 convT (TyIFix _ a b)           = RTyMu (convT a) (convT b)
 
-convC :: SomeOf DefaultUni -> RConstant
-convC (Some (Of DefaultUniInteger    i)) = RConInt i
-convC (Some (Of DefaultUniByteString b)) = RConBS b
-convC (Some (Of DefaultUniString     s)) = RConStr (T.pack s)
+convC :: Some (ValueOf DefaultUni) -> RConstant
+convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
+convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
+convC (Some (ValueOf DefaultUniString     s)) = RConStr (T.pack s)
 
 conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
 conv (Var _ x)                        =
@@ -106,10 +106,10 @@ unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
 unconvT i (RTyCon c)        = TyBuiltin () c
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 
-unconvC :: RConstant -> SomeOf DefaultUni
-unconvC (RConInt i) = Some (Of DefaultUniInteger    i)
-unconvC (RConBS b)  = Some (Of DefaultUniByteString b)
-unconvC (RConStr s) = Some (Of DefaultUniString     $ T.unpack s)
+unconvC :: RConstant -> Some (ValueOf DefaultUni)
+unconvC (RConInt i) = Some (ValueOf DefaultUniInteger    i)
+unconvC (RConBS b)  = Some (ValueOf DefaultUniByteString b)
+unconvC (RConStr s) = Some (ValueOf DefaultUniString     $ T.unpack s)
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']

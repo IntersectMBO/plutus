@@ -208,7 +208,7 @@ version = lexeme $ do
     void $ char '.'
     PLC.Version p x y <$> Lex.decimal
 
-constant :: Parser (PLC.SomeOf PLC.DefaultUni)
+constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
 constant =
     (PLC.someValue <$> integer) <|> (PLC.someValue <$> bytestring)
 

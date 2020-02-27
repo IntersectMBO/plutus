@@ -27,6 +27,7 @@ import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.Kind                    as GHC
 import           Data.Proxy
 import qualified Data.Text                    as T
 import           Foreign.Storable
@@ -43,9 +44,9 @@ abstractily specifiable. It's an implementation detail.
 
 -}
 
-type Plain f (uni :: * -> *) = f TyName Name uni ()
+type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
-type WithMemory f (uni :: * -> *) = f TyName Name uni ExMemory
+type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -107,12 +108,12 @@ deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
-instance ExMemoryUsage (Some (In uni)) where
+instance ExMemoryUsage (Some (TypeIn uni)) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Of uni)) where
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
   -- TODO this is just to match up with existing golden tests. We probably need to account for @uni@ as well.
-  memoryUsage (Some (Of uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
+  memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
 
 instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?

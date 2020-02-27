@@ -57,7 +57,7 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
     tyAbs    :: ann -> tyname ann -> Kind ann -> term ann -> term ann
     lamAbs   :: ann -> name ann -> Type tyname uni ann -> term ann -> term ann
     apply    :: ann -> term ann -> term ann -> term ann
-    constant :: ann -> SomeOf uni -> term ann
+    constant :: ann -> Some (ValueOf uni) -> term ann
     builtin  :: ann -> Builtin ann -> term ann
     tyInst   :: ann -> term ann -> Type tyname uni ann -> term ann
     unwrap   :: ann -> term ann -> term ann
@@ -78,7 +78,7 @@ dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
 mkTyBuiltin
     :: forall a uni tyname ann. uni `Includes` a
     => ann -> Type tyname uni ann
-mkTyBuiltin ann = TyBuiltin ann . Some . In $ knownUni @uni @a
+mkTyBuiltin ann = TyBuiltin ann . Some . TypeIn $ knownUni @uni @a
 
 -- | Embed a Haskell value into a PLC term.
 mkConstant

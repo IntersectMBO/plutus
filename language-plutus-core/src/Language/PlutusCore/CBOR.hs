@@ -64,18 +64,20 @@ encodeConstructorTag = encodeWord
 decodeConstructorTag :: Decoder s Word
 decodeConstructorTag = decodeWord
 
-instance Closed uni => Serialise (Some (In uni)) where
-    encode (Some (In uni)) = encodeConstructorTag . fromIntegral $ tagOf uni
+-- See Note [The G, the Tag and the Auto].
+instance Closed uni => Serialise (Some (TypeIn uni)) where
+    encode (Some (TypeIn uni)) = encodeConstructorTag . fromIntegral $ tagOf uni
 
     decode = go . uniAt . fromIntegral =<< decodeConstructorTag where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
-instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (Of uni)) where
-    encode (Some (Of uni x)) = encode (Some $ In uni) <> bring (Proxy @Serialise) uni (encode x)
+-- See Note [The G, the Tag and the Auto].
+instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf uni)) where
+    encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Serialise) uni (encode x)
 
     decode = go =<< decode where
-        go (Some (In uni)) = Some . Of uni <$> bring (Proxy @Serialise) uni decode
+        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
 instance Serialise BuiltinName where
     encode bi =

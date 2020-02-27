@@ -85,7 +85,7 @@ genBuiltinName = Gen.element allBuiltinNames
 genBuiltin :: AstGen (Builtin ())
 genBuiltin = BuiltinName () <$> genBuiltinName
 
-genConstant :: AstGen (SomeOf DefaultUni)
+genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
     [ someValue @Integer <$> Gen.integral_ (Range.linear (-10000000) 10000000)
     , someValue . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode

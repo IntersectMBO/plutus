@@ -104,6 +104,7 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
+-- This works nicely because @m@ contains @uni@ as parameter.
 class SpendBudget m uni | m -> uni where
     spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
 
