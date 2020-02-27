@@ -194,6 +194,7 @@ type MarloweState
     , moneyInContract :: Assets
     , contract :: Maybe Contract
     , editorErrors :: Array Annotation
+    , editorWarnings :: Array Annotation
     , holes :: Holes
     , payments :: Array Payment
     }
@@ -225,6 +226,9 @@ _contract = prop (SProxy :: SProxy "contract")
 _editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
 _editorErrors = prop (SProxy :: SProxy "editorErrors")
 
+_editorWarnings :: forall s a. Lens' { editorWarnings :: a | s } a
+_editorWarnings = prop (SProxy :: SProxy "editorWarnings")
+
 _holes :: forall s a. Lens' { holes :: a | s } a
 _holes = prop (SProxy :: SProxy "holes")
 
@@ -251,7 +255,8 @@ emptyMarloweState sn =
   , slot: zero
   , moneyInContract: mempty
   , contract: Nothing
-  , editorErrors: []
+  , editorErrors: mempty
+  , editorWarnings: mempty
   , holes: mempty
   , payments: []
   }
