@@ -2,6 +2,8 @@
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
 \date{5th November 2019}
 
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
 \documentclass[a4paper]{article}
 
 \usepackage{blindtext, graphicx}
@@ -102,6 +104,9 @@
 \newcommand{\force}[1]{\construct{\keyword{force} ~ #1}}
 
 \newcommand{\erase}[1]{\llbracket#1\rrbracket}
+%\newcommand{\erase}[1]{\left|#1\right|}
+%\newcommand{\erase}[1]{\overline{#1}}
+%\newcommand{\erase}[1]{\left\lVert#1\right\rVert}
 
 %%%  Type Grammar
 
@@ -1051,7 +1056,8 @@ Plutus Core terms to untyped ones.
 \subsection{Notes}
 The grammar is essentially that of typed Plutus Core with all types
 and type-related operations discarded.  However, we require two new
-items: \texttt{delay} and \texttt{force}. These are needed because
+items: \texttt{delay} and \texttt{force}\footnotemark[5].
+These are needed because
 type-level abstraction (\texttt{abs}) and application (\texttt{\{\}})
 have a computational effect.  The body of a type abstraction will not
 be executed until the type is instantiated;  thus we cannot just
@@ -1059,7 +1065,7 @@ replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
 immediately.  As we will see below,  \texttt{delay} and \texttt{force}
 are used to preserve the effects of type abstraction and instantiation.
 
-\noindent{\color{red} [kwxm] The introduction of \texttt{delay}
+\footnotetext[5]{\red{The introduction of \texttt{delay}
 and \texttt{force} may be controversial since $\delay{M}$ can be
 implemented as $\lamU{u}{M}$ and $\force{M}$ as
 $\appU{M}{\lamU{x}{x}}$.  However, doing this has a cost in code size.
@@ -1073,30 +1079,35 @@ because programs have to be wrapped in an expression binding $u$ (and
 maybe the CEK machine has to start with an environment binding $u$ to
 $\lamU{x}{x}$).  Another option would be to extend the grammar with a
 unit term, but then it would be tempting to add terms
-for \texttt{true}, \texttt{false}, and so on.
-
+for \texttt{true}, \texttt{false}, and so on.   
 It's possible that in actual validator code (especially after type
 normalisation), \texttt{delay} and \texttt{force} will typically appear in
 expressions of the form $\force{\delay{e}}$, which could immediately
 be replaced by $e$ alone, and then using $\lamU{x}{x}$ might not cause
-so much overhead. I'll look into this.  }
+so much overhead. I'll look into this.  }}
 
 \subsection{Type erasure}
 Figure~\ref{fig:type-erasure} defines a type erasure operation which
 converts a typed Plutus Core term $M$ into an untyped one
-$\erase{M}$\redfootnote{I'm not wedded to this particular notation for
-erasure, but it doesn't look too bad.}.  We extend this to sequences of
+$\erase{M}$\footnotemark[4].  We extend this to sequences of
 terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
 $\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
 $P$ we use $\erase{P}$ to denote the untyped program with the same
 version whose body is the erasure of the body of $P$. The erasure operation
 preserves semantics in an appropriate sense.
 
+\footnotetext[4]{\red{I'm not wedded to this particular notation for erasure,
+but I'm not going to buy the argument that it'll confuse people. Other
+possiblities: $\left|M\right|$, $\left\lVert{M}\right\rVert$,
+$\overline{M}$ (that looks pretty bad), etc. I'll consult some experts to
+find out if there's a standard notation.}}
+
 \subfile{figures/TypeErasure}
 
 \subsection{Term Reduction}
-Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics for untyped
-Plutus Core, analogously to Figure~\ref{fig:term-reduction}.
+Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
+for untyped Plutus Core, analogously to
+Figure~\ref{fig:term-reduction}.
 
 \subfile{figures/UntypedTermReduction}
 
@@ -1105,15 +1116,6 @@ Figure~\ref{fig:untyped-ck-machine} describes a modified version of
 the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untype Plutus
 Core programs.
 \subfile{figures/UntypedCkMachine}
-
-\noindent\red{I don't remember exactly what's going on, but I think
-the rule marked $(*)$ is there to deal with polymorphic constants, of which
-we don't currently have any.  We already have $\con{\ldots}$ for
-built-in constants, so I'm not sure why we have zero-argument built-in
-functions.  I'll have to think about this and consult Roman about
-what's going to happen in future.  Eventually I'll either remove that rule
-(and zero-argument builtins elsewhere) or replace it with a suitable untyped
-version.}
 
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}

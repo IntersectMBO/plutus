@@ -32,8 +32,8 @@
         \cksteps{\ckforward{s&}{\delay{M}}&} {&\ckbackward{s}{\delay{M}}}\\
         \cksteps{\ckforward{s&}{\force{M}}&} {&\ckforward{s, \inForceFrame{}}{M}}\\
         \cksteps{\ckforward{s&}{\appU{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}}
-        \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins} }) \ \red{(*)}\\
+        \cksteps{\ckforward{s&}{\builtinU{bn}{\!\!}}&} {&\ckforward{s}{M}}
+        \quad (\textit{$bn$ computes to $M$ according to Fig.~\ref{fig:builtins} })\footnotemark[3]\\
        \cksteps{\ckforward{s&}{\builtinU{bn}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltinU{bn}{}{\_}{\repetition{M}}}{M}}\\
        \cksteps{\ckforward{s&}{\errorU}&} {&\ckerror{}}\\
        \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
@@ -53,5 +53,12 @@
 \caption{Untyped CK machine}
 \label{fig:untyped-ck-machine}
 \end{figure}
+
+\footnotetext[3]{\red{This looks a bit strange. For one thing, it
+    gives us two ways to write built-in constants: $\con{X}$ and
+    $\builtinU{X}{\!\!}$.  I think this was deliberately included in
+    Rebecca's original typed syntax to give us a way to instantiate
+    polymorphic constants.  Roman says it will probably still be
+    useful for his extensible builtins.}}
 
 \end{document}

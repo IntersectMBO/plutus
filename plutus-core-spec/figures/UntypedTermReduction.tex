@@ -31,7 +31,8 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins} \red{(REALLY?)}}
+
+        \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins}\footnotemark[2]}
         \UnaryInfC{\(\step{\builtinU{bn}{\repetition{V}}}{U}\)}
     \end{prooftree}
 
@@ -62,5 +63,7 @@
 \caption{Term Reduction for Untyped Plutus Core}
 \label{fig:untyped-term-reduction}
 \end{figure}
+
+\footnote[2]{\red{Strictly, Figure~\ref{fig:builtins} refers to typed builltins. Hopefully we can rephrase things to make it apply to both worlds.}}
 
 \end{document}
