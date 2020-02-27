@@ -21,6 +21,7 @@
     "echarts": "^4.2.0-rc.2",
     "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^2.0.0",
+    "google-fonts-plugin": "^5.0.2",
     "html-webpack-plugin": "^3.2.0",
     "jquery": "^3.3.1",
     "moo": "^0.5.1",

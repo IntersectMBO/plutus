@@ -1,46 +1,39 @@
 module Simulation where
 
-import API (RunResult(RunResult))
 import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
-import Bootstrap (btn, btnInfo, btnPrimary, btnSecondary, btnSmall, card, cardBody_, card_, col3_, col6, col9, col_, dropdownToggle, empty, listGroupItem_, listGroup_, row_)
-import Bootstrap.Extra (ariaExpanded, ariaHasPopup, ariaLabelledBy, dataToggle)
+import Auth (AuthRole(..), authStatusAuthRole)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, githubDisplay, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelHeader, panelHeaderMain, panelHeaderSide, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Control.Alternative (map)
-import Data.Array (catMaybes, concatMap, fromFoldable, head, sortBy)
+import Data.Array (foldr, intercalate, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
-import Data.Eq ((==), (/=))
-import Data.Foldable (foldMap, intercalate)
-import Data.Function (on)
-import Data.FunctorWithIndex (mapWithIndex)
-import Data.HeytingAlgebra ((&&), (||))
+import Data.Eq ((==))
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Lens (to, view, (^.))
-import Data.List (List, toUnfoldable, null)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
-import Data.Set (Set)
-import Data.Set as Set
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), snd)
 import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PropName(..), a, b_, br_, button, code_, col, colgroup, div, div_, h2, h3_, input, li_, ol, ol_, pre_, slot, span, span_, strong_, table_, tbody_, td, td_, text, th, th_, thead_, tr, ul_)
-import Halogen.HTML.Events (onClick, onDragOver, onDrop, onValueChange)
-import Halogen.HTML.Properties (ButtonType(..), InputType(InputNumber), class_, classes, enabled, id_, placeholder, prop, type_, value)
-import Halogen.HTML.Properties.ARIA (role)
-import Marlowe.Holes (Holes(..), MarloweHole(..), MarloweType(..), getMarloweConstructors)
-import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, CurrencySymbol, Input(..), Party, Payee(..), Payment(..), PubKey, Slot(..), SlotInterval(..), Token(..), TokenName, TransactionError, TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
-import Marlowe.Symbolic.Types.Response as R
-import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (class Show, bind, compare, const, flip, identity, mempty, not, pure, show, unit, zero, ($), (+), (<$>), (<<<), (<>), (>))
+import Gist (Gist)
+import Gists (GistAction(..), idPublishGist)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h4, h6, h6_, img, input, label, li, li_, p, p_, section, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML.Events (onClick, onValueChange, onValueInput)
+import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
+import Halogen.HTML.Properties as HTML
+import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx, cy, d, fill, height, path, r, strokeLinecap, strokeWidth, svg, viewBox)
+import Halogen.SVG as SVG
+import Help (toHTML)
+import Icons (Icon(..), icon)
+import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
+import Network.RemoteData (RemoteData(..))
+import Prelude (class Show, const, mempty, show, unit, ($), (/=), (<$>), (<<<), (<>), (>))
+import Servant.PureScript.Ajax (AjaxError)
 import StaticData as StaticData
-import Text.Parsing.StringParser (runParser)
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), MarloweError(..), MarloweState, _Head, _analysisState, _contract, _editorErrors, _editorPreferences, _holes, _marloweCompileResult, _marloweEditorSlot, _marloweState, _payments, _pendingInputs, _possibleActions, _selectedHole, _slot, _state, _transactionError, _transactionWarnings)
-
-paneHeader :: forall p. String -> HTML p HAction
-paneHeader s = h2 [ class_ $ ClassName "pane-header" ] [ text s ]
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _contract, _createGistResult, _editorErrors, _editorPreferences, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
 
 isContractValid :: FrontendState -> Boolean
 isContractValid state =
@@ -48,218 +41,106 @@ isContractValid state =
     && view (_marloweState <<< _Head <<< _editorErrors) state
     == []
 
-simulationPane ::
+render ::
+  forall m.
+  MonadAff m =>
+  FrontendState ->
+  Array (ComponentHTML HAction ChildSlots m)
+render state =
+  [ section [ classes [ panelHeader, aHorizontal ] ]
+      [ div [ classes [ panelHeaderMain, aHorizontal, noMargins, accentBorderBottom ] ]
+          [ h4 [] [ text "Marlowe Contract" ] ]
+      , div [ classes [ panelHeaderSide, aHorizontal, accentBorderBottom ] ]
+          [ div [ classes ([ ClassName "vertical", ClassName "flip-container" ] <> githubDisplay state) ]
+              [ authButton state ]
+          ]
+      ]
+  , section [ classes [ panelSubHeader, aHorizontal ] ]
+      [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+          [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
+              [ div [ classes [ ClassName "demos", spaceLeft ] ]
+                  [ small_ [ text "Demos:" ]
+                  ]
+              ]
+          , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.marloweContracts))
+          , div [ class_ (ClassName "code-to-blockly-wrap") ]
+              [ button
+                  [ class_ smallBtn
+                  , onClick $ const $ Just $ SetBlocklyCode
+                  , enabled (isContractValid state)
+                  ]
+                  [ img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ] ]
+              ]
+          ]
+      , div [ classes [ panelSubHeaderSide ] ] []
+      ]
+  , section [ class_ (ClassName "code-panel") ]
+      [ div [ classes (codeEditor state) ]
+          [ marloweEditor state ]
+      , sidebar state
+      ]
+  ]
+  where
+  demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]
+
+marloweEditor ::
   forall m.
   MonadAff m =>
   FrontendState ->
   ComponentHTML HAction ChildSlots m
-simulationPane state =
-  div_
-    ( Array.concat
-        [ [ row_
-              [ inputComposerPane state
-              , transactionComposerPane state
-              ]
-          , row_ [ displayWarnings warnings ]
-          , row_ [ col_ (state ^. (_marloweState <<< _Head <<< _transactionError <<< to transactionErrors)) ]
-          , stateTitle state
-          , row_ [ statePane state ]
-          ]
-        , [ div
-              [ classes
-                  [ ClassName "demos"
-                  , ClassName "d-flex"
-                  , ClassName "flex-row"
-                  , ClassName "align-items-center"
-                  , ClassName "justify-content-between"
-                  , ClassName "mt-5"
-                  , ClassName "mb-3"
-                  ]
-              ]
-              [ paneHeader "Marlowe Contract", codeToBlocklyButton state, demoScriptsPane ]
-          , div
-              [ onDragOver $ Just <<< MarloweHandleDragEvent
-              , onDrop $ Just <<< MarloweHandleDropEvent
-              ]
-              [ row_
-                  [ div [ class_ col9 ] [ slot _marloweEditorSlot unit marloweEditor unit (Just <<< MarloweHandleEditorMessage) ]
-                  , holesPane (view _selectedHole state) (view (_marloweState <<< _Head <<< _holes) $ state)
-                  ]
-              ]
-          , br_
-          , errorList
-          , analysisPane state
-          ]
-        ]
-    )
+marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< MarloweHandleEditorMessage)
   where
-  marloweEditor =
-    aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey editorPreferences)
-      (Just Live)
-
-  editorPreferences = view _editorPreferences state
+  component = aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey editorPreferences) (Just Live)
 
   initialContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
 
-  errorList = case view _marloweCompileResult state of
-    Left errors -> listGroup_ (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
-    _ -> empty
+  editorPreferences = view _editorPreferences state
 
-  warnings = view (_marloweState <<< _Head <<< _transactionWarnings) state
-
-holesPane :: forall p. Maybe String -> Holes -> HTML p HAction
-holesPane selectedHole (Holes holes) =
+sidebar ::
+  forall p.
+  FrontendState ->
+  HTML p HAction
+sidebar state =
   let
-    kvs = Map.toUnfoldable holes
-
-    sortHoles = compare `on` (head <<< Set.toUnfoldable <<< snd)
-
-    ordered = sortBy sortHoles kvs
-
-    holesGroup = map (\(Tuple k v) -> displayHole selectedHole k v) ordered
+    showRightPanel = state ^. _showRightPanel
   in
-    col3_
-      [ div
-          [ class_ $ ClassName "btn-group-vertical"
-          , role "group"
+    aside [ classes [ (ClassName "sidebar-composer"), expanded showRightPanel ] ]
+      [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
+          [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
+      , div [ class_ aHorizontal ]
+          [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
+              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Input Composer" ] ]
+          , a [ onClick $ const $ Just $ ChangeHelpContext InputComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
           ]
-          holesGroup
+      , inputComposer state
+      , div [ class_ aHorizontal ]
+          [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
+              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Transaction Composer" ] ]
+          , a [ onClick $ const $ Just $ ChangeHelpContext TransactionComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
+          ]
+      , transactionComposer state
+      , article [ class_ (ClassName "documentation-panel") ]
+          (toHTML (state ^. _helpContext))
       ]
 
-displayHole :: forall p. Maybe String -> String -> Set MarloweHole -> HTML p HAction
-displayHole selectedHole name holes =
-  div [ classes ([ ClassName "btn-group" ] <> showClass) ]
-    [ button
-        [ classes [ btn, btnSecondary, dropdownToggle, ClassName "button-box" ]
-        , id_ ("hole-btn-" <> name)
-        , type_ ButtonButton
-        , dataToggle "dropdown"
-        , ariaHasPopup true
-        , ariaExpanded expanded
-        , onClick $ const $ Just $ SelectHole selectHole
-        ]
-        [ text name ]
-    , div
-        [ classes ([ ClassName "dropdown-menu" ] <> showClass)
-        , ariaLabelledBy ("hole-btn-" <> name)
-        ]
-        (holeDropdowns (Set.toUnfoldable holes))
-    ]
-  where
-  expanded = selectedHole == Just name
-
-  showClass = if selectedHole == Just name then [ ClassName "show" ] else []
-
-  selectHole = if selectedHole == Just name then Nothing else Just name
-
-holeDropdowns :: forall p. Array MarloweHole -> Array (HTML p HAction)
-holeDropdowns holes = case Array.uncons holes of
-  Nothing -> mempty
-  Just { head: (MarloweHole { marloweType: BigIntegerType, row, column }) } ->
-    [ div
-        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition row column
-        ]
-        [ text "Replace the hole with an integer" ]
-    ]
-  Just { head: (MarloweHole { marloweType: StringType, row, column }) } ->
-    [ div
-        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition row column
-        ]
-        [ text "Replace the hole with a string" ]
-    ]
-  Just { head: (MarloweHole { marloweType: ValueIdType, row, column }) } ->
-    [ div
-        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition row column
-        ]
-        [ text "Replace the hole with a string" ]
-    ]
-  Just { head: (MarloweHole { marloweType: SlotType, row, column }) } ->
-    [ div
-        [ classes [ ClassName "dropdown-item", ClassName "font-italic" ]
-        , onClick $ const $ Just $ MarloweMoveToPosition row column
-        ]
-        [ text "Replace the hole with an integer" ]
-    ]
-  Just { head: hole@(MarloweHole { marloweType }) } ->
-    map
-      ( \constructor ->
-          a
-            [ class_ $ ClassName "dropdown-item"
-            , onClick $ const $ Just $ InsertHole constructor hole holes
-            ]
-            [ text constructor ]
-      )
-      (fromFoldable $ Map.keys $ getMarloweConstructors marloweType)
-
-demoScriptsPane :: forall p. HTML p HAction
-demoScriptsPane =
-  div_
-    ( Array.cons
-        ( strong_
-            [ text "Demos: "
-            ]
-        )
-        (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.marloweContracts))
-    )
-
-demoScriptButton :: forall p. String -> HTML p HAction
-demoScriptButton key =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadMarloweScript key
-    ]
-    [ text key ]
-
-codeToBlocklyButton :: forall p. FrontendState -> HTML p HAction
-codeToBlocklyButton state =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ SetBlocklyCode
-    , enabled (isContractValid state)
-    ]
-    [ text "Code to Blockly" ]
-
-compilationResultPane :: forall p. RunResult -> HTML p HAction
-compilationResultPane (RunResult stdout) = div_ [ code_ [ pre_ [ text stdout ] ] ]
-
-compilationErrorPane :: forall p. MarloweError -> HTML p HAction
-compilationErrorPane (MarloweError error) = div_ [ text error ]
-
-inputComposerPane :: forall p. FrontendState -> HTML p HAction
-inputComposerPane state =
-  div
-    [ classes
-        [ col6
-        , ClassName "input-composer"
-        ]
-    ]
-    [ paneHeader "Input Composer"
-    , div
-        [ class_ $ ClassName "wallet"
-        ]
-        [ card_
-            [ cardBody_ (inputComposer isEnabled (view (_marloweState <<< _Head <<< _possibleActions) state))
-            ]
-        ]
+inputComposer ::
+  forall p.
+  FrontendState ->
+  HTML p HAction
+inputComposer state =
+  div [ classes [ ClassName "input-composer", ClassName "composer" ] ]
+    [ ul [ class_ (ClassName "participants") ]
+        if (Map.isEmpty possibleActions) then
+          [ text "No valid inputs can be added to the transaction" ]
+        else
+          (actionsForPeople possibleActions)
     ]
   where
   isEnabled = isContractValid state
 
-onEmpty :: forall a. Array a -> Array a -> Array a
-onEmpty alt [] = alt
+  possibleActions = view (_marloweState <<< _Head <<< _possibleActions) state
 
-onEmpty _ arr = arr
-
-inputComposer :: forall p. Boolean -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML p HAction)
-inputComposer isEnabled actionInputs =
-  if (Map.isEmpty actionInputs) then
-    [ text "No valid inputs can be added to the transaction" ]
-  else
-    (actionsForPeople actionInputs)
-  where
   kvs :: forall k v. Map k v -> Array (Tuple k v)
   kvs = Map.toUnfoldable
 
@@ -267,118 +148,84 @@ inputComposer isEnabled actionInputs =
   vs m = map snd (kvs m)
 
   lastKey :: Maybe (Maybe PubKey)
-  lastKey = map (\x -> x.key) (Map.findMax actionInputs)
+  lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-  actionsForPeople :: forall q. Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML q HAction)
-  actionsForPeople m = foldMap (\(Tuple k v) -> inputComposerPerson isEnabled k (vs v) (Just k == lastKey)) (kvs m)
+  people :: forall v. Array (Tuple (Maybe String) v) -> Array (Tuple String v)
+  people = foldr f mempty
+    where
+    f (Tuple (Just k) v) acc = (Tuple k v) : acc
 
-inputComposerPerson ::
+    f _ acc = acc
+
+  actionsForPeople :: Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML p HAction)
+  actionsForPeople m = map (\(Tuple k v) -> participant isEnabled k (vs v)) (people (kvs m))
+
+participant ::
   forall p.
   Boolean ->
-  Maybe PubKey ->
+  PubKey ->
   Array ActionInput ->
-  Boolean ->
-  Array (HTML p HAction)
-inputComposerPerson isEnabled maybePerson actionInputs isLast =
-  [ h3_
-      [ text
-          ( case maybePerson of
-              Just person -> ("Participant " <> show person)
-              Nothing -> ("Anyone")
-          )
-      ]
-  ]
-    <> [ div [ class_ $ ClassName (if isLast then "state-last-row" else "state-row") ]
-          (catMaybes (mapWithIndex inputForAction actionInputs))
-      ]
-  where
-  inputForAction :: Int -> ActionInput -> Maybe (HTML p HAction)
-  inputForAction index (DepositInput accountId party token value) = Just $ inputDeposit isEnabled maybePerson index accountId party token value
+  HTML p HAction
+participant isEnabled person actionInputs =
+  li [ classes [ ClassName "participant-a", noMargins ] ]
+    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
+        <> (map (inputItem isEnabled person) actionInputs)
+    )
 
-  inputForAction index (ChoiceInput choiceId bounds chosenNum) = Just $ inputChoice isEnabled maybePerson index choiceId chosenNum bounds
-
-  inputForAction index NotifyInput = Just $ inputNotify isEnabled maybePerson index
-
-inputDeposit ::
+inputItem ::
   forall p.
   Boolean ->
-  Maybe PubKey ->
-  Int ->
-  AccountId ->
-  Party ->
-  Token ->
-  BigInteger ->
+  PubKey ->
+  ActionInput ->
   HTML p HAction
-inputDeposit isEnabled person index accountId party token value =
-  div_
-    $ [ button
-          [ class_ $ ClassName "composer-add-button"
-          , enabled isEnabled
-          , onClick $ const $ Just
-              $ AddInput person (IDeposit accountId party token value) []
-          ]
-          [ text "+"
-          ]
-      ]
-    <> (renderDeposit accountId party token value)
+inputItem isEnabled person (DepositInput accountId party token value) =
+  div [ classes [ ClassName "deposit-a", aHorizontal ] ]
+    [ button
+        [ classes [ plusBtn, smallBtn ]
+        , enabled isEnabled
+        , onClick $ const $ Just
+            $ AddInput (Just person) (IDeposit accountId party token value) []
+        ]
+        [ text "+" ]
+    , p_ (renderDeposit accountId party token value)
+    ]
 
-renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p HAction)
-renderDeposit (AccountId accountNumber accountOwner) party tok money =
-  [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
-  , spanText " units of "
-  , b_ [ spanText (show tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
-  , spanText " as "
-  , b_ [ spanText (show party) ]
-  ]
-
-inputChoice :: forall p. Boolean -> Maybe PubKey -> Int -> ChoiceId -> ChosenNum -> Array Bound -> HTML p HAction
-inputChoice isEnabled person index choiceId@(ChoiceId choiceName choiceOwner) chosenNum bounds =
-  let
-    validBounds = inBounds chosenNum bounds
-
-    errorRow = if validBounds then [] else [ text boundsError ]
-  in
-    div_
-      ( [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ const $ Just
-                $ AddInput person (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
-            ]
-            [ text "+"
-            ]
-        , spanText "Choice "
+inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+  div
+    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    [ button
+        [ classes [ plusBtn, smallBtn ]
+        , enabled (isEnabled && inBounds chosenNum bounds)
+        , onClick $ const $ Just
+            $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+        ]
+        [ text "+" ]
+    , p [ class_ (ClassName "choice-input") ]
+        [ spanText "Choice "
         , b_ [ spanText (show choiceName) ]
         , spanText ": Choose value "
         , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
         ]
-          <> errorRow
-      )
+    , p [ class_ (ClassName "choice-error") ] error
+    ]
   where
+  error = if inBounds chosenNum bounds then [] else [ text boundsError ]
+
   boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 
-inputNotify ::
-  forall p.
-  Boolean ->
-  Maybe PubKey ->
-  Int ->
-  HTML p HAction
-inputNotify isEnabled person index =
-  div_
+inputItem isEnabled person NotifyInput =
+  li
+    [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ button
-        [ class_ $ ClassName "composer-add-button"
+        [ classes [ plusBtn, smallBtn ]
         , enabled isEnabled
         , onClick $ const $ Just
-            $ AddInput person INotify []
+            $ AddInput (Just person) INotify []
         ]
-        [ text "+"
-        ]
-    , text $ "Notify contract"
+        [ text "+" ]
+    , p_ [ text "Notify Contract" ]
     ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> HAction) -> a -> HTML p HAction
@@ -400,100 +247,140 @@ marloweActionInput isEnabled f current =
           )
     ]
 
-flexRow_ ::
-  forall p.
-  Array (HTML p HAction) ->
-  HTML p HAction
-flexRow_ html = div [ classes [ ClassName "d-flex", ClassName "flex-row" ] ] html
+renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p HAction)
+renderDeposit (AccountId accountNumber accountOwner) party tok money =
+  [ spanText "Deposit "
+  , b_ [ spanText (show money) ]
+  , spanText " units of "
+  , b_ [ spanText (show tok) ]
+  , spanText " into Account "
+  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
+  , spanText " as "
+  , b_ [ spanText (show party) ]
+  ]
 
-spanText :: forall p. String -> HTML p HAction
-spanText s = span [ class_ $ ClassName "pr-1" ] [ text s ]
-
-transactionComposerPane ::
+transactionComposer ::
   forall p.
   FrontendState ->
   HTML p HAction
-transactionComposerPane state =
-  div
-    [ classes
-        [ col6
-        , ClassName "input-composer"
+transactionComposer state =
+  div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+    [ ul [ class_ (ClassName "participants") ]
+        [ transaction state ]
+    , div [ class_ (ClassName "transaction-btns") ]
+        [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+            [ li [ classes [ activeTextPrimary, bold, pointer ] ]
+                [ a
+                    [ onClick
+                        $ if hasHistory state then
+                            Just <<< const Undo
+                          else
+                            const Nothing
+                    ]
+                    [ text "Undo" ]
+                ]
+            , li [ classes [ activeTextPrimary, bold, pointer ] ]
+                [ a
+                    [ onClick
+                        $ if hasHistory state then
+                            Just <<< const ResetSimulator
+                          else
+                            const Nothing
+                    ]
+                    [ text "Reset" ]
+                ]
+            , li [ classes [ activeTextPrimary, bold, pointer ] ]
+                [ a
+                    [ onClick
+                        $ if isContractValid state then
+                            Just <<< const NextSlot
+                          else
+                            const Nothing
+                    ]
+                    [ text $ "Next Block (" <> show currentBlock <> ")" ]
+                ]
+            , li_
+                [ button
+                    [ onClick $ Just <<< const ApplyTransaction
+                    , enabled $ isContractValid state
+                    ]
+                    [ text "Apply" ]
+                ]
+            ]
         ]
     ]
-    [ paneHeader "Transaction Composer"
-    , div
-        [ class_ $ ClassName "wallet"
+  where
+  currentBlock = state ^. (_marloweState <<< _Head <<< _slot)
+
+transaction ::
+  forall p.
+  FrontendState ->
+  HTML p HAction
+transaction state =
+  li [ classes [ ClassName "participant-a", noMargins ] ]
+    [ ul
+        []
+        (map (transactionRow state isEnabled) (state ^. (_marloweState <<< _Head <<< _pendingInputs)))
+    ]
+  where
+  isEnabled = state ^. (_marloweState <<< _Head <<< _contract) /= Nothing || state ^. (_marloweState <<< _Head <<< _editorErrors) /= []
+
+transactionRow ::
+  forall p.
+  FrontendState ->
+  Boolean ->
+  Tuple Input (Maybe PubKey) ->
+  HTML p HAction
+transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber accountOwner) party token money) person) =
+  li [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ button
+        [ classes [ minusBtn, smallBtn, bold ]
+        , enabled isEnabled
+        , onClick $ const $ Just $ RemoveInput person input
         ]
-        [ div
-            [ classes
-                ( ( if view (_marloweState <<< _Head <<< _transactionError <<< to isJust) state then
-                      (flip Array.snoc) (ClassName "invalid-transaction")
-                    else
-                      identity
-                  )
-                    [ card ]
-                )
-            ]
-            [ cardBody_
-                $ transactionInputs (view (_marloweState <<< _Head) state)
-                <> transactionButtons state
-            ]
+        [ text "-" ]
+    , p_
+        [ text "Deposit "
+        , strong_ [ text (show money) ]
+        , text " units of "
+        , strong_ [ text (show token) ]
+        , text " into account "
+        , strong_ [ text (show accountOwner <> " (" <> show accountNumber <> ")") ]
+        , text " as "
+        , strong_ [ text (show party) ]
         ]
     ]
 
-transactionButtons :: FrontendState -> forall p. Array (HTML p HAction)
-transactionButtons state =
-  [ div
-      [ classes
-          [ ClassName "d-flex"
-          , ClassName "flex-row"
-          , ClassName "align-items-center"
-          , ClassName "justify-content-start"
-          , ClassName "transaction-btn-row"
-          ]
-      ]
-      [ button
-          [ classes
-              [ btn
-              , btnPrimary
-              , ClassName "transaction-btn"
-              ]
-          , onClick $ Just <<< const ApplyTransaction
-          , enabled $ isContractValid state
-          ]
-          [ text "Apply Transaction" ]
-      , button
-          [ classes
-              [ btn
-              , btnPrimary
-              , ClassName "transaction-btn"
-              ]
-          , onClick $ Just <<< const NextSlot
-          , enabled (isContractValid state)
-          ]
-          [ text "Next Block" ]
-      , button
-          [ classes
-              [ btn
-              , btnPrimary
-              , ClassName "transaction-btn"
-              ]
-          , enabled (hasHistory state)
-          , onClick $ Just <<< const ResetSimulator
-          ]
-          [ text "Reset" ]
-      , button
-          [ classes
-              [ btn
-              , btnPrimary
-              , ClassName "transaction-btn"
-              ]
-          , enabled (hasHistory state)
-          , onClick $ Just <<< const Undo
-          ]
-          [ text "Undo" ]
-      ]
-  ]
+transactionRow state isEnabled (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
+  li [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ button
+        [ classes [ minusBtn, smallBtn, bold ]
+        , enabled isEnabled
+        , onClick $ const $ Just $ RemoveInput person input
+        ]
+        [ text "-" ]
+    , p_
+        [ text "Participant "
+        , strong_ [ text (show choiceOwner) ]
+        , text " chooses the value "
+        , strong_ [ text (show chosenNum) ]
+        , text " for choice with id "
+        , strong_ [ text (show choiceName) ]
+        ]
+    ]
+
+transactionRow state isEnabled (Tuple INotify person) =
+  li [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ button
+        [ classes [ minusBtn, smallBtn, bold ]
+        , enabled isEnabled
+        , onClick $ const $ Just $ RemoveInput person INotify
+        ]
+        [ text "-" ]
+    , p_
+        [ text "Notification"
+        ]
+    ]
 
 hasHistory :: FrontendState -> Boolean
 hasHistory state = NEL.length (view _marloweState state) > 1
@@ -509,7 +396,7 @@ transactionErrors (Just error) =
   [ div
       [ classes
           [ ClassName "invalid-transaction"
-          , ClassName "input-composer"
+          , ClassName "transaction-composer"
           ]
       ]
       ( [ h2 [] [ text "The transaction is invalid:" ] ]
@@ -517,653 +404,90 @@ transactionErrors (Just error) =
       )
   ]
 
-transactionInputs :: forall p. MarloweState -> Array (HTML p HAction)
-transactionInputs state =
-  [ h3_
-      [ text "Input list"
-      ]
-  ]
-    <> [ div [ class_ $ ClassName "state-row" ]
-          ( onEmpty [ text "No inputs in the transaction" ]
-              $ mapWithOneIndex (inputRow isEnabled) (state ^. _pendingInputs)
-          )
-      ]
-  where
-  isEnabled = state.contract /= Nothing || state.editorErrors /= []
-
-  mapWithOneIndex f = mapWithIndex (\i a -> f (i + 1) a)
-
-inputRow :: forall p. Boolean -> Int -> Tuple Input (Maybe PubKey) -> HTML p HAction
-inputRow isEnabled idx (Tuple INotify person) =
-  row_
-    [ col_
-        [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ const $ Just $ RemoveInput person INotify
-            ]
-            [ text $ "- " <> show idx <> ":"
-            ]
-        , text "Notification"
-        ]
-    ]
-
-inputRow isEnabled idx (Tuple input@(IDeposit accountId party token money) person) =
-  row_
-    [ col_
-        $ [ button
-              [ class_ $ ClassName "composer-add-button"
-              , enabled isEnabled
-              , onClick $ const $ Just $ RemoveInput person input
-              ]
-              [ text $ "- " <> show idx <> ":"
-              ]
-          ]
-        <> (renderDeposit accountId party token money)
-    ]
-
-inputRow isEnabled idx (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
-  row_
-    [ col_
-        [ button
-            [ class_ $ ClassName "composer-add-button"
-            , enabled isEnabled
-            , onClick $ const $ Just $ RemoveInput person input
-            ]
-            [ text $ "- " <> show idx <> ":"
-            ]
-        , text "Participant "
-        , b_
-            [ text (show choiceOwner)
-            ]
-        , text " chooses the value "
-        , b_
-            [ text (show chosenNum)
-            ]
-        , text " for choice with id "
-        , b_
-            [ text (show choiceName)
-            ]
-        ]
-    ]
-
-stateTitle ::
-  forall p.
-  FrontendState ->
-  HTML p HAction
-stateTitle state =
-  div
-    [ classes
-        [ ClassName "demos"
-        , ClassName "d-flex"
-        , ClassName "flex-row"
-        , ClassName "align-items-center"
-        , ClassName "justify-content-between"
-        , ClassName "mt-3"
-        , ClassName "mb-3"
-        ]
-    ]
-    [ paneHeader "State"
-    , span
-        [ classes
-            [ btn
-            , btnSmall
-            ]
-        ]
-        [ strong_
-            [ text "Contract expiration (slot):"
-            ]
-        , span
-            [ class_ $ ClassName "max-contract-length"
-            ]
-            [ view (_marloweState <<< _Head <<< _contract <<< to contractMaxTime <<< to text) state
-            ]
-        , strong_
-            [ text "Current Block:"
-            ]
-        , span
-            [ class_ $ ClassName "block-number"
-            ]
-            [ view (_marloweState <<< _Head <<< _slot <<< to show <<< to text) state
-            ]
-        ]
-    ]
-  where
-  contractMaxTime Nothing = "Closed"
-
-  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
-
-statePane :: forall p. FrontendState -> HTML p HAction
-statePane state =
-  div
-    [ class_ $ ClassName "col"
-    ]
-    [ stateTable state
-    ]
-
-stateTable :: forall p. FrontendState -> HTML p HAction
-stateTable state =
-  div_
-    [ card_
-        [ cardBody_
-            [ h3_
-                [ text "Accounts"
-                ]
-            , div
-                [ classes [ ClassName "state-row", ClassName "full-width-card-5" ] ]
-                [ if (Map.size accounts == 0) then
-                    text "There are no accounts in the state"
-                  else
-                    renderAccounts accounts
-                ]
-            , h3_
-                [ text "Choices"
-                ]
-            , div
-                [ classes [ ClassName "state-row", ClassName "full-width-card" ] ]
-                [ if (Map.size choices == 0) then
-                    text "No choices have been recorded"
-                  else
-                    renderChoices choices
-                ]
-            , h3_
-                [ text "Payments"
-                ]
-            , div
-                [ classes [ ClassName "state-row", ClassName "full-width-card-4" ] ]
-                [ if (Array.length payments == 0) then
-                    text "No payments have been recorded"
-                  else
-                    renderPayments payments
-                ]
-            , h3_
-                [ text "Let bindings"
-                ]
-            , div
-                [ classes [ ClassName "state-last-row", ClassName "full-width-card" ] ]
-                [ if (Map.size bindings == 0) then
-                    text "No values have been bound"
-                  else
-                    renderBindings bindings
-                ]
-            ]
-        ]
-    ]
-  where
-  accounts = state ^. _marloweState <<< _Head <<< _state <<< _accounts
-
-  choices = state ^. _marloweState <<< _Head <<< _state <<< _choices
-
-  payments = state ^. _marloweState <<< _Head <<< _payments
-
-  bindings = state ^. _marloweState <<< _Head <<< _state <<< _boundValues
-
-renderAccounts :: forall p. Map (Tuple AccountId Token) BigInteger -> HTML p HAction
-renderAccounts accounts =
-  table_
-    [ colgroup []
-        [ col []
-        , col []
-        , col []
-        ]
-    , thead_
-        [ tr []
-            [ th_
-                [ text "Account id"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Participant"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Currency symbol"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Token name"
-                ]
-            , th_
-                [ text "Money"
-                ]
-            ]
-        ]
-    , tbody_ (map renderAccount accountList)
-    ]
-  where
-  accountList = Map.toUnfoldable accounts :: Array (Tuple (Tuple AccountId Token) BigInteger)
-
-renderAccount :: forall p. Tuple (Tuple AccountId Token) BigInteger -> HTML p HAction
-renderAccount (Tuple (Tuple (AccountId accountNumber accountOwner) (Token currSym tokName)) value) =
-  tr []
-    [ td_
-        [ text (show accountNumber)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show accountOwner)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show currSym)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show tokName)
-        ]
-    , td_
-        [ text (show value)
-        ]
-    ]
-
-renderChoices :: forall p. Map ChoiceId ChosenNum -> HTML p HAction
-renderChoices choices =
-  table_
-    [ colgroup []
-        [ col []
-        , col []
-        , col []
-        ]
-    , thead_
-        [ tr []
-            [ th_
-                [ text "Choice id"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Participant"
-                ]
-            , th_
-                [ text "Chosen value"
-                ]
-            ]
-        ]
-    , tbody_ (map renderChoice choiceList)
-    ]
-  where
-  choiceList = Map.toUnfoldable choices :: Array (Tuple ChoiceId ChosenNum)
-
-renderChoice :: forall p. Tuple ChoiceId ChosenNum -> HTML p HAction
-renderChoice (Tuple (ChoiceId choiceName choiceOwner) value) =
-  tr []
-    [ td_
-        [ text (show choiceName)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show choiceOwner)
-        ]
-    , td_
-        [ text (show value)
-        ]
-    ]
-
-renderPayments :: forall p. Array Payment -> HTML p HAction
-renderPayments payments =
-  table_
-    [ colgroup []
-        [ col []
-        , col []
-        , col []
-        ]
-    , thead_
-        [ tr []
-            [ th_
-                [ text "Party"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Currency symbol"
-                ]
-            , th
-                [ class_ $ ClassName "middle-column"
-                ]
-                [ text "Token name"
-                ]
-            , th
-                [ class_ $ ClassName "left-border-column"
-                ]
-                [ text "Money"
-                ]
-            ]
-        ]
-    , tbody_ (flattenPayments payments)
-    ]
-
-flattenPayments :: forall p. Array Payment -> Array (HTML p HAction)
-flattenPayments payments =
-  concatMap
-    ( \(Payment party (Assets mon)) ->
-        concatMap
-          ( \(Tuple curr toks) ->
-              map
-                ( \(Tuple tok val) ->
-                    renderPayment party curr tok val
-                )
-                $ Map.toUnfoldable toks
-          )
-          $ Map.toUnfoldable mon
-    )
-    payments
-
-renderPayment :: forall p. Party -> CurrencySymbol -> TokenName -> BigInteger -> HTML p HAction
-renderPayment party currSym tokName money =
-  tr []
-    [ td_
-        [ text (show party)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show currSym)
-        ]
-    , td
-        [ class_ $ ClassName "middle-column"
-        ]
-        [ text (show tokName)
-        ]
-    , td
-        [ class_ $ ClassName "left-border-column"
-        ]
-        [ text (show money)
-        ]
-    ]
-
-renderBindings :: forall p. Map ValueId BigInteger -> HTML p HAction
-renderBindings bindings =
-  table_
-    [ colgroup []
-        [ col []
-        , col []
-        , col []
-        ]
-    , thead_
-        [ tr []
-            [ th_
-                [ text "Identifier"
-                ]
-            , th
-                [ class_ $ ClassName "left-border-column"
-                ]
-                [ text "Value"
-                ]
-            ]
-        ]
-    , tbody_ (map renderBinding bindingList)
-    ]
-  where
-  bindingList = Map.toUnfoldable bindings :: Array (Tuple ValueId BigInteger)
-
-renderBinding :: forall p. Tuple ValueId BigInteger -> HTML p HAction
-renderBinding (Tuple (ValueId valueId) value) =
-  tr []
-    [ td_
-        [ text (show valueId)
-        ]
-    , td
-        [ class_ $ ClassName "left-border-column"
-        ]
-        [ text (show value)
-        ]
-    ]
-
-analysisPane :: forall p. FrontendState -> HTML p HAction
-analysisPane state =
-  div [ class_ $ ClassName "full-width-card" ]
-    [ paneHeader "Static analysis"
-    , card_
-        [ cardBody_
-            [ analysisResultPane state
-            , button
-                [ classes
-                    [ btn
-                    , btnPrimary
-                    , ClassName "transaction-btn"
-                    ]
-                , onClick $ const $ Just $ AnalyseContract
-                , enabled $ state ^. _analysisState <<< to (not isLoading)
-                ]
-                [ loading
-                , text btnText
-                ]
-            ]
-        ]
-    ]
-  where
-  btnText = case state ^. _analysisState of
-    Loading -> "  Analysing..."
-    _ -> "Analyse Contract"
-
-  loading = case state ^. _analysisState of
-    Loading ->
-      span
-        [ classes
-            [ ClassName "spinner-border"
-            , ClassName "spinner-border-sm"
-            ]
-        , prop (PropName "role") "status"
-        , prop (PropName "aria-hidden") "true"
-        ]
-        []
-    _ -> empty
-
-analysisResultPane :: forall p. FrontendState -> HTML p HAction
-analysisResultPane state =
+authButton :: forall p. FrontendState -> HTML p HAction
+authButton state =
   let
-    result = state ^. _analysisState
+    authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
   in
-    case result of
+    case authStatus of
+      Failure _ ->
+        button
+          [ idPublishGist
+          , classes []
+          ]
+          [ text "Failure" ]
+      Success Anonymous ->
+        a
+          [ idPublishGist
+          , classes [ ClassName "auth-button" ]
+          , href "/api/oauth/github"
+          ]
+          [ text "Save to github"
+          ]
+      Success GithubUser -> gist state
+      Loading ->
+        button
+          [ idPublishGist
+          , classes []
+          , disabled true
+          ]
+          [ icon Spinner ]
       NotAsked ->
-        div [ classes [ ClassName "padded-explanation" ] ]
-          [ text "Press the button below to analyse the contract for runtime warnings." ]
-      Success (R.Valid) ->
-        div [ classes [ ClassName "padded-explanation" ] ]
-          [ h3_ [ text "Analysis Result: Pass" ]
-          , text "Static analysis could not find any execution that results in any warning."
+        button
+          [ idPublishGist
+          , classes []
+          , disabled true
           ]
-      Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
-        div [ classes [ ClassName "padded-explanation" ] ]
-          [ h3_ [ text "Analysis Result: Fail" ]
-          , text "Static analysis found the following counterexample:"
-          , ul_
-              [ li_
-                  [ spanText "Initial slot: "
-                  , b_ [ spanText (show initialSlot) ]
-                  ]
-              , li_
-                  [ spanText "Offending transaction list: "
-                  , displayTransactionList transactionList
-                  ]
-              , li_
-                  [ spanText "Warnings issued: "
-                  , displayWarningList transactionWarning
-                  ]
-              ]
-          ]
-      Success (R.Error str) ->
-        div [ classes [ ClassName "padded-explanation" ] ]
-          [ h3_ [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul_
-              [ li_
-                  [ b_ [ spanText str ]
-                  ]
-              ]
-          ]
-      Failure failure ->
-        div [ classes [ ClassName "padded-explanation" ] ]
-          [ h3_ [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul_
-              [ li_
-                  [ b_ [ spanText failure ]
-                  ]
-              ]
-          ]
-      _ -> empty
+          [ icon Spinner ]
 
-displayTransactionList :: forall p. String -> HTML p HAction
-displayTransactionList transactionList = case runParser transactionInputList transactionList of
-  Right pTL ->
-    ol_
-      ( do
-          ( TransactionInput
-              { interval: SlotInterval (Slot from) (Slot to)
-            , inputs: inputList
-            }
-          ) <-
-            ((toUnfoldable pTL) :: Array TransactionInput)
-          pure
-            ( li_
-                [ span_
-                    [ b_ [ text "Transaction" ]
-                    , text " with slot interval "
-                    , b_ [ text $ (show from <> " to " <> show to) ]
-                    , if null inputList then
-                        text " and no inputs (empty transaction)."
-                      else
-                        text " and inputs:"
-                    ]
-                , if null inputList then
-                    empty
-                  else
-                    displayInputList inputList
+loadGistButton :: forall p. Either String (RemoteData AjaxError Gist) -> HTML p HAction
+loadGistButton (Left e) =
+  svg [ clazz (ClassName "error-icon"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
+    [ path [ fill (Hex "#ff0000"), d "M13,13H11V7H13M12,17.3A1.3,1.3 0 0,1 10.7,16A1.3,1.3 0 0,1 12,14.7A1.3,1.3 0 0,1 13.3,16A1.3,1.3 0 0,1 12,17.3M15.73,3H8.27L3,8.27V15.73L8.27,21H15.73L21,15.73V8.27L15.73,3Z" ] [] ]
+
+loadGistButton (Right (Failure _)) =
+  svg [ clazz (ClassName "error-icon"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
+    [ path [ fill (Hex "#ff0000"), d "M13,13H11V7H13M12,17.3A1.3,1.3 0 0,1 10.7,16A1.3,1.3 0 0,1 12,14.7A1.3,1.3 0 0,1 13.3,16A1.3,1.3 0 0,1 12,17.3M15.73,3H8.27L3,8.27V15.73L8.27,21H15.73L21,15.73V8.27L15.73,3Z" ] [] ]
+
+loadGistButton (Right (Success _)) =
+  svg [ clazz (ClassName "arrow-down"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
+    [ path [ fill (Hex "#832dc4"), d "M19.92,12.08L12,20L4.08,12.08L5.5,10.67L11,16.17V2H13V16.17L18.5,10.66L19.92,12.08M12,20H2V22H22V20H12Z" ] [] ]
+
+loadGistButton (Right Loading) =
+  svg [ clazz (ClassName "spinner"), SVG.width (Px 65), height (Px 65), viewBox (Box { x: 0, y: 0, width: 66, height: 66 }) ]
+    [ circle [ clazz (ClassName "path"), fill SVG.None, strokeWidth 6, strokeLinecap Round, cx (Length 33.0), cy (Length 33.0), r (Length 30.0) ] [] ]
+
+loadGistButton (Right NotAsked) =
+  svg [ clazz (ClassName "arrow-down"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
+    [ path [ fill (Hex "#832dc4"), d "M19.92,12.08L12,20L4.08,12.08L5.5,10.67L11,16.17V2H13V16.17L18.5,10.66L19.92,12.08M12,20H2V22H22V20H12Z" ] [] ]
+
+gistInput :: forall p. Either String (RemoteData AjaxError Gist) -> HTML p HAction
+gistInput (Left _) = input [ HTML.type_ InputText, classes [ ClassName "form-control", ClassName "py-0", ClassName "error" ], HTML.id_ "github-input", placeholder "Gist ID", onValueInput $ Just <<< GistAction <<< SetGistUrl ]
+
+gistInput (Right (Failure _)) = input [ HTML.type_ InputText, classes [ ClassName "form-control", ClassName "py-0", ClassName "error" ], HTML.id_ "github-input", placeholder "Gist ID", onValueInput $ Just <<< GistAction <<< SetGistUrl ]
+
+gistInput _ = input [ HTML.type_ InputText, classes [ ClassName "form-control", ClassName "py-0" ], HTML.id_ "github-input", placeholder "Gist ID", onValueInput $ Just <<< GistAction <<< SetGistUrl ]
+
+gist :: forall p. FrontendState -> HTML p HAction
+gist state =
+  div [ classes [ ClassName "github-gist-panel", aHorizontal ] ]
+    [ div [ classes [ ClassName "input-group-text", ClassName "upload-btn", ClassName "tooltip" ], onClick $ const $ Just $ GistAction PublishGist ]
+        [ span [ class_ (ClassName "tooltiptext") ] [ text "Publish To Github Gist" ]
+        , svg [ SVG.style "width:20px;height:20px", SVG.viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
+            [ path [ fill (Hex "#832dc4"), d "M4.08,11.92L12,4L19.92,11.92L18.5,13.33L13,7.83V22H11V7.83L5.5,13.33L4.08,11.92M12,4H22V2H2V4H12Z" ] [] ]
+        ]
+    , label [ classes [ ClassName "sr-only", active ], HTML.for "github-input" ] [ text "Enter Github Gist" ]
+    , div [ classes (map ClassName [ "input-group", "mb-2", "mr-sm-2" ]) ]
+        [ gistInput loadStatus
+        , div [ class_ (ClassName "input-group-append") ]
+            [ div [ classes [ ClassName "input-group-text", ClassName "download-btn", ClassName "tooltip" ], onClick $ const $ Just $ GistAction LoadGist ]
+                [ span [ class_ (ClassName "tooltiptext") ] [ text "Load From Github Gist" ]
+                , loadGistButton loadStatus
                 ]
-            )
-      )
-  Left _ -> code_ [ text transactionList ]
-
-displayInputList :: forall p. List Input -> HTML p HAction
-displayInputList inputList =
-  ol_
-    ( do
-        input <- (toUnfoldable inputList)
-        pure (li_ (displayInput input))
-    )
-
-displayInput :: forall p. Input -> Array (HTML p HAction)
-displayInput (IDeposit (AccountId accNum owner) party tok money) =
-  [ b_ [ text "IDeposit" ]
-  , text " - Party "
-  , b_ [ text $ show party ]
-  , text " deposits "
-  , b_ [ text $ show money ]
-  , text " units of "
-  , b_ [ text $ show tok ]
-  , text " into account "
-  , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
-  , text "."
-  ]
-
-displayInput (IChoice (ChoiceId choiceId party) chosenNum) =
-  [ b_ [ text "IChoice" ]
-  , text " - Party "
-  , b_ [ text $ show party ]
-  , text " chooses number "
-  , b_ [ text $ show chosenNum ]
-  , text " for choice "
-  , b_ [ text $ show choiceId ]
-  , text "."
-  ]
-
-displayInput (INotify) =
-  [ b_ [ text "INotify" ]
-  , text " - The contract is notified that an observation became "
-  , b_ [ text "True" ]
-  ]
-
-displayWarningList :: forall p. String -> HTML p HAction
-displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
-  Right pWL ->
-    ol_
-      ( do
-          warning <- ((toUnfoldable pWL) :: Array TransactionWarning)
-          pure (li_ (displayWarning warning))
-      )
-  Left _ -> code_ [ text transactionWarnings ]
-
-displayWarnings :: forall p. Array TransactionWarning -> HTML p HAction
-displayWarnings [] = text mempty
-
-displayWarnings warnings =
-  div
-    [ classes
-        [ ClassName "invalid-transaction"
-        , ClassName "input-composer"
+            ]
         ]
     ]
-    [ h2 [] [ text "Warnings" ]
-    , ol
-        []
-        $ foldMap (\warning -> [ li_ (displayWarning warning) ]) warnings
-    ]
+  where
+  publishStatus = state ^. _createGistResult
 
-displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
-displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
-  [ b_ [ text "TransactionNonPositiveDeposit" ]
-  , text " - Party "
-  , b_ [ text $ show party ]
-  , text " is asked to deposit "
-  , b_ [ text $ show amount ]
-  , text " units of "
-  , b_ [ text $ show tok ]
-  , text " into account "
-  , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
-  , text "."
-  ]
-
-displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
-  [ b_ [ text "TransactionNonPositivePay" ]
-  , text " - The contract is suppoused to make a payment of "
-  , b_ [ text $ show amount ]
-  , text " units of "
-  , b_ [ text $ show tok ]
-  , text " from account "
-  , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
-  , text " to "
-  , b_
-      [ text case payee of
-          (Account (AccountId accNum2 owner2)) -> ("account " <> (show accNum2) <> " of " <> (show owner2))
-          (Party dest) -> ("party " <> (show dest))
-      ]
-  , text "."
-  ]
-
-displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
-  [ b_ [ text "TransactionPartialPay" ]
-  , text " - The contract is suppoused to make a payment of "
-  , b_ [ text $ show expected ]
-  , text " units of "
-  , b_ [ text $ show tok ]
-  , text " from account "
-  , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
-  , text " to "
-  , b_
-      [ text case payee of
-          (Account (AccountId accNum2 owner2)) -> ("account " <> (show accNum2) <> " of " <> (show owner2))
-          (Party dest) -> ("party " <> (show dest))
-      ]
-  , text " but there is only "
-  , b_ [ text $ show amount ]
-  , text "."
-  ]
-
-displayWarning (TransactionShadowing valId oldVal newVal) =
-  [ b_ [ text "TransactionShadowing" ]
-  , text " - The contract defined the value with id "
-  , b_ [ text (show valId) ]
-  , text " before, it was assigned the value "
-  , b_ [ text (show oldVal) ]
-  , text " and now it is being assigned the value "
-  , b_ [ text (show newVal) ]
-  , text "."
-  ]
+  loadStatus = state ^. _loadGistResult

@@ -23,7 +23,7 @@
       in pkgs.runCommand "documentation-site" {} ''
         mkdir -p $out
         cp -aR ${adjustedTutorial} $out/tutorial
-        cp -aR ${plutus.docs.public-combined-haddock}/share/doc $out/haddock
+        cp -aR ${plutus.docs.combined-haddock}/share/doc $out/haddock
       '';
   in
   {

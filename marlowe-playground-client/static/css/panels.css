@@ -1,0 +1,345 @@
+#main-panel {
+  position: relative;
+}
+
+.panel-header-main,
+.panel-header-side {
+  min-height: 3rem;
+}
+
+.panel-header-main,
+.panel-sub-header-main,
+.code-editor {
+  flex: 10;
+}
+
+.panel-header-side,
+.panel-sub-header-side,
+.sidebar-composer {
+  flex: 4;
+}
+
+.panel-sub-header-main,
+.panel-sub-header-side {
+  min-height: 3.5rem;
+}
+
+.panel-sub-header-main {
+  display: flex;
+  font-weight: bold;
+  color: var(--text-color-inactive);
+}
+
+.demo-title {
+  flex: 1;
+}
+
+.demo-list {
+  flex: 6;
+  display: flex;
+  justify-content: space-between;
+}
+
+.code-to-blockly-wrap {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.demo-list li+li {
+  border-left: 1px solid var(--layout-accent-color);
+}
+
+.demo-list li {
+  padding: 0 1vw;
+  line-height: 1.2;
+  text-align: center;
+  width: 100%;
+}
+
+.demo-arrow,
+.github-icon,
+.drawer-icon,
+.minimize-icon {
+  height: 30px;
+  width: 30px;
+}
+
+.drawer-icon {
+  display: none;
+}
+
+.expanded.minimize-icon {
+  transform: rotate(90deg);
+}
+
+.minimize-icon {
+  transform: rotate(-90deg);
+}
+
+.blockly-btn-icon {
+  height: 11px;
+  width: 16px;
+}
+
+.code-panel {
+  display: flex;
+}
+
+.code-editor {
+  background: var(--white);
+  padding-bottom: 16rem;
+  overflow-x: unset;
+}
+
+@media (min-height:1024px) {
+  .code-editor {
+    padding-bottom: 14rem;
+  }
+}
+
+@media (min-height:1050px) {
+  .code-editor {
+    padding-bottom: 16rem;
+  }
+}
+
+@media (min-height:1200px) {
+  .code-editor {
+    padding-bottom: 14rem;
+  }
+}
+
+.code-editor.expanded {
+  padding-bottom: 7rem;
+}
+
+.expanded>.code-editor {
+  padding-bottom: 2rem;
+}
+
+.panel-header-side,
+.panel-sub-header-side {
+  padding-left: 20px;
+}
+
+.sidebar-composer {
+  padding-left: 20px;
+  padding-bottom: 4rem;
+  overflow-y: unset;
+}
+
+.composer {
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: var(--border-radius);
+  background: var(--white);
+  box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.08);
+}
+
+.composer ul {
+  margin: 0 auto;
+  max-width: 22vw;
+}
+
+.composer input {
+  width: 40px;
+  height: 30px;
+}
+
+.transaction-composer .participants {
+  display: flex;
+  flex-flow: wrap;
+}
+
+.input-composer ul li ul {
+  display: flex;
+}
+
+.participants li+li {
+  margin-top: 1rem;
+}
+
+button.plus-btn {
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
+button.minus-btn {
+  background: var(--error-color);
+  padding: 0.3rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
+button.minus-btn:before {
+  content: none;
+}
+
+button.minus-btn:hover {
+  background: var(--error-color-hover);
+}
+
+.choice-input {
+  line-height: 1.4;
+  flex: 1;
+}
+
+.transaction-composer p {
+  line-height: 1.4;
+  flex: 1;
+}
+.participants em {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.transaction-btns {
+  border-top: 1px solid var(--layout-accent-color);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.documentation-panel {
+  color: var(--white);
+  margin-top: 2rem;
+  background: var(--accent-color);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+}
+
+.documentation-panel img {
+  display: block;
+  max-width: 42px;
+}
+
+.documentation-panel hr {
+  width: 44px;
+  margin: -0.5rem auto 1rem auto;
+  opacity: 0.7;
+}
+
+.analysis-panel {
+  position: absolute;
+  width: calc(100% - 4rem);
+  bottom: 0;
+  z-index: 1;
+}
+
+.simulation-bottom-panel {
+  position: absolute;
+  width: 67%;
+  bottom: 0;
+  z-index: 0;
+}
+
+
+@media (min-width:1280px) {
+  .simulation-bottom-panel {
+    width: 66%;
+  }
+}
+
+@media (min-width:1440px) {
+  .simulation-bottom-panel {
+    width: 67%;
+  }
+}
+
+@media (min-width:1900px) {
+  .simulation-bottom-panel {
+    width: 68%;
+  }
+}
+
+.analysis-panel .panel-header {
+  margin-bottom: 0;
+}
+
+.footer-panel-bg {
+  padding: 0rem 2rem;
+  background: var(--bg-light);
+  box-shadow: var(--box-shadow);
+}
+
+.footer-panel-bg.expanded {
+  /* height: 13rem; */
+  padding: 0.5rem 2rem;
+  min-height: 13rem;
+  height: 13rem;
+}
+
+.expanded>.panel-contents {
+  height: 8rem;
+  overflow-x: scroll;
+  display: block;
+}
+
+@media (min-height:1024px) {
+  .footer-panel-bg.expanded {
+    padding: 0.5rem 2rem;
+    min-height: 15rem;
+    height: 15rem;
+  }
+
+  .expanded>.panel-contents {
+    height: 10rem;
+  }
+}
+
+@media (min-height:1050px) {
+  .footer-panel-bg.expanded {
+    padding: 0.5rem 2rem;
+    min-height: 17rem;
+    height: 17rem;
+  }
+
+  .expanded>.panel-contents {
+    height: 12rem;
+  }
+}
+
+@media (min-height:1200px) {
+  .footer-panel-bg.expanded {
+    padding: 0.5rem 2rem;
+    min-height: 17rem;
+    height: 17rem;
+  }
+
+  .expanded>.panel-contents {
+    height: 12rem;
+  }
+}
+
+.footer-panel-bg.footer-panel-haskell {
+  /* height: 13rem; */
+}
+
+.footer-panel-bg.footer-panel-haskell.expanded {
+  /* height: 17rem; */
+}
+
+/* V impoprtant to add this, either treble the class like this to enhance specificity or use !important if needed */
+.ace_gutter.ace_gutter.ace_gutter {
+  z-index: 1;
+}
+
+.footer-panel-bg.footer-panel-haskell>.panel-contents {
+  display: block;
+}
+
+.panel-contents {
+  display: none;
+}
+
+.flex-left {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.haskell-buttons {
+  width: 17rem;
+}
+
+.drawer-icon-click {
+  display: none;
+}
