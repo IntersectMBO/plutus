@@ -92,7 +92,7 @@ removeLets = flip runState M.empty . go
          Let a r bs tIn -> do
            forM_ bs $ \ b -> do
                                b' <- bindingSubterms go b
-                               modify (M.insert (bindingUnique b') (a, r, b'))
+                               modify (M.insert (b'^.princUnique) (a, r, b'))
            go tIn
          t -> termSubterms go t
 
@@ -110,8 +110,8 @@ p1Term pir = runReader (goTerm pir) (M.empty, 0)
       LamAbs _ n _ tBody  -> goBody n tBody
       TyAbs _ n _ tBody   -> goBody n tBody
 
-      Let _ NonRec bs tIn -> goLet NonRec bs tIn
-      Let _ Rec bs tIn    -> goLet Rec bs tIn
+      Let _ Rec bs tIn    -> goRec bs tIn
+      Let _ NonRec bs tIn -> goNonRec bs tIn
 
       -- recurse and then accumulate the return values
       Apply _ t1 t2 -> (<>) <$> goTerm t1 <*> goTerm t2
@@ -132,40 +132,39 @@ p1Term pir = runReader (goTerm pir) (M.empty, 0)
                         in (M.insert lamName (newRank,lamName) rd, newDepth)
                     ) $ goTerm tBody)
 
-    goLet :: Recursivity
-          -> [Binding tyname name a]
-          -> Term tyname name a
-          -> Reader Ctx RankData
-    goLet NonRec [] tIn = goTerm tIn
-    goLet NonRec (b:bs) tIn = do
+    computeMaxRanks freeVars bs = do
       (scope, _) <- ask
-      let freeVars = fBinding b -- this means that we see each binding individually, not at the whole let level
-          freeRanks = fmap fst $ M.restrictKeys scope freeVars
+      let freeRanks = fmap fst $ M.restrictKeys scope freeVars
           maxRank = fold freeRanks --shared for all bindings of Rec
-          newScope = M.insert (bindingUnique b) (maxRank, (bindingUnique b)) scope
+          newScope = foldr (\ b -> M.insert (b^.princUnique) (maxRank, b^.princUnique)) scope bs
+      pure newScope
 
-      resHead <- mconcat <$> forM (b^..bindingSubterms) goTerm
+    goRec :: [Binding tyname name a] -> Term tyname name a -> Reader Ctx RankData
+    goRec bs tIn = do
+        -- the freevars is the union of each binding's freeVars,
+        -- excluding the newly-introduced binding identifiers of this letrec
+        let freeVars = foldMap fBinding bs S.\\ foldMap bindingIds bs
+        -- all bindings share their commonly-maximum rank
+        newScope <- computeMaxRanks freeVars bs
+        resBs <- mconcat <$> forM (bs^..traverse.bindingSubterms)
+                                  (withScope newScope . goTerm)
+        resIn <- withScope newScope $ goTerm tIn
+        pure $ resBs <> resIn
 
-      resRest <- local (\(_,d)->(newScope, d)) $ goLet NonRec bs tIn -- recurse
+    goNonRec :: [Binding tyname name a] -> Term tyname name a -> Reader Ctx RankData
+    goNonRec bs tIn = do
+      foldr (\ b acc -> do
+           -- this means that we see each binding individually, not at the whole let level
+           let freeVars = fBinding b
+           -- compute a maxrank for this binding and a newscope that includes it
+           newScope <- computeMaxRanks freeVars (S.singleton b)
+           resHead <- mconcat <$> forM (b^..bindingSubterms) goTerm
+           resRest <- withScope newScope $ acc
+           pure $ resHead <> resRest
+       ) (goTerm tIn) bs
 
-      pure $ resHead <> resRest
-
-
-    goLet Rec bs tIn = do
-      (scope, _) <- ask
-
-      let freeVars = foldMap fBinding bs S.\\ foldMap bindingIds bs
-          freeRanks = fmap fst $ M.restrictKeys scope freeVars
-          -- Take the maximum rank of all free vars as the current rank of the let, or TopRank if no free var deps
-          maxRank = fold freeRanks --shared for all bindings of Rec
-          newScope = foldr (\ b -> M.insert (bindingUnique b) (maxRank, (bindingUnique b))) scope bs
-
-      resBs <- mconcat <$> forM (bs^..traverse.bindingSubterms)
-                           (local (\(_,d)->(newScope, d)) . goTerm)
-
-      resIn <- local (\(_,d)->(newScope, d)) $ goTerm tIn
-
-      pure $ resBs <> resIn
+    withScope :: RankData -> Reader Ctx b -> Reader Ctx b
+    withScope s = local (set _1 s) -- changes only the scope (i.e. rankdata in our case)
 
 
 floatTerm :: forall name tyname a.
@@ -212,7 +211,7 @@ floatTerm pir = floatBody mempty depthData pirClean
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
   reducedDepGraph = M.foldr (\ (_,_,b) accGraph ->
                               case b of
-                                DatatypeBind _ dt -> let princ = bindingUnique b
+                                DatatypeBind _ dt -> let princ = b^.princUnique
                                                      in foldr (\ assocB -> AM.replaceVertex assocB princ) accGraph $ datatypeIds dt
                                 _ -> accGraph) depGraph rhsTable
 
@@ -261,8 +260,9 @@ toDepthData = M.foldr (\ (dep, letNamePrinc) acc -> IM.insertWith (M.unionWith S
 -- We need this because datatypebinds introduce multiple identifiers, but we need only one as a key of our 'RhsTable',etc. See also: 'datatypeIdentifiers'
 --
 -- TODO: Getter for a lens "unique" for a Binding
-bindingUnique :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> PLC.Unique
-bindingUnique = \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
-                      TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
-                      DatatypeBind _ (Datatype _ _ _ n _) -> n ^. PLC.unique . coerced -- arbitrary: uses the match-function's unique as the principal unique of this data binding group
+princUnique :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+            => Getting r (Binding tyname name a) PLC.Unique
+princUnique = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
+                         TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced -- just the name coerced
+                         DatatypeBind _ (Datatype _ _ _ n _) -> n ^. PLC.unique . coerced -- arbitrary: uses the match-function's unique as the principal unique of this data binding group
 
