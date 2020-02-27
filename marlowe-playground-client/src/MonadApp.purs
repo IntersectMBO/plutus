@@ -48,7 +48,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.StringParser.Basic (lines)
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, WebData, Message(..), _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, Message(..), WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
 
@@ -137,8 +137,9 @@ instance monadAppHalogenApp ::
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = do
     updateContractInStateImpl contract
-    annotations <- use (_marloweState <<< _Head <<< _editorErrors)
-    marloweEditorSetAnnotations annotations
+    errors <- use (_marloweState <<< _Head <<< _editorErrors)
+    warnings <- use (_marloweState <<< _Head <<< _editorWarnings)
+    marloweEditorSetAnnotations (errors <> warnings)
   updateState = do
     saveInitialStateImpl
     wrap $ modifying _currentMarloweState updateStateImpl
@@ -249,15 +250,15 @@ updateContractInStateP text state = case parseContract text of
     in
       case mContract of
         Just contract -> do
-          set _editorErrors warnings <<< set _contract (Just contract) $ state
+          set _editorWarnings warnings <<< set _editorErrors [] <<< set _contract (Just contract) $ state
         Nothing -> do
           let
             (Holes holes) = view L._holes lintResult
 
             holesArray = Set.toUnfoldable $ fold $ Map.values holes
 
-            errors = warnings <> map (holeToAnnotation text) holesArray
-          (set _editorErrors errors <<< set _holes (Holes holes)) state
+            errors = map (holeToAnnotation text) holesArray
+          (set _editorWarnings warnings <<< set _editorErrors errors <<< set _holes (Holes holes)) state
   Left error -> (set _editorErrors [ errorToAnnotation text error ] <<< set _holes mempty) state
 
 warningToAnnotation :: String -> String -> Position -> Annotation

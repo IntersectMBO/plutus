@@ -18,7 +18,7 @@ import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSet
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import Types (FrontendState(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
+import Types (FrontendState(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
 
 -- | For these tests we only need to worry about the MarloweState that is being carried around
 --   However we can use similar techniques to mock other parts of the App
@@ -53,8 +53,9 @@ instance monadAppState :: MonadApp MockApp where
   readFileFromDragEvent _ = pure ""
   updateContractInState contract = do
     updateContractInStateImpl contract
-    annotations <- use (_marloweState <<< _Head <<< _editorErrors)
-    marloweEditorSetAnnotations annotations
+    errors <- use (_marloweState <<< _Head <<< _editorErrors)
+    warnings <- use (_marloweState <<< _Head <<< _editorWarnings)
+    marloweEditorSetAnnotations (errors <> warnings)
   updateState = wrap $ modifying _currentMarloweState updateStateP
   saveInitialState = pure unit
   updateMarloweState f = wrap $ modifying _marloweState (extendWith f)
