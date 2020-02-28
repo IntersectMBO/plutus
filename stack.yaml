@@ -89,6 +89,39 @@ extra-deps:
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
 - git: https://gitlab.com/joneshf/purty.git
   commit: 3c073e1149ecdddd01f1d371c70d5b243d743bf2
+# Node client dependencies
+- canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
+- cborg-0.2.2.0@sha256:eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c,4779
+- statistics-linreg-0.3@sha256:95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f,2544
+- git: https://github.com/input-output-hk/cardano-base
+  commit: 80deee31f8d9422b8e090e55b17e1a714153180b
+  subdirs:
+    - binary
+    - binary/test
+    - cardano-crypto-class
+    - slotting
+- git: https://github.com/input-output-hk/cardano-prelude
+  commit: 00487726c4bc21b4744e59d913334ebfeac7d68e
+  subdirs:
+    - .
+    - test
+- git: https://github.com/input-output-hk/ouroboros-network
+  commit: 38290d79fa5beb3b19451a906582b35e24feb183
+  subdirs:
+    - typed-transitions
+    - typed-protocols
+    - typed-protocols-cbor
+    - ouroboros-network
+    - ouroboros-network-testing
+    - io-sim
+    - io-sim-classes
+    - network-mux
+- git: https://github.com/input-output-hk/iohk-monitoring-framework
+  commit: 156391afaafca6b00d027fb9c03e1bd7a1f03003
+  subdirs:
+    - contra-tracer
+
+
 extra-package-dbs: []
 nix:
   packages: [zlib, gmp, openssl]

@@ -2,8 +2,8 @@
 let
   sources = import ./nix/sources.nix;
 
-  iohkNix = import sources.iohk-nix { 
-    inherit system config; 
+  iohkNix = import sources.iohk-nix {
+    inherit system config;
     # FIXME: should be 'nixpkgsOverride = sources.nixpkgs', but see https://github.com/input-output-hk/iohk-nix/pull/215
     nixpkgsJsonOverride = ./nixpkgs.json;
   };
@@ -49,9 +49,9 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2020-01-13T00:00:00Z"; };
 
-  unfreePredicate = pkg: 
-      if pkg ? name then (builtins.parseDrvName pkg.name).name == "kindlegen" 
-      else if pkg ? pname then pkg.pname == "kindlegen" else false;
+  unfreePredicate = pkg:
+      if pkg ? name then builtins.elem (builtins.parseDrvName pkg.name).name [ "kindlegen" "cardano-slotting" ]
+      else if pkg ? pname then builtins.elem pkg.pname [ "kindlegen" "cardano-slotting" ] else false;
 
   comp = f: g: (v: f(g v));
 

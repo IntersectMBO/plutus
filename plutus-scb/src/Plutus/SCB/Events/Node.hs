@@ -14,7 +14,7 @@ import           Ledger       (Slot, Tx)
 data NodeEvent
     = BlockAdded [Tx]
   -- ^ A new block was added to the blockchain
-    | NewSlot Slot
+    | NewSlot Slot [Tx]
   -- ^ A new slot has been added
     | SubmittedTx Tx
   -- ^ Confirmation that the transactions were received.

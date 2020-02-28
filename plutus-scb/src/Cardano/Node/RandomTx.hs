@@ -6,12 +6,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators     #-}
-
 module Cardano.Node.RandomTx(
     -- $randomTx
     GenRandomTx
     , genRandomTx
     , runGenRandomTx
+    , generateRandomTx
     ) where
 
 import           Control.Lens                  (view, (&), (.~))
@@ -51,6 +51,44 @@ data GenRandomTx r where
 
 makeEffect ''GenRandomTx
 
+generateRandomTx :: MonadIO m  => UtxoIndex -> m Tx
+generateRandomTx (UtxoIndex utxo) = liftIO $ do
+  gen <- liftIO MWC.createSystemRandom
+  (sourcePrivKey, sourcePubKey) <- pickNEL gen keyPairs
+  (_, targetPubKey) <- pickNEL gen keyPairs
+  let
+    sourceAddress = Address.pubKeyAddress sourcePubKey
+
+    -- outputs at the source address
+    sourceOutputs =
+      -- we restrict ourselves to outputs that contain no currencies other than Ada,
+      -- so that we can then split the total amount using 'Generators.splitVal'.
+      --
+      -- TODO: A generalised version of 'Generators.splitVal' that works on 'Value'
+      -- We definitely need this for creating multi currency transactions!
+      filter (\(_, TxOut{txOutValue}) -> txOutValue == Ada.toValue (Ada.fromValue txOutValue))
+      $ filter (\(_, TxOut{txOutAddress}) -> txOutAddress == sourceAddress)
+      $ Map.toList utxo
+
+  -- list of inputs owned by 'sourcePrivKey' that we are going to spend
+  -- in the transaction
+  inputs <- sublist gen sourceOutputs
+
+  let -- Total Ada amount that we want to spend
+      sourceAda = foldMap (Ada.fromValue . txOutValue . snd) inputs
+      -- inputs of the transaction
+      sourceTxIns = fmap (Tx.pubKeyTxIn . fst) inputs
+  outputValues <- Gen.sample (Generators.splitVal 10 sourceAda)
+  let targetTxOuts = fmap (\ada -> Tx.pubKeyTxOut (Ada.toValue ada) targetPubKey) outputValues
+
+      -- the transaction :)
+      tx = mempty
+            & Tx.inputs .~ Set.fromList sourceTxIns
+            & Tx.outputs .~ targetTxOuts
+            & Tx.addSignature sourcePrivKey
+  return tx
+
+
 runGenRandomTx ::
        ( Member (State ChainState) effs
        , Member Log effs
@@ -59,59 +97,12 @@ runGenRandomTx ::
        )
     => Eff (GenRandomTx ': effs) a
     -> Eff effs a
-runGenRandomTx =
-    Eff.interpret
-        (\case
-             GenRandomTx -> do
-                 UtxoIndex utxo <- Eff.gets (view EM.index)
-                 logDebug "Generating a random transaction"
-                 Eff.sendM $
-                     liftIO $ do
-                         gen <- MWC.createSystemRandom
-                         (sourcePrivKey, sourcePubKey) <- pickNEL gen keyPairs
-                         (_, targetPubKey) <- pickNEL gen keyPairs
-                         let sourceAddress = Address.pubKeyAddress sourcePubKey
-            -- outputs at the source address
-                             sourceOutputs
-              -- we restrict ourselves to outputs that contain no currencies other than Ada,
-              -- so that we can then split the total amount using 'Generators.splitVal'.
-              --
-              -- TODO: A generalised version of 'Generators.splitVal' that works on 'Value'
-              -- We definitely need this for creating multi currency transactions!
-                              =
-                                 filter
-                                     (\(_, TxOut {txOutValue}) ->
-                                          txOutValue ==
-                                          Ada.toValue (Ada.fromValue txOutValue)) $
-                                 filter
-                                     (\(_, TxOut {txOutAddress}) ->
-                                          txOutAddress == sourceAddress) $
-                                 Map.toList utxo
-          -- list of inputs owned by 'sourcePrivKey' that we are going to spend
-          -- in the transaction
-                         inputs <- sublist gen sourceOutputs
-              -- Total Ada amount that we want to spend
-                         let sourceAda =
-                                 foldMap
-                                     (Ada.fromValue . txOutValue . snd)
-                                     inputs
-              -- inputs of the transaction
-                             sourceTxIns = fmap (Tx.pubKeyTxIn . fst) inputs
-                         outputValues <-
-                             Gen.sample (Generators.splitVal 10 sourceAda)
-                         let targetTxOuts =
-                                 fmap
-                                     (\ada ->
-                                          Tx.pubKeyTxOut
-                                              (Ada.toValue ada)
-                                              targetPubKey)
-                                     outputValues
-              -- the transaction :)
-                             tx =
-                                 mempty & Tx.inputs .~ Set.fromList sourceTxIns &
-                                 Tx.outputs .~ targetTxOuts &
-                                 Tx.addSignature sourcePrivKey
-                         return tx)
+runGenRandomTx = Eff.interpret (\case
+    GenRandomTx -> do
+        utxo <- Eff.gets (view EM.index)
+        logDebug "Generating a random transaction"
+        Eff.sendM $ generateRandomTx utxo
+    )
 
 keyPairs :: NonEmpty (PrivateKey, PubKey)
 keyPairs =

@@ -76,6 +76,14 @@ library
         Plutus.SCB.Relation
         Plutus.SCB.Types
         Plutus.SCB.Utils
+        Cardano.Protocol.Type
+        Cardano.Protocol.Client
+        Cardano.Protocol.Effects
+        Cardano.Protocol.Server
+        Cardano.Protocol.Puppet.Type
+        Cardano.Protocol.Puppet.Codec
+        Cardano.Protocol.Puppet.Client
+        Cardano.Protocol.Puppet.Server
     other-modules:
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Node
@@ -99,18 +107,26 @@ library
         containers -any,
         directory -any,
         errors -any,
+        cborg -any,
+        contra-tracer -any,
         eventful-core -any,
         eventful-memory -any,
         eventful-sql-common -any,
         eventful-sqlite -any,
         freer-simple -any,
+        freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
+        ghc-heap -any,
+        io-sim-classes -any,
         lens -any,
         monad-logger -any,
         mtl -any,
+        network -any,
+        network-mux -any,
         optparse-applicative -any,
         persistent -any,
+        ouroboros-network -any,
         persistent-sqlite -any,
         playground-common -any,
         prettyprinter >=1.1.0.1,
@@ -122,10 +138,17 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        typed-protocols-cbor -any,
+        quickcheck-instances -any,
+        random -any,
+        serialise -any,
         stm -any,
         text -any,
         time-units -any,
         transformers -any,
+        typed-protocols -any,
+        typed-transitions -any,
+        cardano-slotting -any,
         unliftio-core -any,
         unordered-containers -any,
         uuid -any,
@@ -136,6 +159,48 @@ library
         mwc-random -any,
         primitive -any,
         hedgehog -any
+
+executable node-server
+    main-is: node-server.hs
+    hs-source-dirs: app
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.7 && <5,
+        async -any,
+        containers -any,
+        lens -any,
+        stm -any,
+        plutus-contract -any,
+        plutus-emulator -any,
+        plutus-wallet-api -any,
+        plutus-scb -any
+
+executable node-client
+    main-is: node-client.hs
+    hs-source-dirs: app
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.7 && <5,
+        async -any,
+        containers -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        optparse-applicative -any,
+        stm -any,
+        time-units -any,
+        plutus-emulator -any,
+        plutus-wallet-api -any,
+        plutus-scb -any,
+        yaml -any
 
 executable plutus-scb
     main-is: Main.hs

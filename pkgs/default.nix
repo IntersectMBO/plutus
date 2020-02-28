@@ -13153,6 +13153,151 @@ description = "Use GHC call-stacks in a backward compatible way";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"canonical-json" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, deepseq
+, parsec
+, pretty
+, stdenv
+}:
+mkDerivation {
+
+pname = "canonical-json";
+version = "0.6.0.0";
+sha256 = "ff0b80171c85e554d9985cbb828d8f77efbc48985bd59dcd4bc4ceb7e1216851";
+revision = "1";
+editedCabalFile = "18i3msxza5phvv5mz7gjqcygrm8rxd86pk2vqnsa715qrhsz88ch";
+libraryHaskellDepends = [
+base
+bytestring
+containers
+deepseq
+parsec
+pretty
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/well-typed/canonical-json";
+description = "Canonical JSON for signing and hashing JSON values";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"cardano-binary" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, cardano-prelude
+, cborg
+, containers
+, digest
+, fetchgit
+, formatting
+, recursion-schemes
+, safe-exceptions
+, stdenv
+, tagged
+, text
+, time
+, vector
+}:
+mkDerivation {
+
+pname = "cardano-binary";
+version = "1.5.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-base";
+sha256 = "0jzv074hc8kq0r0k47bw8hvziyi16mfyv5gcyngd1d0mbrc0j2k1";
+rev = "80deee31f8d9422b8e090e55b17e1a714153180b";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/binary; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+cardano-prelude
+cborg
+containers
+digest
+formatting
+recursion-schemes
+safe-exceptions
+tagged
+text
+time
+vector
+];
+doHaddock = false;
+doCheck = false;
+description = "Binary serialization for Cardano";
+license = stdenv.lib.licenses.mit;
+
+}) {};
+"cardano-binary-test" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, cardano-binary
+, cardano-prelude
+, cardano-prelude-test
+, cborg
+, containers
+, fetchgit
+, formatting
+, hedgehog
+, hspec
+, pretty-show
+, QuickCheck
+, quickcheck-instances
+, stdenv
+, text
+, vector
+}:
+mkDerivation {
+
+pname = "cardano-binary-test";
+version = "1.3.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-base";
+sha256 = "0jzv074hc8kq0r0k47bw8hvziyi16mfyv5gcyngd1d0mbrc0j2k1";
+rev = "80deee31f8d9422b8e090e55b17e1a714153180b";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/binary/test; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+bytestring
+cardano-binary
+cardano-prelude
+cardano-prelude-test
+cborg
+containers
+formatting
+hedgehog
+hspec
+pretty-show
+QuickCheck
+quickcheck-instances
+text
+vector
+];
+doHaddock = false;
+doCheck = false;
+description = "Test helpers from cardano-binary exposed to other packages";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "cardano-crypto" = callPackage
 ({
   mkDerivation
@@ -13200,6 +13345,236 @@ doCheck = false;
 homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
 description = "Cryptography primitives for cardano";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"cardano-crypto-class" = callPackage
+({
+  mkDerivation
+, base
+, base16-bytestring
+, bytestring
+, cardano-binary
+, cardano-prelude
+, cryptonite
+, deepseq
+, fetchgit
+, memory
+, reflection
+, stdenv
+, vector
+}:
+mkDerivation {
+
+pname = "cardano-crypto-class";
+version = "2.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-base";
+sha256 = "0jzv074hc8kq0r0k47bw8hvziyi16mfyv5gcyngd1d0mbrc0j2k1";
+rev = "80deee31f8d9422b8e090e55b17e1a714153180b";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/cardano-crypto-class; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+base16-bytestring
+bytestring
+cardano-binary
+cardano-prelude
+cryptonite
+deepseq
+memory
+reflection
+vector
+];
+doHaddock = false;
+doCheck = false;
+description = "Type classes abstracting over cryptography primitives for Cardano";
+license = stdenv.lib.licenses.mit;
+
+}) {};
+"cardano-prelude" = callPackage
+({
+  mkDerivation
+, aeson
+, array
+, base
+, base16-bytestring
+, bytestring
+, canonical-json
+, cborg
+, containers
+, fetchgit
+, fingertree
+, formatting
+, generic-deriving
+, ghc-heap
+, ghc-prim
+, hashable
+, integer-gmp
+, mtl
+, nonempty-containers
+, protolude
+, serialise
+, stdenv
+, tagged
+, text
+, time
+, vector
+}:
+mkDerivation {
+
+pname = "cardano-prelude";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-prelude";
+sha256 = "0v4fcq5kdd2r5dgwys8kv46ff33qp756n26ycxrca10wq14zkwm5";
+rev = "00487726c4bc21b4744e59d913334ebfeac7d68e";
+fetchSubmodules = true;
+
+};
+libraryHaskellDepends = [
+aeson
+array
+base
+base16-bytestring
+bytestring
+canonical-json
+cborg
+containers
+fingertree
+formatting
+generic-deriving
+ghc-heap
+ghc-prim
+hashable
+integer-gmp
+mtl
+nonempty-containers
+protolude
+serialise
+tagged
+text
+time
+vector
+];
+doHaddock = false;
+doCheck = false;
+description = "A Prelude replacement for the Cardano project";
+license = stdenv.lib.licenses.mit;
+
+}) {};
+"cardano-prelude-test" = callPackage
+({
+  mkDerivation
+, aeson
+, aeson-pretty
+, attoparsec
+, base
+, base16-bytestring
+, bytestring
+, canonical-json
+, cardano-prelude
+, containers
+, cryptonite
+, fetchgit
+, formatting
+, hedgehog
+, hspec
+, pretty-show
+, QuickCheck
+, quickcheck-instances
+, stdenv
+, template-haskell
+, text
+, time
+}:
+mkDerivation {
+
+pname = "cardano-prelude-test";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-prelude";
+sha256 = "0v4fcq5kdd2r5dgwys8kv46ff33qp756n26ycxrca10wq14zkwm5";
+rev = "00487726c4bc21b4744e59d913334ebfeac7d68e";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/test; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+aeson
+aeson-pretty
+attoparsec
+base
+base16-bytestring
+bytestring
+canonical-json
+cardano-prelude
+containers
+cryptonite
+formatting
+hedgehog
+hspec
+pretty-show
+QuickCheck
+quickcheck-instances
+template-haskell
+text
+time
+];
+doHaddock = false;
+doCheck = false;
+description = "Utility types and functions for testing Cardano";
+license = stdenv.lib.licenses.mit;
+
+}) {};
+"cardano-slotting" = callPackage
+({
+  mkDerivation
+, base
+, cardano-binary
+, cardano-prelude
+, cborg
+, containers
+, fetchgit
+, mmorph
+, mtl
+, serialise
+, stdenv
+, transformers
+}:
+mkDerivation {
+
+pname = "cardano-slotting";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-base";
+sha256 = "0jzv074hc8kq0r0k47bw8hvziyi16mfyv5gcyngd1d0mbrc0j2k1";
+rev = "80deee31f8d9422b8e090e55b17e1a714153180b";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/slotting; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+cardano-binary
+cardano-prelude
+cborg
+containers
+mmorph
+mtl
+serialise
+transformers
+];
+doHaddock = false;
+doCheck = false;
+description = "Key slotting types for cardano libraries";
+license = stdenv.lib.licenses.unfree;
+hydraPlatforms = stdenv.lib.platforms.none;
 
 }) {};
 "carray" = callPackage
@@ -13602,10 +13977,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "cborg";
-version = "0.2.1.0";
-sha256 = "9198735f7645ae492345505448f790433f5fe407b19e1c6b2ec2a4c76bd97483";
-revision = "1";
-editedCabalFile = "0v3z332gfi3mf0ilw94qwa0afkz7w1n5rnjjj0g170dmqrjphvrg";
+version = "0.2.2.0";
+sha256 = "e12e90c31f22f677e38908ea92680a10ef5cbae236fb556704479fc081dfb6e5";
 libraryHaskellDepends = [
 array
 base
@@ -13620,7 +13993,7 @@ text
 ];
 doHaddock = false;
 doCheck = false;
-description = "Concise Binary Object Representation";
+description = "Concise Binary Object Representation (CBOR)";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -16735,6 +17108,35 @@ doCheck = false;
 homepage = "http://github.com/ekmett/constraints/";
 description = "Constraint manipulation";
 license = stdenv.lib.licenses.bsd2;
+
+}) {};
+"contra-tracer" = callPackage
+({
+  mkDerivation
+, base
+, fetchgit
+, stdenv
+}:
+mkDerivation {
+
+pname = "contra-tracer";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/iohk-monitoring-framework";
+sha256 = "1g76sy52rfzl9gisn0rk5kh0vb5d3xnnyrb3ln6izswwc3r2d289";
+rev = "156391afaafca6b00d027fb9c03e1bd7a1f03003";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/contra-tracer; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+];
+doHaddock = false;
+doCheck = false;
+description = "A simple interface for logging, tracing or monitoring";
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "contravariant" = callPackage
@@ -39551,6 +39953,84 @@ description = "Exception safe resource management with dynamic regions";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"io-sim" = callPackage
+({
+  mkDerivation
+, base
+, containers
+, exceptions
+, fetchgit
+, io-sim-classes
+, psqueues
+, stdenv
+, time
+}:
+mkDerivation {
+
+pname = "io-sim";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/io-sim; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+containers
+exceptions
+io-sim-classes
+psqueues
+time
+];
+doHaddock = false;
+doCheck = false;
+description = "A pure simlator for monadic concurrency with STM";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"io-sim-classes" = callPackage
+({
+  mkDerivation
+, async
+, base
+, bytestring
+, fetchgit
+, mtl
+, stdenv
+, stm
+, time
+}:
+mkDerivation {
+
+pname = "io-sim-classes";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/io-sim-classes; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+async
+base
+bytestring
+mtl
+stm
+time
+];
+doHaddock = false;
+doCheck = false;
+description = "Type classes for concurrency with STM, ST and timing";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "io-storage" = callPackage
 ({
   mkDerivation
@@ -49627,6 +50107,57 @@ description = "Simple multicast library";
 license = stdenv.lib.licenses.publicDomain;
 
 }) {};
+"network-mux" = callPackage
+({
+  mkDerivation
+, array
+, base
+, binary
+, bytestring
+, containers
+, contra-tracer
+, fetchgit
+, io-sim-classes
+, network
+, process
+, statistics-linreg
+, stdenv
+, time
+, vector
+}:
+mkDerivation {
+
+pname = "network-mux";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/network-mux; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+array
+base
+binary
+bytestring
+containers
+contra-tracer
+io-sim-classes
+network
+process
+statistics-linreg
+time
+vector
+];
+doHaddock = false;
+doCheck = false;
+description = "Multiplexing library";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "network-simple" = callPackage
 ({
   mkDerivation
@@ -51332,6 +51863,143 @@ doCheck = false;
 homepage = "https://github.com/passy/optparse-text#readme";
 description = "Data.Text helpers for optparse-applicative";
 license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"ouroboros-network" = callPackage
+({
+  mkDerivation
+, async
+, base
+, binary
+, bytestring
+, cardano-binary
+, cardano-prelude
+, cardano-slotting
+, cborg
+, containers
+, contra-tracer
+, directory
+, dns
+, fetchgit
+, fingertree
+, hashable
+, io-sim-classes
+, iproute
+, mtl
+, network
+, network-mux
+, psqueues
+, QuickCheck
+, random
+, serialise
+, splitmix
+, stdenv
+, stm
+, text
+, time
+, typed-protocols
+, typed-protocols-cbor
+}:
+mkDerivation {
+
+pname = "ouroboros-network";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/ouroboros-network; echo source root reset to $sourceRoot";
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+async
+base
+binary
+bytestring
+cardano-binary
+cardano-prelude
+cardano-slotting
+cborg
+containers
+contra-tracer
+dns
+fingertree
+hashable
+io-sim-classes
+iproute
+mtl
+network
+network-mux
+psqueues
+serialise
+stm
+text
+time
+typed-protocols
+typed-protocols-cbor
+];
+executableHaskellDepends = [
+async
+base
+bytestring
+containers
+contra-tracer
+directory
+network
+network-mux
+QuickCheck
+random
+serialise
+splitmix
+stm
+typed-protocols
+typed-protocols-cbor
+];
+doHaddock = false;
+doCheck = false;
+description = "A networking layer for the Ouroboros blockchain protocol";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"ouroboros-network-testing" = callPackage
+({
+  mkDerivation
+, base
+, cborg
+, fetchgit
+, io-sim
+, QuickCheck
+, serialise
+, stdenv
+}:
+mkDerivation {
+
+pname = "ouroboros-network-testing";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/ouroboros-network-testing; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+cborg
+io-sim
+QuickCheck
+serialise
+];
+doHaddock = false;
+doCheck = false;
+description = "Common modules used for testing in ouroboros-network and ouroboros-consensus";
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "overhang" = callPackage
@@ -54924,7 +55592,10 @@ license = stdenv.lib.licenses.asl20;
 , async
 , base
 , bytestring
+, cardano-slotting
+, cborg
 , containers
+, contra-tracer
 , directory
 , ekg
 , errors
@@ -54934,14 +55605,19 @@ license = stdenv.lib.licenses.asl20;
 , eventful-sqlite
 , freer-simple
 , generic-arbitrary
+, ghc-heap
 , hedgehog
 , http-client
+, io-sim-classes
 , iots-export
 , lens
 , monad-logger
 , mtl
 , mwc-random
+, network
+, network-mux
 , optparse-applicative
+, ouroboros-network
 , persistent
 , persistent-sqlite
 , playground-common
@@ -54959,6 +55635,7 @@ license = stdenv.lib.licenses.asl20;
 , random
 , row-types
 , scientific
+, serialise
 , servant
 , servant-client
 , servant-server
@@ -54970,6 +55647,9 @@ license = stdenv.lib.licenses.asl20;
 , text
 , time-units
 , transformers
+, typed-protocols
+, typed-protocols-cbor
+, typed-transitions
 , unliftio-core
 , unordered-containers
 , uuid
@@ -54990,7 +55670,10 @@ aeson-pretty
 async
 base
 bytestring
+cardano-slotting
+cborg
 containers
+contra-tracer
 directory
 errors
 eventful-core
@@ -54999,14 +55682,19 @@ eventful-sql-common
 eventful-sqlite
 freer-simple
 generic-arbitrary
+ghc-heap
 hedgehog
 http-client
+io-sim-classes
 iots-export
 lens
 monad-logger
 mtl
 mwc-random
+network
+network-mux
 optparse-applicative
+ouroboros-network
 persistent
 persistent-sqlite
 playground-common
@@ -55023,6 +55711,7 @@ quickcheck-instances
 random
 row-types
 scientific
+serialise
 servant
 servant-client
 servant-server
@@ -55030,6 +55719,9 @@ stm
 text
 time-units
 transformers
+typed-protocols
+typed-protocols-cbor
+typed-transitions
 unliftio-core
 unordered-containers
 uuid
@@ -55039,8 +55731,10 @@ yaml
 ];
 executableHaskellDepends = [
 aeson
+async
 base
 bytestring
+containers
 ekg
 freer-simple
 lens
@@ -55048,10 +55742,14 @@ monad-logger
 mtl
 optparse-applicative
 playground-common
+plutus-contract
+plutus-emulator
 plutus-use-cases
 plutus-wallet-api
 prettyprinter
+stm
 text
+time-units
 unliftio-core
 uuid
 yaml
@@ -68200,6 +68898,39 @@ description = "A library of statistical types, data, and functions";
 license = stdenv.lib.licenses.bsd2;
 
 }) {};
+"statistics-linreg" = callPackage
+({
+  mkDerivation
+, base
+, MonadRandom
+, random
+, random-shuffle
+, safe
+, statistics
+, stdenv
+, vector
+}:
+mkDerivation {
+
+pname = "statistics-linreg";
+version = "0.3";
+sha256 = "6273c2166b8072814ede516c7c9f1e13a158b5013938fdf83a3ea2355aee8909";
+libraryHaskellDepends = [
+base
+MonadRandom
+random
+random-shuffle
+safe
+statistics
+vector
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://github.com/alpmestan/statistics-linreg";
+description = "Linear regression between two samples, based on the 'statistics' package";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "stb-image-redux" = callPackage
 ({
   mkDerivation
@@ -74851,6 +75582,111 @@ doCheck = false;
 homepage = "https://haskell-lang.org/library/typed-process";
 description = "Run external processes, with strong typing of streams";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"typed-protocols" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, contra-tracer
+, fetchgit
+, io-sim-classes
+, stdenv
+, time
+}:
+mkDerivation {
+
+pname = "typed-protocols";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/typed-protocols; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+bytestring
+contra-tracer
+io-sim-classes
+time
+];
+doHaddock = false;
+doCheck = false;
+description = "A framework for strongly typed protocols";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"typed-protocols-cbor" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, cborg
+, fetchgit
+, io-sim-classes
+, serialise
+, stdenv
+, typed-protocols
+}:
+mkDerivation {
+
+pname = "typed-protocols-cbor";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/typed-protocols-cbor; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+bytestring
+cborg
+io-sim-classes
+serialise
+typed-protocols
+];
+doHaddock = false;
+doCheck = false;
+license = stdenv.lib.licenses.asl20;
+
+}) {};
+"typed-transitions" = callPackage
+({
+  mkDerivation
+, base
+, fetchgit
+, QuickCheck
+, stdenv
+}:
+mkDerivation {
+
+pname = "typed-transitions";
+version = "0.1.0.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/ouroboros-network";
+sha256 = "0jmkr1ph89xd36c0hl1n53fblh0zbhsyjs88hy08d4ga8g3ln6hv";
+rev = "38290d79fa5beb3b19451a906582b35e24feb183";
+fetchSubmodules = true;
+
+};
+postUnpack = "sourceRoot+=/typed-transitions; echo source root reset to $sourceRoot";
+libraryHaskellDepends = [
+base
+QuickCheck
+];
+doHaddock = false;
+doCheck = false;
+license = stdenv.lib.licenses.asl20;
 
 }) {};
 "typelits-witnesses" = callPackage

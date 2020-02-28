@@ -65,6 +65,7 @@ self: super: {
     # we can hit https://github.com/input-output-hk/stack2nix/issues/134 unless
     # we do it oursevles.
     mtl = null;
+    ghc-heap = null;
     parsec = null;
     stm = null;
     text = null;
