@@ -99,11 +99,9 @@ deriving via (GenericExMemoryUsage (Builtin ann)) instance ExMemoryUsage ann => 
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
--- TODO: Can we merge these two instances together?
-deriving via (GenericExMemoryUsage (Plain Term uni))
-  instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Plain Term uni)
-deriving via (GenericExMemoryUsage (WithMemory Term uni))
-  instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (WithMemory Term uni)
+deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
+  instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
+    ExMemoryUsage (Term TyName Name uni ann)
 deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
