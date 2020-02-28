@@ -33,14 +33,17 @@ import           Eventful.Store.Memory                         (EventMap, emptyE
 import           Language.Plutus.Contract.Resumable            (ResumableError)
 import           Language.Plutus.Contract.Servant              (initialResponse, runUpdate)
 import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
+import qualified Ledger
+import qualified Ledger.AddressMap                             as AM
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Events                             (ChainEvent)
 import           Plutus.SCB.Types                              (SCBError (ContractCommandError, ContractNotFound))
 import           Test.QuickCheck.Instances.UUID                ()
-import           Wallet.API                                    (NodeAPI, WalletAPI, WalletDiagnostics, logMsg,
-                                                                ownPubKey, sign, slot, startWatching, submitTxn,
-                                                                updatePaymentWithChange, watchedAddresses)
+import           Wallet.API                                    (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics,
+                                                                logMsg, ownOutputs, ownPubKey, sign, slot,
+                                                                startWatching, submitTxn, updatePaymentWithChange,
+                                                                watchedAddresses)
 
 data TestState =
     TestState
@@ -133,6 +136,12 @@ instance WalletAPI TestApp where
     ownPubKey = WalletClient.getOwnPubKey
     sign = WalletClient.sign
     updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
+    ownOutputs = do
+        pk <- ownPubKey
+        am <- watchedAddresses
+        pure $ view (AM.fundsAt (Ledger.pubKeyAddress pk)) am
+
+instance ChainIndexAPI TestApp where
     watchedAddresses =
         TestApp . zoom walletState $ WalletClient.getWatchedAddresses
     startWatching address =

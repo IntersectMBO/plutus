@@ -38,9 +38,9 @@ import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testPropert
 import           Test.Tasty.HUnit
 import           Wallet                     (PubKey (..), WalletAPIError)
 import           Wallet.Emulator
+import           Wallet.Emulator.ChainIndex (ChainIndexEffect)
 import qualified Wallet.Emulator.Generators as Gen
 import           Wallet.Emulator.NodeClient
-import           Wallet.Emulator.ChainIndex (ChainIndexEffect)
 import           Wallet.Emulator.Wallet
 import qualified Wallet.Generators          as Gen
 

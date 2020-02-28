@@ -37,8 +37,9 @@ import           Plutus.SCB.Types           (Config (Config),
 import           Servant.Client             (ClientEnv, ClientM, ServantError, mkClientEnv, runClientM)
 import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process             (readProcessWithExitCode)
-import           Wallet.API                 (NodeAPI, WalletAPI, WalletDiagnostics, logMsg, ownPubKey, sign, slot,
-                                             startWatching, submitTxn, updatePaymentWithChange, watchedAddresses)
+import           Wallet.API                 (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics, logMsg, ownOutputs,
+                                             ownPubKey, sign, slot, startWatching, submitTxn, updatePaymentWithChange,
+                                             watchedAddresses)
 
 ------------------------------------------------------------
 data Env =
@@ -69,6 +70,9 @@ instance WalletAPI App where
     ownPubKey = runWalletClientM WalletClient.getOwnPubKey
     sign bs = runWalletClientM $ WalletClient.sign bs
     updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
+    ownOutputs = runWalletClientM WalletClient.getOwnOutputs
+
+instance ChainIndexAPI App where
     watchedAddresses = runWalletClientM WalletClient.getWatchedAddresses
     startWatching = void . runWalletClientM . WalletClient.startWatching
 
