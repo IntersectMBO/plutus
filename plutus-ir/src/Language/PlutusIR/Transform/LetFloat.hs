@@ -23,27 +23,30 @@ import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
+import Data.Function (on)
 
 -- | For each Let-binding we compute its minimum "rank", which refers to a dependant lambda/Lambda location that this Let-rhs can topmost/highest float upwards to (w/o having out-of-scope errors)
 -- In other words, this is a pointer to a lambda location in the PIR program.
 data Rank = Top
           | LamDep Int PLC.Unique
+          deriving Eq
 
-depth :: Getting r Rank Int
-depth  = to $ \case
+-- | usual getter function
+_depth :: Rank -> Int
+_depth = \case
   Top -> 0
   LamDep d _ -> d
 
-name :: Getting r Rank PLC.Unique
-name  = to $ \case
-  LamDep _ n -> n
-  _ -> PLC.Unique {PLC.unUnique = -1} -- error  "partial: Top does not have name"
+-- | lens-style getter
+depth :: Getting r Rank Int
+depth  = to _depth
+
+instance Ord Rank where
+  compare = compare `on` _depth
 
 -- acts like a Data.Semigroup.Max
 instance Semigroup Rank where
-  r1 <> r2 = case compare (r1^.depth) (r2^.depth) of
-               GT -> r1
-               _ -> r2
+  r1 <> r2 = max r1 r2
 
 instance Monoid Rank where
   mempty = Top
@@ -60,9 +63,9 @@ type RankData = M.Map
 
 -- | During the second pass of the AST, we transform the 'RankData' to an assoc. list of depth=>lambda=>{let_unique} mappings left to process. This assoc. list is sorted by depth for easier code generation.
 type DepthData = IM.IntMap -- ^ the depth (starting from 0, which is Top)
-                    (M.Map       -- ^ a mapping of lambdanames belonging to this depth => letidentifiers to float
-                      PLC.Unique    -- ^ a lambda name or Top's name (i.e. Unique(-1))
-                      (S.Set PLC.Unique) -- ^ the let bindings that should be floated/placed under this lambda
+                    (M.Map       -- ^ a mapping of locations belonging to this depth => letidentifiers to float
+                      Rank    -- ^ the location where the let should float to: location is a lambda name or Top
+                      (S.Set PLC.Unique) -- ^ the let bindings that should be floated/placed under this lambda or Top
                     )
 
 -- | A simple table holding a let-introduced identifier to its RHS.
@@ -192,7 +195,7 @@ floatTerm pir =
 
   -- | Visiting each term to apply the float transformation
   goTerm :: Int -- ^ current depth
-         -> [(Int, M.Map PLC.Unique (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
+         -> [(Int, M.Map Rank (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
          -> Term tyname name a
          -> Term tyname name a
   goTerm curDepth searchTable = \case
@@ -205,7 +208,7 @@ floatTerm pir =
   -- | The function just updates the current location (depth+lamname) and visits its body
   goAbs :: PLC.HasUnique b b'
         => Int -- ^ current depth
-        -> [(Int, M.Map PLC.Unique (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
+        -> [(Int, M.Map Rank (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
         -> b                                            -- ^ lambda/Lambda's name
         -> Term tyname name a                           -- ^ lambda/Lambda's body
         -> Term tyname name a
@@ -216,7 +219,7 @@ floatTerm pir =
   -- | We are currently INSIDE (exactly under) a lambda/Lambda body/Top (Top if we are right at the start of the algorithm)
   -- We try to see if we have some lets to float here based on our 1st-pass-table data (searchTable).
   goBody :: Rank -- ^ the rank/location of the lambda above that has this body
-         -> [(Int, M.Map PLC.Unique (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
+         -> [(Int, M.Map Rank (S.Set PLC.Unique))] -- ^ the lambdas we are searching for (to float some lets inside them)
          -> Term tyname name a                           -- ^ the body term
          -> Term tyname name a                           -- ^ the transformed body term
   goBody _  [] tBody = tBody -- no lets are left to float, do not descend
@@ -229,7 +232,7 @@ floatTerm pir =
       EQ ->
         -- transform the lambody, passing the rest table
         let tBody' = goTerm curDepth restSearchTable tBody
-        in case M.lookup (aboveLamLoc^.name) searchingForLams_Lets of
+        in case M.lookup aboveLamLoc searchingForLams_Lets of
              -- the lambda above-this-body has some let-rhses to insert (float) here.
              Just lets -> wrapLets lets curDepth restSearchTable tBody'
              -- nothing to do for the lambda above, i.e. no let-rhses to insert here
@@ -238,7 +241,7 @@ floatTerm pir =
 
 
 
-  depthData :: [(IM.Key, M.Map PLC.Unique (S.Set PLC.Unique))]
+  depthData :: [(IM.Key, M.Map Rank (S.Set PLC.Unique))]
   depthData = IM.toAscList $ toDepthData $ p1Term pir -- run the first pass
 
 
@@ -273,7 +276,7 @@ floatTerm pir =
   -- Example: `let {i = e, ...} in let rec {j = e, ...} in let rec {...} in let {...} in ..... in originalTerm`
   wrapLets :: S.Set PLC.Unique -- ^ all the let identifiers to wrap around this term
            -> Int -- ^ current depth
-           -> [(Int, M.Map PLC.Unique (S.Set PLC.Unique))] -- ^ the table remaining
+           -> [(Int, M.Map Rank (S.Set PLC.Unique))] -- ^ the table remaining
            -> Term tyname name a                           -- ^ the term to be wrapped
            -> Term tyname name a                           -- ^ the final wrapped term
   wrapLets lets curDepth restDepthTable t =
@@ -309,7 +312,7 @@ floatTerm pir =
 ----------
 
 toDepthData :: RankData -> DepthData
-toDepthData = foldr (\ (dep, letNamePrinc) acc -> IM.insertWith (M.unionWith (<>)) (dep^.depth) (M.singleton (dep^.name) (S.singleton letNamePrinc)) acc) IM.empty
+toDepthData = foldr (\ (dep, letNamePrinc) acc -> IM.insertWith (M.unionWith (<>)) (dep^.depth) (M.singleton dep (S.singleton letNamePrinc)) acc) IM.empty
 
 -- | Returns a single 'Unique' for a particular binding.
 -- We need this because datatypebinds introduce multiple identifiers, but we need only one as a key of our 'RhsTable',etc. See also: 'datatypeIdentifiers'
