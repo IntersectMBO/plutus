@@ -195,7 +195,7 @@ vestFunds vst = do
         dataValue = DataValue (PlutusTx.toData ())
     W.payToScript_ W.defaultSlotRange adr amt dataValue
 
-registerVestingScheme :: (MonadWallet m, W.ChainIndexAPI m) =>  Vesting -> m ()
+registerVestingScheme :: (W.ChainIndexAPI m) =>  Vesting -> m ()
 registerVestingScheme vst = WAPI.startWatching (contractAddress vst)
 ----
 
