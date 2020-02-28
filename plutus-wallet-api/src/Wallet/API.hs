@@ -40,6 +40,7 @@ module Wallet.API(
     collectFromScriptTxn,
     spendScriptOutputs,
     ownPubKeyTxOut,
+    outputsAt,
     -- * Slot ranges
     Interval(..),
     Slot,
@@ -328,6 +329,10 @@ payToPublicKey_ r v = void . payToPublicKey r v
 -- | Create a `TxOut` that pays to the public key owned by us.
 ownPubKeyTxOut :: WalletAPI m => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> ownPubKey
+
+-- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
+outputsAt :: (WalletAPI m, ChainIndexAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOutTx)
+outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
 --   TODO: This is here to make the calculation of fees easier for old-style contracts

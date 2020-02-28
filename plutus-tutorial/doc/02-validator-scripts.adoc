@@ -234,7 +234,7 @@ output using the guessed word as a redeemer.
 [source,haskell]
 ----
 -- | The "guess" contract endpoint.
-guess :: MonadWallet m => String -> m ()
+guess :: (W.ChainIndexAPI m, MonadWallet m) => String -> m ()
 guess word = W.collectFromScript -- <.>
       W.defaultSlotRange
       gameValidator
@@ -257,10 +257,10 @@ action:
 ----
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script.
-startGame :: MonadWallet m => m ()
+startGame :: W.ChainIndexAPI m => m ()
 startGame = W.startWatching gameAddress -- <.>
 ----
-<.> `startWatching` is a function of the wallet API. It instructs the wallet
+<.> `startWatching` is a function of the chain index API. It instructs the wallet
 to keep track of all outputs at the address.
 
 [NOTE]
