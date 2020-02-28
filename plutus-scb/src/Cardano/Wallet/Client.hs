@@ -5,11 +5,12 @@ module Cardano.Wallet.Client where
 
 import           Cardano.Wallet.API     (API)
 import           Cardano.Wallet.Types   (WalletId)
+import           Control.Lens
 import qualified Data.ByteString.Lazy   as BSL
 import           Data.Function          ((&))
 import           Data.Proxy             (Proxy (Proxy))
-import           Ledger                 (Address, PubKey, Signature, Value)
-import           Ledger.AddressMap      (AddressMap)
+import           Ledger                 (Address, PubKey, Signature, Value, pubKeyAddress)
+import           Ledger.AddressMap      (AddressMap, UtxoMap, fundsAt)
 import           Servant                (NoContent)
 import           Servant.Client         (ClientM, client)
 import           Servant.Extra          (left, right)
@@ -41,3 +42,9 @@ sign :: BSL.ByteString -> ClientM Signature
     byWalletId = api & right & right
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
+
+getOwnOutputs :: ClientM UtxoMap
+getOwnOutputs = do
+  pk <- getOwnPubKey
+  am <- getWatchedAddresses
+  pure $ am ^. fundsAt (pubKeyAddress pk)

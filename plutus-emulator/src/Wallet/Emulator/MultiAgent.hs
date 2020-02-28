@@ -33,6 +33,7 @@ import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Index               as Index
 import qualified Wallet.API                 as WAPI
 import qualified Wallet.Emulator.Chain      as Chain
+import qualified Wallet.Emulator.ChainIndex as ChainIndex
 import qualified Wallet.Emulator.NodeClient as NC
 import qualified Wallet.Emulator.Wallet     as Wallet
 
@@ -55,6 +56,7 @@ data EmulatorEvent =
     ChainEvent Chain.ChainEvent
     | ClientEvent Wallet.Wallet NC.NodeClientEvent
     | WalletEvent Wallet.Wallet Wallet.WalletEvent
+    | ChainIndexEvent Wallet.Wallet ChainIndex.ChainIndexEvent
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -63,6 +65,7 @@ instance Pretty EmulatorEvent where
         ClientEvent _ e -> pretty e
         ChainEvent e -> pretty e
         WalletEvent _ e -> pretty e
+        ChainIndexEvent _ e -> pretty e
 
 chainEvent :: Prism' EmulatorEvent Chain.ChainEvent
 chainEvent = prism' ChainEvent (\case { ChainEvent c -> Just c; _ -> Nothing })
@@ -73,19 +76,22 @@ walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w'
 walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
+chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
+chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
+
 -- | The type of actions in the emulator. @n@ is the type (usually a monad implementing 'WalletAPI') in
 -- which wallet actions take place.
 data MultiAgentEffect r where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect] r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect] r
+    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect] r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
 
@@ -102,10 +108,11 @@ assertIsValidated = assertion . IsValidated
 
 -- | The state of the emulator itself.
 data EmulatorState = EmulatorState {
-    _chainState         :: Chain.ChainState,
-    _walletStates       :: Map Wallet.Wallet Wallet.WalletState, -- ^ The state of each wallet.
-    _walletClientStates :: Map Wallet.Wallet NC.NodeClientState, -- ^ The state of each wallet's node client.
-    _emulatorLog        :: [EmulatorEvent] -- ^ The emulator events, with the newest last.
+    _chainState             :: Chain.ChainState,
+    _walletStates           :: Map Wallet.Wallet Wallet.WalletState, -- ^ The state of each wallet.
+    _walletClientStates     :: Map Wallet.Wallet NC.NodeClientState, -- ^ The state of each wallet's node client.
+    _walletChainIndexStates :: Map Wallet.Wallet ChainIndex.ChainIndexState, -- ^ The state of each wallet's chain index
+    _emulatorLog            :: [EmulatorEvent] -- ^ The emulator events, with the newest last.
     } deriving (Show)
 
 makeLenses ''EmulatorState
@@ -115,6 +122,9 @@ walletState wallet = walletStates . at wallet . non (Wallet.emptyWalletState wal
 
 walletClientState :: Wallet.Wallet -> Lens' EmulatorState NC.NodeClientState
 walletClientState wallet = walletClientStates . at wallet . non NC.emptyNodeClientState
+
+walletChainIndexState :: Wallet.Wallet -> Lens' EmulatorState ChainIndex.ChainIndexState
+walletChainIndexState wallet = walletChainIndexStates . at wallet . non mempty
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
@@ -142,6 +152,7 @@ emptyEmulatorState = EmulatorState {
     _chainState = Chain.emptyChainState,
     _walletStates = mempty,
     _walletClientStates = mempty,
+    _walletChainIndexStates = mempty,
     _emulatorLog = mempty
     }
 
@@ -179,20 +190,25 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd3
+        & raiseEnd4
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
+        & ChainIndex.handleChainIndex
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
         & interpret (handleZoomedWriter p2)
+        & interpret (handleZoomedState (walletChainIndexState wallet))
+        & interpret (handleZoomedWriter p3)
         & interpret (writeIntoState emulatorLog)
         where
             p1 :: Prism' [EmulatorEvent] [Wallet.WalletEvent]
             p1 = below (walletEvent wallet)
             p2 :: Prism' [EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (walletClientEvent wallet)
+            p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
+            p3 = below (chainIndexEvent wallet)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.

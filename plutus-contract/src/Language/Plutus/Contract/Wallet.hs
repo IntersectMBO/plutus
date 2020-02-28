@@ -20,21 +20,20 @@ import           Control.Monad.Except
 import qualified Control.Monad.Freer         as Eff
 import qualified Control.Monad.Freer.Error   as Eff
 import           Data.Bifunctor              (second)
-import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
-import           Data.Maybe                  (fromMaybe)
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
 import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
+import           Ledger.AddressMap           (UtxoMap)
 import qualified Ledger.AddressMap           as AM
 import           Ledger.Constraints.OffChain (UnbalancedTx (..))
-import           Ledger.Tx                   (Tx (..), TxOut, TxOutRef)
+import           Ledger.Tx                   (Tx (..))
 import qualified Ledger.Tx                   as Tx
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
-import           Wallet.API                  (MonadWallet, PubKey, WalletAPI, WalletAPIError)
+import           Wallet.API                  (ChainIndexAPI, MonadWallet, PubKey, WalletAPI, WalletAPIError)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Emulator             (Wallet)
 import qualified Wallet.Emulator             as E
@@ -78,16 +77,15 @@ be submitted to the network, the contract backend needs to
 -- | Balance an unbalanced transaction in a 'MonadWallet' context. See note
 --   [Submitting transactions from Plutus contracts].
 balanceWallet
-    :: MonadWallet m
+    :: (MonadWallet m, ChainIndexAPI m)
     => UnbalancedTx
     -> m Tx
 balanceWallet utx = do
     WAPI.logMsg $
         "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- WAPI.ownPubKey
-    addr <- WAPI.watchedAddresses
-    let utxo = addr ^. at (L.pubKeyAddress pk) . to (fromMaybe mempty)
-    balanceTx (fmap Tx.txOutTxOut utxo) pk utx
+    outputs <- WAPI.ownOutputs
+    balanceTx outputs pk utx
 
 -- | Compute the difference between the value of the inputs consumed and the
 --   value of the outputs produced by the transaction. If the result is zero
@@ -95,15 +93,16 @@ balanceWallet utx = do
 --
 --   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
-computeBalance :: MonadWallet m => Tx -> m Value
+computeBalance :: (MonadWallet m, ChainIndexAPI m) => Tx -> m Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
         inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
         pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
     lookupValue outputRef = do
-        am <- WAPI.watchedAddresses
-        let txout = AM.outRefMap am ^. at (Tx.txInRef outputRef)
+        walletIndex <- WAPI.ownOutputs
+        chainIndex <- AM.outRefMap <$> WAPI.watchedAddresses
+        let txout = (walletIndex <> chainIndex) ^. at (Tx.txInRef outputRef)
         case txout of
             Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
             Nothing ->
@@ -112,8 +111,8 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.
 balanceTx
-    :: MonadWallet m
-    => Map TxOutRef TxOut
+    :: (MonadWallet m, ChainIndexAPI m)
+    => UtxoMap
     -- ^ Unspent transaction outputs that may be used to balance the
     --   left hand side (inputs) of the transaction.
     -> PubKey
@@ -142,13 +141,13 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
 --   key output for @pk@ is added containing any leftover change.
 addInputs
     :: MonadError WalletAPIError m
-    => Map TxOutRef TxOut
+    => UtxoMap
     -> PubKey
     -> Value
     -> Tx
     -> m Tx
 addInputs mp pk vl tx = do
-    (spend, change) <- liftEither $ Eff.run $ Eff.runError $ E.selectCoin (second Tx.txOutValue <$> Map.toList mp) vl
+    (spend, change) <- liftEither $ Eff.run $ Eff.runError $ E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
     let
 
         addTxIns  =
@@ -167,7 +166,7 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: MonadWallet m => SigningProcess -> UnbalancedTx -> m Tx
+handleTx :: (MonadWallet m, ChainIndexAPI m) => SigningProcess -> UnbalancedTx -> m Tx
 handleTx p utx =
     balanceWallet utx >>= addSignatures p (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit
 

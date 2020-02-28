@@ -89,6 +89,7 @@ import qualified Vesting
 import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
 import qualified Wallet.Emulator.Chain                      as EM
+import qualified Wallet.Emulator.ChainIndex                 as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
 import qualified Wallet.Emulator.Wallet                     as EM
@@ -281,6 +282,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.WalletEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.ChainIndexEvent)
     , (genericShow <*> mkSumType) (Proxy @PlaygroundError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (genericShow <*> mkSumType) (Proxy @ScriptError)

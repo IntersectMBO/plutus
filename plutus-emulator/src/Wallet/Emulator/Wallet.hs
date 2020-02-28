@@ -37,6 +37,7 @@ import           IOTS                       (IotsType)
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Ledger                     hiding (sign)
 import qualified Ledger.Ada                 as Ada
+import           Ledger.AddressMap          (UtxoMap)
 import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Crypto              as Crypto
 import qualified Ledger.Value               as Value
@@ -107,9 +108,9 @@ data WalletEffect r where
     OwnPubKey :: WalletEffect PubKey
     Sign :: BSL.ByteString -> WalletEffect Signature
     UpdatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> WalletEffect (Set.Set TxIn, Maybe TxOut)
-    WatchedAddresses :: WalletEffect AM.AddressMap
     WalletSlot :: WalletEffect Slot
     WalletLogMsg :: T.Text -> WalletEffect ()
+    OwnOutputs :: WalletEffect UtxoMap
 makeEffect ''WalletEffect
 
 type WalletEffs = '[NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
@@ -147,18 +148,18 @@ handleWallet = interpret $ \case
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
-    WatchedAddresses -> NC.getClientIndex
     WalletSlot -> NC.getClientSlot
     WalletLogMsg m -> tell [WalletMsg m]
+    OwnOutputs -> do
+        addr <- gets ownAddress
+        view (at addr . non mempty) <$> NC.getClientIndex
 
 -- HACK: these shouldn't exist, but WalletAPI needs to die first
 instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
     ownPubKey = ownPubKey
     sign = sign
     updatePaymentWithChange = updatePaymentWithChange
-    watchedAddresses = watchedAddresses
-    -- TODO: Remove or rework. This is a noop, since the wallet client watches all addresses currently.
-    startWatching _ = pure ()
+    ownOutputs = ownOutputs
 
 instance (Member WalletEffect effs) => WAPI.NodeAPI (Eff effs) where
     submitTxn = submitTxn
