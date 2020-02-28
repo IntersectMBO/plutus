@@ -100,9 +100,9 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
         inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
         pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
     lookupValue outputRef = do
-        am <- WAPI.ownOutputs
-        am2 <- AM.outRefMap <$> WAPI.watchedAddresses
-        let txout = (am2 <> am) ^. at (Tx.txInRef outputRef)
+        walletIndex <- WAPI.ownOutputs
+        chainIndex <- AM.outRefMap <$> WAPI.watchedAddresses
+        let txout = (walletIndex <> chainIndex) ^. at (Tx.txInRef outputRef)
         case txout of
             Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
             Nothing ->
