@@ -113,6 +113,7 @@ import           Wallet.API                                        (WalletAPIErr
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
+import qualified Wallet.Emulator.ChainIndex                        as EM
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import qualified Wallet.Emulator.NodeClient                        as EM
 import qualified Wallet.Emulator.Wallet                            as EM
@@ -357,7 +358,7 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect] a
+    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect, EM.ChainIndexEffect] a
     -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t

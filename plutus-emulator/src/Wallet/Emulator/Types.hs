@@ -90,6 +90,7 @@ import           Ledger
 import           Wallet.API                 (WalletAPIError (..))
 
 import           Wallet.Emulator.Chain
+import           Wallet.Emulator.ChainIndex
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
@@ -98,7 +99,8 @@ type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvNotifications :: Eff.Members EmulatorEffs effs => Wallet -> [Notification] -> Eff.Eff effs ()
-walletRecvNotifications w nots = void $ walletAction w (mapM_ clientNotify nots)
+walletRecvNotifications w nots = void $ walletAction w (mapM_ go nots) where
+    go noti = clientNotify noti >> chainIndexNotify noti
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.
 walletNotifyBlock :: Eff.Members EmulatorEffs effs => Wallet -> Block -> Eff.Eff effs ()
@@ -181,7 +183,7 @@ runWalletActionAndProcessPending
     :: Eff.Members EmulatorEffs effs
     => [Wallet]
     -> Wallet
-    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect] a
+    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect] a
     -> Eff.Eff effs ([Tx], a)
 runWalletActionAndProcessPending wallets wallet action = do
     result <- walletAction wallet action

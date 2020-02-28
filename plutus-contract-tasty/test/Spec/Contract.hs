@@ -150,7 +150,7 @@ tests =
             (handleBlockchainEvents w2)
 
         , cp "await tx confirmed"
-            (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2)  (Ada.lovelaceValueOf 10) 
+            (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10) 
              in submitTx t >>= awaitTxConfirmed)
             (assertDone w1 (const True) "should be done"
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
