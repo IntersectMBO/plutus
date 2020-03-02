@@ -33,7 +33,7 @@ import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
-import           Data.Void                        (absurd, Void)
+import           Data.Void                        (Void, absurd)
 
 import           Language.Plutus.Contract
 import qualified Language.PlutusTx                as PlutusTx
