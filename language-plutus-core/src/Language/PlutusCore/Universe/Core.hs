@@ -125,7 +125,7 @@ Take for example @Show (Some f)@, we could implement it as
         show (Some a) = "Some " ++ show a
 
 (with `-XQuantifiedConstraints`). Unfortunately, that breaks @deriving (Show)@ for every data type
-that has @Some f@ somewhere inside it and forces you to use a standalong deriving declaration for
+that has @Some f@ somewhere inside it and forces you to use a standalone deriving declaration for
 each such data type, which is rather annoying, because instance contexts tend to get huge,
 so it takes time to come up with them or to remember where to copy them from and they also occupy
 a lot of space (text-wise).

@@ -41,17 +41,6 @@ check Var{}                  = pure ()
 check Constant{}             = pure ()
 check Builtin{}              = pure ()
 
-{- Note [Builtin applications and values]
-An older version of the specification had a special case for builtin type applications being
-normal types. This is important, because they obviously can't be reduced before runtime.
-This resulted in types like `[(con integer) (con 64)]` not being considered normalized, which
-effectively prevents you using integers anywhere (note: this isn't so much of a problem now
-integers aren't parameterized, but it's still wrong).
-
-The current version of the specification has moved to fully saturated builtins,
-but the implementation is not there. Consequently we consider builtin types to be neutral types.
--}
-
 isNormalType :: Type tyname uni ann -> Bool
 isNormalType = isRight . normalType
 
@@ -60,11 +49,11 @@ normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
 normalType (TyLam _ _ _ ty)    = normalType ty
+-- See Note [PLC types and universes].
+normalType TyBuiltin{}         = pure ()
 normalType ty                  = neutralType ty
 
 neutralType :: Type tyname uni ann -> Either (NormCheckError tyname name uni ann) ()
 neutralType TyVar{}           = pure ()
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
--- See note [Builtin applications and values]
-neutralType TyBuiltin{}       = pure ()
 neutralType ty                = Left (BadType (typeAnn ty) ty "neutral type")

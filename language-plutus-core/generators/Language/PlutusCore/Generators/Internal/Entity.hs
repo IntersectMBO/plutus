@@ -128,18 +128,18 @@ withCheckedTermGen genTb k =
 --   2. grow the 'IterApp' component by appending arguments to its spine
 --   3. feed arguments to the Haskell function
 genIterAppValue
-    :: forall head uni r m. Monad m
-    => Denotation uni head r
-    -> PlcGenT uni m (IterAppValue uni head (Term TyName Name uni ()) r)
+    :: forall head uni res m. Monad m
+    => Denotation uni head res
+    -> PlcGenT uni m (IterAppValue uni head (Term TyName Name uni ()) res)
 genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme uni as r
+        :: TypeScheme uni args res
         -> Term TyName Name uni ()
         -> ([Term TyName Name uni ()] -> [Term TyName Name uni ()])
-        -> FoldArgs as r
-        -> PlcGenT uni m (IterAppValue uni head (Term TyName Name uni ()) r)
+        -> FoldArgs args res
+        -> PlcGenT uni m (IterAppValue uni head (Term TyName Name uni ()) res)
     go (TypeSchemeResult _)       term args y = do  -- Computed the result.
         let pia = IterApp object $ args []
         return $ IterAppValue term pia y

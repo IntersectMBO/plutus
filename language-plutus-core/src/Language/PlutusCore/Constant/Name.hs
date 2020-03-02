@@ -41,23 +41,24 @@ import qualified Data.ByteString.Lazy                           as BSL
 import           Data.Proxy
 
 -- | A class that allows to derive a 'TypeScheme' for a builtin.
-class KnownTypeScheme uni as r where
-    knownTypeScheme :: TypeScheme uni as r
+class KnownTypeScheme uni args res where
+    knownTypeScheme :: TypeScheme uni args res
 
 instance KnownType uni r => KnownTypeScheme uni '[] r where
     knownTypeScheme = TypeSchemeResult Proxy
 
-instance (KnownType uni a, KnownTypeScheme uni as r) => KnownTypeScheme uni (a ': as) r where
+instance (KnownType uni arg, KnownTypeScheme uni args res) =>
+            KnownTypeScheme uni (arg ': args) res where
     knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
 
 -- | Automatically typify a 'BuiltinName'.
-makeTypedBuiltinName :: KnownTypeScheme uni as r => BuiltinName -> TypedBuiltinName uni as r
+makeTypedBuiltinName :: KnownTypeScheme uni args res => BuiltinName -> TypedBuiltinName uni args res
 makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName -> (forall a r. TypedBuiltinName uni a r -> c) -> c
+    => BuiltinName -> (forall args res. TypedBuiltinName uni args res -> c) -> c
 withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
 withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger

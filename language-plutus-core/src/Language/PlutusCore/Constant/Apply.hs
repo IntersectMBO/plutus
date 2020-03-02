@@ -65,22 +65,22 @@ integerToInt64 = fromIntegral
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: forall e m as uni r.
+    :: forall e m args uni res.
        ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
        , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => StagedBuiltinName
-    -> TypeScheme uni as r
-    -> FoldArgs as r
-    -> FoldArgs as ExBudget
+    -> TypeScheme uni args res
+    -> FoldArgs args res
+    -> FoldArgs args ExBudget
     -> [Value TyName Name uni ExMemory]
     -> EvaluateConstApp uni m ExMemory
 applyTypeSchemed name = go where
     go
-        :: forall as'.
-           TypeScheme uni as' r
-        -> FoldArgs as' r
-        -> FoldArgs as' ExBudget
+        :: forall args'.
+           TypeScheme uni args' res
+        -> FoldArgs args' res
+        -> FoldArgs args' ExBudget
         -> [Value TyName Name uni ExMemory]
         -> EvaluateConstApp uni m ExMemory
     go (TypeSchemeResult _)        y _ args =
@@ -114,9 +114,9 @@ applyTypedBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
        , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => TypedBuiltinName uni as r
-    -> FoldArgs as r
-    -> FoldArgs as ExBudget
+    => TypedBuiltinName uni args res
+    -> FoldArgs args res
+    -> FoldArgs args ExBudget
     -> [Value TyName Name uni ExMemory]
     -> EvaluateConstApp uni m ExMemory
 applyTypedBuiltinName (TypedBuiltinName name schema) =

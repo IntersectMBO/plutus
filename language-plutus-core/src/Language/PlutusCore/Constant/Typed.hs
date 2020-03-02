@@ -59,11 +59,12 @@ infixr 9 `TypeSchemeArrow`
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
 -- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme uni [Char, Bool] Integer@.
-data TypeScheme uni (as :: [GHC.Type]) r where
+data TypeScheme uni (args :: [GHC.Type]) res where
     TypeSchemeResult
-        :: KnownType uni r => Proxy r -> TypeScheme uni '[] r
+        :: KnownType uni res => Proxy res -> TypeScheme uni '[] res
     TypeSchemeArrow
-        :: KnownType uni a => Proxy a -> TypeScheme uni as r -> TypeScheme uni (a ': as) r
+        :: KnownType uni arg
+        => Proxy arg -> TypeScheme uni args res -> TypeScheme uni (arg ': args) res
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -87,11 +88,11 @@ data TypeScheme uni (as :: [GHC.Type]) r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni as r)
-        -> TypeScheme uni as r
+        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni args res)
+        -> TypeScheme uni args res
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName uni as r = TypedBuiltinName BuiltinName (TypeScheme uni as r)
+data TypedBuiltinName uni args res = TypedBuiltinName BuiltinName (TypeScheme uni args res)
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --
@@ -99,9 +100,9 @@ data TypedBuiltinName uni as r = TypedBuiltinName BuiltinName (TypeScheme uni as
 -- >>> :kind! FoldArgs [Char, Bool] Integer
 -- FoldArgs [Char, Bool] Integer :: *
 -- = Char -> Bool -> Integer
-type family FoldArgs as r where
-    FoldArgs '[]       r = r
-    FoldArgs (a ': as) r = a -> FoldArgs as r
+type family FoldArgs args r where
+    FoldArgs '[]           res = res
+    FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -119,7 +120,10 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning uni =
-    forall as r. DynamicBuiltinNameMeaning (TypeScheme uni as r) (FoldArgs as r) (FoldArgs as ExBudget)
+    forall args res. DynamicBuiltinNameMeaning
+        (TypeScheme uni args res)
+        (FoldArgs args res)
+        (FoldArgs args ExBudget)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition uni =

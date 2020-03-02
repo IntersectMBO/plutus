@@ -47,6 +47,9 @@ At the moment the default universe is finite and we don't have things like
 Such a type constructor can be added, but note that this doesn't directly lead to interop between
 Plutus Core and Haskell, i.e. you can't have a meta-list whose elements are of a PLC type.
 You can only have a meta-list constant with elements of a meta-type (i.e. a type from the universe).
+
+Consequently, all built-in types are of kind @*@ currently.
+
 This restriction might be fixable by adding
 
     DefaultUniPlc :: Type TyName DefaultUni () -> DefaultUni (Term TyName Name DefaultUni ())

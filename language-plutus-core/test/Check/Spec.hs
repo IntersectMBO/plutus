@@ -118,12 +118,11 @@ normalTypes :: TestTree
 normalTypes = runQuote $ do
     aN <- freshTyName () "a"
     let integer = mkTyBuiltin @Integer @DefaultUni ()
-        aV = TyVar () aN
-        neutral = integer
+        neutral = TyVar () aN
         normal = integer
-        nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
+        nonNormal = TyApp () (TyLam () aN (Type ()) neutral) normal
     pure $ testGroup "normal types" [
-          testCase "var" $ Normal.isNormalType aV @?= True
+          testCase "var" $ Normal.isNormalType neutral @?= True
 
         , testCase "funNormal" $ Normal.isNormalType (TyFun () normal normal) @?= True
         , testCase "funNotNormal" $ Normal.isNormalType (TyFun () normal nonNormal) @?= False
