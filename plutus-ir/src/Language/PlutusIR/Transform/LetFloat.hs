@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase       #-}
 module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import           Language.PlutusIR
@@ -19,47 +19,102 @@ import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
 
 import           Data.Foldable                           (fold)
+import           Data.Function                           (on)
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
-import Data.Function (on)
 
 {- Note: [Float algorithm]
 
-This algorithm tries to do two things, in order:
+Our algorithm is influenced by the algorithm described in Section-4 of:
+Peyton Jones, Simon, Will Partain, and Andre Santos. "Let-Floating: Moving Bindings to Give Faster Programs." In Proceedings of the First ACM SIGPLAN International Conference on Functional Programming, 1-12. ICFP '96. New York, NY, USA: ACM, 1996. https://doi.org/10.1145/232627.232630.
 
-1) move let-bindings as outwards as possible (a.k.a. full laziness).
-2) merge floated,let-NonRec bindings that are adjacent into a multi-let group (for readability purposes).
+Our algorithm tries to do two things:
 
-Our algorithm is influenced by:
-Peyton Jones, Simon, Will Partain, and André Santos. “Let-Floating: Moving Bindings to Give Faster Programs.” In Proceedings of the First ACM SIGPLAN International Conference on Functional Programming, 1–12. ICFP ’96. New York, NY, USA: ACM, 1996. https://doi.org/10.1145/232627.232630.
+a) move let-bindings as outwards as possible (a.k.a. full laziness).
+b) merge any floated,let-NonRec bindings which are adjacent, into a multi-let group (for readability purposes).
 
-The original algorithm in the paper can be summarized to:
+Our algorithm is comprised of two passes of the PlutusIR AST:
+
+- 1st pass: Compute the "maximum ranks" of all lets in a given term. A maximum rank signifies a source-code position that the let will be moved/floated to during the 2nd pass.
+- 2nd pass: Move lets to their maximum rank positions. The pass makes sure that same-rank lets are grouped in multi-let-groups which
+are topologically sorted by their dependency graph (see 'Dependencies.runTermDeps').
+
+-}
+
+{- Note: [Float first-pass]
+
+Visits a PIR term and marks all identifiers introduced by lets with their "maximum rank" (level number in the paper).
+
+A maximum rank of a let-bound identifier can be seen as its "deepest" (lambda,Lamdba,or let)-dependency that occurs free in that let's RHS.
+
+The depth of a lambda/Lambda-dependency that occurs free in the RHS, is calculated as: the number of lambdas that surround this lambda/Lambda + 1.
+The depth of a let-dependency that occurs free in the RHS, is the depth of the "maximum rank" calculated for that let-dependency.
+
+Any dependencies that are bound inside the rhs are simply ignored.
+
+In the special case of a letrec group, every let of that group is assigned the maximum (deepest) rank among all lets.
+
+The first-pass returns a mapping of maximum-ranks to let-identifiers, sorted on depth (see 'FloatData').
+
+-}
+
+{- Note: [Float second-pass]
+
+The second-pass first cleans the input ASTs of all let-rhs'es and puts them in a separate table 'RhsTable'.
+(actually this is yet another pass, but we don't count this cleaning pass as an individual pass, to match the pass-numbering of the original algorithm).
+
+The second pass then traverses the 'cleaned term', and whenever it reaches a lambda/Lambda position (Rank) which exists as key in the 'FloatData' table,
+it floats its corresponding lets directly inside the lambda/Lambda's body.
+The introduced lets of each Rank (level number) are not grouped in a single multi-let-rec group (as in the original algorithm), but instead in possible-multiple
+let-(nonrec & rec) groups. This groupping is done in accordance with the dependency-graph (see 'runTermDeps'):
+any let group that depends on a prior let-(rec or nonrec) group, will appear nested inside that group. The algorithm merges adjacent let-nonrec groups
+into a single let-nonrec group, since the letnonrec is linearly scoped: `(let {i=...j=...} in...) === (let i=... in let j=... in ...)`.
+
+By design choice, the second-pass preserves the floated let-bindings' original (Rec and NonRec) recursivity labels;
+it will never demote a 'Rec' let-binding to a 'NonRec', despite the demotion being valid.
+The effect is that more let-groups may be generated in a specific Rank than it would otherwise be required (optimally).
+The demotion can potentially be a nice optimization/transformation, but the way the depenndency-graph is generated for datatype binds, makes this complicated.
+
+-}
+
+{- Note: [Versus original algorithm]
+
+Note that the original algorithm is applied to a different source language (Haskell/GHC), which only has 'letrec' and no support for letnonrec, type-synonym-lets, and datatype-lets.
+
+The original algorithm of that paper can be summarized to:
 
 1. The first pass of the term annotates all let-bindings with their ranks (level numbers). A rank is the maximum depth of a free-variable dependency.
 2. The second pass of the term uses those ranks "to float each binding outward to just outside the lambda which has a rank (level number) one greater than that on the binding".
 
+
+A rank in the original paper includes only the lambda depth and not the lambda-name. This is because the lambda-names are not needed by the original second pass because
+the re-positions of lets are applied "locally" (versus globally in our case, more on that later).
+
+The first-pass remains more or less the same.
+
+The second pass is heavily altered. The original algorithm's second pass applies "local transformations": when it stumbles upon a let, it looks up its rank
+and "locally" decides if it is worth to float the let-rhs (outwards based on its rank or even inwards). It stops re-positioning / floating outwards the let-rhs,
+when it crosses over a lambda with depth one larger than its rank (level number).
+The advantage is that the lets will be floated exactly around the 'expr' that needs them, and *exactly outside a lambda definition*.
+The downside is that there is a single merged let-group geneerated in every rank. This is no problem for Haskell/GHC, because lets are letrecs.
+
+We use a different approach where we prior clean the AST PlutusIR term from all the lets (rec&nonrec) and store them in a separate 'RhsTable'.
+We use the information obtained by the dependency graph to create let-(rec&nonrec) groups at that rank. A rank is a lambda depth plus a lambda name. During
+the second pass, whenever we reach a lambda/Lambda definition we float all lets beloning to this lambda (rank, i.e. lambda's depth and name).
+This means that the lets are floated *exactly inside a lambda definition, i.e at the lambda body*, with the downside being that they are floated "a bit" more outside than what would
+be optimal as in the original algorithm (floated exactly around the 'expr' that needs them, and *exactly outside a lambda definition*).
+The upside is that this approach is not local/ad-hoc, but more holistic.
+
 -}
 
-{- Note: [Float first pass]
 
-
--}
-
-
-{- Note: [Float second pass]
-
-
--}
-
-
-
--- | Prior to the transformation we compute a maximum "rank" for every let-binding declared in the given PIR program (done by the 1st pass).
+-- | During the first-pass we compute a maximum "rank" for every let-binding declared in the given PIR program.
+-- See Note: [Float first-pass]
 -- A rank points to either a lambda/Lambda location or Top if the let does not depend on any lambda/Lambda.
--- A 'depth' of a lambda-dependency is equal to (number of lambdas surrounding/enclosing this lambda-dependency+1). In other words, it says how "lambda-deep" is this lambda.
 -- A "maximum rank" is the 'Rank' with the largest depth, i.e. the deepest lambda-dependency.
--- A rank can also be thought as a pointer to a (lambda) location in the PIR program.
+-- A rank can also be used as a pointer to a (lambda) location in the PIR program.
 data Rank = Top -- ^ signifies that a let has no lambda/Lambda dependency and thus can be placed at the toplevel of the program
           | LamDep Int PLC.Unique -- ^ a let has a lambda/Lambda dependency with lamDepth :: 'Int', lamName :: 'PLC.Unique'
           deriving Eq
@@ -81,6 +136,7 @@ instance Ord Rank where
   compare = compare `on` _depth
 
 -- | We are interested in maximal ranks, and thus we use Rank similar to 'Data.Semigroup.Max'.
+-- OPTIMIZE: we could get rid of the following Semigroup and Monoid instances by wrapping with 'Data.Semigroup.Max'.
 instance Semigroup Rank where
   r1 <> r2 = max r1 r2
 
@@ -90,12 +146,12 @@ instance Monoid Rank where
 
 -- | During the first pass of the AST, a reader context holds the current in-scope lambda locations (as Ranks).
 type P1Ctx = ( P1Data  -- ^ the lambdas-in-scope that surround an expression
-             , Int       -- ^ the current depth
+             , Int     -- ^ the current depth
              )
 
 
 -- | During the first pass of the AST, we build an intermediate table to hold the maximum ranks of each let encountered so far.
--- This intermediate table will be transformed at the end of 1st pass to 'FloatData'.
+-- This intermediate table will be transformed right at the end of 1st pass to 'FloatData'.
 type P1Data = M.Map
               PLC.Unique -- ^ the identifier introduced by a let-binding
               ( Rank-- ^ its calculated maximum rank, i.e. where this identifier can topmost/highest float outwards to
@@ -114,8 +170,8 @@ type FloatData = [(Int, -- ^ the depth (starting from 0, which is Top)
 
 -- | First-pass: Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding maximum rank.
 p1Term ::  forall name tyname a
-           . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-          => Term tyname name a -> FloatData
+        . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+        => Term tyname name a -> FloatData
 p1Term pir = toFloatData $ runReader
                            (goTerm pir)
                            (M.empty, Top^.depth) -- starting from toplevel depth: 0
@@ -174,9 +230,9 @@ p1Term pir = toFloatData $ runReader
        ) (goTerm tIn) bs
 
 
-    -- | Given a set of bindings and the union of their free-variables,
-    -- compute their maximum,common free-variable (Rank),
-    -- and rank these bindings by adding them to the current scope (P1Data)
+    -- | Given a set of bindings and the union set of their free-variables,
+    -- compute the maximum 'Rank' among all the free-variables,
+    -- and increase the current scope ('P1Data') by inserting mappings of each new let-identifier to this maximum rank
     addRanks :: [Binding tyname name a] -- ^ bindings
              -> S.Set PLC.Unique -- ^ their free-vars
              -> Reader P1Ctx P1Data -- ^ the updated scope that includes the added ranks
@@ -200,11 +256,9 @@ p1Term pir = toFloatData $ runReader
     withScope s = local (set _1 s) -- changes only the scope (i.e. p1data in our case)
 
 
-    -- | Transform the 1st pass accumulated data to something that is easier to be consumed by the 2nd pass (that does the actual floating).
+    -- | Transform the 1st-pass accumulated data to something that is easier to be consumed by the 2nd pass (that does the actual floating).
     toFloatData :: P1Data -> FloatData
     toFloatData = IM.toAscList . foldr (\ (dep, letNamePrinc) acc -> IM.insertWith (M.unionWith (<>)) (dep^.depth) (M.singleton dep (S.singleton letNamePrinc)) acc) IM.empty
-
-
 
 
 
@@ -247,10 +301,10 @@ removeLets = flip runState M.empty . go
 
 
 
--- | Starts the 2nd pass from the the Top depth, and the toplevel expression of the cleanedup term (void of any lets).
+-- | Starts the 2nd pass from the 'Top' depth and the toplevel expression of the cleanedup term (devoid of any lets).
 --
--- OPTIMIZE: We could potentially replace the pure descending of FloatData (Reader FloatData) of the 2nd pass, to a State FloatData. In such a case
--- this transformation might stop earlier, when the state becomes empty: i.e. no let-rhses left to float.
+-- OPTIMIZE: We could potentially replace the pure descending ('Reader FloatData') of the 2nd pass, to 'State FloatData'. In such a case
+-- this transformation might stop earlier, when the state becomes empty: i.e. no let-rhses are left to float.
 p2Term :: forall name tyname a
        . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
       => Term tyname name a --
@@ -334,7 +388,7 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
 
   -- | Groups a given set of lets into one or more multilets and wraps these multilets around a given term.
   -- The grouping is done through the strongly-connected components
-  -- The input lets is not sorted w.r.t. linear scoping, so this function uses the topological-sort of these SCCs
+  -- The input lets is not sorted w.r.t. linear scoping, so this function uses the topological-sort of these SCCs,
   -- to figure out the correct (dependend/linear) order in which to generate these new multilets.
   --
   -- Note that the resulting term is wrapped with linear-scope-sorted LetRecs and LetNonRecs (interspersed between each other because letnonrec and letrec syntax cannot be combined)
@@ -391,7 +445,7 @@ floatTerm pir = p2Term pir
 ----------
 
 -- | Returns a single 'Unique' for a particular binding.
--- We need this because let-datatypes introduce multiple identifiers, but we need only one as the key of our 'RhsTable',etc. See also: 'datatypeIds'
+-- We need this because let-datatypes introduce multiple identifiers, but in our 'RhsTable', we use a single Unique as the key. See also: 'bindingIds'
 principal :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
             => Getting r (Binding tyname name a) PLC.Unique
 principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced
