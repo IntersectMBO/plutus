@@ -134,9 +134,9 @@ runGuardedStep ::
     , HasOwnPubKey schema
     , HasTxConfirmation schema
     )
-    => StateMachineClient state input
-    -> input
-    -> (UnbalancedTx -> state -> state -> Maybe a)
+    => StateMachineClient state input              -- ^ The state machine
+    -> input                                       -- ^ The input to apply to the state machine
+    -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract schema e (Either a state)
 runGuardedStep smc input guard = do
     let StateMachineInstance{stateMachine} = scInstance smc
