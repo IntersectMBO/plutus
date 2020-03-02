@@ -33,7 +33,7 @@ import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
-import           Data.Void                        (Void)
+import           Data.Void                        (absurd, Void)
 
 import           Language.Plutus.Contract
 import qualified Language.PlutusTx                as PlutusTx
@@ -43,6 +43,7 @@ import           Ledger                           (Value)
 import qualified Ledger
 import           Ledger.AddressMap                (UtxoMap)
 import           Ledger.Constraints               (ScriptLookups, TxConstraints (..), mustPayToTheScript)
+import           Ledger.Constraints.OffChain      (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain      as Constraints
 import           Ledger.Constraints.TxConstraints (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                    (pubKeyHash)
@@ -119,6 +120,42 @@ getOnChainState StateMachineClient{scInstance, scChooser} = do
     let states = SM.getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
+-- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
+-- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.
+-- If the guard returns @'Just' a@, @'Left' a@ is returned instead.
+runGuardedStep ::
+    forall a e state schema input.
+    ( AsSMContractError e state input
+    , AsContractError e
+    , PlutusTx.IsData state
+    , PlutusTx.IsData input
+    , HasUtxoAt schema
+    , HasWriteTx schema
+    , HasOwnPubKey schema
+    , HasTxConfirmation schema
+    )
+    => StateMachineClient state input
+    -> input
+    -> (UnbalancedTx -> state -> state -> Maybe a)
+    -> Contract schema e (Either a state)
+runGuardedStep smc input guard = do
+    let StateMachineInstance{stateMachine} = scInstance smc
+    (newConstraints, State{stateData=os}, State{stateData=ns, stateValue=v}, inp, lookups) <- mkStep smc input
+    pk <- ownPubKey
+    let lookups' = lookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
+        txConstraints =
+            if smFinal stateMachine ns
+                then newConstraints { txOwnInputs = [inp], txOwnOutputs = [] }
+                else
+                    let output = OutputConstraint{ocData = ns, ocValue = v}
+                    in  newConstraints { txOwnInputs = [inp], txOwnOutputs = [output] }
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups' txConstraints)
+    case guard utx os ns of
+        Nothing -> do
+            submitTxConfirmed utx
+            pure $ Right ns
+        Just a  -> pure $ Left a
+
 -- | Run one step of a state machine, returning the new state.
 runStep ::
     forall e state schema input.
@@ -136,20 +173,8 @@ runStep ::
     -> input
     -- ^ The input to apply to the state machine
     -> Contract schema e state
-runStep smc input = do
-    let StateMachineInstance{stateMachine} = scInstance smc
-    (newConstraints, State{stateData=s, stateValue=v}, inp, lookups) <- mkStep smc input
-    pk <- ownPubKey
-    let lookups' = lookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
-        txConstraints =
-            if smFinal stateMachine s
-                then newConstraints { txOwnInputs = [inp], txOwnOutputs = [] }
-                else
-                    let output = OutputConstraint{ocData = s, ocValue = v}
-                    in  newConstraints { txOwnInputs = [inp], txOwnOutputs = [output] }
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups' txConstraints)
-    submitTxConfirmed utx
-    pure s
+runStep smc input =
+    either absurd id <$> runGuardedStep smc input (\_ _ _ -> Nothing)
 
 -- | Initialise a state machine
 runInitialise ::
@@ -175,7 +200,7 @@ runInitialise StateMachineClient{scInstance} initialState initialValue = do
     submitTxConfirmed utx
     pure initialState
 
-type StateMachineTypedTx state input = (TxConstraints Void Void, State state, InputConstraint input, ScriptLookups (StateMachine state input))
+type StateMachineTypedTx state input = (TxConstraints Void Void, State state, State state, InputConstraint input, ScriptLookups (StateMachine state input))
 
 mkStep ::
     forall e state schema input.
@@ -197,5 +222,5 @@ mkStep client@StateMachineClient{scInstance} input = do
             let lookups =
                     Constraints.scriptInstanceLookups validatorInstance
                     <> Constraints.unspentOutputs utxo
-            in pure (newConstraints, newState, InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }, lookups)
+            in pure (newConstraints, oldState, newState, InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }, lookups)
         Nothing -> throwing _InvalidTransition (currentState, input)
