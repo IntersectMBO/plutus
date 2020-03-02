@@ -98,8 +98,8 @@ test_logInts = testCase "logInts" $ do
     (logs2, errOrRes2) <- liftIO . eval2 $ OnChain term
     isRight errOrRes1 @?= True
     isRight errOrRes2 @?= True
-    logs1 @?= map show [1 .. 10 :: Integer]
-    logs2 @?= map show [1 .. 10 :: Integer]
+    logs1 @?= Prelude.map show [1 .. 10 :: Integer]
+    logs2 @?= Prelude.map show [1 .. 10 :: Integer]
 
 test_logging :: TestTree
 test_logging =

@@ -24,6 +24,7 @@ module Language.PlutusCore
     , show
     , GEq (..)
     , deriveGEq
+    , (:~:) (..)
     , Lift
     , GLift (..)
     , type (<:)

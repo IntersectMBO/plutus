@@ -33,6 +33,7 @@ module Language.PlutusCore.Constant.Typed
     , readKnownM
     , readKnownBy
     , unliftConstant
+    , unliftConstantEval
     ) where
 
 import           PlutusPrelude
@@ -315,30 +316,39 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
             Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 
--- | Evaluate a term using an evaluator and extract the resulting 'Constant'
--- (or throw an error if the result is not a 'Constant' or
+-- | Extract the 'Constant' from a 'Term'
+-- (or throw an error if the term is not a 'Constant' or
 -- the constant is not of the expected type).
 unliftConstant
     :: forall a m uni err.
        ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
        , GShow uni, GEq uni, uni `Includes` a
        )
-    => Evaluator Term uni m -> Term TyName Name uni () -> m a
-unliftConstant eval term = do
-    res <- eval mempty term
-    case res of
-        Constant () (Some (ValueOf uniAct x)) -> do
-            let uniExp = knownUni @uni @a
-            case uniAct `geq` uniExp of
-                Just Refl -> pure x
-                Nothing   -> do
-                    let err = fromString $ concat
-                            [ "Type mismatch: "
-                            , "expected: " ++ gshow uniExp
-                            , "actual: " ++ gshow uniAct
-                            ]
-                    throwingWithCause _UnliftingError err $ Just term
-        _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+    => Term TyName Name uni () -> m a
+unliftConstant term = case term of
+    Constant () (Some (ValueOf uniAct x)) -> do
+        let uniExp = knownUni @uni @a
+        case uniAct `geq` uniExp of
+            Just Refl -> pure x
+            Nothing   -> do
+                let err = fromString $ concat
+                        [ "Type mismatch: "
+                        , "expected: " ++ gshow uniExp
+                        , "actual: " ++ gshow uniAct
+                        ]
+                throwingWithCause _UnliftingError err $ Just term
+    _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+
+-- | Evaluate a term using an evaluator and extract the resulting 'Constant'
+-- (or throw an error if the result is not a 'Constant' or
+-- the constant is not of the expected type).
+unliftConstantEval
+    :: forall a m uni err.
+       ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
+       , GShow uni, GEq uni, uni `Includes` a
+       )
+    => DynamicBuiltinNameMeanings uni -> Evaluator Term uni m -> Term TyName Name uni () -> m a
+unliftConstantEval means eval = eval means >=> unliftConstant
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for
@@ -353,7 +363,8 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni () where
 
     readKnown eval term = do
         let integer = mkTyBuiltin @Integer ()
-        i <- unliftConstant eval . Apply () (TyInst () term integer) $ mkConstant @Integer () 1
+            termApp = Apply () (TyInst () term integer) $ mkConstant @Integer () 1
+        i <- unliftConstantEval mempty eval termApp
         if i == (1 :: Integer)
             then pure ()
             else throwingWithCause _UnliftingError "Not an integer-encoded ()" $ Just term

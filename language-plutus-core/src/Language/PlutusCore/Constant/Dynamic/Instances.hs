@@ -67,23 +67,23 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer where
     toTypeAst _ = mkTyBuiltin @Integer ()
     makeKnown = mkConstant ()
-    readKnown = unliftConstant
+    readKnown = unliftConstantEval mempty
 
 instance (GShow uni, GEq uni, uni `Includes` BSL.ByteString) => KnownType uni BSL.ByteString where
     toTypeAst _ = mkTyBuiltin @BSL.ByteString ()
     makeKnown = mkConstant ()
-    readKnown = unliftConstant
+    readKnown = unliftConstantEval mempty
 
 -- Encode 'Char' from Haskell as @integer@ from PLC.
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Char where
     toTypeAst _ = mkTyBuiltin @Integer ()
     makeKnown = mkConstant @Integer () . fromIntegral . ord
-    readKnown eval term = chr . fromIntegral @Integer <$> unliftConstant eval term
+    readKnown eval term = chr . fromIntegral @Integer <$> unliftConstantEval mempty eval term
 
 instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
     toTypeAst _ = mkTyBuiltin @String ()
     makeKnown = mkConstant ()
-    readKnown = unliftConstant
+    readKnown = unliftConstantEval mempty
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool where
     toTypeAst _ = bool
@@ -95,7 +95,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool wher
             integerToTerm = mkConstant @Integer ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
             term = mkIterApp () (TyInst () b integer) [integerToTerm 1, integerToTerm 0]
-        i <- unliftConstant eval term
+        i <- unliftConstantEval mempty eval term
         case i :: Integer of
             0 -> pure False
             1 -> pure True

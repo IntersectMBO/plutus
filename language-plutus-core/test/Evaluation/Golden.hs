@@ -90,7 +90,7 @@ evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
 smallNatList :: Term TyName Name uni ()
 smallNatList = metaListToList nat nats where
-    nats = map metaIntegerToNat [1,2,3]
+    nats = Prelude.map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
 polyError :: Term TyName Name uni ()

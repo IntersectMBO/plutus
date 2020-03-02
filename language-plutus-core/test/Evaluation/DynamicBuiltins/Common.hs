@@ -2,7 +2,8 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.DynamicBuiltins.Common
-    ( typecheckEvaluateCek
+    ( typecheckAnd
+    , typecheckEvaluateCek
     , typecheckReadKnownCek
     ) where
 

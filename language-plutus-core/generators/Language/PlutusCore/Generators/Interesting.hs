@@ -178,9 +178,9 @@ genListSum = do
     let typedInt = AsKnownType
         intS = toTypeAst typedInt
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
-    let list = metaListToList intS $ map _termOfTerm ps
+    let list = metaListToList intS $ Prelude.map _termOfTerm ps
         term = mkIterApp () List.sum [list]
-    let haskSum = Prelude.sum $ map _termOfValue ps
+    let haskSum = Prelude.sum $ Prelude.map _termOfValue ps
     return $ TermOf term haskSum
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@

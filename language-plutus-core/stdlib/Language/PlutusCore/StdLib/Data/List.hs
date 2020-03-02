@@ -11,13 +11,14 @@ module Language.PlutusCore.StdLib.Data.List
     , cons
     , foldrList
     , foldList
+    , map
     , reverse
     , enumFromTo
     , sum
     , product
     ) where
 
-import           Prelude                                  hiding (enumFromTo, product, reverse, sum)
+import           Prelude                                  hiding (enumFromTo, map, product, reverse, sum)
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
@@ -123,6 +124,29 @@ foldrList = runQuote $ do
         $ mkIterApp () (var () f)
           [ var () x
           , apply () (var () rec) $ var () xs'
+          ]
+
+-- |  @map@ as a PLC term.
+--
+-- > /\(a :: *) (b :: *) -> \(f : a -> b) ->
+-- >     foldrList {a} {list b} (\(x : a) -> cons {b} (f x)) (nil {b})
+map :: TermLike term TyName Name uni => term ()
+map = runQuote $ do
+    let list = _recursiveType listData
+    a <- freshTyName () "a"
+    b <- freshTyName () "b"
+    f <- freshName () "f"
+    x <- freshName () "x"
+    return
+        . tyAbs () a (Type ())
+        . tyAbs () b (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) $ TyVar () b)
+        . mkIterApp () (mkIterInst () foldrList [TyVar () a, TyApp () list $ TyVar () b])
+        $ [   lamAbs () x (TyVar () a)
+            . apply () (tyInst () cons (TyVar () b))
+            . apply () (var () f)
+            $ var () x
+          , tyInst () nil $ TyVar () b
           ]
 
 -- |  'foldl\'' as a PLC term.
