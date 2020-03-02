@@ -33,3 +33,15 @@ library
                         template-haskell,
                         utf8-string,
                         wl-pprint
+test-suite marlowe-symbolic-test
+    other-modules: Tests
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    default-language: Haskell2010
+    build-depends:      base >=4.9,
+                        marlowe,
+                        marlowe-symbolic,
+                        plutus-wallet-api,
+                        QuickCheck
+

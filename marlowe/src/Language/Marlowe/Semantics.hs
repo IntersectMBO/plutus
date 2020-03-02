@@ -699,8 +699,8 @@ computeTransaction tx state contract = let
     inputs = txInputs tx
     in case fixInterval (txInterval tx) state of
         IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-            ApplyAllSuccess warnings payments newState cont -> let
-                in  if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
+            ApplyAllSuccess warnings payments newState cont ->
+                    if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
                     else TransactionOutput { txOutWarnings = warnings
                                            , txOutPayments = payments

@@ -24,6 +24,8 @@ data SymState = SymState { lowSlot        :: SInteger
                          , highSlot       :: SInteger
                          , traces         :: [(SInteger, SInteger, Maybe SymInput, Integer)]
                          , paramTrace     :: [(SInteger, SInteger, SInteger, SInteger)]
+                         , symInput       :: Maybe SymInput
+                         , whenPos        :: Integer
                          , symAccounts    :: Map (AccountId, Token) SInteger
                          , symChoices     :: Map ChoiceId SInteger
                          , symBoundValues :: Map ValueId SInteger
@@ -56,6 +58,8 @@ emptySymState pt Nothing = do (ls, hs) <- generateSymbolicInterval Nothing
                                                 , highSlot = hs
                                                 , traces = []
                                                 , paramTrace = pt
+                                                , symInput = Nothing
+                                                , whenPos = 0
                                                 , symAccounts = M.empty
                                                 , symChoices = M.empty
                                                 , symBoundValues = M.empty }
@@ -68,6 +72,8 @@ emptySymState pt (Just State { accounts = accs
                        , highSlot = hs
                        , traces = []
                        , paramTrace = pt
+                       , symInput = Nothing
+                       , whenPos = 0
                        , symAccounts = toSymMap accs
                        , symChoices = toSymMap cho
                        , symBoundValues = toSymMap bVal }
@@ -138,143 +144,172 @@ updateSymInput (Just (SymChoice choId val)) symState =
   return (symState {symChoices = M.insert choId val (symChoices symState)})
 updateSymInput (Just SymNotify) symState = return symState
 
-addTransaction :: Maybe SymInput -> Timeout -> SymState -> Integer
+addTransaction :: SInteger -> SInteger -> Maybe SymInput -> Timeout -> SymState -> Integer
                -> Symbolic (SBool, SymState)
-addTransaction symInput slotTim symState@SymState { lowSlot = oldLowSlot
-                                                  , highSlot = oldHighSlot
-                                                  , traces = oldTraces } pos =
+addTransaction newLowSlot newHighSlot Nothing slotTim
+               symState@SymState { lowSlot = oldLowSlot
+                                 , highSlot = oldHighSlot
+                                 , traces = oldTraces
+                                 , symInput = prevSymInp
+                                 , whenPos = oldPos } pos =
   do let tim = getSlot slotTim
-     newLowSlot <- sInteger_
-     newHighSlot <- sInteger_
      constrain (newLowSlot .<= newHighSlot)
-     let conditions =
-           if isNothing symInput
-           then ((oldHighSlot .< literal tim) .||
-                 ((oldLowSlot .== newLowSlot) .&& (oldHighSlot .== newHighSlot))) .&&
-                (newLowSlot .>= literal tim)
-           else (oldHighSlot .< literal tim) .&&
-                (newHighSlot .< literal tim) .&&
-                (newLowSlot .>= oldLowSlot)
-     uSymInput <- updateSymInput symInput
-                                (symState { lowSlot = newLowSlot
-                                          , highSlot = newHighSlot
-                                          , traces = (oldLowSlot, oldHighSlot, symInput, pos)
-                                                     :oldTraces })
+     let conditions = ((oldHighSlot .< literal tim) .||
+                      ((oldLowSlot .== newLowSlot) .&& (oldHighSlot .== newHighSlot))) .&&
+                      (newLowSlot .>= literal tim)
+     uSymInput <- updateSymInput Nothing
+                                 (symState { lowSlot = newLowSlot
+                                           , highSlot = newHighSlot
+                                           , traces = (oldLowSlot, oldHighSlot,
+                                                       prevSymInp, oldPos):oldTraces
+                                           , symInput = Nothing
+                                           , whenPos = pos })
+     return (conditions, uSymInput)
+addTransaction newLowSlot newHighSlot newSymInput slotTim
+               symState@SymState { lowSlot = oldLowSlot
+                                 , highSlot = oldHighSlot
+                                 , traces = oldTraces
+                                 , symInput = prevSymInp
+                                 , whenPos = oldPos } pos =
+  do let tim = getSlot slotTim
+     constrain (newLowSlot .<= newHighSlot)
+     let conditions = (oldHighSlot .< literal tim) .&&
+                      (newHighSlot .< literal tim) .&&
+                      (newLowSlot .>= oldLowSlot)
+     uSymInput <- updateSymInput newSymInput
+                        (symState { lowSlot = newLowSlot
+                                  , highSlot = newHighSlot
+                                  , traces = (oldLowSlot, oldHighSlot, prevSymInp, oldPos)
+                                             :oldTraces
+                                  , symInput = newSymInput
+                                  , whenPos = pos })
      return (conditions, uSymInput)
 
-isValidAndFailsAux :: Contract -> SymState
+isValidAndFailsAux :: SBool -> Contract -> SymState
                    -> Symbolic SBool
-isValidAndFailsAux Close sState =
-  return sFalse
-isValidAndFailsAux (Pay accId payee token val cont) sState =
+isValidAndFailsAux hasErr Close sState =
+  return (hasErr .&& convertToSymbolicTrace ((lowSlot sState, highSlot sState,
+                                              symInput sState, whenPos sState)
+                                              :traces sState) (paramTrace sState))
+isValidAndFailsAux hasErr (Pay accId payee token val cont) sState =
   do let concVal = symEvalVal val sState
-     let potentialFailedPayTrace =
-          convertToSymbolicTrace ((lowSlot sState, highSlot sState, Nothing, 0)
-                                  :traces sState) (paramTrace sState)
      let originalMoney = M.findWithDefault 0 (accId, token) (symAccounts sState)
-     let remainingMoneyInAccount = originalMoney - concVal
+     let remainingMoneyInAccount = originalMoney - smax (literal 0) concVal
      let newAccs = M.insert (accId, token) (smax (literal 0) remainingMoneyInAccount)
                                                  (symAccounts sState)
      let finalSState = sState { symAccounts =
            case payee of
              (Account destAccId) ->
-                M.insert (accId, token)
+                M.insert (destAccId, token)
                          (smin originalMoney (smax (literal 0) concVal)
                             + M.findWithDefault 0 (destAccId, token) newAccs)
                          newAccs
              _ -> newAccs }
-     contRes <- isValidAndFailsAux cont finalSState
-     return ((((remainingMoneyInAccount .< 0) -- Partial payment
-               .|| (concVal .<= 0)) -- Non-positive payment
-              .&& potentialFailedPayTrace)
-             .|| contRes)
-isValidAndFailsAux (If obs cont1 cont2) sState =
+     isValidAndFailsAux ((remainingMoneyInAccount .< 0) -- Partial payment
+                         .|| (concVal .<= 0) -- Non-positive payment
+                         .|| hasErr) cont finalSState
+isValidAndFailsAux hasErr (If obs cont1 cont2) sState =
   do let obsVal = symEvalObs obs sState
-     contVal1 <- isValidAndFailsAux cont1 sState
-     contVal2 <- isValidAndFailsAux cont2 sState
+     contVal1 <- isValidAndFailsAux hasErr cont1 sState
+     contVal2 <- isValidAndFailsAux hasErr cont2 sState
      return (ite obsVal contVal1 contVal2)
-isValidAndFailsAux (When list timeout cont) sState =
-  isValidAndFailsWhen list timeout cont (const sFalse) sState 1
-isValidAndFailsAux (Let valId val cont) sState =
+isValidAndFailsAux hasErr (When list timeout cont) sState =
+  isValidAndFailsWhen hasErr list timeout cont (const $ const sFalse) sState 1
+isValidAndFailsAux hasErr (Let valId val cont) sState =
   do let concVal = symEvalVal val sState
      let newBVMap = M.insert valId concVal (symBoundValues sState)
      let newSState = sState { symBoundValues = newBVMap }
-     isValidAndFailsAux cont newSState
+     isValidAndFailsAux hasErr cont newSState
 
-ensureBounds :: SInteger -> [Bound] -> Symbolic ()
-ensureBounds cho [] = return ()
+ensureBounds :: SInteger -> [Bound] -> SBool
+ensureBounds cho [] = sFalse
 ensureBounds cho (Bound lowBnd hiBnd:t) =
-  do constrain (cho .>= literal lowBnd)
-     constrain (cho .<= literal hiBnd)
+    ((cho .>= literal lowBnd) .&& (cho .<= literal hiBnd)) .|| ensureBounds cho t
 
-generateValueInBounds :: [Bound] -> Symbolic SInteger
-generateValueInBounds bnds =
-  do bnd <- sInteger_
-     ensureBounds bnd bnds
-     return bnd
+applyInputConditions :: SInteger -> SInteger -> SBool -> Maybe SymInput -> Timeout
+                     -> SymState -> Integer -> Contract
+                     -> Symbolic (SBool, SBool)
+applyInputConditions ls hs hasErr maybeSymInput timeout sState pos cont =
+  do (newCond, newSState) <- addTransaction ls hs maybeSymInput timeout sState pos
+     newTrace <- isValidAndFailsAux hasErr cont newSState
+     return (newCond, newTrace)
 
-applyInputConditions maybeSymInput timeout sState pos cont =
-  do (newCond, newSState) <- addTransaction maybeSymInput timeout sState pos
-     newTrace <- isValidAndFailsAux cont newSState
-     return ((newCond, newSState), newTrace)
 
-isValidAndFailsWhen :: [Case Contract] -> Timeout -> Contract -> (SymInput -> SBool)
+addFreshSlotsToState :: SymState -> Symbolic (SInteger, SInteger, SymState)
+addFreshSlotsToState sState =
+  do newLowSlot <- sInteger_
+     newHighSlot <- sInteger_
+     return (newLowSlot, newHighSlot, sState {lowSlot = newLowSlot, highSlot = newHighSlot})
+
+isValidAndFailsWhen :: SBool -> [Case Contract] -> Timeout -> Contract -> (SymInput -> SymState -> SBool)
                     -> SymState -> Integer -> Symbolic SBool
-isValidAndFailsWhen [] timeout cont previousMatch sState pos =
-  do ((cond, newSState), newTrace)
-               <- applyInputConditions Nothing timeout sState 0 cont
+isValidAndFailsWhen hasErr [] timeout cont previousMatch sState pos =
+  do newLowSlot <- sInteger_
+     newHighSlot <- sInteger_
+     (cond, newTrace)
+               <- applyInputConditions newLowSlot newHighSlot
+                                       hasErr Nothing timeout sState 0 cont
      return (ite cond newTrace sFalse)
-isValidAndFailsWhen (Case (Deposit accId party token val) cont:rest)
+isValidAndFailsWhen hasErr (Case (Deposit accId party token val) cont:rest)
                     timeout timCont previousMatch sState pos =
-  do let concVal = symEvalVal val sState
+  do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
+     let concVal = symEvalVal val sStateWithInput
      let symInput = SymDeposit accId party token concVal
-     let clashResult = previousMatch symInput
-     let newPreviousMatch otherSymInput =
+     let clashResult = previousMatch symInput sStateWithInput
+     let newPreviousMatch otherSymInput pmSymState =
+           let pmConcVal = symEvalVal val pmSymState in
            case otherSymInput of
              SymDeposit otherAccId otherParty otherToken otherConcVal ->
                if (otherAccId == accId) && (otherParty == party)
                   && (otherToken == token)
-               then (otherConcVal .== concVal) .|| previousMatch otherSymInput
-               else previousMatch otherSymInput
-             _ -> previousMatch otherSymInput
-     ((newCond, newSState), newTrace)
-               <- applyInputConditions (Just symInput) timeout sState pos cont
-     contTrace <- isValidAndFailsWhen rest timeout timCont newPreviousMatch sState (pos + 1)
-     return (ite (newCond .&& newTrace)
-                 newTrace
-                 ((newCond .&& (concVal .<= 0) -- Non-positive deposit warning
-                           .&& convertToSymbolicTrace (traces newSState)
-                                                      (paramTrace sState))
-                  .|| contTrace))
-isValidAndFailsWhen (Case (Choice choId bnds) cont:rest)
+               then (otherConcVal .== pmConcVal) .|| previousMatch otherSymInput pmSymState
+               else previousMatch otherSymInput pmSymState
+             _ -> previousMatch otherSymInput pmSymState
+     (newCond, newTrace)
+               <- applyInputConditions newLowSlot newHighSlot
+                      (hasErr .|| (concVal .<= 0)) -- Non-positive deposit warning
+                      (Just symInput) timeout sState pos cont
+     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
+     return (ite (newCond .&& sNot clashResult) newTrace contTrace)
+isValidAndFailsWhen hasErr (Case (Choice choId bnds) cont:rest)
                     timeout timCont previousMatch sState pos =
-  do concVal <- generateValueInBounds bnds
+  do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
+     concVal <- sInteger_
      let symInput = SymChoice choId concVal
-     let clashResult = previousMatch symInput
-     let newPreviousMatch otherSymInput =
+     let clashResult = previousMatch symInput sStateWithInput
+     let newPreviousMatch otherSymInput pmSymState =
            case otherSymInput of
              SymChoice otherChoId otherConcVal ->
                if otherChoId == choId
-               then (otherConcVal .== concVal) .|| previousMatch otherSymInput
-               else previousMatch otherSymInput
-             _ -> previousMatch otherSymInput
-     contTrace <- isValidAndFailsWhen rest timeout timCont newPreviousMatch sState (pos + 1)
-     ((newCond, newSState), newTrace)
-               <- applyInputConditions (Just symInput) timeout sState pos cont
-     return (ite (newCond .&& newTrace) newTrace contTrace)
-isValidAndFailsWhen (Case (Notify obs) cont:rest)
+               then ensureBounds otherConcVal bnds .|| previousMatch otherSymInput pmSymState
+               else previousMatch otherSymInput pmSymState
+             _ -> previousMatch otherSymInput pmSymState
+     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
+     (newCond, newTrace)
+               <- applyInputConditions newLowSlot newHighSlot
+                                       hasErr (Just symInput) timeout sState pos cont
+     return (ite (newCond .&& sNot clashResult)
+                 (ensureBounds concVal bnds .&& newTrace)
+                 contTrace)
+isValidAndFailsWhen hasErr (Case (Notify obs) cont:rest)
                     timeout timCont previousMatch sState pos =
-  do let obsRes = symEvalObs obs sState
+  do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
+     let obsRes = symEvalObs obs sStateWithInput
      let symInput = SymNotify
-     let clashResult = previousMatch symInput
-     let newPreviousMatch otherSymInput =
+     let clashResult = previousMatch symInput sStateWithInput
+     let newPreviousMatch otherSymInput pmSymState =
+           let pmObsRes = symEvalObs obs pmSymState in
            case otherSymInput of
-             SymNotify -> sNot obsRes
-             _         -> previousMatch otherSymInput
-     (newCond, newSState) <- addTransaction (Just symInput) timeout sState pos
-     newTrace <- isValidAndFailsAux cont newSState
-     contTrace <- isValidAndFailsWhen rest timeout timCont newPreviousMatch sState (pos + 1)
-     return (ite (newCond .&& obsRes .&& newTrace) newTrace contTrace)
+             SymNotify -> pmObsRes .|| previousMatch otherSymInput pmSymState
+             _         -> previousMatch otherSymInput pmSymState
+     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
+     (newCond, newTrace)
+               <- applyInputConditions newLowSlot newHighSlot
+                                       hasErr (Just symInput) timeout sState pos cont
+     return (ite (newCond .&& obsRes .&& sNot clashResult) newTrace contTrace)
 
 -- SBV handling and result extraction
 
@@ -292,7 +327,7 @@ countWhensCaseList []                 = 0
 wrapper :: Contract -> [(SInteger, SInteger, SInteger, SInteger)] -> Maybe State
         -> Symbolic SBool
 wrapper c st maybeState = do ess <- emptySymState st maybeState
-                             isValidAndFailsAux c ess
+                             isValidAndFailsAux sFalse c ess
 
 generateLabelsAux :: Integer -> Integer -> [String]
 generateLabelsAux n m
@@ -307,7 +342,7 @@ generateLabelsAux n m
 generateLabels :: Integer -> [String]
 generateLabels = generateLabelsAux 1
 
-generateParameters :: [String] -> SymbolicT IO [(SInteger, SInteger, SInteger, SInteger)]
+generateParameters :: [String] -> Symbolic [(SInteger, SInteger, SInteger, SInteger)]
 generateParameters (sl:sh:v:b:t) =
    do isl <- sInteger sl
       ish <- sInteger sh
@@ -350,7 +385,6 @@ computeAndContinue transaction inps sta cont t =
                       , txOutContract = newCont}
                           -> ([transaction inps], war)
                              :executeAndInterpret newSta t newCont
-
 
 executeAndInterpret :: State -> [(Integer, Integer, Integer, Integer)] -> Contract
                     -> [([TransactionInput], [TransactionWarning])]
