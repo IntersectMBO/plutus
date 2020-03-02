@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Evaluation.Golden
     ( test_golden
@@ -26,7 +27,7 @@ import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
-evenAndOdd :: Tuple (Term TyName Name) ()
+evenAndOdd :: Tuple (Term TyName Name uni) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -44,10 +45,10 @@ evenAndOdd = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-even :: Term TyName Name ()
+even :: Term TyName Name uni ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
-evenAndOddList :: Tuple (Term TyName Name) ()
+evenAndOddList :: Tuple (Term TyName Name uni) uni ()
 evenAndOddList = runQuote $ do
     let list = _recursiveType listData
         nat  = _recursiveType natData
@@ -84,15 +85,15 @@ evenAndOddList = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-evenList :: Term TyName Name ()
+evenList :: Term TyName Name uni ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
-smallNatList :: Term TyName Name ()
+smallNatList :: Term TyName Name uni ()
 smallNatList = metaListToList nat nats where
-    nats = map metaIntegerToNat [1,2,3]
+    nats = Prelude.map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
-polyError :: Term TyName Name ()
+polyError :: Term TyName Name uni ()
 polyError = runQuote $ do
     a <- freshTyName () "a"
     pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
@@ -102,7 +103,7 @@ goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
-goldenVsEvaluated :: String -> Term TyName Name () -> TestTree
+goldenVsEvaluated :: String -> Term TyName Name DefaultUni () -> TestTree
 goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty
 
 -- TODO: ideally, we want to test this for all the machines.
@@ -112,5 +113,5 @@ test_golden = testGroup "golden"
     , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
     , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
     , goldenVsEvaluated "polyError" $ polyError
-    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (TyBuiltin () TyInteger)
+    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer ())
     ]

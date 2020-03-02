@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Language.PlutusTx.Evaluation
     ( evaluateCek
@@ -22,23 +24,32 @@ import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
-import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek      hiding (evaluateCek, unsafeEvaluateCek)
+import qualified Language.PlutusCore.Evaluation.Machine.Cek      as PLC (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 import           Control.Exception
 import           System.IO.Unsafe
 
-stringBuiltins :: DynamicBuiltinNameMeanings
+stringBuiltins
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    => DynamicBuiltinNameMeanings uni
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
-evaluateCek :: Program TyName Name () -> Either CekEvaluationException (Plain Term)
+evaluateCek
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Program TyName Name uni () -> Either (CekEvaluationException uni) (Plain Term uni)
 evaluateCek = PLC.evaluateCek stringBuiltins . toTerm
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
-unsafeEvaluateCek :: Program TyName Name () -> EvaluationResultDef
+unsafeEvaluateCek
+    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Typeable uni, uni `Everywhere` Pretty
+       )
+    => Program TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins . toTerm
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
@@ -46,8 +57,9 @@ unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins . toTerm
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
 evaluateCekTrace
-    :: Program TyName Name ()
-    -> ([String], ExTally, Either CekEvaluationException (Plain Term))
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Program TyName Name uni ()
+    -> ([String], ExTally, Either (CekEvaluationException uni) (Plain Term uni))
 evaluateCekTrace p =
     let
         (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do

@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 module Language.PlutusCore.Generators.AST
     ( simpleRecursive
     , AstGen
@@ -19,17 +21,16 @@ module Language.PlutusCore.Generators.AST
 import           PlutusPrelude
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Subst
 
-import           Control.Monad.Morph          (hoist)
+import           Control.Monad.Morph       (hoist)
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Set                     (Set)
-import qualified Data.Set                     as Set
-import           Hedgehog                     hiding (Size, Var)
-import qualified Hedgehog.Internal.Gen        as Gen
-import qualified Hedgehog.Range               as Range
+import qualified Data.ByteString.Lazy      as BSL
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           Hedgehog                  hiding (Size, Var)
+import qualified Hedgehog.Internal.Gen     as Gen
+import qualified Hedgehog.Range            as Range
 
 simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
 simpleRecursive = Gen.recursive Gen.choice
@@ -84,14 +85,13 @@ genBuiltinName = Gen.element allBuiltinNames
 genBuiltin :: AstGen (Builtin ())
 genBuiltin = BuiltinName () <$> genBuiltinName
 
-genConstant :: AstGen (Constant ())
-genConstant = Gen.choice [genInt, genBS] where
-    int' = Gen.integral_ (Range.linear (-10000000) 10000000)
-    string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-    genInt = makeBuiltinInt <$> int'
-    genBS = BuiltinBS () <$> string'
+genConstant :: AstGen (Some (ValueOf DefaultUni))
+genConstant = Gen.choice
+    [ someValue @Integer <$> Gen.integral_ (Range.linear (-10000000) 10000000)
+    , someValue . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
+    ]
 
-genType :: AstGen (Type TyName ())
+genType :: AstGen (Type TyName DefaultUni ())
 genType = simpleRecursive nonRecursive recursive where
     varGen = TyVar () <$> genTyName
     funGen = TyFun () <$> genType <*> genType
@@ -101,7 +101,7 @@ genType = simpleRecursive nonRecursive recursive where
     recursive = [funGen, applyGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
-genTerm :: AstGen (Term TyName Name ())
+genTerm :: AstGen (Term TyName Name DefaultUni ())
 genTerm = simpleRecursive nonRecursive recursive where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
@@ -114,7 +114,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
-genProgram :: AstGen (Program TyName Name ())
+genProgram :: AstGen (Program TyName Name DefaultUni ())
 genProgram = Program () <$> genVersion <*> genTerm
 
 {- Note [Name mangling]
@@ -139,18 +139,18 @@ subset1 s
 substAllNames
     :: Monad m
     => (Name () -> m (Maybe (Name ())))
-    -> Term TyName Name ()
-    -> m (Term TyName Name ())
+    -> Term TyName Name DefaultUni ()
+    -> m (Term TyName Name DefaultUni ())
 substAllNames ren =
     termSubstNamesM (fmap (fmap $ Var ()) . ren) >=>
     termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName)
 
 -- See Note [ScopeHandling].
-allTermNames :: Term TyName Name () -> Set (Name ())
+allTermNames :: Term TyName Name DefaultUni () -> Set (Name ())
 allTermNames term = vTerm term <> Set.map coerce (tvTerm term)
 
 -- See Note [Name mangling]
-mangleNames :: Term TyName Name () -> AstGen (Maybe (Term TyName Name ()))
+mangleNames :: Term TyName Name DefaultUni () -> AstGen (Maybe (Term TyName Name DefaultUni ()))
 mangleNames term = do
     let names = allTermNames term
     mayNamesMangle <- subset1 names

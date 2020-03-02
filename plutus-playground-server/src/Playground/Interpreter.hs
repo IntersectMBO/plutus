@@ -194,6 +194,7 @@ runghcOpts =
     , "-XExplicitNamespaces"
     , "-XFlexibleContexts"
     , "-XGeneralizedNewtypeDeriving"
+    , "-XMultiParamTypeClasses"
     , "-XNamedFieldPuns"
     , "-XNoImplicitPrelude"
     , "-XOverloadedStrings"

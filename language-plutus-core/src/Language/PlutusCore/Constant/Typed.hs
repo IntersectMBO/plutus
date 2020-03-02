@@ -2,17 +2,24 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
     , TypedBuiltinName (..)
+    , FoldArgs
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
@@ -22,10 +29,11 @@ module Language.PlutusCore.Constant.Typed
     , runEvaluateT
     , withEvaluator
     , KnownType (..)
-    , KnownTypeValue (..)
     , OpaqueTerm (..)
     , readKnownM
     , readKnownBy
+    , unliftConstant
+    , unliftConstantEval
     ) where
 
 import           PlutusPrelude
@@ -33,24 +41,30 @@ import           PlutusPrelude
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import qualified Data.Kind                                          as GHC (Type)
 import           Data.Map                                           (Map)
 import           Data.Proxy
+import           Data.String
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
 -- | Type schemes of primitive operations.
--- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
--- @r@ is the resulting type in @a@, e.g. the resulting type in
--- @ByteString -> Size -> Integer@ is @Integer@.
-data TypeScheme a costFun r where
-    TypeSchemeResult :: KnownType a => Proxy a -> TypeScheme a ExBudget a
-    TypeSchemeArrow  :: KnownType a => Proxy a -> TypeScheme b exB r -> TypeScheme (a -> b) (a -> exB) r
+-- @as@ is a list of types of arguments, @r@ is the resulting type.
+-- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme uni [Char, Bool] Integer@.
+data TypeScheme uni (args :: [GHC.Type]) res where
+    TypeSchemeResult
+        :: KnownType uni res => Proxy res -> TypeScheme uni '[] res
+    TypeSchemeArrow
+        :: KnownType uni arg
+        => Proxy arg -> TypeScheme uni args res -> TypeScheme uni (arg ': args) res
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -74,15 +88,21 @@ data TypeScheme a costFun r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm text uniq => Proxy ot -> TypeScheme a exA r)
-        -> TypeScheme a exA r
-
-    -- The @r@ is rather ad hoc and needed only for tests.
-    -- We could use type families to compute it instead of storing as an index.
-    -- That's a TODO perhaps.
+        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni args res)
+        -> TypeScheme uni args res
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName a exA r = TypedBuiltinName BuiltinName (TypeScheme a exA r)
+data TypedBuiltinName uni args res = TypedBuiltinName BuiltinName (TypeScheme uni args res)
+
+-- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
+--
+-- >>> :set -XDataKinds
+-- >>> :kind! FoldArgs [Char, Bool] Integer
+-- FoldArgs [Char, Bool] Integer :: *
+-- = Char -> Bool -> Integer
+type family FoldArgs args r where
+    FoldArgs '[]           res = res
+    FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -99,44 +119,47 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- See Note [DynamicBuiltinNameMeaning].
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
-data DynamicBuiltinNameMeaning =
-    forall a exA r. DynamicBuiltinNameMeaning (TypeScheme a exA r) a exA
+data DynamicBuiltinNameMeaning uni =
+    forall args res. DynamicBuiltinNameMeaning
+        (TypeScheme uni args res)
+        (FoldArgs args res)
+        (FoldArgs args ExBudget)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
-data DynamicBuiltinNameDefinition =
-    DynamicBuiltinNameDefinition DynamicBuiltinName DynamicBuiltinNameMeaning
+data DynamicBuiltinNameDefinition uni =
+    DynamicBuiltinNameDefinition DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
 
 -- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
-newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
+newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
+    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
 -- | A thing that evaluates @f@ in monad @m@, returns an @a@ and allows to extend the set of
 -- dynamic built-in names.
-type AnEvaluator f m a = DynamicBuiltinNameMeanings -> f TyName Name () -> m a
+type AnEvaluator f uni m a = DynamicBuiltinNameMeanings uni -> f TyName Name uni () -> m a
 
 -- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
 -- dynamic built-in names.
-type Evaluator f m = AnEvaluator f m (Term TyName Name ())
+type Evaluator f uni m = AnEvaluator f uni m (Term TyName Name uni ())
 
 -- | A computation that runs in @m@ and has access to an 'Evaluator' that runs in @m@.
-newtype EvaluateT m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator Term m) m a
+newtype EvaluateT uni m a = EvaluateT
+    { unEvaluateT :: ReaderT (Evaluator Term uni m) m a
     } deriving
         ( Functor, Applicative, Monad
-        , MonadReader (Evaluator Term m)
+        , MonadReader (Evaluator Term uni m)
         , MonadError e
         )
 
-instance MonadTrans EvaluateT where
+instance MonadTrans (EvaluateT uni) where
     lift m = EvaluateT $ lift m
 
 -- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator Term m -> EvaluateT m a -> m a
+runEvaluateT :: Evaluator Term uni m -> EvaluateT uni m a -> m a
 runEvaluateT eval (EvaluateT a) = runReaderT a eval
 
 -- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator Term m -> m a) -> EvaluateT m a
+withEvaluator :: (Evaluator Term uni m -> m a) -> EvaluateT uni m a
 withEvaluator = EvaluateT . ReaderT
 
 {- Note [Semantics of dynamic built-in types]
@@ -151,7 +174,7 @@ such extensions to the AST
 2. are of kind @*@. Dynamic built-in types that are not of kind @*@ can be encoded via recursive
 instances. For example:
 
-    instance KnownType a => KnownType [a] where
+    instance KnownType uni a => KnownType uni [a] where
         ...
 
 The meaning of a free type variable is 'OpaqueTerm'.
@@ -231,49 +254,32 @@ we just call the received evaluator
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- | Haskell types known to exist on the PLC side.
-class KnownType a where
+class KnownType uni a where
     -- | The type representing @a@ used on the PLC side.
-    toTypeAst :: proxy a -> Type TyName ()
+    toTypeAst :: proxy a -> Type TyName uni ()
 
     -- | Convert a Haskell value to the corresponding PLC term.
-    makeKnown :: a -> Term TyName Name ()
+    makeKnown :: a -> Term TyName Name uni ()
 
     -- See Note [Evaluators].
     -- | Convert a PLC term to the corresponding Haskell value using an explicit evaluator.
     readKnown
-        :: (MonadError (ErrorWithCause err) m, AsUnliftingError err)
-        => Evaluator Term m -> Term TyName Name () -> m a
-
-    -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
-    -- (see e.g. the @ByteString@ instance).
-    prettyKnown :: a -> Doc ann
-    default prettyKnown :: Pretty a => a -> Doc ann
-    prettyKnown = pretty
+        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
+        => Evaluator Term uni m -> Term TyName Name uni () -> m a
 
 -- | Convert a PLC term to the corresponding Haskell value using the evaluator
 -- from the current context.
 readKnownM
-    :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
-    => Term TyName Name () -> EvaluateT m a
+    :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownType uni a)
+    => Term TyName Name uni () -> EvaluateT uni m a
 readKnownM term = withEvaluator $ \eval -> readKnown eval term
 
 -- | Convert a PLC term to the corresponding Haskell value using an explicit evaluator
 -- extended with a provided set of built-in name meanings.
 readKnownBy
-    :: (MonadError (ErrorWithCause err) m, AsUnliftingError err, KnownType a)
-    => Evaluator Term m -> DynamicBuiltinNameMeanings -> Term TyName Name () -> m a
+    :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownType uni a)
+    => Evaluator Term uni m -> DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> m a
 readKnownBy eval means = readKnown $ eval . mappend means
-
--- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
--- for any 'KnownType' via 'prettyKnown', which allows e.g. to pretty-print a list of 'KnownType'
--- values using the standard 'pretty' pretty-printer for the shape of the list and our specific
--- 'prettyKnown' pretty-printer for the elements of the list.
-newtype KnownTypeValue a = KnownTypeValue
-    { unKnownTypeValue :: a
-    }
-
-instance KnownType a => Pretty (KnownTypeValue a) where
-    pretty = prettyKnown . unKnownTypeValue
 
 {- Note [The reverse example]
 Having a dynamic built-in with the following signature:
@@ -306,17 +312,52 @@ then unwrap the term back using 'makeKnown' without ever inspecting the term.
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
 -- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
 -- and back and instead can keep it intact.
-newtype OpaqueTerm (text :: Symbol) (unique :: Nat) = OpaqueTerm
-    { unOpaqueTerm :: Term TyName Name ()
+newtype OpaqueTerm uni (text :: Symbol) (unique :: Nat) = OpaqueTerm
+    { unOpaqueTerm :: Term TyName Name uni ()
     }
 
-instance Pretty (OpaqueTerm text unique) where
+instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
+            Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
+
+-- | Extract the 'Constant' from a 'Term'
+-- (or throw an error if the term is not a 'Constant' or
+-- the constant is not of the expected type).
+unliftConstant
+    :: forall a m uni err.
+       ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
+       , GShow uni, GEq uni, uni `Includes` a
+       )
+    => Term TyName Name uni () -> m a
+unliftConstant term = case term of
+    Constant () (Some (ValueOf uniAct x)) -> do
+        let uniExp = knownUni @uni @a
+        case uniAct `geq` uniExp of
+            Just Refl -> pure x
+            Nothing   -> do
+                let err = fromString $ concat
+                        [ "Type mismatch: "
+                        , "expected: " ++ gshow uniExp
+                        , "actual: " ++ gshow uniAct
+                        ]
+                throwingWithCause _UnliftingError err $ Just term
+    _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+
+-- | Evaluate a term using an evaluator and extract the resulting 'Constant'
+-- (or throw an error if the result is not a 'Constant' or
+-- the constant is not of the expected type).
+unliftConstantEval
+    :: forall a m uni err.
+       ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
+       , GShow uni, GEq uni, uni `Includes` a
+       )
+    => DynamicBuiltinNameMeanings uni -> Evaluator Term uni m -> Term TyName Name uni () -> m a
+unliftConstantEval means eval = eval means >=> unliftConstant
 
 -- Encode '()' from Haskell as @all r. r -> r@ from PLC.
 -- This is a very special instance, because it's used to define functions that are needed for
 -- other instances, so we keep it here.
-instance KnownType () where
+instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni () where
     toTypeAst _ = unit
 
     -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
@@ -325,10 +366,9 @@ instance KnownType () where
     makeKnown () = unitval
 
     readKnown eval term = do
-        let int = TyBuiltin () TyInteger
-            asInt = Constant () . BuiltinInt ()
-        res <- eval mempty . Apply () (TyInst () term int) $ asInt 1
-        case res of
-            Constant () (BuiltinInt () 1) -> pure ()
-            _                             ->
-                throwingWithCause _UnliftingError "Not a builtin ()" $ Just term
+        let integer = mkTyBuiltin @Integer ()
+            termApp = Apply () (TyInst () term integer) $ mkConstant @Integer () 1
+        i <- unliftConstantEval mempty eval termApp
+        if i == (1 :: Integer)
+            then pure ()
+            else throwingWithCause _UnliftingError "Not an integer-encoded ()" $ Just term

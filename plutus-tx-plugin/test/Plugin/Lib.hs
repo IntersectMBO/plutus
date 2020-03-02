@@ -1,6 +1,10 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 module Plugin.Lib where
 
 import           Common
@@ -15,14 +19,20 @@ import           Language.PlutusTx.Evaluation
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.TH
 
+import qualified Language.PlutusCore.Universe as PLC
+
+import           Codec.Serialise              (Serialise)
 import           Data.Text.Prettyprint.Doc
 
 {-# ANN module "HLint: ignore" #-}
 
-instance GetProgram (CompiledCode a) where
+instance (PLC.Closed uni, uni `PLC.Everywhere` Serialise) =>
+            GetProgram (CompiledCode uni a) uni where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> CompiledCode a -> TestNested
+goldenPir
+    :: (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty, uni `PLC.Everywhere` Serialise)
+    => String -> CompiledCode uni a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 

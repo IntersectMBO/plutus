@@ -1,8 +1,9 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
@@ -48,20 +49,20 @@ Lift.makeLift ''SynExample
 
 tests :: TestNested
 tests = testNested "Lift" [
-    goldenPlc "int" (Lift.liftProgram (1::Integer))
-    , goldenPlc "tuple" (Lift.liftProgram (1::Integer, 2::Integer))
-    , goldenPlc "mono" (Lift.liftProgram (Mono2 2))
-    , goldenEval "monoInterop" [ getPlc monoCase, Lift.liftProgram (Mono1 1 2) ]
-    , goldenPlc "poly" (Lift.liftProgram (Poly1 (1::Integer) (2::Integer)))
-    , goldenEval "polyInterop" [ getPlc defaultCasePoly, Lift.liftProgram (Poly1 (1::Integer) (2::Integer)) ]
-    , goldenPlc "record" (Lift.liftProgram (MyMonoRecord 1 2))
-    , goldenEval "boolInterop" [ getPlc andPlc, Lift.liftProgram True, Lift.liftProgram True ]
-    , goldenPlc "list" (Lift.liftProgram ([1]::[Integer]))
-    , goldenEval "listInterop" [ getPlc listMatch, Lift.liftProgram ([1]::[Integer]) ]
-    , goldenPlc "nested" (Lift.liftProgram (NestedRecord (Just (1, 2))))
-    , goldenPlc "bytestring" (Lift.liftProgram (WrappedBS "hello"))
-    , goldenPlc "newtypeInt" (Lift.liftProgram (NewtypeInt 1))
-    , goldenPlc "newtypeInt2" (Lift.liftProgram (Newtype2 $ NewtypeInt 1))
-    , goldenPlc "newtypeInt3" (Lift.liftProgram (Newtype3 $ Newtype2 $ NewtypeInt 1))
-    , goldenPlc "syn" (Lift.liftProgram (SynExample $ Z $ 1))
+    goldenPlc "int" (Lift.liftProgramDef (1::Integer))
+    , goldenPlc "tuple" (Lift.liftProgramDef (1::Integer, 2::Integer))
+    , goldenPlc "mono" (Lift.liftProgramDef (Mono2 2))
+    , goldenEval "monoInterop" [ getPlc monoCase, Lift.liftProgramDef (Mono1 1 2) ]
+    , goldenPlc "poly" (Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)))
+    , goldenEval "polyInterop" [ getPlc defaultCasePoly, Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)) ]
+    , goldenPlc "record" (Lift.liftProgramDef (MyMonoRecord 1 2))
+    , goldenEval "boolInterop" [ getPlc andPlc, Lift.liftProgramDef True, Lift.liftProgramDef True ]
+    , goldenPlc "list" (Lift.liftProgramDef ([1]::[Integer]))
+    , goldenEval "listInterop" [ getPlc listMatch, Lift.liftProgramDef ([1]::[Integer]) ]
+    , goldenPlc "nested" (Lift.liftProgramDef (NestedRecord (Just (1, 2))))
+    , goldenPlc "bytestring" (Lift.liftProgramDef (WrappedBS "hello"))
+    , goldenPlc "newtypeInt" (Lift.liftProgramDef (NewtypeInt 1))
+    , goldenPlc "newtypeInt2" (Lift.liftProgramDef (Newtype2 $ NewtypeInt 1))
+    , goldenPlc "newtypeInt3" (Lift.liftProgramDef (Newtype3 $ Newtype2 $ NewtypeInt 1))
+    , goldenPlc "syn" (Lift.liftProgramDef (SynExample $ Z $ 1))
  ]

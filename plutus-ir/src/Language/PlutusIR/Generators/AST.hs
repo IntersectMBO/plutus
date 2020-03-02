@@ -18,6 +18,7 @@ import           Language.PlutusIR
 import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genBuiltinName, genConstant, genKind,
                                                                genVersion, runAstGen, simpleRecursive)
 import qualified Language.PlutusCore.Generators.AST as PLC
+import qualified Language.PlutusCore.Universe       as PLC
 
 import           Hedgehog                           hiding (Var)
 import qualified Hedgehog.Gen                       as Gen
@@ -42,23 +43,23 @@ genRecursivity = Gen.element [Rec, NonRec]
 genStrictness :: MonadGen m => m Strictness
 genStrictness = Gen.element [Strict, NonStrict]
 
-genVarDecl :: PLC.AstGen (VarDecl TyName Name ())
+genVarDecl :: PLC.AstGen (VarDecl TyName Name PLC.DefaultUni ())
 genVarDecl = VarDecl () <$> genName <*> genType
 
 genTyVarDecl :: PLC.AstGen (TyVarDecl TyName ())
 genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
-genDatatype :: PLC.AstGen (Datatype TyName Name ())
+genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
     where listOf = Gen.list (Range.linear 0 10)
 
-genBinding :: PLC.AstGen (Binding TyName Name ())
+genBinding :: PLC.AstGen (Binding TyName Name PLC.DefaultUni ())
 genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind] where
     genTermBind = TermBind () <$> genStrictness <*> genVarDecl <*> genTerm
     genTypeBind = TypeBind () <$> genTyVarDecl <*> genType
     genDatatypeBind = DatatypeBind () <$> genDatatype
 
-genType :: PLC.AstGen (Type TyName ())
+genType :: PLC.AstGen (Type TyName PLC.DefaultUni ())
 genType = simpleRecursive nonRecursive recursive where
     varGen = TyVar () <$> genTyName
     funGen = TyFun () <$> genType <*> genType
@@ -68,7 +69,7 @@ genType = simpleRecursive nonRecursive recursive where
     recursive = [funGen, applyGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
-genTerm :: PLC.AstGen (Term TyName Name ())
+genTerm :: PLC.AstGen (Term TyName Name PLC.DefaultUni ())
 genTerm = simpleRecursive nonRecursive recursive where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
@@ -82,5 +83,5 @@ genTerm = simpleRecursive nonRecursive recursive where
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
-genProgram :: PLC.AstGen (Program TyName Name ())
+genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni ())
 genProgram = Program () <$> genTerm

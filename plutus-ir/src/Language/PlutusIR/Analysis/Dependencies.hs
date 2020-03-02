@@ -39,7 +39,7 @@ type DepGraph g = (G.Graph g, (G.Vertex g)~Node)
 -- @
 runTermDeps
     :: (DepGraph g, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-    => Term tyname name a
+    => Term tyname name uni a
     -> g
 runTermDeps t = runReader (termDeps t) Root
 
@@ -55,7 +55,7 @@ runTermDeps t = runReader (termDeps t) Root
 --
 runTypeDeps
     :: (DepGraph g, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Type tyname a
+    => Type tyname uni a
     -> g
 runTypeDeps t = runReader (typeDeps t) Root
 
@@ -78,7 +78,7 @@ withCurrent n = local (const $ Variable $ n ^. PLC.unique . coerced)
 
 bindingDeps
     :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-    => Binding tyname name a
+    => Binding tyname name uni a
     -> m g
 bindingDeps b = case b of
     TermBind _ _ d@(VarDecl _ n _) rhs -> do
@@ -103,7 +103,7 @@ bindingDeps b = case b of
 
 varDeclDeps
     :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-    => VarDecl tyname name a
+    => VarDecl tyname name uni a
     -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
@@ -118,7 +118,7 @@ tyVarDeclDeps _ = pure G.empty
 -- (usually 'Root' if it is the real term you are interested in).
 termDeps
     :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-    => Term tyname name a
+    => Term tyname name uni a
     -> m g
 termDeps = \case
     Let _ _ bs t -> do
@@ -135,7 +135,7 @@ termDeps = \case
 -- (usually 'Root' if it is the real type you are interested in).
 typeDeps
     :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Type tyname a
+    => Type tyname uni a
     -> m g
 typeDeps ty =
     -- The dependency graph of a type is very simple since it doesn't have any internal let-bindings. So we just

@@ -16,7 +16,7 @@ import           Language.PlutusCore.Quote
 -- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-unit :: Type TyName ()
+unit :: Type TyName uni ()
 unit = runQuote $ do
     a <- freshTyName () "a"
     return
@@ -27,7 +27,7 @@ unit = runQuote $ do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-unitval :: TermLike term TyName Name => term ()
+unitval :: TermLike term TyName Name uni => term ()
 unitval = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -39,7 +39,7 @@ unitval = runQuote $ do
 -- | 'seq' specified to '()' as a PLC term.
 --
 -- > \(x y : unit) -> unitval
-sequ :: TermLike term TyName Name => term ()
+sequ :: TermLike term TyName Name uni => term ()
 sequ = runQuote $ do
     x <- freshName () "x"
     y <- freshName () "y"

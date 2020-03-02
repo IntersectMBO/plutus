@@ -16,7 +16,7 @@ import           Language.PlutusCore.Quote
 -- | Church-encoded @Nat@ as a PLC type.
 --
 -- > all (r :: *). r -> (r -> r) -> r
-churchNat :: Type TyName ()
+churchNat :: Type TyName uni ()
 churchNat = runQuote $ do
     r <- freshTyName () "r"
     return
@@ -28,7 +28,7 @@ churchNat = runQuote $ do
 -- | Church-encoded '0' as a PLC term.
 --
 -- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
-churchZero :: TermLike term TyName Name => term ()
+churchZero :: TermLike term TyName Name uni => term ()
 churchZero = runQuote $ do
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -42,7 +42,7 @@ churchZero = runQuote $ do
 -- | Church-encoded 'succ' as a PLC term.
 --
 -- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
-churchSucc :: TermLike term TyName Name => term ()
+churchSucc :: TermLike term TyName Name uni => term ()
 churchSucc = runQuote $ do
     n <- freshName () "n"
     r <- freshTyName () "r"

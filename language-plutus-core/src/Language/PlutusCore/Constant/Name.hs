@@ -1,7 +1,13 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Constant.Name
-    ( withTypedBuiltinName
+    ( makeTypedBuiltinName
+    , withTypedBuiltinName
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -25,17 +31,34 @@ module Language.PlutusCore.Constant.Name
     , typedGtByteString
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances     ()
+import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy.Char8                         as BSL
+import qualified Data.ByteString.Lazy                           as BSL
 import           Data.Proxy
 
+-- | A class that allows to derive a 'TypeScheme' for a builtin.
+class KnownTypeScheme uni args res where
+    knownTypeScheme :: TypeScheme uni args res
+
+instance KnownType uni r => KnownTypeScheme uni '[] r where
+    knownTypeScheme = TypeSchemeResult Proxy
+
+instance (KnownType uni arg, KnownTypeScheme uni args res) =>
+            KnownTypeScheme uni (arg ': args) res where
+    knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
+
+-- | Automatically typify a 'BuiltinName'.
+makeTypedBuiltinName :: KnownTypeScheme uni args res => BuiltinName -> TypedBuiltinName uni args res
+makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
+
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
-withTypedBuiltinName :: BuiltinName -> (forall a exA r. TypedBuiltinName a exA r -> c) -> c
+withTypedBuiltinName
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => BuiltinName -> (forall args res. TypedBuiltinName uni args res -> c) -> c
 withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
 withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
@@ -58,117 +81,128 @@ withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName LtByteString         k = k typedLtByteString
 withTypedBuiltinName GtByteString         k = k typedGtByteString
 
-intIntInt :: TypeScheme (Integer -> Integer -> Integer) (Integer -> Integer -> ExBudget) Integer
-intIntInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
-
-intIntResInt :: TypeScheme (Integer -> Integer -> EvaluationResult Integer) (Integer -> Integer -> ExBudget) (EvaluationResult Integer)
-intIntResInt = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
-
-intIntDyn :: KnownType a => TypeScheme (Integer -> Integer -> a) (Integer -> Integer -> ExBudget) a
-intIntDyn = Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
-
 -- | Typed 'AddInteger'.
-typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) (Integer -> Integer -> ExBudget) Integer
-typedAddInteger = TypedBuiltinName AddInteger intIntInt
+typedAddInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Integer
+typedAddInteger = makeTypedBuiltinName AddInteger
 
 -- | Typed 'SubtractInteger'.
-typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer) (Integer -> Integer -> ExBudget) Integer
-typedSubtractInteger = TypedBuiltinName SubtractInteger intIntInt
+typedSubtractInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Integer
+typedSubtractInteger = makeTypedBuiltinName SubtractInteger
 
 -- | Typed 'MultiplyInteger'.
-typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) (Integer -> Integer -> ExBudget) Integer
-typedMultiplyInteger = TypedBuiltinName MultiplyInteger intIntInt
+typedMultiplyInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Integer
+typedMultiplyInteger = makeTypedBuiltinName MultiplyInteger
 
 -- | Typed 'DivideInteger'.
 typedDivideInteger
-    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (Integer -> Integer -> ExBudget) (EvaluationResult Integer)
-typedDivideInteger = TypedBuiltinName DivideInteger intIntResInt
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] (EvaluationResult Integer)
+typedDivideInteger = makeTypedBuiltinName DivideInteger
 
 -- | Typed 'QuotientInteger'
 typedQuotientInteger
-    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (Integer -> Integer -> ExBudget) (EvaluationResult Integer)
-typedQuotientInteger = TypedBuiltinName QuotientInteger intIntResInt
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] (EvaluationResult Integer)
+typedQuotientInteger = makeTypedBuiltinName QuotientInteger
 
 -- | Typed 'RemainderInteger'.
 typedRemainderInteger
-    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (Integer -> Integer -> ExBudget) (EvaluationResult Integer)
-typedRemainderInteger = TypedBuiltinName RemainderInteger intIntResInt
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] (EvaluationResult Integer)
+typedRemainderInteger = makeTypedBuiltinName RemainderInteger
 
 -- | Typed 'ModInteger'
 typedModInteger
-    :: TypedBuiltinName (Integer -> Integer -> EvaluationResult Integer) (Integer -> Integer -> ExBudget) (EvaluationResult Integer)
-typedModInteger = TypedBuiltinName ModInteger intIntResInt
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] (EvaluationResult Integer)
+typedModInteger = makeTypedBuiltinName ModInteger
 
 -- | Typed 'LessThanInteger'.
-typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) (Integer -> Integer -> ExBudget) Bool
-typedLessThanInteger = TypedBuiltinName LessThanInteger intIntDyn
+typedLessThanInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Bool
+typedLessThanInteger = makeTypedBuiltinName LessThanInteger
 
 -- | Typed 'LessThanEqInteger'.
-typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) (Integer -> Integer -> ExBudget) Bool
-typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger intIntDyn
+typedLessThanEqInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Bool
+typedLessThanEqInteger = makeTypedBuiltinName LessThanEqInteger
 
 -- | Typed 'GreaterThanInteger'.
-typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) (Integer -> Integer -> ExBudget) Bool
-typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger intIntDyn
+typedGreaterThanInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Bool
+typedGreaterThanInteger = makeTypedBuiltinName GreaterThanInteger
 
 -- | Typed 'GreaterThanEqInteger'.
-typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) (Integer -> Integer -> ExBudget) Bool
-typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger intIntDyn
+typedGreaterThanEqInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Bool
+typedGreaterThanEqInteger = makeTypedBuiltinName GreaterThanEqInteger
 
 -- | Typed 'EqInteger'.
-typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) (Integer -> Integer -> ExBudget) Bool
-typedEqInteger = TypedBuiltinName EqInteger intIntDyn
+typedEqInteger
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => TypedBuiltinName uni '[Integer, Integer] Bool
+typedEqInteger = makeTypedBuiltinName EqInteger
 
 -- | Typed 'Concatenate'.
-typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString) (BSL.ByteString -> BSL.ByteString -> ExBudget) BSL.ByteString
-typedConcatenate =
-    TypedBuiltinName Concatenate $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedConcatenate
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] BSL.ByteString
+typedConcatenate = makeTypedBuiltinName Concatenate
 
 -- | Typed 'TakeByteString'.
-typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) (Integer -> BSL.ByteString -> ExBudget) BSL.ByteString
-typedTakeByteString =
-    TypedBuiltinName TakeByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedTakeByteString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
+typedTakeByteString = makeTypedBuiltinName TakeByteString
 
 -- | Typed 'DropByteString'.
-typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) (Integer -> BSL.ByteString -> ExBudget) BSL.ByteString
-typedDropByteString =
-    TypedBuiltinName DropByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedDropByteString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
+typedDropByteString = makeTypedBuiltinName DropByteString
 
 -- | Typed 'SHA2'.
-typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) (BSL.ByteString -> ExBudget) BSL.ByteString
-typedSHA2 =
-    TypedBuiltinName SHA2 $
-        Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedSHA2
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString] BSL.ByteString
+typedSHA2 = makeTypedBuiltinName SHA2
 
 -- | Typed 'SHA3'.
-typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) (BSL.ByteString -> ExBudget) BSL.ByteString
-typedSHA3 =
-    TypedBuiltinName SHA3 $
-        Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedSHA3
+    :: (GShow uni, GEq uni, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString] BSL.ByteString
+typedSHA3 = makeTypedBuiltinName SHA3
 
 -- | Typed 'VerifySignature'.
-typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EvaluationResult Bool) (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> ExBudget) (EvaluationResult Bool)
-typedVerifySignature =
-    TypedBuiltinName VerifySignature $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedVerifySignature
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
+typedVerifySignature = makeTypedBuiltinName VerifySignature
 
 -- | Typed 'EqByteString'.
-typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) (BSL.ByteString -> BSL.ByteString -> ExBudget) Bool
-typedEqByteString =
-    TypedBuiltinName EqByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedEqByteString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
+typedEqByteString = makeTypedBuiltinName EqByteString
 
 -- | Typed 'LtByteString'.
-typedLtByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) (BSL.ByteString -> BSL.ByteString -> ExBudget) Bool
-typedLtByteString =
-    TypedBuiltinName LtByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedLtByteString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
+typedLtByteString = makeTypedBuiltinName LtByteString
 
 -- | Typed 'GtByteString'.
-typedGtByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) (BSL.ByteString -> BSL.ByteString -> ExBudget) Bool
-typedGtByteString =
-    TypedBuiltinName GtByteString $
-        Proxy `TypeSchemeArrow` Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
+typedGtByteString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
+typedGtByteString = makeTypedBuiltinName GtByteString

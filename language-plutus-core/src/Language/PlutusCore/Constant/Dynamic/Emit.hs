@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
@@ -18,6 +19,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Universe
 
 import           Control.Exception                                  (evaluate)
 import           Data.IORef
@@ -40,24 +42,24 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
-newtype EmitHandler r = EmitHandler
-    { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
+newtype EmitHandler uni r = EmitHandler
+    { unEmitHandler :: DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
     }
 
 feedEmitHandler
-    :: DynamicBuiltinNameMeanings
-    -> Term TyName Name ()
-    -> EmitHandler r
+    :: DynamicBuiltinNameMeanings uni
+    -> Term TyName Name uni ()
+    -> EmitHandler uni r
     -> IO r
 feedEmitHandler means term (EmitHandler handler) = handler means term
 
-withEmitHandler :: AnEvaluator Term m r -> (EmitHandler (m r) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: KnownType a
-    => (Term TyName Name () -> EmitHandler r1 -> IO r2)
-    -> EmitHandler r1
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
+    -> EmitHandler uni r1
     -> IO ([a], r2)
 withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
@@ -68,10 +70,10 @@ withEmitTerm cont (EmitHandler handler) =
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: KnownType a
-    => AnEvaluator Term m b
-    -> DynamicBuiltinNameMeanings
-    -> (Term TyName Name () -> Term TyName Name ())
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    => AnEvaluator Term uni m b
+    -> DynamicBuiltinNameMeanings uni
+    -> (Term TyName Name uni () -> Term TyName Name uni ())
     -> IO ([a], m b)
 withEmitEvaluateBy eval means inst =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst

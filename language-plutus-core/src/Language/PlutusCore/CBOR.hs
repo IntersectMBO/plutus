@@ -1,8 +1,11 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.
@@ -11,17 +14,17 @@ module Language.PlutusCore.CBOR () where
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
--- import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
+import           Data.Proxy
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -61,17 +64,20 @@ encodeConstructorTag = encodeWord
 decodeConstructorTag :: Decoder s Word
 decodeConstructorTag = decodeWord
 
-instance Serialise TypeBuiltin where
-    encode bi = case bi of
-        TyByteString -> encodeConstructorTag 0
-        TyInteger    -> encodeConstructorTag 1
-        TyString     -> encodeConstructorTag 2
+-- See Note [The G, the Tag and the Auto].
+instance Closed uni => Serialise (Some (TypeIn uni)) where
+    encode (Some (TypeIn uni)) = encodeConstructorTag . fromIntegral $ tagOf uni
 
-    decode = go =<< decodeConstructorTag
-        where go 0 = pure TyByteString
-              go 1 = pure TyInteger
-              go 2 = pure TyString
-              go _ = fail "Failed to decode TypeBuiltin"
+    decode = go . uniAt . fromIntegral =<< decodeConstructorTag where
+        go Nothing    = fail "Failed to decode a universe"
+        go (Just uni) = pure uni
+
+-- See Note [The G, the Tag and the Auto].
+instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf uni)) where
+    encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Serialise) uni (encode x)
+
+    decode = go =<< decode where
+        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
 instance Serialise BuiltinName where
     encode bi =
@@ -150,7 +156,7 @@ instance Serialise ann => Serialise (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-instance (Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname ann) where
+instance (Closed uni, Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname uni ann) where
     encode = cata a where
         a (TyVarF ann tn)        = encodeConstructorTag 0 <> encode ann <> encode tn
         a (TyFunF ann t t')      = encodeConstructorTag 1 <> encode ann <> t <> t'
@@ -183,21 +189,12 @@ instance Serialise ann => Serialise (Builtin ann) where
               go 1 = DynBuiltinName <$> decode <*> decode
               go _ = fail "Failed to decode Builtin ()"
 
-
-instance Serialise ann => Serialise (Constant ann) where
-    encode (BuiltinInt ann i) = fold [ encodeConstructorTag 0, encode ann, encodeInteger i ]
-    encode (BuiltinBS ann bs) = fold [ encodeConstructorTag 1, encode ann, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinStr ann s) = encodeConstructorTag 2 <> encode ann <> encode s
-    decode = go =<< decodeConstructorTag
-        where go 0 = BuiltinInt <$> decode <*> decodeInteger
-              go 1 = BuiltinBS <$> decode <*> fmap BSL.fromStrict decodeBytes
-              go 2 = BuiltinStr <$> decode <*> decode
-              go _ = fail "Failed to decode Constant ()"
-
-instance ( Serialise ann
+instance ( Closed uni
+         , uni `Everywhere` Serialise
+         , Serialise ann
          , Serialise (tyname ann)
          , Serialise (name ann)
-         ) => Serialise (Term tyname name ann) where
+         ) => Serialise (Term tyname name uni ann) where
     encode = cata a where
         a (VarF ann n)           = encodeConstructorTag 0 <> encode ann <> encode n
         a (TyAbsF ann tn k t)    = encodeConstructorTag 1 <> encode ann <> encode tn <> encode k <> t
@@ -223,10 +220,11 @@ instance ( Serialise ann
               go 9 = Builtin <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 
-instance ( Serialise ann
+instance ( Closed uni
+         , Serialise ann
          , Serialise (tyname ann)
          , Serialise (name ann)
-         ) => Serialise (VarDecl tyname name ann) where
+         ) => Serialise (VarDecl tyname name uni ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 
@@ -234,10 +232,12 @@ instance (Serialise ann, Serialise (tyname ann))  => Serialise (TyVarDecl tyname
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
-instance ( Serialise ann
+instance ( Closed uni
+         , uni `Everywhere` Serialise
+         , Serialise ann
          , Serialise (tyname ann)
          , Serialise (name ann)
-         ) => Serialise (Program tyname name ann) where
+         ) => Serialise (Program tyname name uni ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
 
@@ -259,10 +259,14 @@ instance Serialise ann => Serialise (TyDeBruijn ann) where
     decode = TyDeBruijn <$> decode
 
 instance (Serialise ann) => Serialise (ParseError ann)
-instance (Serialise (tyname ann), Serialise (name ann), Serialise ann) =>
-            Serialise (NormCheckError tyname name ann)
+instance ( Closed uni
+         , uni `Everywhere` Serialise
+         , Serialise (tyname ann)
+         , Serialise (name ann)
+         , Serialise ann
+         ) => Serialise (NormCheckError tyname name uni ann)
 instance (Serialise ann) => Serialise (UniqueError ann)
 instance Serialise UnknownDynamicBuiltinNameError
-instance (Serialise ann) => Serialise (InternalTypeError ann)
-instance (Serialise ann) => Serialise (TypeError ann)
-instance (Serialise ann) => Serialise (Error ann)
+instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (InternalTypeError uni ann)
+instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (TypeError uni ann)
+instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (Error uni ann)

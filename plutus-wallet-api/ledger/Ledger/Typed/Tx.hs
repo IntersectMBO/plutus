@@ -169,9 +169,9 @@ checkValidatorScript
     . (MonadError ConnectionError m)
     => ScriptInstance a
     -> Validator
-    -> m (CompiledCode WrappedValidatorType)
+    -> m (CompiledCode PLC.DefaultUni WrappedValidatorType)
 checkValidatorScript _ (unValidatorScript -> (Script prog)) =
-    case PLC.runQuote $ runExceptT @(PIR.Error (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
+    case PLC.runQuote $ runExceptT @(PIR.Error PLC.DefaultUni (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
         Right code -> pure code
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 

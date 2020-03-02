@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( CkMachineException
@@ -24,6 +25,7 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
 infix 4 |>, <|
@@ -34,24 +36,24 @@ data NoDynamicBuiltinNamesMachineError
     deriving (Show, Eq)
 
 -- | The CK machine-specific 'MachineException'.
-type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
+type CkMachineException uni = MachineException uni NoDynamicBuiltinNamesMachineError
 
 -- | The CK machine-specific 'EvaluationException'.
-type CkEvaluationException = EvaluationException NoDynamicBuiltinNamesMachineError ()
+type CkEvaluationException uni = EvaluationException uni NoDynamicBuiltinNamesMachineError ()
 
-type CkM = Either CkEvaluationException
+type CkM uni = Either (CkEvaluationException uni)
 
-instance SpendBudget CkM where
+instance SpendBudget (CkM uni) uni where
     spendBudget _ _ _ = pure ()
 
-data Frame
-    = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name ())              -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
-    | FrameUnwrap                                      -- ^ @(unwrap _)@
-    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
+data Frame uni
+    = FrameApplyFun (Value TyName Name uni ())                 -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name uni ())                  -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName uni ())                      -- ^ @{_ A}@
+    | FrameUnwrap                                              -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
-type Context = [Frame]
+type Context uni = [Frame uni]
 
 instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
@@ -60,7 +62,8 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
-    :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a
+    :: Eq (name a)
+    => name a -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
 substituteDb varFor new = go where
     go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
@@ -77,15 +80,17 @@ substituteDb varFor new = go where
 
 -- | The computing part of the CK machine. Rules are as follows:
 --
--- > s |> {M A}      ↦ s , {_ A}        ▷ M
--- > s |> [M N]      ↦ s , [_ N]        ▷ M
--- > s |> wrap α A M ↦ s , (wrap α S _) ▷ M
--- > s |> unwrap M   ↦ s , (unwrap _)   ▷ M
--- > s |> abs α K M  ↦ s ◁ abs α K M
--- > s |> lam x A M  ↦ s ◁ lam x A M
--- > s |> con cn     ↦ s ◁ con cn
--- > s |> error A    ↦ ◆
-(|>) :: Context -> Term TyName Name () -> CkM (Term TyName Name ())
+-- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
+-- > s ▷ [M N]      ↦ s , [_ N]        ▷ M
+-- > s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
+-- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
+-- > s ▷ abs α K M  ↦ s ◁ abs α K M
+-- > s ▷ lam x A M  ↦ s ◁ lam x A M
+-- > s ▷ con cn     ↦ s ◁ con cn
+-- > s ▷ error A    ↦ ◆
+(|>)
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
 stack |> TyInst _ fun ty        = FrameTyInstArg ty      : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg      : stack |> fun
 stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
@@ -109,7 +114,9 @@ _     |> var@Var{}              =
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
-(<|) :: Context -> Value TyName Name () -> CkM (Term TyName Name ())
+(<|)
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Context uni -> Value TyName Name uni () -> CkM uni (Term TyName Name uni ())
 []                             <| term    = pure term
 FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
@@ -123,7 +130,12 @@ FrameUnwrap            : stack <| wrapped = case wrapped of
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> CkM (Term TyName Name ())
+instantiateEvaluate
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Context uni
+    -> Type TyName uni ()
+    -> Term TyName Name uni ()
+    -> CkM uni (Term TyName Name uni ())
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
@@ -135,7 +147,12 @@ instantiateEvaluate stack ty fun
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> CkM (Term TyName Name ())
+applyEvaluate
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Context uni
+    -> Value TyName Name uni ()
+    -> Value TyName Name uni ()
+    -> CkM uni (Term TyName Name uni ())
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
@@ -152,7 +169,9 @@ applyEvaluate stack fun                    arg =
                     ConstAppSuccess res -> stack |> res
                     ConstAppStuck       -> stack <| term
 
-applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> CkM (ConstAppResult ())
+applyEvaluateCkBuiltinName
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
 applyEvaluateCkBuiltinName name args = void <$> runApplyBuiltinName (const ([] |>)) name (withMemory <$> args)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
@@ -163,9 +182,15 @@ applyEvaluateCkBuiltinName name args = void <$> runApplyBuiltinName (const ([] |
 -- The reason for that is that the operational semantics of constant applications is
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
-evaluateCk :: Term TyName Name () -> Either CkEvaluationException (Term TyName Name ())
+evaluateCk
+    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    => Term TyName Name uni () -> Either (CkEvaluationException uni) (Term TyName Name uni ())
 evaluateCk term = [] |> term
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
-unsafeEvaluateCk :: Term TyName Name () -> EvaluationResultDef
+unsafeEvaluateCk
+    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Typeable uni, uni `Everywhere` Pretty
+       )
+    => Term TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk

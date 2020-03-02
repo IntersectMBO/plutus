@@ -11,6 +11,7 @@ packages:
 - marlowe
 - marlowe-hspec
 - marlowe-playground-server
+- metatheory
 - plutus-wallet-api
 - plutus-playground-server
 - plutus-playground-lib

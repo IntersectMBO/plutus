@@ -29,7 +29,7 @@ data EvaluationResult a
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
 
 -- | The default exception-free type of results various evaluation engines return.
-type EvaluationResultDef = EvaluationResult (Term TyName Name ())
+type EvaluationResultDef uni = EvaluationResult (Term TyName Name uni ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess

@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling Plutus Core builtins.
@@ -120,10 +121,10 @@ For an example of how the "abstract module" approach would look:
 (\ x,y : <builtin int> . <builtin addInteger> x y) -- No type error any more, abstraction is gone
 -}
 
-mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name ()
+mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name uni ()
 mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 
-mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name ()
+mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name uni ()
 mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
 
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
@@ -170,30 +171,30 @@ builtinNames = [
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
 -- failing if it is missing.
-getThing :: Compiling m => TH.Name -> m GHC.TyThing
+getThing :: Compiling uni m => TH.Name -> m GHC.TyThing
 getThing name = do
     CompileContext{ccBuiltinNameInfo=names} <- ask
     case Map.lookup name names of
         Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
         Just thing -> pure thing
 
-defineBuiltinTerm :: Compiling m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
+defineBuiltinTerm :: Compiling uni m => TH.Name -> PIRTerm uni -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
     PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var (term, PIR.Strict)) (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
-defineBuiltinType :: Compiling m => TH.Name -> PIRType -> [GHC.Name] -> m ()
+defineBuiltinType :: forall uni m. Compiling uni m => TH.Name -> PIRType uni -> [GHC.Name] -> m ()
 defineBuiltinType name ty deps = do
     tc <- GHC.tyThingTyCon <$> getThing name
     var <- compileTcTyVarFresh tc
     PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) (Set.fromList $ LexName <$> deps)
     -- these are all aliases for now
-    PIR.recordAlias @LexName @() (LexName $ GHC.getName tc)
+    PIR.recordAlias @LexName @uni @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: Compiling m => m ()
+defineBuiltinTerms :: (Compiling uni m, PLC.DefaultUni PLC.<: uni) => m ()
 defineBuiltinTerms = do
     bs <- GHC.getName <$> getThing ''Builtins.ByteString
     int <- GHC.getName <$> getThing ''Integer
@@ -229,7 +230,7 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
-        let term = PIR.Constant () $ PLC.BuiltinBS () BSL.empty
+        let term = PIR.mkConstant () BSL.empty
         defineBuiltinTerm 'Builtins.emptyByteString term [bs]
 
     -- Integer builtins
@@ -280,7 +281,7 @@ defineBuiltinTerms = do
         let term = mkDynBuiltin PLC.dynamicAppendName
         defineBuiltinTerm 'Builtins.appendString term [str]
     do
-        let term = PIR.Constant () $ PLC.BuiltinStr () ""
+        let term = PIR.mkConstant () ("" :: String)
         defineBuiltinTerm 'Builtins.emptyString term [str]
     do
         let term = mkDynBuiltin PLC.dynamicCharToStringName
@@ -290,13 +291,15 @@ defineBuiltinTerms = do
         term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
-defineBuiltinTypes :: Compiling m => m ()
+defineBuiltinTypes
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => m ()
 defineBuiltinTypes = do
     do
-        let ty = PLC.TyBuiltin () PLC.TyByteString
+        let ty = PLC.toTypeAst $ Proxy @BSL.ByteString
         defineBuiltinType ''Builtins.ByteString ty []
     do
-        let ty = PLC.TyBuiltin () PLC.TyInteger
+        let ty = PLC.toTypeAst $ Proxy @Integer
         defineBuiltinType ''Integer ty []
 
     -- Strings and chars
@@ -308,7 +311,7 @@ defineBuiltinTypes = do
         defineBuiltinType ''Char ty []
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
-lookupBuiltinTerm :: Compiling m => TH.Name -> m PIRTerm
+lookupBuiltinTerm :: Compiling uni m => TH.Name -> m (PIRTerm uni)
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
     maybeTerm <- PIR.lookupTerm () (LexName ghcName)
@@ -317,7 +320,7 @@ lookupBuiltinTerm name = do
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
-lookupBuiltinType :: Compiling m => TH.Name -> m PIRType
+lookupBuiltinType :: Compiling uni m => TH.Name -> m (PIRType uni)
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
     maybeType <- PIR.lookupType () (LexName ghcName)
@@ -326,20 +329,20 @@ lookupBuiltinType name = do
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | The function 'error :: forall a . a'.
-errorFunc :: Compiling m => m PIRTerm
+errorFunc :: Compiling uni m => m (PIRTerm uni)
 errorFunc = do
     n <- safeFreshTyName () "e"
     pure $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
 -- | The delayed error function 'error :: forall a . () -> a'.
-delayedErrorFunc :: Compiling m => m PIRTerm
+delayedErrorFunc :: Compiling uni m => m (PIRTerm uni)
 delayedErrorFunc = do
     n <- safeFreshTyName () "e"
     let body = PIR.Error () (PIR.TyVar () n)
     PIR.TyAbs () n (PIR.Type ()) <$> delay body
 
 -- | The type 'forall a. a'.
-errorTy :: Compiling m => m PIRType
+errorTy :: Compiling uni m => m (PIRType uni)
 errorTy = do
     tyname <- safeFreshTyName () "a"
     pure $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
@@ -348,7 +351,7 @@ errorTy = do
 -- it, since that's what our definitions are hung off. Also the type wouldn't
 -- be a simple conversion of the Haskell type, because it takes a Scott boolean.
 -- | Convert a Scott-encoded Boolean into a Haskell Boolean.
-scottBoolToHaskellBool :: Compiling m => m PIRTerm
+scottBoolToHaskellBool :: Compiling uni m => m (PIRTerm uni)
 scottBoolToHaskellBool = do
     let scottBoolTy = Bool.bool
     haskellBoolTy <- compileType GHC.boolTy
@@ -364,7 +367,7 @@ scottBoolToHaskellBool = do
         PIR.mkIterApp () instantiatedMatch [ haskellTrue, haskellFalse ]
 
 -- | Wrap an integer relation of arity @n@ that produces a Scott boolean.
-wrapIntRel :: Compiling m => Int -> PIRTerm -> m PIRTerm
+wrapIntRel :: Compiling uni m => Int -> PIRTerm uni -> m (PIRTerm uni)
 wrapIntRel arity term = do
     intTy <- lookupBuiltinType ''Integer
     args <- replicateM arity $ do
@@ -378,11 +381,11 @@ wrapIntRel arity term = do
         PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
-mkIntRel :: Compiling m => PLC.BuiltinName -> m PIRTerm
+mkIntRel :: Compiling uni m => PLC.BuiltinName -> m (PIRTerm uni)
 mkIntRel name = wrapIntRel 2 $ mkBuiltin name
 
 -- | Wrap an bytestring relation of arity @n@ that produces a Scott boolean.
-wrapBsRel :: Compiling m => Int -> PIRTerm -> m PIRTerm
+wrapBsRel :: Compiling uni m => Int -> PIRTerm uni -> m (PIRTerm uni)
 wrapBsRel arity term = do
     ty <- lookupBuiltinType ''Builtins.ByteString
 
@@ -399,7 +402,7 @@ wrapBsRel arity term = do
           (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 -- | Convert a Scott-encoded Unit into a Haskell Unit.
-scottUnitToHaskellUnit :: Compiling m => m PIRTerm
+scottUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
 scottUnitToHaskellUnit = do
     let scottUnitTy = Unit.unit
 
@@ -409,7 +412,7 @@ scottUnitToHaskellUnit = do
     pure $ PIR.LamAbs () arg scottUnitTy haskellUnitVal
 
 -- | Wrap an function with the given argument type that produces a Scott unit.
-wrapUnitFun :: Compiling m => PIRType -> PIRTerm -> m PIRTerm
+wrapUnitFun :: Compiling uni m => PIRType uni -> PIRTerm uni -> m (PIRTerm uni)
 wrapUnitFun argTy term = do
     arg <- do
         name <- safeFreshName () "arg"

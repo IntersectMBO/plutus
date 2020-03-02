@@ -101,6 +101,7 @@ test-suite plutus-tx-tests
         prettyprinter -any,
         mtl -any,
         bytestring -any,
+        serialise -any,
         template-haskell -any,
         tasty -any,
         tasty-hunit -any,

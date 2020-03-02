@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
@@ -87,10 +88,12 @@ and put in a reference... except that the binding would need to be of type `Addr
 So we use another horrible hack and pretend that `Addr#` is `String`, since we treat `unpackCString#` as doing nothing.
 -}
 
-compileLiteral :: Compiling m => GHC.Literal -> m PIRTerm
+compileLiteral
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => GHC.Literal -> m (PIRTerm uni)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-    (GHC.LitNumber _ i _) -> pure $ PIR.Constant () $ PLC.BuiltinInt () i
+    (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.makeKnown i
     GHC.MachStr bs     ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
@@ -108,7 +111,7 @@ compileLiteral = \case
     GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: Compiling m => GHC.DataCon -> m PIRTerm
+compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -136,11 +139,11 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 
 -- | Make the alternative for a given 'CoreAlt'.
 compileAlt
-    :: Compiling m
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => Bool -- ^ Whether we must delay the alternative.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m PIRTerm
+    -> m (PIRTerm uni)
 compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
@@ -276,7 +279,9 @@ effect-free let-bindings, but I don't know of an easy way to tell if an expressi
 Conveniently, we can just use PIR's support for non-strict let bindings to implement this.
 -}
 
-hoistExpr :: Compiling m => GHC.Var -> GHC.CoreExpr -> m PIRTerm
+hoistExpr
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni)
 hoistExpr var t =
     let
         name = GHC.getName var
@@ -316,7 +321,9 @@ hoistExpr var t =
 
 -- Expressions
 
-compileExpr :: Compiling m => GHC.CoreExpr -> m PIRTerm
+compileExpr
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => GHC.CoreExpr -> m (PIRTerm uni)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     CompileContext {ccScopes=stack} <- ask
@@ -462,7 +469,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
-compileExprWithDefs :: Compiling m => GHC.CoreExpr -> m PIRTerm
+compileExprWithDefs
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => GHC.CoreExpr -> m (PIRTerm uni)
 compileExprWithDefs e = do
     defineBuiltinTypes
     defineBuiltinTerms
