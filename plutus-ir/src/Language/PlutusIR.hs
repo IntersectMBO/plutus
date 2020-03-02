@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
@@ -55,18 +56,23 @@ the underlying representation can vary. The `Generic` instances of the
 terms can thus be used as backwards compatibility is not required.
 -}
 
-data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
+data Datatype tyname name uni a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name uni a]
     deriving (Functor, Show, Generic)
 
-instance (Serialise a, Serialise (tyname a) , Serialise (name a)) => Serialise (Datatype tyname name a)
+instance ( PLC.Closed uni
+         , uni `PLC.Everywhere` Serialise
+         , Serialise a
+         , Serialise (tyname a)
+         , Serialise (name a)
+         ) => Serialise (Datatype tyname name uni a)
 
-varDeclNameString :: VarDecl name Name a -> String
+varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC.nameString . varDeclName
 
 tyVarDeclNameString :: TyVarDecl TyName a -> String
 tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 
-datatypeNameString :: Datatype TyName name a -> String
+datatypeNameString :: Datatype TyName name uni a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
@@ -81,16 +87,21 @@ data Strictness = NonStrict | Strict
 
 instance Serialise Strictness
 
-data Binding tyname name a = TermBind a Strictness (VarDecl tyname name a) (Term tyname name a)
-                           | TypeBind a (TyVarDecl tyname a) (Type tyname a)
-                           | DatatypeBind a (Datatype tyname name a)
+data Binding tyname name uni a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni a)
+                           | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
+                           | DatatypeBind a (Datatype tyname name uni a)
     deriving (Functor, Show, Generic)
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
+instance ( PLC.Closed uni
+         , uni `PLC.Everywhere` Serialise
+         , Serialise a
+         , Serialise (tyname a)
+         , Serialise (name a)
+         ) => Serialise (Binding tyname name uni a)
 
 {-# INLINE bindingSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Binding'.
-bindingSubterms :: Traversal' (Binding tyname name a) (Term tyname name a)
+bindingSubterms :: Traversal' (Binding tyname name uni a) (Term tyname name uni a)
 bindingSubterms f = \case
     TermBind x s d t -> TermBind x s d <$> f t
     b@TypeBind {} -> pure b
@@ -98,17 +109,17 @@ bindingSubterms f = \case
 
 {-# INLINE varDeclSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
-varDeclSubtypes :: Traversal' (VarDecl tyname name a) (Type tyname a)
+varDeclSubtypes :: Traversal' (VarDecl tyname name uni a) (Type tyname uni a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
 
 {-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
-datatypeSubtypes :: Traversal' (Datatype tyname name a) (Type tyname a)
+datatypeSubtypes :: Traversal' (Datatype tyname name uni a) (Type tyname uni a)
 datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
 
 {-# INLINE bindingSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Binding'.
-bindingSubtypes :: Traversal' (Binding tyname name a) (Type tyname a)
+bindingSubtypes :: Traversal' (Binding tyname name uni a) (Type tyname uni a)
 bindingSubtypes f = \case
     TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
@@ -142,24 +153,29 @@ Plutus Core to use reified declarations.
 -}
 
 -- See note [PIR as a PLC extension]
-data Term tyname name a =
+data Term tyname name uni a =
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
-                          Let a Recursivity [Binding tyname name a] (Term tyname name a)
+                          Let a Recursivity [Binding tyname name uni a] (Term tyname name uni a)
                         | Var a (name a)
-                        | TyAbs a (tyname a) (Kind a) (Term tyname name a)
-                        | LamAbs a (name a) (Type tyname a) (Term tyname name a)
-                        | Apply a (Term tyname name a) (Term tyname name a)
-                        | Constant a (PLC.Constant a)
+                        | TyAbs a (tyname a) (Kind a) (Term tyname name uni a)
+                        | LamAbs a (name a) (Type tyname uni a) (Term tyname name uni a)
+                        | Apply a (Term tyname name uni a) (Term tyname name uni a)
+                        | Constant a (PLC.Some (PLC.ValueOf uni))
                         | Builtin a (PLC.Builtin a)
-                        | TyInst a (Term tyname name a) (Type tyname a)
-                        | Error a (Type tyname a)
-                        | IWrap a (Type tyname a) (Type tyname a) (Term tyname name a)
-                        | Unwrap a (Term tyname name a)
+                        | TyInst a (Term tyname name uni a) (Type tyname uni a)
+                        | Error a (Type tyname uni a)
+                        | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni a)
+                        | Unwrap a (Term tyname name uni a)
                         deriving (Functor, Show, Generic)
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
+instance ( PLC.Closed uni
+         , uni `PLC.Everywhere` Serialise
+         , Serialise a
+         , Serialise (tyname a)
+         , Serialise (name a)
+         ) => Serialise (Term tyname name uni a)
 
-instance TermLike (Term tyname name) tyname name where
+instance TermLike (Term tyname name uni) tyname name uni where
     var      = Var
     tyAbs    = TyAbs
     lamAbs   = LamAbs
@@ -175,7 +191,7 @@ instance TermLike (Term tyname name) tyname name where
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
-termSubterms :: Traversal' (Term tyname name a) (Term tyname name a)
+termSubterms :: Traversal' (Term tyname name uni a) (Term tyname name uni a)
 termSubterms f = \case
     Let x r bs t -> Let x r <$> (traverse . bindingSubterms) f bs <*> f t
     TyAbs x tn k t -> TyAbs x tn k <$> f t
@@ -191,7 +207,7 @@ termSubterms f = \case
 
 {-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
-termSubtypes :: Traversal' (Term tyname name a) (Type tyname a)
+termSubtypes :: Traversal' (Term tyname name uni a) (Type tyname uni a)
 termSubtypes f = \case
     Let x r bs t -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
     LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
@@ -207,20 +223,27 @@ termSubtypes f = \case
 
 {-# INLINE termBindings #-}
 -- | Get all the direct child 'Binding's of the given 'Term'.
-termBindings :: Traversal' (Term tyname name a) (Binding tyname name a)
+termBindings :: Traversal' (Term tyname name uni a) (Binding tyname name uni a)
 termBindings f = \case
     Let x r bs t -> Let x r <$> traverse f bs <*> pure t
     t -> pure t
 
 -- no version as PIR is not versioned
-data Program tyname name a = Program a (Term tyname name a) deriving Generic
+data Program tyname name uni a = Program a (Term tyname name uni a) deriving Generic
 
-instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a)
+instance ( PLC.Closed uni
+         , uni `PLC.Everywhere` Serialise
+         , Serialise a
+         , Serialise (tyname a)
+         , Serialise (name a)
+         ) => Serialise (Program tyname name uni a)
 
 -- Pretty-printing
 
-instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
-        PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name a) where
+instance ( PLC.PrettyClassicBy configName (tyname a)
+         , PLC.PrettyClassicBy configName (name a)
+         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni a) where
     prettyBy config (VarDecl _ n ty) = parens' ("vardecl" </> vsep' [prettyBy config n, prettyBy config ty])
 
 instance (PLC.PrettyClassicBy configName (tyname a)) =>
@@ -237,38 +260,46 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
         NonStrict -> parens' "nonstrict"
         Strict -> parens' "strict"
 
-instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
-        PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name a) where
+instance ( PLC.PrettyClassicBy configName (tyname a)
+         , PLC.PrettyClassicBy configName (name a)
+         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni a) where
     prettyBy config (Datatype _ ty tyvars destr constrs) = parens' ("datatype" </> vsep' [
                                                                          prettyBy config ty,
                                                                          vsep' $ fmap (prettyBy config) tyvars,
                                                                          prettyBy config destr,
                                                                          vsep' $ fmap (prettyBy config) constrs])
 
-instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
-        PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name a) where
+instance ( PLC.PrettyClassicBy configName (tyname a)
+         , PLC.PrettyClassicBy configName (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni a) where
     prettyBy config = \case
         TermBind _ s d t -> parens' ("termbind" </> vsep' [prettyBy config s, prettyBy config d, prettyBy config t])
         TypeBind _ d ty -> parens' ("typebind" </> vsep' [prettyBy config d, prettyBy config ty])
         DatatypeBind _ d -> parens' ("datatypebind" </> prettyBy config d)
 
-instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
-        PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name a) where
+instance ( PLC.PrettyClassicBy configName (tyname a)
+         , PLC.PrettyClassicBy configName (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = \case
         Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' $ fmap (prettyBy config) bs, prettyBy config t])
         Var _ n -> prettyBy config n
         TyAbs _ tn k t -> parens' ("abs" </> vsep' [prettyBy config tn, prettyBy config k, prettyBy config t])
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply _ t1 t2 -> brackets' (vsep' [prettyBy config t1, prettyBy config t2])
-        Constant _ c -> parens' ("con" </> prettyBy config c)
-        Builtin _ bi -> parens' ("builtin" </> prettyBy config bi)
+        Constant _ c -> parens' ("con" </> pretty c)
+        Builtin _ bi -> parens' ("builtin" </> pretty bi)
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
         IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
-instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
-        PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name a) where
+instance ( PLC.PrettyClassicBy configName (tyname a)
+         , PLC.PrettyClassicBy configName (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni a) where
     prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
 
 -- See note [Default pretty instances for PLC]
@@ -276,22 +307,32 @@ instance (PLC.PrettyClassic (tyname a)) =>
     Pretty (TyVarDecl tyname a) where
     pretty = PLC.prettyClassicDef
 
-instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
-    Pretty (VarDecl tyname name a) where
+instance ( PLC.PrettyClassic (tyname a)
+         , PLC.PrettyClassic (name a)
+         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         ) => Pretty (VarDecl tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
-instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
-    Pretty (Datatype tyname name a) where
+instance ( PLC.PrettyClassic (tyname a)
+         , PLC.PrettyClassic (name a)
+         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         ) => Pretty (Datatype tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
-instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
-    Pretty (Binding tyname name a) where
+instance ( PLC.PrettyClassic (tyname a)
+         , PLC.PrettyClassic (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => Pretty (Binding tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
-instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
-    Pretty (Term tyname name a) where
+instance ( PLC.PrettyClassic (tyname a)
+         , PLC.PrettyClassic (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => Pretty (Term tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
-instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
-    Pretty (Program tyname name a) where
+instance ( PLC.PrettyClassic (tyname a)
+         , PLC.PrettyClassic (name a)
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         ) => Pretty (Program tyname name uni a) where
     pretty = PLC.prettyClassicDef

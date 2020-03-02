@@ -38,11 +38,11 @@ The invariant is preserved. In future we will enforce the invariant.
 
 -- | Mapping from variables to what they stand for (each row represents a substitution).
 -- Needed for efficiency reasons, otherwise we could just use substitutions.
-type TypeVarEnv tyname ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname ann)))
+type TypeVarEnv tyname uni ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname uni ann)))
 
 -- | The environments that type normalization runs in.
-data NormalizeTypeEnv m tyname ann = NormalizeTypeEnv
-    { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname ann
+data NormalizeTypeEnv m tyname uni ann = NormalizeTypeEnv
+    { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann
     , _normalizeTypeEnvCountStep  :: m ()
       -- ^ How to count a type normalization step.
     }
@@ -54,11 +54,11 @@ Type normalization requires 'Quote' (because we need to be able to generate fres
 do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
 various runners much nicer and also more generic. For example, we have
 
-    runNormalizeTypeFullM :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
+    runNormalizeTypeFullM :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
 
 If 'NormalizeTypeT' contained 'Quote', it would be
 
-    runNormalizeTypeFullM :: NormalizeTypeT m tyname ann a -> QuoteT m a
+    runNormalizeTypeFullM :: NormalizeTypeT m tyname uni ann a -> QuoteT m a
 
 which hardcodes 'QuoteT' to be the outermost transformer.
 
@@ -67,7 +67,7 @@ the following type signature:
 
     normalizeTypeM
         :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
-        => Type tyname ann -> NormalizeTypeT m tyname ann (Normalized (Type tyname ann))
+        => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 
 so it's natural to have runners that do not break this genericity.
 -}
@@ -89,29 +89,29 @@ signature.
 
 -- See Note [NormalizedTypeT].
 -- | The monad transformer that type normalization runs in.
-newtype NormalizeTypeT m tyname ann a = NormalizeTypeT
-    { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv m tyname ann) m a
+newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
+    { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv m tyname uni ann) m a
     } deriving newtype
         ( Functor, Applicative, Alternative, Monad, MonadPlus
-        , MonadReader (NormalizeTypeEnv m tyname ann), MonadState s
+        , MonadReader (NormalizeTypeEnv m tyname uni ann), MonadState s
         , MonadQuote
         )
 
 -- | Run a 'NormalizeTypeM' computation.
-runNormalizeTypeM :: m () -> NormalizeTypeT m tyname ann a -> m a
+runNormalizeTypeM :: m () -> NormalizeTypeT m tyname uni ann a -> m a
 runNormalizeTypeM countStep (NormalizeTypeT a) =
     runReaderT a $ NormalizeTypeEnv mempty countStep
 
 -- | Run a 'NormalizeTypeM' computation without dealing with gas.
 runNormalizeTypeFullM
-    :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
+    :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
 runNormalizeTypeFullM = runNormalizeTypeM $ pure ()
 
 -- | Run a gas-consuming 'NormalizeTypeM' computation.
 -- Count a single substitution step by subtracting @1@ from available gas or
 -- fail when there is no available gas.
 runNormalizeTypeGasM
-    :: MonadQuote m => Gas -> NormalizeTypeT (StateT Gas (MaybeT m)) tyname ann a -> m (Maybe a)
+    :: MonadQuote m => Gas -> NormalizeTypeT (StateT Gas (MaybeT m)) tyname uni ann a -> m (Maybe a)
 runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubst a) gas where
     countSubst = do
         Gas gas' <- get
@@ -119,23 +119,23 @@ runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubs
             then mzero
             else put . Gas $ gas' - 1
 
-countTypeNormalizationStep :: NormalizeTypeT m tyname ann ()
+countTypeNormalizationStep :: NormalizeTypeT m tyname uni ann ()
 countTypeNormalizationStep = NormalizeTypeT $ ReaderT _normalizeTypeEnvCountStep
 
 -- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeVarEnv
     :: (HasUnique (tyname ann) TypeUnique, Monad m)
     => tyname ann
-    -> Normalized (Type tyname ann)
-    -> NormalizeTypeT m tyname ann a
-    -> NormalizeTypeT m tyname ann a
+    -> Normalized (Type tyname uni ann)
+    -> NormalizeTypeT m tyname uni ann a
+    -> NormalizeTypeT m tyname uni ann a
 withExtendedTypeVarEnv name =
     local . over normalizeTypeEnvTypeVarEnv . insertByName name . pure
 
 -- | Look up a @tyname@ in a 'TypeVarEnv'.
 lookupTyNameM
     :: (HasUnique (tyname ann) TypeUnique, Monad m)
-    => tyname ann -> NormalizeTypeT m tyname ann (Maybe (Dupable (Normalized (Type tyname ann))))
+    => tyname ann -> NormalizeTypeT m tyname uni ann (Maybe (Dupable (Normalized (Type tyname uni ann))))
 lookupTyNameM name = asks $ lookupName name . _normalizeTypeEnvTypeVarEnv
 
 {- Note [Normalization]
@@ -157,7 +157,7 @@ are added to environments and normalization instantiates all variables presented
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
-    => Type tyname ann -> NormalizeTypeT m tyname ann (Normalized (Type tyname ann))
+    => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
 normalizeTypeM (TyIFix ann pat arg)          =
@@ -193,15 +193,15 @@ normalized types. However we do not enforce this in the type signature, because
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
 substNormalizeTypeM
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
-    => Normalized (Type tyname ann)                                -- ^ @ty@
-    -> tyname ann                                                  -- ^ @name@
-    -> Type tyname ann                                             -- ^ @body@
-    -> NormalizeTypeT m tyname ann (Normalized (Type tyname ann))  -- ^ @NORM ([ty / name] body)@
+    => Normalized (Type tyname uni ann)                                    -- ^ @ty@
+    -> tyname ann                                                          -- ^ @name@
+    -> Type tyname uni ann                                                 -- ^ @body@
+    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([ty / name] body)@
 substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesInM
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
-    => Term tyname name ann -> NormalizeTypeT m tyname ann (Term tyname name ann)
+    => Term tyname name uni ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni ann)
 normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Evaluation.DynamicBuiltins.Definition
     ( test_definition
@@ -31,16 +32,20 @@ import           Test.Tasty.HUnit
 dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"
 
-dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
+dynamicFactorialMeaning
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => DynamicBuiltinNameMeaning uni
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
-dynamicFactorialDefinition :: DynamicBuiltinNameDefinition
+dynamicFactorialDefinition
+    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    => DynamicBuiltinNameDefinition uni
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
-dynamicFactorial :: Term tyname name ()
+dynamicFactorial :: Term tyname name uni ()
 dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
 
 -- | Check that the dynamic factorial defined above computes to the same thing as
@@ -49,26 +54,27 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial (makeIntConstant 10)
-            rhs = typecheckEvaluateCek mempty $ Apply () factorial (makeIntConstant 10)
+            ten = mkConstant @Integer @DefaultUni () 10
+            lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial ten
+            rhs = typecheckEvaluateCek mempty $ Apply () factorial ten
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
 dynamicConstName :: DynamicBuiltinName
 dynamicConstName = DynamicBuiltinName "const"
 
-dynamicConstMeaning :: DynamicBuiltinNameMeaning
+dynamicConstMeaning :: DynamicBuiltinNameMeaning uni
 dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
         TypeSchemeAllType @"b" @1 Proxy $ \b ->
             a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicConstDefinition :: DynamicBuiltinNameDefinition
+dynamicConstDefinition :: DynamicBuiltinNameDefinition uni
 dynamicConstDefinition =
     DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
 
-dynamicConst :: Term tyname name ()
+dynamicConst :: Term tyname name uni ()
 dynamicConst = dynamicBuiltinNameAsTerm dynamicConstName
 
 -- | Check that the dynamic const defined above computes to the same thing as
@@ -80,7 +86,7 @@ test_dynamicConst =
         b <- forAll Gen.bool
         let tC = makeKnown c
             tB = makeKnown b
-            char = toTypeAst @Char Proxy
+            char = toTypeAst @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
             lhs = typecheckReadKnownCek env $ runConst dynamicConst

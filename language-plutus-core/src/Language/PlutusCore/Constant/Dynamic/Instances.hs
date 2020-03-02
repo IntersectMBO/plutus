@@ -2,21 +2,24 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances () where
 
-import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Bool
+import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                             as BSL
 import           Data.Char
@@ -34,11 +37,11 @@ updated state that the first 'eval' finished with. This may cause all kinds of w
 for example, an error message saying that there is a free variable and evaluation cannot proceed.
 -}
 
-instance KnownType a => KnownType (EvaluationResult a) where
-    toTypeAst _ = toTypeAst @a Proxy
+instance KnownType uni a => KnownType uni (EvaluationResult a) where
+    toTypeAst _ = toTypeAst (Proxy @a)
 
     -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
-    makeKnown EvaluationFailure     = Error () $ toTypeAst @a Proxy
+    makeKnown EvaluationFailure     = Error () $ toTypeAst (Proxy @a)
     makeKnown (EvaluationSuccess x) = makeKnown x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
@@ -47,11 +50,10 @@ instance KnownType a => KnownType (EvaluationResult a) where
     -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
     -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
     -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
-    readKnown _ _ = throwingWithCause _UnliftingError "Catching errors is not supported" Nothing
+    readKnown _ _ = throwingWithCause _UnliftingError "Error catching is not supported" Nothing
 
-    prettyKnown = pretty . fmap (PrettyConfigIgnore . KnownTypeValue)
-
-instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) where
+instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
+            KnownType uni (OpaqueTerm uni' text uniq) where
     toTypeAst _ =
         TyVar () . TyName $
             Name ()
@@ -62,72 +64,39 @@ instance (KnownSymbol text, KnownNat uniq) => KnownType (OpaqueTerm text uniq) w
 
     readKnown eval = fmap OpaqueTerm . eval mempty
 
-instance KnownType Integer where
-    toTypeAst _ = TyBuiltin () TyInteger
+instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Integer where
+    toTypeAst _ = mkTyBuiltin @Integer ()
+    makeKnown = mkConstant ()
+    readKnown = unliftConstantEval mempty
 
-    makeKnown = Constant () . makeBuiltinInt
+instance (GShow uni, GEq uni, uni `Includes` BSL.ByteString) => KnownType uni BSL.ByteString where
+    toTypeAst _ = mkTyBuiltin @BSL.ByteString ()
+    makeKnown = mkConstant ()
+    readKnown = unliftConstantEval mempty
 
-    readKnown eval term = do
-        -- 'term' is supposed to be already evaluated, but calling 'eval' is the easiest way
-        -- to turn 'Error' into 'EvaluationFailure', which we later 'lift' to 'Convert'.
-        res <- eval mempty term
-        case res of
-            Constant () (BuiltinInt () i) -> pure i
-            _                             ->
-                throwingWithCause _UnliftingError "Not a builtin Integer" $ Just term
+-- Encode 'Char' from Haskell as @integer@ from PLC.
+instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Char where
+    toTypeAst _ = mkTyBuiltin @Integer ()
+    makeKnown = mkConstant @Integer () . fromIntegral . ord
+    readKnown eval term = chr . fromIntegral @Integer <$> unliftConstantEval mempty eval term
 
-instance KnownType BSL.ByteString where
-    toTypeAst _ = TyBuiltin () TyByteString
+instance (GShow uni, GEq uni, uni `Includes` String, c ~ Char) => KnownType uni [c] where
+    toTypeAst _ = mkTyBuiltin @String ()
+    makeKnown = mkConstant ()
+    readKnown = unliftConstantEval mempty
 
-    makeKnown = Constant () . makeBuiltinBS
-
-    readKnown eval term = do
-        res <- eval mempty term
-        case res of
-            Constant () (BuiltinBS () i) -> pure i
-            _                            ->
-                throwingWithCause _UnliftingError "Not a builtin ByteString" $ Just term
-
-    prettyKnown = prettyBytes
-
-instance KnownType [Char] where
-    toTypeAst _ = TyBuiltin () TyString
-
-    makeKnown = Constant () . makeBuiltinStr
-
-    readKnown eval term = do
-        res <- eval mempty term
-        case res of
-            Constant () (BuiltinStr () s) -> pure s
-            _                             ->
-                throwingWithCause _UnliftingError "Not a builtin String" $ Just term
-
-instance KnownType Bool where
+instance (GShow uni, GEq uni, uni `Includes` Integer) => KnownType uni Bool where
     toTypeAst _ = bool
 
     makeKnown b = if b then true else false
 
     readKnown eval b = do
-        let int = TyBuiltin () TyInteger
-            asInt = Constant () . BuiltinInt ()
+        let integer = mkTyBuiltin @Integer ()
+            integerToTerm = mkConstant @Integer ()
             -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
-            term = mkIterApp () (TyInst () b int) [asInt 1, asInt 0]
-        res <- eval mempty term
-        case res of
-            Constant () (BuiltinInt () 1) -> pure True
-            Constant () (BuiltinInt () 0) -> pure False
-            _                             ->
-                throwingWithCause _UnliftingError "Not an integer-encoded Bool" $ Just term
-
--- Encode 'Char' from Haskell as @integer@ from PLC.
-instance KnownType Char where
-    toTypeAst _ = TyBuiltin () TyInteger
-
-    makeKnown = Constant () . makeBuiltinInt . fromIntegral . ord
-
-    readKnown eval term = do
-        res <- eval mempty term
-        case res of
-            Constant () (BuiltinInt () int) -> pure . chr $ fromIntegral int
-            _                               ->
-                throwingWithCause _UnliftingError "Not an integer-encoded Char" $ Just term
+            term = mkIterApp () (TyInst () b integer) [integerToTerm 1, integerToTerm 0]
+        i <- unliftConstantEval mempty eval term
+        case i :: Integer of
+            0 -> pure False
+            1 -> pure True
+            _ -> throwingWithCause _UnliftingError "Not an integer-encoded Bool" $ Just term

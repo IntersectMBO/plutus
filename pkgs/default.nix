@@ -41891,6 +41891,8 @@ license = stdenv.lib.licenses.bsd3;
 , deepseq
 , dependent-map
 , dependent-sum
+, dependent-sum-template
+, deriving-compat
 , filepath
 , happy
 , hashable
@@ -41912,6 +41914,7 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-hunit
 , template-haskell
 , text
+, th-lift
 , th-lift-instances
 , transformers
 , tuple
@@ -41937,6 +41940,8 @@ cryptonite
 deepseq
 dependent-map
 dependent-sum
+dependent-sum-template
+deriving-compat
 filepath
 hashable
 hedgehog
@@ -41954,6 +41959,7 @@ tasty
 tasty-golden
 template-haskell
 text
+th-lift
 th-lift-instances
 transformers
 ];
@@ -55228,6 +55234,7 @@ mtl
 plutus-ir
 plutus-tx
 prettyprinter
+serialise
 tasty
 tasty-hedgehog
 tasty-hunit

@@ -26,33 +26,33 @@ import           Data.Traversable
 -- Utilities
 
 -- | @replaceFunTyTarget X (A->..->Z) = (A->..->X)@
-replaceFunTyTarget :: Type tyname a -> Type tyname a -> Type tyname a
+replaceFunTyTarget :: Type tyname uni a -> Type tyname uni a -> Type tyname uni a
 replaceFunTyTarget newTarget t = case t of
     TyFun a t1 t2 -> TyFun a t1 $ replaceFunTyTarget newTarget t2
     _             -> newTarget
 
 -- | Given the type of a constructor, get the type of the "case" type with the given result type.
 -- @constructorCaseType R (A->Maybe A) = (A -> R)@
-constructorCaseType :: Type tyname a -> VarDecl tyname name a -> Type tyname a
+constructorCaseType :: Type tyname uni a -> VarDecl tyname name uni a -> Type tyname uni a
 constructorCaseType resultType = replaceFunTyTarget resultType . varDeclType
 
 -- | Get the argument types of a function type.
 -- @funTyArgs (A->B->C) = [A, B]@
-funTyArgs :: Type tyname a -> [Type tyname a]
+funTyArgs :: Type tyname uni a -> [Type tyname uni a]
 funTyArgs t = case t of
     TyFun _ t1 t2 -> t1 : funTyArgs t2
     _             -> []
 
 -- | Given the type of a constructor, get its argument types.
 -- @constructorArgTypes (A->Maybe A) = [A]
-constructorArgTypes :: VarDecl tyname name a -> [Type tyname a]
+constructorArgTypes :: VarDecl tyname name uni a -> [Type tyname uni a]
 constructorArgTypes = funTyArgs . varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
-unveilDatatype :: Eq (tyname a) => Type tyname a -> Datatype tyname name a -> Type tyname a -> Type tyname a
+unveilDatatype :: Eq (tyname a) => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a
 unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
 
-resultTypeName :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (TyName (Provenance a))
+resultTypeName :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m (TyName (Provenance a))
 resultTypeName (Datatype _ tn _ _ _) = getEnclosing >>= \p -> liftQuote $ freshTyName p $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
 
 -- Datatypes
@@ -215,7 +215,7 @@ For a (self-)recursive datatype we have to change three things:
 -- See note [Scott encoding of datatypes]
 -- | Make the "Scott-encoded" type for a 'Datatype', with type variables free.
 -- @mkScottTy Maybe = forall out_Maybe. out_Maybe -> (a -> out_Maybe) -> out_Maybe@
-mkScottTy :: forall m e a . Compiling m e a => Datatype TyName Name (Provenance a) -> m (PIRType a)
+mkScottTy :: forall m e uni a . Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m (PIRType uni a)
 mkScottTy d@(Datatype _ _ _ _ constrs) = do
     p <- getEnclosing
     resultType <- resultTypeName d
@@ -229,7 +229,7 @@ mkScottTy d@(Datatype _ _ _ _ constrs) = do
 -- | Make the "pattern functor" of a 'Datatype'. This is just the normal type, but with the
 -- type variable for the type itself free and its type variables free.
 -- @mkDatatypePatternFunctor List = forall (r :: *) . r -> (a -> List a -> r) -> r@
-mkDatatypePatternFunctor :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (PIRType a)
+mkDatatypePatternFunctor :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m (PIRType uni a)
 mkDatatypePatternFunctor d = withEnclosing (DatatypeComponent PatternFunctor) $ mkScottTy d
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
@@ -238,7 +238,7 @@ mkDatatypePatternFunctor d = withEnclosing (DatatypeComponent PatternFunctor) $ 
 --         = fix list . <pattern functor of List>
 --         = fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r
 -- @
-mkDatatypeType :: forall m e a. Compiling m e a => Recursivity -> PIRType a -> Datatype TyName Name (Provenance a) -> m (PLCRecType a)
+mkDatatypeType :: forall m e uni a. Compiling m e uni a => Recursivity -> PIRType uni a -> Datatype TyName Name uni (Provenance a) -> m (PLCRecType uni a)
 mkDatatypeType r pf (Datatype _ tn tvs _ _) = withEnclosing (DatatypeComponent DatatypeType) $ case r of
     NonRec -> PlainType <$> (PLC.mkIterTyLam <$> pure tvs <*> pure pf)
     -- See note [Recursive datatypes]
@@ -246,7 +246,7 @@ mkDatatypeType r pf (Datatype _ tn tvs _ _) = withEnclosing (DatatypeComponent D
     -- so long as we do renaming later, since we only reuse the name inside an inner binder
     Rec    -> do
         p <- getEnclosing
-        RecursiveType <$> (liftQuote $ Types.makeRecursiveType @(Provenance a) p (tyVarDeclName tn) tvs pf)
+        RecursiveType <$> (liftQuote $ Types.makeRecursiveType @uni @(Provenance a) p (tyVarDeclName tn) tvs pf)
 
 -- Constructors
 
@@ -255,7 +255,7 @@ mkDatatypeType r pf (Datatype _ tn tvs _ _) = withEnclosing (DatatypeComponent D
 -- @
 --     mkConstructorType List Cons = forall (a :: *) . a -> List a -> List a
 -- @
-mkConstructorType :: Compiling m e a => Datatype TyName Name (Provenance a) -> VarDecl TyName Name (Provenance a) -> m (PIRType a)
+mkConstructorType :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> VarDecl TyName Name uni (Provenance a) -> m (PIRType uni a)
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see note [Abstract data types]
@@ -270,7 +270,7 @@ mkConstructorType (Datatype _ _ tvs _ _) constr = withEnclosing (DatatypeCompone
 --             wrap <pattern functor of List> /\(out_List :: *) .
 --                 \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 -- @
-mkConstructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> Int -> m (PIRTerm a)
+mkConstructor :: Compiling m e uni a => PLCRecType uni a -> Datatype TyName Name uni (Provenance a) -> Int -> m (PIRTerm uni a)
 mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = withEnclosing (DatatypeComponent Constructor) $ do
     p <- getEnclosing
     resultType <- resultTypeName d
@@ -321,7 +321,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = withEnclosing (Datatype
 --        = /\(a :: *) -> \(x : (<definition of List> a)) -> unwrap x
 --        = /\(a :: *) -> \(x : (fix List . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r) a) -> unwrap x
 -- @
-mkDestructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> m (PIRTerm a)
+mkDestructor :: Compiling m e uni a => PLCRecType uni a -> Datatype TyName Name uni (Provenance a) -> m (PIRTerm uni a)
 mkDestructor dty (Datatype _ _ tvs _ _) = withEnclosing (DatatypeComponent Destructor) $ do
     p <- getEnclosing
 
@@ -348,7 +348,7 @@ mkDestructor dty (Datatype _ _ tvs _ _) = withEnclosing (DatatypeComponent Destr
 --         = forall (a :: *) . (List a) -> (<pattern functor of List>)
 --         = forall (a :: *) . (List a) -> (forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List))
 -- @
-mkDestructorTy :: Compiling m e a => PIRType a -> Datatype TyName Name (Provenance a) -> m (PIRType a)
+mkDestructorTy :: Compiling m e uni a => PIRType uni a -> Datatype TyName Name uni (Provenance a) -> m (PIRType uni a)
 mkDestructorTy pf (Datatype _ tn tvs _ _) = withEnclosing (DatatypeComponent DestructorType) $ do
     p <- getEnclosing
 
@@ -370,7 +370,7 @@ mkDestructorTy pf (Datatype _ tn tvs _ _) = withEnclosing (DatatypeComponent Des
 -- The main function
 
 -- | Compile a 'Datatype' bound with the given body.
-compileDatatype :: Compiling m e a => Recursivity -> PIRTerm a -> Datatype TyName Name (Provenance a) -> m (PIRTerm a)
+compileDatatype :: Compiling m e uni a => Recursivity -> PIRTerm uni a -> Datatype TyName Name uni (Provenance a) -> m (PIRTerm uni a)
 compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
     p <- getEnclosing
 
@@ -394,7 +394,7 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
     -- See note [Abstract data types]
     pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
 
-compileRecDatatypes :: Compiling m e a => PIRTerm a -> [Datatype TyName Name (Provenance a)] -> m (PIRTerm a)
+compileRecDatatypes :: Compiling m e uni a => PIRTerm uni a -> [Datatype TyName Name uni (Provenance a)] -> m (PIRTerm uni a)
 compileRecDatatypes body ds = case ds of
     []  -> pure body
     [d] -> compileDatatype Rec body d

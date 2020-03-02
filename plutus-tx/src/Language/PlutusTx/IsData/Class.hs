@@ -41,7 +41,7 @@ instance IsData Integer where
 
 instance IsData ByteString where
     {-# INLINABLE toData #-}
-    toData = B
+    toData b = B b
     {-# INLINABLE fromData #-}
     fromData (B b) = Just b
     fromData _     = Nothing

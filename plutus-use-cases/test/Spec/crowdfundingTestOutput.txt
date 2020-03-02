@@ -7,22 +7,22 @@ Events by wallet:
     - {slot:
        Slot: 27}
     - {utxo-at:
-       Utxo at ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab =
-         48a3dcd566f7f81f60a520ec3128c46fb23c425d9fc39f351c1c0568b012e3c6!1: PayToScript: 4c592448cff8d2b2ee40a509e1d5224260ef29f5b22cd920616e39cad65f466c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
-         611b86e336074041b87f6f0f750eb2a864bd0e3a8161ebec0f6fad57406d9283!1: PayToScript: 49cd69a6941f191e3d14ce83834e0f2ce175318995b40380854e3201171c0baa Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-         c1d8c098bcb9bfebd5f792957655c361ecac64b3e017c95e66dbe9a3e35abf22!1: PayToScript: b8324180800f57f26dee2ad65990e0a762a5dab9424d32e49855abd495f7196b Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}
+       Utxo at ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25 =
+         5e504e1c0bf3fc3316cf79359b58c334f4c17b6f148ab8c8e84d601ef12554bb!1: PayToScript: b8324180800f57f26dee2ad65990e0a762a5dab9424d32e49855abd495f7196b Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         67b7f9a17c14e35c842e53e86d2588ccf834e740779883610e8b2ce409bbcbc0!1: PayToScript: 49cd69a6941f191e3d14ce83834e0f2ce175318995b40380854e3201171c0baa Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+         a630416c61aa8ac2c376f6c853a88be81804bc4e1f6d8c93c3b79151a0ce0616!1: PayToScript: 4c592448cff8d2b2ee40a509e1d5224260ef29f5b22cd920616e39cad65f466c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}}
     - {tx:
-       WriteTxSuccess: 588a0c8086ca338b9e94ba36acb801a79636fd009fa7b7e2977d6f94b679944b}
+       WriteTxSuccess: c13c9ce6e95e6bc4da4f15cc2e9b616705f3418614e333dc3c96e0877eab389f}
   Events for W2:
     - {contribute:
        EndpointValue: Contribution {contribValue = Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}}}
     - {own-pubkey:
        fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025}
     - {tx:
-       WriteTxSuccess: c1d8c098bcb9bfebd5f792957655c361ecac64b3e017c95e66dbe9a3e35abf22}
+       WriteTxSuccess: 5e504e1c0bf3fc3316cf79359b58c334f4c17b6f148ab8c8e84d601ef12554bb}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx c1d8c098bcb9bfebd5f792957655c361ecac64b3e017c95e66dbe9a3e35abf22:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx 5e504e1c0bf3fc3316cf79359b58c334f4c17b6f148ab8c8e84d601ef12554bb:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!8
               
@@ -30,7 +30,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9990)]})]}} addressed to
              PubKeyAddress: 03d200a81ee0feace8fb845e5ec950a6f9add83709244f7b81134654139f41a4
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -40,8 +40,8 @@ Events by wallet:
          data:
            "\ETX\210\NUL\168\RS\224\254\172\232\251\132^^\201P\166\249\173\216\&7\t$O{\129\DC3FT\DC3\159A\164"} )}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx 611b86e336074041b87f6f0f750eb2a864bd0e3a8161ebec0f6fad57406d9283:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx 67b7f9a17c14e35c842e53e86d2588ccf834e740779883610e8b2ce409bbcbc0:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!3
               
@@ -49,7 +49,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9990)]})]}} addressed to
              PubKeyAddress: feb345e86b9c2a7add2bfc695fa8aecd4ac5b0dfaf3a477f6fa968cdd30571c7
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -59,8 +59,8 @@ Events by wallet:
          data:
            "\254\179E\232k\156*z\221+\252i_\168\174\205J\197\176\223\175:G\DELo\169h\205\211\ENQq\199"} )}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx 48a3dcd566f7f81f60a520ec3128c46fb23c425d9fc39f351c1c0568b012e3c6:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx a630416c61aa8ac2c376f6c853a88be81804bc4e1f6d8c93c3b79151a0ce0616:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!7
               
@@ -68,7 +68,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9999)]})]}} addressed to
              PubKeyAddress: 5aebc31421e7af1bdb47326709c27f3fd9381b00b0aca127b8dccd5f8525a538
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -83,10 +83,10 @@ Events by wallet:
     - {own-pubkey:
        98a5e3a36e67aaba89888bf093de1ad963e774013b3902bfab356d8b90178a63}
     - {tx:
-       WriteTxSuccess: 611b86e336074041b87f6f0f750eb2a864bd0e3a8161ebec0f6fad57406d9283}
+       WriteTxSuccess: 67b7f9a17c14e35c842e53e86d2588ccf834e740779883610e8b2ce409bbcbc0}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx 611b86e336074041b87f6f0f750eb2a864bd0e3a8161ebec0f6fad57406d9283:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx 67b7f9a17c14e35c842e53e86d2588ccf834e740779883610e8b2ce409bbcbc0:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!3
               
@@ -94,7 +94,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9990)]})]}} addressed to
              PubKeyAddress: feb345e86b9c2a7add2bfc695fa8aecd4ac5b0dfaf3a477f6fa968cdd30571c7
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -104,8 +104,8 @@ Events by wallet:
          data:
            "\254\179E\232k\156*z\221+\252i_\168\174\205J\197\176\223\175:G\DELo\169h\205\211\ENQq\199"} )}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx 48a3dcd566f7f81f60a520ec3128c46fb23c425d9fc39f351c1c0568b012e3c6:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx a630416c61aa8ac2c376f6c853a88be81804bc4e1f6d8c93c3b79151a0ce0616:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!7
               
@@ -113,7 +113,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9999)]})]}} addressed to
              PubKeyAddress: 5aebc31421e7af1bdb47326709c27f3fd9381b00b0aca127b8dccd5f8525a538
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -128,10 +128,10 @@ Events by wallet:
     - {own-pubkey:
        f81fb54a825fced95eb033afcd64314075abfb0abd20a970892503436f34b863}
     - {tx:
-       WriteTxSuccess: 48a3dcd566f7f81f60a520ec3128c46fb23c425d9fc39f351c1c0568b012e3c6}
+       WriteTxSuccess: a630416c61aa8ac2c376f6c853a88be81804bc4e1f6d8c93c3b79151a0ce0616}
     - {address:
-       ( ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
-       , Tx 48a3dcd566f7f81f60a520ec3128c46fb23c425d9fc39f351c1c0568b012e3c6:
+       ( ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
+       , Tx a630416c61aa8ac2c376f6c853a88be81804bc4e1f6d8c93c3b79151a0ce0616:
          {inputs:
             - baaf580880e12f5f48fc8a956b83a3706a4ead8df2a09836ef6a262662ca95d7!7
               
@@ -139,7 +139,7 @@ Events by wallet:
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,9999)]})]}} addressed to
              PubKeyAddress: 5aebc31421e7af1bdb47326709c27f3fd9381b00b0aca127b8dccd5f8525a538
            - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} addressed to
-             ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab
+             ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25
          forge: Value {getValue = Map {unMap = []}}
          fee: Value {getValue = Map {unMap = []}}
          mps:
@@ -153,7 +153,7 @@ Contract result by wallet:
       Done
     Wallet: W2
       Running, waiting for input:
-        {address: [ ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab ]
+        {address: [ ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]
@@ -163,7 +163,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W3
       Running, waiting for input:
-        {address: [ ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab ]
+        {address: [ ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]
@@ -173,7 +173,7 @@ Contract result by wallet:
          utxo-at: []}
     Wallet: W4
       Running, waiting for input:
-        {address: [ ScriptAddress: 4a26838e1fffe3ddaef8d78be5950b3d0da13025750972e076aa3a0c7347f6ab ]
+        {address: [ ScriptAddress: c570b1db19f2c570f73b50decc3840751f18592f43676388c67f856363b30a25 ]
          contribute: []
          own-pubkey: NotWaitingForPubKey
          schedule collection: [ExposeEndpoint: schedule collection]

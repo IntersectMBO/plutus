@@ -1,6 +1,9 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
@@ -36,7 +39,9 @@ import           Text.Megaparsec.Pos
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance (Pretty a, Typeable a) => GetProgram (Term TyName Name a) where
+instance ( PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni
+         , PLC.Closed uni, uni `PLC.Everywhere` Pretty, Typeable uni, Pretty a, Typeable a
+         ) => GetProgram (Term TyName Name uni a) uni where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
 instance Pretty SourcePos where
@@ -49,7 +54,11 @@ asIfThrown
     -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck :: Bool -> Term TyName Name a -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
+compileAndMaybeTypecheck
+    :: (PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => Bool
+    -> Term TyName Name uni a
+    -> Except (Error uni (Provenance a)) (PLC.Term TyName Name uni (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT defaultCompilationCtx $ runQuoteT $ do
     compiled <- compileTerm pir
     when doTypecheck $ void $ PLC.inferType PLC.defOffChainConfig compiled
@@ -105,7 +114,7 @@ serialization = testNested "serialization"
     , "serializeListMatch"
     ]
 
-roundTripPirTerm :: Term TyName Name a -> Term TyName Name ()
+roundTripPirTerm :: Term TyName Name PLC.DefaultUni a -> Term TyName Name PLC.DefaultUni ()
 roundTripPirTerm = deserialise . serialise . void
 
 errors :: TestNested

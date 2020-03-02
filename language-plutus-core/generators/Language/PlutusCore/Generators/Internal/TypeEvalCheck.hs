@@ -6,6 +6,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Generators.Internal.TypeEvalCheck
@@ -26,10 +27,12 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.TypeCheck
+import           Language.PlutusCore.Universe
 
 import           Control.Lens.TH
 import           Control.Monad.Except
@@ -42,29 +45,29 @@ the actual one. Thus "type-eval checking".
 -}
 
 -- | The type of errors that can occur during type-eval checking.
-data TypeEvalCheckError
-    = TypeEvalCheckErrorIllFormed (Error ())
+data TypeEvalCheckError uni
+    = TypeEvalCheckErrorIllFormed (Error uni ())
     | TypeEvalCheckErrorException String
-    | TypeEvalCheckErrorIllEvaled EvaluationResultDef EvaluationResultDef
+    | TypeEvalCheckErrorIllEvaled (EvaluationResultDef uni) (EvaluationResultDef uni)
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 
-instance ann ~ () => AsError TypeEvalCheckError ann where
+instance ann ~ () => AsError (TypeEvalCheckError uni) uni ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
-instance ann ~ () => AsTypeError TypeEvalCheckError ann where
+instance ann ~ () => AsTypeError (TypeEvalCheckError uni) uni ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
-data TypeEvalCheckResult = TypeEvalCheckResult
-    { _termCheckResultType  :: Normalized (Type TyName ())
+data TypeEvalCheckResult uni = TypeEvalCheckResult
+    { _termCheckResultType  :: Normalized (Type TyName uni ())
       -- ^ The type of the term.
-    , _termCheckResultValue :: EvaluationResultDef
+    , _termCheckResultValue :: EvaluationResultDef uni
       -- ^ The result of evaluation of the term.
     }
 
-instance (PrettyBy config (Error ()), PrettyBy config (Value TyName Name ())) =>
-        PrettyBy config TypeEvalCheckError where
+instance (PrettyBy config (Error uni ()), PrettyBy config (Value TyName Name uni ())) =>
+        PrettyBy config (TypeEvalCheckError uni) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err
     prettyBy _      (TypeEvalCheckErrorException err)             =
@@ -74,16 +77,18 @@ instance (PrettyBy config (Error ()), PrettyBy config (Value TyName Name ())) =>
         "doesn't match with the actual value:" <+> prettyBy config actual
 
 -- | The monad type-eval checking runs in.
-type TypeEvalCheckM = Either TypeEvalCheckError
+type TypeEvalCheckM uni = Either (TypeEvalCheckError uni)
 
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: (Pretty internal, KnownType a)
-    => (Term TyName Name () -> Either (EvaluationException internal user) (Plain Term))
+    :: ( Pretty internal, KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni
+       , Closed uni, uni `Everywhere` Eq, uni `Everywhere` Pretty
+       )
+    => (Term TyName Name uni () -> Either (EvaluationException uni internal user) (Plain Term uni))
        -- ^ An evaluator.
-    -> TermOf a
-    -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
+    -> TermOf uni a
+    -> TypeEvalCheckM uni (TermOf uni (TypeEvalCheckResult uni))
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     termTy <- runQuoteT $ inferType defOffChainConfig term
     let valExpected = case makeKnown x of
@@ -99,7 +104,10 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. KnownType a => TermOf a -> TermOf EvaluationResultDef
+    :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
+       , uni `Everywhere` Eq, uni `Everywhere` Pretty, uni `Everywhere` ExMemoryUsage
+       )
+    => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy (evaluateCek mempty) termOfTbv
     case errOrRes of

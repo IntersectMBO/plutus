@@ -1,11 +1,12 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 {- Note [Budgeting]
 
@@ -103,8 +104,9 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
-class SpendBudget m where
-    spendBudget :: ExBudgetCategory -> WithMemory Term -> ExBudget -> m ()
+-- This works nicely because @m@ contains @uni@ as parameter.
+class SpendBudget m uni | m -> uni where
+    spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst
@@ -153,7 +155,7 @@ $(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value] -> (ExCPU, ExMemory)
+    :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
 exceedsBudget :: ExRestrictingBudget -> ExBudget -> Bool

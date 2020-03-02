@@ -19,17 +19,17 @@ import           Control.Monad.Except
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram
-    :: (AsNormCheckError e tyname name ann, MonadError e m)
-    => Program tyname name ann -> m ()
+    :: (AsNormCheckError e tyname name uni ann, MonadError e m)
+    => Program tyname name uni ann -> m ()
 checkProgram (Program _ _ t) = checkTerm t
 
 -- | Ensure that all types in the 'Term' are normalized.
 checkTerm
-    :: (AsNormCheckError e tyname name ann, MonadError e m)
-    => Term tyname name ann -> m ()
+    :: (AsNormCheckError e tyname name uni ann, MonadError e m)
+    => Term tyname name uni ann -> m ()
 checkTerm p = throwingEither _NormCheckError $ check p
 
-check :: Term tyname name ann -> Either (NormCheckError tyname name ann) ()
+check :: Term tyname name uni ann -> Either (NormCheckError tyname name uni ann) ()
 check (Error _ ty)           = normalType ty
 check (TyInst _ t ty)        = check t >> normalType ty
 check (IWrap _ pat arg term) = normalType pat >> normalType arg >> check term
@@ -41,30 +41,19 @@ check Var{}                  = pure ()
 check Constant{}             = pure ()
 check Builtin{}              = pure ()
 
-{- Note [Builtin applications and values]
-An older version of the specification had a special case for builtin type applications being
-normal types. This is important, because they obviously can't be reduced before runtime.
-This resulted in types like `[(con integer) (con 64)]` not being considered normalized, which
-effectively prevents you using integers anywhere (note: this isn't so much of a problem now
-integers aren't parameterized, but it's still wrong).
-
-The current version of the specification has moved to fully saturated builtins,
-but the implementation is not there. Consequently we consider builtin types to be neutral types.
--}
-
-isNormalType :: Type tyname ann -> Bool
+isNormalType :: Type tyname uni ann -> Bool
 isNormalType = isRight . normalType
 
-normalType :: Type tyname ann -> Either (NormCheckError tyname name ann) ()
+normalType :: Type tyname uni ann -> Either (NormCheckError tyname name uni ann) ()
 normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
 normalType (TyLam _ _ _ ty)    = normalType ty
+-- See Note [PLC types and universes].
+normalType TyBuiltin{}         = pure ()
 normalType ty                  = neutralType ty
 
-neutralType :: Type tyname ann -> Either (NormCheckError tyname name ann) ()
+neutralType :: Type tyname uni ann -> Either (NormCheckError tyname name uni ann) ()
 neutralType TyVar{}           = pure ()
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
--- See note [Builtin applications and values]
-neutralType TyBuiltin{}       = pure ()
 neutralType ty                = Left (BadType (typeAnn ty) ty "neutral type")

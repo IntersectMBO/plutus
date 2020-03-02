@@ -13,7 +13,7 @@ import           Control.Monad.Error.Lens
 
 -- | Turns a PIR 'Term' with no remaining PIR-specific features into a PLC 'PLC.Term' by simply
 -- translating the constructors across.
-lowerTerm :: Compiling m e a => PIRTerm a -> m (PLCTerm a)
+lowerTerm :: Compiling m e uni a => PIRTerm uni a -> m (PLCTerm uni a)
 lowerTerm = \case
     Let x _ _ _ -> throwing _Error $ CompilationError x "Let bindings should have been eliminated before lowering"
     Var x n -> pure $ PLC.Var x n

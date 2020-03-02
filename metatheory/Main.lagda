@@ -72,7 +72,7 @@ postulate
   deBruijnify : ProgramN → Maybe Program
   deBruijnifyTm : TermN → Maybe Term
   deBruijnifyTy : TypeN → Maybe Type
-  
+
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
@@ -104,12 +104,12 @@ postulate
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
@@ -146,7 +146,7 @@ open import Scoped.CK
 open import Algorithmic.CK
 
 data EvalMode : Set where
-  TCK CK L : EvalMode
+  TCK CK : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -157,14 +157,6 @@ evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
 evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
 evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
-evalPLC L plc | just nt | just t | just t' with S.run (saturate t') 1000000
-evalPLC L plc | just nt | just t | just t' | t'' ,, _ ,, inj₁ (just _) = inj₁ $
-  prettyPrintTm (extricateScope (unsaturate t''))  
-evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
-  inj₂ "out of fuel"
-evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e = inj₂
-  ("runtime error" Data.String.++
-  prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
@@ -207,7 +199,7 @@ tcPLC plc with parse plc
   "\n != \n"
   Data.String.++
   prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
-  
+
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"
 ... | inj₂ builtinError   = inj₂ "builtinError"
@@ -263,7 +255,7 @@ data EvalOptions : Set where
 
 data TCOptions : Set where
   TCOpts : Input → TCOptions
-  
+
 data Command : Set where
   Evaluate  : EvalOptions → Command
   TypeCheck : TCOptions → Command
@@ -273,12 +265,12 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 {-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (TCK | CK | L ) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (TCK | CK ) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (String ⊎ String)
 evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
-evalInput m StdInput       = imap (evalPLC m) getContents 
+evalInput m StdInput       = imap (evalPLC m) getContents
 
 tcInput : Input → IO (String ⊎ String)
 tcInput (FileInput fn) = imap tcPLC (readFile fn)
@@ -290,13 +282,13 @@ main' (Evaluate (EvalOpts i m)) =
   >>=
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
-           ] 
+           ]
 main' (TypeCheck (TCOpts i))    =
   (tcInput i)
-  >>= 
+  >>=
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
-           ] 
+           ]
 
 main : IO ⊤
 main = execP >>= main'

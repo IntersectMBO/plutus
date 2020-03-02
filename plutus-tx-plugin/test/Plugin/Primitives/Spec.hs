@@ -10,10 +10,12 @@ import           Common
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
+
+import qualified Language.PlutusCore.Universe as PLC
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -50,69 +52,69 @@ primitives = testNested "Primitives" [
   , goldenPir "trace" trace
   ]
 
-string :: CompiledCode String
+string :: CompiledCode PLC.DefaultUni String
 string = plc @"string" "test"
 
-int :: CompiledCode Integer
+int :: CompiledCode PLC.DefaultUni Integer
 int = plc @"int" (1::Integer)
 
-int2 :: CompiledCode Integer
+int2 :: CompiledCode PLC.DefaultUni Integer
 int2 = plc @"int2" (2::Integer)
 
-emptyBS :: CompiledCode Builtins.ByteString
+emptyBS :: CompiledCode PLC.DefaultUni Builtins.ByteString
 emptyBS = plc @"emptyBS" Builtins.emptyByteString
 
-bool :: CompiledCode Bool
+bool :: CompiledCode PLC.DefaultUni Bool
 bool = plc @"bool" True
 
-andPlc :: CompiledCode (Bool -> Bool -> Bool)
+andPlc :: CompiledCode PLC.DefaultUni (Bool -> Bool -> Bool)
 andPlc = plc @"andPlc" (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
 
-tuple :: CompiledCode (Integer, Integer)
+tuple :: CompiledCode PLC.DefaultUni (Integer, Integer)
 tuple = plc @"tuple" (1::Integer, 2::Integer)
 
-tupleMatch :: CompiledCode ((Integer, Integer) -> Integer)
+tupleMatch :: CompiledCode PLC.DefaultUni ((Integer, Integer) -> Integer)
 tupleMatch = plc @"tupleMatch" (\(x:: (Integer, Integer)) -> let (a, b) = x in a)
 
-intCompare :: CompiledCode (Integer -> Integer -> Bool)
+intCompare :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
 intCompare = plc @"intCompare" (\(x::Integer) (y::Integer) -> Builtins.lessThanInteger x y)
 
-intEq :: CompiledCode (Integer -> Integer -> Bool)
+intEq :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
 intEq = plc @"intEq" (\(x::Integer) (y::Integer) -> Builtins.equalsInteger x y)
 
 -- Has a Void in it
-void :: CompiledCode (Integer -> Integer -> Bool)
+void :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
 void = plc @"void" (\(x::Integer) (y::Integer) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in Builtins.equalsInteger x y `a` Builtins.equalsInteger y x)
 
-intPlus :: CompiledCode (Integer -> Integer -> Integer)
+intPlus :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
 intPlus = plc @"intPlus" (\(x::Integer) (y::Integer) -> Builtins.addInteger x y)
 
-intDiv :: CompiledCode (Integer -> Integer -> Integer)
+intDiv :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
 intDiv = plc @"intDiv" (\(x::Integer) (y::Integer) -> Builtins.divideInteger x y)
 
-errorPlc :: CompiledCode (() -> Integer)
+errorPlc :: CompiledCode PLC.DefaultUni (() -> Integer)
 errorPlc = plc @"errorPlc" (Builtins.error @Integer)
 
-ifThenElse :: CompiledCode (Integer -> Integer -> Integer)
+ifThenElse :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
 ifThenElse = plc @"ifThenElse" (\(x::Integer) (y::Integer) -> if Builtins.equalsInteger x y then x else y)
 
-emptyByteString :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+emptyByteString :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString)
 emptyByteString = plc @"emptyByteString" (\(x :: Builtins.ByteString) -> x)
 
-bytestring :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+bytestring :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString)
 bytestring = plc @"bytestring" (\(x::Builtins.ByteString) -> x)
 
-sha2 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+sha2 :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString)
 sha2 = plc @"sha2" (\(x :: Builtins.ByteString) -> Builtins.sha2_256 x)
 
-bsEquals :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
+bsEquals :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsEquals = plc @"bs32Equals" (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.equalsByteString x y)
 
-bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
+bsLt :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsLt = plc @"bsLt" (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
 
-verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
+verify :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
 verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
-trace :: CompiledCode (Builtins.String -> ())
+trace :: CompiledCode PLC.DefaultUni (Builtins.String -> ())
 trace = plc @"trace" (\(x :: Builtins.String) -> Builtins.trace x)

@@ -12,9 +12,11 @@ import           Plugin.Lib
 
 import           Plugin.Data.Spec
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
+
+import qualified Language.PlutusCore.Universe as PLC
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -36,7 +38,7 @@ recursiveFunctions = testNested "recursive" [
     , goldenEval "even4" [ getProgram evenMutual, getProgram $ plc @"4" (4::Integer) ]
   ]
 
-fib :: CompiledCode (Integer -> Integer)
+fib :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 -- not using case to avoid literal cases
 fib = plc @"fib" (
     let fib :: Integer -> Integer
@@ -47,14 +49,14 @@ fib = plc @"fib" (
             else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
     in fib)
 
-sumDirect :: CompiledCode ([Integer] -> Integer)
+sumDirect :: CompiledCode PLC.DefaultUni ([Integer] -> Integer)
 sumDirect = plc @"sumDirect" (
     let sum :: [Integer] -> Integer
         sum []     = 0
         sum (x:xs) = Builtins.addInteger x (sum xs)
     in sum)
 
-evenMutual :: CompiledCode (Integer -> Bool)
+evenMutual :: CompiledCode PLC.DefaultUni (Integer -> Bool)
 evenMutual = plc @"evenMutual" (
     let even :: Integer -> Bool
         even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
@@ -84,13 +86,13 @@ andDirect = \(a :: Bool) -> \(b::Bool) -> nandDirect (nandDirect a b) (nandDirec
 nandDirect :: Bool -> Bool -> Bool
 nandDirect = \(a :: Bool) -> \(b::Bool) -> if a then False else if b then False else True
 
-nandPlcDirect :: CompiledCode Bool
+nandPlcDirect :: CompiledCode PLC.DefaultUni Bool
 nandPlcDirect = plc @"nandPlcDirect" (nandDirect True False)
 
-andPlcDirect :: CompiledCode Bool
+andPlcDirect :: CompiledCode PLC.DefaultUni Bool
 andPlcDirect = plc @"andPlcDirect" (andDirect True False)
 
-andPlcExternal :: CompiledCode Bool
+andPlcExternal :: CompiledCode PLC.DefaultUni Bool
 andPlcExternal = plc @"andPlcExternal" (andExternal True False)
 
 -- self-recursion
@@ -99,16 +101,16 @@ allDirect p l = case l of
     []  -> True
     h:t -> andDirect (p h) (allDirect p t)
 
-allPlcDirect :: CompiledCode Bool
+allPlcDirect :: CompiledCode PLC.DefaultUni Bool
 allPlcDirect = plc @"andPlcDirect" (allDirect (\(x::Integer) -> Builtins.greaterThanInteger x 5) [7, 6])
 
-mutualRecursionUnfoldings :: CompiledCode Bool
+mutualRecursionUnfoldings :: CompiledCode PLC.DefaultUni Bool
 mutualRecursionUnfoldings = plc @"mutualRecursionUnfoldings" (evenDirect 4)
 
-recordSelector :: CompiledCode (MyMonoRecord -> Integer)
+recordSelector :: CompiledCode PLC.DefaultUni (MyMonoRecord -> Integer)
 recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
 
-recordSelectorExternal :: CompiledCode (MyExternalRecord -> Integer)
+recordSelectorExternal :: CompiledCode PLC.DefaultUni (MyExternalRecord -> Integer)
 recordSelectorExternal = plc @"recordSelectorExternal" (\(x :: MyExternalRecord) -> myExternal x)
 
 mapDirect :: (a -> b) -> [a] -> [b]
@@ -116,11 +118,11 @@ mapDirect f l = case l of
     []   -> []
     x:xs -> f x : mapDirect f xs
 
-polyMap :: CompiledCode ([Integer])
+polyMap :: CompiledCode PLC.DefaultUni ([Integer])
 polyMap = plc @"polyMap" (mapDirect (Builtins.addInteger 1) [0, 1])
 
 myDollar :: (a -> b) -> a -> b
 myDollar f a = f a
 
-applicationFunction :: CompiledCode (Integer)
+applicationFunction :: CompiledCode PLC.DefaultUni (Integer)
 applicationFunction = plc @"applicationFunction" ((\x -> Builtins.addInteger 1 x) `myDollar` 1)

@@ -11,5 +11,5 @@ data ScType = ScTyVar Integer
            | ScTyPi ScKind ScType
            | ScTyLambda ScKind ScType
            | ScTyApp ScType ScType
-           | ScTyCon TypeBuiltin
+           | ScTyCon (Some (TypeIn DefaultUni))
            deriving Show

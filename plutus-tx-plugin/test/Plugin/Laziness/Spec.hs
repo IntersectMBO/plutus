@@ -10,9 +10,11 @@ import           Common
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
+
+import qualified Language.PlutusCore.Universe as PLC
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -24,7 +26,7 @@ laziness = testNested "Laziness" [
     , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
-joinErrorPir :: CompiledCode (Bool -> Bool -> ())
+joinErrorPir :: CompiledCode PLC.DefaultUni (Bool -> Bool -> ())
 joinErrorPir = plc @"joinError" joinError
 
 {-# NOINLINE monoId #-}
@@ -36,5 +38,5 @@ monoId x = x
 aByteString :: Builtins.ByteString
 aByteString = monoId Builtins.emptyByteString
 
-lazyDepUnit :: CompiledCode (Builtins.ByteString)
+lazyDepUnit :: CompiledCode PLC.DefaultUni Builtins.ByteString
 lazyDepUnit = plc @"lazyDepUnit" aByteString

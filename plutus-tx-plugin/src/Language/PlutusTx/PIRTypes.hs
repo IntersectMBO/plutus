@@ -3,11 +3,11 @@ module Language.PlutusTx.PIRTypes where
 import qualified Language.PlutusIR as PIR
 
 type PIRKind = PIR.Kind ()
-type PIRType = PIR.Type PIR.TyName ()
-type PIRTerm = PIR.Term PIR.TyName PIR.Name ()
-type PIRProgram = PIR.Program PIR.TyName PIR.Name ()
+type PIRType uni = PIR.Type PIR.TyName uni ()
+type PIRTerm uni = PIR.Term PIR.TyName PIR.Name uni ()
+type PIRProgram uni = PIR.Program PIR.TyName PIR.Name uni ()
 
-type PIRBinding = PIR.Binding PIR.TyName PIR.Name ()
+type PIRBinding uni = PIR.Binding PIR.TyName PIR.Name uni ()
 
-type PIRVar = PIR.VarDecl PIR.TyName PIR.Name ()
+type PIRVar uni = PIR.VarDecl PIR.TyName PIR.Name uni ()
 type PIRTyVar = PIR.TyVarDecl PIR.TyName ()

@@ -13,6 +13,7 @@ import           Control.Monad.Reader         as Reader
 import qualified Language.PlutusCore.DeBruijn as PLC
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore.Universe as PLC
 import           Language.PlutusIR
 import           Language.PlutusIR.Parser     as Parser
 
@@ -45,15 +46,15 @@ ppThrow = fmap docText . rethrow . fmap prettyPlcClassicDebug
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppCatch value = docText <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
-goldenPlcFromPir :: GetProgram a => Parser a -> String -> TestNested
+goldenPlcFromPir :: GetProgram a PLC.DefaultUni => Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- getProgram ast
                                 withExceptT toException $ PLC.deBruijnProgram p)
 
-goldenPlcFromPirCatch :: GetProgram a => Parser a -> String -> TestNested
+goldenPlcFromPirCatch :: GetProgram a PLC.DefaultUni => Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- getProgram ast
                                            withExceptT toException $ PLC.deBruijnProgram p)
 
-goldenEvalPir :: (GetProgram a) => Parser a -> String -> TestNested
+goldenEvalPir :: (GetProgram a PLC.DefaultUni) => Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runPlc [ast])

@@ -86,7 +86,7 @@ import           LedgerBytes                          (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
 -- Note: the program inside the 'Script' should have normalized types.
-newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name () }
+newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () }
   deriving stock Generic
   deriving newtype (Serialise)
 
@@ -146,10 +146,10 @@ scriptSize (Script s) = PLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: CompiledCode a -> Script
+fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: PLC.Program PLC.TyName PLC.Name () -> Script
+fromPlc :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () -> Script
 fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
@@ -177,11 +177,11 @@ evaluateScript checking s = do
             UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
 
-typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName ())
+typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName PLC.DefaultUni ())
 typecheckScript (unScript -> p) =
     either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure act
       where
-        act :: Either (PLC.Error ()) (PLC.Type PLC.TyName ())
+        act :: Either (PLC.Error PLC.DefaultUni ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
         act = runExcept $ PLC.runQuoteT $ do
             types <- PLC.getStringBuiltinTypes ()
             -- We should be normalized, so we can use the on-chain config
@@ -202,13 +202,13 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode PLC.DefaultUni (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script

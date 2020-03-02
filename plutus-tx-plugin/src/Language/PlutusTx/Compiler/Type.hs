@@ -66,7 +66,7 @@ is dealing with recursive newtypes.
 -- Generally, we need to call this whenever we are compiling a "new" type from the program.
 -- If we are compiling a part of a type we are already processing then it has likely been
 -- normalized and we can just use 'compileType'
-compileTypeNorm :: Compiling m => GHC.Type -> m PIRType
+compileTypeNorm :: Compiling uni m => GHC.Type -> m (PIRType uni)
 compileTypeNorm ty = do
     CompileContext {ccFamInstEnvs=envs} <- ask
     -- See Note [Type families and normalizing types]
@@ -74,7 +74,7 @@ compileTypeNorm ty = do
     compileType ty'
 
 -- | Compile a type.
-compileType :: Compiling m => GHC.Type -> m PIRType
+compileType :: Compiling uni m => GHC.Type -> m (PIRType uni)
 compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
     CompileContext {ccScopes=stack} <- ask
@@ -108,7 +108,7 @@ we just have to ban recursive newtypes, and we do this by blackholing the name w
 definition, and dying if we see it again.
 -}
 
-compileTyCon :: Compiling m => GHC.TyCon -> m PIRType
+compileTyCon :: forall uni m. Compiling uni m => GHC.TyCon -> m (PIRType uni)
 compileTyCon tc
     | tc == GHC.intTyCon = throwPlain $ UnsupportedError "Int: use Integer instead"
     | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
@@ -137,14 +137,14 @@ compileTyCon tc
                     -- Type variables are in scope for the rhs of the alias
                     alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ compileTypeNorm underlying
                     PIR.defineType (LexName tcName) (PIR.Def tvd alias) (Set.fromList $ LexName <$> deps)
-                    PIR.recordAlias @LexName @() (LexName tcName)
+                    PIR.recordAlias @LexName @uni @() (LexName tcName)
                     pure alias
                 Nothing -> do
                     matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
 
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
-                    PIR.defineDatatype (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
+                    PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
                     -- Type variables are in scope for the rest of the definition
                     withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
@@ -155,10 +155,10 @@ compileTyCon tc
 
                         let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-                        PIR.defineDatatype (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
+                        PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
                     pure $ PIR.mkTyVar () tvd
 
-getUsedTcs :: Compiling m => GHC.TyCon -> m [GHC.TyCon]
+getUsedTcs :: Compiling uni m => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do
     dcs <- getDataCons tc
     let usedTcs = GHC.unionManyUniqSets $ (\dc -> GHC.unionManyUniqSets $ GHC.tyConsOfType <$> GHC.dataConOrigArgTys dc) <$> dcs
@@ -222,7 +222,7 @@ sortConstructors tc cs =
     let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
     in if tc == GHC.boolTyCon || tc == GHC.listTyCon then reverse sorted else sorted
 
-getDataCons :: Compiling m =>  GHC.TyCon -> m [GHC.DataCon]
+getDataCons :: Compiling uni m =>  GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
     where
         extractDcs tc
@@ -236,7 +236,7 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
           | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 -- | Makes the type of the constructor corresponding to the given 'DataCon', with the type variables free.
-mkConstructorType :: Compiling m => GHC.DataCon -> m PIRType
+mkConstructorType :: Compiling uni m => GHC.DataCon -> m (PIRType uni)
 mkConstructorType dc =
     let argTys = GHC.dataConOrigArgTys dc
     in
@@ -251,7 +251,7 @@ ghcStrictnessNote :: GHC.SDoc
 ghcStrictnessNote = "Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', or '-fno-spec-constr'"
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
-getConstructors :: Compiling m => GHC.TyCon -> m [PIRTerm]
+getConstructors :: Compiling uni m => GHC.TyCon -> m [PIRTerm uni]
 getConstructors tc = do
     -- make sure the constructors have been created
     _ <- compileTyCon tc
@@ -262,7 +262,7 @@ getConstructors tc = do
 
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
 -- the type constructor argument types.
-getConstructorsInstantiated :: Compiling m => GHC.Type -> m [PIRTerm]
+getConstructorsInstantiated :: Compiling uni m => GHC.Type -> m [PIRTerm uni]
 getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         constrs <- getConstructors tc
@@ -274,7 +274,7 @@ getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated
     _ -> throwSd CompilationError $ "Cannot construct a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
-getMatch :: Compiling m => GHC.TyCon -> m PIRTerm
+getMatch :: Compiling uni m => GHC.TyCon -> m (PIRTerm uni)
 getMatch tc = do
     -- ensure the tycon has been compiled, which will create the matcher
     _ <- compileTyCon tc
@@ -285,7 +285,7 @@ getMatch tc = do
 
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
-getMatchInstantiated :: Compiling m => GHC.Type -> m PIRTerm
+getMatchInstantiated :: Compiling uni m => GHC.Type -> m (PIRTerm uni)
 getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
