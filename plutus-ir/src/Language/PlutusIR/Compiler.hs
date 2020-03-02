@@ -37,6 +37,11 @@ import           Control.Monad.Reader
 simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name b -> m (Term TyName Name b)
 simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
 
+-- | Perform full-laziness let-floating/let-merging of a 'Term'.
+-- Note: Cannot be placed before the 'rename' pass.
+floatTerm :: (MonadReader (CompilationCtx a) m, Monoid b) => Term TyName Name b -> m (Term TyName Name b)
+floatTerm = runIfOpts (pure . LetFloat.floatTerm)
+
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm =
@@ -45,7 +50,8 @@ compileTerm =
     >=> (pure . ThunkRec.thunkRecursions)
     -- We need globally unique names for compiling non-strict bindings away
     >=> PLC.rename
-    >=> (pure . LetFloat.floatTerm)
+    -- floatTerm requires rename to have run before
+    >=> floatTerm
     >=> NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.RecTerms

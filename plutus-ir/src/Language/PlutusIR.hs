@@ -17,7 +17,6 @@ module Language.PlutusIR (
     typeSubtypes,
     Datatype (..),
     datatypeNameString,
-    datatypeIds,
     Recursivity (..),
     Strictness (..),
     Binding (..),
@@ -74,24 +73,23 @@ tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
-datatypeIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Datatype tyname name a ->  S.Set PLC.Unique
--- | TODO: perhaps a more general coercible type?
-datatypeIds (Datatype _ tvdecl tvdecls n vdecls) =
-  (n^.PLC.unique.coerced)
-  `S.insert` foldMap (\(TyVarDecl _ tn _) -> S.singleton $ tn^.PLC.unique.coerced) (tvdecl:tvdecls)
-  `S.union` foldMap (\(VarDecl _ vn _)-> S.singleton $  vn^.PLC.unique.coerced) vdecls
-
-
 -- Bindings
 
+-- | Each multi-let-group has to be marked with its scoping:
+-- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifer cannot refer to itself or later-introduced identifiers of the group.
+-- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
+-- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
 
+-- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 instance Semigroup Recursivity where
   NonRec <> x = x
   Rec <> _ = Rec
 
+-- | 'NonRec' is the identity element of 'Recursivity'.
 instance Monoid Recursivity where
+  -- TODO: We can remove  this instance if we refactor LetFloat to use the non-empty 'AMN.vertexList1' instead of the 'AMN.vertexSet'.
   mempty = NonRec
 
 instance Serialise Recursivity
@@ -134,11 +132,17 @@ bindingSubtypes f = \case
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
     TypeBind a d ty -> TypeBind a d <$> f ty
 
+-- | All the identifiers/names introduced by this bining
+-- In case of a datatype-binding it has multiple identifiers: the type, constructors, match function
 bindingIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name a -> S.Set PLC.Unique
 bindingIds = \case
   TermBind _ _ (VarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
-  DatatypeBind _ dt -> datatypeIds dt
   TypeBind _ (TyVarDecl _ n _) _ -> S.singleton (n^.PLC.unique.coerced)
+  DatatypeBind _ (Datatype _ tvdecl tvdecls n vdecls) ->
+    (n^.PLC.unique.coerced)
+    `S.insert` foldMap (\(TyVarDecl _ tn _) -> S.singleton $ tn^.PLC.unique.coerced) (tvdecl:tvdecls)
+    `S.union` foldMap (\(VarDecl _ vn _)-> S.singleton $  vn^.PLC.unique.coerced) vdecls
+
 
 
 -- Terms
