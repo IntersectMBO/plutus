@@ -192,7 +192,8 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → builtin b As ts · t —→ builtin b As (ts ++ Data.List.[ t ])
 
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
-  β-wrap : {A B : ScopedTy n}{t : ScopedTm w} → unwrap (wrap A B t) —→ t
+  β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
+    → Value t → unwrap (wrap A B t) —→ t
 \end{code}
 
 \begin{code}
@@ -242,7 +243,7 @@ progress-unwrap (step p)                   = step (ξ-unwrap p)
 progress-unwrap (done (V-ƛ A t))         = error E-ƛunwrap
 progress-unwrap (done (V-Λ p))           = error E-Λunwrap
 progress-unwrap (done (V-con tcn))         = error E-conunwrap
-progress-unwrap (done (V-wrap A B t))      = step β-wrap
+progress-unwrap (done (V-wrap A B v))      = step (β-wrap v)
 progress-unwrap (done (V-builtin b As ts)) = error E-builtinunwrap
 progress-unwrap (error e)                  = error (E-unwrap e)
 

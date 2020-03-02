@@ -219,6 +219,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {term : Γ ⊢ _}
+    → Value term
     → unwrap1 (wrap1 pat arg term) —→ term
 
   ξ-unwrap1 : ∀{Φ Γ K}
@@ -337,7 +338,7 @@ progress-·⋆ (error e)  A = error (E-·⋆ e)
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
 progress-unwrap (step q)          = step (ξ-unwrap1 q)
-progress-unwrap (done (V-wrap {term = t} v)) = step β-wrap1
+progress-unwrap (done (V-wrap {term = t} v)) = step (β-wrap1 v)
 progress-unwrap (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn

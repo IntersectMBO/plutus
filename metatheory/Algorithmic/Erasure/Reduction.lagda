@@ -186,7 +186,7 @@ erase—→ (A.β-Λ {N = N}{A = A})                          =
                             (sym (U.sub-id  (erase N))))
                      (lem[]⋆ N A))
               U.β-ƛ)
-erase—→ A.β-wrap1                                       = inj₂ refl
+erase—→ (A.β-wrap1 p)                                   = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
 erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ (subst
