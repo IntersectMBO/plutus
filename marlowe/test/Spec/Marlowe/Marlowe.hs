@@ -12,37 +12,38 @@ module Spec.Marlowe.Marlowe
     )
 where
 
-import           Control.Lens               (view)
-import           Control.Monad              (void)
-import qualified Control.Monad.Freer        as Eff
-import qualified Control.Monad.Freer.Error  as Eff
-import qualified Data.ByteString            as BS
-import           Data.Either                (isRight)
-import qualified Data.Map.Strict            as Map
+import           Control.Lens                   (view)
+import           Control.Monad                  (void)
+import qualified Control.Monad.Freer            as Eff
+import qualified Control.Monad.Freer.Error      as Eff
+import qualified Data.ByteString                as BS
+import           Data.Either                    (isRight)
+import qualified Data.Map.Strict                as Map
 import           Data.String
 
-import qualified Codec.CBOR.Write           as Write
-import qualified Codec.Serialise            as Serialise
-import           Hedgehog                   (Gen, Property, forAll, property)
+import qualified Codec.CBOR.Write               as Write
+import qualified Codec.Serialise                as Serialise
+import           Hedgehog                       (Gen, Property, forAll, property)
 import qualified Hedgehog
-import           Hedgehog.Gen               (integral)
-import qualified Hedgehog.Range             as Range
+import           Hedgehog.Gen                   (integral)
+import qualified Hedgehog.Range                 as Range
 import           Language.Marlowe
-import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     hiding (Value)
-import           Ledger.Ada                 (adaValueOf)
-import qualified Ledger.Value               as Val
+import qualified Language.PlutusTx.Prelude      as P
+import           Ledger                         hiding (Value)
+import           Ledger.Ada                     (adaValueOf)
+import qualified Ledger.Value                   as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
-import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog            (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Wallet                     (PubKey (..), WalletAPIError)
+import           Wallet                         (PubKey (..), WalletAPIError)
 import           Wallet.Emulator
-import           Wallet.Emulator.ChainIndex (ChainIndexEffect)
-import qualified Wallet.Emulator.Generators as Gen
+import           Wallet.Emulator.ChainIndex     (ChainIndexEffect)
+import qualified Wallet.Emulator.Generators     as Gen
 import           Wallet.Emulator.NodeClient
+import           Wallet.Emulator.SigningProcess (SigningProcessEffect)
 import           Wallet.Emulator.Wallet
-import qualified Wallet.Generators          as Gen
+import qualified Wallet.Generators              as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
@@ -246,7 +247,7 @@ updateAll :: [Wallet] -> Eff.Eff EmulatorEffs ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 
-performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect] (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
+performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect, SigningProcessEffect] (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
 performNotify wallets actor action = do
     (md, tx) <- walletAction actor action
     processPending >>= void . walletsNotifyBlock wallets

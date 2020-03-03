@@ -52,6 +52,11 @@ weakenEnd4 u = case decomp u of
     Left u' -> weaken $ weakenEnd3 u'
     Right t -> inj t
 
+weakenEnd5 :: forall effs a b c d e. Union '[a, b, c, d, e] ~> Union (a ': b ': c ': d ': e ': effs)
+weakenEnd5 u = case decomp u of
+    Left u' -> weaken $ weakenEnd4 u'
+    Right t -> inj t
+
 weakenUnder :: forall effs a b . Union (a ': effs) ~> Union (a ': b ': effs)
 weakenUnder u = case decomp u of
     Left u' -> weaken $ weaken u'
@@ -85,6 +90,12 @@ raiseEnd4 = loop where
     loop = \case
         Val a -> pure a
         E u q -> E (weakenEnd4 u) (tsingleton $ qComp q loop)
+
+raiseEnd5 :: forall effs a b c d e. Eff '[a, b, c, d, e] ~> Eff (a ': b ': c ': d ': e ': effs)
+raiseEnd5 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd5 u) (tsingleton $ qComp q loop)
 
 raiseUnder :: forall effs a b . Eff (a ': effs) ~> Eff (a ': b ': effs)
 raiseUnder = loop where

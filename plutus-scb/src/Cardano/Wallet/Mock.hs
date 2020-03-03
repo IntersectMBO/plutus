@@ -12,12 +12,10 @@ import           Control.Lens                   (makeLenses, modifying, set, use
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Control.Monad.Logger           (MonadLogger, logInfoN)
 import           Control.Monad.State            (MonadState, get, put)
-import qualified Data.ByteString.Lazy           as BSL
 import           Language.Plutus.Contract.Trace (allWallets)
-import           Ledger                         (Address, Blockchain, PubKey, Signature, Value)
+import           Ledger                         (Address, Blockchain, PubKey, Value)
 import           Ledger.AddressMap              (AddressMap, addAddress)
 import qualified Ledger.AddressMap              as AddressMap
-import qualified Ledger.Crypto                  as Crypto
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
 import           Servant                        (NoContent (NoContent))
@@ -78,12 +76,6 @@ startWatching address = do
     logInfoN "startWatching"
     modifying watchedAddresses (addAddress address)
     pure NoContent
-
-sign :: MonadLogger m => BSL.ByteString -> m Signature
-sign bs = do
-    logInfoN "sign"
-    let privK = EM.walletPrivKey activeWallet
-    pure (Crypto.sign (BSL.toStrict bs) privK)
 
 ------------------------------------------------------------
 -- | Synchronise the initial state.

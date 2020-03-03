@@ -7,7 +7,7 @@ module Spec.MultiSig(tests) where
 import           Data.Text (Text)
 
 import           Language.Plutus.Contract.Test
-import           Language.Plutus.Contract.Wallet                 (signWallets)
+import           Wallet.Emulator.SigningProcess                  (signWallets)
 import qualified Ledger.Ada                                      as Ada
 import           Ledger.Index                                    (ValidationError(ScriptFailure))
 import           Ledger.Scripts                                  (ScriptError(EvaluationError))

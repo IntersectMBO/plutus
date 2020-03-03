@@ -19,12 +19,11 @@ module Wallet.API(
     WalletAPI(..),
     NodeAPI(..),
     ChainIndexAPI(..),
+    SigningProcessAPI(..),
     WalletDiagnostics(..),
     MonadWallet,
     PubKey(..),
     createPaymentWithChange,
-    signTxn,
-    signTxnWithKey,
     createTxAndSubmit,
     signTxAndSubmit,
     signTxAndSubmit_,
@@ -59,7 +58,6 @@ module Wallet.API(
     contains,
     -- * Error handling
     WalletAPIError(..),
-    throwPrivateKeyNotFoundError,
     throwInsufficientFundsError,
     throwOtherError,
     ) where
@@ -69,7 +67,6 @@ import           Control.Monad             (void, when)
 import           Control.Monad.Except      (ExceptT, MonadError (..), throwError)
 import           Control.Monad.Trans.Class (lift)
 import           Data.Aeson                (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
@@ -79,7 +76,7 @@ import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
-import           Ledger                    hiding (inputs, out, sign, to, value)
+import           Ledger                    hiding (inputs, out, value)
 import           Ledger.AddressMap         (AddressMap, UtxoMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
@@ -127,11 +124,6 @@ class Monad m => WalletAPI m where
     -- | Access the wallet's 'PublicKey'.
     ownPubKey :: m PubKey
 
-    -- | Sign a message using the wallet's private key
-    --   NOTE: In the future this won't be part of WalletAPI to allow the
-    --   signing to be handled by a different process
-    sign :: BSL.ByteString -> m Signature
-
     {- |
     Select enough inputs from the user's UTxOs to make a payment of the given value.
     Includes an output for any leftover funds, if there are any. Fails if we don't have enough funds.
@@ -147,7 +139,6 @@ class Monad m => WalletAPI m where
 
 instance WalletAPI m => WalletAPI (ExceptT WalletAPIError m) where
     ownPubKey = lift ownPubKey
-    sign = lift . sign
     updatePaymentWithChange value inputs =
         lift $ updatePaymentWithChange value inputs
     ownOutputs = lift ownOutputs
@@ -180,6 +171,14 @@ instance (Monad m, ChainIndexAPI m) => ChainIndexAPI (ExceptT WalletAPIError m) 
     watchedAddresses = lift watchedAddresses
     startWatching = lift . startWatching
 
+class SigningProcessAPI m where
+    -- | Sign the transaction with the private keys of te public key
+    --   hashes.
+    addSignatures :: [PubKeyHash] -> Tx -> m Tx
+
+instance (Monad m, SigningProcessAPI m) => SigningProcessAPI (ExceptT WalletAPIError m) where
+    addSignatures s = lift . addSignatures s
+
 createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
 
@@ -189,34 +188,9 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
 
-throwPrivateKeyNotFoundError :: MonadError WalletAPIError m => PubKeyHash -> m a
-throwPrivateKeyNotFoundError = throwError . PrivateKeyNotFound
-
--- | Sign the transaction with the private key of the given public
---   key. Fails if the wallet doesn't have the private key.
-signTxnWithKey :: (WalletAPI m, MonadError WalletAPIError m) => Tx -> PubKeyHash -> m Tx
-signTxnWithKey tx pubK = do
-    -- at the moment we only know a single private key: the one
-    -- belonging to 'ownPubKey'.
-    ownPubK <- ownPubKey
-    if pubKeyHash ownPubK == pubK
-    then signTxn tx
-    else throwPrivateKeyNotFoundError pubK
-
--- | Sign the transaction with the wallet's private key and add
---   the signature to the transaction's list of signatures.
---
---   NOTE: In the future this won't be part of WalletAPI to allow the
---   signing to be handled by a different process
-signTxn   :: WalletAPI m => Tx -> m Tx
-signTxn tx = do
-    pubK <- ownPubKey
-    sig <- sign (getTxId $ txId tx)
-    pure $ tx & signatures . at pubK ?~ sig
-
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
-payToScripts :: (WalletAPI m, NodeAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
+payToScripts :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
@@ -226,16 +200,16 @@ payToScripts range ins = do
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
 
 -- | Transfer some funds to a number of script addresses.
-payToScripts_ :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m ()
+payToScripts_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m ()
 payToScripts_ range = void . payToScripts range
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (WalletAPI m, NodeAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
+payToScript :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
 payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
-payToScript_ :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> Address -> Value -> DataValue -> m ()
+payToScript_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> DataValue -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
 getScriptInputs
@@ -278,14 +252,14 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m, ChainIndexAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
+collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m, ChainIndexAPI m, SigningProcessAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
 --   'RedeemerValue'.
 collectFromScriptTxn ::
-    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m)
+    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m, SigningProcessAPI m)
     => SlotRange
     -> Validator
     -> RedeemerValue
@@ -298,7 +272,7 @@ collectFromScriptTxn range vls red txid =
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
-    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m)
+    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m, SigningProcessAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
@@ -316,14 +290,14 @@ collectFromScriptFilter flt range vls red = do
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
-payToPublicKey :: (WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m Tx
+payToPublicKey :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Value -> PubKey -> m Tx
 payToPublicKey range v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
     createTxAndSubmit range i (other : maybeToList own) []
 
 -- | Transfer some funds to an address locked by a public key.
-payToPublicKey_ :: (WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m ()
+payToPublicKey_ :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Value -> PubKey -> m ()
 payToPublicKey_ r v = void . payToPublicKey r v
 
 -- | Create a `TxOut` that pays to the public key owned by us.
@@ -338,7 +312,7 @@ outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAd
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
-    (WalletAPI m, NodeAPI m)
+    (WalletAPI m, NodeAPI m, SigningProcessAPI m)
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
@@ -355,14 +329,15 @@ createTxAndSubmit range ins outs datas = do
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
-signTxAndSubmit :: (WalletAPI m, NodeAPI m) => Tx -> m Tx
+signTxAndSubmit :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => Tx -> m Tx
 signTxAndSubmit t = do
-    tx' <- signTxn t
+    pk <- ownPubKey
+    tx' <- addSignatures [pubKeyHash pk] t
     submitTxn tx'
     pure tx'
 
 -- | A version of 'signTxAndSubmit' that discards the result.
-signTxAndSubmit_ :: (WalletAPI m, NodeAPI m) => Tx -> m ()
+signTxAndSubmit_ :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => Tx -> m ()
 signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.
