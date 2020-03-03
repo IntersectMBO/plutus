@@ -23,6 +23,7 @@ module Language.Plutus.Contract.StateMachine(
     , mkStateMachineClient
     , defaultChooser
     -- * Running the state machine
+    , runGuardedStep
     , runStep
     , runInitialise
     -- * Re-exports
