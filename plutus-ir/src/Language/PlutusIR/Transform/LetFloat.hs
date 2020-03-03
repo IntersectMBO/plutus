@@ -76,6 +76,7 @@ By design choice, the second-pass preserves the floated let-bindings' original (
 it will never demote a 'Rec' let-binding to a 'NonRec', despite the demotion being valid.
 The effect is that more let-groups may be generated in a specific Rank than it would otherwise be required (optimally).
 The demotion can potentially be a nice optimization/transformation, but the way the depenndency-graph is generated for datatype binds, makes this complicated.
+See test example: `plutus-ir/test/transform/letFloat/rec3.golden`
 
 -}
 

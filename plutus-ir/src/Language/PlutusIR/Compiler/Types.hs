@@ -37,7 +37,7 @@ data CompilationCtx a = CompilationCtx {
 makeLenses ''CompilationCtx
 
 defaultCompilationCtx :: CompilationCtx a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts NoProvenance
+defaultCompilationCtx = CompilationCtx defaultCompilationOpts noProvenance
 
 getEnclosing :: MonadReader (CompilationCtx a) m => m (Provenance a)
 getEnclosing = view ccEnclosing

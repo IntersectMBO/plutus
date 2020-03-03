@@ -24,7 +24,6 @@ data Provenance a = Original a
                   | TermBinding String (Provenance a)
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
-                  | NoProvenance
                   | MultipleSources [Provenance a]
                   deriving (Show, Eq)
 
@@ -34,9 +33,14 @@ instance Semigroup (Provenance a) where
   x <> MultipleSources ps2 = MultipleSources (x:ps2)
   MultipleSources ps1 <> x = MultipleSources (ps1++[x])
   x <> y = MultipleSources [x,y]
+
+-- workaround, use a smart constructor to replace the older NoProvenance data constructor
+noProvenance :: Provenance a
+noProvenance = MultipleSources []
+
 -- Needed for LetFloat transformation to merge annotations
 instance Monoid (Provenance a) where
-  mempty = NoProvenance
+  mempty = MultipleSources []
 
 data DatatypeComponent = Constructor
                        | ConstructorType
@@ -82,5 +86,5 @@ instance PP.Pretty a => PP.Pretty (Provenance a) where
             in "(" <> rstr <> ")" <+> "let binding" <> ";" <+> "from" <+> PLC.pretty p
         TermBinding n p -> "term binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         TypeBinding n p -> "type binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
-        NoProvenance -> "<unknown>"
+        MultipleSources [] -> "<unknown>"
         MultipleSources p1 -> PLC.prettyList p1
