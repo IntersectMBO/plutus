@@ -427,18 +427,21 @@ progress p (error A)            = error E-error
 
 open import Data.Empty
 
--- progress is disjoint.  i.e. a value cannot make progress, if a term
--- can make progress, it's not a value.
+-- progress is disjoint:
 
+
+-- a value cannot make progress
 val : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
 val V-ƛ ()
 val V-Λ ()
 val (V-wrap p) (.(wrap1 _ _ _) ,, ξ-wrap q) = val p (_ ,, q)
 val (V-con cn) ()
 
+-- if a term can make progress it cannot be a value
 red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Σ (Γ ⊢ σ) (t —→_) → ¬ (Value t)
 red (.(wrap1 _ _ _) ,, ξ-wrap p) (V-wrap v) = red (_ ,, p) v
 
+-- nothing in a telescope of values can make progress
 vTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
   → (tel : Tel Γ Δ σ As)
   → (vtel : VTel Γ Δ σ As tel)
@@ -455,6 +458,7 @@ vTel Γ Δ σ _ (t ,, tel) (v ,, vtel) [] As telB telD r refl refl =
 vTel Γ Δ σ _ (_ ,, tel) (_ ,, vtel) (_ ∷ Bs) Ds (_ ,, telB) telD r refl refl =
   vTel Γ Δ σ _ tel vtel Bs Ds telB telD r refl refl
 
+-- values are unique for a term
 valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A)
   → (v v' : Value t)
   → v ≡ v'
@@ -463,6 +467,7 @@ valUniq .(Λ _) V-Λ V-Λ = refl
 valUniq .(wrap1 _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
 valUniq .(con cn) (V-con cn) (V-con .cn) = refl
 
+-- telescopes of values are unique for that telescope
 vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
   → (tel : Tel Γ Δ σ As)
   → (vtel vtel' : VTel Γ Δ σ As tel)
@@ -560,6 +565,8 @@ reconstTel-inj' : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
 reconstTel-inj' Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄ with reconstTel-inj Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄
 ... | (refl ,, refl) ,, (refl ,, refl) ,, (refl ,, refl) with p | p' | det x₂ x₃
 ... | refl | refl | refl = refl
+
+-- the reduction rules are deterministic
 
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
 det (ξ-·₁ p) (ξ-·₂ w q) = ⊥-elim (val w (_ ,, p))
