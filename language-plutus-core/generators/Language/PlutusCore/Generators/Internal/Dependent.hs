@@ -4,7 +4,8 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Generators.Internal.Dependent
     ( AsKnownType (..)
@@ -14,6 +15,7 @@ module Language.PlutusCore.Generators.Internal.Dependent
 import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Universe
 
 import           Data.GADT.Compare
 import           Unsafe.Coerce
@@ -24,13 +26,13 @@ liftOrdering EQ = error "'liftOrdering': 'Eq'"
 liftOrdering GT = GGT
 
 -- | Contains a proof that @a@ is a 'KnownType'.
-data AsKnownType a where
-    AsKnownType :: KnownType a => AsKnownType a
+data AsKnownType uni a where
+    AsKnownType :: KnownType uni a => AsKnownType uni a
 
-instance Pretty (AsKnownType a) where
-    pretty a@AsKnownType = pretty $ toTypeAst a
+instance GShow uni => Pretty (AsKnownType uni a) where
+    pretty a@AsKnownType = pretty $ toTypeAst @uni a
 
-instance GEq AsKnownType where
+instance GShow uni => GEq (AsKnownType uni) where
     a `geq` b = do
         -- TODO: there is a HUGE problem here. @EvaluationResult a@ and @a@ have the same string
         -- representation currently, so we need to either fix that or come up with a more sensible
@@ -41,11 +43,11 @@ instance GEq AsKnownType where
         guard $ prettyString a == prettyString b
         Just $ unsafeCoerce Refl
 
-instance GCompare AsKnownType where
+instance GShow uni => GCompare (AsKnownType uni) where
     a `gcompare` b
         | Just Refl <- a `geq` b = GEQ
         | otherwise              = liftOrdering $ prettyString a `compare` prettyString b
 
 -- | Turn any @proxy a@ into an @AsKnownType a@ provided @a@ is a 'KnownType'.
-proxyAsKnownType :: KnownType a => proxy a -> AsKnownType a
+proxyAsKnownType :: KnownType uni a => proxy a -> AsKnownType uni a
 proxyAsKnownType _ = AsKnownType

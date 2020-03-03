@@ -13,6 +13,7 @@
 , packageJSON
 , yarnLock
 , yarnNix
+, checkPhase ? "yarn --offline test"
 }:
 
 with pkgs;
@@ -37,7 +38,7 @@ let
                                                   src;
 
 in yarn2nix-moretea.mkYarnPackage {
-  inherit name packageJSON yarnLock yarnNix;
+  inherit name packageJSON yarnLock yarnNix checkPhase;
   src = cleanSrcs;
   nodejs = nodejs-10_x;
 
@@ -91,10 +92,6 @@ in yarn2nix-moretea.mkYarnPackage {
   '';
 
   doCheck = true;
-
-  checkPhase = ''
-    node -e 'require("./output/Test.Main").main()'
-  '';
 
   distPhase = ''
     true

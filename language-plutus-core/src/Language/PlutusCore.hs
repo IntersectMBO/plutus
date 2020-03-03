@@ -1,3 +1,6 @@
+-- Why is it needed here, but not in 'Universe.hs'?
+{-# LANGUAGE ExplicitNamespaces #-}
+
 module Language.PlutusCore
     (
       -- * Parser
@@ -9,13 +12,29 @@ module Language.PlutusCore
     , parseProgram
     , parseTerm
     , parseType
+    -- * Universe
+    , Some (..)
+    , TypeIn (..)
+    , ValueOf (..)
+    , someValue
+    , Includes (..)
+    , Closed (..)
+    , knownUniOf
+    , GShow (..)
+    , show
+    , GEq (..)
+    , deriveGEq
+    , (:~:) (..)
+    , Lift
+    , GLift (..)
+    , type (<:)
+    , DefaultUni (..)
     -- * AST
     , Term (..)
     , termSubterms
     , termSubtypes
     , Type (..)
     , typeSubtypes
-    , Constant (..)
     , Builtin (..)
     , Kind (..)
     , ParseError (..)
@@ -29,7 +48,6 @@ module Language.PlutusCore
     , BuiltinName (..)
     , DynamicBuiltinName (..)
     , StagedBuiltinName (..)
-    , TypeBuiltin (..)
     , Normalized (..)
     , defaultVersion
     , allBuiltinNames
@@ -116,6 +134,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
 import           Language.PlutusCore.TypeCheck             as TypeCheck
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
 import           Control.Monad.Except
@@ -130,7 +149,7 @@ fileType = fileNormalizeType False
 fileNormalizeType :: Bool -> FilePath -> IO T.Text
 fileNormalizeType norm = fmap (either prettyErr id . printNormalizeType norm) . BSL.readFile
     where
-        prettyErr :: Error AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni AlexPosn -> T.Text
         prettyErr = prettyPlcDefText
 
 -- | Given a file, display
@@ -139,14 +158,14 @@ fileNormalizeType norm = fmap (either prettyErr id . printNormalizeType norm) . 
 fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni AlexPosn -> T.Text
         prettyErr = prettyTextBy cfg
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e AlexPosn,
+        AsTypeError e DefaultUni AlexPosn,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -156,7 +175,7 @@ printType = printNormalizeType False
 printNormalizeType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e AlexPosn,
+        AsTypeError e DefaultUni AlexPosn,
         MonadError e m)
     => Bool
     -> BSL.ByteString
@@ -173,7 +192,7 @@ parseScoped
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
-    -> m (Program TyName Name AlexPosn)
+    -> m (Program TyName Name DefaultUni AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
@@ -181,35 +200,42 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsNormCheckError e TyName Name AlexPosn,
-        AsTypeError e AlexPosn,
+        AsNormCheckError e TyName Name DefaultUni AlexPosn,
+        AsTypeError e DefaultUni AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig -> BSL.ByteString -> m (Normalized (Type TyName ()))
+    => TypeCheckConfig DefaultUni -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsNormCheckError e TyName Name a,
-        AsTypeError e a,
+    :: (AsNormCheckError e TyName Name DefaultUni a,
+        AsTypeError e DefaultUni a,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig
-    -> Program TyName Name a
-    -> m (Normalized (Type TyName ()))
+    => TypeCheckConfig DefaultUni
+    -> Program TyName Name DefaultUni a
+    -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
 
+parseProgramDef
+    :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m)
+    => BSL.ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+parseProgramDef = parseProgram
+
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
-formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgram)
+formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgramDef)
 
-format :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+format
+    :: (AsParseError e AlexPosn, MonadError e m)
+    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 -- don't use parseScoped since we don't bother running sanity checks when we format
-format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgram)
+format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
-applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
+applyProgram :: Program tyname name uni () -> Program tyname name uni () -> Program tyname name uni ()
 -- TODO: some kind of version checking
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)

@@ -4,10 +4,12 @@ import Prelude
 import Control.Alternative ((<|>))
 import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
+import Data.Maybe (fromMaybe)
+import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Marlowe.Gen (genAction, genContract, genObservation, genTransactionWarning, genValue)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Action, Contract, Observation, Value)
-import Marlowe.Parser (action, contract, observation, transactionWarning, value)
+import Marlowe.Parser (action, observation, parseContract, transactionWarning, value)
 import Marlowe.Semantics (TransactionWarning)
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.Unit (TestSuite, Test, suite, test)
@@ -94,7 +96,9 @@ contractParser :: GenWithHoles Result
 contractParser = do
   v <- genContract
   let
-    result = runParser (parens contract <|> contract) (show v)
+    contractWithNoParens = fromMaybe (show v) (stripPrefix (Pattern "(") (show v) >>= stripSuffix (Pattern ")"))
+
+    result = parseContract contractWithNoParens
 
     (expected :: Either String Contract) = Right v
   pure (show result === show expected)
@@ -103,7 +107,11 @@ prettyContractParser :: GenWithHoles Result
 prettyContractParser = do
   v <- genContract
   let
-    result = runParser (parens contract <|> contract) (show $ genericPretty v)
+    prettyContract = trim <<< show <<< genericPretty $ v
+
+    contractWithNoParens = fromMaybe prettyContract (stripPrefix (Pattern "(") prettyContract >>= stripSuffix (Pattern ")"))
+
+    result = parseContract contractWithNoParens
 
     (expected :: Either String Contract) = Right v
   pure (show result === show expected)

@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -16,13 +17,14 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     , MultiSigSchema
     , contract
     , lock
-    , validator
+    , scriptInstance
     , validate
     ) where
 
 import           Control.Monad                (void)
 import           Language.Plutus.Contract
-import qualified Language.Plutus.Contract.Tx  as Tx
+import qualified Ledger.Constraints           as Constraints
+import qualified Language.Plutus.Contract.Typed.Tx  as Tx
 import           Language.PlutusTx.Prelude    hiding (Semigroup(..), foldMap)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger
@@ -50,32 +52,39 @@ PlutusTx.makeLift ''MultiSig
 contract :: AsContractError e => Contract MultiSigSchema e ()
 contract = (lock <|> unlock) >> contract
 
+{-# INLINABLE validate #-}
 validate :: MultiSig -> () -> () -> PendingTx -> Bool
 validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy p) signatories)
     in traceIfFalseH "not enough signatures" (present >= minNumSignatures)
 
-validator :: MultiSig -> Validator
-validator sig = mkValidatorScript $
-    $$(PlutusTx.compile [|| validatorParam ||])
-        `PlutusTx.applyCode`
-            PlutusTx.liftCode sig
-    where validatorParam s = Scripts.wrapValidator (validate s)
+instance Scripts.ScriptType MultiSig where
+    type instance RedeemerType MultiSig = ()
+    type instance DataType MultiSig = ()
+
+scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
+scriptInstance ms = 
+    let wrap = Scripts.wrapValidator @() @() in
+    Scripts.validator @MultiSig
+        ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode ms)
+        $$(PlutusTx.compile [|| wrap ||])
+    
 
 -- | Lock some funds in a 'MultiSig' contract.
 lock :: AsContractError e => Contract MultiSigSchema e ()
 lock = do
     (ms, vl) <- endpoint @"lock"
-    let tx = payToScript vl (Ledger.scriptAddress (validator ms)) unitData
-    void  $ submitTx tx
+    let tx = Constraints.mustPayToTheScript () vl
+    let inst = scriptInstance ms
+    void $ submitTxConstraints inst tx
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
 --   of signatures.
 unlock :: AsContractError e => Contract MultiSigSchema e ()
 unlock = do
     (ms, pks) <- endpoint @"unlock"
-    let val = validator ms
-    utx <- utxoAt (Ledger.scriptAddress val)
-    let tx = collectFromScript utx val unitRedeemer
-                <> foldMap Tx.mustBeSignedBy pks
-    void $ submitTx tx
+    let inst = scriptInstance ms
+    utx <- utxoAt (Scripts.scriptAddress inst)
+    let tx = Tx.collectFromScript utx ()
+                <> foldMap Constraints.mustBeSignedBy pks
+    void $ submitTxConstraintsSpending inst utx tx

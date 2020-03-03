@@ -19,40 +19,43 @@
 -- Of note in this module is the use of 'nullProjection' as a way of
 -- ignoring the 'state'.
 module Plutus.SCB.Command
-    ( saveTxAggregate
-    , saveRequestResponseAggregate
+    ( installCommand
+    , saveBalancedTx
+    , saveBalancedTxResult
+    , saveContractState
     ) where
 
-import           Data.Maybe        (catMaybes)
 import           Eventful          (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
-import           Plutus.SCB.Events (ChainEvent (..), ContractRequest, ContractResponse, RequestEvent, ResponseEvent,
-                                    Tx (Tx), entries)
+import qualified Ledger
+import           Plutus.SCB.Events (ChainEvent (UserEvent), UserEvent (ContractStateTransition, InstallContract))
+import qualified Plutus.SCB.Events as Events
 import           Plutus.SCB.Query  (nullProjection)
+import           Plutus.SCB.Types  (ActiveContractState, Contract)
 
--- | Turns a mock transaction into two mock entries.
---
--- Like all the mock code, this is here to exercise the framework
--- while we wait for real events, so the question, "Should 'Tx' be a
--- single event?" is moot.
-saveTxAggregate :: Aggregate () ChainEvent Tx
-saveTxAggregate =
+installCommand :: Aggregate () ChainEvent Contract
+installCommand =
     Aggregate
         { aggregateProjection = nullProjection
-        , aggregateCommandHandler = \() Tx {entries} -> RecordEntry <$> entries
+        , aggregateCommandHandler =
+              \() contract -> [UserEvent $ InstallContract contract]
         }
 
--- | Stores a request, and its possible response and/or cancellation,
--- as the appropriate set of events.
-saveRequestResponseAggregate ::
-       Aggregate () ChainEvent ( RequestEvent ContractRequest
-                               , Maybe (RequestEvent ContractRequest)
-                               , Maybe (ResponseEvent ContractResponse))
-saveRequestResponseAggregate =
+saveBalancedTx :: Aggregate () ChainEvent Ledger.Tx
+saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
+  where
+    aggregateProjection = nullProjection
+    aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
+
+saveBalancedTxResult :: Aggregate () ChainEvent Ledger.Tx
+saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
+  where
+    aggregateProjection = nullProjection
+    aggregateCommandHandler _ tx =
+        [Events.NodeEvent $ Events.SubmittedTx tx]
+
+saveContractState :: Aggregate () ChainEvent ActiveContractState
+saveContractState =
     Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
   where
-    aggregateCommandHandler _ (request, mCancellation, mResponse) =
-        catMaybes
-            [ Just $ RecordRequest request
-            , RecordRequest <$> mCancellation
-            , RecordResponse <$> mResponse
-            ]
+    aggregateCommandHandler _ state =
+        [UserEvent $ ContractStateTransition state]

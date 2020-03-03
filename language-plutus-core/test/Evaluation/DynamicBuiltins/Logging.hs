@@ -2,17 +2,21 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Evaluation.DynamicBuiltins.Logging
     ( test_logging
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
 
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.StdLib.Data.List               as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 
@@ -27,20 +31,27 @@ import           Test.Tasty.HUnit
 dynamicIntegerToStringName :: DynamicBuiltinName
 dynamicIntegerToStringName = DynamicBuiltinName "integerToString"
 
-dynamicIntegerToStringMeaning :: DynamicBuiltinNameMeaning
+dynamicIntegerToStringMeaning
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    => DynamicBuiltinNameMeaning uni
 dynamicIntegerToStringMeaning = DynamicBuiltinNameMeaning sch show (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
 
-dynamicIntegerToString :: Term tyname name ()
+dynamicIntegerToString :: Term tyname name uni ()
 dynamicIntegerToString = dynamicBuiltinNameAsTerm dynamicIntegerToStringName
 
-handleDynamicIntegerToString :: OnChainHandler "integerToString" f r r
+handleDynamicIntegerToString
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    => OnChainHandler "integerToString" f uni r r
 handleDynamicIntegerToString = handleDynamicByMeaning dynamicIntegerToStringMeaning
 
 evaluateHandlersCek
-    :: MonadError (Error ()) m
-    => (AnEvaluator (OnChain '[] Term) m EvaluationResultDef -> OnChainEvaluator names Term r)
-    -> OnChain names Term TyName Name ()
+    :: ( MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, Typeable uni, uni `Everywhere` Pretty
+       )
+    => (AnEvaluator (OnChain '[] Term) uni m (EvaluationResultDef uni) ->
+            OnChainEvaluator names Term uni r)
+    -> OnChain names Term TyName Name uni ()
     -> r
 evaluateHandlersCek = evaluateHandlersBy typecheckEvaluateCek
 
@@ -49,7 +60,7 @@ test_logInt = testCase "logInt" $ do
     let term
             = Apply () dynamicLog
             . Apply () dynamicIntegerToString
-            $ Constant () (BuiltinInt () 1)
+            $ mkConstant @Integer @DefaultUni () 1
 
     let eval1 = evaluateHandlersCek (handleDynamicIntegerToString . handleDynamicLog)
     let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntegerToString)
@@ -63,7 +74,7 @@ test_logInt = testCase "logInt" $ do
 test_logInts :: TestTree
 test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
-            let integer = TyBuiltin () TyInteger
+            let integer = mkTyBuiltin @Integer @DefaultUni ()
             u <- freshName () "u"
             x <- freshName () "x"
 
@@ -76,8 +87,8 @@ test_logInts = testCase "logInts" $ do
                       $ Var () x
                     , unitval
                     , mkIterApp () Plc.enumFromTo
-                        [ Constant () $ BuiltinInt () 1
-                        , Constant () $ BuiltinInt () 10
+                        [ mkConstant @Integer () 1
+                        , mkConstant @Integer () 10
                         ]
                     ]
 
@@ -87,8 +98,8 @@ test_logInts = testCase "logInts" $ do
     (logs2, errOrRes2) <- liftIO . eval2 $ OnChain term
     isRight errOrRes1 @?= True
     isRight errOrRes2 @?= True
-    logs1 @?= map show [1 .. 10 :: Integer]
-    logs2 @?= map show [1 .. 10 :: Integer]
+    logs1 @?= Prelude.map show [1 .. 10 :: Integer]
+    logs2 @?= Prelude.map show [1 .. 10 :: Integer]
 
 test_logging :: TestTree
 test_logging =

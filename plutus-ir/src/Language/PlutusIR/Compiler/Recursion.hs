@@ -65,10 +65,10 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
  -- See note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
 compileRecTerms
-    :: Compiling m e a
-    => PIRTerm a
-    -> NonEmpty (TermDef TyName Name (Provenance a))
-    -> DefT SharedName (Provenance a) m (PIRTerm a)
+    :: Compiling m e uni a
+    => PIRTerm uni a
+    -> NonEmpty (TermDef TyName Name uni (Provenance a))
+    -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
 compileRecTerms body bs = do
     p <- lift getEnclosing
     fixpoint <- mkFixpoint bs
@@ -76,9 +76,9 @@ compileRecTerms body bs = do
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint
-    :: forall m e a . Compiling m e a
-    => NonEmpty (TermDef TyName Name (Provenance a))
-    -> DefT SharedName (Provenance a) m (Tuple.Tuple (Term TyName Name) (Provenance a))
+    :: forall m e uni a . Compiling m e uni a
+    => NonEmpty (TermDef TyName Name uni (Provenance a))
+    -> DefT SharedName uni (Provenance a) m (Tuple.Tuple (Term TyName Name uni) uni (Provenance a))
 mkFixpoint bs = do
     p0 <- lift getEnclosing
 

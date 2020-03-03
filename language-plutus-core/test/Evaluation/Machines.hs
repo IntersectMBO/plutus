@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
+
 module Evaluation.Machines
     ( test_machines
     , test_memory
@@ -29,10 +32,10 @@ import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 testMachine
-    :: Pretty internal
+    :: (uni ~ DefaultUni, Pretty internal)
     => String
-    -> (  Term TyName Name ()
-       -> Either (EvaluationException internal user) (Term TyName Name ())
+    -> (  Term TyName Name uni ()
+       -> Either (EvaluationException uni internal user) (Term TyName Name uni ())
        )
     -> TestTree
 testMachine machine eval =
@@ -57,13 +60,13 @@ test_memory =
         $  stdLib
         <> examples
 
-testBudget :: TestName -> (Plain Term) -> TestNested
+testBudget :: TestName -> (Plain Term DefaultUni) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
-bunchOfFibs :: PlcFolderContents
+bunchOfFibs :: PlcFolderContents DefaultUni
 bunchOfFibs =
     let
         fibFile i = plcTermFile (show i) (naiveFib i)
@@ -79,7 +82,7 @@ test_budget =
                                  testBudget
         $ examples <> bunchOfFibs
 
-testCounting :: TestName -> (Plain Term) -> TestNested
+testCounting :: TestName -> (Plain Term DefaultUni) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name

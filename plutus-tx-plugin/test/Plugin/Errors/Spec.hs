@@ -12,9 +12,11 @@ import           Common
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
+
+import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.String
 
@@ -29,7 +31,7 @@ errors :: TestNested
 errors = testNested "Errors" [
     goldenPlcCatch "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
-    --, goldenPlcCatch "negativeInt" negativeInt
+    -- , goldenPlcCatch "negativeInt" negativeInt
     , goldenPlcCatch "caseInt" caseInt
     , goldenPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
@@ -38,18 +40,18 @@ errors = testNested "Errors" [
     , goldenPlcCatch "literalCaseOther" literalCaseOther
   ]
 
-machInt :: CompiledCode Int
+machInt :: CompiledCode PLC.DefaultUni Int
 machInt = plc @"machInt" (1::Int)
 
-negativeInt :: CompiledCode Integer
+negativeInt :: CompiledCode PLC.DefaultUni Integer
 negativeInt = plc @"negativeInt" (-1 :: Integer)
 
-caseInt :: CompiledCode (Integer -> Bool)
+caseInt :: CompiledCode PLC.DefaultUni (Integer -> Bool)
 caseInt = plc @"caseInt" (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
-recursiveNewtype :: CompiledCode (RecursiveNewtype)
+recursiveNewtype :: CompiledCode PLC.DefaultUni (RecursiveNewtype)
 recursiveNewtype = plc @"recursiveNewtype" (RecursiveNewtype [])
 
 {-# INLINABLE evenDirectLocal #-}
@@ -61,13 +63,13 @@ oddDirectLocal :: Integer -> Bool
 oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal (Builtins.subtractInteger n 1)
 
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
-mutualRecursionUnfoldingsLocal :: CompiledCode Bool
+mutualRecursionUnfoldingsLocal :: CompiledCode PLC.DefaultUni Bool
 mutualRecursionUnfoldingsLocal = plc @"mutualRecursionUnfoldingsLocal" (evenDirectLocal 4)
 
-literalCaseInt :: CompiledCode (Integer -> Integer)
+literalCaseInt :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 literalCaseInt = plc @"literalCaseInt" (\case { 1 -> 2; x -> x})
 
-literalCaseBs :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
+literalCaseBs :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString)
 literalCaseBs = plc @"literalCaseBs" (\x -> case x of { "abc" -> ""; x -> x})
 
 data AType = AType
@@ -80,5 +82,5 @@ instance Eq AType where
 
 -- Unfortunately, this actually succeeds, since the match gets turned into an equality and we can actually inline it.
 -- I'm leaving it here since I'd really prefer it were an error for consistency, but I'm not sure how to do that nicely.
-literalCaseOther :: CompiledCode (AType -> AType)
+literalCaseOther :: CompiledCode PLC.DefaultUni (AType -> AType)
 literalCaseOther = plc @"literalCaseOther" (\x -> case x of { "abc" -> ""; x -> x})

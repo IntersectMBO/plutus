@@ -4,6 +4,9 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
 module Language.PlutusTx.Compiler.Error (
     CompileError
     , Error (..)
@@ -32,7 +35,7 @@ data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
     deriving Functor
 makeClassyPrisms ''WithContext
 
-type CompileError = WithContext T.Text (Error ())
+type CompileError uni = WithContext T.Text (Error uni ())
 
 withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
@@ -59,30 +62,32 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             "Context:" PP.<+> (PP.align $ PP.pretty c)
             ]
 
-data Error a = PLCError (PLC.Error a)
-             | PIRError (PIR.Error (PIR.Provenance a))
-             | CompilationError T.Text
-             | UnsupportedError T.Text
-             | FreeVariableError T.Text
-             deriving Typeable
+data Error uni a = PLCError (PLC.Error uni a)
+                 | PIRError (PIR.Error uni (PIR.Provenance a))
+                 | CompilationError T.Text
+                 | UnsupportedError T.Text
+                 | FreeVariableError T.Text
+                 deriving Typeable
 makeClassyPrisms ''Error
 
-instance (PP.Pretty a) => PP.Pretty (Error a) where
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.Pretty, PP.Pretty a) =>
+            PP.Pretty (Error uni a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance PLC.AsTypeError CompileError () where
+instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1) uni2 () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
 
-instance PLC.AsNormCheckError CompileError PLC.TyName PLC.Name () where
+instance uni1 ~ uni2 => PLC.AsNormCheckError (CompileError uni1) PLC.TyName PLC.Name uni2 () where
     _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError
 
-instance PLC.AsUniqueError CompileError () where
+instance PLC.AsUniqueError (CompileError uni) () where
     _UniqueError = _NoContext . _PLCError . PLC._UniqueError
 
-instance PIR.AsError CompileError (PIR.Provenance ()) where
+instance uni1 ~ uni2 => PIR.AsError (CompileError uni1) uni2 (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
 
-instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.Pretty, PP.Pretty a) =>
+            PLC.PrettyBy PLC.PrettyConfigPlc (Error uni a) where
     prettyBy config = \case
         PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ]

@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -19,15 +20,17 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 , withMemory
 ) where
 
-import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
-import qualified Data.ByteString.Lazy          as BSL
-import qualified Data.Text                     as T
+import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.Kind                    as GHC
+import           Data.Proxy
+import qualified Data.Text                    as T
 import           Foreign.Storable
-
 import           GHC.Generics
 
 {- Note [Memory Usage for Plutus]
@@ -41,9 +44,9 @@ abstractily specifiable. It's an implementation detail.
 
 -}
 
-type Plain f = f TyName Name ()
+type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
-type WithMemory f = f TyName Name ExMemory
+type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -90,19 +93,27 @@ instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUs
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-deriving via (GenericExMemoryUsage (Constant ann)) instance ExMemoryUsage ann => ExMemoryUsage (Constant ann)
 deriving via (GenericExMemoryUsage (Name ann)) instance ExMemoryUsage ann => ExMemoryUsage (Name ann)
-deriving via (GenericExMemoryUsage TypeBuiltin) instance ExMemoryUsage TypeBuiltin
-deriving via (GenericExMemoryUsage (Type TyName ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName ann)
+deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
 deriving via (GenericExMemoryUsage (Builtin ann)) instance ExMemoryUsage ann => ExMemoryUsage (Builtin ann)
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Plain Term)) instance ExMemoryUsage (Plain Term)
-deriving via (GenericExMemoryUsage (WithMemory Term)) instance ExMemoryUsage (WithMemory Term)
+deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
+  instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
+    ExMemoryUsage (Term TyName Name uni ann)
 deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
+
+-- See https://github.com/input-output-hk/plutus/issues/1861
+instance ExMemoryUsage (Some (TypeIn uni)) where
+  memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+
+-- See https://github.com/input-output-hk/plutus/issues/1861
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
+  -- TODO this is just to match up with existing golden tests. We probably need to account for @uni@ as well.
+  memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
 
 instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
@@ -117,6 +128,9 @@ instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
 
 instance ExMemoryUsage Int where
+  memoryUsage _ = 1
+
+instance ExMemoryUsage Char where
   memoryUsage _ = 1
 
 instance ExMemoryUsage String where

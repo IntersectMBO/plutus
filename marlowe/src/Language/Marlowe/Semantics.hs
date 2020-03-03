@@ -1,15 +1,16 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DefaultSignatures  #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
 -- Big hammer, but helps
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
@@ -47,9 +48,10 @@ import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<>))
-import           Ledger                     (PubKeyHash (..), Slot (..), ValidatorHash)
+import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (DataValue (..))
+import           Ledger.Tx                  (TxOut (..), TxOutType (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol, TokenName)
 import qualified Ledger.Value               as Val
@@ -236,7 +238,7 @@ data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
-  deriving stock (Show)
+  deriving stock (Show,Read)
 
 
 {-| Execution environment. Contains a slot interval of a transaction.
@@ -687,8 +689,8 @@ validateInputWitness pendingTx rolesCurrency input =
 
 
 validateInputs :: MarloweParams -> PendingTx -> [Input] -> Bool
-validateInputs MarloweParams{..} pendingTx inputs =
-    all (validateInputWitness pendingTx rolesCurrency) inputs
+validateInputs MarloweParams{..} pendingTx =
+    all (validateInputWitness pendingTx rolesCurrency)
 
 
 -- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@
@@ -731,26 +733,26 @@ totalBalance accounts = foldMap
 validatePayments :: MarloweParams -> PendingTx -> [Payment] -> Bool
 validatePayments MarloweParams{..} pendingTx txOutPayments = all checkValidPayment listOfPayments
   where
-    collect :: Map Party Money -> PendingTxOut -> Map Party Money
-    collect outputs PendingTxOut{..} =
-        case pendingTxOutType of
-            PubKeyTxOut pubKeyHash -> let
-                party = PK pubKeyHash
-                curValue = fromMaybe zero (Map.lookup party outputs)
-                newValue = pendingTxOutValue + curValue
-                in Map.insert party newValue outputs
-            ScriptTxOut validatorHash dataValueHash | validatorHash == rolePayoutValidatorHash ->
+    collect :: Map Party Money -> TxOut -> Map Party Money
+    collect outputs TxOut{txOutAddress=PubKeyAddress pubKeyHash, txOutValue} =
+        let
+            party = PK pubKeyHash
+            curValue = fromMaybe zero (Map.lookup party outputs)
+            newValue = txOutValue + curValue
+        in Map.insert party newValue outputs
+    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript dataValueHash}
+        | validatorHash == rolePayoutValidatorHash =
                 case findData dataValueHash pendingTx of
                     Just (DataValue dv) ->
                         case PlutusTx.fromData dv of
                             Just (currency, role) | currency == rolesCurrency -> let
                                 party = Role role
                                 curValue = fromMaybe zero (Map.lookup party outputs)
-                                newValue = pendingTxOutValue + curValue
+                                newValue = txOutValue + curValue
                                 in Map.insert party newValue outputs
                             _ -> outputs
                     Nothing -> outputs
-            _ -> outputs
+    collect outputs _ = outputs
 
     collectPayments :: Map Party Money -> Payment -> Map Party Money
     collectPayments payments (Payment party money) = let
@@ -794,9 +796,9 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
   where
     validateContinuation txOutPayments txOutState txOutContract =
         case getContinuingOutputs pendingTx of
-            [PendingTxOut
-                { pendingTxOutType = (ScriptTxOut _ dsh)
-                , pendingTxOutValue = scriptOutputValue
+            [TxOut
+                { txOutType = (PayToScript dsh)
+                , txOutValue = scriptOutputValue
                 }] | Just (DataValue ds) <- findData dsh pendingTx ->
 
                 case PlutusTx.fromData ds of

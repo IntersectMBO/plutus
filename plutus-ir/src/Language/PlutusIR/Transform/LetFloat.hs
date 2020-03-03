@@ -170,14 +170,14 @@ type FloatData = [(Int, --  the depth (starting from 0, which is Top)
                  )]
 
 -- | First-pass: Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding maximum rank.
-p1Term ::  forall name tyname a
+p1Term ::  forall name tyname uni a
         . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-        => Term tyname name a -> FloatData
+        => Term tyname name uni a -> FloatData
 p1Term pir = toFloatData $ runReader
                            (goTerm pir)
                            (M.empty, Top^.depth) -- starting from toplevel depth: 0
   where
-    goTerm :: Term tyname name a
+    goTerm :: Term tyname name uni a
         -> Reader P1Ctx P1Data
     goTerm = \case
       LamAbs _ n _ tBody  -> goBody n tBody
@@ -195,7 +195,7 @@ p1Term pir = toFloatData $ runReader
       -- "ground" terms (terms that do not contain other terms)
       _ -> asks fst -- the ctx's p1data is propagated back outwards as the return value
 
-    goBody :: PLC.HasUnique b b' => b -> Term tyname name a -> Reader P1Ctx P1Data
+    goBody :: PLC.HasUnique b b' => b -> Term tyname name uni a -> Reader P1Ctx P1Data
     goBody n tBody =
       let lamName= n^.PLC.unique.coerced
       in M.delete lamName -- this trick removes any lamrank from the final value, since we don't care about lambdas in the final pass1 result (P1Data)
@@ -206,7 +206,7 @@ p1Term pir = toFloatData $ runReader
                         in (newScope, newDepth))
                     $ goTerm tBody)
 
-    goRec :: [Binding tyname name a] -> Term tyname name a -> Reader P1Ctx P1Data
+    goRec :: [Binding tyname name uni a] -> Term tyname name uni a -> Reader P1Ctx P1Data
     goRec bs tIn = do
         -- the freevars is the union of each binding's freeVars,
         -- excluding the newly-introduced binding identifiers of this letrec
@@ -218,7 +218,7 @@ p1Term pir = toFloatData $ runReader
         resIn <- withScope newScope $ goTerm tIn
         pure $ resBs <> resIn
 
-    goNonRec :: [Binding tyname name a] -> Term tyname name a -> Reader P1Ctx P1Data
+    goNonRec :: [Binding tyname name uni a] -> Term tyname name uni a -> Reader P1Ctx P1Data
     goNonRec bs tIn =
       foldr (\ b acc -> do
            -- this means that we see each binding individually, not at the whole let level
@@ -234,7 +234,7 @@ p1Term pir = toFloatData $ runReader
     -- | Given a set of bindings and the union set of their free-variables,
     -- compute the maximum 'Rank' among all the free-variables,
     -- and increase the current scope ('P1Data') by inserting mappings of each new let-identifier to this maximum rank
-    addRanks :: [Binding tyname name a] -- ^ bindings
+    addRanks :: [Binding tyname name uni a] -- ^ bindings
              -> S.Set PLC.Unique -- ^ their free-vars
              -> Reader P1Ctx P1Data -- ^ the updated scope that includes the added ranks
     addRanks bs freeVars = do
@@ -270,27 +270,27 @@ p1Term pir = toFloatData $ runReader
 --
 -- Note that in case of a datatype-let (which has multiple identifiers&bindings), we add a table entry for each identifier of that datatype.
 -- The multi-let-grouppings of the initial PIR program do not exist anymore in this representation.
-type RhsTable tyname name a = M.Map
+type RhsTable tyname name uni a = M.Map
                               PLC.Unique
-                              (Rhs tyname name a)
+                              (Rhs tyname name uni a)
 
 -- | An Rhs is a triple of Annotation, Recursivity, and its Binding.
 --
 -- If the RHS was prior belonging to a larger let-group, its Recursivity&Annotation is copied from the let-group's Recursivity&Annotation.
 -- In other words the same Recursivity&Annotation is shared among the let-identifiers that were beloning to the same let-group.
-type Rhs tyname name ann = (ann, Recursivity, Binding tyname name ann)
+type Rhs tyname name uni ann = (ann, Recursivity, Binding tyname name uni ann)
 
 -- | This function takes a 'Term', cleans the 'Term' from all its 'Let'-bindings and stores those lets into a separate table.
 -- Note that the output term is most-likely not a valid PIR program anymore, because it contains free unbound variables.
 --
 -- OPTIMIZE: this traversal may potentially be included/combined with the pass1.
-removeLets :: forall name tyname a
+removeLets :: forall name tyname uni a
             . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-           => Term tyname name a
-           -> (Term tyname name a, RhsTable tyname name a)
+           => Term tyname name uni a
+           -> (Term tyname name uni a, RhsTable tyname name uni a)
 removeLets = flip runState M.empty . go
  where
-   go :: Term tyname name a -> State (RhsTable tyname name a) (Term tyname name a)
+   go :: Term tyname name uni a -> State (RhsTable tyname name uni a) (Term tyname name uni a)
    go = \case
          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
          Let a r bs tIn -> do
@@ -306,16 +306,16 @@ removeLets = flip runState M.empty . go
 --
 -- OPTIMIZE: We could potentially replace the pure descending ('Reader FloatData') of the 2nd pass, to 'State FloatData'. In such a case
 -- this transformation might stop earlier, when the state becomes empty: i.e. no let-rhses are left to float.
-p2Term :: forall name tyname a
+p2Term :: forall name tyname uni a
        . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
-      => Term tyname name a --
+      => Term tyname name uni a --
       -> FloatData
-      -> Term tyname name a
+      -> Term tyname name uni a
 p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any lets around the top-level expression (body)
  where
   -- | Prior to starting the second pass, we clean the term from all its let-declarations and store them separately in a table.
   -- The 2nd pass will later re-introduce these let-declarations, potentially placing them differently than before, thus essentially "floating the lets".
-  (pirClean :: Term tyname name a, rhsTable :: RhsTable tyname name a) = removeLets pir
+  (pirClean :: Term tyname name uni a, rhsTable :: RhsTable tyname name uni a) = removeLets pir
 
   -- 2nd-pass functions
   ---------------------
@@ -323,8 +323,8 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   -- | visit each term to apply the float transformation
   goTerm :: Int -- ^ current depth
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-         -> Term tyname name a
-         -> Term tyname name a
+         -> Term tyname name uni a
+         -> Term tyname name uni a
   goTerm curDepth searchTable = \case
       -- we are only interested in lambdas/Lambdas
       LamAbs a n ty tBody -> LamAbs a n ty $ goAbs curDepth searchTable n tBody
@@ -337,8 +337,8 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
         => Int -- ^ current depth
         -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
         -> b                  -- ^ lambda/Lambda's name
-        -> Term tyname name a -- ^ lambda/Lambda's body
-        -> Term tyname name a
+        -> Term tyname name uni a -- ^ lambda/Lambda's body
+        -> Term tyname name uni a
   goAbs oldDepth floatData n tBody =
     let newLam = LamDep (oldDepth+1) (n^.PLC.unique.coerced)
     in goFloat newLam tBody floatData
@@ -346,9 +346,9 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   -- | We are currently INSIDE (exactly under) a lambda/Lambda body/Top (Top if we are right at the start of the algorithm)
   -- We try to see if we have some lets to float here based on our 1st-pass-table data (searchTable).
   goFloat :: Rank -- ^ the rank/location of the lambda above that has this body
-         -> Term tyname name a                           -- ^ the body term
+         -> Term tyname name uni a                           -- ^ the body term
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-         -> Term tyname name a                           -- ^ the transformed body term
+         -> Term tyname name uni a                           -- ^ the transformed body term
   goFloat _ tBody [] = tBody
   goFloat aboveLamLoc tBody floatData@((searchingForDepth, searchingForLams_Lets) : restFloatData) =
     let curDepth = aboveLamLoc^.depth
@@ -397,8 +397,8 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   wrapLets :: S.Set PLC.Unique -- ^ all the let identifiers to wrap around this term
            -> Int -- ^ current depth
            -> FloatData -- ^ the remaining data to be floated
-           -> Term tyname name a                           -- ^ the term to be wrapped
-           -> Term tyname name a                           -- ^ the final wrapped term
+           -> Term tyname name uni a                           -- ^ the term to be wrapped
+           -> Term tyname name uni a                           -- ^ the final wrapped term
   wrapLets lets curDepth restDepthTable t =
     foldl (\ acc scc ->
              let vs = AMN.vertexSet scc
@@ -434,9 +434,9 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
 -- 2ndpass:  to remove all its lets and place them back (float them) in their maximum ranks (positions).
 --
 -- Note: this transformation requires that the PLC.rename compiler-pass has prior been run.
-floatTerm :: forall name tyname a
+floatTerm :: forall name tyname uni a
            . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
-          => Term tyname name a -> Term tyname name a
+          => Term tyname name uni a -> Term tyname name uni a
 floatTerm pir = p2Term pir
                 -- give the floatdata of the 1st pass to the start of the 2nd pass
               $ p1Term pir
@@ -448,10 +448,8 @@ floatTerm pir = p2Term pir
 -- | Returns a single 'Unique' for a particular binding.
 -- We need this because let-datatypes introduce multiple identifiers, but in our 'RhsTable', we use a single Unique as the key. See also: 'bindingIds'
 principal :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-            => Getting r (Binding tyname name a) PLC.Unique
+            => Getting r (Binding tyname name uni a) PLC.Unique
 principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced
                        TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
                        -- arbitrary: uses the match-function's unique as the principal unique of this data binding group
                        DatatypeBind _ (Datatype _ _ _ matchFunc _) -> matchFunc ^. PLC.unique . coerced
-
-

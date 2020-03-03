@@ -41,7 +41,7 @@ pair.
 
 For example, the 'WriteTx' interaction is defined as
 
-  type WriteTx = "tx" .== ((), [UnbalancedTx])
+  type WriteTx = "tx" .== ((), [LedgerTxConstraints])
 
 Meaning that the output produced by the contract (2nd element) is a list of
 unbalanced transactions, and the input the contract expects as a result (1st

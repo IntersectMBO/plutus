@@ -30,7 +30,7 @@ import Marlowe.Semantics (Timeout)
 import Text.Parsing.StringParser (Pos)
 
 type Position
-  = { start :: Pos, end :: Pos }
+  = { row :: Pos, column :: Pos }
 
 newtype MaxTimeout
   = MaxTimeout Timeout
@@ -99,13 +99,15 @@ _falseObservation = _Newtype <<< prop (SProxy :: SProxy "falseObservation")
 
 -- | We go through a contract term collecting all warnings and holes etc so that we can display them in the editor
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
+-- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
+-- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
 lint :: Term Contract -> State
 lint = go mempty
   where
   go :: State -> Term Contract -> State
-  go state (Term Close _ _) = state
+  go state (Term Close _) = state
 
-  go state (Term (Pay acc payee token payment contract) start end) =
+  go state (Term (Pay acc payee token payment contract) _) =
     let
       gatherHoles = getHoles acc <> getHoles payee <> getHoles token
 
@@ -116,16 +118,16 @@ lint = go mempty
     in
       go newState contract <> lintValue newState payment
 
-  go state (Term (If obs c1 c2) _ _) = go state c1 <> go state c2 <> lintObservation state obs
+  go state (Term (If obs c1 c2) _) = go state c1 <> go state c2 <> lintObservation state obs
 
-  go state (Term (When cases timeoutTerm contract) _ _) =
+  go state (Term (When cases timeoutTerm contract) _) =
     let
       (states /\ contracts) = collectFromTuples (map (lintCase state) cases)
 
       newState = case timeoutTerm of
-        (Term timeout start end) ->
+        (Term timeout { row, column }) ->
           let
-            timeoutNotIncreasing = if timeout > (view _maxTimeout state) then [] else [ { start, end } ]
+            timeoutNotIncreasing = if timeout > (view _maxTimeout state) then [] else [ { row, column } ]
           in
             (fold states)
               # over _holes (insertHole timeoutTerm)
@@ -137,14 +139,14 @@ lint = go mempty
     in
       foldMap (go newState) (contract : catMaybes contracts)
 
-  go state (Term (Let valueIdTerm value contract) _ _) =
+  go state (Term (Let valueIdTerm value contract) _) =
     let
       gatherHoles = getHoles valueIdTerm
 
       newState = case valueIdTerm of
-        (Term valueId start end) ->
+        (Term valueId { row, column }) ->
           let
-            shadowedLet = if Set.member valueId (view _letBindings state) then [ { start, end } ] else []
+            shadowedLet = if Set.member valueId (view _letBindings state) then [ { row, column } ] else []
           in
             state
               # over _holes gatherHoles
@@ -158,69 +160,69 @@ lint = go mempty
     in
       go newState contract <> lintValue newState value
 
-  go state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state
+  go state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 
 lintObservation :: State -> Term Observation -> State
-lintObservation state (Term (AndObs a b) _ _) = lintObservation state a <> lintObservation state b
+lintObservation state (Term (AndObs a b) _) = lintObservation state a <> lintObservation state b
 
-lintObservation state (Term (OrObs a b) _ _) = lintObservation state a <> lintObservation state b
+lintObservation state (Term (OrObs a b) _) = lintObservation state a <> lintObservation state b
 
-lintObservation state (Term (NotObs a) _ _) = lintObservation state a
+lintObservation state (Term (NotObs a) _) = lintObservation state a
 
-lintObservation state (Term (ChoseSomething choiceId) _ _) = over _holes (getHoles choiceId) state
+lintObservation state (Term (ChoseSomething choiceId) _) = over _holes (getHoles choiceId) state
 
-lintObservation state (Term (ValueGE a b) _ _) = lintValue state a <> lintValue state b
+lintObservation state (Term (ValueGE a b) _) = lintValue state a <> lintValue state b
 
-lintObservation state (Term (ValueGT a b) _ _) = lintValue state a <> lintValue state b
+lintObservation state (Term (ValueGT a b) _) = lintValue state a <> lintValue state b
 
-lintObservation state (Term (ValueLT a b) _ _) = lintValue state a <> lintValue state b
+lintObservation state (Term (ValueLT a b) _) = lintValue state a <> lintValue state b
 
-lintObservation state (Term (ValueLE a b) _ _) = lintValue state a <> lintValue state b
+lintObservation state (Term (ValueLE a b) _) = lintValue state a <> lintValue state b
 
-lintObservation state (Term (ValueEQ a b) _ _) = lintValue state a <> lintValue state b
+lintObservation state (Term (ValueEQ a b) _) = lintValue state a <> lintValue state b
 
-lintObservation state (Term TrueObs start end) = over _trueObservation (cons { start, end }) state
+lintObservation state (Term TrueObs { row, column }) = over _trueObservation (cons { row, column }) state
 
-lintObservation state (Term FalseObs start end) = over _falseObservation (cons { start, end }) state
+lintObservation state (Term FalseObs { row, column }) = over _falseObservation (cons { row, column }) state
 
-lintObservation state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state
+lintObservation state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 
 lintValue :: State -> Term Value -> State
-lintValue state (Term (AvailableMoney acc token) _ _) =
+lintValue state (Term (AvailableMoney acc token) _) =
   let
     gatherHoles = getHoles acc <> getHoles token
   in
     over _holes (gatherHoles) state
 
-lintValue state (Term (Constant a) _ _) = over _holes (insertHole a) state
+lintValue state (Term (Constant a) _) = over _holes (insertHole a) state
 
-lintValue state (Term (NegValue a) _ _) = lintValue state a
+lintValue state (Term (NegValue a) _) = lintValue state a
 
-lintValue state (Term (AddValue a b) _ _) = lintValue state a <> lintValue state b
+lintValue state (Term (AddValue a b) _) = lintValue state a <> lintValue state b
 
-lintValue state (Term (SubValue a b) _ _) = lintValue state a <> lintValue state b
+lintValue state (Term (SubValue a b) _) = lintValue state a <> lintValue state b
 
-lintValue state (Term (ChoiceValue choiceId a) _ _) =
+lintValue state (Term (ChoiceValue choiceId a) _) =
   let
     newState = over _holes (getHoles choiceId) state
   in
     lintValue newState a
 
-lintValue state (Term SlotIntervalStart _ _) = state
+lintValue state (Term SlotIntervalStart _) = state
 
-lintValue state (Term SlotIntervalEnd _ _) = state
+lintValue state (Term SlotIntervalEnd _) = state
 
-lintValue state (Term (UseValue (Term valueId start end)) _ _) =
+lintValue state (Term (UseValue (Term valueId { row, column })) _) =
   let
-    uninitializedUse = if Set.member valueId (view _letBindings state) then [] else [ { start, end } ]
+    uninitializedUse = if Set.member valueId (view _letBindings state) then [] else [ { row, column } ]
   in
     state
       # over _holes (getHoles valueId)
       # over _uninitializedUse (append uninitializedUse)
 
-lintValue state (Term (UseValue hole) _ _) = over _holes (insertHole hole) state
+lintValue state (Term (UseValue hole) _) = over _holes (insertHole hole) state
 
-lintValue state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state
+lintValue state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 
 maybeCons :: forall a. Maybe a -> Array a -> Array a
 maybeCons Nothing xs = xs
@@ -231,7 +233,7 @@ collectFromTuples :: forall a b. Array (a /\ b) -> Array a /\ Array b
 collectFromTuples = foldMap (\(a /\ b) -> [ a ] /\ [ b ])
 
 lintCase :: State -> Term Case -> State /\ Maybe (Term Contract)
-lintCase state (Term (Case action contract) _ _) =
+lintCase state (Term (Case action contract) _) =
   let
     newState =
       state
@@ -239,10 +241,10 @@ lintCase state (Term (Case action contract) _ _) =
   in
     lintAction newState action /\ Just contract
 
-lintCase state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state /\ Nothing
+lintCase state hole@(Hole _ _ _) = over _holes (insertHole hole) state /\ Nothing
 
 lintAction :: State -> Term Action -> State
-lintAction state (Term (Deposit acc party token value) _ _) =
+lintAction state (Term (Deposit acc party token value) _) =
   let
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
 
@@ -250,35 +252,35 @@ lintAction state (Term (Deposit acc party token value) _ _) =
   in
     lintValue newState value
 
-lintAction state (Term (Choice choiceId bounds) _ _) = over _holes (getHoles choiceId <> getHoles bounds) state
+lintAction state (Term (Choice choiceId bounds) _) = over _holes (getHoles choiceId <> getHoles bounds) state
 
-lintAction state (Term (Notify obs) _ _) = lintObservation state obs
+lintAction state (Term (Notify obs) _) = lintObservation state obs
 
-lintAction state hole@(Hole _ _ _ _) = over _holes (insertHole hole) state
+lintAction state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 
 negativeDeposit :: Term Action -> Maybe Position
-negativeDeposit (Term (Deposit _ _ _ value) _ _) = negativeValue value
+negativeDeposit (Term (Deposit _ _ _ value) _) = negativeValue value
 
 negativeDeposit _ = Nothing
 
 negativeValue :: Term Value -> Maybe Position
-negativeValue term@(Term _ start end) = case constantValue term of
+negativeValue term@(Term _ { row, column }) = case constantValue term of
   Nothing -> Nothing
-  Just v -> if v < zero then Just { start, end } else Nothing
+  Just v -> if v < zero then Just { row, column } else Nothing
 
 negativeValue _ = Nothing
 
 constantValue :: Term Value -> Maybe BigInteger
-constantValue (Term (Constant (Term v _ _)) _ _) = Just v
+constantValue (Term (Constant (Term v _)) _) = Just v
 
-constantValue (Term (NegValue v) _ _) = negate <$> constantValue v
+constantValue (Term (NegValue v) _) = negate <$> constantValue v
 
-constantValue (Term (AddValue a b) _ _) = do
+constantValue (Term (AddValue a b) _) = do
   va <- constantValue a
   vb <- constantValue b
   pure (va + vb)
 
-constantValue (Term (SubValue a b) _ _) = do
+constantValue (Term (SubValue a b) _) = do
   va <- constantValue a
   vb <- constantValue b
   pure (va - vb)

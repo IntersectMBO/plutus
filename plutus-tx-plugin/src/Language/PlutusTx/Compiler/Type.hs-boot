@@ -7,7 +7,7 @@ import Language.PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 
-compileTypeNorm :: Compiling m => GHC.Type -> m PIRType
-compileType :: Compiling m => GHC.Type -> m PIRType
+compileTypeNorm :: Compiling uni m => GHC.Type -> m (PIRType uni)
+compileType :: Compiling uni m => GHC.Type -> m (PIRType uni)
 
-getMatchInstantiated :: Compiling m => GHC.Type -> m PIRTerm
+getMatchInstantiated :: Compiling uni m => GHC.Type -> m (PIRTerm uni)

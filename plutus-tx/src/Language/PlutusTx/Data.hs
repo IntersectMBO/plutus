@@ -30,7 +30,7 @@ data Data =
     | Map [(Data, Data)]
     | List [Data]
     | I Integer
-    | B ByteString
+    | B BSL.ByteString
     deriving stock (Show, Eq, Ord, Generic)
 
 instance Pretty Data where
@@ -61,7 +61,7 @@ viewMap (CBOR.TMap m)  = Just m
 viewMap (CBOR.TMapI m) = Just m
 viewMap _              = Nothing
 
-viewBytes :: CBOR.Term -> Maybe ByteString
+viewBytes :: CBOR.Term -> Maybe BSL.ByteString
 viewBytes (CBOR.TBytes b)  = Just (BSL.fromStrict b)
 viewBytes (CBOR.TBytesI b) = Just b
 viewBytes _                = Nothing

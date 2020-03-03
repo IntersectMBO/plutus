@@ -13,12 +13,14 @@ import           Plugin.Lib
 
 import           Plugin.Data.Spec
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
-import qualified Language.PlutusTx.Prelude  as P
+import qualified Language.PlutusTx.Prelude    as P
 
 import           Plugin.Typeclasses.Lib
+
+import qualified Language.PlutusCore.Universe as PLC
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -44,10 +46,10 @@ instance (Sized a, Sized b) => Sized (a, b) where
     {-# INLINABLE size #-}
     size (a, b) = size a `Builtins.addInteger` size b
 
-sizedBasic :: CompiledCode (Integer -> Integer)
+sizedBasic :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 sizedBasic = plc @"sizedBasic" (\(a::Integer) -> size a)
 
-sizedPair :: CompiledCode (Integer -> Integer -> Integer)
+sizedPair :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
 sizedPair = plc @"sizedPair" (\(a::Integer) (b::Integer) -> size (a, b))
 
 -- This has multiple methods, so will have to be passed as a dictionary
@@ -71,7 +73,7 @@ instance PersonLike Alien where
     likesAnimal AlienJane Dog = True
     likesAnimal _ _           = False
 
-multiFunction :: CompiledCode (Person -> Bool)
+multiFunction :: CompiledCode PLC.DefaultUni (Person -> Bool)
 multiFunction = plc @"multiFunction" (
     let
         {-# NOINLINE predicate #-}
@@ -79,7 +81,7 @@ multiFunction = plc @"multiFunction" (
         predicate p = likesAnimal p Cat P.&& (age p `Builtins.greaterThanInteger` 30)
     in \(p::Person) -> predicate p)
 
-defaultMethods :: CompiledCode (Integer -> Integer)
+defaultMethods :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 defaultMethods = plc @"defaultMethods" (
     let
         {-# NOINLINE f #-}
@@ -87,10 +89,10 @@ defaultMethods = plc @"defaultMethods" (
         f a = method2 a
     in \(a::Integer) -> f a)
 
-partialApplication :: CompiledCode (Integer -> Integer -> Ordering)
+partialApplication :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Ordering)
 partialApplication = plc @"partialApplication" (P.compare @Integer)
 
-sequenceTest :: CompiledCode (Maybe [Integer])
+sequenceTest :: CompiledCode PLC.DefaultUni (Maybe [Integer])
 sequenceTest = plc @"sequenceTests" (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
 
 opCompare :: P.Ord a => a -> a -> Ordering
@@ -99,5 +101,5 @@ opCompare a b = case P.compare a b of
     EQ -> EQ
     GT -> LT
 
-compareTest :: CompiledCode (Ordering)
+compareTest :: CompiledCode PLC.DefaultUni (Ordering)
 compareTest = plc @"compareTest" (opCompare (1::Integer) (2::Integer))

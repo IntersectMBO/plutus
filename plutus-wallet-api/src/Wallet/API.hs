@@ -9,9 +9,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -20,6 +18,7 @@
 module Wallet.API(
     WalletAPI(..),
     NodeAPI(..),
+    ChainIndexAPI(..),
     WalletDiagnostics(..),
     MonadWallet,
     PubKey(..),
@@ -67,7 +66,8 @@ module Wallet.API(
 
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
-import           Control.Monad.Error.Class (MonadError (..))
+import           Control.Monad.Except      (ExceptT, MonadError (..), throwError)
+import           Control.Monad.Trans.Class (lift)
 import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold)
@@ -75,13 +75,12 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
-import           IOTS                      (IotsType)
-
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
 import           Ledger                    hiding (inputs, out, sign, to, value)
-import           Ledger.AddressMap         (AddressMap)
+import           Ledger.AddressMap         (AddressMap, UtxoMap)
 import           Ledger.Index              (minFee)
 import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
@@ -111,15 +110,19 @@ instance Pretty WalletAPIError where
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
 
-type MonadWallet m = (WalletAPI m, NodeAPI m, WalletDiagnostics m)
+type MonadWallet m = (WalletAPI m, WalletDiagnostics m, MonadError WalletAPIError m, NodeAPI m)
 
 -- | The ability to log messages and throw errors.
-class MonadError WalletAPIError m => WalletDiagnostics m where
+class Monad m => WalletDiagnostics m where
     -- | Write some information to the log.
     logMsg :: Text -> m ()
 
+instance (WalletDiagnostics m, Monad m) =>
+         WalletDiagnostics (ExceptT WalletAPIError m) where
+    logMsg = lift . logMsg
+
 -- | Used by Plutus client to interact with wallet
-class WalletAPI m where
+class Monad m => WalletAPI m where
 
     -- | Access the wallet's 'PublicKey'.
     ownPubKey :: m PubKey
@@ -139,15 +142,15 @@ class WalletAPI m where
     -}
     updatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> m (Set.Set TxIn, Maybe TxOut)
 
-    {- |
-    The 'AddressMap' of all addresses currently watched by the wallet.
-    -}
-    watchedAddresses :: m AddressMap
+    -- | List of all outputs owned by the wallet
+    ownOutputs :: m UtxoMap
 
-    {- |
-    Start watching an address.
-    -}
-    startWatching :: Address -> m ()
+instance WalletAPI m => WalletAPI (ExceptT WalletAPIError m) where
+    ownPubKey = lift ownPubKey
+    sign = lift . sign
+    updatePaymentWithChange value inputs =
+        lift $ updatePaymentWithChange value inputs
+    ownOutputs = lift ownOutputs
 
 class NodeAPI m where
     -- | Submit a transaction to the blockchain.
@@ -158,6 +161,24 @@ class NodeAPI m where
     -}
     slot :: m Slot
 
+instance (Monad m, NodeAPI m) => NodeAPI (ExceptT WalletAPIError m) where
+    submitTxn = lift . submitTxn
+    slot = lift slot
+
+class ChainIndexAPI m where
+    {- |
+    The 'AddressMap' of all addresses currently watched by the chain index.
+    -}
+    watchedAddresses :: m AddressMap
+
+    {- |
+    Start watching an address.
+    -}
+    startWatching :: Address -> m ()
+
+instance (Monad m, ChainIndexAPI m) => ChainIndexAPI (ExceptT WalletAPIError m) where
+    watchedAddresses = lift watchedAddresses
+    startWatching = lift . startWatching
 
 createPaymentWithChange :: WalletAPI m => Value -> m (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
@@ -187,7 +208,7 @@ signTxnWithKey tx pubK = do
 --
 --   NOTE: In the future this won't be part of WalletAPI to allow the
 --   signing to be handled by a different process
-signTxn   :: (WalletAPI m, Monad m) => Tx -> m Tx
+signTxn   :: WalletAPI m => Tx -> m Tx
 signTxn tx = do
     pubK <- ownPubKey
     sig <- sign (getTxId $ txId tx)
@@ -195,7 +216,7 @@ signTxn tx = do
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
-payToScripts :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
+payToScripts :: (WalletAPI m, NodeAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
@@ -210,7 +231,7 @@ payToScripts_ range = void . payToScripts range
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
+payToScript :: (WalletAPI m, NodeAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
 payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
@@ -241,12 +262,12 @@ getScriptInputsFilter flt am vls red =
             Map.toList ourUtxo
     in inputs
 
-spendScriptOutputs :: (Monad m, WalletAPI m) => Validator -> RedeemerValue -> m [(TxIn, Value)]
+spendScriptOutputs :: (WalletAPI m, ChainIndexAPI m) => Validator -> RedeemerValue -> m [(TxIn, Value)]
 spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
 
 -- | Take all known outputs at an 'Address' and spend them using the
 --   validator and redeemer scripts.
-spendScriptOutputsFilter :: (Monad m, WalletAPI m)
+spendScriptOutputsFilter :: (WalletAPI m, ChainIndexAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> Validator
     -> RedeemerValue
@@ -257,14 +278,14 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
+collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m, ChainIndexAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
 --   'RedeemerValue'.
 collectFromScriptTxn ::
-    (WalletAPI m, NodeAPI m, WalletDiagnostics m)
+    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m)
     => SlotRange
     -> Validator
     -> RedeemerValue
@@ -277,7 +298,7 @@ collectFromScriptTxn range vls red txid =
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
-    (WalletAPI m, NodeAPI m, WalletDiagnostics m)
+    (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
@@ -295,29 +316,29 @@ collectFromScriptFilter flt range vls red = do
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
-payToPublicKey :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m Tx
+payToPublicKey :: (WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m Tx
 payToPublicKey range v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
     createTxAndSubmit range i (other : maybeToList own) []
 
 -- | Transfer some funds to an address locked by a public key.
-payToPublicKey_ :: (Monad m, WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m ()
+payToPublicKey_ :: (WalletAPI m, NodeAPI m) => SlotRange -> Value -> PubKey -> m ()
 payToPublicKey_ r v = void . payToPublicKey r v
 
 -- | Create a `TxOut` that pays to the public key owned by us.
-ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
+ownPubKeyTxOut :: WalletAPI m => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> ownPubKey
 
 -- | Retrieve the unspent transaction outputs known to the wallet at an adresss.
-outputsAt :: (Functor m, WalletAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOutTx)
+outputsAt :: (WalletAPI m, ChainIndexAPI m) => Address -> m (Map.Map Ledger.TxOutRef TxOutTx)
 outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAddresses
 
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
-    (Monad m, WalletAPI m, NodeAPI m)
+    (WalletAPI m, NodeAPI m)
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
@@ -334,14 +355,14 @@ createTxAndSubmit range ins outs datas = do
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
-signTxAndSubmit :: (Monad m, WalletAPI m, NodeAPI m) => Tx -> m Tx
+signTxAndSubmit :: (WalletAPI m, NodeAPI m) => Tx -> m Tx
 signTxAndSubmit t = do
     tx' <- signTxn t
     submitTxn tx'
     pure tx'
 
 -- | A version of 'signTxAndSubmit' that discards the result.
-signTxAndSubmit_ :: (Monad m, WalletAPI m, NodeAPI m) => Tx -> m ()
+signTxAndSubmit_ :: (WalletAPI m, NodeAPI m) => Tx -> m ()
 signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.

@@ -7,7 +7,10 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 module Ledger.Tx(
     -- * Transactions
     Tx(..),
@@ -24,6 +27,7 @@ module Ledger.Tx(
     lookupSignature,
     lookupData,
     addSignature,
+    forge,
     -- ** Hashing transactions
     txId,
     -- ** Stripped transactions
@@ -74,6 +78,9 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
+import qualified Language.PlutusTx         as PlutusTx
+import qualified Language.PlutusTx.Bool    as PlutusTx
+import qualified Language.PlutusTx.Eq      as PlutusTx
 import           Language.PlutusTx.Lattice
 
 import           Ledger.Address
@@ -130,24 +137,16 @@ data Tx = Tx {
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where
-    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txForgeScripts, txSignatures} =
-        let renderOutput TxOut{txOutAddress, txOutValue} =
-                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
-            renderInput TxIn{txInRef,txInType} =
-                let rest =
-                        case txInType of
-                            ConsumeScriptAddress _ redeemer _ ->
-                                [pretty redeemer]
-                            ConsumePublicKeyAddress -> mempty
-                in hang 2 $ vsep $ "-" <+> pretty txInRef : rest
-            lines' =
-                [ hang 2 (vsep ("inputs:" : fmap renderInput (Set.toList txInputs)))
-                , hang 2 (vsep ("outputs:" : fmap renderOutput txOutputs))
+    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
+        let lines' =
+                [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
+                , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
                 , "forge:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
                 , hang 2 (vsep ("mps:": fmap pretty (Set.toList txForgeScripts)))
                 , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
                 , "validity range:" <+> viaShow txValidRange
+                , hang 2 (vsep ("data:": fmap (pretty . snd) (Map.toList txData) ))
                 ]
             txid = txId t
         in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
@@ -193,6 +192,11 @@ signatures :: Lens' Tx (Map PubKey Signature)
 signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
+
+forge :: Lens' Tx Value
+forge = lens g s where
+    g = txForge
+    s tx v = tx { txForge = v }
 
 forgeScripts :: Lens' Tx (Set.Set MonetaryPolicy)
 forgeScripts = lens g s where
@@ -255,6 +259,11 @@ data TxOutRef = TxOutRef {
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
 
+instance PlutusTx.Eq TxOutRef where
+    {-# INLINABLE (==) #-}
+    l == r =
+        txOutRefId l PlutusTx.== txOutRefId r
+        PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
 
 -- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
 txOutRefs :: Tx -> [(TxOut, TxOutRef)]
@@ -276,6 +285,15 @@ data TxIn = TxIn {
     }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, IotsType, ToJSON, FromJSON)
+
+instance Pretty TxIn where
+    pretty TxIn{txInRef,txInType} =
+                let rest =
+                        case txInType of
+                            ConsumeScriptAddress _ redeemer _ ->
+                                pretty redeemer
+                            ConsumePublicKeyAddress -> mempty
+                in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
 
 -- | The 'TxOutRef' spent by a transaction input.
 inRef :: Lens TxIn TxIn TxOutRef TxOutRef
@@ -309,6 +327,11 @@ data TxOutType =
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
 
+instance PlutusTx.Eq TxOutType where
+    PayToScript l == PayToScript r = l PlutusTx.== r
+    PayToPubKey == PayToPubKey = True
+    _ == _ = False
+
 instance Pretty TxOutType where
     pretty = \case
         PayToScript ds -> "PayToScript:" <+> pretty ds
@@ -322,6 +345,16 @@ data TxOut = TxOut {
     }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
+
+instance Pretty TxOut where
+    pretty TxOut{txOutAddress, txOutValue} =
+                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
+
+instance PlutusTx.Eq TxOut where
+    l == r =
+        txOutAddress l PlutusTx.== txOutAddress r
+        PlutusTx.&& txOutValue l PlutusTx.== txOutValue r
+        PlutusTx.&& txOutType l PlutusTx.== txOutType r
 
 -- | The data script attached to a 'TxOutOf', if there is one.
 txOutData :: TxOut -> Maybe DataValueHash
@@ -409,3 +442,12 @@ addSignature :: PrivateKey -> Tx -> Tx
 addSignature privK tx = tx & signatures . at pubK ?~ sig where
     sig = signTx (txId tx) privK
     pubK = toPublicKey privK
+
+PlutusTx.makeIsData ''TxOut
+PlutusTx.makeLift ''TxOut
+
+PlutusTx.makeIsDataIndexed ''TxOutType [('PayToScript, 0), ('PayToPubKey , 1)]
+PlutusTx.makeLift ''TxOutType
+
+PlutusTx.makeIsData ''TxOutRef
+PlutusTx.makeLift ''TxOutRef

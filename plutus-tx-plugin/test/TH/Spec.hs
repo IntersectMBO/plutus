@@ -1,8 +1,12 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC   -g #-}
@@ -28,6 +32,7 @@ import qualified Language.PlutusIR          as PIR
 
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore
+import qualified Language.PlutusCore.Universe as PLC
 
 import           Control.Monad.Except
 import           Control.Exception
@@ -36,19 +41,19 @@ import           Control.Lens.Combinators       ( _1 )
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
-instance GetProgram (CompiledCode a) where
+instance uni ~ PLC.DefaultUni => GetProgram (CompiledCode uni a) uni where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> CompiledCode a -> TestNested
+goldenPir :: String -> CompiledCode PLC.DefaultUni a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
-runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO (Plain Term)
+runPlcCek :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO (Plain Term PLC.DefaultUni)
 runPlcCek values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], ExTally, (Plain Term))
+runPlcCekTrace :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO ([String], ExTally, (Plain Term PLC.DefaultUni))
 runPlcCekTrace values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
@@ -56,10 +61,10 @@ runPlcCekTrace values = do
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 
-goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
+goldenEvalCek :: GetProgram a PLC.DefaultUni => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
-goldenEvalCekLog :: GetProgram a => String -> [a] -> TestNested
+goldenEvalCekLog :: GetProgram a PLC.DefaultUni => String -> [a] -> TestNested
 goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
@@ -76,29 +81,29 @@ tests = testNested "TH" [
     , nestedGoldenVsDoc "someData" (pretty $ show someData)
   ]
 
-simple :: CompiledCode (Bool -> Integer)
+simple :: CompiledCode PLC.DefaultUni (Bool -> Integer)
 simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: CompiledCode (Integer -> Integer)
+powerPlc :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 powerPlc = $$(compile [|| $$(power (4::Integer)) ||])
 
-andPlc :: CompiledCode Bool
+andPlc :: CompiledCode PLC.DefaultUni Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
-allPlc :: CompiledCode Bool
+allPlc :: CompiledCode PLC.DefaultUni Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
-convertString :: CompiledCode Builtins.String
+convertString :: CompiledCode PLC.DefaultUni Builtins.String
 convertString = $$(compile [|| toPlutusString "test" ||])
 
-traceDirect :: CompiledCode ()
+traceDirect :: CompiledCode PLC.DefaultUni ()
 traceDirect = $$(compile [|| Builtins.trace (toPlutusString "test") ||])
 
-tracePrelude :: CompiledCode Integer
+tracePrelude :: CompiledCode PLC.DefaultUni Integer
 tracePrelude = $$(compile [|| trace (toPlutusString "test") (1::Integer) ||])
 
-traceRepeatedly :: CompiledCode Integer
+traceRepeatedly :: CompiledCode PLC.DefaultUni Integer
 traceRepeatedly = $$(compile
      [||
                let i1 = traceH "Making my first int" (1::Integer)

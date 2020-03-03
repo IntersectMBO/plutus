@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 -- | Simulating laziness.
 module Language.PlutusTx.Compiler.Laziness where
 
@@ -11,6 +12,7 @@ import           Language.PlutusTx.PIRTypes
 import qualified Language.PlutusIR                as PIR
 
 import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore.Universe     as PLC
 
 import qualified GhcPlugins                       as GHC
 
@@ -26,28 +28,32 @@ with the standard library because it makes the generated terms simpler without t
 a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
-delay :: Compiling m => PIRTerm -> m PIRTerm
+delay :: Compiling uni m => PIRTerm uni -> m (PIRTerm uni)
 delay body = PIR.LamAbs () <$> liftQuote (freshName () "thunk") <*> compileType GHC.unitTy <*> pure body
 
-delayType :: Compiling m => PIRType -> m PIRType
+delayType :: Compiling uni m => PIRType uni -> m (PIRType uni)
 delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
 
-delayVar :: Compiling m => PIRVar -> m PIRVar
+delayVar :: Compiling uni m => PIRVar uni -> m (PIRVar uni)
 delayVar (PIR.VarDecl () n ty) = do
     ty' <- delayType ty
     pure $ PIR.VarDecl () n ty'
 
-force :: Compiling m => PIRTerm -> m PIRTerm
+force
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => PIRTerm uni -> m (PIRTerm uni)
 force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
 
-maybeDelay :: Compiling m => Bool -> PIRTerm -> m PIRTerm
+maybeDelay :: Compiling uni m => Bool -> PIRTerm uni -> m (PIRTerm uni)
 maybeDelay yes t = if yes then delay t else pure t
 
-maybeDelayVar :: Compiling m => Bool -> PIRVar -> m PIRVar
+maybeDelayVar :: Compiling uni m => Bool -> PIRVar uni -> m (PIRVar uni)
 maybeDelayVar yes v = if yes then delayVar v else pure v
 
-maybeDelayType :: Compiling m => Bool -> PIRType -> m PIRType
+maybeDelayType :: Compiling uni m => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
-maybeForce :: Compiling m => Bool -> PIRTerm -> m PIRTerm
+maybeForce
+    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => Bool -> PIRTerm uni -> m (PIRTerm uni)
 maybeForce yes t = if yes then force t else pure t

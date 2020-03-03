@@ -22,8 +22,6 @@ import qualified Data.Set                                      as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                                  (Generic)
 import           Ledger                                        (Address, TxOut (..), TxOutTx (..))
-import           Ledger.AddressMap                             (AddressMap)
-import qualified Ledger.AddressMap                             as AM
 import           Ledger.Tx                                     (TxOutRef)
 
 import           IOTS                                          (IotsType)
@@ -57,11 +55,11 @@ instance Pretty UtxoAtAddress where
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, AddressSet)
 
 -- | Get the unspent transaction outputs at an address.
-utxoAt :: forall s e. HasUtxoAt s => Address -> Contract s e AddressMap
+utxoAt :: forall s e. HasUtxoAt s => Address -> Contract s e (Map TxOutRef TxOutTx)
 utxoAt address' =
-    let check :: UtxoAtAddress -> Maybe AddressMap
+    let check :: UtxoAtAddress -> Maybe (Map TxOutRef TxOutTx)
         check UtxoAtAddress{address,utxo} =
-          if address' == address then Just (AM.AddressMap $ Map.singleton address utxo) else Nothing
+          if address' == address then Just utxo else Nothing
     in
     requestMaybe @UtxoAtSym @_ @_ @s (AddressSet $ Set.singleton address') check
 

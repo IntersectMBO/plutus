@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Main
     ( main
@@ -49,7 +50,9 @@ compareName = (==) `on` nameString
 compareTyName :: TyName a -> TyName a -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'
 
-compareTerm :: Eq a => Term TyName Name a -> Term TyName Name a -> Bool
+compareTerm
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
+    => Term TyName Name uni a -> Term TyName Name uni a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
@@ -63,7 +66,9 @@ compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
-compareType :: Eq a => Type TyName a -> Type TyName a -> Bool
+compareType
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
+    => Type TyName uni a -> Type TyName uni a -> Bool
 compareType (TyVar _ n) (TyVar _ n')                  = compareTyName n n'
 compareType (TyFun _ t s) (TyFun _ t' s')             = compareType t t' && compareType s s'
 compareType (TyIFix _ pat1 arg1) (TyIFix _ pat2 arg2) = compareType pat1 pat2 && compareType arg1 arg2
@@ -73,11 +78,13 @@ compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k 
 compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
 compareType _ _                                       = False
 
-compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
+compareProgram
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
+    => Program TyName Name uni a -> Program TyName Name uni a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni a } deriving Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
@@ -111,12 +118,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf a) -> Property
+propDeBruijn :: Gen (TermOf DefaultUni a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
-        backward :: Except FreeVariableError (Term TyDeBruijn DeBruijn a) -> Except FreeVariableError (Term TyName Name a)
+        backward
+            :: Except FreeVariableError (Term TyDeBruijn DeBruijn DefaultUni a)
+            -> Except FreeVariableError (Term TyName Name DefaultUni a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -143,7 +152,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , Check.tests
     ]
 
-type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
+type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -157,7 +166,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
 evalFile contents =
     second prettyPlcDefText $
         unsafeEvaluateCek mempty . toTerm . void <$> runQuoteT (parseScoped contents)
@@ -195,6 +204,8 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
+        term0, term1 :: Term TyName Name DefaultUni ()
+
         -- [(lam x a x) x]
         term0 = Apply () lamX varX
         -- [(lam y a y) x]
@@ -215,6 +226,8 @@ testRebindShadowedVariable =
         varZ = TyVar () zName
 
         typeKind = Type ()
+
+        l1, r1, l2, r2 :: Type TyName DefaultUni ()
 
         -- (all x (type) (fun (all y (type) y) x))
         l1 = TyForall () xName typeKind (TyFun () (TyForall () yName typeKind varY) varX)
@@ -243,6 +256,8 @@ testRebindCapturedVariable =
         varZ = TyVar () zName
 
         typeKind = Type ()
+
+        typeL1, typeR1, typeL2, typeR2 :: Type TyName DefaultUni ()
 
         -- (all y (type) (all z (type) (fun y z)))
         typeL1 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))

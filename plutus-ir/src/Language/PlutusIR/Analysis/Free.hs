@@ -65,9 +65,9 @@ VS
 -- It does not require the input term to be prior 'PLC.rename'd.
 -- TODO: refactor using recursion-schemes (or usingtermSubterms, termSubtypes can be used and lens + fold), see 'language-plutus-core/src/Language/PlutusCore/Subst.hs'
 -- See Note: [PIR Free variables]
-fTerm :: forall name tyname a.
+fTerm :: forall name tyname uni a.
   (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
-  => Term tyname name a -> S.Set PLC.Unique
+  => Term tyname name uni a -> S.Set PLC.Unique
 fTerm = \case
   Var _ x -> S.singleton $ x ^. PLC.unique . coerced
 
@@ -85,7 +85,7 @@ fTerm = \case
   _ -> S.empty
 
  where
-  fLet :: [Binding tyname name a] -> Term tyname name a -> Recursivity -> S.Set PLC.Unique
+  fLet :: [Binding tyname name uni a] -> Term tyname name uni a -> Recursivity -> S.Set PLC.Unique
   fLet bs tIn =
     let fIn = fTerm tIn S.\\ foldMap bindingIds bs -- the free variables of termIn (scoped by all the let id's)
     in \case
@@ -97,7 +97,7 @@ fTerm = \case
   -- it threads an ever-increasing linear-scope and an accumulated set of free variables found, i.e. (linearScope, freeSet)
   -- See Note [Free variables and letnonrec linear scope]
   -- See Note [Right-associative compilation of let-bindings for linear scoping]
-  nonRecVarAcc :: (S.Set PLC.Unique, S.Set PLC.Unique) -> Binding tyname name a -> (S.Set PLC.Unique, S.Set PLC.Unique)
+  nonRecVarAcc :: (S.Set PLC.Unique, S.Set PLC.Unique) -> Binding tyname name uni a -> (S.Set PLC.Unique, S.Set PLC.Unique)
   nonRecVarAcc (accLinearScope,accFreeSet) b =
     let newScope = bindingIds b <> accLinearScope
         newFreeSet = (fBinding b S.\\ accLinearScope) <> accFreeSet
@@ -106,15 +106,15 @@ fTerm = \case
 -- | Given a PIR type, it returns the free type variables of that type.
 -- See Note: [PIR Free variables]
 fType :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
-      => Type tyname a -> S.Set PLC.Unique
+      => Type tyname uni a -> S.Set PLC.Unique
 fType = S.map (^. PLC.unique . coerced) . ftvTy
 
 fVarDecl :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
-         => VarDecl tyname name a -> S.Set PLC.Unique
+         => VarDecl tyname name uni a -> S.Set PLC.Unique
 fVarDecl (VarDecl _ _ ty) = fType ty
 
 fBinding :: (Ord (tyname a), PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-         => Binding tyname name a -> S.Set PLC.Unique
+         => Binding tyname name uni a -> S.Set PLC.Unique
 fBinding = \case
     TermBind _ _ (VarDecl _ _ ty) tRhs -> fType ty <> fTerm tRhs
     DatatypeBind _ (Datatype _ _ _ _ constrs) -> foldMap fVarDecl constrs

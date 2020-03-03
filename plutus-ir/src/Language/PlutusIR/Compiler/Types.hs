@@ -50,36 +50,44 @@ runIfOpts pass arg = do
     doOpt <- view (ccOpts . coOptimize)
     if doOpt then pass arg else pure arg
 
-type PLCTerm a = PLC.Term PLC.TyName PLC.Name (Provenance a)
-type PLCType a = PLC.Type PLC.TyName (Provenance a)
+type PLCTerm uni a = PLC.Term PLC.TyName PLC.Name uni (Provenance a)
+type PLCType uni a = PLC.Type PLC.TyName uni (Provenance a)
 
 -- | A possibly recursive type.
-data PLCRecType a = PlainType (PLCType a) | RecursiveType (Types.RecursiveType (Provenance a))
+data PLCRecType uni a
+    = PlainType (PLCType uni a)
+    | RecursiveType (Types.RecursiveType uni (Provenance a))
 
 -- | Get the actual type inside a 'PLCRecType'.
-getType :: PLCRecType a -> PLCType a
+getType :: PLCRecType uni a -> PLCType uni a
 getType r = case r of
     PlainType t                                                -> t
     RecursiveType Types.RecursiveType {Types._recursiveType=t} -> t
 
 -- | Wrap a term appropriately for a possibly recursive type.
-wrap :: Provenance a -> PLCRecType a -> [PLCType a] -> PIRTerm a -> PIRTerm a
+wrap :: Provenance a -> PLCRecType uni a -> [PLCType uni a] -> PIRTerm uni a -> PIRTerm uni a
 wrap p r tvs t = case r of
     PlainType _                                                      -> t
     RecursiveType Types.RecursiveType {Types._recursiveWrap=wrapper} -> setProvenance p $ wrapper tvs t
 
 -- | Unwrap a term appropriately for a possibly recursive type.
-unwrap :: Provenance a -> PLCRecType a -> PIRTerm a -> PIRTerm a
+unwrap :: Provenance a -> PLCRecType uni a -> PIRTerm uni a -> PIRTerm uni a
 unwrap p r t = case r of
     PlainType _                          -> t
     RecursiveType Types.RecursiveType {} -> PIR.Unwrap p t
 
-type PIRTerm a = PIR.Term PIR.TyName PIR.Name (Provenance a)
-type PIRType a = PIR.Type PIR.TyName (Provenance a)
+type PIRTerm uni a = PIR.Term PIR.TyName PIR.Name uni (Provenance a)
+type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 
-type Compiling m e a = (Monad m, MonadReader (CompilationCtx a) m, AsError e (Provenance a), MonadError e m, MonadQuote m)
+type Compiling m e uni a =
+    ( Monad m
+    , MonadReader (CompilationCtx a) m
+    , AsError e uni (Provenance a)
+    , MonadError e m
+    , MonadQuote m
+    )
 
-type TermDef tyname name a = PLC.Def (PLC.VarDecl tyname name a) (PIR.Term tyname name a)
+type TermDef tyname name uni a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni a)
 
 -- | We generate some shared definitions compilation, this datatype
 -- defines the "keys" for those definitions.

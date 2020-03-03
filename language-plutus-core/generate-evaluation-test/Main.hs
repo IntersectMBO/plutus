@@ -13,7 +13,7 @@ import qualified Hedgehog.Gen                   as Gen
 
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.
-generateTerm :: IO (TermOf EvaluationResultDef)
+generateTerm :: IO (TermOf DefaultUni (EvaluationResultDef DefaultUni))
 generateTerm = Gen.sample $ withAnyTermLoose $ pure . unsafeTypeEvalCheck
 
 oneline :: Text -> Text

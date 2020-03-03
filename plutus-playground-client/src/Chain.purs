@@ -37,6 +37,7 @@ import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalan
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
+import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
 evaluationPane ::
@@ -76,6 +77,10 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
+emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
+  div_
+    [ text $ "Submitting transaction: " <> show address ]
+
 emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]

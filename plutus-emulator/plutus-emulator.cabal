@@ -40,6 +40,7 @@ library
         Wallet.Emulator.Types
         Wallet.Emulator.Generators
         Wallet.Emulator.Chain
+        Wallet.Emulator.ChainIndex
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.Wallet
