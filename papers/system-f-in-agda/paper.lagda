@@ -3387,6 +3387,7 @@ data _—→_ {Φ}{Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢Nf A) → (Γ ⊢Nf A) �
   β-ƛ       : ∀{A B}{L : Γ , A ⊢Nf B}{M : Γ ⊢Nf A}
     → Value M → ƛ L · M —→ L [ M ]Nf
   β-Λ       : ∀{K B}{L : Γ ,⋆ K ⊢Nf B}{A : Φ ⊢Nf⋆ K}
+    → Value L
     → Λ L ·⋆ A —→ L ⋆[ A ]Nf
   β-wrap    : ∀{A}{L : Γ ⊢Nf A [ μ A ]Nf⋆} → Value L
     → unwrap (wrap A L) —→ L
@@ -3515,7 +3516,7 @@ be a \AgdaInductiveConstructor{Λ}-expression and we perform
 
 \begin{code}
 progress p (L ·⋆ A)      with progress p L
-progress p (Λ L ·⋆ A)    | inl (V-Λ V)    = inr (L ⋆[ A ]Nf ,, β-Λ)
+progress p (Λ L ·⋆ A)    | inl (V-Λ V)    = inr (L ⋆[ A ]Nf ,, (β-Λ V))
 progress p (L ·⋆ A)      | inr (L' ,, q)  = inr (L' ·⋆ A ,, ξ-·⋆ q)
 \end{code}
 
@@ -3963,7 +3964,7 @@ removed, e.g., \AgdaInductiveConstructor{unwrap}
 \AgdaBound{L}:
 
 \begin{code}
-erase—→ (β-Λ  {L = L}{A = A})       = inr (eraseNf-⋆[]Nf L A)
+erase—→ (β-Λ  {L = L}{A = A} V)     = inr (eraseNf-⋆[]Nf L A)
 erase—→ (β-wrap _)                  = inr refl
 \end{code}
 
@@ -4262,3 +4263,46 @@ in the course of writing this paper.
 %
 \bibliography{bibliography}
 \end{document}
+
+Some additional proofs added after publication and not shown in the paper
+
+\begin{code}
+open import Relation.Nullary
+
+-- a value can make no progress
+
+val : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢Nf σ} → Value t → ¬ (Σ (Γ ⊢Nf σ) (t —→_))
+val (V-ƛ p)    ()
+val (V-Λ p)    (.(Λ _) ,, ξ-Λ q)         = val p (_ ,, q)
+val (V-wrap p) (.(wrap _ _) ,, ξ-wrap q) = val p (_ ,, q)
+
+-- if a term can make progress it is not a value
+
+red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢Nf σ} → Σ (Γ ⊢Nf σ) (t —→_) → ¬ (Value t)
+red (.(wrap _ _) ,, ξ-wrap p) (V-wrap v) = red (_ ,, p) v
+red (.(Λ _) ,, ξ-Λ p)         (V-Λ v)    = red (_ ,, p) v
+
+-- ^ together these prove that the progress proof produces a disjoint union
+
+-- The reduction rules are deterministic
+
+det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢Nf σ}
+  → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
+det (ξ-·₁ p)     (ξ-·₁ q)     = cong (_· _) (det p q)
+det (ξ-·₁ p)     (ξ-·₂ w q)   = ⊥-elim (val w (_ ,, p))
+det (ξ-·₂ v p)   (ξ-·₁ q)     = ⊥-elim (val v (_ ,, q))
+det (ξ-·₂ v p)   (ξ-·₂ w q)   = cong (_ ·_) (det p q)
+det (ξ-·₂ v p)   (β-ƛ w)      = ⊥-elim (val w (_ ,, p))
+det (ξ-·⋆ p)     (ξ-·⋆ q)     = cong (_·⋆ _) (det p q)
+det (β-Λ v)      (ξ-·⋆ q)     = ⊥-elim (red (_ ,, q) (V-Λ v))
+det (ξ-·⋆ p)     (β-Λ v)      = ⊥-elim (red (_ ,, p) (V-Λ v))
+det (ξ-Λ p)      (ξ-Λ q)      = cong Λ (det p q)
+det (β-ƛ v)      (ξ-·₂ w q)   = ⊥-elim (val v (_ ,, q))
+det (β-ƛ v)      (β-ƛ w)      = refl
+det (β-Λ v)      (β-Λ w)      = refl
+det (β-wrap p)   (β-wrap q)   = refl
+det (β-wrap p)   (ξ-unwrap q) = ⊥-elim (val (V-wrap p) (_ ,, q))
+det (ξ-unwrap p) (β-wrap q)   = ⊥-elim (val (V-wrap q) (_ ,, p))
+det (ξ-unwrap p) (ξ-unwrap q) = cong unwrap (det p q)
+det (ξ-wrap p)   (ξ-wrap q)   = cong (wrap _) (det p q)
+\end{code}
