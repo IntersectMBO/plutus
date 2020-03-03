@@ -7,6 +7,7 @@ module Language.PlutusIR.Compiler (
     Error (..),
     AsError (..),
     Provenance (..),
+    noProvenance,
     CompilationOpts,
     coOptimize,
     defaultCompilationOpts,
