@@ -79,8 +79,8 @@
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\scriptAddr}{\msf{scriptAddr}}
-\newcommand{\ptx}{\ensuremath{\s{TxInfo}}}
-\newcommand{\toPtx}{\msf{toTxInfo}}
+\newcommand{\ctx}{\ensuremath{\s{Context}}}
+\newcommand{\toCtx}{\msf{toContext}}
 
 \newcommand{\toData}{\msf{toData}}
 \newcommand{\fromData}{\msf{fromData}}
@@ -100,10 +100,10 @@
 \newcommand{\val}{\mi{value}}  %% \value is already defined
 
 \newcommand{\validator}{\mi{validator}}
-\newcommand{\redeemerVal}{\mi{redeemer}}
-\newcommand{\dataVal}{\mi{data}}
-\newcommand{\dataHsh}{\mi{dataHash}}
-\newcommand{\dataWits}{\mi{dataWitnesses}}
+\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\datum}{\mi{datum}}
+\newcommand{\datumHsh}{\mi{datumHash}}
+\newcommand{\datumWits}{\mi{datumWitnesses}}
 \newcommand{\hashData}{\msf{dataHash}}
 \newcommand{\validityInterval}{\mi{validityInterval}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
@@ -252,7 +252,7 @@
   keeping the semantic simplicity of the \UTXO{} model.
 
   In this paper, we answer this question affirmatively. We present
-  \emph{\ExUTXO{} (\EUTXO{})}, an extension to Bitcoin's \UTXO{} model
+  \emph{\ExUTXO{}} (\emph{\EUTXO{}}), an extension to Bitcoin's \UTXO{} model
   that supports a substantially more
   expressive form of \emph{validation scripts}, including scripts that
   implement general state machines and enforce invariants across
