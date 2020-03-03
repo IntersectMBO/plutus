@@ -209,7 +209,7 @@ the specified amount of Ada to the script address.
 [source,haskell]
 ----
 -- | The "lock" contract endpoint.
-lock :: MonadWallet m => String -> Ada -> m ()
+lock :: (MonadWallet m, W.SigningProcessAPI m) => String -> Ada -> m ()
 lock word adaValue = W.payToScript_ -- <.>
      W.defaultSlotRange -- <.>
      gameAddress
@@ -234,7 +234,7 @@ output using the guessed word as a redeemer.
 [source,haskell]
 ----
 -- | The "guess" contract endpoint.
-guess :: (W.ChainIndexAPI m, MonadWallet m) => String -> m ()
+guess :: (W.SigningProcessAPI m, W.ChainIndexAPI m, MonadWallet m) => String -> m ()
 guess word = W.collectFromScript -- <.>
       W.defaultSlotRange
       gameValidator
