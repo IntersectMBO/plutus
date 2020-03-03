@@ -1083,7 +1083,7 @@ It's possible that in actual validator code (especially after type
 normalisation), \texttt{delay} and \texttt{force} will typically appear in
 expressions of the form $\force{\delay{e}}$, which could immediately
 be replaced by $e$ alone, and then using $\lamU{x}{x}$ might not cause
-so much overhead. I'll look into this.  }}
+so much overhead. I'll look into this.}\ \blue{Later: nope.  I looked at the on-chain validators for the use cases and this only happens about 10\% of the time.}}
 
 \subsection{Type erasure}
 Figure~\ref{fig:type-erasure} defines a type erasure operation which
