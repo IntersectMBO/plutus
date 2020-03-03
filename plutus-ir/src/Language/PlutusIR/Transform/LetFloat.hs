@@ -146,27 +146,27 @@ instance Monoid Rank where
   mempty = Top
 
 -- | During the first pass of the AST, a reader context holds the current in-scope lambda locations (as Ranks).
-type P1Ctx = ( P1Data  -- ^ the lambdas-in-scope that surround an expression
-             , Int     -- ^ the current depth
+type P1Ctx = ( P1Data  --  the lambdas-in-scope that surround an expression
+             , Int     --  the current depth
              )
 
 
 -- | During the first pass of the AST, we build an intermediate table to hold the maximum ranks of each let encountered so far.
 -- This intermediate table will be transformed right at the end of 1st pass to 'FloatData'.
 type P1Data = M.Map
-              PLC.Unique -- ^ the identifier introduced by a let-binding
-              ( Rank-- ^ its calculated maximum rank, i.e. where this identifier can topmost/highest float outwards to
-              , PLC.Unique   -- ^ a principal name for this binding (needed specifically because a let-Datatype-bind can introduce multiple identifiers)
+              PLC.Unique --  the identifier introduced by a let-binding
+              ( Rank --  its calculated maximum rank, i.e. where this identifier can topmost/highest float outwards to
+              , PLC.Unique   --  a principal name for this binding (needed specifically because a let-Datatype-bind can introduce multiple identifiers)
               )
 
 -- | Before we return from the 1st pass, we transform the acccumulated 'P1Data' to something that can be more easily consumed (by the second pass).
 -- This 'FloatData' is a mapping of depth=>lambda=>{let_unique}. We consume the float-data left-to-right, sorted on depth.
 --
 -- TODO: This could instead use an 'IM.IntMap', to guarantee that the consumption is in the ordering of depth. However there was a bug when using the 'IM.minViewWithKey'
-type FloatData = [(Int, -- ^ the depth (starting from 0, which is Top)
-                 M.Map -- ^ a mapping of lambda-locations at this depth => to all letidentifiers to float at that depth.
-                  Rank    -- ^ the location where the let should float to: location is a lambda name or Top
-                  (S.Set PLC.Unique) -- ^ the let bindings that should be floated/placed under this lambda or Top
+type FloatData = [(Int, --  the depth (starting from 0, which is Top)
+                 M.Map --  a mapping of lambda-locations at this depth => to all letidentifiers to float at that depth.
+                  Rank    --  the location where the let should float to: location is a lambda name or Top
+                  (S.Set PLC.Unique) --  the let bindings that should be floated/placed under this lambda or Top
                  )]
 
 -- | First-pass: Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding maximum rank.

@@ -24,10 +24,13 @@ data Provenance a = Original a
                   | TermBinding String (Provenance a)
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
+                  -- | Added for accumulating difference provenances when floating lets
+                  -- TODO: use Set a to avoid duplicates,
+                  -- or a different approach for accumulating provenances during the compilation
                   | MultipleSources [Provenance a]
                   deriving (Show, Eq)
 
--- Needed for LetFloat transformation to merge annotations
+-- | Needed for LetFloat transformation to merge annotations
 instance Semigroup (Provenance a) where
   MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1++ps2)
   x <> MultipleSources ps2 = MultipleSources (x:ps2)
