@@ -53,36 +53,36 @@ import Control.Monad.State
 
 %token
 
-    abs { LexKeyword $$ KwAbs }
-    lam { LexKeyword $$ KwLam }
-    ifix { LexKeyword $$ KwIFix }
-    con { LexKeyword $$ KwCon }
-    builtin { LexKeyword $$ KwBuiltin }
-    fun { LexKeyword $$ KwFun }
-    all { LexKeyword $$ KwAll }
-    integer { LexKeyword $$ KwInteger }
-    bytestring { LexKeyword $$ KwByteString }
-    type { LexKeyword $$ KwType }
-    program { LexKeyword $$ KwProgram }
-    iwrap { LexKeyword $$ KwIWrap }
-    unwrap { LexKeyword $$ KwUnwrap }
-    errorTerm { LexKeyword $$ KwError }
+    abs           { LexKeyword $$ KwAbs }
+    lam           { LexKeyword $$ KwLam }
+    ifix          { LexKeyword $$ KwIFix }
+    con           { LexKeyword $$ KwCon }
+    builtin       { LexKeyword $$ KwBuiltin }
+    fun           { LexKeyword $$ KwFun }
+    all           { LexKeyword $$ KwAll }
+    integer       { LexKeyword $$ KwInteger }
+    bytestring    { LexKeyword $$ KwByteString }
+    type          { LexKeyword $$ KwType }
+    program       { LexKeyword $$ KwProgram }
+    iwrap         { LexKeyword $$ KwIWrap }
+    unwrap        { LexKeyword $$ KwUnwrap }
+    errorTerm     { LexKeyword $$ KwError }
 
-    openParen { LexSpecial $$ OpenParen }
-    closeParen { LexSpecial $$ CloseParen }
-    openBracket { LexSpecial $$ OpenBracket }
-    closeBracket { LexSpecial $$ CloseBracket }
-    dot { LexSpecial $$ Dot }
-    openBrace { LexSpecial $$ OpenBrace }
-    closeBrace { LexSpecial $$ CloseBrace }
+    openParen     { LexSpecial $$ OpenParen }
+    closeParen    { LexSpecial $$ CloseParen }
+    openBracket   { LexSpecial $$ OpenBracket }
+    closeBracket  { LexSpecial $$ CloseBracket }
+    dot           { LexSpecial $$ Dot }
+    openBrace     { LexSpecial $$ OpenBrace }
+    closeBrace    { LexSpecial $$ CloseBrace }
 
-    builtinVar { $$@LexBuiltin{} }
+    builtinVar    { $$@LexBuiltin{} }
 
-    integerLit { $$@LexInt{} }
-    naturalLit { $$@LexNat{} }
+    integerLit    { $$@LexInt{} }
+    naturalLit    { $$@LexNat{} }
     byteStringLit { $$@LexBS{} }
 
-    var { $$@LexName{} }
+    var           { $$@LexName{} }
 
 %%
 
