@@ -31,6 +31,22 @@ import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 
+{- This version of the lexer relaxes the syntax so that "keywords"
+   (con, lam, ...)  and built in names can be re-used as variable
+   names.  The Plutus compiler produces code with such names: for
+   example, the builtin `addInteger` is always called via a variable
+   of the same name which is bound to a lambda wrapping an invocation
+   of the actual builtin.  To achieve this, we use alex's "start
+   codes" which allow you to put the lexer into modes in which only
+   certain actions are valid.  In the PLC grammar, keywords like
+   `abs`, `con` and so on can only occur after a `(`, so when we see
+   one of these we put the lexer into a special mode where these are
+   interpreted as keywords and converted into elements of the
+   LexKeyword type; having done this, we return to the initial lexer
+   state, denoted by 0.  A similar strategy is used for built in names
+   and built in type names.
+-}
+
 }
 
 %wrapper "monadUserState-bytestring"
@@ -42,79 +58,86 @@ $upper = [A-Z]
 
 @sign = "+" | "-" | ""
 
+@nat = $digit+
 @integer = @sign $digit+
 @exp = [eE] @sign $digit+
 @float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
-@size = $digit+
 
 @identifier = [$lower $upper][$lower $upper $digit \_ \']*
+@lcstring = [$lower $upper]+
 
 @special = \\\\ | \\\"
 
+
+
 tokens :-
 
-    <0> $white+                  ;
-    <0> "--".*                   ;
-    <0> "{-"                     { \_ _ -> nested_comment }
+    $white+                  ;
+    "--".*                   ;
+    "{-"                     { \_ _ -> nested_comment }
 
-    -- Keywords
-    <0> abs                      { mkKeyword KwAbs }
-    <0> lam                      { mkKeyword KwLam }
-    <0> ifix                     { mkKeyword KwIFix }
-    <0> fun                      { mkKeyword KwFun }
-    <0> all                      { mkKeyword KwAll }
-    <0> bytestring               { mkKeyword KwByteString }
-    <0> integer                  { mkKeyword KwInteger }
-    <0> type                     { mkKeyword KwType }
-    <0> program                  { mkKeyword KwProgram }
-    <0> con                      { mkKeyword KwCon }
-    <0> iwrap                    { mkKeyword KwIWrap }
-    <0> builtin                  { mkKeyword KwBuiltin }
-    <0> unwrap                   { mkKeyword KwUnwrap }
-    <0> error                    { mkKeyword KwError }
+    -- Keywords: we only expect these after '('; elsewhere they can be used freely as identifiers 
+    <kwd> abs                      { mkKeyword KwAbs         `andBegin` 0 } 
+    <kwd> lam                      { mkKeyword KwLam         `andBegin` 0 }
+    <kwd> ifix                     { mkKeyword KwIFix        `andBegin` 0 }
+    <kwd> fun                      { mkKeyword KwFun         `andBegin` 0 }
+    <kwd> all                      { mkKeyword KwAll         `andBegin` 0 }
+    <kwd> type                     { mkKeyword KwType        `andBegin` 0 }
+    <kwd> program                  { mkKeyword KwProgram     `andBegin` 0 }
+    <kwd> con                      { mkKeyword KwCon         `andBegin` bitn }
+    <kwd> iwrap                    { mkKeyword KwIWrap       `andBegin` 0 }
+    <kwd> unwrap                   { mkKeyword KwUnwrap      `andBegin` 0 }
+    <kwd> error                    { mkKeyword KwError       `andBegin` 0 }
+    <kwd> builtin                  { mkKeyword KwBuiltin     `andBegin` bin }
 
-    -- Builtins
-    <0> addInteger               { mkBuiltin AddInteger }
-    <0> subtractInteger          { mkBuiltin SubtractInteger }
-    <0> multiplyInteger          { mkBuiltin MultiplyInteger}
-    <0> divideInteger            { mkBuiltin DivideInteger }
-    <0> quotientInteger          { mkBuiltin QuotientInteger }
-    <0> modInteger               { mkBuiltin ModInteger }
-    <0> remainderInteger         { mkBuiltin RemainderInteger }
-    <0> lessThanInteger          { mkBuiltin LessThanInteger }
-    <0> lessThanEqualsInteger    { mkBuiltin LessThanEqInteger }
-    <0> greaterThanInteger       { mkBuiltin GreaterThanInteger }
-    <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
-    <0> equalsInteger            { mkBuiltin EqInteger }
-    <0> concatenate              { mkBuiltin Concatenate }
-    <0> takeByteString           { mkBuiltin TakeByteString }
-    <0> dropByteString           { mkBuiltin DropByteString }
-    <0> equalsByteString         { mkBuiltin EqByteString }
-    <0> lessThanByteString       { mkBuiltin LtByteString }
-    <0> greaterThanByteString    { mkBuiltin GtByteString }
-    <0> "sha2_256"               { mkBuiltin SHA2 }
-    <0> "sha3_256"               { mkBuiltin SHA3 }
-    <0> verifySignature          { mkBuiltin VerifySignature }
+    -- Built in type names: we only expect these after "con"; elsewhere they can be used freely as identifiers
+    <bitn> bytestring              { mkKeyword KwByteString  `andBegin` 0 }
+    <bitn> integer                 { mkKeyword KwInteger     `andBegin` 0 }
+
+    -- Built in names: : we only expect these after "builtin"; elsewhere they can be used freely as identifiers 
+    <bin> addInteger               { mkBuiltin AddInteger            `andBegin` 0 }
+    <bin> subtractInteger          { mkBuiltin SubtractInteger       `andBegin` 0 }
+    <bin> multiplyInteger          { mkBuiltin MultiplyInteger       `andBegin` 0 }
+    <bin> divideInteger            { mkBuiltin DivideInteger         `andBegin` 0 }
+    <bin> quotientInteger          { mkBuiltin QuotientInteger       `andBegin` 0 }
+    <bin> modInteger               { mkBuiltin ModInteger            `andBegin` 0 }
+    <bin> remainderInteger         { mkBuiltin RemainderInteger      `andBegin` 0 }
+    <bin> lessThanInteger          { mkBuiltin LessThanInteger       `andBegin` 0 }
+    <bin> lessThanEqualsInteger    { mkBuiltin LessThanEqInteger     `andBegin` 0 }
+    <bin> greaterThanInteger       { mkBuiltin GreaterThanInteger    `andBegin` 0 }
+    <bin> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger  `andBegin` 0 }
+    <bin> equalsInteger            { mkBuiltin EqInteger             `andBegin` 0 }
+    <bin> concatenate              { mkBuiltin Concatenate           `andBegin` 0 }
+    <bin> takeByteString           { mkBuiltin TakeByteString        `andBegin` 0 }
+    <bin> dropByteString           { mkBuiltin DropByteString        `andBegin` 0 }
+    <bin> equalsByteString         { mkBuiltin EqByteString          `andBegin` 0 }
+    <bin> lessThanByteString       { mkBuiltin LtByteString          `andBegin` 0 }
+    <bin> greaterThanByteString    { mkBuiltin GtByteString          `andBegin` 0 }
+    <bin> "sha2_256"               { mkBuiltin SHA2                  `andBegin` 0 }
+    <bin> "sha3_256"               { mkBuiltin SHA3                  `andBegin` 0 }
+    <bin> verifySignature          { mkBuiltin VerifySignature       `andBegin` 0 }
+
+    -- ^ At this point we may also run into names of extensible
+    -- builtins, but these aren't handled yet
 
     -- Various special characters
-    <0> "("                      { mkSpecial OpenParen }
-    <0> ")"                      { mkSpecial CloseParen }
-    <0> "["                      { mkSpecial OpenBracket }
-    <0> "]"                      { mkSpecial CloseBracket }
-    <0> "."                      { mkSpecial Dot }
-    <0> "{"                      { mkSpecial OpenBrace }
-    <0> "}"                      { mkSpecial CloseBrace }
+    "("                      { mkSpecial OpenParen `andBegin` kwd }
+    ")"                      { mkSpecial CloseParen `andBegin` 0}
+    "["                      { mkSpecial OpenBracket }
+    "]"                      { mkSpecial CloseBracket }
+    "."                      { mkSpecial Dot }
+    "{"                      { mkSpecial OpenBrace }
+    "}"                      { mkSpecial CloseBrace }
 
     -- ByteStrings
-    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (asBSLiteral s)) }
+    \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (asBSLiteral s)) }
 
     -- Integer/size literals
-    <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
-    <0> @size bytes              { tok (\p s -> alex $ LexNat p (readBSL (trimBytes s))) }
-    <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
+    @nat                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
+    @integer                { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
 
     -- Identifiers
-    <0> @identifier              { tok (\p s -> handle_identifier p (T.decodeUtf8 (BSL.toStrict s))) }
+    @identifier              { tok (\p s -> handle_identifier p (T.decodeUtf8 (BSL.toStrict s))) }
 
 {
 
