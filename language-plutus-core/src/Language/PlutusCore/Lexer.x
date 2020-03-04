@@ -84,15 +84,20 @@ tokens :-
     <kwd> all                      { mkKeyword KwAll         `andBegin` 0 }
     <kwd> type                     { mkKeyword KwType        `andBegin` 0 }
     <kwd> program                  { mkKeyword KwProgram     `andBegin` 0 }
-    <kwd> con                      { mkKeyword KwCon         `andBegin` bitn }
+    <kwd> con                      { mkKeyword KwCon         `andBegin` conarg }
     <kwd> iwrap                    { mkKeyword KwIWrap       `andBegin` 0 }
     <kwd> unwrap                   { mkKeyword KwUnwrap      `andBegin` 0 }
     <kwd> error                    { mkKeyword KwError       `andBegin` 0 }
     <kwd> builtin                  { mkKeyword KwBuiltin     `andBegin` bin }
 
-    -- Built in type names: we only expect these after "con"; elsewhere they can be used freely as identifiers
-    <bitn> bytestring              { mkKeyword KwByteString  `andBegin` 0 }
-    <bitn> integer                 { mkKeyword KwInteger     `andBegin` 0 }
+    -- Built constants and type names. Type names are only expected
+    -- after "con"; elsewhere they can be used freely as identifiers
+    -- Note also that rules without start codes can be used in any
+    -- context, including here: thus this case also handles
+    -- constants.
+
+    <conarg> bytestring              { mkKeyword KwByteString  `andBegin` 0 }
+    <conarg> integer                 { mkKeyword KwInteger     `andBegin` 0 }
 
     -- Built in names: : we only expect these after "builtin"; elsewhere they can be used freely as identifiers 
     <bin> addInteger               { mkBuiltin AddInteger            `andBegin` 0 }
@@ -154,9 +159,9 @@ trimBytes str = BSL.take (BSL.length str - 5) str
 
 handleChar :: Word8 -> Word8
 handleChar x
-    | x >= 48 && x <= 57 = x - 48 -- hexits 0-9
+    | x >= 48 && x <= 57 = x - 48  -- hexits 0-9
     | x >= 97 && x <= 102 = x - 87 -- hexits a-f
-    | x >= 65 && x <= 70 = x - 55 -- hexits A-F
+    | x >= 65 && x <= 70 = x - 55  -- hexits A-F
     | otherwise = undefined -- safe b/c macro only matches hexits
 
 -- turns a pair of bytes such as "a6" into a single Word8
