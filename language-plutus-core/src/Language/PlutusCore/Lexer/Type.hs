@@ -31,6 +31,7 @@ data Keyword
     | KwFun
     | KwAll
     | KwByteString
+    | KwString
     | KwInteger
     | KwType
     | KwProgram
@@ -60,13 +61,15 @@ data Token ann
               , tkName       :: T.Text
               , tkIdentifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
               }
-    | LexInt { tkLoc :: ann, tkInt :: Integer }
-    | LexBS { tkLoc :: ann, tkBytestring :: BSL.ByteString }
-    | LexBuiltin { tkLoc :: ann, tkBuiltin :: BuiltinName }
-    | LexNat { tkLoc :: ann, tkNat :: Natural }
-    | LexKeyword { tkLoc :: ann, tkKeyword :: Keyword }
-    | LexSpecial { tkLoc :: ann, tkSpecial :: Special }
-    | EOF { tkLoc :: ann }
+    | LexInt        { tkLoc :: ann, tkInt :: Integer }
+    | LexBS         { tkLoc :: ann, tkBytestring :: BSL.ByteString }
+    | LexString     { tkLoc :: ann, tkString :: String }
+    | LexBuiltin    { tkLoc :: ann, tkBuiltin :: BuiltinName }
+    | LexDynBuiltin { tkLoc :: ann, tkDynBuiltin :: T.Text }
+    | LexNat        { tkLoc :: ann, tkNat :: Natural }
+    | LexKeyword    { tkLoc :: ann, tkKeyword :: Keyword }
+    | LexSpecial    { tkLoc :: ann, tkSpecial :: Special }
+    | EOF           { tkLoc :: ann }
     deriving (Show, Eq, Generic, NFData)
 
 instance Pretty Special where
@@ -86,6 +89,7 @@ instance Pretty Keyword where
     pretty KwFun        = "fun"
     pretty KwAll        = "all"
     pretty KwByteString = "bytestring"
+    pretty KwString     = "string"
     pretty KwInteger    = "integer"
     pretty KwType       = "type"
     pretty KwProgram    = "program"
@@ -96,14 +100,16 @@ instance Pretty Keyword where
     pretty KwError      = "error"
 
 instance Pretty (Token ann) where
-    pretty (LexName _ n _)   = pretty n
-    pretty (LexInt _ i)      = pretty i
-    pretty (LexNat _ n)      = pretty n
-    pretty (LexBS _ bs)      = prettyBytes bs
-    pretty (LexBuiltin _ bn) = pretty bn
-    pretty (LexKeyword _ kw) = pretty kw
-    pretty (LexSpecial _ s)  = pretty s
-    pretty EOF{}             = mempty
+    pretty (LexName _ n _)     = pretty n
+    pretty (LexInt _ i)        = pretty i
+    pretty (LexNat _ n)        = pretty n
+    pretty (LexBS _ bs)        = prettyBytes bs
+    pretty (LexString _ s)     = pretty s
+    pretty (LexBuiltin _ bn)   = pretty bn
+    pretty (LexDynBuiltin _ s) = pretty s
+    pretty (LexKeyword _ kw)   = pretty kw
+    pretty (LexSpecial _ s)    = pretty s
+    pretty EOF{}               = mempty
 
 -- | The list of all 'Keyword's.
 allKeywords :: [Keyword]

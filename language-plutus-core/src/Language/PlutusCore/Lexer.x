@@ -31,21 +31,20 @@ import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 
-{- This version of the lexer relaxes the syntax so that "keywords"
-   (con, lam, ...)  and built in names can be re-used as variable
-   names.  The Plutus compiler produces code with such names: for
-   example, the builtin `addInteger` is always called via a variable
-   of the same name which is bound to a lambda wrapping an invocation
-   of the actual builtin.  To achieve this, we use alex's "start
-   codes" which allow you to put the lexer into modes in which only
-   certain actions are valid.  In the PLC grammar, keywords like
-   `abs`, `con` and so on can only occur after a `(`, so when we see
-   one of these we put the lexer into a special mode where these are
-   interpreted as keywords and converted into elements of the
-   LexKeyword type; having done this, we return to the initial lexer
-   state, denoted by 0.  A similar strategy is used for built in names
-   and built in type names.
--}
+{- This version of the lexer relaxes the syntax so that keywords (con,
+   lam, ...) and built in names can be re-used as variable names.  The
+   Plutus compiler produces code with such names: for example, the
+   builtin `addInteger` is always called via a variable of the same
+   name which is bound to a lambda wrapping an invocation of the
+   actual builtin.  To achieve this, we use alex's "start codes" which
+   allow you to put the lexer into modes in which only certain actions
+   are valid.  In the PLC grammar, keywords like `abs`, `con` and so
+   on can only occur after a `(`, so when we see one of these we put
+   the lexer into a special mode where these are interpreted as
+   keywords and converted into elements of the LexKeyword type; having
+   done this, we return to the initial lexer state, denoted by 0,
+   where we can use keywords as variable names. A similar strategy is
+   used for built in names and built in type names. -}
 
 }
 
@@ -64,7 +63,6 @@ $upper = [A-Z]
 @float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
 
 @identifier = [$lower $upper][$lower $upper $digit \_ \']*
-@lcstring = [$lower $upper]+
 
 @special = \\\\ | \\\"
 
@@ -98,7 +96,8 @@ tokens :-
 
     <conarg> bytestring              { mkKeyword KwByteString  `andBegin` 0 }
     <conarg> integer                 { mkKeyword KwInteger     `andBegin` 0 }
-
+    <conarg> string                  { mkKeyword KwString      `andBegin` 0 }
+    
     -- Built in names: : we only expect these after "builtin"; elsewhere they can be used freely as identifiers 
     <bin> addInteger               { mkBuiltin AddInteger            `andBegin` 0 }
     <bin> subtractInteger          { mkBuiltin SubtractInteger       `andBegin` 0 }
@@ -121,12 +120,11 @@ tokens :-
     <bin> "sha2_256"               { mkBuiltin SHA2                  `andBegin` 0 }
     <bin> "sha3_256"               { mkBuiltin SHA3                  `andBegin` 0 }
     <bin> verifySignature          { mkBuiltin VerifySignature       `andBegin` 0 }
-
-    -- ^ At this point we may also run into names of extensible
-    -- builtins, but these aren't handled yet
+    <bin> @identifier              { mkDynBuiltin "trace"              `andBegin` 0 }
+-- We want to get the string in here    
 
     -- Various special characters
-    "("                      { mkSpecial OpenParen `andBegin` kwd }
+    "("                      { mkSpecial OpenParen  `andBegin` kwd }
     ")"                      { mkSpecial CloseParen `andBegin` 0}
     "["                      { mkSpecial OpenBracket }
     "]"                      { mkSpecial CloseBracket }
@@ -137,9 +135,12 @@ tokens :-
     -- ByteStrings
     \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (asBSLiteral s)) }
 
+    -- Strings
+    <conarg> [\"A-Za-z_]*    { tok (\p s -> alex $ LexString p (show s)) } -- FIXME: proper strings
+
     -- Integer/size literals
-    @nat                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
-    @integer                { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
+    @nat                     { tok (\p s -> alex $ LexNat p (readBSL s)) }
+    @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
 
     -- Identifiers
     @identifier              { tok (\p s -> handle_identifier p (T.decodeUtf8 (BSL.toStrict s))) }
@@ -208,11 +209,13 @@ nested_comment = go 1 =<< alexGetInput
 
 constructor c t = tok (\p _ -> alex $ c p t)
 
-mkSpecial = constructor LexSpecial
+mkSpecial    = constructor LexSpecial
 
-mkBuiltin = constructor LexBuiltin
+mkBuiltin    = constructor LexBuiltin
 
-mkKeyword = constructor LexKeyword
+mkDynBuiltin = constructor LexDynBuiltin
+
+mkKeyword    = constructor LexKeyword
 
 handle_identifier :: AlexPosn -> T.Text -> Alex (Token AlexPosn)
 handle_identifier p str = do

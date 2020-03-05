@@ -45,6 +45,7 @@ import Control.Monad.State
 %nonassoc integer
 %nonassoc float
 %nonassoc bytestring
+%nonassoc string
 %nonassoc iwrap
 %nonassoc unwrap
 %nonassoc lam
@@ -62,6 +63,7 @@ import Control.Monad.State
     all           { LexKeyword $$ KwAll }
     integer       { LexKeyword $$ KwInteger }
     bytestring    { LexKeyword $$ KwByteString }
+    string        { LexKeyword $$ KwString }
     type          { LexKeyword $$ KwType }
     program       { LexKeyword $$ KwProgram }
     iwrap         { LexKeyword $$ KwIWrap }
@@ -77,11 +79,12 @@ import Control.Monad.State
     closeBrace    { LexSpecial $$ CloseBrace }
 
     builtinVar    { $$@LexBuiltin{} }
+    builtinDyn    { $$@LexDynBuiltin{} }
 
     integerLit    { $$@LexInt{} }
     naturalLit    { $$@LexNat{} }
     byteStringLit { $$@LexBS{} }
-
+    stringLit     { $$@LexString{} }
     var           { $$@LexName{} }
 
 %%
@@ -105,9 +108,10 @@ Name : var { Name (tkLoc $1) (tkName $1) (tkIdentifier $1) }
 
 TyName : Name { TyName $1 }
 
-Constant : integerLit { someValue (tkInt $1) }
-         | naturalLit { someValue (toInteger (tkNat $1)) }
+Constant : integerLit    { someValue (tkInt $1) }
+         | naturalLit    { someValue (toInteger (tkNat $1)) }
          | byteStringLit { someValue (tkBytestring $1) }
+         | stringLit     { someValue (tkString $1) }
 
 Term : Name { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
@@ -118,12 +122,16 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen con Constant closeParen { Constant $2 $3 }
      | openParen iwrap Type Type Term closeParen { IWrap $2 $3 $4 $5 }
      | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (tkLoc $3) (tkBuiltin $3)) }
+| openParen builtin builtinDyn closeParen { Builtin $2 (DynBuiltinName $2 (DynamicBuiltinName (tkDynBuiltin $3))) }
+     -- ^ Here we see "builtin" then there's a builtinVar which contains the actual name,
+     -- and things are extracted from that and put into the  Builtin constructor 
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
 BuiltinType : integer { mkTyBuiltin @Integer }
             | bytestring { mkTyBuiltin @BSL.ByteString }
-
+            | string { mkTyBuiltin @String }
+		  
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
