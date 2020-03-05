@@ -107,6 +107,7 @@ library
         containers -any,
         directory -any,
         errors -any,
+        cardano-prelude -any,
         cborg -any,
         contra-tracer -any,
         eventful-core -any,

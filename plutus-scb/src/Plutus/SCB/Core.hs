@@ -66,8 +66,9 @@ import           Database.Persist.Sqlite                    (ConnectionPool, cre
                                                              mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
 import           Eventful                                   (Aggregate, EventStoreWriter, GlobalStreamProjection,
                                                              ProcessManager (ProcessManager), Projection,
-                                                             StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                             VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
+                                                             StreamEvent (StreamEvent), StreamProjection (..), UUID,
+                                                             VersionedEventStoreReader, VersionedStreamEvent,
+                                                             applyProcessManagerCommandsAndEvents,
                                                              commandStoredAggregate, getLatestStreamProjection,
                                                              globalStreamProjection, projectionMapMaybe,
                                                              serializedEventStoreWriter,

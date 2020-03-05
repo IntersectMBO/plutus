@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -9,42 +10,57 @@
 {-# OPTIONS -Wno-orphans #-} -- TODO: remove this
 module Cardano.Protocol.Type where
 
-import qualified Data.ByteString.Lazy                               as LBS
+import           Codec.Serialise.Class                              (Serialise)
+import           Data.Aeson                                         (FromJSON, ToJSON)
+import qualified Data.ByteString.Lazy                               as BSL
+import           Data.Text.Prettyprint.Doc                          (Pretty)
 
 import           Control.Concurrent.STM
 import           Control.Lens                                       hiding (index)
-
 import           GHC.Generics
 import           Network.Socket                                     as Socket
 
+import           Cardano.Prelude                                    (NoUnexpectedThunks)
 import           Cardano.Slotting.Slot                              (SlotNo (..))
 import           Ouroboros.Network.Block                            (HeaderHash, StandardHash)
 import           Ouroboros.Network.Mux
 
 import qualified Cardano.Protocol.Puppet.Codec                      as Puppet
 import qualified Cardano.Protocol.Puppet.Type                       as Puppet
+import           Codec.Serialise                                    (DeserialiseFailure)
+import qualified Codec.Serialise                                    as CBOR
+import           Network.TypedProtocol.Codec
 import qualified Ouroboros.Network.Protocol.ChainSync.Codec         as ChainSync
 import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmission
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
 
-import           Codec.Serialise                                    (DeserialiseFailure)
-import qualified Codec.Serialise                                    as CBOR
-import           Network.TypedProtocol.Codec
-
-import           Ledger                                             (Block, Slot (..), Tx (..))
+import           Ledger                                             (Block, Slot (..), Tx (..), TxId (..), txId)
 import qualified Ledger.Index                                       as Index
+import           LedgerBytes                                        (LedgerBytes (..))
 import qualified Wallet.Emulator.Chain                              as EC
 
 -- Making plutus transaction representations work with the node protocols
-type instance HeaderHash Tx = ()
-type instance HeaderHash [Tx] = ()
+type instance HeaderHash Tx = TxId
+type instance HeaderHash Block = BlockId
 deriving instance StandardHash Tx
-deriving instance StandardHash [Tx]
+deriving instance StandardHash Block
 
 deriving instance Generic Index.UtxoIndex
 deriving newtype instance CBOR.Serialise Index.UtxoIndex
--- TODO: Review this.
+deriving newtype instance NoUnexpectedThunks TxId
+-- TODO: Move this when fear of merging subsides
+
+-- Block header
+newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
+  deriving (Eq, Ord, Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise, NoUnexpectedThunks)
+  deriving (Pretty, Show) via LedgerBytes
+
+blockId :: Block -> BlockId
+blockId = BlockId . foldl BSL.append BSL.empty . map (getTxId . txId)
+--
 
 type Tip = Block
 
@@ -115,7 +131,7 @@ newPuppetHandle =
 -- Codec specialisations for the mock node protocol
 codecChainSync :: Codec (ChainSync.ChainSync Block Block)
                         DeserialiseFailure
-                        IO LBS.ByteString
+                        IO BSL.ByteString
 codecChainSync =
     ChainSync.codecChainSync
       CBOR.encode (fmap const CBOR.decode)
@@ -124,7 +140,7 @@ codecChainSync =
 
 codecTxSubmission :: Codec (TxSubmission.LocalTxSubmission Tx String)
                            DeserialiseFailure
-                           IO LBS.ByteString
+                           IO BSL.ByteString
 codecTxSubmission =
     TxSubmission.codecLocalTxSubmission
       CBOR.encode CBOR.decode
@@ -132,7 +148,7 @@ codecTxSubmission =
 
 codecPuppet :: Codec (Puppet.Puppet ChainState Block)
                      DeserialiseFailure
-                     IO LBS.ByteString
+                     IO BSL.ByteString
 codecPuppet =
     Puppet.codecPuppet
       CBOR.encode CBOR.decode
