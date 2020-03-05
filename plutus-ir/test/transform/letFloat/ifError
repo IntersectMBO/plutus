@@ -9,5 +9,5 @@
       )
       (lam z (con integer) (con 1))
 	])
-  (abs a (type) (lam x (fun (con integer) a) (lam y (con integer) [y (con 0)])))
+  (abs a (type) (lam x (fun (con integer) a) (lam y (fun (con integer) a) [y (con 0)])))
 ]
