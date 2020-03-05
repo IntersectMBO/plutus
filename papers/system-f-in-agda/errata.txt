@@ -1,15 +1,19 @@
-This file documents bugs/fixes made after publication:
+This file documents bugs/fixes/additions made after publication:
 
 26 November 2019:
 
-The rule β-wrap should insist that the body is a value. Otherwise
-it is possible to apply either the ξ-wrap or the β-wrap rule to the
-same term. 
+The rule β-wrap should insist that the body is a value. Otherwise it
+is possible to apply either the ξ-wrap or the β-wrap rule to the same
+term. Fixed.
 
-3 March 2020:
+4 March 2020:
 
 The rule β-Λ should insist the body of the Λ is a value. Otherwise it
-is possible to apply either ξ-Λ inside ξ-·⋆ or β-Λ to the same term.
+is possible to apply either ξ-Λ inside ξ-·⋆ or β-Λ to the same
+term. Fixed.
 
-Added proofs of progress disjointness and determinism of the reduction
-rules to the source of the paper (not shown in the paper).
+Added proof of determinism of the reduction rules to the source of the
+paper to paper source. Not shown in the pdf.
+
+Added proof that progress returns an element of an 'exclusive or' to
+paper source. Not shown in the paper.
