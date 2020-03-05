@@ -188,7 +188,7 @@ contracts.
 contractAddress :: Vesting -> Address
 contractAddress vst = L.scriptAddress (vestingValidatorScript vst)
 
-vestFunds :: MonadWallet m => Vesting -> m ()
+vestFunds :: (W.SigningProcessAPI m, MonadWallet m) => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
@@ -211,7 +211,7 @@ a set of inputs and a list of outputs.
 
 [source,haskell]
 ----
-withdraw :: (MonadWallet m, W.ChainIndexAPI m) => Vesting -> Value -> m ()
+withdraw :: (MonadWallet m, W.ChainIndexAPI m, W.SigningProcessAPI m) => Vesting -> Value -> m ()
 withdraw vst vl = do
 
     let address = contractAddress vst

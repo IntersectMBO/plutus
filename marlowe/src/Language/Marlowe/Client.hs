@@ -34,7 +34,7 @@ import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
 import           Ledger.Validation
 import           Wallet                     (WalletAPI (..), NodeAPI (..), WalletAPIError, createPaymentWithChange, createTxAndSubmit,
-                                             throwOtherError)
+                                             throwOtherError, SigningProcessAPI)
 
 {-| Create a Marlowe contract.
     Uses wallet public key to generate a unique script address.
@@ -42,7 +42,8 @@ import           Wallet                     (WalletAPI (..), NodeAPI (..), Walle
 createContract :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => MarloweParams
     -> Contract
     -> m (MarloweData, Tx)
@@ -72,7 +73,8 @@ createContract params contract = do
 deposit :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -89,7 +91,8 @@ deposit tx params marloweData accountId token amount = do
 notify :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -101,7 +104,8 @@ notify tx params marloweData = applyInputs tx params marloweData [INotify]
 makeChoice :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -127,7 +131,8 @@ makeChoice tx params marloweData choiceId choice =
 makeProgress :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -142,7 +147,8 @@ makeProgress tx params marloweData = applyInputs tx params marloweData []
 applyInputs :: (
     MonadError WalletAPIError m,
     WalletAPI m,
-    NodeAPI m)
+    NodeAPI m,
+    SigningProcessAPI m)
     => Tx
     -> MarloweParams
     -> MarloweData

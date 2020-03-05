@@ -76,23 +76,24 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
-import           Control.Lens               hiding (index)
+import           Control.Lens                   hiding (index)
 import           Control.Monad.Except
-import qualified Control.Monad.Freer        as Eff
-import qualified Control.Monad.Freer.Error  as Eff
-import qualified Control.Monad.Freer.Extras as Eff
+import qualified Control.Monad.Freer            as Eff
+import qualified Control.Monad.Freer.Error      as Eff
+import qualified Control.Monad.Freer.Extras     as Eff
 import           Control.Monad.State
-import           Data.Foldable              (traverse_)
-import qualified Data.Text                  as T
-import           Prelude                    as P
+import           Data.Foldable                  (traverse_)
+import qualified Data.Text                      as T
+import           Prelude                        as P
 
 import           Ledger
-import           Wallet.API                 (WalletAPIError (..))
+import           Wallet.API                     (WalletAPIError (..))
 
 import           Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
+import           Wallet.Emulator.SigningProcess
 import           Wallet.Emulator.Wallet
 
 type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
@@ -183,7 +184,7 @@ runWalletActionAndProcessPending
     :: Eff.Members EmulatorEffs effs
     => [Wallet]
     -> Wallet
-    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect] a
+    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect, SigningProcessEffect] a
     -> Eff.Eff effs ([Tx], a)
 runWalletActionAndProcessPending wallets wallet action = do
     result <- walletAction wallet action

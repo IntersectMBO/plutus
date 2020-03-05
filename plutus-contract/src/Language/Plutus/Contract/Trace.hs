@@ -83,7 +83,6 @@ import           Language.Plutus.Contract                          (Contract (..
                                                                     waitingForBlockchainActions, withContractError)
 import qualified Language.Plutus.Contract.Resumable                as State
 import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.Wallet                   (SigningProcess)
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        (SlotSymbol)
@@ -116,6 +115,8 @@ import qualified Wallet.Emulator                                   as EM
 import qualified Wallet.Emulator.ChainIndex                        as EM
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import qualified Wallet.Emulator.NodeClient                        as EM
+import           Wallet.Emulator.SigningProcess                    (SigningProcess)
+import qualified Wallet.Emulator.SigningProcess                    as EM
 import qualified Wallet.Emulator.Wallet                            as EM
 
 -- | Maximum number of iterations of `handleBlockchainEvents`.
@@ -140,9 +141,8 @@ type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
 data WalletState s e a =
     WalletState
-        { walletContractState  :: Either (ResumableError e) (ResumableResult (Event s) (Handlers s) a)
-        , walletSigningProcess :: SigningProcess
-        , walletEvents         :: Seq (Event s)
+        { walletContractState :: Either (ResumableError e) (ResumableResult (Event s) (Handlers s) a)
+        , walletEvents        :: Seq (Event s)
         }
 
 walletHandlers
@@ -163,7 +163,6 @@ emptyWalletState
 emptyWalletState (Contract c) =
     WalletState
         { walletContractState = State.runResumable [] c
-        , walletSigningProcess = Wallet.defaultSigningProcess
         , walletEvents = mempty
         }
 
@@ -228,24 +227,6 @@ addEvent w e = do
              in Just (addEventWalletState con e theState)
     ctsWalletStates %= Map.alter go w
 
--- | Set the wallet's 'SigningProcess' to a new value.
-setSigningProcess
-    :: forall s e m a.
-       ( MonadState (ContractTraceState s e a) m
-       , AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => Wallet
-    -> SigningProcess
-    -> m ()
-setSigningProcess wallet signingProcess = do
-    con <- use ctsContract
-    let go st =
-            let theState = fromMaybe (emptyWalletState con) st
-            in Just (theState { walletSigningProcess = signingProcess })
-    ctsWalletStates %= Map.alter go wallet
-
 -- | Get the hooks that a contract is currently waiting for
 getHooks
     :: forall s e m a.
@@ -268,6 +249,16 @@ data ContractTraceResult s e a =
         }
 
 makeLenses ''ContractTraceResult
+
+-- | Set the wallet's 'SigningProcess' to a new value.
+setSigningProcess
+    :: forall s e m a.
+       ( MonadEmulator (TraceError e) m )
+    => Wallet
+    -> SigningProcess
+    -> ContractTrace s e m a ()
+setSigningProcess wallet signingProcess =
+    void $ lift $ runWallet wallet (EM.setSigningProcess signingProcess)
 
 -- | Add an event to every wallet's trace
 addEventAll
@@ -358,7 +349,7 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect, EM.ChainIndexEffect] a
+    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect, EM.ChainIndexEffect, EM.SigningProcessEffect] a
     -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
@@ -391,10 +382,7 @@ submitUnbalancedTx
     -> UnbalancedTx
     -> ContractTrace s e m a [Tx]
 submitUnbalancedTx wallet tx = do
-    signingProcess <- fmap
-                        (maybe Wallet.defaultSigningProcess walletSigningProcess . Map.lookup wallet)
-                        (use ctsWalletStates)
-    (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx signingProcess tx) `Eff.catchError` \e -> pure $ Left e))
+    (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx tx) `Eff.catchError` \e -> pure $ Left e))
     let event = WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res
     addEvent wallet event
     pure txns
