@@ -1,0 +1,14 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl err (con integer)) (error (con integer)))
+  [
+    (lam
+      b
+      (all a (type) (fun (fun (con integer) a) (fun (fun (con integer) a) a)))
+      [ [ b (lam z (con integer) err) ] (lam z (con integer) (con 1)) ]
+    )
+    (abs
+      a (type) (lam x (fun (con integer) a) (lam y (con integer) [ y (con 0) ]))
+    )
+  ]
+)
