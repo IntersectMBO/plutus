@@ -4277,12 +4277,25 @@ val (V-Λ p)    (.(Λ _) ,, ξ-Λ q)         = val p (_ ,, q)
 val (V-wrap p) (.(wrap _ _) ,, ξ-wrap q) = val p (_ ,, q)
 
 -- if a term can make progress it is not a value
+-- we only need one of `val` or `red` to prove `notboth`
 
 red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢Nf σ} → Σ (Γ ⊢Nf σ) (t —→_) → ¬ (Value t)
 red (.(wrap _ _) ,, ξ-wrap p) (V-wrap v) = red (_ ,, p) v
 red (.(Λ _) ,, ξ-Λ p)         (V-Λ v)    = red (_ ,, p) v
 
--- ^ together these prove that the progress proof produces a disjoint union
+-- exclusive or
+_xor_ : Set → Set → Set
+A xor B = (A ⊎ B) × ¬ (A × B)
+
+-- a term cannot make progress and be a value
+
+notboth : {σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢Nf σ} → ¬ (Value t × Σ (∅ ⊢Nf σ) (t —→_))
+notboth (v ,, p) = val v p
+
+-- armed with this, we can upgrade progress to an xor
+
+progress-xor : {σ : ∅ ⊢Nf⋆ *}(t : ∅ ⊢Nf σ) → Value t xor Σ (∅ ⊢Nf σ) (t —→_)
+progress-xor t = progress  _ t ,, notboth
 
 -- The reduction rules are deterministic
 
