@@ -12,7 +12,8 @@ import           Control.Concurrent            (threadDelay)
 import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                  (over, set, view)
 import           Control.Monad                 (forever, void)
-import           Control.Monad.Freer           (Eff, Member, runM)
+import           Control.Monad.Freer           (Eff, Member, interpret, runM)
+import           Control.Monad.Freer.Extras    (handleZoomedState)
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
 import           Control.Monad.Freer.Writer    (Writer)
@@ -30,8 +31,9 @@ import           Servant                       (NoContent (NoContent))
 import           Ledger                        (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
+import           Cardano.Node.Follower         (NodeFollowerEffect, handleNodeFollower)
 import           Cardano.Node.RandomTx
-import           Cardano.Node.Types
+import           Cardano.Node.Types            as T
 import           Control.Monad.Freer.Extra.Log
 
 import           Plutus.SCB.Arbitrary          ()
@@ -80,7 +82,7 @@ addTx tx = do
     pure NoContent
 
 type NodeServerEffects m
-     = '[ GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], Log, m]
+     = '[ GenRandomTx, NodeFollowerEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], State AppState, Log, m]
 
 ------------------------------------------------------------
 runChainEffects ::
@@ -88,14 +90,17 @@ runChainEffects ::
     -> Eff (NodeServerEffects IO) a
     -> IO ([ChainEvent], a)
 runChainEffects stateVar eff = do
-    oldState <- liftIO $ takeMVar stateVar
-    let oldChainState = view chainState oldState
-    ((a, newChainState), events) <- liftIO $
-        runM $
-        runStderrLog $
-        Eff.runWriter $
-        Eff.runState oldChainState $ Chain.handleChain $ runGenRandomTx eff
-    let newState = set chainState newChainState oldState
+    oldAppState <- liftIO $ takeMVar stateVar
+    ((a, events), newState) <- liftIO
+        $ runM
+        $ runStderrLog
+        $ Eff.runState oldAppState
+        $ Eff.runWriter
+        $ interpret (handleZoomedState T.chainState)
+        $ interpret (handleZoomedState T.followerState)
+        $ Chain.handleChain
+        $ handleNodeFollower
+        $ runGenRandomTx eff
     liftIO $ putMVar stateVar newState
     pure (events, a)
 
