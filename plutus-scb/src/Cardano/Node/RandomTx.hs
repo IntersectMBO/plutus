@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Cardano.Node.RandomTx(
@@ -18,6 +19,7 @@ import           Control.Monad.Freer           (Eff, LastMember, Member)
 import qualified Control.Monad.Freer           as Eff
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
+import           Control.Monad.Freer.TH        (makeEffect)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.Primitive       (PrimMonad, PrimState)
 import           Data.List.NonEmpty            (NonEmpty (..))
@@ -47,8 +49,7 @@ import           Control.Monad.Freer.Extra.Log
 data GenRandomTx r where
     GenRandomTx :: GenRandomTx Tx
 
-genRandomTx :: Member GenRandomTx effs => Eff effs Tx
-genRandomTx = Eff.send GenRandomTx
+makeEffect ''GenRandomTx
 
 runGenRandomTx ::
        ( Member (State ChainState) effs
