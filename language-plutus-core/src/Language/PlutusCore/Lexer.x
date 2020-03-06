@@ -62,10 +62,11 @@ $upper = [A-Z]
 @exp = [eE] @sign $digit+
 @float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
 
-@identifier = [$lower $upper][$lower $upper $digit \_ \']*
+@name = [$lower $upper][$lower $upper $digit \_ \']*
+
+@builtinid  = [$lower $upper][$lower $upper $digit \_ \']*
 
 @special = \\\\ | \\\"
-
 
 
 tokens :-
@@ -75,76 +76,56 @@ tokens :-
     "{-"                     { \_ _ -> nested_comment }
 
     -- Keywords: we only expect these after '('; elsewhere they can be used freely as identifiers 
-    <kwd> abs                      { mkKeyword KwAbs         `andBegin` 0 } 
-    <kwd> lam                      { mkKeyword KwLam         `andBegin` 0 }
-    <kwd> ifix                     { mkKeyword KwIFix        `andBegin` 0 }
-    <kwd> fun                      { mkKeyword KwFun         `andBegin` 0 }
-    <kwd> all                      { mkKeyword KwAll         `andBegin` 0 }
-    <kwd> type                     { mkKeyword KwType        `andBegin` 0 }
-    <kwd> program                  { mkKeyword KwProgram     `andBegin` 0 }
-    <kwd> con                      { mkKeyword KwCon         `andBegin` conarg }
-    <kwd> iwrap                    { mkKeyword KwIWrap       `andBegin` 0 }
-    <kwd> unwrap                   { mkKeyword KwUnwrap      `andBegin` 0 }
-    <kwd> error                    { mkKeyword KwError       `andBegin` 0 }
-    <kwd> builtin                  { mkKeyword KwBuiltin     `andBegin` bin }
-
-    -- Built constants and type names. Type names are only expected
-    -- after "con"; elsewhere they can be used freely as identifiers
-    -- Note also that rules without start codes can be used in any
-    -- context, including here: thus this case also handles
-    -- constants.
-
-    <conarg> bytestring              { mkKeyword KwByteString  `andBegin` 0 }
-    <conarg> integer                 { mkKeyword KwInteger     `andBegin` 0 }
-    <conarg> string                  { mkKeyword KwString      `andBegin` 0 }
+    <kwd> abs            { mkKeyword KwAbs         `andBegin` 0 } 
+    <kwd> lam            { mkKeyword KwLam         `andBegin` 0 }
+    <kwd> ifix           { mkKeyword KwIFix        `andBegin` 0 }
+    <kwd> fun            { mkKeyword KwFun         `andBegin` 0 }
+    <kwd> all            { mkKeyword KwAll         `andBegin` 0 }
+    <kwd> type           { mkKeyword KwType        `andBegin` 0 }
+    <kwd> program        { mkKeyword KwProgram     `andBegin` 0 }
+    <kwd> con            { mkKeyword KwCon         `andBegin` conarg }
+    <kwd> iwrap          { mkKeyword KwIWrap       `andBegin` 0 }
+    <kwd> unwrap         { mkKeyword KwUnwrap      `andBegin` 0 }
+    <kwd> error          { mkKeyword KwError       `andBegin` 0 }
+    <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` bin }
+    -- ^ Switch the lexer into a mode where it's looking for a builtin id.
+    -- These are converted into Builtin names (possibly dynamic) in the parser
+    -- Outside this mode, all ids are parsed as Names. 
     
-    -- Built in names: : we only expect these after "builtin"; elsewhere they can be used freely as identifiers 
-    <bin> addInteger               { mkBuiltin AddInteger            `andBegin` 0 }
-    <bin> subtractInteger          { mkBuiltin SubtractInteger       `andBegin` 0 }
-    <bin> multiplyInteger          { mkBuiltin MultiplyInteger       `andBegin` 0 }
-    <bin> divideInteger            { mkBuiltin DivideInteger         `andBegin` 0 }
-    <bin> quotientInteger          { mkBuiltin QuotientInteger       `andBegin` 0 }
-    <bin> modInteger               { mkBuiltin ModInteger            `andBegin` 0 }
-    <bin> remainderInteger         { mkBuiltin RemainderInteger      `andBegin` 0 }
-    <bin> lessThanInteger          { mkBuiltin LessThanInteger       `andBegin` 0 }
-    <bin> lessThanEqualsInteger    { mkBuiltin LessThanEqInteger     `andBegin` 0 }
-    <bin> greaterThanInteger       { mkBuiltin GreaterThanInteger    `andBegin` 0 }
-    <bin> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger  `andBegin` 0 }
-    <bin> equalsInteger            { mkBuiltin EqInteger             `andBegin` 0 }
-    <bin> concatenate              { mkBuiltin Concatenate           `andBegin` 0 }
-    <bin> takeByteString           { mkBuiltin TakeByteString        `andBegin` 0 }
-    <bin> dropByteString           { mkBuiltin DropByteString        `andBegin` 0 }
-    <bin> equalsByteString         { mkBuiltin EqByteString          `andBegin` 0 }
-    <bin> lessThanByteString       { mkBuiltin LtByteString          `andBegin` 0 }
-    <bin> greaterThanByteString    { mkBuiltin GtByteString          `andBegin` 0 }
-    <bin> "sha2_256"               { mkBuiltin SHA2                  `andBegin` 0 }
-    <bin> "sha3_256"               { mkBuiltin SHA3                  `andBegin` 0 }
-    <bin> verifySignature          { mkBuiltin VerifySignature       `andBegin` 0 }
-    <bin> @identifier              { mkDynBuiltin "trace"              `andBegin` 0 }
--- We want to get the string in here    
+    <conarg> bytestring  { mkKeyword KwByteString  `andBegin` 0 }
+    <conarg> integer     { mkKeyword KwInteger     `andBegin` 0 }
+    <conarg> string      { mkKeyword KwString      `andBegin` 0 }
+
+    -- Maybe we should also do this in the parser, but there's some
+    -- ambiguity because literal constants are also parsed here (they
+    -- have no start code, so can appear in any context).  There's a
+    -- danger that if we save an id here and later parse it into a
+    -- builtin type name, it'd actually be a builtin constant.  That
+    -- can't happen yet, but could if someone adds `nil` or something.
 
     -- Various special characters
-    "("                      { mkSpecial OpenParen  `andBegin` kwd }
-    ")"                      { mkSpecial CloseParen `andBegin` 0}
-    "["                      { mkSpecial OpenBracket }
-    "]"                      { mkSpecial CloseBracket }
-    "."                      { mkSpecial Dot }
-    "{"                      { mkSpecial OpenBrace }
-    "}"                      { mkSpecial CloseBrace }
+    "("                  { mkSpecial OpenParen  `andBegin` kwd }
+    ")"                  { mkSpecial CloseParen `andBegin` 0}
+    "["                  { mkSpecial OpenBracket }
+    "]"                  { mkSpecial CloseBracket }
+    "."                  { mkSpecial Dot }
+    "{"                  { mkSpecial OpenBrace }
+    "}"                  { mkSpecial CloseBrace }
 
     -- ByteStrings
-    \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (asBSLiteral s)) }
+    \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
 
     -- Strings
-    <conarg> [\"A-Za-z_]*    { tok (\p s -> alex $ LexString p (show s)) } -- FIXME: proper strings
+    <conarg> [\"A-Za-z_]*    { tok (\p s -> alex $ TkString p (show s)) } -- FIXME: proper strings
 
     -- Integer/size literals
-    @nat                     { tok (\p s -> alex $ LexNat p (readBSL s)) }
-    @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
+    @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
+    @integer                 { tok (\p s -> alex $ TkInt p (readBSL $ stripPlus s)) }
 
     -- Identifiers
-    @identifier              { tok (\p s -> handle_identifier p (T.decodeUtf8 (BSL.toStrict s))) }
+    <0> @name                { tok (\p s -> handle_name p (T.decodeUtf8 (BSL.toStrict s))) }
 
+    <bin> @builtinid         { tok (\p s -> alex $ TkBuiltinId p (T.decodeUtf8 (BSL.toStrict s))) `andBegin` 0 }
 {
 
 deriving instance Generic AlexPosn
@@ -209,20 +190,16 @@ nested_comment = go 1 =<< alexGetInput
 
 constructor c t = tok (\p _ -> alex $ c p t)
 
-mkSpecial    = constructor LexSpecial
+mkSpecial    = constructor TkSpecial
 
-mkBuiltin    = constructor LexBuiltin
+mkKeyword    = constructor TkKeyword
 
-mkDynBuiltin = constructor LexDynBuiltin
-
-mkKeyword    = constructor LexKeyword
-
-handle_identifier :: AlexPosn -> T.Text -> Alex (Token AlexPosn)
-handle_identifier p str = do
+handle_name :: AlexPosn -> T.Text -> Alex (Token AlexPosn)
+handle_name p str = do
     s1 <- gets alex_ust
     let (u, s2) = runState (newIdentifier str) s1
     modify (\s -> s { alex_ust = s2})
-    pure $ LexName p str u
+    pure $ TkName p str u
 
 -- this conversion is safe because we only lex digits
 readBSL :: (Read a) => BSL.ByteString -> a

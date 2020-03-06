@@ -1,9 +1,12 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
+import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Dynamic
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
 import qualified Language.PlutusCore.Generators             as PLC
@@ -30,6 +33,13 @@ import           Data.Text.Prettyprint.Doc
 import           System.Exit
 
 import           Options.Applicative
+
+stringBuiltins
+    :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
+    => DynamicBuiltinNameMeanings uni
+stringBuiltins =
+    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
+        $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 data Input = FileInput FilePath | StdInput
 
@@ -127,7 +137,7 @@ runEval (EvalOptions inp mode) = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
-            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek stringBuiltins
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck
