@@ -9,6 +9,7 @@ import           Language.Marlowe
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Semantics
 import           Ledger                                (pubKeyHash)
+import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
 import           Test.QuickCheck
 
@@ -299,14 +300,41 @@ noFalsePositivesForContract cont =
                                          counterexample ("Trace: " ++ show (is, li)) $
                                          tabulate "Number of warnings" [show (length warns)]
                                                   (warns =/= []))))
-  where wrapLeft r = do tempRes <- r
-                        return (case tempRes of
-                                  Left x  -> Left (Right x)
-                                  Right y -> Right y)
+
+wrapLeft :: IO (Either a b) -> IO (Either (Either c a) b)
+wrapLeft r = do tempRes <- r
+                return (case tempRes of
+                          Left x  -> Left (Right x)
+                          Right y -> Right y)
 
 
 prop_noFalsePositives :: Property
 prop_noFalsePositives = forAllShrink contractGen shrinkContract noFalsePositivesForContract
+
+sameAsOldImplementation :: Contract -> Property
+sameAsOldImplementation cont =
+  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
+                                   (\exc -> return $ Left (Left (exc :: SomeException)))
+                      res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
+                                    (\exc -> return $ Left (Left (exc :: SomeException)))
+                      return (case (res, res2) of
+                                 (Right Nothing, Right Nothing) ->
+                                    label "No counterexample" True
+                                 (Right (Just _), Right Nothing) ->
+                                    label "Old version couldn't see counterexample" True
+                                 (Right (Just _), Right (Just _)) ->
+                                    label "Both versions found counterexample" True
+                                 (Left _, Left _) ->
+                                    label "Both solvers failed" True
+                                 (Left _, _) ->
+                                    label "Solver for new version failed" True
+                                 (_, Left _) ->
+                                    label "Solver for old version failed" True
+                                 problems -> counterexample (show problems) False))
+
+runManuallySameAsOldImplementation :: Property
+runManuallySameAsOldImplementation =
+  forAllShrink contractGen shrinkContract sameAsOldImplementation
 
 ------------------
 return []

@@ -35,13 +35,22 @@ library
                         wl-pprint
 test-suite marlowe-symbolic-test
     other-modules: Tests
+                   OldAnalysis.FSMap
+                   OldAnalysis.FSSemantics
+                   OldAnalysis.FSSet
+                   OldAnalysis.IntegerArray
+                   OldAnalysis.MkSymb
+                   OldAnalysis.Numbering
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
     default-language: Haskell2010
-    build-depends:      base >=4.9,
+    build-depends:      base >= 4.9,
+                        containers,
                         marlowe,
                         marlowe-symbolic,
                         plutus-wallet-api,
+                        sbv >= 8.4,
+                        template-haskell,
                         QuickCheck
 
