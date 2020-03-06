@@ -50,6 +50,7 @@ library
         Cardano.ChainIndex.Types
         Cardano.Node.API
         Cardano.Node.Client
+        Cardano.Node.Follower
         Cardano.Node.Mock
         Cardano.Node.RandomTx
         Cardano.Node.Server

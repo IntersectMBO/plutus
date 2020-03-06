@@ -8,6 +8,7 @@ module Plutus.SCB.Types where
 
 import qualified Cardano.Node.Server                as NodeServer
 import qualified Cardano.Wallet.Server              as WalletServer
+import qualified Cardano.ChainIndex.Types           as ChainIndex
 import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.Aeson                         as Aeson
 import qualified Data.Aeson.Encode.Pretty           as JSON
@@ -106,5 +107,6 @@ data Config =
         { dbConfig           :: DbConfig
         , walletServerConfig :: WalletServer.Config
         , nodeServerConfig   :: NodeServer.MockServerConfig
+        , chainIndexConfig   :: ChainIndex.ChainIndexConfig
         }
     deriving (Show, Eq, Generic, FromJSON)

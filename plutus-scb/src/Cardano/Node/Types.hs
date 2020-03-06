@@ -1,16 +1,19 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module Cardano.Node.Types where
 
-import           Control.Lens                   (makeLenses, view)
-import           Data.Aeson                     (FromJSON)
+import           Control.Lens                   (Iso', iso, makeLenses, view)
+import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import           Data.Time.Units                (Second)
 import           Data.Time.Units.Extra          ()
 import           GHC.Generics                   (Generic)
 import qualified Language.Plutus.Contract.Trace as Trace
+import           Servant                        (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                 (BaseUrl)
 import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain          (ChainEvent, ChainState)
@@ -37,12 +40,12 @@ data MockServerConfig =
 
 data AppState =
     AppState
-        { _chainState   :: ChainState
-        , _eventHistory :: [ChainEvent]
+        { _chainState    :: ChainState
+        , _eventHistory  :: [ChainEvent]
+        , _followerState :: NodeFollowerState
         }
     deriving (Show)
 
-makeLenses 'AppState
 
 initialChainState :: Trace.InitialDistribution -> ChainState
 initialChainState =
@@ -54,4 +57,20 @@ initialAppState =
     AppState
         { _chainState = initialChainState Trace.defaultDist
         , _eventHistory = mempty
+        , _followerState = initialFollowerState
         }
+
+newtype NodeFollowerState = NodeFollowerState { _unNodeFollowerState :: Map FollowerID Int }
+    deriving (Show)
+
+_NodeFollowerState :: Iso' NodeFollowerState (Map FollowerID Int)
+_NodeFollowerState = iso _unNodeFollowerState NodeFollowerState
+
+initialFollowerState :: NodeFollowerState
+initialFollowerState = NodeFollowerState Map.empty
+
+newtype FollowerID = FollowerID Int
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving newtype (ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Integral, Enum, Real, Num)
+
+makeLenses 'AppState

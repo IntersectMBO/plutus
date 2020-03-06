@@ -10,7 +10,7 @@ module Cardano.Node.Mock where
 
 import           Control.Concurrent            (threadDelay)
 import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Lens                  (over, set, view)
+import           Control.Lens                  (over, set, view, (&))
 import           Control.Monad                 (forever, void)
 import           Control.Monad.Freer           (Eff, Member, runM)
 import           Control.Monad.Freer.State     (State)
@@ -30,6 +30,7 @@ import           Servant                       (NoContent (NoContent))
 import           Ledger                        (Address, Blockchain, Slot, Tx, TxOut (..), TxOutRef, UtxoIndex (..))
 import qualified Ledger
 
+import           Cardano.Node.Follower         (NodeFollowerEffect, handleNodeFollower)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import           Control.Monad.Freer.Extra.Log
@@ -80,7 +81,7 @@ addTx tx = do
     pure NoContent
 
 type NodeServerEffects m
-     = '[ GenRandomTx, ChainEffect, State ChainState, Writer [ChainEvent], Log, m]
+     = '[ GenRandomTx, NodeFollowerEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], Log, m]
 
 ------------------------------------------------------------
 runChainEffects ::
@@ -90,12 +91,17 @@ runChainEffects ::
 runChainEffects stateVar eff = do
     oldState <- liftIO $ takeMVar stateVar
     let oldChainState = view chainState oldState
-    ((a, newChainState), events) <- liftIO $
-        runM $
-        runStderrLog $
-        Eff.runWriter $
-        Eff.runState oldChainState $ Chain.handleChain $ runGenRandomTx eff
-    let newState = set chainState newChainState oldState
+        oldFollowerState = view followerState oldState
+    (((a, newFollowerState), newChainState), events) <- liftIO
+        $ runM
+        $ runStderrLog
+        $ Eff.runWriter
+        $ Eff.runState oldChainState
+        $ Eff.runState oldFollowerState
+        $ Chain.handleChain
+        $ handleNodeFollower
+        $ runGenRandomTx eff
+    let newState = oldState & set chainState newChainState & set followerState newFollowerState
     liftIO $ putMVar stateVar newState
     pure (events, a)
 
