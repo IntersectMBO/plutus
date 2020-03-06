@@ -6,7 +6,7 @@ The rule β-wrap should insist that the body is a value. Otherwise it
 is possible to apply either the ξ-wrap or the β-wrap rule to the same
 term. Fixed.
 
-4 March 2020:
+6 March 2020:
 
 The rule β-Λ should insist the body of the Λ is a value. Otherwise it
 is possible to apply either ξ-Λ inside ξ-·⋆ or β-Λ to the same

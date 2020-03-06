@@ -327,7 +327,6 @@ data Progress {Φ}{Γ}{A : Φ ⊢Nf⋆ *} (M : Γ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
-
 data TelProgress
   {Φ Γ}
   {Δ}
@@ -604,6 +603,39 @@ reconstTel-inj' Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄ 
 ... | (refl ,, refl) ,, (refl ,, refl) ,, (refl ,, refl) with p | p' | det x₂ x₃
 ... | refl | refl | refl = refl
 
+postulate
+ reconstTel-err : ∀{Φ Γ Δ As} Bs Ds
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (telB : Tel Γ Δ σ Bs)
+  → VTel Γ Δ σ Bs telB
+  → ∀{C}{t : Γ ⊢ substNf σ C}
+  → Error t
+  → (p : Bs ++ (C ∷ Ds) ≡ As)
+  → (telD : Tel Γ Δ σ Ds)
+  → (tel : Tel Γ Δ σ As)
+  → VTel Γ Δ σ As tel
+  -- should have additional condition that the reconstTel = tel
+  → ⊥
+
+postulate
+ reconstTel-err' : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (telB : Tel Γ Δ σ Bs)
+  → VTel Γ Δ σ Bs telB
+  → (telB' : Tel Γ Δ σ Bs')
+  → VTel Γ Δ σ Bs' telB'
+  → ∀{C}{t t' : Γ ⊢ substNf σ C}
+  → t —→ t'
+  → ∀{C'}{t'' : Γ ⊢ substNf σ C'}
+  → Error t''
+  → (p : Bs ++ (C ∷ Ds) ≡ As)
+  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
+  → (tel : Tel Γ Δ σ Ds)
+  → (tel' : Tel Γ Δ σ Ds')
+    -- should have additional condition that the reconstTels agree
+  → ⊥
+
+
 -- exclusive or
 _xor_ : Set → Set → Set
 A xor B = (A ⊎ B) × ¬ (A × B)
@@ -660,8 +692,12 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
-det (β-builtin .bn .σ .tel vtel) (E-builtin bn σ tel Bs Ds telB vtel₁ e p telD) = {!!}
-det (ξ-builtin .bn .σ .tel Bs Ds telB telD vtel p p₁ q) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e p₂ telD₁) = {!!}
+det (β-builtin .bn .σ .tel vtel) (E-builtin bn σ tel Bs Ds telB vtel₁ e p telD) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel₁ e p telD tel vtel)
+  -- impossible as the term t cannot be a val and an err
+det (ξ-builtin .bn .σ .tel Bs Ds telB telD vtel p p₁ q) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e p₂ telD₁) = ⊥-elim (reconstTel-err' Bs Bs₁ Ds Ds₁ σ telB vtel telB₁ vtel₁ p e p₁ p₂ telD telD₁)
+  -- impossible as the term t cannot reduce and be an err
 det (E-builtin .bn .σ .tel Bs Ds telB vtel e p telD) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e' p₁ telD₁) = refl
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (β-builtin .bn .σ .tel vtel₁) = {!!}
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (ξ-builtin .bn .σ .tel Bs₁ Ds₁ telB₁ telD₁ vtel₁ q p₁ q₁) = {!!}
+det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel e p telD tel vtel₁)
+  -- impossible as the term t cannot be an err and a val
+det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (ξ-builtin .bn .σ .tel Bs₁ Ds₁ telB₁ telD₁ vtel₁ q p₁ q₁) = ⊥-elim (reconstTel-err' Bs₁ Bs Ds₁ Ds σ telB₁ vtel₁ telB vtel q e p₁ p telD₁ telD)
+  --impossible as the term t cannot be an err and reduce
