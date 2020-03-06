@@ -46,14 +46,13 @@
     \end{prooftree}
     
     \begin{prooftree}
-        \AxiomC{\(\step{M}{\errorU}\)}
-        \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\errorU}\)}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\ctxsubst{f}{\errorU}}{\errorU}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' \not= \errorU\)}
-        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
     \end{prooftree}
 
     \caption{Reduction via Contextual Dynamics}
