@@ -44,7 +44,7 @@ import Control.Monad.State
    keywords and converted into elements of the LexKeyword type; having
    done this, we return to the initial lexer state, denoted by 0,
    where we can use keywords as variable names. A similar strategy is
-   used for built in names and built in type names. -}
+   used for built in type names. -}
 
 }
 
