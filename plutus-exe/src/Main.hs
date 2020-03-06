@@ -5,8 +5,8 @@
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Constant               as PLC
+import           Language.PlutusCore.Constant.Dynamic       as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
 import qualified Language.PlutusCore.Generators             as PLC
@@ -37,7 +37,7 @@ import           Options.Applicative
 
 stringBuiltins
     :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
-    => DynamicBuiltinNameMeanings uni
+    => PLC.DynamicBuiltinNameMeanings uni
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
