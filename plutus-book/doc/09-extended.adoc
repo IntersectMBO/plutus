@@ -171,7 +171,7 @@ tools that make it possible to perform contract state-dependent validation.
 
 == Validator, Redeemer, and Data Scripts
 
-A a term of type `Script` is a Plutus Core expression.
+A term of type `Script` is a Plutus Core expression.
 Validator scripts are Plutus Core functions that take several input
 arguments (which are also scripts).
 This application is first typechecked during validation.
@@ -256,7 +256,7 @@ The `PendingTx` value is not used in this example, but
 we could have extended the contract logic to only allow a transaction to
 spend the funds under the additional condition that it does so before a certain
 slot `s`. The range of slots in which a transaction is valid is
-part of the `PendingTx` data structure. During script validation, want to check
+part of the `PendingTx` data structure. During script validation, we want to check
 that regardless of when the transaction gets processed, this additional condition
 holds true. To do this,
 we would intersect its validity range with the range "any time before `s`".
@@ -275,7 +275,7 @@ We again use the same example to illustrate the extension to the ledger UTXO and
 transaction data. When a transaction is paying from a script, the _output_
 which will belong to the script must contain the data:
 
-* `hash s`, the hash of the validator script, which is also script the address
+* `hash s`, the hash of the validator script, which is also script's address
 * `c`, the coin value locked by the script
 * `hs`, the hash of the secret word (the data script)
 

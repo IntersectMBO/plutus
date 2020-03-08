@@ -141,7 +141,7 @@ code. We will adhere to the use of this notation in our explanation of
 the inclusion of Plutus Tx scrips inside transactions as well. The following
 definitions are three ways to filter a UTxO finite map. The first one is
 filtering the UTxO by a subset `ins` of the keys. The second filter
-gives the compliment of the result of the first filter (i.e. all the UTxO
+gives the complement of the result of the first filter (i.e. all the UTxO
 entries not indexed by keys in the list of inputs). The third filter
 filters UTxO entries by the values.
 

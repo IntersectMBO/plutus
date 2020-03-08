@@ -95,7 +95,7 @@ amount was reached, and refund the contributed money otherwise.
 With a smart contract, this is possible to enforce.
 
 The execution of a contract refers to the changing of the state of the contract
-as a result of being triggered by by events of two types:
+as a result of being triggered by events of two types:
 
 * changes in the environment external to the contract, such as the passage of time, and
 * actions of the participants involved.
@@ -133,7 +133,7 @@ as part of the implementation of this type of solution is:
 * The party sending the object, the receiving party, and the trusted
 third party each make a choice:
 - either they believe the object was received by the intended recipient,
-- or that it did not
+- or that it was not
 * At least two out of three make the choice to confirm the reception
 of the token
 * The contract executes the branch of its code corresponding with the
@@ -171,7 +171,7 @@ failing to distribute the crowdfunding item.
 Now, in the case that one of the
 contributors did not receive the item they funded, the creator of the
 contract would be faced with a decision. One option would be to
-issue refunds to everyone if one person did not receive their item, and another
+issue a refund to the person who did not receive their item, and another
 would be to issue a refund to everyone. This choice depends on the purpose of
 the contract, the real-world situation it must accommodate, the creator's
 preference, etc.

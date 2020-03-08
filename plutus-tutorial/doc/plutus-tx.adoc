@@ -53,7 +53,7 @@ result is a new quote, this time for a Haskell program
 that represents the _compiled_ program. In Haskell, the type of  `compile` is
 `TExpQ a -> TExpQ (CompiledCode PLC.DefaultUni a)`. This is just what we already said:
 
-- `TExpQ a` is a quoted representing a program of type `a`.
+- `TExpQ a` is a quote representing a program of type `a`.
 - `TExprQ (CompiledCode PLC.DefaultUni a)` is quote representing a compiled Plutus Core
 program.
 
@@ -96,15 +96,15 @@ import Language.PlutusTx.Prelude -- <.>
 ----
 <.> Necessary language extensions for the Plutus Tx compiler to work.
 <.> Main Plutus Tx module.
-<.> Additional support for lifting.
 <.> Builtin functions.
+<.> Additional support for lifting.
 <.> The Plutus Tx Prelude, discussed further below.
 <.> Setup for doctest examples.
 
 Here’s the most basic program we can write: one that just evaluates to
 the integer `1`.
 
-NOTE: We've included doctests to the examples that show the Plutus Core that is
+NOTE: We've included doctests in the examples that show the Plutus Core that is
 generated from compilation. The syntax of Plutus Core will look unfamiliar. This is fine, since it is
 the "assembly language" and you won’t need to inspect the output of
 the compiler. However, for our purposes it’s
@@ -280,7 +280,7 @@ with primitive data (integers and bytestrings), as well as a few special
 functions. These builtins are also exported from the Plutus Tx Prelude.
 
 The `error` builtin deserves a special mention. `error` causes the
-transaction to abort when it is evaluated, which one way to trigger
+transaction to abort when it is evaluated, which is one way to trigger
 validation failure.
 
 == Lifting values
@@ -317,7 +317,7 @@ addOne = $$(compile [|| \(x:: Integer) -> x `addInteger` 1 ||])
 ----
 
 Now, suppose we want to apply this to `4` at runtime, giving us a
-program that computes to `5`. We need to _lift_ the argument (`4`)
+program that evaluates to `5`. We need to _lift_ the argument (`4`)
 from Haskell to Plutus Core, and then we need to apply the function to
 it.
 
