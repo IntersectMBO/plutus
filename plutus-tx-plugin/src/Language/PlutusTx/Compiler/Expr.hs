@@ -397,7 +397,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             withVarScoped b $ \v -> do
                 let binds = pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
-                pure $ PIR.mkLet () PIR.NonRec binds body'
+                pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
             withVarsScoped (fmap fst bs) $ \vars -> do
                 -- the bindings are scope in both the body and the args
@@ -456,8 +456,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 mainCase <- maybeForce lazyCase applied
 
                 -- See Note [At patterns]
-                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
-                pure $ PIR.mkLet () PIR.NonRec binds mainCase
+                let binds = pure $ PIR.TermBind () PIR.Strict v scrutinee'
+                pure $ PIR.Let () PIR.NonRec binds mainCase
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->

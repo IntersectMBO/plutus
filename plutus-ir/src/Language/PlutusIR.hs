@@ -46,7 +46,7 @@ import qualified Data.Text                  as T
 
 import           GHC.Generics               (Generic)
 
-import Data.List.NonEmpty (NonEmpty)
+import           Data.List.NonEmpty         (NonEmpty)
 
 
 -- Datatypes

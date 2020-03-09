@@ -20,7 +20,7 @@ import           Control.Monad.Trans
 import           Control.Lens                           hiding (Strict)
 
 import           Data.List.NonEmpty                     hiding (partition, reverse)
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty                     as NE
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -73,15 +73,22 @@ compileRecBindings
     -> NE.NonEmpty (Binding TyName Name uni (Provenance a))
     -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
 compileRecBindings kind body bs =
-  if null mTailGroups
-  -- only one single group should appear, we do not allow mixing of bind styles
-  then case NE.head groupSingle of
-         TermBind {} -> compileRecTermBindings kind body groupSingle
-         DatatypeBind {} ->  lift $ compileRecDataBindings kind body groupSingle
+  case grouped of
+    singleGroup :| [] ->
+      case NE.head singleGroup of
+         TermBind {} -> compileRecTermBindings kind body singleGroup
+         DatatypeBind {} ->  lift $ compileRecDataBindings kind body singleGroup
          TypeBind {} -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Type bindings cannot appear in recursive let, use datatypebind instead"
-  else lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term/type/data bindings in recursive let"
-    where
-        groupSingle :| mTailGroups  = NE.groupWith1 (\case { TermBind {} -> LT ; TypeBind {} -> EQ; _ -> GT }) bs
+    -- only one single group should appear, we do not allow mixing of bind styles
+    _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term/type/data bindings in recursive let"
+  where
+        -- We group the bindings by their binding style, i.e.: term , data or type bindingstyle
+        -- All bindings of a let should be of the same style; for that, we make use of the `groupWith1`
+        -- and we expect to see exactly 1 group returned by it.
+        -- The `NE.groupWith1` returns N>=1 of "adjacent" grouppings, compared to the similar `NE.groupAllWith1`
+        -- which returns  at most 3 groups (1 => termbind, 2 -> typebind, 3 -> databind).
+        -- `NE.groupAllWith1` is an overkill here, since we don't care about the minimal number of groups, just that there is exactly 1 group.
+        grouped  = NE.groupWith1 (\case { TermBind {} -> 1 ::Int ; TypeBind {} -> 2; _ -> 3 }) bs
 
 compileRecTermBindings
     :: Compiling m e uni a

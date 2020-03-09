@@ -23,7 +23,7 @@ import           Control.Monad.Error.Lens
 import qualified Data.Text                              as T
 import           Data.Traversable
 
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty                     as NE
 
 -- Utilities
 
@@ -399,4 +399,4 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
 compileRecDatatypes :: Compiling m e uni a => PIRTerm uni a -> NE.NonEmpty (Datatype TyName Name uni (Provenance a)) -> m (PIRTerm uni a)
 compileRecDatatypes body ds = case ds of
     d NE.:| [] -> compileDatatype Rec body d
-    _   -> getEnclosing >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"
+    _          -> getEnclosing >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"

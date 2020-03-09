@@ -19,7 +19,7 @@ import           Control.Monad.Reader
 import           Control.Monad.Trans.Class           (lift)
 import           Control.Monad.Trans.Cont            (ContT (..))
 
-import Data.List.NonEmpty (NonEmpty)
+import           Data.List.NonEmpty                  (NonEmpty)
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring

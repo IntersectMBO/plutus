@@ -20,7 +20,7 @@ import qualified Data.Set                                as Set
 
 import qualified Algebra.Graph                           as G
 import qualified Algebra.Graph.ToGraph                   as T
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty                      as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings

@@ -18,7 +18,7 @@ import           Control.Monad.Reader
 import qualified Algebra.Graph.Class               as G
 import qualified Data.Set                          as Set
 
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty                as NE
 
 -- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
 -- node indicating the root of the graph. We need the root node because when computing the
