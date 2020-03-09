@@ -63,6 +63,11 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
+voidVal : ∀{Φ}{Γ : Ctx Φ} → Value (void {Φ}{Γ})
+voidVal = V-Λ
+\end{code}
+
+\begin{code}
 VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
   → Tel Γ Δ σ As → Set
 
@@ -360,9 +365,9 @@ progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Value t
   → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
-progress-·V v   (step q)  = step (ξ-·₂ v q)
-progress-·V V-ƛ (done w)  = step (β-ƛ w)
-progress-·V v (error E-error) = step (E-·₂ v)
+progress-·V v   (step q)        = step (ξ-·₂ v q)
+progress-·V v   (error E-error) = step (E-·₂ v)
+progress-·V V-ƛ (done w)        = step (β-ƛ w)
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
@@ -635,13 +640,11 @@ postulate
     -- should have additional condition that the reconstTels agree
   → ⊥
 
-
 -- exclusive or
 _xor_ : Set → Set → Set
 A xor B = (A ⊎ B) × ¬ (A × B)
 
 infixr 2 _xor_
-
 
 -- a term cannot make progress and be a value
 

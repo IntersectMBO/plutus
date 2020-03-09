@@ -32,9 +32,6 @@ infix 2 _—→_
 data Error {n} : n ⊢ → Set where
   E-error : Error error
 
-  -- this is wrong but error handling is about to change anyway...
-  E-todo : ∀{t} → Error t
-
 \end{code}
 
 \begin{code}
@@ -62,9 +59,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-·₁ : {L L' M : n ⊢} → L —→ L' → L · M —→ L' · M
   ξ-·₂ : {L M M' : n ⊢} → Value L → M —→ M' → L · M —→ L · M'
 
-  E-· : {L : n ⊢}{M : n ⊢} → Error L → L · M —→ error
-  E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
-  β-ƛ : ∀{L : suc n ⊢}{M : n ⊢} → ƛ L · M —→ L [ M ]
+  β-ƛ : ∀{L : suc n ⊢}{V : n ⊢} → Value V → ƛ L · V —→ L [ V ]
 
   ξ-builtin : (b : Builtin)
               (ts : Tel n)
@@ -76,14 +71,6 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
             → ts ≡ ts' ++ Data.List.[ t ] ++ ts''
             → builtin b ts —→
                 builtin b (ts' ++ Data.List.[ t' ] ++ ts'')
-  E-builtin : {b : Builtin}
-              {ts : List (n ⊢)}
-              {ts' : List (n ⊢)}
-              (vs : VTel n ts')
-              {t : n ⊢}
-            → Error t
-            → (ts'' : Tel n)
-            → builtin b ts —→ error
   β-builtin : {b : Builtin}
               (ts : Tel n)
               (vs : VTel n ts)
@@ -93,6 +80,22 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 {ts : List (n ⊢)}
                 {t : n ⊢}
               → builtin b ts · t —→ builtin b (ts ++ Data.List.[ t ])
+
+  E-·₁ : {M : n ⊢} → error · M —→ error
+  E-·₂ : {L : n ⊢} → Value L → L · error —→ error
+  E-builtin : (b : Builtin)
+              (ts : Tel n)
+              {ts' : Tel n}
+              (vs : VTel n ts')
+              {t : n ⊢}
+            → Error t
+            → (ts'' : Tel n)
+            -- → ts ≡ ts' ++ Data.List.[ t ] ++ ts'' -- TODO
+            → builtin b ts —→ error
+
+  -- these correspond to type errors encountered at runtime
+  E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
+
 \end{code}
 
 
@@ -149,7 +152,8 @@ data ProgList {n} (tel : Tel n) : Set where
   done : VTel n tel → ProgList tel
   step : (tel' : Tel n) → VTel n tel' → {t t' : n ⊢} → t —→ t' → (tel'' : Tel n)
     → tel ≡ tel' ++ Data.List.[ t ] ++ tel'' → ProgList tel 
-  error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → Tel n
+  error : (tel' : Tel n) → VTel n tel' → {t : n ⊢} → Error t → (tel'' : Tel n)
+    → tel ≡ tel' ++ Data.List.[ t ] ++ tel''
     → ProgList tel
 
 data Progress {n}(M : n ⊢) : Set where
@@ -166,38 +170,49 @@ data Progress {n}(M : n ⊢) : Set where
       -------
     → Progress M
 
-progress-· : ∀{n}{t : n ⊢} → Progress t → (u : n ⊢) → Progress (t · u)
-progress-· (step p)                u = step (ξ-·₁ p)
-progress-· (done (V-ƛ t))          u = step β-ƛ
-progress-· (done (V-con tcn))      u = error E-todo
-progress-· (done (V-builtin b ts)) u = step sat-builtin
-progress-· (error e)               u = error E-todo
+progress-·V : ∀{n}
+  → {t : n ⊢} → Value t
+  → {u : n ⊢} → Progress u
+  → Progress (t · u)
+progress-·V v                (step q)        = step (ξ-·₂ v q)
+progress-·V v                (error E-error) = step (E-·₂ v)
+progress-·V (V-ƛ t)          (done v)        = step (β-ƛ v)
+progress-·V (V-con tcn)      (done v)        = step E-con
+progress-·V (V-builtin b ts) (done v)        = step sat-builtin
 
+progress-· : ∀{n}
+  → {t : n ⊢} → Progress t
+  → {u : n ⊢} → Progress u
+  → Progress (t · u)
+progress-· (done v)        q = progress-·V v q
+progress-· (step p)        q = step (ξ-·₁ p)
+progress-· (error E-error) q = step E-·₁
 
 progress : (t : 0 ⊢) → Progress t
 progressList : (tel : Tel 0) → ProgList {0} tel
+
 progressList []       = done _
 progressList (t ∷ ts) with progress t
 progressList (t ∷ ts) | done vt with progressList ts
 progressList (t ∷ ts) | done vt | done vs   = done (vt , vs)
 progressList (t ∷ ts) | done vt | step  ts' vs p ts'' p' =
   step (t ∷ ts') (vt , vs) p ts'' (cong (t ∷_) p')
-progressList (t ∷ ts) | done vt | error ts' vs e ts'' =
-  error (t ∷ ts') (vt , vs) e ts''
-progressList (t ∷ ts) | error e = error [] _ e ts
+progressList (t ∷ ts) | done vt | error ts' vs e ts'' p =
+  error (t ∷ ts') (vt , vs) e ts'' (cong (t ∷_) p)
+progressList (t ∷ ts) | error e = error [] _ e ts refl
 progressList (t ∷ ts) | step p = step [] _ p ts refl
 
 progress (` ())
 progress (ƛ t)        = done (V-ƛ t)
-progress (t · u)      = progress-· (progress t) u
+progress (t · u)      = progress-· (progress t) (progress u)
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ts) with progressList ts
 progress (builtin b ts) | done  vs       =
   step (β-builtin ts vs)
 progress (builtin b ts) | step  ts' vs p ts'' p' =
   step (ξ-builtin b ts vs p ts'' p')
-progress (builtin b ts) | error ts' vs e ts'' =
-  error E-todo
+progress (builtin b ts) | error ts' vs e ts'' p =
+  step (E-builtin b ts vs e ts'')
 progress error       = error E-error
 \end{code}
 
