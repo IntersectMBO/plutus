@@ -12,3 +12,6 @@ nodeServerConfig:
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
+
+chainIndexConfig:
+  ciBaseUrl: http://localhost:8083

@@ -11,7 +11,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{4th February 2020}
+\date{6th February 2020}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -125,6 +125,7 @@
 \newcommand{\txrefid}{\mi{id}}
 \newcommand{\Address}{\ensuremath{\s{Address}}}
 \newcommand{\DataHash}{\ensuremath{\s{DataHash}}}
+\newcommand{\hashData}{\msf{dataHash}}
 \newcommand{\idx}{\mi{index}}
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
@@ -448,8 +449,9 @@ the ledger.
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
+    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data value}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
+    \Data \rightarrow \B && \mbox{application of a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \Address,\\
@@ -731,6 +733,12 @@ the latter in \cref{rule:all-inputs-validate}.
     \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
   \end{displaymath}
 
+\item
+  \label{rule:data-values-hash}
+  \textbf{Data values match output hashes}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\dataVal) = \getSpent(i, l).\dataHash
+  \end{displaymath}
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-1 model}
 \label{fig:eutxo-1-validity}
@@ -974,6 +982,13 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{Validator scripts match output addresses}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
+  \end{displaymath}
+
+\item
+  \label{rule:data-values-hash-2}
+  \textbf{Data values match output hashes}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\dataVal) = \getSpent(i, l).\dataHash
   \end{displaymath}
 
 \end{enumerate}

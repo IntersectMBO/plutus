@@ -18,6 +18,7 @@ import           Servant                  ((:<|>) ((:<|>)), Application, hoistSe
 import           Servant.Client           (BaseUrl (baseUrlPort))
 
 import           Cardano.Node.API         (API)
+import           Cardano.Node.Follower    (getBlocks, newFollower)
 import           Cardano.Node.Mock
 import           Cardano.Node.RandomTx    (genRandomTx)
 import           Cardano.Node.Types
@@ -33,7 +34,9 @@ app stateVar =
         (runStdoutLoggingT . processChainEffects stateVar)
         (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
          (genRandomTx :<|> utxoAt :<|> blockchain :<|>
-          consumeEventHistory stateVar))
+          consumeEventHistory stateVar) :<|>
+          (newFollower :<|> getBlocks)
+          )
 
 main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
 main MockServerConfig { mscBaseUrl
