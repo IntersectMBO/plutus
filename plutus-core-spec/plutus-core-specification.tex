@@ -771,13 +771,15 @@ In the context of a blockchain system, it can be useful to also have a
 step indexed version of stepping, indicated by a superscript count of
 steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
 transaction validation from looping indefinitely, or from simply
-taking an inordinate amount of time, which would be a serious
-flaw in the blockchain system, we can use step indexing to put an
+taking an inordinate amount of time, which would provide opportunites
+to attack a blockchain system, we can use step indexing to put an
 upper bound on the number of computational steps that a program can
 have. In this setting, we would pick some upper bound $\mathit{max}$
 and then perform steps of terms $M$ by computing which $M'$ is such
-that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
-
+that \(\multistepIndexed{M}{\mathit{max}}{M'}\).  In a future version
+of this document we will introduce a cost model which will provide
+more fine-grained costs for individual operations and built-in
+functions,  enabling more accurate monitoring of execution costs.
 
 
 \subsection{Type reduction}
@@ -806,6 +808,10 @@ are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
 standard operational semantics.
 
 \subfile{figures/TermReduction}
+
+\noindent Note that there is no term $M^{\prime}$ such that
+$\step{\error{B}}{M^{\prime}}$, so at most one of the final two rules
+applies.
 
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
