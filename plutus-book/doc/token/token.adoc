@@ -30,7 +30,7 @@ more exotic mixed cases:
 
 * Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
 * A _fungible_ token is represented by a `CurrencySymbol` for which there is
-  exactly one `TokenSymbol` which can have an arbitrary non-negative quantity (of which Ada is a
+  exactly one `TokenName` which can have an arbitrary non-negative quantity (of which Ada is a
   special case).
 * A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
   each of which has a quantity of one. Each of these names corresponds to one

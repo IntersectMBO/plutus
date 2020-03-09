@@ -409,7 +409,7 @@ sell i c n v2 p2 dl = do
 
 <2> Has the buyer paid before the deadline?
 
-<3> Has the deadline passed and are my funds are still locked?
+<3> Has the deadline passed and are my funds still locked?
 
 <4> Execute the trade.
 
@@ -475,6 +475,6 @@ $(mkFunctions ['forge, 'sell, 'buy])
 
 <1> Lock the payment at the trade script.
 
-<2> Has the deadline passed, and is my payment is still locked?
+<2> Has the deadline passed, and is my payment still locked?
 
 <3> Reclaim the payment.

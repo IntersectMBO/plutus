@@ -24,7 +24,7 @@ she might collect 2 Ada in slot #10, another 2 Ada in slot #11, then 5 Ada in sl
 
 While implementing this example, we will have to construct a transaction with
 one or more inputs and two outputs, so we will not be able to use convenient
-helper functions like like `payToScript_` or `collectFromScript`
+helper functions like `payToScript_` or `collectFromScript`
 as we did before.
 
 .Building complex transactions

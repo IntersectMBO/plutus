@@ -21,7 +21,7 @@ being defined (often parametrized by user-input data)
 - endpoints are used to build transactions and submit them to be processed
 - endpoints call functions which generate Plutus
 Tx code (specifically the validator, redeemer, and data scripts)
-to be included in a transaction and executed by _on-chain_ by nodes
+to be included in a transaction and executed _on-chain_ by nodes
 
 * Besides endpoints, a Plutus contract definition may contain
 - all the necessary imports
@@ -36,7 +36,7 @@ usually parametrized by a term of that type (`Campaign`, `Game`, etc.)
 
 * Off-chain (endpoint) code can be executed by any wallet implementing a specific API
 via a wallet monad (as discussed below)
-- this allows the wallet the perform wallet-specific computations, including
+- this allows the wallet to perform wallet-specific computations, including
 building transactions, catching and throwing errors, logging messages, etc.
 
 * On-chain (Plutus Tx) code is generated at compile time
@@ -223,7 +223,7 @@ image:trigger-actions.png[]
 
 image:trigger-result.png[]
 
-This is actually a somewhat unusual example
+This is actually a somewhat unusual example.
 We do not really need a trigger to achieve this effect,
 because we can simply use the transaction's _slot range_ instead:
 
