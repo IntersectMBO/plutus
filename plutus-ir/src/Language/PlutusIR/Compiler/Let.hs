@@ -19,8 +19,8 @@ import           Control.Monad.Trans
 
 import           Control.Lens                           hiding (Strict)
 
-import           Data.List
 import           Data.List.NonEmpty                     hiding (partition, reverse)
+import qualified Data.List.NonEmpty as NE
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -62,7 +62,7 @@ compileLet :: Compiling m e uni a => LetKind -> PIRTerm uni a -> DefT SharedName
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
             -- See Note [Right-associative compilation of let-bindings for linear scoping]
-            NonRec -> lift $ foldM (compileNonRecBinding kind) body (reverse bs)
+            NonRec -> lift $ foldM (compileNonRecBinding kind) body (NE.reverse bs)
             Rec    -> compileRecBindings kind body bs
     x -> pure x
 
@@ -70,37 +70,39 @@ compileRecBindings
     :: Compiling m e uni a
     => LetKind
     -> PIRTerm uni a
-    -> [Binding TyName Name uni (Provenance a)]
+    -> NE.NonEmpty (Binding TyName Name uni (Provenance a))
     -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
-compileRecBindings kind body bs
-    | null typeBinds = compileRecTermBindings kind body termBinds
-    | null termBinds = lift $ compileRecTypeBindings kind body typeBinds
-    | otherwise      = lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term and type bindings in recursive let"
+compileRecBindings kind body bs =
+  if null mTailGroups
+  -- only one single group should appear, we do not allow mixing of bind styles
+  then case NE.head groupSingle of
+         TermBind {} -> compileRecTermBindings kind body groupSingle
+         DatatypeBind {} ->  lift $ compileRecDataBindings kind body groupSingle
+         TypeBind {} -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Type bindings cannot appear in recursive let, use datatypebind instead"
+  else lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term/type/data bindings in recursive let"
     where
-        (termBinds, typeBinds) = partition (\case { TermBind {} -> True ; _ -> False; }) bs
+        groupSingle :| mTailGroups  = NE.groupWith1 (\case { TermBind {} -> LT ; TypeBind {} -> EQ; _ -> GT }) bs
 
 compileRecTermBindings
     :: Compiling m e uni a
     => LetKind
     -> PIRTerm uni a
-    -> [Binding TyName Name uni (Provenance a)]
+    -> NE.NonEmpty (Binding TyName Name uni (Provenance a))
     -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
 compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
         TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
         _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
-    case nonEmpty binds of
-        Just tbs -> compileRecTerms body tbs
-        Nothing  -> pure body
+    compileRecTerms body binds
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileRecTypeBindings :: Compiling m e uni a => LetKind -> PIRTerm uni a -> [Binding TyName Name uni (Provenance a)] -> m (PIRTerm uni a)
-compileRecTypeBindings Types body bs = do
+compileRecDataBindings :: Compiling m e uni a => LetKind -> PIRTerm uni a -> NE.NonEmpty (Binding TyName Name uni (Provenance a)) -> m (PIRTerm uni a)
+compileRecDataBindings Types body bs = do
     binds <- forM bs $ \case
         DatatypeBind _ d -> pure d
         _ -> getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: term or type binding in datatype binding group"
     compileRecDatatypes body binds
-compileRecTypeBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
+compileRecDataBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
 
 compileNonRecBinding :: Compiling m e uni a => LetKind -> PIRTerm uni a -> Binding TyName Name uni (Provenance a) -> m (PIRTerm uni a)
 compileNonRecBinding NonRecTerms body (TermBind x Strict d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
@@ -109,4 +111,4 @@ compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ Type
    PIR.mkImmediateTyAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (DatatypeBind x d) = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
    compileDatatype NonRec body d
-compileNonRecBinding _ body b = getEnclosing >>= \p -> pure $ Let p NonRec [b] body
+compileNonRecBinding _ body b = getEnclosing >>= \p -> pure $ Let p NonRec (pure b) body

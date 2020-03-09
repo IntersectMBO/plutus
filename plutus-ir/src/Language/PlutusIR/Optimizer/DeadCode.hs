@@ -20,6 +20,7 @@ import qualified Data.Set                                as Set
 
 import qualified Algebra.Graph                           as G
 import qualified Algebra.Graph.ToGraph                   as T
+import qualified Data.List.NonEmpty as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
@@ -68,5 +69,5 @@ processTerm
     -> m (Term tyname name uni a)
 processTerm = \case
     -- throw away dead bindings
-    Let x r bs t -> mkLet x r <$> filterM liveBinding bs <*> pure t
+    Let x r bs t -> mkLet x r <$> filterM liveBinding (NE.toList bs) <*> pure t
     x -> pure x

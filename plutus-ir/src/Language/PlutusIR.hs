@@ -46,6 +46,9 @@ import qualified Data.Text                  as T
 
 import           GHC.Generics               (Generic)
 
+import Data.List.NonEmpty (NonEmpty)
+
+
 -- Datatypes
 
 {- Note: [Serialization of PIR]
@@ -155,7 +158,7 @@ Plutus Core to use reified declarations.
 -- See note [PIR as a PLC extension]
 data Term tyname name uni a =
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
-                          Let a Recursivity [Binding tyname name uni a] (Term tyname name uni a)
+                          Let a Recursivity (NonEmpty (Binding tyname name uni a)) (Term tyname name uni a)
                         | Var a (name a)
                         | TyAbs a (tyname a) (Kind a) (Term tyname name uni a)
                         | LamAbs a (name a) (Type tyname uni a) (Term tyname name uni a)
@@ -186,8 +189,8 @@ instance TermLike (Term tyname name uni) tyname name uni where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
-    termLet x (Def vd bind) = Let x NonRec [TermBind x Strict vd bind]
-    typeLet x (Def vd bind) = Let x NonRec [TypeBind x vd bind]
+    termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
+    typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
@@ -284,7 +287,7 @@ instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = \case
-        Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' $ fmap (prettyBy config) bs, prettyBy config t])
+        Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' . toList $ fmap (prettyBy config) bs, prettyBy config t])
         Var _ n -> prettyBy config n
         TyAbs _ tn k t -> parens' ("abs" </> vsep' [prettyBy config tn, prettyBy config k, prettyBy config t])
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])

@@ -42,6 +42,10 @@ import           GHC.Natural
 
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lex
+import qualified Control.Monad.Combinators.NonEmpty as NE
+
+
+
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
@@ -301,7 +305,7 @@ errorTerm :: Parametric
 errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
 letTerm :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
-letTerm = Let <$> reservedWord "let" <*> recursivity <*> some (try binding) <*> term
+letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
