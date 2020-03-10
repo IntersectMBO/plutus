@@ -19,10 +19,12 @@ PAB to the wallet frontend or other clients.
 [[contract-exe]]Contract executable::
 A compiled executable of a contract application. These are what are actually distributed to users and
 run by the PAB.
+[[context]]Context::
+A data structure containing a summary of the transaction being validated.
 [[currency]]Currency::
 A class of token whose forging is controlled by a particular monetary policy script. On the Cardano ledger there
 is a special currency called Ada which can never be forged and which is controlled separately.
-[[data-value]]Data value::
+[[datum]]Datum::
 The data field on script outputs in the Extended UTXO model.
 [[eutxo]]Extended UTXO Model::
 The ledger model which the Plutus Platform relies on.
@@ -30,12 +32,12 @@ The ledger model which the Plutus Platform relies on.
 This is implemented in the Goguen release of the Cardano blockchain.
 Notable differences from traditional UTXO ledgers are:
 +
-. UTXOs carry an additional data output, called the data value
-. Validators get to see a representation of the transaction being validated, called the pending tx
+. UTXOs carry an additional data output, called the datum
+. Validators get to see a representation of the transaction being validated, called the context
 . The validator script is provided with:
-.. The data value on the spent output
+.. The datum on the spent output
 .. The redeemer provided by the input
-.. The pending tx representing the transaction being validated
+.. The context representing the transaction being validated
 [[forging]]Forging::
 A transaction which forges tokens creates new tokens, providing that the corresponding monetary policy script is
 satisfied. The amount forged can be negative, in which case the tokens will be destroyed instead of created.
@@ -49,8 +51,6 @@ A generic term for a ledger which supports multiple different currencies nativel
 The part of a contract application's code which runs off the chain, usually as a contract application.
 [[on-chain-code]]On-chain code::
 The part of a contract application's code which runs on the chain (i.e. as scripts).
-[[pending-tx]]Pending Tx::
-A data structure containing a summary of the transaction being validated.
 [[pab-client-api]]PAB client API::
 The API that the PAB provides to allow PAB clients to interact with contract application instances. Contract endpoints
 which are exposed by running instances can be called via the client API.
@@ -79,7 +79,7 @@ preferred in cases where humans may want to inspect the program.
 [[plutus-platform]]Plutus Platform::
 The combined software support for writing contract applications, including:
 +
-. The Plutus Application Backedn
+. The Plutus Application Backend
 . The Plutus SDK
 . The support for Plutus scripts on the Cardano chain
 [[plutus-sdk]]Plutus SDK::
