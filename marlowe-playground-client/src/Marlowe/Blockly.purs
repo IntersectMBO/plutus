@@ -287,13 +287,15 @@ toDefinition BaseContractType =
   BlockDefinition
     $ merge
         { type: show BaseContractType
-        , message0: "%1 CONTRACT %2 %3"
+        , message0: "%1 CONTRACT %2 %3 %4 %5"
         , args0:
           [ DummyRight
+          , DummyRight
+          , DummyRight
           , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
           , DummyRight
           ]
-        , colour: "0"
+        , colour: "45"
         , inputsInline: Just false
         }
         defaultBlockDefinition
