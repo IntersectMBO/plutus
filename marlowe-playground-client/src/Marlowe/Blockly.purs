@@ -302,10 +302,11 @@ toDefinition CaseType =
   BlockDefinition
     $ merge
         { type: show CaseType
-        , message0: "Action %1 %2 and Contract %3"
+        , message0: "Action %1 %2 continue as %3 %4"
         , args0:
-          [ Statement { name: "action", check: "ActionType", align: Right }
-          , DummyCentre
+          [ DummyCentre
+          , Statement { name: "action", check: "ActionType", align: Right }
+          , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "65"
@@ -461,7 +462,7 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 %3 the amount of %4 %5 of currency %6 %7 token name %8 %9 from the account %10 %11 with owner %12 %13 continue as %14"
+        , message0: "Pay %1 party %2 %3 the amount of %4 %5 of currency %6 %7 token name %8 %9 from the account %10 %11 with owner %12 continue as %13 %14"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
@@ -475,7 +476,7 @@ toDefinition (ContractType PayContractType) =
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
-          , DummyRight
+          , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
@@ -488,10 +489,12 @@ toDefinition (ContractType IfContractType) =
   BlockDefinition
     $ merge
         { type: show IfContractType
-        , message0: "If observation %1 then continue as %2 otherwise continue as %3"
+        , message0: "If observation %1 then %2 %3 else %4 %5"
         , args0:
           [ Value { name: "observation", check: "observation", align: Right }
+          , DummyLeft
           , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+          , DummyLeft
           , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
@@ -504,10 +507,13 @@ toDefinition (ContractType WhenContractType) =
   BlockDefinition
     $ merge
         { type: show WhenContractType
-        , message0: "When %1 occurs after slot %2 continue as %3"
+        , message0: "When %1 %2 after slot %3 %4 continue as %5 %6"
         , args0:
-          [ Statement { name: "case", check: (show CaseType), align: Right }
+          [ DummyCentre
+          , Statement { name: "case", check: (show CaseType), align: Left }
           , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
+          , DummyLeft
+          , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
@@ -520,10 +526,11 @@ toDefinition (ContractType LetContractType) =
   BlockDefinition
     $ merge
         { type: show LetContractType
-        , message0: "Let %1 be %2 continue as %3"
+        , message0: "Let %1 be %2 continue as %3 %4"
         , args0:
           [ Input { name: "value_id", text: "value", spellcheck: false }
           , Value { name: "value", check: "value", align: Right }
+          , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "0"
