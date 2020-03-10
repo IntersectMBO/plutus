@@ -1,7 +1,10 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+
+
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
@@ -33,6 +36,9 @@ import           Data.Text.Prettyprint.Doc
 import           System.Exit
 
 import           Options.Applicative
+
+
+import qualified GHC.IO.Exception
 
 stringBuiltins
     :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
@@ -118,9 +124,16 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
+instance PLC.AsTypeError GHC.IO.Exception.IOException PLC.DefaultUni ()
+    where _TypeError = undefined
+
+-- ^ FIXME!!!
+
+
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
     contents <- getInput inp
+    types <- PLC.runQuoteT $ PLC.dynamicBuiltinNameMeaningsToTypes () stringBuiltins
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let cfg = PLC.defConfig
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
