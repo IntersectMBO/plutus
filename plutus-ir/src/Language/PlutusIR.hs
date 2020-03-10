@@ -86,7 +86,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
-    deriving (Show, Eq, Generic)
+    deriving (Show, Eq, Generic, Ord)
 
 -- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 instance Semigroup Recursivity where

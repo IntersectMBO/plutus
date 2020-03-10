@@ -8,6 +8,7 @@ import           Language.PlutusIR
 
 import qualified Language.PlutusCore.Pretty as PLC
 
+import qualified Data.Set                   as S
 import           Data.Text.Prettyprint.Doc  ((<+>), (<>))
 import qualified Data.Text.Prettyprint.Doc  as PP
 
@@ -25,25 +26,22 @@ data Provenance a = Original a
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   -- | Added for accumulating difference provenances when floating lets
-                  -- TODO: use Set a to avoid duplicates,
-                  -- or a different approach for accumulating provenances during the compilation
-                  | MultipleSources [Provenance a]
-                  deriving (Show, Eq)
+                  | MultipleSources (S.Set (Provenance a))
+                  deriving (Show, Eq, Ord)
 
--- | Needed for LetFloat transformation to merge annotations
-instance Semigroup (Provenance a) where
-  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1++ps2)
-  x <> MultipleSources ps2 = MultipleSources (x:ps2)
-  MultipleSources ps1 <> x = MultipleSources (ps1++[x])
-  x <> y = MultipleSources [x,y]
+instance Ord a => Semigroup (Provenance a) where
+  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
+  x <> MultipleSources ps2 = MultipleSources (S.insert x ps2)
+  MultipleSources ps1 <> x = MultipleSources (S.insert x ps1)
+  x <> y = MultipleSources (S.fromList [x,y])
 
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
-noProvenance = MultipleSources []
+noProvenance = MultipleSources S.empty
 
 -- Needed for LetFloat transformation to merge annotations
-instance Monoid (Provenance a) where
-  mempty = MultipleSources []
+instance Ord a => Monoid (Provenance a) where
+  mempty = MultipleSources S.empty
 
 data DatatypeComponent = Constructor
                        | ConstructorType
@@ -51,7 +49,7 @@ data DatatypeComponent = Constructor
                        | DestructorType
                        | DatatypeType
                        | PatternFunctor
-                       deriving (Show, Eq)
+                       deriving (Show, Eq, Ord)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case
@@ -89,5 +87,6 @@ instance PP.Pretty a => PP.Pretty (Provenance a) where
             in "(" <> rstr <> ")" <+> "let binding" <> ";" <+> "from" <+> PLC.pretty p
         TermBinding n p -> "term binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         TypeBinding n p -> "type binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
-        MultipleSources [] -> "<unknown>"
-        MultipleSources p1 -> PLC.prettyList p1
+        MultipleSources p1 -> case S.toList p1 of
+                                [] -> "<unknown>"
+                                l  -> PLC.prettyList l

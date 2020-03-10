@@ -194,12 +194,11 @@ type P1Data = M.Map
 -- | Before we return from the 1st pass, we transform the acccumulated 'P1Data' to something that can be more easily consumed (by the second pass).
 -- This 'FloatData' is a mapping of depth=>lambda=>{let_unique}. We consume the float-data left-to-right, sorted on depth.
 --
--- TODO: This could instead use an 'IM.IntMap', to guarantee that the consumption is in the ordering of depth. However there was a bug when using the 'IM.minViewWithKey'
-type FloatData = [(Int, --  the depth (starting from 0, which is Top)
+type FloatData = IM.IntMap ( --  the depth (starting from 0, which is Top)
                  M.Map --  a mapping of lambda-locations at this depth => to all letidentifiers to float at that depth.
                   Rank    --  the location where the let should float to: location is a lambda unique or Top
                   (S.Set PLC.Unique) --  the let bindings that should be floated/placed under this lambda or Top
-                 )]
+                 )
 
 -- | First-pass: Traverses a Term to create a mapping of every let variable inside the term ==> to its corresponding maximum rank.
 -- See Note [Float first-pass]
@@ -291,7 +290,7 @@ p1Term pir = toFloatData $ runReader
 
     -- | Transform the 1st-pass accumulated data to something that is easier to be consumed by the 2nd pass (that does the actual floating).
     toFloatData :: P1Data -> FloatData
-    toFloatData = IM.toAscList . foldr (\ (dep, letUPrinc) acc -> IM.insertWith (M.unionWith (<>)) (dep^.depth) (M.singleton dep (S.singleton letUPrinc)) acc) IM.empty
+    toFloatData = foldr (\ (dep, letUPrinc) acc -> IM.insertWith (M.unionWith (<>)) (dep^.depth) (M.singleton dep (S.singleton letUPrinc)) acc) IM.empty
 
 
 
@@ -382,10 +381,13 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
          -> Term tyname name uni a                           -- ^ the body term
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
          -> Term tyname name uni a                           -- ^ the transformed body term
-  goFloat _ tBody [] = tBody
-  goFloat aboveLamLoc tBody floatData@((searchingForDepth, searchingForLams_Lets) : restFloatData) =
-    let curDepth = aboveLamLoc^.depth
-    in case curDepth `compare` searchingForDepth of
+  goFloat aboveLamLoc tBody floatData =
+   -- look for the next smallest depth remaining to place
+   case IM.minViewWithKey floatData of
+     Nothing -> tBody -- nothing left to float
+     Just ((searchingForDepth, searchingForLams_Lets), restFloatData) ->
+      let curDepth = aboveLamLoc^.depth
+      in case curDepth `compare` searchingForDepth of
       -- the minimum next depth we are looking for, is not this one, so just descend with the whole floatdata
       LT -> goTerm curDepth floatData tBody
       -- found depth, see if our lambda above is a lambda we are interested in (to float some lets)
