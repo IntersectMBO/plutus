@@ -187,7 +187,7 @@ mpsHashBridge = do
 
 dataHashBridge :: BridgePart
 dataHashBridge = do
-    typeName ^== "DataValueHash"
+    typeName ^== "DatumHash"
     typeModule ^== "Ledger.Scripts"
     pure psString
 
