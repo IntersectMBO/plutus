@@ -5,7 +5,7 @@
 \label{sec:basic-notation}
 Figure~\ref{fig:basic-types} defines some basic types and
 notation used in the rest of the paper; we have generally followed the
-notation established by Zahnentferner~\cite{Zahnentferner18-UTxO}.
+notation established by Zahnentferner in~\cite{Zahnentferner18-UTxO}.
 
 \begin{ruledfigure}{!ht}
   \begin{displaymath}
@@ -31,9 +31,10 @@ notation established by Zahnentferner~\cite{Zahnentferner18-UTxO}.
 
 \subsubsection{The \Data{} type.}
 \label{sec:data}
-We will make particular use of a primitive type \Data{} which can be used to pass information
-into scripts. This is intended to be any relatively standard structured
-data format, for example JSON or CBOR~\cite{cbor}.
+We will make particular use of a primitive type \Data{} which can be
+used to pass information into scripts. This is intended to be any
+relatively standard structured data format, for example JSON or
+CBOR~\cite{cbor}.
 
 The specific choice of type does not matter for this paper, so we have left it
 abstract. The intention is that this should
@@ -46,20 +47,18 @@ language we have corresponding \toData{} and \fromData{} functions.
 
 \subsection{\EUTXO{}: Enhanced scripting}
 \label{sec:eutxo}
-The \EUTXO{} model adds a number of new features to the model
-proposed in Zahnentferner~\cite{Zahnentferner18-UTxO}.
-
-The first change is that as well as the validator we allow transaction
-outputs to carry a piece of data called the \emph{datum}, which is
-passed in as an additional argument during validation.  This allows a
-contract to carry some state (the datum) without changing its ``code''
-(the validator). We will use this to carry the state of our state
-machines (see Section~\ref{sec:informal-eutxo}).
+Our first change to the standard UTXO model is that as well as the
+validator we allow transaction outputs to carry a piece of data called
+the \emph{datum} (or \emph{datum object}), which is passed in as an
+additional argument during validation.  This allows a contract to
+carry some state (the datum) without changing its ``code'' (the
+validator). We will use this to carry the state of our state machines
+(see Section~\ref{sec:informal-eutxo}).
 
 The second change is that the validator receives some information
 about the transaction that is being validated. This information, which
-we call the \textit{validation context}, is passed in as an additional
-argument of type \ctx{}. The information supplied in the validation
+we call the \textit{context}, is passed in as an additional
+argument of type \ctx{}. The information supplied in the 
 context enables the validator to enforce much stronger conditions than
 is possible with a bare \UTXO{} model --- in particular, it can
 inspect the \emph{outputs} of the current transaction, which is
