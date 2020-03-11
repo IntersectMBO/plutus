@@ -124,6 +124,36 @@ instance boundedEnumPartyType :: BoundedEnum PartyType where
 partyTypes :: Array PartyType
 partyTypes = upFromIncluding bottom
 
+data TokenType
+  = CustomTokenType
+
+derive instance genericTokenType :: Generic TokenType _
+
+instance showTokenType :: Show TokenType where
+  show = genericShow
+
+instance eqTokenType :: Eq TokenType where
+  eq = genericEq
+
+instance ordTokenType :: Ord TokenType where
+  compare = genericCompare
+
+instance enumTokenType :: Enum TokenType where
+  succ = genericSucc
+  pred = genericPred
+
+instance boundedTokenType :: Bounded TokenType where
+  bottom = genericBottom
+  top = genericTop
+
+instance boundedEnumTokenType :: BoundedEnum TokenType where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
+
+tokenTypes :: Array TokenType
+tokenTypes = upFromIncluding bottom
+
 data ContractType
   = WhenContractType
   | PayContractType
@@ -245,6 +275,7 @@ data BlockType
   | ValueType ValueType
   | PayeeType PayeeType
   | PartyType PartyType
+  | TokenType TokenType
 
 derive instance genericBlockType :: Generic BlockType _
 
@@ -275,6 +306,7 @@ instance showBlockType :: Show BlockType where
   show (ValueType vt) = show vt
   show (PayeeType pt) = show pt
   show (PartyType pt) = show pt
+  show (TokenType tt) = show tt
   show (ActionType at) = show at
 
 blockDefinitions :: Array BlockDefinition
@@ -318,14 +350,11 @@ toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 the amount of %2 units of currency %3 %4 token name %5 %6 into the account %7 %8 with owner %9 from %10 continue as %11 %12"
+        , message0: "Deposit %1 the amount of %2 units of token %3 into the account %4 %5 with owner %6 from %7 continue as %8 %9"
         , args0:
           [ DummyCentre
           , Value { name: "amount", check: "value", align: Right }
-          , Input { name: "currency_symbol", text: "", spellcheck: false }
-          , DummyRight
-          , Input { name: "token_name", text: "", spellcheck: false }
-          , DummyRight
+          , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
@@ -423,6 +452,22 @@ toDefinition (PartyType PKPartyType) =
         }
         defaultBlockDefinition
 
+-- Custom Token type
+toDefinition (TokenType CustomTokenType) =
+  BlockDefinition
+    $ merge
+        { type: show CustomTokenType
+        , message0: "Token with currency %1 and token name %2"
+        , args0:
+          [ Input { name: "currency_symbol", text: "", spellcheck: false }
+          , Input { name: "token_name", text: "", spellcheck: false }
+          ]
+        , colour: "255"
+        , output: Just "token"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition (PartyType RolePartyType) =
   BlockDefinition
     $ merge
@@ -452,15 +497,12 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 %5 token name %6 %7 from the account %8 %9 with owner %10 continue as %11 %12"
+        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from the account %5 %6 with owner %7 continue as %8 %9"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
           , Value { name: "amount", check: "value", align: Right }
-          , Input { name: "currency_symbol", text: "", spellcheck: false }
-          , DummyRight
-          , Input { name: "token_name", text: "", spellcheck: false }
-          , DummyRight
+          , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
@@ -690,13 +732,10 @@ toDefinition (ValueType AvailableMoneyValueType) =
   BlockDefinition
     $ merge
         { type: show AvailableMoneyValueType
-        , message0: "Available Money %1 of currency %2 %3 token name %4 %5 from account number %6 %7 with owner %8 %9"
+        , message0: "Available Money %1 of currency %2 from account number %3 %4 with owner %5 %6"
         , args0:
           [ DummyRight
-          , Input { name: "currency_symbol", text: "", spellcheck: false }
-          , DummyRight
-          , Input { name: "token_name", text: "", spellcheck: false }
-          , DummyRight
+          , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
@@ -829,6 +868,7 @@ toolbox =
     , category [ name "Values", colour "135" ] (map mkBlock valueTypes)
     , category [ name "Payee", colour "210" ] (map mkBlock payeeTypes)
     , category [ name "Party", colour "180" ] (map mkBlock partyTypes)
+    , category [ name "Token", colour "255" ] (map mkBlock tokenTypes)
     , category [ name "Bounds", colour "75" ] (map mkBlock [ BoundsType ])
     ]
   where
@@ -854,6 +894,7 @@ buildGenerator blocklyState =
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) contractTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) payeeTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) partyTypes
+        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) tokenTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actionTypes
@@ -907,12 +948,9 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Case where
   blockDefinition DepositActionType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "account_owner"
-    currSym <- getFieldValue block "currency_symbol"
-    tokName <- getFieldValue block "token_name"
+    tok <- parse (Parser.parseToValue Parser.token) =<< statementToCode g block "token"
     let
       accountId = AccountId accountNumber accountOwner
-
-      tok = Token currSym tokName
     party <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "party"
     amount <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "amount"
     contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
@@ -953,17 +991,20 @@ instance hasBlockDefinitionParty :: HasBlockDefinition PartyType Party where
     role <- getFieldValue block "role"
     pure (Role role)
 
+instance hasBlockDefinitionToken :: HasBlockDefinition TokenType Token where
+  blockDefinition CustomTokenType g block = do
+    currSym <- getFieldValue block "currency_symbol"
+    tokName <- getFieldValue block "token_name"
+    pure (Token currSym tokName)
+
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract where
   blockDefinition CloseContractType _ _ = pure Close
   blockDefinition PayContractType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "account_owner"
-    currSym <- getFieldValue block "currency_symbol"
-    tokName <- getFieldValue block "token_name"
+    tok <- parse (Parser.parseToValue Parser.token) =<< statementToCode g block "token"
     let
       accountId = AccountId accountNumber accountOwner
-
-      tok = Token currSym tokName
     payee <- parse (Parser.parseToValue Parser.payee) =<< statementToCode g block "payee"
     value <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "amount"
     contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
@@ -1036,12 +1077,9 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
   blockDefinition AvailableMoneyValueType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "account_owner"
-    currSym <- getFieldValue block "currency_symbol"
-    tokName <- getFieldValue block "token_name"
+    tok <- parse (Parser.parseToValue Parser.token) =<< statementToCode g block "token"
     let
       accountId = AccountId accountNumber accountOwner
-
-      tok = Token currSym tokName
     pure (AvailableMoney accountId tok)
   blockDefinition ConstantValueType g block = do
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
@@ -1143,6 +1181,13 @@ instance toBlocklyParty :: ToBlockly Party where
     connectToOutput block input
     setField block "role" role
 
+instance toBlocklyToken :: ToBlockly Token where
+  toBlockly newBlock workspace input (Token currSym tokName) = do
+    block <- newBlock workspace (show CustomTokenType)
+    connectToOutput block input
+    setField block "currency_symbol" currSym
+    setField block "token_name" tokName
+
 nextBound :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array Bound -> ST r Unit
 nextBound newBlock workspace fromConnection bounds = do
   case uncons bounds of
@@ -1169,12 +1214,11 @@ instance toBlocklyBounds :: ToBlockly (Array Bound) where
         nextBound newBlock workspace fromConnection tail
 
 oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
-oneCaseToBlockly newBlock workspace (Case (Deposit (AccountId accountNumber accountOwner) party (Token currSym tokName) value) cont) = do
+oneCaseToBlockly newBlock workspace (Case (Deposit (AccountId accountNumber accountOwner) party tok value) cont) = do
   block <- newBlock workspace (show DepositActionType)
   setField block "account_number" (show accountNumber)
   inputToBlockly newBlock workspace block "account_owner" accountOwner
-  setField block "currency_symbol" currSym
-  setField block "token_name" tokName
+  inputToBlockly newBlock workspace block "token" tok
   inputToBlockly newBlock workspace block "party" party
   inputToBlockly newBlock workspace block "amount" value
   inputToBlockly newBlock workspace block "contract" cont
@@ -1219,13 +1263,12 @@ instance toBlocklyContract :: ToBlockly Contract where
   toBlockly newBlock workspace input Close = do
     block <- newBlock workspace (show CloseContractType)
     connectToPrevious block input
-  toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee (Token currSym tokName) value contract) = do
+  toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee tok value contract) = do
     block <- newBlock workspace (show PayContractType)
     connectToPrevious block input
     setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "account_owner" accountOwner
-    setField block "currency_symbol" currSym
-    setField block "token_name" tokName
+    inputToBlockly newBlock workspace block "token" tok
     inputToBlockly newBlock workspace block "payee" payee
     inputToBlockly newBlock workspace block "amount" value
     inputToBlockly newBlock workspace block "contract" contract
@@ -1301,13 +1344,12 @@ instance toBlocklyObservation :: ToBlockly Observation where
     connectToOutput block input
 
 instance toBlocklyValue :: ToBlockly Value where
-  toBlockly newBlock workspace input (AvailableMoney (AccountId accountNumber accountOwner) (Token currSym tokName)) = do
+  toBlockly newBlock workspace input (AvailableMoney (AccountId accountNumber accountOwner) tok) = do
     block <- newBlock workspace (show AvailableMoneyValueType)
     connectToOutput block input
     setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "account_owner" accountOwner
-    setField block "currency_symbol" currSym
-    setField block "token_name" tokName
+    inputToBlockly newBlock workspace block "token" tok
   toBlockly newBlock workspace input (Constant v) = do
     block <- newBlock workspace (show ConstantValueType)
     connectToOutput block input
