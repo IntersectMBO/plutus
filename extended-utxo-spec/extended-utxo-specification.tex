@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{4th February 2020}
+\date{11th March 2020}
 \author{}
 
 \documentclass[a4paper]{article}
@@ -128,7 +128,7 @@
 \newcommand{\val}{\mi{value}}  %% \value is already defined
 
 \newcommand{\validator}{\mi{validator}}
-\newcommand{\redeemerVal}{\mi{redeemerVal}}
+\newcommand{\redeemer}{\mi{redeemer}}
 \newcommand{\datum}{\mi{datum}}
 \newcommand{\datumHash}{\mi{datumHash}}
 \newcommand{\datumWits}{\mi{datumWitnesses}}
@@ -382,11 +382,12 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   interval.
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a \textit{redeemer value} of type \Data{}.
+  replaced with a \textit{redeemer object} (\textit{redeemer} for short) of
+  type \Data{}.
 
 \item Each unspent output now has an object of type \Data{} associated
-  with it: we call this the output's \textit{datum} (plural:
-  \textit{datums}) (see \cref{note:datum}).  Only the hash
+  with it: we call this the output's \textit{datum} (or occasionally
+  \emph{datum object}) (see \cref{note:datum}).  Only the hash
   $\datumHash$ of the datum is stored in the output: the full value
   must be provided when the output is spent, much like the validator.
 
@@ -394,13 +395,14 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   transaction (ie, the transaction which is just about to take place,
   assuming that validation succeeds). This information is contained in
   a structure which we call \ctx{} (see \cref{sec:context} for its
-  definition).
+  definition).  We may refer to this information as the
+  \textit{validation context} in cases where ambiguity may arise.
 
 \item Validation of an output is performed by running the validator
   with three inputs:
   \begin{enumerate}
-  \item the datum
-  \item the redeemer value,
+  \item the datum,
+  \item the redeemer,
   \item the \ctx{} information, encoded as \Data{}.
   \end{enumerate}
 
@@ -438,12 +440,12 @@ the ledger.
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
     \Address && \mbox{the ``address'' of a script in the blockchain}\\
-    \DataHash && \mbox{the hash of a value of type \Data{}}\\
+    \DataHash && \mbox{the hash of an object of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
-    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data value}\\
+    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
     \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
     \\
@@ -457,7 +459,7 @@ the ledger.
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
                & &\ \datum: \Data,\\
-               & &\ \redeemerVal: \Data)\\
+               & &\ \redeemer: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
@@ -508,14 +510,14 @@ that output: this requirement is enforced in
 \cref{rule:validator-scripts-hash} of
 \cref{fig:eutxo-1-validity} below.
 
-\paragraph{Scripts and hashes.} Note that datums and validators are
+\paragraph{Scripts and hashes.} Note that datum objects and validators are
 provided as parts of transaction inputs, even though they are
-\emph{conceptually} part of the output being spent.
-The reasons for this are explained in \cref{note:scripts}.
+conceptually part of the output being spent.  The reasons for
+this are explained in \cref{note:scripts}.
 
 \paragraph{Datum witnesses.} The transaction may include the full
 value of the datum for each output that it creates.  See
-\cref{note:data-witnesses} for more discussion.
+\cref{note:datum-witnesses} for more discussion.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -589,10 +591,10 @@ pending transaction.  The \i{outputInfo} field contains information
 about the outputs which will be produced if the pending transaction
 validates successfully: it contains only the address of the relevant
 validator, and the hash of the datum.\footnote{See
-  \cref{note:data-values-in-ptx} for further explanation.}  The
+  \cref{note:datum-objects-in-ptx} for further explanation.}  The
 \i{inputInfo} field contains information about the inputs to the
 pending transaction, but provides only the hashes of the validators
-and redeemer values for the inputs.  The \i{thisInput} field
+and redeemers for the inputs.  The \i{thisInput} field
 is an index pointing to the element of \i{inputInfo} relating to the
 input currently undergoing validation.
 % Note: in the code at the moment, the hashes of the validator
@@ -713,7 +715,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\datum,\, i.\redeemerVal,\,  \toData(\mkContext(t,i,l))) = \true.
+    i.\validator\rrbracket (i.\datum,\, i.\redeemer,\,  \toData(\mkContext(t,i,l))) = \true.
   \end{displaymath}
 
 \item
@@ -742,9 +744,9 @@ $l$ is \textit{valid} if either $l$ is empty or
 $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
-In practice, validity imposes a limit on the size of the
-$\validator$ \script{}; the $\redeemerVal$ and
-$\datum$ \Data{} fields; and the result of \toData. The validation of a
+In practice, validity imposes a limit on the sizes of the
+$\validator$ \script{}, the $\redeemer$ and
+$\datum$ \Data{} fields, and the result of \toData. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -810,7 +812,7 @@ currency, as in EUTXO-1.
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
                 & &\ \datum: \Data,\\
-                & &\ \redeemerVal: \Data)\\
+                & &\ \redeemer: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
@@ -965,7 +967,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\datum,\, i.\redeemerVal,\, \toData_2(\mkContext_2(t, i, l))) = \true
+    i.\validator\rrbracket(i.\datum,\, i.\redeemer,\, \toData_2(\mkContext_2(t, i, l))) = \true
   \end{displaymath}
 
 \item
@@ -1085,18 +1087,18 @@ which must be supplied with suitable evidence to unlock the output.
 In the basic model, each input to a transaction comes with a
 \i{validator} script which checks that the transaction is allowed to
 spend the output.  In order to spend an output, the transaction
-supplies a value, called the \i{redeemer value}, which provides
+supplies an object of type $\Data$, called the \i{redeemer}, which provides
 evidence that the transaction has the authority to do so;\footnote{The
   validator plays a role similar to that of BitCoin's
-  \texttt{scriptPubKey} and the redeemer value to \texttt{scriptSig}.
+  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.
 } a process called \i{validation} is then performed which checks that
-the redeemer value satisfies the conditions required by the validator.
+the redeemer satisfies the conditions required by the validator.
 Before a transaction can proceed, all inputs must be successfully
 validated: if one or more inputs fails to validate then the
 transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer value consists of a signature for the current transaction produced
+redeemer consists of a signature for the current transaction produced
 using a private key belonging to the owner of the output.  The
 validator script (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
@@ -1176,7 +1178,7 @@ check that the correct validator is in fact being used when validation
 occurs), but unspent outputs persist on-chain in the UTXO set until
 they are eventually spent.
 
-The same strategy applies to datums.
+The same strategy applies to datum objects.
 
 \note{Datum witnesses.}
 \label{note:datum-witnesses}
@@ -1193,8 +1195,8 @@ Hence there is a $\datumWits$ field on transactions, which \emph{may}
 contain mappings from the $\DataHash$es used in the transaction to
 their \Data{} values. This information is also present in \ctx{}.
 
-\note{Datums in \ctx{}.}
-\label{note:datums-in-ptx}
+\note{Datum objects in \ctx{}.}
+\label{note:datum-objects-in-ptx}
 In \cref{fig:ptx-1-types,fig:ptx-2-types} the
 \textsf{OutputInfo} does not include the datum attached to the output.
 These may be found in $\datumWits$.
