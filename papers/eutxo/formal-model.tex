@@ -295,14 +295,13 @@ introduction to Section~\ref{sec:eutxo}).
 \label{sec:eutxo-validity}
 
 Figure~\ref{fig:eutxo-validity} defines what it means for a transaction $t$
-to be valid for a ledger $l$ during the tick \currentTick, using some auxiliary functions from
+to be valid for a valid ledger $l$ during the tick \currentTick, using some auxiliary functions from
 Figure~\ref{fig:validation-functions-1}.
 Our definition combines
 Definitions 6 and 14 from Zahnentferner~\cite{Zahnentferner18-UTxO}, differing from
 the latter in Rule~\ref{rule:all-inputs-validate}.
 
-This definition extends to an entire ledger: a ledger
-$l$ is \textit{valid} if either $l$ is empty or
+A ledger $l$ is \textit{valid} if either $l$ is empty or
 $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 %%
